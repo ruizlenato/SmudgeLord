@@ -5,9 +5,12 @@ from smudge import tbot
 def register(**args):
     """ Registers a new message. """
     pattern = args.get('pattern', None)
+    group_only = args.get('group_only', False)
 
     r_pattern = r'^[/!]'
-
+    if "group_only" in args:
+        del args['group_only']
+        
     if pattern is not None and not pattern.startswith('(?i)'):
         args['pattern'] = '(?i)' + pattern
 

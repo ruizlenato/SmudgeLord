@@ -59,6 +59,10 @@ admin_disable_reaction: Disabled response to user-triggered admin commands.
 admin_enable_reaction: Enabled response to user-triggered admin commands.
 admin_err_wrong_arg: Please enter True or False!
 admin_reaction_status: Response for user-triggered admin commands is currently *{}*!
+zombies_admin_noperm: Eu não sou admin aqui então eu não posso remover essas contas excluídas.
+zombies_searching_accounts: 'Searching for zombie accounts...'
+zombies_cleaning: Cleaning deleted accounts..
+zombies_result_accounts: found **{}** deleted account(s) in this group\nclean them by using `/delusers` clean
 admin_help: |
     /adminlist | /admins: Lists the admins in the chat\n
     *Admin only:*
