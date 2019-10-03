@@ -231,6 +231,7 @@ def warns(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
     user_id = extract_user(message, args) or update.effective_user.id
     result = sql.get_warns(user_id, chat.id)
+    num = 1
 
     if result and result[0] != 0:
         num_warns, reasons = result
@@ -240,7 +241,8 @@ def warns(bot: Bot, update: Update, args: List[str]):
             text = tld(chat.id, 'warns_list_warns').format(
                 num_warns, limit)
             for reason in reasons:
-                text += "\n - {}".format(reason)
+                text += "\n {}. {}".format(num, reason)
+                num += 1
 
             msgs = split_message(text)
             for msg in msgs:
