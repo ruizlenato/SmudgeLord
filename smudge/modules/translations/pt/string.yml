@@ -84,22 +84,10 @@ afk_help: |
 
 #Android
 modname_android: Android
-magisk_releases: "**Últimos lançamentos do magisk:**\n"
-results_device: "Resultados da busca sobre **{}**:\n\n"
-results_device2: "Resultados da busca sobre **{} {}**:\n\n"
-results_device3: "**Marca:** {}\n**Modelo:** {}\n**Número do modelo:** {}\n\n"
-results_device4: "**Device(Dispositvo):** {}\n**Modelo:** {}\n**Número do modelo:** {}\n\n"
-download: "**Download:** [{}]({})\n"
-build_size: "**Tamanho do arquivo:** `{}`\n"
-build_date: "**Data da compilação:** `{}`\n"
-version: "**Versão:** `{}`\n"
-android_version: "**Versão do Android:** `{}`\n"
-rom_type: "**Tipo de ROM:** `{}`\n"
-maintainer: "**Mantedor:** `{}`\n"
-xda_thread: "**Tópico no XDA:** [AQUI]({})\n"
-changelog: "**Changelog:** `{}`\n"
-weekly: "**Semanalmente**"
-phh_releases: "**Últimos lançamentos de GSI do PHH:**\n"
+magisk_releases: "*Últimos lançamentos do magisk: *\n"
+whatis_device: "* {}* é o *{} {}*"
+whatis_no_device: "*Nenhum codenome fornecido,* escreva um codenome para obter informações.\n/device <codename> or <model>"
+twrp_release: "*Último TWRP oficial para {}*\n*{} - {}*\n*Atualizado em: {}*"
 err_not_found: Não foi possível encontrar nenhum resultado correspondente à sua consulta.
 err_api: Não foi possível acessar a API.
 err_example_device: 'Por que você está tentando obter o dispositivo de exemplo?'
@@ -107,20 +95,10 @@ err_json: Diga ao mantenedor da ROM para consertar seu json OTA. Estou certo de 
 btn_dl: Clique aqui para baixar
 cmd_example: 'Digite o **codename** do dispositivo!\nPor exemplo, `/{} tissot`'
 android_help: |
-  *ROMs*
-  - /evo <device>: Obtenha a versão mais recente da ROM Evolution X para um dispositivo
-  - /los <device>: Receba a versão mais recente da ROM LineageOS para um dispositivo
-  - /bootleggers <device>: Receba a versão mais recente da ROM Bootleggers para um dispositivo\n
-  *GSI*
-  - /phh: Receba as últimas GSIs AOSP do PHH!\n
   *Recovery*
   - /twrp <codename>: Obtém o twrp mais recente para um dispositivo Android através do codename.
-  - /ofox: Obtém a lista de dispositivos oficialmente suportados pelo Orange Fox Recovery Project.
-  - /ofox <codename>: Obtém o link de download e as informações básicas do OFRP para o dispositivo especificado.
-  - /ofoxbeta <codename>: O mesmo do /ofox só que a versão beta\n
   *Outros*
   - /magisk: Receba as últimas versões do Magisk.
-  - /codename <fabricante> <dispositivo>: Pesquise o codename do dispositivo Android.
   - /device <codename>: Obtenha informações sobre um dispositivo Android.
 
 # Antiflood

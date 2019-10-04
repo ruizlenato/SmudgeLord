@@ -83,43 +83,20 @@ afk_help: |
 
 #Android
 modname_android: Android
-magisk_releases: "**Latest Magisk Releases:**\n"
-results_device: "Search results for **{}**:\n\n"
-results_device2: "Search results for **{} {}:**\n\n"
-results_device3: "**Brand:** {}\n**Model:** {}\n**Model number:** {}\n\n"
-results_device4: "**Device:** {}\n**Model:** {}\n**Model number:** {}\n\n"
-download: "**Download:** [{}]({})\n"
-build_size: "**Build Size:** `{}`\n"
-build_date: "**Build Date:** `{}`\n"
-version: "**Version:** `{}`\n"
-android_version: "**Android Version:** `{}`\n"
-rom_type: "**ROM Type:** `{}`\n"
-maintainer: "**Maintainer:** {}\n"
-xda_thread: "**XDA Thread:** [Here]({})\n"
-changelog: "**Device Changelog:** `{}`\n"
-weekly: "**Weekly**\n"
-phh_releases: "**Phh's latest GSI release(s)**\n"
+magisk_releases: "*Latest Magisk Releases:*\n"
+whatis_device: "*{}* is *{} {}*"
+whatis_no_device: "*No codename provided,* write a codename for fetching informations.\n\nUsage: /device <codename> or <model>"
 err_not_found: Couldn't find any results matching your query.
+twrp_release: "*Latest Official TWRP for {}*\n*{} - {}*\n*Updated: {}*"
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
-err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
 btn_dl: Click here to Download
 cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
 android_help: |
-  *Device Specific ROM for a device*
-  - /evo <device>: Get the latest Evolution X ROM for a device
-  - /los <device>: Get the latest LineageOS ROM for a device
-  - /bootleggers <device>: Get the latest Bootleggers ROM for a device\n
-  *GSI*
-  - /phh: Get the latest PHH AOSP GSIs!\n
   *Recovery*
   - /twrp <codename>: Gets latest twrp for the android device using the codename.
-  - /ofox: Gets the list of officially supported devices by the Orange Fox Recovery Project.
-  - /ofox <device>: Gets the download link and basic OFRP information to the specified device.
-  - /ofoxbeta <codinome>:The same of /ofox but the beta version\n
   *Misc*
   - /magisk: Get latest Magisk releases.
-  - /codename <brand> <device>: Search for Android device codename.
   - /device <codename>: Get info about an Android device.
 
 
