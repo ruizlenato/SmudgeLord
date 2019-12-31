@@ -72,6 +72,9 @@ def slap(bot: Bot, update: Update, args: List[str]):
     if user_id:
         slapped_user = bot.get_chat(user_id)
         user1 = curr_user
+        if slapped_user.username == "RealAkito":
+            reply_text("Nah, Not doing that")
+            return
         if slapped_user.username:
             user2 = "@" + escape_markdown(slapped_user.username)
         else:
