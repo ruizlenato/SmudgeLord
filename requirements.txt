@@ -1,0 +1,35 @@
+emoji
+requests>=2.20.0
+sqlalchemy
+python-telegram-bot==11.1.0
+psycopg2
+psycopg2-binary
+feedparser
+pythonping
+
+#Memes from Skitt_Bot
+spongemock>=0.3.4
+zalgo-text
+nltk
+aiohttp>=2.2.5
+Pillow>=4.2.0
+#Cool stuff by Peak
+PyLyrics>=1.1.0
+#AEX
+hurry.filesize
+#TWRP
+bs4
+lxml
+#Translator
+googletrans>=2.4.0
+#Speed Test
+speedtest-cli>=2.1.2
+
+tldextract
+PyYAML
+wikipedia
+bleach
+markdown2
+regex
+
+pytz
