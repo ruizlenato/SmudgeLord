@@ -4,8 +4,8 @@ from typing import List, Dict
 from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode
 from telegram.error import TelegramError
 
-from haruka import LOAD, NO_LOAD
-from haruka.modules.translations.strings import tld
+from smudge import LOAD, NO_LOAD
+from smudge.modules.translations.strings import tld
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):
