@@ -3,8 +3,8 @@ from typing import List, Optional
 from telegram import Message, MessageEntity
 from telegram.error import BadRequest
 
-from hitsuki import LOGGER
-from hitsuki.modules.users import get_user_id
+from haruka import LOGGER
+from haruka.modules.users import get_user_id
 
 
 def id_from_reply(message):
