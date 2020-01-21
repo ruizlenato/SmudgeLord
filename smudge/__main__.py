@@ -11,17 +11,17 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryH
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 
-from hitsuki import dispatcher, updater, TOKEN, WEBHOOK, SUDO_USERS, OWNER_ID, CERT_PATH, PORT, URL, LOGGER, \
+from smudge import dispatcher, updater, TOKEN, WEBHOOK, SUDO_USERS, OWNER_ID, CERT_PATH, PORT, URL, LOGGER, \
     ALLOW_EXCL
 
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
-from hitsuki.modules import ALL_MODULES
-from hitsuki.modules.helper_funcs.chat_status import is_user_admin
-from hitsuki.modules.helper_funcs.misc import paginate_modules
-from hitsuki.modules.translations.strings import tld, tld_help
-from hitsuki.modules.sql import languages_sql as langsql
-from hitsuki.modules.connection import connected
+from smudge.modules import ALL_MODULES
+from smudge.modules.helper_funcs.chat_status import is_user_admin
+from smudge.modules.helper_funcs.misc import paginate_modules
+from smudge.modules.translations.strings import tld, tld_help
+from smudge.modules.sql import languages_sql as langsql
+from smudge.modules.connection import connected
 
 SOURCE_STRING = """
 I'm a modular Telegram Python bot running on python3 with an sqlalchemy database, using the python-telegram-bot library, and am fully opensource - you can find what makes me alive [here](https://github.com/HitaloKun/Hitsuki)
