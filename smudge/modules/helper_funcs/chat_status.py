@@ -3,9 +3,9 @@ from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
-import haruka.modules.sql.admin_sql as admin_sql
-import haruka.modules.sql.antispam_sql as sql
-from haruka import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
+import smudge.modules.sql.admin_sql as admin_sql
+import smudge.modules.sql.antispam_sql as sql
+from smudge import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:
