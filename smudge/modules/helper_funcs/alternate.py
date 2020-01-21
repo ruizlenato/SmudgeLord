@@ -7,7 +7,7 @@ from typing import Optional
 from telegram import User, Chat, ChatMember, Update, Bot
 from telegram import error
 
-from hitsuki import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
+from smudge import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 
 
 def send_message(message, text,  *args,**kwargs):
