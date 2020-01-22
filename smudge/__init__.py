@@ -63,7 +63,7 @@ if ENV:
     API_WEATHER = os.environ.get('API_OPENWEATHER', None)
 
 else:
-    from hitsuki.config import Development as Config
+    from smudge.config import Development as Config
 
     TOKEN = Config.API_KEY
     try:
@@ -119,7 +119,7 @@ WHITELIST_USERS = list(WHITELIST_USERS)
 SUPPORT_USERS = list(SUPPORT_USERS)
 
 # Load at end to ensure all prev variables have been set
-from hitsuki.modules.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
+from smudge.modules.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
 
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
