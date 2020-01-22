@@ -7,19 +7,21 @@ psycopg2-binary
 feedparser
 pythonping
 
-#Memes from Skitt_Bot
+#Memes
 spongemock>=0.3.4
 zalgo-text
 nltk
 aiohttp>=2.2.5
-Pillow>=4.2.0
-#Cool stuff by Peak
+Pillow>=4.2.
+
+#Cool
 PyLyrics>=1.1.0
-#AEX
+
+#Android
 hurry.filesize
-#TWRP
 bs4
 lxml
+
 #Translator
 googletrans>=2.4.0
 #Speed Test
