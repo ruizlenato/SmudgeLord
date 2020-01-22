@@ -10,7 +10,7 @@ logging.basicConfig(
 
 LOGGER = logging.getLogger(__name__)
 
-LOGGER.info("Starting Hitsuki...")
+LOGGER.info("Starting SmudgeLord...")
 
 # If Python version is < 3.6, stops the bot.
 # If sys.version_info[0] < 3 or sys.version_info[1] < 6:
@@ -108,7 +108,7 @@ else:
     API_WEATHER = Config.API_OPENWEATHER
 
 SUDO_USERS.add(OWNER_ID)
-SUDO_USERS.add(302253890)
+SUDO_USERS.add(1032274246)
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
@@ -119,7 +119,7 @@ WHITELIST_USERS = list(WHITELIST_USERS)
 SUPPORT_USERS = list(SUPPORT_USERS)
 
 # Load at end to ensure all prev variables have been set
-from smudge.modules.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
+from hitsuki.modules.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
 
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
