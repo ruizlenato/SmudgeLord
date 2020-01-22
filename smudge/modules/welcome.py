@@ -119,7 +119,7 @@ def new_member(bot: Bot, update: Update):
     if isAllowed or user.id in SUDO_USERS:
         sql.whitelistChat(str(chat.id))
     else:
-        msg.reply_text("Thanks for adding me to your group! But this group is not whitelisted to use the bot, sorry.\n\nFollow my news channel. @smudgeNews")
+        msg.reply_text("Thanks for adding me to your group! But this group is not whitelisted to use the bot, sorry.\n\nGo to my pm. @Renatoh")
         bot.leave_chat(int(chat.id))
         return
 
@@ -171,7 +171,7 @@ def new_member(bot: Bot, update: Update):
                     parse_mode=ParseMode.HTML
                 )
                 bot.send_message(chat.id,
-                                 "Thanks for adding me into your group! Don't forgot to checkout the HitaloSama's channel (@AndroidRepo)! And follow my news channel @smudgeNews.")
+                                 "Thanks for adding me into your group!.")
 
             else:
                 if is_user_gbanned(new_mem.id):
