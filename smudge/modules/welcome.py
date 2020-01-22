@@ -17,7 +17,7 @@ from smudge.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from smudge.modules.helper_funcs.msg_types import get_welcome_type
 from smudge.modules.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets, extract_time, markdown_to_html
-from haruka.modules.log_channel import loggable
+from smudge.modules.log_channel import loggable
 
 
 VALID_WELCOME_FORMATTERS = ['first', 'last', 'fullname', 'username', 'id', 'count', 'chatname', 'mention']
