@@ -4,7 +4,7 @@ from telegram import Message, MessageEntity
 from telegram.error import BadRequest
 
 from smudge import LOGGER
-from smudge.modules.users import get_user_id
+from smduge.modules.users import get_user_id
 
 
 def id_from_reply(message):
