@@ -24,7 +24,7 @@ from smudge.modules.sql import languages_sql as langsql
 from smudge.modules.connection import connected
 
 SOURCE_STRING = """
-I'm a modular Telegram Python bot running on python3 with an sqlalchemy database, using the python-telegram-bot library, and am fully opensource - you can find what makes me alive [here](https://github.com/HitaloKun/Hitsuki)
+I'm a modular Telegram Python bot running on python3 with an sqlalchemy database, using the python-telegram-bot library, and am fully opensource - you can find what makes me alive [here](https://github.com/RenatohRibeiro/SmudgeLord)
 """
 
 IMPORTED = {}
@@ -39,7 +39,7 @@ CHAT_SETTINGS = {}
 USER_SETTINGS = {}
 
 for module_name in ALL_MODULES:
-    imported_module = importlib.import_module("hitsuki.modules." + module_name)
+    imported_module = importlib.import_module("smudge.modules." + module_name)
     if not hasattr(imported_module, "__mod_name__"):
         imported_module.__mod_name__ = imported_module.__name__
 
