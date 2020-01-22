@@ -282,7 +282,7 @@ PortugueseBrStrings = {
     "Hey there! My name is *smudge* - I'm here to help you manage your groups!\nClick Help button to find out more about how to use me to my full potential.\n\nFollow [smudge](https://t.me/smudgeNews) ( @smudgeNews ) if you want to keep up with the news, updates and bot downtime!\n\n":
         "Olá! Meu nome é *smudge* - estou aqui para ajudá-lo a gerenciar seus grupos!\nClique no botão *help* para descobrir mais sobre como me usar em todo o meu potencial.\n\nSiga [smudge](https://t.me/smudgeNews) ( @smudgeNews ) se quiser acompanhar as notícias, atualizações e tempo de inatividade do bot!\n\n",
         
-    "This bot is managed by @HitaloSama\n\nWant to add me to your group? [Click here!](t.me/Lordsmudge_BOT?startgroup=true)": "Este bot é mantido por @HitaloSama\n\nDeseja me adicionar em seu grupo? [Clique aqui!](t.me/Lordsmudge_BOT?startgroup=true)",
+    "This bot is managed by @Renatog\n\nWant to add me to your group? [Click here!](t.me/SmudgeLordbot?startgroup=true)": "Este bot é mantido por @Renatoh\n\nDeseja me adicionar em seu grupo? [Clique aqui!](t.me/Smudgelordbot?startgroup=true)",
     
     "Sticker kanged successfully! \nPack can be found [here](t.me/addstickers/{packname})": "Sticker kangado com sucesso! \nPacote pode ser achado [aqui](t.me/addstickers/{packname})",
     
