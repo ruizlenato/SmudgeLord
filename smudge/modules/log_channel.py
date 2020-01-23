@@ -12,9 +12,9 @@ if is_module_loaded(FILENAME):
     from telegram.ext import CommandHandler, run_async
     from telegram.utils.helpers import escape_markdown
 
-    from hitsuki import dispatcher, LOGGER
-    from hitsuki.modules.helper_funcs.chat_status import user_admin
-    from hitsuki.modules.sql import log_channel_sql as sql
+    from smudge import dispatcher, LOGGER
+    from smudge.modules.helper_funcs.chat_status import user_admin
+    from smudge.modules.sql import log_channel_sql as sql
 
 
     def loggable(func):
