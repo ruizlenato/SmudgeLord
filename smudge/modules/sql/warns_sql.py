@@ -203,30 +203,6 @@ def get_warn_setting(chat_id):
         if setting:
             return setting.warn_limit, setting.soft_warn
         else:
-            return 3, False, 1
-
-    finally:
-        SESSION.close()
-
-
-def set_warn_mode(chat_id, warn_mode):
-    with WARN_SETTINGS_LOCK:
-        curr_setting = SESSION.query(WarnSettings).get(str(chat_id))
-        if not curr_setting:
-            curr_setting = WarnSettings(chat_id, warn_mode=warn_mode)
-
-        curr_setting.warn_mode = warn_mode
-
-        SESSION.add(curr_setting)
-        SESSION.commit()
-
-
-def get_warn_mode(chat_id):
-    try:
-        setting = SESSION.query(WarnSettings).get(str(chat_id))
-        if setting:
-            return setting.warn_mode, setting.warn_mode
-        else:
             return 3, False
 
     finally:
@@ -305,30 +281,6 @@ def migrate_chat(old_chat_id, new_chat_id):
         for setting in chat_settings:
             setting.chat_id = str(new_chat_id)
         SESSION.commit()
-
-
-def get_allwarns(chat_id):
-    get = SESSION.query(Warns).all()
-    allwarns = []
-    for x in get:
-        if x.chat_id == str(chat_id) and x.num_warns > 0:
-            allwarns.append({"user_id": x.user_id, 'warns': x.num_warns, 'reasons': x.reasons})
-    return allwarns
-
-
-def import_warns(user_id, chat_id, warns, reasons):
-    with WARN_INSERTION_LOCK:
-        warned_user = SESSION.query(Warns).get((user_id, str(chat_id)))
-        if not warned_user:
-            warned_user = Warns(user_id, str(chat_id))
-
-        warned_user.num_warns = warns
-        warned_user.reasons = reasons
-
-        SESSION.add(warned_user)
-        SESSION.commit()
-
-        return
 
 
 __load_chat_warn_filters()
