@@ -18,7 +18,7 @@ from smudge.modules.helper_funcs.filters import CustomFilters
 from smudge.modules.helper_funcs.misc import split_message
 from smudge.modules.helper_funcs.string_handling import split_quotes
 from smudge.modules.log_channel import loggable
-from v.modules.sql import warns_sql as sql
+from smudge.modules.sql import warns_sql as sql
 
 WARN_HANDLER_GROUP = 9
 CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
