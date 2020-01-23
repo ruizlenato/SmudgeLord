@@ -6,8 +6,9 @@ from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, BigInteger
 from smudge.modules.helper_funcs.msg_types import Types
 from smudge.modules.sql import SESSION, BASE
 
-DEFAULT_WELCOME = "Hey {first}, how are you?"
-DEFAULT_GOODBYE = "Nice knowing ya!"
+DEFAULT_WELCOME = "Hey there {first}, How are you?"
+DEFAULT_GOODBYE = "Nice knowing you!"
+
 
 class Welcome(BASE):
     __tablename__ = "welcome_pref"
@@ -76,6 +77,30 @@ class CleanServiceSetting(BASE):
         return "<Chat used clean service ({})>".format(self.chat_id)
 
 
+class CombotCASStatus(BASE):
+    __tablename__ = "cas_stats"
+    chat_id = Column(String(14), primary_key=True)
+    status = Column(Boolean, default=True)
+    autoban = Column(Boolean, default=False)
+
+    def __init__(self, chat_id, status, autoban):
+        self.chat_id = str(chat_id)  # chat_id is int, make sure it's string
+        self.status = status
+        self.autoban = autoban
+
+
+Welcome.__table__.create(checkfirst=True)
+WelcomeButtons.__table__.create(checkfirst=True)
+GoodbyeButtons.__table__.create(checkfirst=True)
+CombotCASStatus.__table__.create(checkfirst=True)
+
+INSERTION_LOCK = threading.RLock()
+WELC_BTN_LOCK = threading.RLock()
+LEAVE_BTN_LOCK = threading.RLock()
+WM_LOCK = threading.RLock()
+CAS_LOCK = threading.RLock()
+
+
 class WelcomeSecurity(BASE):
     __tablename__ = "welcome_security"
     chat_id = Column(String(14), primary_key=True)
@@ -84,10 +109,11 @@ class WelcomeSecurity(BASE):
     custom_text = Column(UnicodeText, default="Klik disini untuk mensuarakan")
 
     def __init__(self, chat_id, security=False, mute_time="0", custom_text="Klik disini untuk mensuarakan"):
-        self.chat_id = str(chat_id) # ensure string
+        self.chat_id = str(chat_id)  # ensure string
         self.security = security
         self.mute_time = mute_time
         self.custom_text = custom_text
+
 
 class UserRestirect(BASE):
     __tablename__ = "welcome_restirectlist"
@@ -107,12 +133,21 @@ class UserRestirect(BASE):
                     and self.user_id == other.user_id)
 
 
+class AllowedChat(BASE):
+    __tablename__ = "chat_whitelist"
+    chat_id = Column(String(14), primary_key=True)
+
+    def __init__(self, chat_id):
+        self.chat_id = str(chat_id)  # chat_id is int, make sure it is string
+
+
 Welcome.__table__.create(checkfirst=True)
 WelcomeButtons.__table__.create(checkfirst=True)
 GoodbyeButtons.__table__.create(checkfirst=True)
 CleanServiceSetting.__table__.create(checkfirst=True)
 WelcomeSecurity.__table__.create(checkfirst=True)
 UserRestirect.__table__.create(checkfirst=True)
+AllowedChat.__table__.create(checkfirst=True)
 
 INSERTION_LOCK = threading.RLock()
 WELC_BTN_LOCK = threading.RLock()
@@ -120,8 +155,11 @@ LEAVE_BTN_LOCK = threading.RLock()
 CS_LOCK = threading.RLock()
 WS_LOCK = threading.RLock()
 UR_LOCK = threading.RLock()
+ALLOWCHATLOCK = threading.RLock()
 
 CHAT_USERRESTIRECT = {}
+
+WHITELIST = set()
 
 
 def add_to_userlist(chat_id, user_id):
@@ -150,6 +188,7 @@ def rm_from_userlist(chat_id, user_id):
 
         SESSION.close()
         return False
+
 
 def get_chat_userlist(chat_id):
     return CHAT_USERRESTIRECT.get(str(chat_id), set())
@@ -367,6 +406,50 @@ def get_gdbye_buttons(chat_id):
         SESSION.close()
 
 
+def get_cas_status(chat_id):
+    try:
+        resultObj = SESSION.query(CombotCASStatus).get(str(chat_id))
+        if resultObj:
+            return resultObj.status
+        return True
+    finally:
+        SESSION.close()
+
+
+def set_cas_status(chat_id, status):
+    with CAS_LOCK:
+        ban = False
+        prevObj = SESSION.query(CombotCASStatus).get(str(chat_id))
+        if prevObj:
+            ban = prevObj.autoban
+            SESSION.delete(prevObj)
+        newObj = CombotCASStatus(str(chat_id), status, ban)
+        SESSION.add(newObj)
+        SESSION.commit()
+
+
+def get_cas_autoban(chat_id):
+    try:
+        resultObj = SESSION.query(CombotCASStatus).get(str(chat_id))
+        if resultObj and resultObj.autoban:
+            return resultObj.autoban
+        return False
+    finally:
+        SESSION.close()
+
+
+def set_cas_autoban(chat_id, autoban):
+    with CAS_LOCK:
+        status = True
+        prevObj = SESSION.query(CombotCASStatus).get(str(chat_id))
+        if prevObj:
+            status = prevObj.status
+            SESSION.delete(prevObj)
+        newObj = CombotCASStatus(str(chat_id), status, autoban)
+        SESSION.add(newObj)
+        SESSION.commit()
+
+
 def migrate_chat(old_chat_id, new_chat_id):
     with INSERTION_LOCK:
         chat = SESSION.query(Welcome).get(str(old_chat_id))
@@ -385,6 +468,7 @@ def migrate_chat(old_chat_id, new_chat_id):
 
         SESSION.commit()
 
+
 def __load_chat_userrestirect():
     global CHAT_USERRESTIRECT
     try:
@@ -400,5 +484,39 @@ def __load_chat_userrestirect():
 
     finally:
         SESSION.close()
+
+
+def __load_whitelisted_chats_list():  # load shit to memory to be faster, and reduce disk access
+    global WHITELIST
+    try:
+        WHITELIST = {x.chat_id for x in SESSION.query(AllowedChat).all()}
+    finally:
+        SESSION.close()
+
+
+def whitelistChat(chat_id):
+    with ALLOWCHATLOCK:
+        chat = SESSION.query(AllowedChat).get(chat_id)
+        if not chat:
+            chat = AllowedChat(chat_id)
+            SESSION.merge(chat)
+        SESSION.commit()
+        __load_whitelisted_chats_list()
+
+
+def unwhitelistChat(chat_id):
+    with ALLOWCHATLOCK:
+        chat = SESSION.query(AllowedChat).get(chat_id)
+        if chat:
+            SESSION.delete(chat)
+        SESSION.commit()
+        __load_whitelisted_chats_list()
+
+
+def isWhitelisted(chat_id):
+    return chat_id in WHITELIST
+
+
+__load_whitelisted_chats_list()
 
 __load_chat_userrestirect()
