@@ -265,7 +265,7 @@ PortugueseBrStrings = {
     "No.": "Não.",
     "Maybe.": "Talvez.",
     
-    "{} <b>has been warned!</b>\nThey have {}/{} warnings.": " {} <b>foi avisado!</b>\nEle tem {}/{} avisos.",
+    "{} <b>has been warned!</b>\nTotal warn that this user have {}/{}.": " {} <b>foi advertido!</b>\nEle tem {}/{}.",
     "\nThe latest warning was because:\n<code>{}</code>": "\nO último aviso foi por:\n<code>{}</code>",
     
     "Switched to {} successfully!": "Alterado para {} com sucesso!",
@@ -277,7 +277,7 @@ PortugueseBrStrings = {
     "Invalid <user>/<repo> combo": "Combinação de <usuário>/<repo> inválida",
     
     "Click here to get this chat's settings, as well as yours.": "Clique no botão abaixo para obter as configurações deste grupos e as suas.",
-    "Hey there! I'm alive :3 PM me if you have any questions on how to use me!": "Olá! Estou vivo :3, se você tiver alguma dúvida sobre como me usar me chame no PV!",
+    "Hey there! I'm alive :3 PM me if you have any questions on how to use me!": "Oi Gatinha! Estou vivo :3 me chama no PV!",
     "Control Panel :3": "Painel de controle :3",
     "Hey there! My name is *smudge* - I'm here to help you manage your groups!\nClick Help button to find out more about how to use me to my full potential.\n\nFollow [smudge](https://t.me/smudgeNews) ( @smudgeNews ) if you want to keep up with the news, updates and bot downtime!\n\n":
         "Olá! Meu nome é *smudge* - estou aqui para ajudá-lo a gerenciar seus grupos!\nClique no botão *help* para descobrir mais sobre como me usar em todo o meu potencial.\n\nSiga [smudge](https://t.me/smudgeNews) ( @smudgeNews ) se quiser acompanhar as notícias, atualizações e tempo de inatividade do bot!\n\n",
