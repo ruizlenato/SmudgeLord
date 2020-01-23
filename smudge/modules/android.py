@@ -24,7 +24,7 @@ from smudge.modules.helper_funcs.misc import split_message
 # Command /getfw /magisk /twrp and /device were obtained thanks to corsicanu bot (originally kanged from UserBot PaperplaneExtended)
 # Command /specs was only possible thanks to the help of AvinashReddy3108
 
-LOGGER.info("Original Android Modules by @RealAkito on Telegram, modified by @HitaloSama on Telegram")
+LOGGER.info("Original Android Modules by @RealAkito on Telegram, modified by @Renatoh on Telegram")
 
 GITHUB = 'https://github.com'
 DEVICES_DATA = 'https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/devices.json'
