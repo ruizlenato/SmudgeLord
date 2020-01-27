@@ -1,4 +1,5 @@
 import html
+import time
 from io import BytesIO
 from typing import Optional, List
 
@@ -284,7 +285,6 @@ def check_and_ban(update, user_id, should_message=True):
 
             update.effective_message.reply_text(f"*This user is gbanned and has been removed.*\nReason: `{usrreason}`", parse_mode=ParseMode.MARKDOWN)
 
-
 @run_async
 def enforce_gban(bot: Bot, update: Update):
     # Not using @restrict handler to avoid spamming - just ignore if cant gban.
@@ -333,6 +333,22 @@ def antispam(bot: Bot, update: Update, args: List[str]):
                                             "When True, any gbans that happen will also happen in your group. "
                                             "When False, they won't, leaving you at the possible mercy of "
                                             "spammers.").format(sql.does_chat_gban(chat.id)))
+
+@run_async
+def clear_gbans(bot: Bot, update: Update):
+    banned = sql.get_gban_list()
+    deleted = 0
+    update.message.reply_text("*Beginning to cleanup deleted users from global ban database...*\nThis process might take a while...", parse_mode=ParseMode.MARKDOWN)
+    for user in banned:
+        id = user["user_id"]
+        time.sleep(0.1) # Reduce floodwait
+        try:
+            bot.get_chat(id)
+        except BadRequest:
+            deleted += 1
+            sql.ungban_user(id)
+    update.message.reply_text("Done! {} deleted accounts were removed " \
+    "from the gbanlist.".format(deleted), parse_mode=ParseMode.MARKDOWN)
 
 
 def __stats__():
@@ -386,11 +402,13 @@ GBAN_HANDLER = CommandHandler(["gban", "fban"], gban, pass_args=True, filters=Cu
 UNGBAN_HANDLER = CommandHandler("ungban", ungban, pass_args=True, filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
 GBAN_LIST = CommandHandler("gbanlist", gbanlist, filters=CustomFilters.sudo_filter | CustomFilters.support_filter)
 GBAN_ENFORCER = MessageHandler(Filters.all & Filters.group, enforce_gban)
+CLEAN_DELACC_HANDLER = CommandHandler("cleandelacc", clear_gbans, filters=Filters.user(OWNER_ID))
 
 dispatcher.add_handler(ANTISPAM_STATUS)
 
 dispatcher.add_handler(GBAN_HANDLER)
 dispatcher.add_handler(UNGBAN_HANDLER)
+dispatcher.add_handler(CLEAN_DELACC_HANDLER)
 #dispatcher.add_handler(GBAN_LIST)
 
 if STRICT_ANTISPAM:  # enforce GBANS if this is set
