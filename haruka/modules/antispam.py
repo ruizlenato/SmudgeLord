@@ -352,7 +352,7 @@ def clear_gbans(bot: Bot, update: Update):
 
 
 def __stats__():
-    return "{} gbanned users.".format(sql.num_gbanned_users())
+    return "{} gbanned users. [Note, We regularly clean off deleted account from the database]".format(sql.num_gbanned_users())
 
 
 def __user_info__(user_id, chat_id):
@@ -361,7 +361,7 @@ def __user_info__(user_id, chat_id):
 
     if not user_id in SUDO_USERS:
 
-        text = tld(chat_id, "Globally banned: <b>{}</b>")
+        text = tld(chat_id, "Globally banned: <b>{}</b>\n<b>Appeal at:</b> @HarukaAyaGroup")
         if is_gbanned:
             text = text.format(tld(chat_id, "Yes"))
             user = sql.get_gbanned_user(user_id)

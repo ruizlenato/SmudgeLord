@@ -25,7 +25,6 @@ from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_US
 from haruka.__main__ import GDPR
 from haruka.__main__ import STATS, USER_INFO
 from haruka.modules.disable import DisableAbleCommandHandler
-from haruka.modules.helper_funcs.chat_status import user_is_gbanned
 from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.helper_funcs.filters import CustomFilters
 from haruka.modules.rextester.api import Rextester, CompilerError
@@ -38,7 +37,6 @@ from haruka.modules.translations.strings import tld
 from requests import get
 
 
-@user_is_gbanned
 @run_async
 def insults(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
@@ -46,14 +44,12 @@ def insults(bot: Bot, update: Update):
     update.effective_message.reply_text(text)
 
 
-@user_is_gbanned
 @run_async
 def runs(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     update.effective_message.reply_text(random.choice(tld(chat.id, "RUNS-K")))
 
 
-@user_is_gbanned
 @run_async
 def slap(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
@@ -108,7 +104,6 @@ def get_bot_ip(bot: Bot, update: Update):
     update.message.reply_text(res.text)
 
 
-@user_is_gbanned
 @run_async
 def get_id(bot: Bot, update: Update, args: List[str]):
     user_id = extract_user(update.effective_message, args)
@@ -139,7 +134,6 @@ def get_id(bot: Bot, update: Update, args: List[str]):
                                                 parse_mode=ParseMode.MARKDOWN)
 
 
-@user_is_gbanned
 @run_async
 def info(bot: Bot, update: Update, args: List[str]):
     msg = update.effective_message  # type: Optional[Message]
@@ -210,7 +204,6 @@ def echo(bot: Bot, update: Update):
         message.reply_text(args[1], quote=False)
 
 
-@user_is_gbanned
 @run_async
 def reply_keyboard_remove(bot: Bot, update: Update):
     reply_keyboard = []
@@ -243,7 +236,6 @@ def gdpr(bot: Bot, update: Update):
     update.effective_message.reply_text(tld(update.effective_chat.id, "send_gdpr"), parse_mode=ParseMode.MARKDOWN)
 
 
-@user_is_gbanned
 @run_async
 def markdown_help(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
@@ -259,7 +251,6 @@ def stats(bot: Bot, update: Update):
     update.effective_message.reply_text("Current stats:\n" + "\n".join([mod.__stats__() for mod in STATS]))
 
 
-@user_is_gbanned
 @run_async
 def ping(bot: Bot, update: Update):
     tg_api = ping3('api.telegram.org', count=4)
@@ -281,7 +272,6 @@ def ping(bot: Bot, update: Update):
 #        update.effective_message.reply_text('*Searching:*\n`' + str(query[1]) + '`\n\n*RESULTS:*\n' + result, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 
-@user_is_gbanned
 @run_async
 def github(bot: Bot, update: Update):
     message = update.effective_message
@@ -323,7 +313,6 @@ def github(bot: Bot, update: Update):
     message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 
-@user_is_gbanned
 @run_async
 def repo(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
@@ -338,7 +327,6 @@ def repo(bot: Bot, update: Update, args: List[str]):
 LYRICSINFO = "\n[Full Lyrics](http://lyrics.wikia.com/wiki/%s:%s)"
 
 
-@user_is_gbanned
 @run_async
 def lyrics(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
@@ -371,7 +359,6 @@ def lyrics(bot: Bot, update: Update, args: List[str]):
 BASE_URL = 'https://del.dog'
 
 
-@user_is_gbanned
 @run_async
 def paste(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
@@ -404,7 +391,6 @@ def paste(bot: Bot, update: Update, args: List[str]):
     update.effective_message.reply_text(reply, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
 
-@user_is_gbanned
 @run_async
 def get_paste_content(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
@@ -439,7 +425,6 @@ def get_paste_content(bot: Bot, update: Update, args: List[str]):
     update.effective_message.reply_text('```' + escape_markdown(r.text) + '```', parse_mode=ParseMode.MARKDOWN)
 
 
-@user_is_gbanned
 @run_async
 def get_paste_stats(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
@@ -478,7 +463,6 @@ def get_paste_stats(bot: Bot, update: Update, args: List[str]):
     update.effective_message.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
 
 
-@user_is_gbanned
 @run_async
 def ud(bot: Bot, update: Update):
   message = update.effective_message
@@ -488,7 +472,6 @@ def ud(bot: Bot, update: Update):
   message.reply_text(reply_text)
 
 
-@user_is_gbanned
 @run_async
 def execute(bot: Bot, update: Update, args: List[str]):
 
@@ -527,7 +510,6 @@ def execute(bot: Bot, update: Update, args: List[str]):
     message.reply_text(output, parse_mode=ParseMode.MARKDOWN)
 
 
-@user_is_gbanned
 @run_async
 def wiki(bot: Bot, update: Update):
     kueri = re.split(pattern="wiki", string=update.effective_message.text)
