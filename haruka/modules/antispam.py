@@ -361,9 +361,10 @@ def __user_info__(user_id, chat_id):
 
     if not user_id in SUDO_USERS:
 
-        text = tld(chat_id, "Globally banned: <b>{}</b>\n<b>Appeal at:</b> @HarukaAyaGroup")
+        text = tld(chat_id, "Globally banned: <b>{}</b>")
         if is_gbanned:
             text = text.format(tld(chat_id, "Yes"))
+            text += tld(chat_id, "\n<b>Appeal at:</b> @HarukaAyaGroup")
             user = sql.get_gbanned_user(user_id)
             if user.reason:
                 text += tld(chat_id, "\nReason: {}").format(html.escape(user.reason))
