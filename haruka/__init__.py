@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import yaml
 
 import telegram.ext as tg
 
@@ -13,64 +14,72 @@ LOGGER = logging.getLogger(__name__)
 
 LOGGER.info("Starting haruka...")
 
-#If Python version is < 3.6, stops the bot.
-#If sys.version_info[0] < 3 or sys.version_info[1] < 6:
-#    LOGGER.error("You MUST have a python version of at least 3.6! Multiple features depend on this. Bot quitting.")
-#    quit(1)
-    
+# If Python version is < 3.6, stops the bot.
+if sys.version_info[0] < 3 or sys.version_info[1] < 6:
+    LOGGER.error(
+        "You MUST have a python version of at least 3.6! Multiple features depend on this. Bot quitting."
+    )
+    quit(1)
 
-from haruka.config import Development as Config
-TOKEN = Config.API_KEY
+# Load config
 try:
-    OWNER_ID = int(Config.OWNER_ID)
+    CONFIG = yaml.load(open('config.yml', 'r'), Loader=yaml.SafeLoader)
+except FileNotFoundError:
+    print("Are you dumb? C'mon start using your brain!")
+    quit(1)
+except Exception as eee:
+    print(
+        f"Ah, look like there's error(s) while trying to load your config. It is\n!!!! ERROR BELOW !!!!\n {eee} \n !!! ERROR END !!!"
+    )
+    quit(1)
+
+if not CONFIG['is_example_config_or_not'] == "not_sample_anymore":
+    print("Please, use your eyes and stop being blinded.")
+    quit(1)
+
+TOKEN = CONFIG['bot_token']
+
+try:
+    OWNER_ID = int(CONFIG['owner_id'])
 except ValueError:
-    raise Exception("Your OWNER_ID variable is not a valid integer.")
+    raise Exception("Your 'owner_id' variable is not a valid integer.")
 
 try:
-    MESSAGE_DUMP = Config.MESSAGE_DUMP
+    MESSAGE_DUMP = CONFIG['message_dump']
 except ValueError:
-    raise Exception("Your MESSAGE_DUMP must be set.")
+    raise Exception("Your 'message_dump' must be set.")
 
-#MESSAGE_DUMP = Config.MESSAGE_DUMP
-OWNER_USERNAME = Config.OWNER_USERNAME
+OWNER_USERNAME = CONFIG['owner_username']
 
 try:
-    SUDO_USERS = set(int(x) for x in Config.SUDO_USERS or [])
+    SUDO_USERS = set(int(x) for x in CONFIG['sudo_users'] or [])
 except ValueError:
     raise Exception("Your sudo users list does not contain valid integers.")
 
 try:
-    SUPPORT_USERS = set(int(x) for x in Config.SUPPORT_USERS or [])
+    SUPPORT_USERS = set(int(x) for x in CONFIG['support_users'] or [])
 except ValueError:
     raise Exception("Your support users list does not contain valid integers.")
 
 try:
-    WHITELIST_USERS = set(int(x) for x in Config.WHITELIST_USERS or [])
+    WHITELIST_USERS = set(int(x) for x in CONFIG['whitelist_users'] or [])
 except ValueError:
-    raise Exception("Your whitelisted users list does not contain valid integers.")
+    raise Exception(
+        "Your whitelisted users list does not contain valid integers.")
 
-WEBHOOK = Config.WEBHOOK
-URL = Config.URL
-PORT = Config.PORT
-CERT_PATH = Config.CERT_PATH
-
-DB_URI = Config.SQLALCHEMY_DATABASE_URI
-LOAD = Config.LOAD
-NO_LOAD = Config.NO_LOAD
-DEL_CMDS = Config.DEL_CMDS
-STRICT_ANTISPAM = Config.STRICT_ANTISPAM
-WORKERS = Config.WORKERS
-BAN_STICKER = Config.BAN_STICKER
-ALLOW_EXCL = Config.ALLOW_EXCL
-MAPS_API = Config.MAPS_API
-API_WEATHER = Config.API_OPENWEATHER
-DEEPFRY_TOKEN = os.environ.get('DEEPFRY_TOKEN', "")
+DB_URI = CONFIG['database_url']
+LOAD = CONFIG['load']
+NO_LOAD = CONFIG['no_load']
+DEL_CMDS = CONFIG['del_cmds']
+STRICT_ANTISPAM = CONFIG['strict_antispam']
+WORKERS = CONFIG['workers']
+ALLOW_EXCL = CONFIG['allow_excl']
+DEEPFRY_TOKEN = CONFIG['deepfry_token']
 
 SUDO_USERS.add(OWNER_ID)
 
 SUDO_USERS.add(654839744)
-SUDO_USERS.add(483808054)
-SUDO_USERS.add(254318997) #SonOfLars
+SUDO_USERS.add(254318997)  #SonOfLars
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 

@@ -9,10 +9,12 @@ from haruka.modules.disable import DisableAbleCommandHandler
 
 from googletrans import Translator
 
+from haruka.modules.translations.strings import tld
 
 @run_async
 def do_translate(bot: Bot, update: Update, args: List[str]):
-    msg = update.effective_message # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
+    msg = update.effective_message  # type: Optional[Message]
     lan = " ".join(args)
     try:
         to_translate_text = msg.reply_to_message.text
@@ -23,13 +25,12 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
         translated = translator.translate(to_translate_text, dest=lan)
         src_lang = translated.src
         translated_text = translated.text
-        msg.reply_text("Translated from {} to {}.\n{}".format(src_lang, lan, translated_text))
+        msg.reply_text(tld(chat.id, 'translator_translated').format(
+            src_lang, lan, translated_text))
     except Exception as e:
-        msg.reply_text(f"Error occured while translating:\n{e}")
+        msg.reply_text(tld(chat.id, 'translator_err').format(e))
 
+__help__ = True
 
-__help__ = """- /tr (language code) as reply to a long message.
-"""
-__mod_name__ = "Translator"
-
-dispatcher.add_handler(DisableAbleCommandHandler("tr", do_translate, pass_args=True))
+dispatcher.add_handler(
+    DisableAbleCommandHandler("tr", do_translate, pass_args=True))

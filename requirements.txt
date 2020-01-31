@@ -3,26 +3,20 @@ emoji
 requests>=2.20.0
 sqlalchemy
 python-telegram-bot==11.1.0
-psycopg2
+psycopg2-binary
 feedparser
-pythonping
 pynewtonmath
-#memes from SkittBot
 spongemock
 zalgo-text
 geopy
 nltk
 aiohttp>=2.2.5
 Pillow>=4.2.0
-#Cool stuff by Peak
 PyLyrics
-#AEX
 hurry.filesize
-#translator
 googletrans
-
 tldextract
-PyYAML
+PyYAML==5.1.2 
 pyowm
 wikipedia
 bleach

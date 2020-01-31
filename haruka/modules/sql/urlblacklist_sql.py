@@ -33,8 +33,8 @@ def blacklist_url(chat_id, domain):
 
 def rm_url_from_blacklist(chat_id, domain):
     with URL_BLACKLIST_FILTER_INSERTION_LOCK:
-        domain_filt = SESSION.query(
-            URLBlackListFilters).get((str(chat_id), domain))
+        domain_filt = SESSION.query(URLBlackListFilters).get(
+            (str(chat_id), domain))
         if domain_filt:
             if domain in CHAT_URL_BLACKLISTS.get(str(chat_id), set()):
                 CHAT_URL_BLACKLISTS.get(str(chat_id), set()).remove(domain)
@@ -54,15 +54,16 @@ def _load_chat_blacklist():
     global CHAT_URL_BLACKLISTS
     try:
         chats = SESSION.query(URLBlackListFilters.chat_id).distinct().all()
-        for (chat_id,) in chats:
+        for (chat_id, ) in chats:
             CHAT_URL_BLACKLISTS[chat_id] = []
 
         all_urls = SESSION.query(URLBlackListFilters).all()
         for url in all_urls:
             CHAT_URL_BLACKLISTS[url.chat_id] += [url.domain]
         CHAT_URL_BLACKLISTS = {
-            k: set(v) for k,
-            v in CHAT_URL_BLACKLISTS.items()}
+            k: set(v)
+            for k, v in CHAT_URL_BLACKLISTS.items()
+        }
     finally:
         SESSION.close()
 

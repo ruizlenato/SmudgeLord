@@ -12,10 +12,11 @@ import haruka.modules.sql.connection_sql as con_sql
 
 
 def keyboard(bot, update):
+    chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     conn_id = con_sql.get_connected_chat(user.id)
     if conn_id and not conn_id == False:
-        btn1 = "/disconnect - Disconnect from chat"
+        btn1 = "/disconnect - {}".format(tld(chat.id, "keyboard_disconnect"))
         btn2 = ""
         btn3 = ""
     else:
@@ -39,7 +40,7 @@ def keyboard(bot, update):
         if chat_name1:
             btn1 = "/connect {} - {}".format(history.chat_id1, chat_name1)
         else:
-            btn1 = "/connect - Connect to the chat"
+            btn1 = "/connect - {}".format(tld(chat.id, "keyboard_connect"))
         if chat_name2:
             btn2 = "/connect {} - {}".format(history.chat_id2, chat_name2)
         else:
@@ -51,14 +52,16 @@ def keyboard(bot, update):
 
         #TODO: Remove except garbage
 
-    update.effective_message.reply_text("Keyboard Updated",
-                                            reply_markup=ReplyKeyboardMarkup([[
-                                                KeyboardButton("/help - Bot Help"), 
-                                                KeyboardButton("/notes - Notes")],
-                                             [KeyboardButton(btn1)], 
-                                             [KeyboardButton(btn2)],
-                                             [KeyboardButton(btn3)]]))
-    
+    update.effective_message.reply_text(
+        tld(chat.id, "keyboard_updated"),
+        reply_markup=ReplyKeyboardMarkup([[
+            KeyboardButton("/help - {}".format(tld(chat.id,
+                                                   "keyboard_bothelp"))),
+            KeyboardButton("/notes - {}".format(tld(chat.id,
+                                                    "keyboard_notes")))
+        ], [KeyboardButton(btn1)], [KeyboardButton(btn2)],
+                                          [KeyboardButton(btn3)]]))
+
 
 KEYBOARD_HANDLER = CommandHandler(["keyboard"], keyboard)
 dispatcher.add_handler(KEYBOARD_HANDLER)

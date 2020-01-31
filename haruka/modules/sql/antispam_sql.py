@@ -20,9 +20,11 @@ class GloballyBannedUsers(BASE):
         return "<GBanned User {} ({})>".format(self.name, self.user_id)
 
     def to_dict(self):
-        return {"user_id": self.user_id,
-                "name": self.name,
-                "reason": self.reason}
+        return {
+            "user_id": self.user_id,
+            "name": self.name,
+            "reason": self.reason
+        }
 
 
 class GloballyMutedUsers(BASE):
@@ -40,9 +42,11 @@ class GloballyMutedUsers(BASE):
         return "<GMuted User {} ({})>".format(self.name, self.user_id)
 
     def to_dict(self):
-        return {"user_id": self.user_id,
-                "name": self.name,
-                "reason": self.reason}
+        return {
+            "user_id": self.user_id,
+            "name": self.name,
+            "reason": self.reason
+        }
 
 
 class AntispamSettings(BASE):
@@ -166,7 +170,10 @@ def num_gbanned_users():
 def __load_gbanned_userid_list():
     global GBANNED_LIST
     try:
-        GBANNED_LIST = {x.user_id for x in SESSION.query(GloballyBannedUsers).all()}
+        GBANNED_LIST = {
+            x.user_id
+            for x in SESSION.query(GloballyBannedUsers).all()
+        }
     finally:
         SESSION.close()
 
@@ -174,11 +181,16 @@ def __load_gbanned_userid_list():
 def __load_gban_stat_list():
     global GBANSTAT_LIST
     try:
-        GBANSTAT_LIST = {x.chat_id for x in SESSION.query(AntispamSettings).all() if not x.setting}
+        GBANSTAT_LIST = {
+            x.chat_id
+            for x in SESSION.query(AntispamSettings).all() if not x.setting
+        }
     finally:
         SESSION.close()
 
+
 #Gmute
+
 
 def gmute_user(user_id, name, reason=None):
     with GMUTED_USERS_LOCK:
@@ -246,7 +258,10 @@ def num_gmuted_users():
 def __load_gmuted_userid_list():
     global GMUTED_LIST
     try:
-        GMUTED_LIST = {x.user_id for x in SESSION.query(GloballyMutedUsers).all()}
+        GMUTED_LIST = {
+            x.user_id
+            for x in SESSION.query(GloballyMutedUsers).all()
+        }
     finally:
         SESSION.close()
 
@@ -254,10 +269,12 @@ def __load_gmuted_userid_list():
 def __load_gmute_stat_list():
     global GMUTESTAT_LIST
     try:
-        GMUTESTAT_LIST = {x.chat_id for x in SESSION.query(AntispamSettings).all() if not x.setting}
+        GMUTESTAT_LIST = {
+            x.chat_id
+            for x in SESSION.query(AntispamSettings).all() if not x.setting
+        }
     finally:
         SESSION.close()
-
 
 
 def migrate_chat(old_chat_id, new_chat_id):

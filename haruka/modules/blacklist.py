@@ -25,19 +25,19 @@ def blacklist(bot: Bot, update: Update, args: List[str]):
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
-    
+
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
         if chat.type == "private":
-            exit(1)
+            return
         else:
             chat_id = update.effective_chat.id
             chat_name = chat.title
-    
-    filter_list = tld(chat.id, "<b>Blacklist filters active in {}:</b>\n").format(chat_name)
+
+    filter_list = tld(chat.id, "blacklist_active_list").format(chat_name)
 
     all_blacklisted = sql.get_chat_blacklist(chat_id)
 
@@ -50,8 +50,10 @@ def blacklist(bot: Bot, update: Update, args: List[str]):
 
     split_text = split_message(filter_list)
     for text in split_text:
-        if filter_list == tld(chat.id, "<b>Blacklist filters active in {}:</b>\n").format(chat_name): #We need to translate
-            msg.reply_text(tld(chat.id, "There are no blacklist filters in <b>{}</b>!").format(chat_name), parse_mode=ParseMode.HTML)
+        if filter_list == tld(chat.id, "blacklist_active_list").format(
+                chat_name):  #We need to translate
+            msg.reply_text(tld(chat.id, "blacklist_no_list").format(chat_name),
+                           parse_mode=ParseMode.HTML)
             return
         msg.reply_text(text, parse_mode=ParseMode.HTML)
 
@@ -71,26 +73,31 @@ def add_blacklist(bot: Bot, update: Update):
     else:
         chat_id = update.effective_chat.id
         if chat.type == "private":
-            exit(1)
+            return
         else:
             chat_name = chat.title
 
     if len(words) > 1:
         text = words[1]
-        to_blacklist = list(set(trigger.strip() for trigger in text.split("\n") if trigger.strip()))
+        to_blacklist = list(
+            set(trigger.strip() for trigger in text.split("\n")
+                if trigger.strip()))
         for trigger in to_blacklist:
             sql.add_to_blacklist(chat_id, trigger.lower())
 
         if len(to_blacklist) == 1:
-            msg.reply_text(tld(chat.id, "Added <code>{}</code> to the blacklist in <b>{}</b>!").format(html.escape(to_blacklist[0]), chat_name),
+            msg.reply_text(tld(chat.id, "blacklist_add").format(
+                html.escape(to_blacklist[0]), chat_name),
                            parse_mode=ParseMode.HTML)
 
         else:
-            msg.reply_text(tld(chat.id, 
-             "Added <code>{}</code> to the blacklist in <b>{}</b>!").format(len(to_blacklist)), chat_name, parse_mode=ParseMode.HTML)
+            msg.reply_text(tld(chat.id,
+                               "blacklist_add").format(len(to_blacklist)),
+                           chat_name,
+                           parse_mode=ParseMode.HTML)
 
     else:
-        msg.reply_text(tld(chat.id, "Tell me what words you would like to add to the blacklist."))
+        msg.reply_text(tld(chat.id, "blacklist_err_add_no_args"))
 
 
 @run_async
@@ -108,13 +115,15 @@ def unblacklist(bot: Bot, update: Update):
     else:
         chat_id = update.effective_chat.id
         if chat.type == "private":
-            exit(1)
+            return
         else:
             chat_name = chat.title
 
     if len(words) > 1:
         text = words[1]
-        to_unblacklist = list(set(trigger.strip() for trigger in text.split("\n") if trigger.strip()))
+        to_unblacklist = list(
+            set(trigger.strip() for trigger in text.split("\n")
+                if trigger.strip()))
         successful = 0
         for trigger in to_unblacklist:
             success = sql.rm_from_blacklist(chat_id, trigger.lower())
@@ -123,28 +132,33 @@ def unblacklist(bot: Bot, update: Update):
 
         if len(to_unblacklist) == 1:
             if successful:
-                msg.reply_text(tld(chat.id, "Removed <code>{}</code> from the blacklist in <b>{}</b>!").format(html.escape(to_unblacklist[0]), chat_name),
+                msg.reply_text(tld(chat.id, "blacklist_del").format(
+                    html.escape(to_unblacklist[0]), chat_name),
                                parse_mode=ParseMode.HTML)
             else:
-                msg.reply_text(tld(chat.id, "This isn't a blacklisted trigger...!"))
+                msg.reply_text(
+                    tld(chat.id, "This isn't a blacklisted trigger!"))
 
         elif successful == len(to_unblacklist):
-            msg.reply_text(tld(chat.id, 
-                "Removed <code>{}</code> triggers from the blacklist in <b>{}</b>!").format(
-                    successful, chat_name), parse_mode=ParseMode.HTML)
+            msg.reply_text(tld(chat.id, "blacklist_multi_del").format(
+                successful, chat_name),
+                           parse_mode=ParseMode.HTML)
 
         elif not successful:
-            msg.reply_text(tld(chat.id, 
-                "None of those trigger existed, so nothing was removed from blacklist.").format(
-                    successful, len(to_unblacklist) - successful), parse_mode=ParseMode.HTML)
+            msg.reply_text(tld(chat.id,
+                               "blacklist_err_multidel_no_trigger").format(
+                                   successful,
+                                   len(to_unblacklist) - successful),
+                           parse_mode=ParseMode.HTML)
 
         else:
-            msg.reply_text(tld(chat.id, 
-                "Removed <code>{}</code> triggers from the blacklist in <b>{}</b>! {} did not exist, "
-                "so were not removed.").format(successful, chat_name, len(to_unblacklist) - successful),
-                parse_mode=ParseMode.HTML)
+            msg.reply_text(tld(
+                chat.id, "blacklist_err_multidel_some_no_trigger").format(
+                    successful, chat_name,
+                    len(to_unblacklist) - successful),
+                           parse_mode=ParseMode.HTML)
     else:
-        msg.reply_text(tld(chat.id, "Tell me what words you would like to remove from the blacklist."))
+        msg.reply_text(tld(chat.id, "blacklist_err_del_no_args"))
 
 
 @run_async
@@ -176,12 +190,14 @@ def __migrate__(old_chat_id, new_chat_id):
 
 def __chat_settings__(bot, update, chat, chatP, user):
     blacklisted = sql.num_blacklist_chat_filters(chat.id)
-    return "There are {} blacklisted words.".format(blacklisted)
+    return tld(chat.id,
+               "blacklist_chatsettings_word_count").format(blacklisted)
 
 
 def __stats__():
-    return "{} blacklist triggers, across {} chats.".format(sql.num_blacklist_filters(),
-                                                            sql.num_blacklist_filter_chats())
+    return "{} blacklist triggers, across {} chats.".format(
+        sql.num_blacklist_filters(), sql.num_blacklist_filter_chats())
+
 
 def __import_data__(chat_id, data):
     # set chat blacklist
@@ -190,35 +206,22 @@ def __import_data__(chat_id, data):
         sql.add_to_blacklist(chat_id, trigger)
 
 
-__mod_name__ = "Word Blacklists"
-
-__help__ = """
-You can set blacklist filters to take automatic action on people when they say certain things. This is done using:
- - /addblacklist <blacklist trigger> <blacklist reason>: blacklists the trigger. You can set sentences by putting quotes around the reason.
- - /unblacklist <blacklist trigger>: stop blacklisting a certain blacklist trigger.
- - /rmblacklist <blacklist trigger>: same as /unblacklist
- - /blacklist: list all active blacklist filters
-
-/addblacklist "the admins suck" Respect your admins!
-This would delete any message containing 'the admins suck'.
-
-Pro tip:
-Blacklists allow you to use some modifiers to match "unknown" characters. For example, you can use the ? character to match a single occurence of any non-whitespace character.
-You could also use the * modifier, which matches any number of any character. If you want to blacklist urls, this will allow you to match the full thing. It matches every character except spaces. This is cool if you want to stop, for example, url shorteners.
-For example, the following will ban any bit.ly link:
-/addblacklist "bit.ly/*" We dont like shorteners!
-If you want to only match bit.ly/ links followed by three characters, you could use:
-/addblacklist "bit.ly/???" We dont like shorteners!
-This would match bit.ly/abc, but not bit.ly/abcd.
-"""
+__help__ = True
 
 #TODO: Add blacklist alternative modes: warn, ban, kick, or mute.
 
-BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist", blacklist, pass_args=True, admin_ok=True)
+BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist",
+                                              blacklist,
+                                              pass_args=True,
+                                              admin_ok=True)
 ADD_BLACKLIST_HANDLER = CommandHandler("addblacklist", add_blacklist)
-UNBLACKLIST_HANDLER = CommandHandler(["unblacklist", "rmblacklist"], unblacklist)
+UNBLACKLIST_HANDLER = CommandHandler(["unblacklist", "rmblacklist"],
+                                     unblacklist)
 BLACKLIST_DEL_HANDLER = MessageHandler(
-    (Filters.text | Filters.command | Filters.sticker | Filters.photo) & Filters.group, del_blacklist, edited_updates=True)
+    (Filters.text | Filters.command | Filters.sticker | Filters.photo)
+    & Filters.group,
+    del_blacklist,
+    edited_updates=True)
 
 dispatcher.add_handler(BLACKLIST_HANDLER)
 dispatcher.add_handler(ADD_BLACKLIST_HANDLER)

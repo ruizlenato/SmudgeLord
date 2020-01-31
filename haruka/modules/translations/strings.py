@@ -1,60 +1,71 @@
+import xml.etree.ElementTree as et
+import os
+import yaml
+from codecs import encode, decode
+
+from haruka import LOGGER
 from haruka.modules.sql.translation import prev_locale
-from haruka.modules.translations.English import EnglishStrings
-from haruka.modules.translations.Russian import RussianStrings
-from haruka.modules.translations.Ukraine import UkrainianStrings
-from haruka.modules.translations.Spanish import SpanishStrings
-from haruka.modules.translations.Turkish import TurkishStrings
-from haruka.modules.translations.Indonesian import IndonesianStrings
+
+LANGUAGES = ['en']
+
+strings = {}
+
+for i in LANGUAGES:
+    strings[i] = yaml.full_load(open(os.path.dirname(__file__) + f"/{i}/string.yml", "r"))
+    print(f"Loaded {i}/string.yml")
+
 
 def tld(chat_id, t, show_none=True):
     LANGUAGE = prev_locale(chat_id)
-    print(chat_id, t)
+
     if LANGUAGE:
         LOCALE = LANGUAGE.locale_name
-        if LOCALE in ('ru') and t in RussianStrings:
-           return RussianStrings[t]
-        elif LOCALE in ('ua') and t in UkrainianStrings:
-            return UkrainianStrings[t]
-        elif LOCALE in ('es') and t in SpanishStrings:
-            return SpanishStrings[t]
-        elif LOCALE in ('tr') and t in TurkishStrings:
-            return TurkishStrings[t]
-        elif LOCALE in ('id') and t in IndonesianStrings:
-            return IndonesianStrings[t]
-        else:
-            if t in EnglishStrings:
-                return EnglishStrings[t]
-            else:
-                return t
-    elif show_none:
-        if t in EnglishStrings:
-            return EnglishStrings[t]
-        else:
-            return t
+        if LOCALE in ('en') and t in strings['en']:
+            result = decode(encode(strings['en'][t], 'latin-1', 'backslashreplace'),
+                            'unicode-escape')
+            return result
 
+    if t in strings['en']:
+        result = decode(encode(strings['en'][t], 'latin-1', 'backslashreplace'),
+                        'unicode-escape')
+        return result
 
+    # LOGGER.warning(f"No string found for {t}")
 
-def tld_help(chat_id, t):
+def tld_list(chat_id, t):
     LANGUAGE = prev_locale(chat_id)
-    print("tld_help ", chat_id, t)
+
     if LANGUAGE:
         LOCALE = LANGUAGE.locale_name
+        if LOCALE in ('en') and t in strings['en']:
+            return strings['en'][t]
 
-        t = t + "_help"
+    if t in strings['en']:
+        return strings['en'][t]
 
-        print("Test2", t)
+    # LOGGER.warning(f"No string found for {t}")
 
-        if LOCALE in ('ru') and t in RussianStrings:
-            return RussianStrings[t]
-        elif LOCALE in ('ua') and t in UkrainianStrings:
-            return UkrainianStrings[t]
-        elif LOCALE in ('es') and t in SpanishStrings:
-            return SpanishStrings[t]
-        elif LOCALE in ('tr') and t in TurkishStrings:
-            return TurkishStrings[t]
-        elif LOCALE in ('id') and t in IndonesianStrings:
-            return IndonesianStrings[t]
-        else:
-            return False
-    else:
-        return False
+# def tld_help(chat_id, t):
+#     LANGUAGE = prev_locale(chat_id)
+#     print("tld_help ", chat_id, t)
+#     if LANGUAGE:
+#         LOCALE = LANGUAGE.locale_name
+
+#         t = t + "_help"
+
+#         print("Test2", t)
+
+#         if LOCALE in ('ru') and t in RussianStrings:
+#             return RussianStrings[t]
+#         elif LOCALE in ('ua') and t in UkrainianStrings:
+#             return UkrainianStrings[t]
+#         elif LOCALE in ('es') and t in SpanishStrings:
+#             return SpanishStrings[t]
+#         elif LOCALE in ('tr') and t in TurkishStrings:
+#             return TurkishStrings[t]
+#         elif LOCALE in ('id') and t in IndonesianStrings:
+#             return IndonesianStrings[t]
+#         else:
+#             return False
+#     else:
+#         return False

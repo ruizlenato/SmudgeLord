@@ -11,6 +11,7 @@ from haruka import dispatcher
 from haruka.modules.helper_funcs.chat_status import user_admin
 from haruka.modules.helper_funcs.string_handling import markdown_parser
 
+from haruka.modules.translations.strings import tld
 
 @run_async
 def get_rules(bot: Bot, update: Update):
@@ -21,34 +22,40 @@ def get_rules(bot: Bot, update: Update):
 # Do not async - not from a handler
 def send_rules(update, chat_id, from_pm=False):
     bot = dispatcher.bot
+    chat = update.effective_chat
     user = update.effective_user  # type: Optional[User]
     try:
         chat = bot.get_chat(chat_id)
     except BadRequest as excp:
         if excp.message == "Chat not found" and from_pm:
-            bot.send_message(user.id, "The rules shortcut for this chat hasn't been set properly! Ask admins to "
-                                      "fix this.")
+            bot.send_message(
+                user.id,
+                tld(chat.id, "rules_shortcut_not_setup_properly"))
             return
         else:
             raise
 
     rules = sql.get_rules(chat_id)
-    text = "The rules for *{}* are:\n\n{}".format(escape_markdown(chat.title), rules)
+    text = tld(chat.id, "rules_display").format(escape_markdown(chat.title),
+                                                  rules)
 
     if from_pm and rules:
         bot.send_message(user.id, text, parse_mode=ParseMode.MARKDOWN)
     elif from_pm:
-        bot.send_message(user.id, "The group admins haven't set any rules for this chat yet. "
-                                  "This probably doesn't mean it's lawless though...!")
+        bot.send_message(
+            user.id,
+            tld(chat.id, "rules_not_found"))
     elif rules:
-        update.effective_message.reply_text("Click the button below to get this group's rules.",
-                                            reply_markup=InlineKeyboardMarkup(
-                                                [[InlineKeyboardButton(text="Rules",
-                                                                       url="t.me/{}?start={}".format(bot.username,
-                                                                                                     chat_id))]]))
+        rules_text = tld(chat.id, "rules")
+        update.effective_message.reply_text(
+            tld(chat.id, "rules_button_click"),
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton(text=rules_text,
+                                     url="t.me/{}?start={}".format(
+                                         bot.username, chat_id))
+            ]]))
     else:
-        update.effective_message.reply_text("The group admins haven't set any rules for this chat yet. "
-                                            "This probably doesn't mean it's lawless though...!")
+        update.effective_message.reply_text(tld(chat.id, "rules_not_found"))
 
 
 @run_async
@@ -57,14 +64,18 @@ def set_rules(bot: Bot, update: Update):
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
     raw_text = msg.text
-    args = raw_text.split(None, 1)  # use python's maxsplit to separate cmd and args
+    args = raw_text.split(None,
+                          1)  # use python's maxsplit to separate cmd and args
     if len(args) == 2:
         txt = args[1]
-        offset = len(txt) - len(raw_text)  # set correct offset relative to command
-        markdown_rules = markdown_parser(txt, entities=msg.parse_entities(), offset=offset)
+        offset = len(txt) - len(
+            raw_text)  # set correct offset relative to command
+        markdown_rules = markdown_parser(txt,
+                                         entities=msg.parse_entities(),
+                                         offset=offset)
 
         sql.set_rules(chat_id, markdown_rules)
-        update.effective_message.reply_text("Successfully set rules for this group.")
+        update.effective_message.reply_text(tld(chat_id, rules_success))
 
 
 @run_async
@@ -90,22 +101,20 @@ def __migrate__(old_chat_id, new_chat_id):
 
 
 def __chat_settings__(bot, update, chat, chatP, user):
-    return "This chat has had it's rules set: `{}`".format(bool(sql.get_rules(chat.id)))
+    return "This chat has had it's rules set: `{}`".format(
+        bool(sql.get_rules(chat.id)))
 
 
-__help__ = """
- - /rules: get the rules for this chat.
+__help__ = True
 
-*Admin only:*
- - /setrules <your rules here>: set the rules for this chat.
- - /clearrules: clear the rules for this chat.
-"""
-
-__mod_name__ = "Rules"
 
 GET_RULES_HANDLER = CommandHandler("rules", get_rules, filters=Filters.group)
-SET_RULES_HANDLER = CommandHandler("setrules", set_rules, filters=Filters.group)
-RESET_RULES_HANDLER = CommandHandler("clearrules", clear_rules, filters=Filters.group)
+SET_RULES_HANDLER = CommandHandler("setrules",
+                                   set_rules,
+                                   filters=Filters.group)
+RESET_RULES_HANDLER = CommandHandler("clearrules",
+                                     clear_rules,
+                                     filters=Filters.group)
 
 dispatcher.add_handler(GET_RULES_HANDLER)
 dispatcher.add_handler(SET_RULES_HANDLER)

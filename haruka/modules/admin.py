@@ -18,6 +18,7 @@ from haruka.modules.translations.strings import tld
 
 from haruka.modules.connection import connected
 
+
 @run_async
 @bot_admin
 @user_admin
@@ -32,41 +33,46 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
     else:
         chatD = update.effective_chat
         if chat.type == "private":
-            exit(1)
+            return
 
     if not chatD.get_member(bot.id).can_promote_members:
-        update.effective_message.reply_text("I can't promote/demote people here! "
-                                            "Make sure I'm an admin and can appoint new admins.")
-        exit(1)
+        update.effective_message.reply_text(tld(chat.id, "err_no_perm"))
+        return
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text(tld(chat.id, "You don't seem to be referring to a user."))
-        return ""
+        message.reply_text(tld(chat.id, "common_err_no_user"))
+        return
 
     user_member = chatD.get_member(user_id)
     if user_member.status == 'administrator' or user_member.status == 'creator':
-        message.reply_text(tld(chat.id, "How am I meant to promote someone who's already an admin?"))
-        return ""
+        message.reply_text(tld(chat.id, "admin_err_user_admin"))
+        return
 
     if user_id == bot.id:
-        message.reply_text(tld(chat.id, "I can't promote myself! Get an admin to do it for me."))
-        return ""
+        message.reply_text(tld(chat.id, "admin_err_self_promote"))
+        return
 
     # set same perms as bot - bot can't assign higher perms than itself!
     bot_member = chatD.get_member(bot.id)
 
-    bot.promoteChatMember(chatD.id, user_id,
-                          can_change_info=bot_member.can_change_info,
-                          can_post_messages=bot_member.can_post_messages,
-                          can_edit_messages=bot_member.can_edit_messages,
-                          can_delete_messages=bot_member.can_delete_messages,
-                          #can_invite_users=bot_member.can_invite_users,
-                          can_restrict_members=bot_member.can_restrict_members,
-                          can_pin_messages=bot_member.can_pin_messages,
-                          can_promote_members=bot_member.can_promote_members)
+    bot.promoteChatMember(
+        chatD.id,
+        user_id,
+        can_change_info=bot_member.can_change_info,
+        can_post_messages=bot_member.can_post_messages,
+        can_edit_messages=bot_member.can_edit_messages,
+        can_delete_messages=bot_member.can_delete_messages,
+        #can_invite_users=bot_member.can_invite_users,
+        can_restrict_members=bot_member.can_restrict_members,
+        can_pin_messages=bot_member.can_pin_messages,
+        can_promote_members=bot_member.can_promote_members)
 
-    message.reply_text(tld(chat.id, f"Successfully promoted in *{chatD.title}*!"), parse_mode=ParseMode.MARKDOWN)
+    message.reply_text(tld(chat.id, "admin_promote_success").format(
+        mention_html(user.id, user.first_name),
+        mention_html(user_member.user.id, user_member.user.first_name),
+        html.escape(chatD.title)),
+                       parse_mode=ParseMode.HTML)
     return f"<b>{html.escape(chatD.title)}:</b>" \
             "\n#PROMOTED" \
            f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}" \
@@ -87,33 +93,33 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
     else:
         chatD = update.effective_chat
         if chat.type == "private":
-            exit(1)
+            return
 
     if not chatD.get_member(bot.id).can_promote_members:
-        update.effective_message.reply_text("I can't promote/demote people here! "
-                                            "Make sure I'm an admin and can appoint new admins.")
-        exit(1)
+        update.effective_message.reply_text(tld(chat.id, "admin_err_no_perm"))
+        return
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text(tld(chat.id, "You don't seem to be referring to a user."))
+        message.reply_text(tld(chat.id, "common_err_no_user"))
         return ""
 
     user_member = chatD.get_member(user_id)
     if user_member.status == 'creator':
-        message.reply_text(tld(chat.id, "This person is the CREATOR of the chat, how would I demote them?"))
+        message.reply_text(tld(chat.id, "admin_err_demote_creator"))
         return ""
 
     if not user_member.status == 'administrator':
-        message.reply_text(tld(chat.id, "Can't demote those who weren't promoted!"))
+        message.reply_text(tld(chat.id, "admin_err_demote_noadmin"))
         return ""
 
     if user_id == bot.id:
-        message.reply_text(tld(chat.id, "I can't demote myself!"))
+        message.reply_text(tld(chat.id, "admin_err_self_demote"))
         return ""
 
     try:
-        bot.promoteChatMember(int(chatD.id), int(user_id),
+        bot.promoteChatMember(int(chatD.id),
+                              int(user_id),
                               can_change_info=False,
                               can_post_messages=False,
                               can_edit_messages=False,
@@ -122,16 +128,18 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
                               can_restrict_members=False,
                               can_pin_messages=False,
                               can_promote_members=False)
-        message.reply_text(tld(chat.id, f"Successfully demoted in *{chatD.title}*!"), parse_mode=ParseMode.MARKDOWN)
+        message.reply_text(tld(chat.id, "admin_demote_success").format(
+            mention_html(user.id, user.first_name),
+            mention_html(user_member.user.id, user_member.user.first_name),
+            html.escape(chatD.title)),
+                           parse_mode=ParseMode.HTML)
         return f"<b>{html.escape(chatD.title)}:</b>" \
                 "\n#DEMOTED" \
                f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}" \
                f"\n<b>User:</b> {mention_html(user_member.user.id, user_member.user.first_name)}"
 
     except BadRequest:
-        message.reply_text(
-            tld(chat.id, "Could not demote. I might not be admin, or the admin status was appointed by another user, so I can't act upon them!")
-            )
+        message.reply_text(tld(chat.id, "admin_err_cant_demote"))
         return ""
 
 
@@ -150,11 +158,15 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
 
     is_silent = True
     if len(args) >= 1:
-        is_silent = not (args[0].lower() == 'notify' or args[0].lower() == 'loud' or args[0].lower() == 'violent')
+        is_silent = not (args[0].lower() == 'notify'
+                         or args[0].lower() == 'loud'
+                         or args[0].lower() == 'violent')
 
     if prev_message and is_group:
         try:
-            bot.pinChatMessage(chat.id, prev_message.message_id, disable_notification=is_silent)
+            bot.pinChatMessage(chat.id,
+                               prev_message.message_id,
+                               disable_notification=is_silent)
         except BadRequest as excp:
             if excp.message == "Chat_not_modified":
                 pass
@@ -201,7 +213,7 @@ def invite(bot: Bot, update: Update):
     else:
         chatP = update.effective_chat
         if chat.type == "private":
-            exit(1)
+            return
 
     if chatP.username:
         update.effective_message.reply_text(chatP.username)
@@ -215,9 +227,11 @@ def invite(bot: Bot, update: Update):
 
             update.effective_message.reply_text(invitelink)
         else:
-            update.effective_message.reply_text(tld(chat.id, "I don't have access to the invite link, try changing my permissions!"))
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_err_no_perm_invitelink"))
     else:
-        update.effective_message.reply_text(tld(chat.id, "Sorry, but I can give invite links only for supergroups and channels!"))
+        update.effective_message.reply_text(
+            tld(chat.id, "admin_chat_no_invitelink"))
 
 
 @run_async
@@ -230,18 +244,20 @@ def adminlist(bot, update):
     else:
         chatP = update.effective_chat
         if chat.type == "private":
-            exit(1)
-    
+            return
+
     administrators = chatP.get_administrators()
 
-    text = tld(chat.id, "Admins in") + " *{}*:".format(chatP.title or tld(chat.id, "this chat"))
+    text = tld(chat.id,
+               "admin_list").format(chatP.title
+                                    or tld(chat.id, "admin_this_chat"))
     for admin in administrators:
         user = admin.user
         status = admin.status
-        if status == "creator":
-            name = user.first_name + (user.last_name or "") + tld(chat.id, " (Creator)")
-        else:
-            name = user.first_name + (user.last_name or "")
+        name = user.first_name
+        name += f" {user.last_name}" if user.last_name else ""
+        name += tld(chat.id,
+                    "admin_list_creator") if status == "creator" else ""
         text += f"\n• `{name}`"
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
@@ -257,45 +273,46 @@ def reaction(bot: Bot, update: Update, args: List[str]) -> str:
         print(var)
         if var == "False":
             sql.set_command_reaction(chat.id, False)
-            update.effective_message.reply_text("Disabled response to user-triggered admin commands.")
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_disable_reaction"))
         elif var == "True":
             sql.set_command_reaction(chat.id, True)
-            update.effective_message.reply_text("Enabled response to user-triggered admin commands.")
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_enable_reaction"))
         else:
-            update.effective_message.reply_text("Please enter True or False!", parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(chat.id,
+                                                    "admin_err_wrong_arg"),
+                                                parse_mode=ParseMode.MARKDOWN)
     else:
         status = sql.command_reaction(chat.id)
-        update.effective_message.reply_text(
-            "Response for user-triggered admin commands is currently "
-            f"`{'enabled' if status==True else 'disabled'}`!",
-            parse_mode=ParseMode.MARKDOWN
-        )
-        
+        update.effective_message.reply_text(tld(
+            chat.id, "admin_reaction_status").format('enabled' if status ==
+                                                     True else 'disabled'),
+                                            parse_mode=ParseMode.MARKDOWN)
 
-__help__ = """
- - /adminlist | /admins: Lists the admins in the chat
 
-*Admin only:*
- - /pin: Silently pins the message replied to. Add 'loud','notify' or 'violent' to send a notification to users.
- - /unpin: Unpins the currently pinned message
- - /invitelink: Gets the invite link of the group
- - /promote: Promotes a user Reply to the user or use their username.
- - /demote: Demotes a user. Reply to the user or use their username.
-"""
+__help__ = True
 
-__mod_name__ = "Admin"
-
-PIN_HANDLER = DisableAbleCommandHandler("pin", pin, pass_args=True, filters=Filters.group)
-UNPIN_HANDLER = DisableAbleCommandHandler("unpin", unpin, filters=Filters.group)
+PIN_HANDLER = DisableAbleCommandHandler("pin",
+                                        pin,
+                                        pass_args=True,
+                                        filters=Filters.group)
+UNPIN_HANDLER = DisableAbleCommandHandler("unpin",
+                                          unpin,
+                                          filters=Filters.group)
 
 INVITE_HANDLER = CommandHandler("invitelink", invite)
 
 PROMOTE_HANDLER = DisableAbleCommandHandler("promote", promote, pass_args=True)
 DEMOTE_HANDLER = DisableAbleCommandHandler("demote", demote, pass_args=True)
 
-REACT_HANDLER = DisableAbleCommandHandler("reaction", reaction, pass_args=True, filters=Filters.group)
+REACT_HANDLER = DisableAbleCommandHandler("reaction",
+                                          reaction,
+                                          pass_args=True,
+                                          filters=Filters.group)
 
-ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "admins"], adminlist)
+ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "admins"],
+                                              adminlist)
 
 dispatcher.add_handler(PIN_HANDLER)
 dispatcher.add_handler(UNPIN_HANDLER)
