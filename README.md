@@ -8,7 +8,7 @@ Thanks For:
 - FFBot - For translations modules.
 - Nuno Penim - For Combot Anti Spam System API, GitHub API etc...
 - Corsicanu - For Samsung Firmware commands
-
+- TheRealPhoenixBot - For Chatbot(IA)
 
 ## Starting the bot.
 
