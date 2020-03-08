@@ -58,6 +58,7 @@ if ENV:
     WORKERS = int(os.environ.get('WORKERS', 8))
     BAN_STICKER = os.environ.get('BAN_STICKER', 'CAADAgADEAgAAgi3GQL9YQyT_kBpQwI')
     ALLOW_EXCL = os.environ.get('ALLOW_EXCL', False)
+    LASTFM_API_KEY = os.environ.get('LASTFM_API_KEY', "")
     TEMPORARY_DATA = os.environ.get('TEMPORARY_DATA', None)
     API_WEATHER = os.environ.get('API_OPENWEATHER', None)
     AI_API_KEY = os.environ.get('AI_API_KEY', "")
@@ -103,6 +104,7 @@ else:
     WORKERS = Config.WORKERS
     BAN_STICKER = Config.BAN_STICKER
     ALLOW_EXCL = Config.ALLOW_EXCL
+    LASTFM_API_KEY = Config.LASTFM_API_KEY
     TEMPORARY_DATA = Config.TEMPORARY_DATA
     API_WEATHER = Config.API_OPENWEATHER
     AI_API_KEY = Config.AI_API_KEY
