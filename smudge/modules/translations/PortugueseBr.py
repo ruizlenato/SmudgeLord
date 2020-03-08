@@ -1038,6 +1038,17 @@ Isso recuperará a nota e a enviará sem formatá-la; obtendo o markdown bruto, 
  - /strongwarn <on/yes/off/no>: Se estiver ativado e o número de avisos for excedido, o usuário será banido. Caso contrário, a pessoa só será expulsa
 """,
 
+"Last.FM_help": """
+Compartilhe o que você está ouvindo com a ajuda deste módulo!
+
+*Os comandos disponíveis são:*
+ - /setuser <username>: define seu nome de usuário last.fm.
+ - /clearuser: remove seu nome de usuário last.fm do banco de dados do bot.
+
+ - /lastfm: retorna o que você está scrobbling no last.fm.
+
+""",
+
 "Greetings_help": """
 *Dê a seus membros uma recepção calorosa com o módulo de cumprimentos! Ou um triste adeus... Depende!*
 

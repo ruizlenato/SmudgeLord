@@ -5,10 +5,10 @@ A simple group management bot with multiple admin features, it has evolved into 
 bots aiming to provide simple plugin expansion via a simple drag and drop.
 
 Thanks For:
-- FFBot - For translations modules.
-- Nuno Penim - For Combot Anti Spam System API, GitHub API etc...
-- Corsicanu - For Samsung Firmware commands
-- TheRealPhoenixBot - For Chatbot(IA)
+* [FFBOT] - For translations modules.
+* [Nuno Penim](https://github.com/nunopenim) - For Combot Anti Spam System API, GitHub API etc...
+* [Corsicanu](https://github.com/corsicanu) - For Samsung Firmware commands
+* [Real Phoenix](https://github.com/rsktg) - For Chatbot(IA)and LastFM module
 
 ## Starting the bot.
 
