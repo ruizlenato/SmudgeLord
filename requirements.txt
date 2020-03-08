@@ -1,3 +1,6 @@
+setuptools>=45.1.0
+pip>=20.0.2
+
 emoji
 requests>=2.20.0
 sqlalchemy
@@ -12,20 +15,18 @@ spongemock>=0.3.4
 zalgo-text
 nltk
 aiohttp>=2.2.5
-Pillow>=4.2.
-
-#Cool
+Pillow>=4.2.0
 PyLyrics>=1.1.0
-
 #Android
 hurry.filesize
 bs4
 lxml
-
 #Translator
 googletrans>=2.4.0
-#Speed Test
+#SpeedTest
 speedtest-cli>=2.1.2
+#Chatbot
+coffeehouse
 
 tldextract
 PyYAML
@@ -33,5 +34,5 @@ wikipedia
 bleach
 markdown2
 regex
-
 pytz
+jikanpy
