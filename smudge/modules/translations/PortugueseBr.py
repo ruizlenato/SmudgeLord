@@ -213,6 +213,9 @@ Experimente isto em notas, filtros, mensagens de boas-vindas ou até regras!
 
 PortugueseBrStrings = {
 
+#Last.FM
+    "You haven't set your username yet!": "Você ainda não definiu seu nome de usuário!"
+
 #Connections
     "Disabled connections to this chat for users": "Conexões desativadas para usuários neste grupo",
     "Enabled connections to this chat for users": "Conexões ativadas para usuários neste grupo",
