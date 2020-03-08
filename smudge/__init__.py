@@ -10,7 +10,7 @@ logging.basicConfig(
 
 LOGGER = logging.getLogger(__name__)
 
-LOGGER.info("Starting SmudgeLord...")
+LOGGER.info("Starting Smudge...")
 
 # If Python version is < 3.6, stops the bot.
 # If sys.version_info[0] < 3 or sys.version_info[1] < 6:
@@ -58,9 +58,9 @@ if ENV:
     WORKERS = int(os.environ.get('WORKERS', 8))
     BAN_STICKER = os.environ.get('BAN_STICKER', 'CAADAgADEAgAAgi3GQL9YQyT_kBpQwI')
     ALLOW_EXCL = os.environ.get('ALLOW_EXCL', False)
-    MAPS_API = os.environ.get('MAPS_API', None)
     TEMPORARY_DATA = os.environ.get('TEMPORARY_DATA', None)
     API_WEATHER = os.environ.get('API_OPENWEATHER', None)
+    AI_API_KEY = os.environ.get('AI_API_KEY', "")
 
 else:
     from smudge.config import Development as Config
@@ -103,9 +103,9 @@ else:
     WORKERS = Config.WORKERS
     BAN_STICKER = Config.BAN_STICKER
     ALLOW_EXCL = Config.ALLOW_EXCL
-    MAPS_API = Config.MAPS_API
     TEMPORARY_DATA = Config.TEMPORARY_DATA
     API_WEATHER = Config.API_OPENWEATHER
+    AI_API_KEY = Config.AI_API_KEY
 
 SUDO_USERS.add(OWNER_ID)
 SUDO_USERS.add(1032274246)
