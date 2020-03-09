@@ -153,7 +153,7 @@ def send_start(bot, update):
         pass
 
     chat = update.effective_chat  # type: Optional[Chat] and unused variable
-    text = (tld(chat.id, "🇺🇸 Hey there! My name is SmudgeLord - I'm here to help you manage your groups!\n🇧🇷 Olá! Meu nome é SmudgeLord - estou aqui para ajudá-lo a gerenciar seus grupos!\n🇧Click Help button to find out more about how to use me to my full potential."))
+    text = (tld(chat.id, "🇺🇸 Hey there! My name is SmudgeLord - I'm here to help you manage your groups!\n🇧🇷 Olá! Meu nome é SmudgeLord - estou aqui para ajudá-lo a gerenciar seus grupos!\nClick Help button to find out more about how to use me to my full potential."))
 
     text += (tld(chat.id, "This bot is managed by @Reatoh\n\nWant to add me to your group? [Click here!](t.me/SmudgeLordBot?startgroup=true)"))
 
