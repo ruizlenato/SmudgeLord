@@ -24,7 +24,7 @@ from smudge.modules.sql import languages_sql as langsql
 from smudge.modules.connection import connected
 
 SOURCE_STRING = """
-I'm a modular Telegram Python bot running on python3 with an sqlalchemy database, using the python-telegram-bot library, and am fully opensource - you can find what makes me alive [here](https://github.com/RenatohRibeiro/SmudgeLord)
+I'm a modular Telegram Python bot running on python3 with an sqlalchemy database, using the python-telegram-bot library, and am fully opensource - you can find what makes me alive [here](https://github.com/ztohRibeiro/SmudgeLord)
 """
 
 IMPORTED = {}
@@ -155,8 +155,7 @@ def send_start(bot, update):
     chat = update.effective_chat  # type: Optional[Chat] and unused variable
     text = (tld(chat.id, "🇺🇸 Hey there! My name is SmudgeLord - I'm here to help you manage your groups!\n🇧🇷 Olá! Meu nome é SmudgeLord - estou aqui para ajudá-lo a gerenciar seus grupos!\nClick Help button to find out more about how to use me to my full potential."))
 
-    text += (tld(chat.id, "This bot is managed by @Rena
-toh\n\nWant to add me to your group? [Click here!](t.me/SmudgeLordBot?startgroup=true)"))
+    text += (tld(chat.id, "This bot is managed by @Renatoh\n\nWant to add me to your group? [Click here!](t.me/SmudgeLordBot?startgroup=true)"))
 
     keyboard = [[InlineKeyboardButton(text="📃 Renatoh's website", url="https://renatoh.ml")]]
     keyboard += [[InlineKeyboardButton(text="🛠 Control panel", callback_data="cntrl_panel_M")]]
