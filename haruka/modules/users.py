@@ -20,6 +20,7 @@ from haruka.modules.helper_funcs.chat_status import is_user_ban_protected, bot_a
 from haruka.modules.translations.strings import tld
 
 USERS_GROUP = 4
+CHAT_GROUP = 5
 
 
 def get_user_id(username):
@@ -241,6 +242,12 @@ def slist(bot: Bot, update: Update):
     #message.reply_text(text2 + "\n", parse_mode=ParseMode.MARKDOWN)
 
 
+@run_async
+def chat_checker(bot: Bot, update: Update):
+  if update.effective_message.chat.get_member(bot.id).can_send_messages == False:
+    bot.leaveChat(update.effective_message.chat.id)
+
+
 def __user_info__(user_id, chat_id):
     if user_id == dispatcher.bot.id:
         return tld(
@@ -292,6 +299,7 @@ SLIST_HANDLER = CommandHandler("slist",
                                slist,
                                filters=CustomFilters.sudo_filter
                                | CustomFilters.support_filter)
+CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.group, chat_checker)
 
 dispatcher.add_handler(SNIPE_HANDLER)
 dispatcher.add_handler(BANALL_HANDLER)
@@ -301,3 +309,4 @@ dispatcher.add_handler(SLIST_HANDLER)
 dispatcher.add_handler(USER_HANDLER, USERS_GROUP)
 dispatcher.add_handler(BROADCAST_HANDLER)
 dispatcher.add_handler(CHATLIST_HANDLER)
+dispatcher.add_handler(CHAT_CHECKER_HANDLER, CHAT_GROUP)
