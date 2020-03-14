@@ -147,15 +147,6 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(bot, update, chat, chatP, user):
-    log_channel = sql.get_chat_log_channel(chat.id)
-    if log_channel:
-        log_channel_info = dispatcher.bot.get_chat(log_channel)
-        return tld(chatP.id, "log_channel_chn_curr_conf").format(
-            escape_markdown(log_channel_info.title), log_channel)
-    return tld(chatP.id, "log_channel_unlink_none")
-
-
 __help__ = True
 
 LOG_HANDLER = CommandHandler("logchannel", logging)

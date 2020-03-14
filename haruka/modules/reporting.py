@@ -177,54 +177,6 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(bot, update, chat, chatP, user):
-    return "This chat is setup to send user reports to admins, via /report and @admin: `{}`".format(
-        sql.chat_should_report(chat.id))
-
-
-def __user_settings__(bot, update, user_id):
-    if sql.user_should_report(user_id) == True:
-        text = "You will receive reports from chats you're admin."
-        keyboard = [[
-            InlineKeyboardButton(text="Disable reporting",
-                                 callback_data="panel_reporting_U_disable")
-        ]]
-    else:
-        text = "You will *not* receive reports from chats you're admin."
-        keyboard = [[
-            InlineKeyboardButton(text="Enable reporting",
-                                 callback_data="panel_reporting_U_enable")
-        ]]
-
-    return text, keyboard
-
-
-def control_panel_user(bot, update):
-    user = update.effective_user  # type: Optional[User]
-    chat = update.effective_chat
-    query = update.callback_query
-    enable = re.match(r"panel_reporting_U_enable", query.data)
-    disable = re.match(r"panel_reporting_U_disable", query.data)
-
-    query.message.delete()
-
-    if enable:
-        sql.set_user_setting(chat.id, True)
-        text = tld(chat.id, "reports_pm_enable")
-    else:
-        sql.set_user_setting(chat.id, False)
-        text = tld(chat.id, "reports_pm_disable")
-
-    keyboard = [[
-        InlineKeyboardButton(text="⬅️ Back", callback_data="cntrl_panel_U(1)")
-    ]]
-
-    update.effective_message.reply_text(
-        text,
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode=ParseMode.MARKDOWN)
-
-
 def buttons(bot: Bot, update):
     query = update.callback_query
     splitter = query.data.replace("report_", "").split("=")
@@ -268,10 +220,7 @@ REPORT_HANDLER = CommandHandler("report", report, filters=Filters.group)
 SETTING_HANDLER = CommandHandler("reports", report_setting, pass_args=True)
 ADMIN_REPORT_HANDLER = RegexHandler("(?i)@admin(s)?", report)
 
-cntrl_panel_user_callback_handler = CallbackQueryHandler(
-    control_panel_user, pattern=r"panel_reporting_U")
 report_button_user_handler = CallbackQueryHandler(buttons, pattern=r"report_")
-dispatcher.add_handler(cntrl_panel_user_callback_handler)
 dispatcher.add_handler(report_button_user_handler)
 
 dispatcher.add_handler(REPORT_HANDLER, REPORT_GROUP)

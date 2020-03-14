@@ -324,11 +324,6 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(bot, update, chat, chatP, user):
-    chatname = tld(chatP.id, "common_this_chat ")
-    return build_lock_message(chat, chatP, user, chatname)
-
-
 def __import_data__(chat_id, data):
     # set chat locks
     locks = data.get('locks', {})

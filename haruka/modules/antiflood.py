@@ -105,14 +105,6 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(bot, update, chat, chatP, user):
-    limit = sql.get_flood_limit(chat.id)
-    if limit == 0:
-        return tld(chat.id, "flood_status_off")
-    else:
-        return tld(chat.id, "flood_status_on").format(limit)
-
-
 __help__ = True
 
 # TODO: Add actions: ban/kick/mute/tban/tmute

@@ -31,24 +31,6 @@ main_start_btn_support: 📢 Support Group
 main_start_btn_ctrlpnl: 🛠 Control panel
 main_start_btn_lang: 🇺🇸 Language
 
-main_ctrlpnl_pm_only: Contact me in PM to access the control panel.
-main_ctrlpnl_btn_mysettings: 👤 My settings
-main_ctrlpnl_btn_group_settings: 👥 Group settings
-main_ctrlpnl_connected_chat: \nConnected chat - *{}* (you are {})
-main_ctrlpn_connected_chat_noadmin: \nConnected chat - *{chatG.title}* (you aren't an admin!)
-main_ctrlpnl_admin: admin
-main_ctrlpnl_creator: creator
-main_ctrlpnl_sudo: sudo
-main_ctrlpnl_no_chat_connected: \nNo chat connected!
-main_ctrlpnl_module_settings: You have the following settings for the *{}* module:\n\n
-main_ctrlpnl_user_settings: "*User control panel* 🛠"
-
-main_settings_your: "These are your current settings:"
-main_settings_user_none: Seems there aren't any user specific settings available :'(
-main_settings_list_modules: Which module would you like to check *{}*'s settings for?
-main_settings_chat_none: |
-    Seems like there aren't any chat settings available :'(
-    Send this in a group chat you're admin in to find its current settings!
 
 # Common
 common_err_no_user: You don't seem to be referring to a user.

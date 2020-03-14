@@ -857,21 +857,8 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(chat_id, user_id):
-    welcome_pref, _, _, _ = sql.get_welc_pref(chat_id)
-    goodbye_pref, _, _, _ = sql.get_gdbye_pref(chat_id)
-    cleanserv = sql.clean_service(chat_id)
-
-
 def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
-
-
-def __chat_settings__(bot, update, chat, chatP, user):
-    chat_id = chat.id
-    welcome_pref, _, _, _ = sql.get_welc_pref(chat_id)
-    goodbye_pref, _, _, _ = sql.get_gdbye_pref(chat_id)
-    return tld(chat.id, 'welcome_chat_settings_pref').format(welcome_pref, goodbye_pref)
 
 
 __help__ = True

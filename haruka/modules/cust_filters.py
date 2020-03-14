@@ -275,12 +275,6 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(bot, update, chat, chatP, user):
-    cust_filters = sql.get_chat_triggers(chat.id)
-    return tld(chat.id,
-               "cust_filters_chatsettings_stats").format(len(cust_filters))
-
-
 def __import_data__(chat_id, data):
     # set chat filters
     filters = data.get('filters', {})

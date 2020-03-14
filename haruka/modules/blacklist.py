@@ -188,12 +188,6 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(bot, update, chat, chatP, user):
-    blacklisted = sql.num_blacklist_chat_filters(chat.id)
-    return tld(chat.id,
-               "blacklist_chatsettings_word_count").format(blacklisted)
-
-
 def __stats__():
     return "{} blacklist triggers, across {} chats.".format(
         sql.num_blacklist_filters(), sql.num_blacklist_filter_chats())

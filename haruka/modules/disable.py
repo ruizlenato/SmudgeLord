@@ -155,9 +155,6 @@ if is_module_loaded(FILENAME):
     def __migrate__(old_chat_id, new_chat_id):
         sql.migrate_chat(old_chat_id, new_chat_id)
 
-    def __chat_settings__(chat_id, user_id):
-        return build_curr_disabled(chat_id)
-
     def __import_data__(chat_id, data):
         disabled = data.get('disabled', {})
         for disable_cmd in disabled:

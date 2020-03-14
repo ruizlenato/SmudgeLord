@@ -366,11 +366,6 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def __chat_settings__(bot, update, chat, chatP, user):
-    chat_id = chat.id
-    return "antispam_chatsettings_gban".format(sql.does_chat_gban(chat_id))
-
-
 __help__ = True
 
 ANTISPAM_STATUS = CommandHandler("antispam",
