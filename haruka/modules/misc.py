@@ -33,69 +33,6 @@ from haruka.modules.translations.strings import tld, tld_list
 from requests import get
 
 
-@run_async
-def insults(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    text = random.choice(tld(chat.id, "misc_insults_list"))
-    update.effective_message.reply_text(text)
-
-
-@run_async
-def runs(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    update.effective_message.reply_text(random.choice(tld_list(chat.id, "misc_runs_list")))
-
-
-@run_async
-def slap(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
-    msg = update.effective_message  # type: Optional[Message]
-
-    # reply to correct message
-    reply_text = msg.reply_to_message.reply_text if msg.reply_to_message else msg.reply_text
-
-    # get user who sent message
-    if msg.from_user.username:
-        curr_user = "@" + escape_markdown(msg.from_user.username)
-    else:
-        curr_user = "[{}](tg://user?id={})".format(msg.from_user.first_name,
-                                                   msg.from_user.id)
-
-    user_id = extract_user(update.effective_message, args)
-    if user_id:
-        slapped_user = bot.get_chat(user_id)
-        user1 = curr_user
-        if slapped_user.username == "RealAkito":
-            reply_text(tld(chat.id, "misc_not_doing_that"))
-            return
-        if slapped_user.username:
-            user2 = "@" + escape_markdown(slapped_user.username)
-        else:
-            user2 = "[{}](tg://user?id={})".format(slapped_user.first_name,
-                                                   slapped_user.id)
-
-    # if no target found, bot targets the sender
-    else:
-        user1 = "[{}](tg://user?id={})".format(bot.first_name, bot.id)
-        user2 = curr_user
-
-    temp = random.choice(tld_list(chat.id, "misc_slaps_templates_list"))
-    item = random.choice(tld_list(chat.id, "misc_items_list"))
-    hit = random.choice(tld_list(chat.id, "misc_hit_list"))
-    throw = random.choice(tld_list(chat.id, "misc_throw_list"))
-    itemp = random.choice(tld_list(chat.id, "misc_items_list"))
-    itemr = random.choice(tld_list(chat.id, "misc_items_list"))
-
-    repl = temp.format(user1=user1,
-                       user2=user2,
-                       item=item,
-                       hits=hit,
-                       throws=throw,
-                       itemp=itemp,
-                       itemr=itemr)
-
-    reply_text(repl, parse_mode=ParseMode.MARKDOWN)
-
 
 @run_async
 def get_bot_ip(bot: Bot, update: Update):
@@ -505,13 +442,6 @@ LYRICS_HANDLER = DisableAbleCommandHandler("lyrics",
                                            lyrics,
                                            pass_args=True,
                                            admin_ok=True)
-
-INSULTS_HANDLER = DisableAbleCommandHandler("insults", insults, admin_ok=True)
-RUNS_HANDLER = DisableAbleCommandHandler("runs", runs, admin_ok=True)
-SLAP_HANDLER = DisableAbleCommandHandler("slap",
-                                         slap,
-                                         pass_args=True,
-                                         admin_ok=True)
 INFO_HANDLER = DisableAbleCommandHandler("info",
                                          info,
                                          pass_args=True,
@@ -545,9 +475,6 @@ dispatcher.add_handler(GET_PASTE_HANDLER)
 dispatcher.add_handler(PASTE_STATS_HANDLER)
 dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(IP_HANDLER)
-dispatcher.add_handler(INSULTS_HANDLER)
-dispatcher.add_handler(RUNS_HANDLER)
-dispatcher.add_handler(SLAP_HANDLER)
 dispatcher.add_handler(INFO_HANDLER)
 dispatcher.add_handler(ECHO_HANDLER)
 dispatcher.add_handler(MD_HELP_HANDLER)

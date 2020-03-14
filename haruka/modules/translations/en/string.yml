@@ -516,48 +516,8 @@ modname_memes: Memes and etc.
 memes_no_message: I need a message to meme.
 memes_deepfry_nothing: What am I supposed to do with this?!
 memes_shout_notext: Where is text?
-memes_help: |
-    Some memes command, find it all out yourself!
-    /owo: OWO de text
-    /stretch: STRETCH de text
-    /vapor: owo vapor dis
-    /hitler: Quote a message and type this command to make a caption of hitler
-    /mock: Does the same as /hitler but spongemock instead
-    /kim: Does the same as /hitler but with Kim Jong Un instead (O no plox dont bomb my house)
-    /pidor: 4pda memes
-    /shout: Write anything that u want it to should
-    /zalgofy: reply to a message to gitch it out!
-
-
-# Misc
-modname_misc: Misc
-misc_not_doing_that: I'm not doing that!
-misc_get_id_1: The original sender, {}, has an ID of `{}`.\nThe forwarder, {}, has an ID of `{}`.
-misc_get_id_2: "{}'s id is `{}`."
-misc_id_1: Your id is `{}`.
-misc_id_2: This group's id is `{}`.
-misc_info_1: "<b>User info</b>:"
-misc_info_id: "\nID: <code>{}</code>"
-misc_info_first: "\nFirst Name: {}"
-misc_info_name: "\nLast Name: {}"
-misc_info_username: "\nUsername: @{}"
-misc_info_user_link: "\nUser link: {}\n"
-misc_info_is_owner: "\n\nThis guy is my owner, I can't do anything against him!"
-misc_info_is_original_owner: "\nThis person is my original creator, though he abandoned my sister Marie already :("
-misc_info_is_sudo: "\nThis person is one of my sudo users! He'll be helping you if you need support about bot."
-misc_info_is_support: "\nThis person is one of my support users! He can gban those spammers and bad guys."
-misc_info_is_whitelisted: "\nThis person is whitelisted users, one rarely get this role, you can't ban or kick him."
-misc_gdpr: Deleting identifiable data...
-misc_md_try: Try forwarding the following message to me, and you'll see!
-misc_md_help: "/save test This is a markdown test. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl:github.com) [button2](buttonurl://google.com:same)"
-misc_lyrics_lookup: "Looks up for lyrics"
-misc_lyrics_invalid: Invalid syntax! Try Artist - Song name .For example, Luis Fonsi - Despacito
-misc_paste_invalid: What am I supposed to do with this?!
-misc_paste_404: Failed to reach dogbin
-misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
-misc_get_pasted_invalid: Please supply a dogbin url!
-misc_get_pasted_unknown: Unknown error occured
-misc_runs_list:
+memes_not_doing_that: I'm not doing that!
+memes_runs_list:
     - "Where do you think you're going?"
     - "Huh? what? did they get away?"
     - "ZZzzZZzz... Huh? what? oh, just them again, nevermind."
@@ -607,7 +567,7 @@ misc_runs_list:
     - "Han shot first. So will I."
     - "What are you running after, a white rabbit?"
     - "As The Doctor would say... RUN!"
-misc_insults_list:
+memes_insults_list:
     - "Owww ... Such a stupid idiot."
     - "Don't drink and type."
     - "I think you should go home or better a mental asylum."
@@ -670,7 +630,7 @@ misc_insults_list:
     - "Try to spend one day in a coffin and it will be yours forever."
     - "Hit Uranium with a slow moving neutron in your presence. It will be a worthwhile experience."
     - "You can be the first person to step on sun. Have a try."
-misc_slaps_templates_list:
+memes_slaps_templates_list:
     - "{user1} {hits} {user2} with a {item}."
     - "{user1} {hits} {user2} in the face with a {item}."
     - "{user1} {hits} {user2} around a bit with a {item}."
@@ -682,7 +642,7 @@ misc_slaps_templates_list:
     - "{user1} grabs up a {item} and {hits} {user2} with it."
     - "{user1} ties {user2} to a chair and {throws} a {item} at them."
     - "{user1} gave a friendly push to help {user2} learn to swim in lava."
-misc_items_list:
+memes_items_list:
     - "cast iron skillet"
     - "large trout"
     - "baseball bat"
@@ -712,22 +672,63 @@ misc_items_list:
     - "piece of rotten meat"
     - "bear"
     - "ton of bricks"
-misc_throw_list:
+memes_throw_list:
     - "throws"
     - "flings"
     - "chucks"
     - "hurls"
-misc_hit_list:
+memes_hit_list:
     - "hits"
     - "whacks"
     - "slaps"
     - "smacks"
     - "bashes"
+memes_help: |
+    Some meme commands, find it all out yourself!
+
+    - /owo: OWO de text
+    - /stretch: STRETCH de text
+    - /vapor: owo vapor dis
+    - /hitler: Quote a message and type this command to make a caption of hitler
+    - /mock: Does the same as /hitler but spongemock instead
+    - /kim: Does the same as /hitler but with Kim Jong Un instead (O no plox dont bomb my house)
+    - /pidor: 4pda memes
+    - /shout: Write anything that u want it to should
+    - /zalgofy: reply to a message to gitch it out!
+    - /runs: reply a random string from an array of replies.
+    - /insults: reply a random string from an array of replies.
+    - /slap: slap a user, or get slapped if not a reply.
+
+
+# Misc
+modname_misc: Misc
+misc_get_id_1: The original sender, {}, has an ID of `{}`.\nThe forwarder, {}, has an ID of `{}`.
+misc_get_id_2: "{}'s id is `{}`."
+misc_id_1: Your id is `{}`.
+misc_id_2: This group's id is `{}`.
+misc_info_1: "<b>User info</b>:"
+misc_info_id: "\nID: <code>{}</code>"
+misc_info_first: "\nFirst Name: {}"
+misc_info_name: "\nLast Name: {}"
+misc_info_username: "\nUsername: @{}"
+misc_info_user_link: "\nUser link: {}\n"
+misc_info_is_owner: "\n\nThis guy is my owner, I can't do anything against him!"
+misc_info_is_original_owner: "\nThis person is my original creator, though he abandoned my sister Marie already :("
+misc_info_is_sudo: "\nThis person is one of my sudo users! He'll be helping you if you need support about bot."
+misc_info_is_support: "\nThis person is one of my support users! He can gban those spammers and bad guys."
+misc_info_is_whitelisted: "\nThis person is whitelisted users, one rarely get this role, you can't ban or kick him."
+misc_gdpr: Deleting identifiable data...
+misc_md_try: Try forwarding the following message to me, and you'll see!
+misc_md_help: "/save test This is a markdown test. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl:github.com) [button2](buttonurl://google.com:same)"
+misc_lyrics_lookup: "Looks up for lyrics"
+misc_lyrics_invalid: Invalid syntax! Try Artist - Song name .For example, Luis Fonsi - Despacito
+misc_paste_invalid: What am I supposed to do with this?!
+misc_paste_404: Failed to reach dogbin
+misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
+misc_get_pasted_invalid: Please supply a dogbin url!
+misc_get_pasted_unknown: Unknown error occured
 misc_help: |
      - /id: get the current group id. If used by replying to a message, gets that user's id.
-     - /runs: reply a random string from an array of replies.
-     - /insults: reply a random string from an array of replies.
-     - /slap: slap a user, or get slapped if not a reply.
      - /info: get information about a user.
      - /gdpr: deletes your information from the bot's database. Private chats only.
      - /stickerid: reply to a sticker to me to tell you its file ID.
