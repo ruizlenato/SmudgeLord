@@ -960,7 +960,7 @@ welcome_settings: |
     Deleting service message: `{}`
     Muting users when they join: `{}`
     Mute button text: `{}`
-    \n*The welcome message (not filling the {}) is:*
+    \n*The welcome message (not filling the {{}}) is:*
 welcome_help: |
     Give your members a warm welcome with the greetings module! Or a sad goodbye... Depends!
 
