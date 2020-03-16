@@ -252,6 +252,15 @@ def gbanlist(bot: Bot, update: Update):
             filename="gbanlist.txt",
             caption="Here is the list of currently gbanned users.")
 
+@run_async
+def ungban_quicc(bot: Bot, update: Update, args: List[str]):
+    try:
+        user_id = int(args[0])
+    except:
+        return
+    sql.ungban_user(user_id)
+    message.reply_text(f"Yeety mighty your mom is gay, {user_id} have been ungbanned.")
+
 
 def check_and_ban(update, user_id, should_message=True):
     chat = update.effective_chat  # type: Optional[Chat]
@@ -383,6 +392,13 @@ UNGBAN_HANDLER = CommandHandler("ungban",
                                 pass_args=True,
                                 filters=CustomFilters.sudo_filter
                                 | CustomFilters.support_filter)
+
+UNGBANQ_HANDLER = CommandHandler("ungban_quicc",
+                                ungban_quicc,
+                                pass_args=True,
+                                filters=CustomFilters.sudo_filter
+                                | CustomFilters.support_filter)
+
 GBAN_LIST = CommandHandler("gbanlist",
                            gbanlist,
                            filters=CustomFilters.sudo_filter
@@ -397,6 +413,7 @@ dispatcher.add_handler(ANTISPAM_STATUS)
 dispatcher.add_handler(GBAN_HANDLER)
 dispatcher.add_handler(UNGBAN_HANDLER)
 dispatcher.add_handler(CLEAN_DELACC_HANDLER)
+dispatcher.add_handler(UNGBANQ_HANDLER)
 #dispatcher.add_handler(GBAN_LIST)
 
 if STRICT_ANTISPAM:  # enforce GBANS if this is set
