@@ -9,7 +9,7 @@ from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import haruka.modules.sql.antispam_sql as sql
-from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, MESSAGE_DUMP, STRICT_ANTISPAM
+from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, MESSAGE_DUMP, STRICT_ANTISPAM, sw
 from haruka.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from haruka.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from haruka.modules.helper_funcs.filters import CustomFilters
@@ -264,6 +264,14 @@ def ungban_quicc(bot: Bot, update: Update, args: List[str]):
 
 def check_and_ban(update, user_id, should_message=True):
     chat = update.effective_chat  # type: Optional[Chat]
+    sw_ban = sw.get_ban(int(user_id))
+    if sw_ban:
+        update.effective_chat.kick_member(user_id)
+        if should_message:
+            update.effective_message.reply_markdown("**This user is detected as spam bot by SpamWatch and have been removed!**\n\nPlease visit @SpamWatchSupport to appeal!")
+            return
+        else:
+            return
 
     if sql.is_user_gbanned(user_id):
         update.effective_chat.kick_member(user_id)
@@ -276,6 +284,7 @@ def check_and_ban(update, user_id, should_message=True):
             update.effective_message.reply_text(tld(
                 chat.id, "antispam_checkban_user_removed").format(usrreason),
                                                 parse_mode=ParseMode.MARKDOWN)
+            return
 
 
 @run_async

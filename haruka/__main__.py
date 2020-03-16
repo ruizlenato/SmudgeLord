@@ -325,12 +325,12 @@ def main():
     Dispatcher.process_update = process_update
 
     LOGGER.info("Using long polling.")
-    # updater.start_polling(timeout=15, read_latency=4, clean=True)
-    updater.start_polling(poll_interval=0.0,
-                          timeout=10,
-                          clean=True,
-                          bootstrap_retries=-1,
-                          read_latency=3.0)
+    updater.start_polling(timeout=15, read_latency=4, clean=True)
+    #updater.start_polling(poll_interval=0.0,
+    #                      timeout=10,
+    #                      clean=True,
+    #                      bootstrap_retries=-1,
+    #                      read_latency=3.0)
     updater.idle()
 
 

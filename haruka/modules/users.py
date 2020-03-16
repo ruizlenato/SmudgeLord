@@ -20,7 +20,7 @@ from haruka.modules.helper_funcs.chat_status import is_user_ban_protected, bot_a
 from haruka.modules.translations.strings import tld
 
 USERS_GROUP = 4
-CHAT_GROUP = 5
+CHAT_GROUP = 10
 
 
 def get_user_id(username):

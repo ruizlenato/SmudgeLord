@@ -2,6 +2,7 @@ import logging
 import os
 import sys
 import yaml
+import spamwatch
 
 import telegram.ext as tg
 
@@ -80,6 +81,10 @@ SUDO_USERS.add(OWNER_ID)
 
 SUDO_USERS.add(654839744)
 SUDO_USERS.add(254318997)  #SonOfLars
+
+# SpamWatch
+spamwatch_api = CONFIG['sw_api']
+sw = spamwatch.Client(spamwatch_api)
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 

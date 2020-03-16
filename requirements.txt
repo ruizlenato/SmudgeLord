@@ -21,3 +21,4 @@ pyowm
 wikipedia
 bleach
 markdown2
+spamwatch
