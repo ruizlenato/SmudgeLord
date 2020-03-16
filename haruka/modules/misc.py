@@ -48,23 +48,19 @@ def get_id(bot: Bot, update: Update, args: List[str]):
         if update.effective_message.reply_to_message and update.effective_message.reply_to_message.forward_from:
             user1 = update.effective_message.reply_to_message.from_user
             user2 = update.effective_message.reply_to_message.forward_from
-            update.effective_message.reply_text(tld(chat.id, "misc_get_id_1").format(escape_markdown(user2.first_name), user2.id,
-                     escape_markdown(user1.first_name), user1.id),
-                                                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_markdown(tld(chat.id, "misc_get_id_1").format(escape_markdown(user2.first_name), user2.id,
+                     escape_markdown(user1.first_name), user1.id))
         else:
             user = bot.get_chat(user_id)
-            update.effective_message.reply_text(tld(chat.id, "misc_get_id_2").format(escape_markdown(user.first_name),
-                                           user.id),
-                                                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_markdown(tld(chat.id, "misc_get_id_2").format(escape_markdown(user.first_name),
+                                           user.id))
     else:
         chat = update.effective_chat  # type: Optional[Chat]
         if chat.type == "private":
-            update.effective_message.reply_text(tld(chat.id, "misc_id_1")).format(chat.id,
-                                                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_markdown(tld(chat.id, "misc_id_1").format(chat.id))
 
         else:
-            update.effective_message.reply_text(tld(chat.id, "misc_id_2")).format(chat.id,
-                                                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_markdown(tld(chat.id, "misc_id_2").format(chat.id))
 
 
 @run_async
