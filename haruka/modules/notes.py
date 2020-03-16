@@ -208,7 +208,7 @@ def save(bot: Bot, update: Update):
                            data_type,
                            buttons=buttons,
                            file=content)
-        msg.reply_text(tld(chat.id, "save_success").format(note_name, chat_name, note_name, chat_name), parse_mode=ParseMode.MARKDOWN)
+        msg.reply_text(tld(chat.id, "save_success").format(note_name, chat_name, note_name, note_name), parse_mode=ParseMode.MARKDOWN)
     else:
         sql.add_note_to_db(chat_id,
                            note_name,
@@ -216,7 +216,7 @@ def save(bot: Bot, update: Update):
                            data_type,
                            buttons=buttons,
                            file=content)
-        msg.reply_text(tld(chat.id, "save_updated").format(note_name, chat_name, note_name, chat_name), parse_mode=ParseMode.MARKDOWN)
+        msg.reply_text(tld(chat.id, "save_updated").format(note_name, chat_name, note_name, note_name), parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
