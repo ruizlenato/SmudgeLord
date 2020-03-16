@@ -264,14 +264,14 @@ def ungban_quicc(bot: Bot, update: Update, args: List[str]):
 
 def check_and_ban(update, user_id, should_message=True):
     chat = update.effective_chat  # type: Optional[Chat]
-    sw_ban = sw.get_ban(int(user_id))
-    if sw_ban:
-        update.effective_chat.kick_member(user_id)
-        if should_message:
-            update.effective_message.reply_markdown("**This user is detected as spam bot by SpamWatch and have been removed!**\n\nPlease visit @SpamWatchSupport to appeal!")
-            return
-        else:
-            return
+    #sw_ban = sw.get_ban(int(user_id))
+    #if sw_ban:
+    #    update.effective_chat.kick_member(user_id)
+    #    if should_message:
+    #        update.effective_message.reply_markdown("**This user is detected as spam bot by SpamWatch and have been removed!**\n\nPlease visit @SpamWatchSupport to appeal!")
+    #        return
+    #    else:
+    #        return
 
     if sql.is_user_gbanned(user_id):
         update.effective_chat.kick_member(user_id)
