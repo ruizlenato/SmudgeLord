@@ -815,7 +815,7 @@ note_in_local: "*Local Notes:*\n"
 note_none_in_chat: "No notes in *{}*!"
 note_get: "\nYou can retrieve these notes by using `/get notename`, or `#notename`"
 note_fail_to_import: "These files/photos failed to import due to originating from another bot. This is a telegram API restriction, and can't be avoided. Sorry for the inconvenience!"
-note_help: |
+notes_help: |
     Save data for future users with notes!
     Notes are great to save random tidbits of information; a phone number, a nice gif, a funny picture - anything!
 
