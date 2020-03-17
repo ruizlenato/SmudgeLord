@@ -192,12 +192,33 @@ def leavechat(bot: Bot, update: Update, args: List[int]):
     if args:
         chat_id = int(args[0])
     else:
-        update.effective_message.reply_text(
-            "You do not seem to be referring to a chat!")
+        try:
+            chat = update.effective_chat
+            if chat.type == "private":
+                update.effective_message.reply_text("You do not seem to be referring to a chat!")
+                return
+            chat_id = chat.id
+            reply_text = "`I'll leave this group`"
+            bot.send_message(chat_id,
+                            reply_text,
+                            parse_mode='Markdown',
+                            disable_web_page_preview=True)
+            bot.leaveChat(chat_id)
+        except BadRequest as excp:
+            if excp.message == "Chat not found":
+                update.effective_message.reply_text(
+                    "It looks like I've been kicked out of the group :p")
+            else:
+                return
+
     try:
         chat = bot.getChat(chat_id)
         titlechat = bot.get_chat(chat_id).title
-        bot.sendMessage(chat_id, "`I'll Go Away!`")
+        reply_text = "`I'll Go Away!`"
+        bot.send_message(chat_id,
+                        reply_text,
+                        parse_mode='Markdown',
+                        disable_web_page_preview=True)
         bot.leaveChat(chat_id)
         update.effective_message.reply_text(
             "I'll left group {}".format(titlechat))
