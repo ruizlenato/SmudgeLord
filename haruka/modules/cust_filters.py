@@ -21,7 +21,7 @@ from haruka.modules.translations.strings import tld
 
 from haruka.modules.connection import connected
 
-HANDLER_GROUP = 10
+HANDLER_GROUP = 15
 
 
 @run_async
