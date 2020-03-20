@@ -546,7 +546,7 @@ DELETE_HANDLER = CommandHandler("clear", clear, pass_args=False)
 
 PMNOTE_HANDLER = CommandHandler("privatenote", private_note, pass_args=True)
 
-LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"], list_notes, admin_ok=False)
+LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"], list_notes)
 
 dispatcher.add_handler(GET_HANDLER)
 dispatcher.add_handler(SAVE_HANDLER)
