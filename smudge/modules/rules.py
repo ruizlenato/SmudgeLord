@@ -107,7 +107,7 @@ __help__ = """
 
 __mod_name__ = "Rules"
 
-GET_RULES_HANDLER = DisableAbleCommandHandler("rules", get_rules, filters=Filters.group)
+GET_RULES_HANDLER = DisableAbleCommandHandler("rules", get_rules, filters=Filters.group, admin_ok=False)
 SET_RULES_HANDLER = CommandHandler("setrules", set_rules, filters=Filters.group)
 RESET_RULES_HANDLER = CommandHandler("clearrules", clear_rules, filters=Filters.group)
 

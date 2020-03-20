@@ -147,7 +147,7 @@ def get(bot, update, notename, show_none=True, no_format=False):
 					except Unauthorized as excp:
 						send_message(update.effective_message, (tld(chat.id, "Contact me in PM first to get this note.")), parse_mode="markdown")
 						pass
-					
+
 			except BadRequest as excp:
 				if excp.message == "Entity_mention_user_invalid":
 					send_message(update.effective_message, (tld(chat.id, "Looks like you're trying to mention someone i've never seen before. "
@@ -223,7 +223,7 @@ def save(bot: Bot, update: Update):
 
 	if len(text.strip()) == 0:
 		text = "`" + note_name + "`"
-		
+
 	sql.add_note_to_db(chat_id, note_name, text, data_type, buttons=buttons, file=content)
 	if conn:
 		savedtext = (tld(chat.id, "Ok, the note `{note_name}` is saved in *{chat_name}*.").format(note_name=note_name, chat_name=chat_name))
@@ -538,15 +538,15 @@ This will retrieve the note and send it without formatting it; getting you the r
 
 __mod_name__ = "Notes"
 
-GET_HANDLER = CommandHandler("get", cmd_get, pass_args=True)
+GET_HANDLER = CommandHandler("get", cmd_get, pass_args=False)
 HASH_GET_HANDLER = RegexHandler(r"^#[^\s]+", hash_get)
 
 SAVE_HANDLER = CommandHandler("save", save)
-DELETE_HANDLER = CommandHandler("clear", clear, pass_args=True)
+DELETE_HANDLER = CommandHandler("clear", clear, pass_args=False)
 
 PMNOTE_HANDLER = CommandHandler("privatenote", private_note, pass_args=True)
 
-LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"], list_notes, admin_ok=True)
+LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"], list_notes, admin_ok=False)
 
 dispatcher.add_handler(GET_HANDLER)
 dispatcher.add_handler(SAVE_HANDLER)

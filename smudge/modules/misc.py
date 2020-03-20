@@ -559,7 +559,7 @@ __help__ = """
 
 __mod_name__ = "Misc"
 
-ID_HANDLER = CommandHandler("id", get_id, pass_args=True, admin_ok=True)
+ID_HANDLER = CommandHandler("id", get_id, pass_args=True, admin_ok=False)
 IP_HANDLER = CommandHandler("ip", get_bot_ip, filters=Filters.chat(OWNER_ID), admin_ok=True)
 PING_HANDLER = CommandHandler("ping", ping, admin_ok=True)
 LYRICS_HANDLER = DisableAbleCommandHandler("lyrics", lyrics, pass_args=True, admin_ok=True)
@@ -567,7 +567,7 @@ LYRICS_HANDLER = DisableAbleCommandHandler("lyrics", lyrics, pass_args=True, adm
 INSULTS_HANDLER = DisableAbleCommandHandler("insults", insults, admin_ok=True)
 RUNS_HANDLER = DisableAbleCommandHandler("runs", runs, admin_ok=True)
 SLAP_HANDLER = DisableAbleCommandHandler("slap", slap, pass_args=True, admin_ok=True)
-INFO_HANDLER = CommandHandler("info", info, pass_args=True, admin_ok=True)
+INFO_HANDLER = CommandHandler("info", info, pass_args=True, admin_ok=False)
 
 ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID))
 MD_HELP_HANDLER = CommandHandler("markdownhelp", markdown_help, filters=Filters.private)
