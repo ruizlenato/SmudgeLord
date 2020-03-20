@@ -15,6 +15,7 @@ from telegram.ext import CommandHandler
 from telegram.ext import run_async
 
 from smudge import dispatcher, LOGGER
+from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.modules.helper_funcs.misc import split_message
 
 # DO NOT DELETE THIS, PLEASE.
