@@ -15,7 +15,6 @@ from telegram.ext import CommandHandler
 from telegram.ext import run_async
 
 from smudge import dispatcher, LOGGER
-from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.modules.helper_funcs.misc import split_message
 
 # DO NOT DELETE THIS, PLEASE.
@@ -147,7 +146,7 @@ def checkfw(bot, update, args):
     else:
         md5=page2.find("latest").text.strip()
         reply += f' • Hash: `{md5}`\n • Android: `{os2}`\n\n'
-
+    
     update.message.reply_text("{}".format(reply),
                            parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
@@ -755,7 +754,7 @@ __help__ = """
  - /magisk: gets the latest magisk release for Stable/Beta/Canary
  - /twrp <codename>: gets latest twrp for the android device using the codename
  - /specs <brand> <device name>: will give you the complete specifications of a device
-
+ 
 *Specific ROM for a device*
  - /aex <device> <android version>: Get the latest AEX ROM for a device
  - /bootleggers <device>: Get the latest Bootleggers ROM for a device
@@ -779,26 +778,26 @@ __help__ = """
 
 __mod_name__ = "Android"
 
-DEVICE_HANDLER = DisableAbleCommandHandler("device", device, pass_args=False)
-MAGISK_HANDLER = DisableAbleCommandHandler("magisk", magisk)
-TWRP_HANDLER = DisableAbleCommandHandler("twrp", twrp, pass_args=False)
-AEX_HANDLER = DisableAbleCommandHandler("aex", aex, pass_args=True, admin_ok=False)
-BOOTLEGGERS_HANDLER = DisableAbleCommandHandler("bootleggers", bootleggers, admin_ok=False)
-DOTOS_HANDLER = DisableAbleCommandHandler("dotos", dotos, admin_ok=False)
-EVO_HANDLER = DisableAbleCommandHandler("evo", evo, admin_ok=False)
-HAVOC_HANDLER = DisableAbleCommandHandler("havoc", havoc, admin_ok=False)
-LOS_HANDLER = DisableAbleCommandHandler("los", los, admin_ok=False)
-MIUI_HANDLER = DisableAbleCommandHandler("miui", miui, admin_ok=False)
-PE_HANDLER = DisableAbleCommandHandler("pe", pe, admin_ok=False)
-PE10_HANDLER = DisableAbleCommandHandler("pe10", pe, admin_ok=False)
-PEPLUS_HANDLER = DisableAbleCommandHandler("peplus", pe, admin_ok=False)
-PEARL_HANDLER = DisableAbleCommandHandler("pearl", pearl, admin_ok=False)
-PIXYS_HANDLER = DisableAbleCommandHandler("pixys", pixys, admin_ok=False)
-POSP_HANDLER = DisableAbleCommandHandler("posp", posp, admin_ok=False)
-VIPER_HANDLER = DisableAbleCommandHandler("viper", viper, admin_ok=False)
-SPECS_HANDLER = DisableAbleCommandHandler("specs", specs, pass_args=False)
-GETFW_HANDLER = DisableAbleCommandHandler("getfw", getfw, pass_args=False)
-CHECKFW_HANDLER = DisableAbleCommandHandler("checkfw", checkfw, pass_args=False)
+DEVICE_HANDLER = CommandHandler("device", device, pass_args=True)
+MAGISK_HANDLER = CommandHandler("magisk", magisk)
+TWRP_HANDLER = CommandHandler("twrp", twrp, pass_args=True)
+AEX_HANDLER = CommandHandler("aex", aex, pass_args=True, admin_ok=True)
+BOOTLEGGERS_HANDLER = CommandHandler("bootleggers", bootleggers, admin_ok=True)
+DOTOS_HANDLER = CommandHandler("dotos", dotos, admin_ok=True)
+EVO_HANDLER = CommandHandler("evo", evo, admin_ok=True)
+HAVOC_HANDLER = CommandHandler("havoc", havoc, admin_ok=True)
+LOS_HANDLER = CommandHandler("los", los, admin_ok=True)
+MIUI_HANDLER = CommandHandler("miui", miui, admin_ok=True)
+PE_HANDLER = CommandHandler("pe", pe, admin_ok=True)
+PE10_HANDLER = CommandHandler("pe10", pe, admin_ok=True)
+PEPLUS_HANDLER = CommandHandler("peplus", pe, admin_ok=True)
+PEARL_HANDLER = CommandHandler("pearl", pearl, admin_ok=True)
+PIXYS_HANDLER = CommandHandler("pixys", pixys, admin_ok=True)
+POSP_HANDLER = CommandHandler("posp", posp, admin_ok=True)
+VIPER_HANDLER = CommandHandler("viper", viper, admin_ok=True)
+SPECS_HANDLER = CommandHandler("specs", specs, pass_args=True)
+GETFW_HANDLER = CommandHandler("getfw", getfw, pass_args=True)
+CHECKFW_HANDLER = CommandHandler("checkfw", checkfw, pass_args=True)
 
 dispatcher.add_handler(DEVICE_HANDLER)
 dispatcher.add_handler(MAGISK_HANDLER)
