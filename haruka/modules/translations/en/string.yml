@@ -1046,7 +1046,7 @@ stickers_getsticker_no_reply: Please reply to a sticker for me to upload its PNG
 stickers_kang_error: Yea, I can't kang that.
 stickers_kang_success: |
         Sticker successfully added to [pack](t.me/addstickers/{}).
-        Emoji is: {}.
+        Emoji: {}
 stickers_kang_only_img: I can only kang images!
 stickers_kang_invalid_emoji: "Error: Invalid emoji(s)."
 stickers_kang_too_much: "Error: Max packsize reached. Press F to pay respecc."

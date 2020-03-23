@@ -215,7 +215,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
 
 
 def makepack_internal(msg, user, png_sticker, emoji, bot, packname, packnum):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = msg.chat  # type: Optional[Chat]
     name = user.first_name
     name = name[:50]
     try:
@@ -246,7 +246,7 @@ def makepack_internal(msg, user, png_sticker, emoji, bot, packname, packnum):
         return
 
     if success:
-        msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
+        msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, emoji),
             parse_mode=ParseMode.MARKDOWN)
     else:
         msg.reply_text(tld(chat.id, 'stickers_pack_create_error'))
