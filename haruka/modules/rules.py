@@ -75,7 +75,7 @@ def set_rules(bot: Bot, update: Update):
                                          offset=offset)
 
         sql.set_rules(chat_id, markdown_rules)
-        update.effective_message.reply_text(tld(chat_id, rules_success))
+        update.effective_message.reply_text(tld(chat_id, "rules_success"))
 
 
 @run_async
