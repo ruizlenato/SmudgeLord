@@ -48,11 +48,11 @@ modname_admin: Admin
 admin_err_no_perm: I can't promote/demote people here! Make sure I'm an admin and can appoint new admins.
 admin_err_user_admin: How am I meant to promote someone who's already an admin?
 admin_err_self_promote: I can't promote myself! Get an admin to do it for me.
-admin_promote_success: Admin {} successfully promoted {} in <b>{}</b>!
+admin_promote_success: Admin {} has successfully promoted {} in <b>{}</b>!
 admin_err_demote_creator: This person is the CREATOR of the chat, how would I demote them?
 admin_err_demote_noadmin: Can't demote those who weren't promoted!
 admin_err_self_demote: I can't demote myself!
-admin_demote_success: Admin {} successfully demoted {} in <b>{}</b>!
+admin_demote_success: Admin {} has successfully demoted {} in <b>{}</b>!
 admin_err_cant_demote: Could not demote. I might not be admin, or the admin status was appointed by another user, so I can't act upon them!
 admin_list: "Admins in *{}*:"
 admin_list_creator:  (Creator)
@@ -210,16 +210,20 @@ modname_bans: Bans
 bans_err_usr_not_found: I can't seem to find this user.
 bans_err_usr_is_bot: I'm not gonna BAN myself, are you crazy?
 bans_err_usr_is_admin: Why would I ban an admin? That sounds like a pretty dumb idea.
-bans_logger: "{} {} {} {}" # <b>{}:</b>\n#BANNED\n<b>Admin:</b> {}\n<b>User:</b> {}(<code>{}</code>) 
-bans_banned_success: Admin {} successfully banned {} in <b>{}</b>!
+bans_logger: |
+    <b>{}:</b>
+    #BANNED
+    <b>Admin:</b> {}
+    <b>User:</b> {} (<code>{}</code>)
+bans_banned_success: Admin {} has successfully banned {} in <b>{}</b>!
 bans_logger_reason: \n<b>Reason:</b> {}
 bans_err_unknown: "Unknown error: {} failed."
 bans_err_tban_no_arg: You haven't specified a time to ban this user for!
 bans_tban_logger: <b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)\n<b>Time:</b> {}
-bans_tbanned_success: Admin {} successfully banned {} in <b>{}</b> for {}!
+bans_tbanned_success: Admin {} has successfully banned {} in <b>{}</b> for {}!
 bans_kick_is_bot: I'm not kicking myself!
 bans_kick_is_admin: Why would I kick an admin? That sounds like a pretty dumb idea.
-bans_kick_success: Admin {} successfully kicked {} in <b>{}</b>!
+bans_kick_success: Admin {} has successfully kicked {} in <b>{}</b>!
 bans_kick_logger: <b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)
 bans_kickme_success: No problem.
 bans_kickme_failed: 
@@ -378,7 +382,7 @@ feds_leave_success: "This chat has left the federation: {}!"
 feds_leave_not_joined: How can you leave a federation that you never joined?!
 feds_promote_owner: Why are you trying to promote the federation owner?
 feds_promote_bot: I am already a federation admin in all federations!
-feds_promote_success: Successfully Promoted!
+feds_promote_success: Promoted successfully!
 feds_promote_failed: Failed to promote!
 feds_demote_bot: I can't demote myself from a federation!
 feds_demote_target_not_admin: I cannot demote people who are not federation admins!
@@ -496,7 +500,7 @@ log_channel_grp_curr_conf: "This group has all its logs sent to: {} (`{}`)"
 log_channel_none: No log channel has been set for this group!
 log_channel_fwd_cmd: Now, forward the /setlog command to the group you want to connect this channel to!
 log_channel_chn_curr_conf: This channel has been set as the log channel for {}.
-log_channel_link_success: Successfully set log channel!
+log_channel_link_success: Set the log channel successfully!
 log_channel_invalid_message: This isn't a forwarded message! Please read help(type /help in a PM with the bot) for more information about this command.
 log_channel_unlink_success: Channel has been unlinked from {}!
 log_channel_unlink_none: No log channel has been set yet!
@@ -940,10 +944,10 @@ welcome_goodbye_set_on: Leaving members will be given a goodbye message!
 welcome_goodbye_set_off: New members will no longer be greeted with a welcome message!
 welcome_set_welcome_no_text: You must provide the welcome message! Type `/help greetings` in my PM for some help for the Greetings module!
 welcome_set_welcome_no_datatype: Couldn't find the welcome message's data type.
-welcome_set_welcome_success: Successfully set custom welcome message!
-welcome_reset_welcome_success: Successfully reset welcome message to default!
-welcome_set_goodbye_success: Successfully set custom goodbye message!
-welcome_reset_goodbye_success: Successfully reset goodbye message to default!
+welcome_set_welcome_success: Set custom welcome message successfully!
+welcome_reset_welcome_success: Reset welcome message to default successfully!
+welcome_set_goodbye_success: Set custom goodbye message successfully!
+welcome_reset_goodbye_success: Reset goodbye message to default successfully!
 welcome_clean_curr_on: I currently delete welcome messages which are up to 2 days old!
 welcome_clean_curr_off: I don't currently delete old welcome messages!
 welcome_clean_set_on: I will be deleting old(up to 2 days) welcome messages from now on!
