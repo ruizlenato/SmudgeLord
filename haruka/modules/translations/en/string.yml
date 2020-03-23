@@ -952,7 +952,7 @@ welcome_chat_settings_pref: |
     This chat has its welcome settings set to `{}`.
     The goodbye settings are set to `{}`.
 welcome_goodbye_settings: |
-    This chat has itss goodbye setting set to: `{}`.
+    This chat has its goodbye setting set to: `{}`.
     *The goodbye message (not filling the {{}}) is:*
 welcome_settings: |
     This chat has its welcome setting set to: `{}`

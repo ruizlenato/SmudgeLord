@@ -665,6 +665,9 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
         noformat = args and args[0] == "noformat"
         pref, goodbye_m, cust_content, goodbye_type = sql.get_gdbye_pref(
             chat.id)
+        if cust_content == None:
+            cust_content = goodbye_m
+
         update.effective_message.reply_text(tld(chat.id, 'welcome_goodbye_settings').format(pref),
             parse_mode=ParseMode.MARKDOWN)
 
@@ -712,7 +715,7 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
 
         else:
             # idek what you're writing, say yes or no
-            update.effective_message.reply_text(tld(chat.id, 'common_invalid_arg'))
+            update.effective_message.reply_text(tld(chat.id, 'common_invalid_arg'), parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
