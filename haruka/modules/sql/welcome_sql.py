@@ -339,7 +339,7 @@ def set_custom_gdbye(chat_id,
         if not welcome_settings:
             welcome_settings = Welcome(str(chat_id), True)
 
-        if custom_goodbye:
+        if custom_goodbye or custom_content_leave:
             welcome_settings.custom_content_leave = custom_content_leave
             welcome_settings.custom_leave = custom_goodbye
             welcome_settings.leave_type = goodbye_type.value
