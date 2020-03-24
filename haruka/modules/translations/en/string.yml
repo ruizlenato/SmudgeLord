@@ -941,7 +941,7 @@ welcome_mute_time_short: (Muting user for {})
 welcome_greet_set_on: New members will now be greeted with a warm welcome message!
 welcome_greet_set_off: New members will no longer be greeted with a welcome message!
 welcome_goodbye_set_on: Leaving members will be given a goodbye message!
-welcome_goodbye_set_off: New members will no longer be greeted with a welcome message!
+welcome_goodbye_set_off: Leaving members will no longer be given a goodbye message!
 welcome_set_welcome_no_text: You must provide the welcome message! Type `/help greetings` in my PM for some help for the Greetings module!
 welcome_set_welcome_no_datatype: Couldn't find the welcome message's data type.
 welcome_set_welcome_success: Set custom welcome message successfully!
@@ -951,7 +951,7 @@ welcome_reset_goodbye_success: Reset goodbye message to default successfully!
 welcome_clean_curr_on: I currently delete welcome messages which are up to 2 days old!
 welcome_clean_curr_off: I don't currently delete old welcome messages!
 welcome_clean_set_on: I will be deleting old(up to 2 days) welcome messages from now on!
-welcome_clean_set_on: I won't be deleting old welcome messages anymore!
+welcome_clean_set_off: I won't be deleting old welcome messages anymore!
 welcome_chat_settings_pref: |
     This chat has its welcome settings set to `{}`.
     The goodbye settings are set to `{}`.
