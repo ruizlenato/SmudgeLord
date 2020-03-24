@@ -2,6 +2,8 @@ Dear anyone kanging my bot, At least, Don't fucking spam my private messages lea
 
 # Haruka Aya
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/fbbb2ca43fa44938a7371706eb39411e)](https://app.codacy.com/gh/HarukaNetwork/HarukaAya?utm_source=github.com&utm_medium=referral&utm_content=HarukaNetwork/HarukaAya&utm_campaign=Badge_Grade_Dashboard)
+
 A modular Telegram Python bot running on python3 with an sqlalchemy database.
 
 Can be found on telegram as [Haruka Aya](https://t.me/HarukaAyaBot).
