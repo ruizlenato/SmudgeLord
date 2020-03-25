@@ -30,7 +30,10 @@ def tld(chat_id, t, show_none=True):
                         'unicode-escape')
         return result
 
-    # LOGGER.warning(f"No string found for {t}")
+    err = f"No string found for {t}.\nReport it in @HarukaAyaGroup."
+    LOGGER.warning(err)
+    return err
+    
 
 def tld_list(chat_id, t):
     LANGUAGE = prev_locale(chat_id)
@@ -43,7 +46,9 @@ def tld_list(chat_id, t):
     if t in strings['en']:
         return strings['en'][t]
 
-    # LOGGER.warning(f"No string found for {t}")
+    err = f"No string found for {t}.\nReport it in @HarukaAyaGroup."
+    LOGGER.warning(err)
+    return err
 
 # def tld_help(chat_id, t):
 #     LANGUAGE = prev_locale(chat_id)
