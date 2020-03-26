@@ -84,7 +84,11 @@ SUDO_USERS.add(254318997)  #SonOfLars
 
 # SpamWatch
 spamwatch_api = CONFIG['sw_api']
-sw = spamwatch.Client(spamwatch_api)
+if spamwatch_api == None:
+    sw = None
+    LOGGER.warning("SpamWatch API key is missing! Check your config.env.")
+else:
+    sw = spamwatch.Client(spamwatch_api)
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
