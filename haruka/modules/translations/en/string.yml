@@ -449,8 +449,8 @@ language_sel_user_lang: "*\n\nSelect a new user language:*"
 # Locks
 modname_locks: Locks
 locks_list_title: "Locks: "
-locks_lock_success: Locked {} messages for all non-admins!
-locks_unlock_success: Unlocked {} messages for everyone!
+locks_lock_success: Locked `{}` messages for all non-admins!
+locks_unlock_success: Unlocked `{}` messages for everyone!
 locks_type_invalid: What are you trying to lock...? Try /locktypes for the list of lockables.
 locks_bot_not_admin: Make sure I'm a group administrator and have permission to delete messages, then try again.
 locks_lock_no_type: You haven't specified a type to lock.

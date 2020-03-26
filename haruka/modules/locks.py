@@ -144,7 +144,8 @@ def lock(bot: Bot, update: Update, args: List[str]) -> str:
             if args[0] in LOCK_TYPES:
                 sql.update_lock(chat.id, args[0], locked=True)
                 message.reply_text(
-                    tld(chat.id, "locks_lock_success").format(args[0]))
+                    tld(chat.id, "locks_lock_success").format(args[0]),
+                    parse_mode=ParseMode.MARKDOWN)
 
                 return "<b>{}:</b>" \
                        "\n#LOCK" \
@@ -164,7 +165,8 @@ def lock(bot: Bot, update: Update, args: List[str]) -> str:
                                   other=True)
 
                 message.reply_text(
-                    tld(chat.id, "locks_lock_success").format(args[0]))
+                    tld(chat.id, "locks_lock_success").format(args[0]),
+                    parse_mode=ParseMode.MARKDOWN)
                 return "<b>{}:</b>" \
                        "\n#LOCK" \
                        "\n<b>Admin:</b> {}" \
@@ -194,7 +196,8 @@ def unlock(bot: Bot, update: Update, args: List[str]) -> str:
             if args[0] in LOCK_TYPES:
                 sql.update_lock(chat.id, args[0], locked=False)
                 message.reply_text(
-                    tld(chat.id, "Unlocked {} for everyone!").format(args[0]))
+                    tld(chat.id, "locks_unlock_success").format(args[0]),
+                    parse_mode=ParseMode.MARKDOWN)
                 return "<b>{}:</b>" \
                        "\n#UNLOCK" \
                        "\n<b>Admin:</b> {}" \
@@ -221,7 +224,8 @@ def unlock(bot: Bot, update: Update, args: List[str]) -> str:
                 #     unrestr_members(bot, chat.id, members, True, True, True, True)
 
                 message.reply_text(
-                    tld(chat.id, "locks_unlock_success").format(args[0]))
+                    tld(chat.id, "locks_unlock_success").format(args[0]),
+                    parse_mode=ParseMode.MARKDOWN)
 
                 return "<b>{}:</b>" \
                        "\n#UNLOCK" \
