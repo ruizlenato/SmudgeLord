@@ -161,7 +161,7 @@ def gdpr(bot: Bot, update: Update):
 @run_async
 def markdown_help(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
-    update.effective_message.reply_text(tld(chat.id, "MARKDOWN_HELP-K"),
+    update.effective_message.reply_text(tld(chat.id, "misc_md_list"),
                                         parse_mode=ParseMode.HTML)
     update.effective_message.reply_text(
         tld(chat.id, "misc_md_try"))
