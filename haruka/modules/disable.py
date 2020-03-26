@@ -121,16 +121,14 @@ if is_module_loaded(FILENAME):
             for cmd in set(DISABLE_CMDS + DISABLE_OTHER):
                 result += " - `{}`\n".format(escape_markdown(cmd))
             update.effective_message.reply_text(
-                tld(chat.id,
-                    "disable_able_commands".format(result),
-                    parse_mode=ParseMode.MARKDOWN))
+                tld(chat.id, "disable_able_commands").format(result),
+                parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_able_commands_none"))
 
     # do not async
     def build_curr_disabled(chat_id: Union[str, int]) -> str:
-        chat = update.effective_chat  # type: Optional[Chat]
         disabled = sql.get_all_disabled(chat_id)
         if not disabled:
             return tld(chat_id, "disable_chatsettings_none_disabled")
