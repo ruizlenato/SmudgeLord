@@ -26,16 +26,18 @@ WIDE_MAP[0x20] = 0x3000
 
 
 @run_async
-def owo(bot: Bot, update: Update):
+def owo(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message
-
+    
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     faces = [
@@ -64,16 +66,18 @@ def owo(bot: Bot, update: Update):
 
 
 @run_async
-def stretch(bot: Bot, update: Update):
+def stretch(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message
 
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     count = random.randint(3, 10)
@@ -90,12 +94,14 @@ def vapor(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
 
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     reply_text = str(data).translate(WIDE_MAP)
@@ -111,15 +117,18 @@ def vapor(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def mafiatext(bot: Bot, update: Update):
+def mafiatext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
+
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     if not Path('mafia.jpg').is_file():
@@ -146,15 +155,18 @@ def mafiatext(bot: Bot, update: Update):
 
 
 @run_async
-def pidortext(bot: Bot, update: Update):
+def pidortext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
+
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     if not Path('4pda.jpg').is_file():
@@ -179,15 +191,18 @@ def pidortext(bot: Bot, update: Update):
 
 
 @run_async
-def kimtext(bot: Bot, update: Update):
+def kimtext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
+
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     if not Path('kim.jpg').is_file():
@@ -212,15 +227,18 @@ def kimtext(bot: Bot, update: Update):
 
 
 @run_async
-def hitlertext(bot: Bot, update: Update):
+def hitlertext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
+
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     if not Path('hitler.jpg').is_file():
@@ -246,15 +264,18 @@ def hitlertext(bot: Bot, update: Update):
 
 
 @run_async
-def spongemocktext(bot: Bot, update: Update):
+def spongemocktext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
+
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     if not Path('bob.jpg').is_file():
@@ -280,15 +301,18 @@ def spongemocktext(bot: Bot, update: Update):
 
 
 @run_async
-def zalgotext(bot: Bot, update: Update):
+def zalgotext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
+
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = message.text.split(None, 1)[1]
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     reply_text = zalgo.zalgo().zalgofy(data)
@@ -355,18 +379,18 @@ async def process_deepfry(image: Image, reply: Message, bot: Bot):
 
 
 @run_async
-def shout(bot: Bot, update: Update, args):
+def shout(bot: Bot, update: Update, args: List[str]):
+    message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
-    if len(args) == 0:
-        update.effective_message.reply_text(tld(chat.id, "memes_shout_notext"))
-        return
 
+    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
         noreply = True
         data = " ".join(args)
     else:
+        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     msg = "```"
@@ -383,9 +407,14 @@ def shout(bot: Bot, update: Update, args):
 
 @run_async
 def insults(bot: Bot, update: Update):
+    message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
     text = random.choice(tld_list(chat.id, "memes_insults_list"))
-    update.effective_message.reply_text(text)
+
+    if message.reply_to_message:
+        message.reply_to_message.reply_text(text)
+    else:
+        message.reply_text(text)
 
 
 @run_async
@@ -447,18 +476,18 @@ def slap(bot: Bot, update: Update, args: List[str]):
 
 __help__ = True
 
-OWO_HANDLER = DisableAbleCommandHandler("owo", owo, admin_ok=True)
-STRETCH_HANDLER = DisableAbleCommandHandler("stretch", stretch)
+OWO_HANDLER = DisableAbleCommandHandler("owo", owo, admin_ok=True, pass_args=True)
+STRETCH_HANDLER = DisableAbleCommandHandler("stretch", stretch, pass_args=True)
 VAPOR_HANDLER = DisableAbleCommandHandler("vapor",
                                           vapor,
                                           pass_args=True,
                                           admin_ok=True)
-MOCK_HANDLER = DisableAbleCommandHandler("mock", spongemocktext, admin_ok=True)
-KIM_HANDLER = DisableAbleCommandHandler("kim", kimtext, admin_ok=True)
-MAFIA_HANDLER = DisableAbleCommandHandler("mafia", mafiatext, admin_ok=True)
-PIDOR_HANDLER = DisableAbleCommandHandler("pidor", pidortext, admin_ok=True)
-HITLER_HANDLER = DisableAbleCommandHandler("hitler", hitlertext, admin_ok=True)
-ZALGO_HANDLER = DisableAbleCommandHandler("zalgofy", zalgotext)
+MOCK_HANDLER = DisableAbleCommandHandler("mock", spongemocktext, admin_ok=True, pass_args=True)
+KIM_HANDLER = DisableAbleCommandHandler("kim", kimtext, admin_ok=True, pass_args=True)
+MAFIA_HANDLER = DisableAbleCommandHandler("mafia", mafiatext, admin_ok=True, pass_args=True)
+PIDOR_HANDLER = DisableAbleCommandHandler("pidor", pidortext, admin_ok=True, pass_args=True)
+HITLER_HANDLER = DisableAbleCommandHandler("hitler", hitlertext, admin_ok=True, pass_args=True)
+ZALGO_HANDLER = DisableAbleCommandHandler("zalgofy", zalgotext, pass_args=True)
 DEEPFRY_HANDLER = DisableAbleCommandHandler("deepfry",
                                             deepfryer,
                                             admin_ok=True)

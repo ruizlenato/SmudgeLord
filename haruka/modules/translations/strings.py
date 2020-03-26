@@ -46,9 +46,8 @@ def tld_list(chat_id, t):
     if t in strings['en']:
         return strings['en'][t]
 
-    err = f"No string found for {t}.\nReport it in @HarukaAyaGroup."
-    LOGGER.warning(err)
-    return err
+    LOGGER.warning(f"#NOSTR No string found for {t}.")
+    return f"No string found for {t}.\nReport it in @HarukaAyaGroup."
 
 # def tld_help(chat_id, t):
 #     LANGUAGE = prev_locale(chat_id)
