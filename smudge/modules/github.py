@@ -17,6 +17,7 @@ from telegram.ext import CommandHandler, run_async, Filters, RegexHandler
 from telegram import Message, Chat, Update, Bot, User, ParseMode, InlineKeyboardMarkup, MAX_MESSAGE_LENGTH
 
 
+def getData(url):
     if not api.getData(url):
         return "Invalid <user>/<repo> combo"
     recentRelease = api.getLastestReleaseData(api.getData(url))
