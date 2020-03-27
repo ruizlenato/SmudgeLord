@@ -131,7 +131,7 @@ def listRepo(bot: Bot, update: Update):
     chat_name = chat.title or chat.first or chat.username
     repo_list = sql.get_all_repos(str(chat_id))
     msg = "*List of repo shotcuts in {}:*\n"
-    des = "\nYou can get repo shortcuts by using `/fetch repo`, or `&repo`.\n"
+    des = "\nYou can get repo shortcuts by using `/fetch repo`, or `/repo`.\n"
     for repo in repo_list:
         repo_name = (" • `&{}`\n".format(repo.name))
         if len(msg) + len(repo_name) > MAX_MESSAGE_LENGTH:
