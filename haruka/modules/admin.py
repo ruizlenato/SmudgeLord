@@ -36,7 +36,7 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
             return
 
     if not chatD.get_member(bot.id).can_promote_members:
-        update.effective_message.reply_text(tld(chat.id, "err_no_perm"))
+        update.effective_message.reply_text(tld(chat.id, "admin_err_no_perm"))
         return
 
     user_id = extract_user(message, args)
