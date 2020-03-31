@@ -33,6 +33,7 @@ main_start_btn_lang: 🇺🇸 Language
 
 
 # Common
+common_err_no_admin: You aren't an admin!
 common_err_no_user: You don't seem to be referring to a user.
 common_err_invalid_chatid: Invalid Chat ID!
 common_yes: "Yes"
@@ -290,7 +291,6 @@ connection_err_not_allowed: Connections to this chat are not allowed!
 connection_err_no_chatid: Input chat ID to connect!
 connection_dis_success: Disconnected from chat successfully!
 connection_dis_fail: Disconnecting failed!
-connection_err_no_admin: You need to be an admin in the connected group!
 connection_err_unknown: Group has changed connection rights or you are not an admin anymore.\nI'll disconnect you.
 connection_help: | 
     Sometimes, you just want to add some notes and filters to a group chat, but you don't want everyone to see; This is where connections come in...

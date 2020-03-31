@@ -76,7 +76,7 @@ def gban(bot: Bot, update: Update, args: List[str]):
         return
 
     if user_chat.first_name == '':
-        message.reply_text(tld(chat.id, "antispam_err_user_deleted"))
+        message.reply_text(tld(chat.id, "antispam_err_usr_deleted"))
         return
 
     full_reason = f"{reason} // GBanned by {banner.first_name} id {banner.id}"

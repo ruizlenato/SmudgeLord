@@ -146,7 +146,7 @@ def connect_chat(bot, update, args):
                     parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text(
-                tld(chat.id, "common_err_not_admin"))
+                tld(chat.id, "common_err_no_admin"))
 
     else:
         update.effective_message.reply_text(tld(chat.id, "common_cmd_pm_only"))
