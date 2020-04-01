@@ -900,9 +900,13 @@ rules_help: |
 
 # Translator
 modname_translator: Translator
-translator_translated: Translated from {} to {}.\n{}
+translator_translated: |
+    Source (`{}`):\n{}
+    Destination (`{}`):\n{}
 translator_err: Error occured while translating:\n{}
 translator_help: "- /tr (language code): Get the translation of the replied message."
+translator_no_str: Reply to a message to translate!
+translator_no_args: Specify the language you want to translate the replied message to!
 
 
 # URL Blacklist

@@ -283,3 +283,7 @@ def markdown_to_html(text):
     return bleach.clean(_html,
                         tags=['strong', 'em', 'a', 'code', 'pre'],
                         strip=True)[:-1]
+
+def remove_emoji(inputString):
+    """ Remove emojis and other non-safe characters from string """
+    return emoji.get_emoji_regexp().sub(u'', inputString)
