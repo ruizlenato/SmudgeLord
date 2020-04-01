@@ -907,6 +907,45 @@ translator_err: Error occured while translating:\n{}
 translator_help: "- /tr (language code): Get the translation of the replied message."
 translator_no_str: Reply to a message to translate!
 translator_no_args: Specify the language you want to translate the replied message to!
+translator_animal_translated: |
+    Translated animal {} successfully!
+    Your animal says:\n`{}`
+translator_animal_lang:
+    - I love you
+    - Hi!
+    - Cheers!
+    - Don't touch me!
+    - Hey! I am hungry!
+    - Zzz...
+    - What is this black rectangle?
+    - I want to go out!
+    - Woof woof! Wait... are you recording me?!
+    - I won't talk!
+    - Where are my friends?
+    - I need bathroom.
+    - Leave me alone!
+    - Where are my testicles?
+    - My leg is hurting!
+    - Get outta me, NOW!
+    - Why are you harrassing me??!
+    - Fuck off.
+    - I am gonna eat you!
+    - Call the pack! There is a potential problem! Someone is coming into our territory!
+    - Is there anybody there? I’m lonely and need companionship.
+    - Stop that!
+    - Hello there!
+    - What's this?
+    - Huh?
+    - Ouch!
+    - Let's play!
+    - This is fun!
+    - I am really scared of you.
+    - I am gonna pee!
+    - yoU sTinK.
+
+
+
+
 
 
 # URL Blacklist

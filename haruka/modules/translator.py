@@ -1,3 +1,4 @@
+import random
 from typing import Optional, List
 
 from telegram import Message, Update, Bot, User, ParseMode
@@ -7,16 +8,29 @@ from telegram.ext import Filters, MessageHandler, run_async
 from haruka import dispatcher, LOGGER
 from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.string_handling import remove_emoji
+from haruka.modules.translations.strings import tld, tld_list
 
 from googletrans import LANGUAGES, Translator
 
-from haruka.modules.translations.strings import tld
 
 @run_async
 def do_translate(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
     lan = " ".join(args)
+    audio = False
+
+    if msg.reply_to_message and (msg.reply_to_message.audio or msg.reply_to_message.voice) or (args and args[0] == 'animal'):
+        reply = random.choice(tld_list(chat.id, 'translator_animal_lang'))
+
+        if args:
+            translation_type = "text"
+        else:
+            translation_type = "audio"
+
+        msg.reply_text(tld(chat.id, 'translator_animal_translated').format(translation_type, reply), parse_mode=ParseMode.MARKDOWN)
+        return
+
     if msg.reply_to_message:
         to_translate_text = remove_emoji(msg.reply_to_message.text)
     else:
@@ -25,6 +39,7 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
     
     if not args:
         msg.reply_text(tld(chat.id, 'translator_no_args'))
+        return
 
     translator = Translator()
     try:
