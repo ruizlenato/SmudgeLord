@@ -8,16 +8,16 @@ from telegram.error import BadRequest
 from telegram.ext import MessageHandler, DispatcherHandlerStop, run_async
 from telegram.utils.helpers import escape_markdown
 
-from smudge import dispatcher, LOGGER
-from smudge.modules.connection import connected
-from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import user_admin
-from smudge.modules.helper_funcs.extraction import extract_text
-from smudge.modules.helper_funcs.filters import CustomFilters
-from smudge.modules.helper_funcs.misc import build_keyboard
-from smudge.modules.helper_funcs.string_handling import split_quotes, button_markdown_parser
-from smudge.modules.sql import cust_filters_sql as sql
-from smudge.modules.translations.strings import tld
+from hitsuki import dispatcher, LOGGER
+from hitsuki.modules.connection import connected
+from hitsuki.modules.disable import DisableAbleCommandHandler
+from hitsuki.modules.helper_funcs.chat_status import user_admin
+from hitsuki.modules.helper_funcs.extraction import extract_text
+from hitsuki.modules.helper_funcs.filters import CustomFilters
+from hitsuki.modules.helper_funcs.misc import build_keyboard
+from hitsuki.modules.helper_funcs.string_handling import split_quotes, button_markdown_parser
+from hitsuki.modules.sql import cust_filters_sql as sql
+from hitsuki.modules.translations.strings import tld
 
 HANDLER_GROUP = 10
 

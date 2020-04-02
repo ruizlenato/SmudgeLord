@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, String, UnicodeText, Boolean, Integer, distinct, func
 
-from smudge.modules.sql import BASE, SESSION
+from hitsuki.modules.sql import BASE, SESSION
 
 
 class CustomFilters(BASE):

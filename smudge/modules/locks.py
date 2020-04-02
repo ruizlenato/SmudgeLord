@@ -9,14 +9,14 @@ from telegram.ext import CommandHandler, MessageHandler, Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html
 
-import smudge.modules.sql.locks_sql as sql
-from smudge import dispatcher, SUDO_USERS, LOGGER
-from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
+import hitsuki.modules.sql.locks_sql as sql
+from hitsuki import dispatcher, SUDO_USERS, LOGGER
+from hitsuki.modules.disable import DisableAbleCommandHandler
+from hitsuki.modules.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
     bot_can_delete, is_bot_admin
-from smudge.modules.log_channel import loggable
-from smudge.modules.sql import users_sql
-from smudge.modules.translations.strings import tld
+from hitsuki.modules.log_channel import loggable
+from hitsuki.modules.sql import users_sql
+from hitsuki.modules.translations.strings import tld
 
 LOCK_TYPES = {'sticker': Filters.sticker,
               'audio': Filters.audio,

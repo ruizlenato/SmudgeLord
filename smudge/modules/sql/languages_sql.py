@@ -3,7 +3,7 @@ from typing import Union
 
 from sqlalchemy import Column, Integer, String, UnicodeText
 
-from smudge.modules.sql import SESSION, BASE
+from hitsuki.modules.sql import SESSION, BASE
 
 
 class UserLanguage(BASE):

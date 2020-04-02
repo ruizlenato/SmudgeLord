@@ -3,7 +3,7 @@ import threading
 
 from sqlalchemy import Column, String, Boolean
 
-from smudge.modules.sql import SESSION, BASE
+from hitsuki.modules.sql import SESSION, BASE
 
 
 class Permissions(BASE):

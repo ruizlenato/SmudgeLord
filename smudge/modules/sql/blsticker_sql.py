@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import func, distinct, Column, String, UnicodeText, Integer
 
-from smudge.modules.sql import SESSION, BASE
+from hitsuki.modules.sql import SESSION, BASE
 
 
 class StickersFilters(BASE):

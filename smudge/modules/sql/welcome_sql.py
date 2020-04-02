@@ -3,8 +3,8 @@ from typing import Union
 
 from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, BigInteger
 
-from smudge.modules.helper_funcs.msg_types import Types
-from smudge.modules.sql import SESSION, BASE
+from hitsuki.modules.helper_funcs.msg_types import Types
+from hitsuki.modules.sql import SESSION, BASE
 
 DEFAULT_WELCOME = "Hey there {first}, How are you?"
 DEFAULT_GOODBYE = "Nice knowing you!"

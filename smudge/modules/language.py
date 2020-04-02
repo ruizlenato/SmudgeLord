@@ -4,12 +4,12 @@ from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CallbackQueryHandler
 from telegram.ext import CommandHandler
 
-from smudge import dispatcher
-from smudge.modules.connection import connected
-from smudge.modules.helper_funcs.chat_status import user_admin
-from smudge.modules.sql.translation import switch_to_locale, prev_locale
-from smudge.modules.translations.list_locale import list_locales
-from smudge.modules.translations.strings import tld
+from hitsuki import dispatcher
+from hitsuki.modules.connection import connected
+from hitsuki.modules.helper_funcs.chat_status import user_admin
+from hitsuki.modules.sql.translation import switch_to_locale, prev_locale
+from hitsuki.modules.translations.list_locale import list_locales
+from hitsuki.modules.translations.strings import tld
 
 
 @user_admin

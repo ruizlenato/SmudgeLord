@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, String, UnicodeText, func, distinct
 
-from smudge.modules.sql import SESSION, BASE
+from hitsuki.modules.sql import SESSION, BASE
 
 
 class Rules(BASE):

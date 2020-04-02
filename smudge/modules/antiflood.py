@@ -6,12 +6,12 @@ from telegram.error import BadRequest
 from telegram.ext import Filters, MessageHandler, CommandHandler, run_async
 from telegram.utils.helpers import mention_html
 
-from smudge import dispatcher
-from smudge.modules.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
-from smudge.modules.log_channel import loggable
-from smudge.modules.sql import antiflood_sql as sql
+from hitsuki import dispatcher
+from hitsuki.modules.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
+from hitsuki.modules.log_channel import loggable
+from hitsuki.modules.sql import antiflood_sql as sql
 
-from smudge.modules.translations.strings import tld
+from hitsuki.modules.translations.strings import tld
 
 FLOOD_GROUP = 3
 

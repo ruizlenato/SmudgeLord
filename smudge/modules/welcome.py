@@ -9,20 +9,20 @@ from telegram.error import BadRequest
 from telegram.ext import MessageHandler, Filters, CommandHandler, run_async, CallbackQueryHandler
 from telegram.utils.helpers import mention_markdown, mention_html, escape_markdown
 
-import smudge.modules.helper_funcs.cas_api as cas
-import smudge.modules.sql.antispam_sql as gbansql
-import smudge.modules.sql.welcome_sql as sql
-import smudge.modules.sql.users_sql as userssql
-from smudge import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP, SUDO_USERS, SUPPORT_USERS
-from smudge.modules.helper_funcs.chat_status import user_admin, is_user_ban_protected
-from smudge.modules.helper_funcs.extraction import extract_user
-from smudge.modules.helper_funcs.filters import CustomFilters
-from smudge.modules.helper_funcs.misc import build_keyboard, revert_buttons, send_to_list
-from smudge.modules.helper_funcs.msg_types import get_welcome_type
-from smudge.modules.helper_funcs.string_handling import markdown_parser, \
+import hitsuki.modules.helper_funcs.cas_api as cas
+import hitsuki.modules.sql.antispam_sql as gbansql
+import hitsuki.modules.sql.welcome_sql as sql
+import hitsuki.modules.sql.users_sql as userssql
+from hitsuki import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP, SUDO_USERS, SUPPORT_USERS
+from hitsuki.modules.helper_funcs.chat_status import user_admin, is_user_ban_protected
+from hitsuki.modules.helper_funcs.extraction import extract_user
+from hitsuki.modules.helper_funcs.filters import CustomFilters
+from hitsuki.modules.helper_funcs.misc import build_keyboard, revert_buttons, send_to_list
+from hitsuki.modules.helper_funcs.msg_types import get_welcome_type
+from hitsuki.modules.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets, extract_time, markdown_to_html
-from smudge.modules.log_channel import loggable
-from smudge.modules.sql.antispam_sql import is_user_gbanned
+from hitsuki.modules.log_channel import loggable
+from hitsuki.modules.sql.antispam_sql import is_user_gbanned
 
 VALID_WELCOME_FORMATTERS = ['first', 'last', 'fullname', 'username', 'id', 'count', 'chatname', 'mention']
 
@@ -119,7 +119,7 @@ def new_member(bot: Bot, update: Update):
     if isAllowed or user.id in SUDO_USERS:
         sql.whitelistChat(str(chat.id))
     else:
-        msg.reply_text("Thanks for adding me to your group! But this group is not whitelisted to use the bot, sorry.\n\nGo to my PM @Renatoh")
+        msg.reply_text("Thanks for adding me to your group! But this group is not whitelisted to use the bot, sorry.\n\ntest")
         bot.leave_chat(int(chat.id))
         return
 
@@ -139,7 +139,7 @@ def new_member(bot: Bot, update: Update):
             "\n<b>User:</b> <code>{}</code>" \
             "\n<b>GBanned:</b> <code>{}</code>".format(user.id, isUserGbanned), parse_mode=ParseMode.HTML
             )
-            
+
     elif casPrefs and autoban and cas.banchecker(user.id):
         chat.kick_member(user.id)
         msg.reply_text("⚠️ *Warning!*\n{} has been banned!\nReason: [CAS Ban](https://combot.org/cas/query?u={})".format(mention_markdown(user.id, user.first_name), user.id), parse_mode="markdown", disable_web_page_preview=True)
@@ -171,7 +171,7 @@ def new_member(bot: Bot, update: Update):
                     parse_mode=ParseMode.HTML
                 )
                 bot.send_message(chat.id,
-                                 "Thanks for adding me into your group!.")
+                                 "Thanks for adding me into your group! Don't forgot to checkout the Renatoh's WebSite (Renatoh.ml)!.")
 
             else:
                 if is_user_gbanned(new_mem.id):
@@ -1016,7 +1016,7 @@ __help__ = """
 Give your members a warm welcome with the greetings module! Or a sad goodbye... Depends!
 
 *Available commands are:*
- - /welcome <on/off/yes/no>: enables/disables welcome messages. If no option is given, returns the current welcome message and welcome settings. 
+ - /welcome <on/off/yes/no>: enables/disables welcome messages. If no option is given, returns the current welcome message and welcome settings.
  - /goodbye <on/off/yes/no>: enables/disables goodbye messages. If no option is given, returns  the current goodbye message and goodbye settings.
  - /setwelcome <message>: sets your new welcome message! Markdown and buttons are supported, as well as fillings.
  - /resetwelcome: resets your welcome message to default; deleting any changes you've made.

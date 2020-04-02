@@ -3,8 +3,8 @@ import threading
 
 from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, func, distinct
 
-from smudge.modules.helper_funcs.msg_types import Types
-from smudge.modules.sql import SESSION, BASE
+from hitsuki.modules.helper_funcs.msg_types import Types
+from hitsuki.modules.sql import SESSION, BASE
 
 
 class Notes(BASE):
