@@ -6,12 +6,12 @@ from telegram.error import BadRequest
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown
 
-import hitsuki.modules.sql.rules_sql as sql
-from hitsuki import dispatcher
-from hitsuki.modules.disable import DisableAbleCommandHandler
-from hitsuki.modules.helper_funcs.misc import build_keyboard_alternate
-from hitsuki.modules.helper_funcs.chat_status import user_admin
-from hitsuki.modules.helper_funcs.string_handling import markdown_parser, button_markdown_parser
+import smudge.modules.sql.rules_sql as sql
+from smudge import dispatcher
+from smudge.modules.disable import DisableAbleCommandHandler
+from smudge.modules.helper_funcs.misc import build_keyboard_alternate
+from smudge.modules.helper_funcs.chat_status import user_admin
+from smudge.modules.helper_funcs.string_handling import markdown_parser, button_markdown_parser
 
 
 @run_async

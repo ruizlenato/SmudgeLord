@@ -7,10 +7,10 @@ from telegram.error import BadRequest, Unauthorized
 from telegram.ext import CommandHandler, RegexHandler, run_async, Filters, CallbackQueryHandler
 from telegram.utils.helpers import mention_html
 
-from hitsuki import dispatcher, LOGGER
-from hitsuki.modules.helper_funcs.chat_status import user_not_admin, user_admin
-from hitsuki.modules.log_channel import loggable
-from hitsuki.modules.sql import reporting_sql as sql
+from smudge import dispatcher, LOGGER
+from smudge.modules.helper_funcs.chat_status import user_not_admin, user_admin
+from smudge.modules.log_channel import loggable
+from smudge.modules.sql import reporting_sql as sql
 
 REPORT_GROUP = 5
 

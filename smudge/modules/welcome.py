@@ -9,20 +9,20 @@ from telegram.error import BadRequest
 from telegram.ext import MessageHandler, Filters, CommandHandler, run_async, CallbackQueryHandler
 from telegram.utils.helpers import mention_markdown, mention_html, escape_markdown
 
-import hitsuki.modules.helper_funcs.cas_api as cas
-import hitsuki.modules.sql.antispam_sql as gbansql
-import hitsuki.modules.sql.welcome_sql as sql
-import hitsuki.modules.sql.users_sql as userssql
-from hitsuki import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP, SUDO_USERS, SUPPORT_USERS
-from hitsuki.modules.helper_funcs.chat_status import user_admin, is_user_ban_protected
-from hitsuki.modules.helper_funcs.extraction import extract_user
-from hitsuki.modules.helper_funcs.filters import CustomFilters
-from hitsuki.modules.helper_funcs.misc import build_keyboard, revert_buttons, send_to_list
-from hitsuki.modules.helper_funcs.msg_types import get_welcome_type
-from hitsuki.modules.helper_funcs.string_handling import markdown_parser, \
+import smudge.modules.helper_funcs.cas_api as cas
+import smudge.modules.sql.antispam_sql as gbansql
+import smudge.modules.sql.welcome_sql as sql
+import smudge.modules.sql.users_sql as userssql
+from smudge import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP, SUDO_USERS, SUPPORT_USERS
+from smudge.modules.helper_funcs.chat_status import user_admin, is_user_ban_protected
+from smudge.modules.helper_funcs.extraction import extract_user
+from smudge.modules.helper_funcs.filters import CustomFilters
+from smudge.modules.helper_funcs.misc import build_keyboard, revert_buttons, send_to_list
+from smudge.modules.helper_funcs.msg_types import get_welcome_type
+from smudge.modules.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets, extract_time, markdown_to_html
-from hitsuki.modules.log_channel import loggable
-from hitsuki.modules.sql.antispam_sql import is_user_gbanned
+from smudge.modules.log_channel import loggable
+from smudge.modules.sql.antispam_sql import is_user_gbanned
 
 VALID_WELCOME_FORMATTERS = ['first', 'last', 'fullname', 'username', 'id', 'count', 'chatname', 'mention']
 

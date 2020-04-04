@@ -9,16 +9,16 @@ from telegram.ext import CommandHandler, RegexHandler
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import escape_markdown
 
-import hitsuki.modules.sql.notes_sql as sql
-from hitsuki import dispatcher, MESSAGE_DUMP, LOGGER, OWNER_ID
-from hitsuki.modules.disable import DisableAbleCommandHandler
-from hitsuki.modules.helper_funcs.chat_status import user_admin
-from hitsuki.modules.helper_funcs.misc import build_keyboard, revert_buttons
-from hitsuki.modules.helper_funcs.msg_types import get_note_type
+import smudge.modules.sql.notes_sql as sql
+from smudge import dispatcher, MESSAGE_DUMP, LOGGER, OWNER_ID
+from smudge.modules.disable import DisableAbleCommandHandler
+from smudge.modules.helper_funcs.chat_status import user_admin
+from smudge.modules.helper_funcs.misc import build_keyboard, revert_buttons
+from smudge.modules.helper_funcs.msg_types import get_note_type
 
-from hitsuki.modules.connection import connected
-from hitsuki.modules.helper_funcs.alternate import send_message
-from hitsuki.modules.translations.strings import tld
+from smudge.modules.connection import connected
+from smudge.modules.helper_funcs.alternate import send_message
+from smudge.modules.translations.strings import tld
 
 FILE_MATCHER = re.compile(r"^###file_id(!photo)?###:(.*?)(?:\s|$)")
 STICKER_MATCHER = re.compile(r"^###sticker(!photo)?###:")

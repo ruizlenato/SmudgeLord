@@ -9,21 +9,21 @@ from telegram.ext import CommandHandler, MessageHandler, Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html, mention_markdown
 
-import hitsuki.modules.sql.blsticker_sql as sql
-from hitsuki import dispatcher, SUDO_USERS, LOGGER, OWNER_ID
-from hitsuki.modules.disable import DisableAbleCommandHandler
-from hitsuki.modules.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
+import smudge.modules.sql.blsticker_sql as sql
+from smudge import dispatcher, SUDO_USERS, LOGGER, OWNER_ID
+from smudge.modules.disable import DisableAbleCommandHandler
+from smudge.modules.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
 		bot_can_delete, is_bot_admin
-from hitsuki.modules.helper_funcs.filters import CustomFilters
-from hitsuki.modules.helper_funcs.misc import split_message
-from hitsuki.modules.warns import warn
-from hitsuki.modules.log_channel import loggable
-from hitsuki.modules.sql import users_sql
-from hitsuki.modules.connection import connected
+from smudge.modules.helper_funcs.filters import CustomFilters
+from smudge.modules.helper_funcs.misc import split_message
+from smudge.modules.warns import warn
+from smudge.modules.log_channel import loggable
+from smudge.modules.sql import users_sql
+from smudge.modules.connection import connected
 
-from hitsuki.modules.helper_funcs.alternate import send_message
+from smudge.modules.helper_funcs.alternate import send_message
 
-from hitsuki.modules.translations.strings import tld
+from smudge.modules.translations.strings import tld
 
 
 @run_async

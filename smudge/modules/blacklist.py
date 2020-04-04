@@ -6,14 +6,14 @@ from telegram import Message, Chat, Update, Bot, ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, MessageHandler, Filters, run_async
 
-import hitsuki.modules.sql.blacklist_sql as sql
-from hitsuki import dispatcher, LOGGER
-from hitsuki.modules.connection import connected
-from hitsuki.modules.disable import DisableAbleCommandHandler
-from hitsuki.modules.helper_funcs.chat_status import user_admin, user_not_admin
-from hitsuki.modules.helper_funcs.extraction import extract_text
-from hitsuki.modules.helper_funcs.misc import split_message
-from hitsuki.modules.translations.strings import tld
+import smudge.modules.sql.blacklist_sql as sql
+from smudge import dispatcher, LOGGER
+from smudge.modules.connection import connected
+from smudge.modules.disable import DisableAbleCommandHandler
+from smudge.modules.helper_funcs.chat_status import user_admin, user_not_admin
+from smudge.modules.helper_funcs.extraction import extract_text
+from smudge.modules.helper_funcs.misc import split_message
+from smudge.modules.translations.strings import tld
 
 BLACKLIST_GROUP = 11
 

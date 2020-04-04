@@ -9,17 +9,17 @@ from telegram.error import BadRequest
 from telegram.ext import CommandHandler, run_async, DispatcherHandlerStop, MessageHandler, Filters, CallbackQueryHandler
 from telegram.utils.helpers import mention_html
 
-from hitsuki import dispatcher, BAN_STICKER
-from hitsuki.modules.disable import DisableAbleCommandHandler
-from hitsuki.modules.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin, \
+from smudge import dispatcher, BAN_STICKER
+from smudge.modules.disable import DisableAbleCommandHandler
+from smudge.modules.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin, \
     can_restrict
-from hitsuki.modules.helper_funcs.extraction import extract_text, extract_user_and_text, extract_user
-from hitsuki.modules.helper_funcs.filters import CustomFilters
-from hitsuki.modules.helper_funcs.misc import split_message
-from hitsuki.modules.helper_funcs.string_handling import split_quotes
-from hitsuki.modules.log_channel import loggable
-from hitsuki.modules.sql import warns_sql as sql
-import hitsuki.modules.sql.rules_sql as rules_sql
+from smudge.modules.helper_funcs.extraction import extract_text, extract_user_and_text, extract_user
+from smudge.modules.helper_funcs.filters import CustomFilters
+from smudge.modules.helper_funcs.misc import split_message
+from smudge.modules.helper_funcs.string_handling import split_quotes
+from smudge.modules.log_channel import loggable
+from smudge.modules.sql import warns_sql as sql
+import smudge.modules.sql.rules_sql as rules_sql
 
 WARN_HANDLER_GROUP = 9
 CURRENT_WARNING_FILTER_STRING = "<b>Current warning filters in this chat:</b>\n"
