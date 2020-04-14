@@ -6,7 +6,7 @@ from codecs import encode, decode
 from haruka import LOGGER
 from haruka.modules.sql.translation import prev_locale
 
-LANGUAGES = ['en']
+LANGUAGES = ['en', 'id']
 
 strings = {}
 
@@ -24,6 +24,10 @@ def tld(chat_id, t, show_none=True):
             result = decode(encode(strings['en'][t], 'latin-1', 'backslashreplace'),
                             'unicode-escape')
             return result
+        elif LOCALE in ('id') and t in strings['id']:
+            result = decode(encode(strings['id'][t], 'latin-1', 'backslashreplace'),
+                            'unicode-escape')
+            return result
 
     if t in strings['en']:
         result = decode(encode(strings['en'][t], 'latin-1', 'backslashreplace'),
@@ -33,7 +37,7 @@ def tld(chat_id, t, show_none=True):
     err = f"No string found for {t}.\nReport it in @HarukaAyaGroup."
     LOGGER.warning(err)
     return err
-    
+
 
 def tld_list(chat_id, t):
     LANGUAGE = prev_locale(chat_id)
@@ -42,6 +46,8 @@ def tld_list(chat_id, t):
         LOCALE = LANGUAGE.locale_name
         if LOCALE in ('en') and t in strings['en']:
             return strings['en'][t]
+        elif LOCALE in ('id') and t in strings['id']:
+            return strings['id'][t]
 
     if t in strings['en']:
         return strings['en'][t]
