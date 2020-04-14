@@ -81,121 +81,6 @@ def havoc(bot: Bot, update: Update):
 
 
 @run_async
-def pixys(bot: Bot, update: Update):
-    cmd_name = "pixys"
-    message = update.effective_message
-    device = message.text[len(f'/{cmd_name} '):]
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    fetch = get(
-        f'https://raw.githubusercontent.com/PixysOS-Devices/official_devices/master/{device}/build.json'
-    )
-    if fetch.status_code == 200:
-        usr = fetch.json()
-        response = usr['response'][0]
-        filename = response['filename']
-        url = response['url']
-        buildsize_a = response['size']
-        buildsize_b = sizee(int(buildsize_a))
-        romtype = response['romtype']
-        version = response['version']
-
-        reply_text = tld(chat.id, "download").format(filename, url)
-        reply_text += tld(chat.id, "build_size").format(buildsize_b)
-        reply_text += tld(chat.id, "version").format(version)
-        reply_text += tld(chat.id, "rom_type").format(romtype)
-
-        keyboard = [[
-            InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-        ]]
-        message.reply_text(reply_text,
-                           reply_markup=InlineKeyboardMarkup(keyboard),
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    elif fetch.status_code == 404:
-        reply_text = tld(chat.id, "err_not_found")
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
-
-
-@run_async
-def pearl(bot: Bot, update: Update):
-    cmd_name = "pearl"
-    message = update.effective_message
-    device = message.text[len(f'/{cmd_name} '):]
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    fetch = get(
-        f'https://raw.githubusercontent.com/PearlOS/OTA/master/{device}.json')
-    if fetch.status_code == 200:
-        usr = fetch.json()
-        response = usr['response'][0]
-        maintainer = response['maintainer']
-        romtype = response['romtype']
-        filename = response['filename']
-        url = response['url']
-        buildsize_a = response['size']
-        buildsize_b = sizee(int(buildsize_a))
-        version = response['version']
-        xda = response['xda']
-
-        if xda == '':
-            reply_text = tld(chat.id, "download").format(filename, url)
-            reply_text += tld(chat.id, "build_size").format(buildsize_b)
-            reply_text += tld(chat.id, "version").format(version)
-            reply_text += tld(chat.id, "rom_type").format(romtype)
-            reply_text += tld(chat.id, "maintainer").format(f"`{maintainer}`")
-
-            keyboard = [[
-                InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-            ]]
-            message.reply_text(reply_text,
-                               reply_markup=InlineKeyboardMarkup(keyboard),
-                               parse_mode=ParseMode.MARKDOWN,
-                               disable_web_page_preview=True)
-            return
-
-        reply_text = tld(chat.id, "download").format(filename, url)
-        reply_text += tld(chat.id, "build_size").format(buildsize_b)
-        reply_text += tld(chat.id, "version").format(version)
-        reply_text += tld(chat.id, "rom_type").format(romtype)
-        reply_text += tld(chat.id, "maintainer").format(f"`{maintainer}`")
-        reply_text += tld(chat.id, "xda_thread").format(xda)
-
-        keyboard = [[
-            InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-        ]]
-        message.reply_text(reply_text,
-                           reply_markup=InlineKeyboardMarkup(keyboard),
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    elif fetch.status_code == 404:
-        reply_text = tld(chat.id, "err_not_found")
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
-
-
-@run_async
 def posp(bot: Bot, update: Update):
     cmd_name = "posp"
     message = update.effective_message
@@ -280,100 +165,6 @@ def los(bot: Bot, update: Update):
 
     else:
         reply_text = tld(chat.id, "err_not_found")
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
-
-
-@run_async
-def dotos(bot: Bot, update: Update):
-    cmd_name = "dotos"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-    device = message.text[len(f'/{cmd_name} '):]
-
-    if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    fetch = get(
-        f'https://raw.githubusercontent.com/DotOS/ota_config/dot-p/{device}.json'
-    )
-    if fetch.status_code == 200:
-        usr = fetch.json()
-        response = usr['response'][0]
-        filename = response['filename']
-        url = response['url']
-        buildsize_a = response['size']
-        buildsize_b = sizee(int(buildsize_a))
-        version = response['version']
-        changelog = response['changelog_device']
-
-        reply_text = tld(chat.id, "download").format(filename, url)
-        reply_text += tld(chat.id, "build_size").format(buildsize_b)
-        reply_text += tld(chat.id, "version").format(version)
-        reply_text += tld(chat.id, "changelog").format(changelog)
-
-        keyboard = [[
-            InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-        ]]
-        message.reply_text(reply_text,
-                           reply_markup=InlineKeyboardMarkup(keyboard),
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    elif fetch.status_code == 404:
-        reply_text = tld(chat.id, "err_not_found")
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
-
-
-@run_async
-def viper(bot: Bot, update: Update):
-    cmd_name = "viper"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-    device = message.text[len(f'/{cmd_name} '):]
-
-    if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    fetch = get(
-        f'https://raw.githubusercontent.com/Viper-Devices/official_devices/master/{device}/build.json'
-    )
-    if fetch.status_code == 200:
-        usr = fetch.json()
-        response = usr['response'][0]
-        filename = response['filename']
-        url = response['url']
-        buildsize_a = response['size']
-        buildsize_b = sizee(int(buildsize_a))
-        version = response['version']
-
-        reply_text = tld(chat.id, "download").format(filename, url)
-        reply_text += tld(chat.id, "build_size").format(buildsize_b)
-        reply_text += tld(chat.id, "version").format(version)
-
-        keyboard = [[
-            InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-        ]]
-        message.reply_text(reply_text,
-                           reply_markup=InlineKeyboardMarkup(keyboard),
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    elif fetch.status_code == 404:
-        reply_text = tld(chat.id, "btn_dl")
     message.reply_text(reply_text,
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
@@ -465,25 +256,6 @@ def evo(bot: Bot, update: Update):
         return
 
 
-def enesrelease(bot: Bot, update: Update, args: List[str]):
-    romname = "Enes Sastim's"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    usr = get(
-        f'https://api.github.com/repos/EnesSastim/Downloads/releases/latest'
-    ).json()
-    reply_text = tld(chat.id, "cust_releases").format(romname)
-    for i in range(len(usr)):
-        try:
-            name = usr['assets'][i]['name']
-            url = usr['assets'][i]['browser_download_url']
-            reply_text += f"[{name}]({url})\n"
-        except IndexError:
-            continue
-    message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN)
-
-
 def phh(bot: Bot, update: Update, args: List[str]):
     romname = "Phh's"
     message = update.effective_message
@@ -501,62 +273,6 @@ def phh(bot: Bot, update: Update, args: List[str]):
         except IndexError:
             continue
     message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN)
-
-
-def descendant(bot: Bot, update: Update, args: List[str]):
-    romname = "Descendant GSI"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    usr = get(f'https://api.github.com/repos/Descendant/InOps/releases/latest'
-              ).json()
-    reply_text = tld(chat.id, "cust_releases").format(romname)
-    for i in range(len(usr)):
-        try:
-            name = usr['assets'][i]['name']
-            url = usr['assets'][i]['browser_download_url']
-            download_count = usr['assets'][i]['download_count']
-            reply_text += f"[{name}]({url}) - Downloaded `{download_count}` Times\n\n"
-        except IndexError:
-            continue
-    message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN)
-
-
-def miui(bot: Bot, update: Update):
-    cmd_name = "miui"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-    device = message.text[len(f'/{cmd_name} '):]
-
-    giturl = "https://raw.githubusercontent.com/XiaomiFirmwareUpdater/miui-updates-tracker/master/"
-
-    if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    result = tld(chat.id, "miui_release")
-    stable_all = yaml.load(get(giturl +
-                               "stable_recovery/stable_recovery.yml").content,
-                           Loader=yaml.FullLoader)
-    data = [i for i in stable_all if device == i['codename']]
-    if len(data) != 0:
-        for i in data:
-            result += "[" + i['filename'] + "](" + i['download'] + ")\n\n"
-
-        result += tld(chat.id, "weekly")
-        weekly_all = yaml.load(
-            get(giturl + "weekly_recovery/weekly_recovery.yml").content,
-            Loader=yaml.FullLoader)
-        data = [i for i in weekly_all if device == i['codename']]
-        for i in data:
-            result += "[" + i['filename'] + "](" + i['download'] + ")"
-    else:
-        result = tld(chat.id, "err_not_found")
-
-    message.reply_text(result, parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
@@ -686,42 +402,22 @@ GETAEX_HANDLER = DisableAbleCommandHandler("aex",
                                            getaex,
                                            pass_args=True,
                                            admin_ok=True)
-MIUI_HANDLER = DisableAbleCommandHandler("miui", miui, admin_ok=True)
 EVO_HANDLER = DisableAbleCommandHandler("evo", evo, admin_ok=True)
 HAVOC_HANDLER = DisableAbleCommandHandler("havoc", havoc, admin_ok=True)
-VIPER_HANDLER = DisableAbleCommandHandler("viper", viper, admin_ok=True)
-DESCENDANT_HANDLER = DisableAbleCommandHandler("descendant",
-                                               descendant,
-                                               pass_args=True,
-                                               admin_ok=True)
-ENES_HANDLER = DisableAbleCommandHandler("enesrelease",
-                                         enesrelease,
-                                         pass_args=True,
-                                         admin_ok=True)
 PHH_HANDLER = DisableAbleCommandHandler("phh",
                                         phh,
                                         pass_args=True,
                                         admin_ok=True)
-PEARL_HANDLER = DisableAbleCommandHandler("pearl", pearl, admin_ok=True)
 POSP_HANDLER = DisableAbleCommandHandler("posp", posp, admin_ok=True)
-DOTOS_HANDLER = DisableAbleCommandHandler("dotos", dotos, admin_ok=True)
-PIXYS_HANDLER = DisableAbleCommandHandler("pixys", pixys, admin_ok=True)
 LOS_HANDLER = DisableAbleCommandHandler("los", los, admin_ok=True)
 BOOTLEGGERS_HANDLER = DisableAbleCommandHandler("bootleggers",
                                                 bootleggers,
                                                 admin_ok=True)
 
 dispatcher.add_handler(GETAEX_HANDLER)
-dispatcher.add_handler(MIUI_HANDLER)
 dispatcher.add_handler(EVO_HANDLER)
 dispatcher.add_handler(HAVOC_HANDLER)
-dispatcher.add_handler(VIPER_HANDLER)
-dispatcher.add_handler(DESCENDANT_HANDLER)
-dispatcher.add_handler(ENES_HANDLER)
-# dispatcher.add_handler(PHH_HANDLER)
-dispatcher.add_handler(PEARL_HANDLER)
+dispatcher.add_handler(PHH_HANDLER)
 dispatcher.add_handler(POSP_HANDLER)
-dispatcher.add_handler(DOTOS_HANDLER)
-dispatcher.add_handler(PIXYS_HANDLER)
 dispatcher.add_handler(LOS_HANDLER)
 dispatcher.add_handler(BOOTLEGGERS_HANDLER)
