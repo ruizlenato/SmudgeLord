@@ -1127,42 +1127,42 @@ warns_warn_admin_autofilter: Automated warn filter
 warns_max_warn_kick: "{} warnings, {} has been kicked!"
 warns_max_warn_ban: "{} warnings, {} has been banned!"
 warns_warn_ban_log_channel: |
-    "<b>{}:</b>"
-    "#WARN_BAN"
-    "<b>Admin:</b> {}"
-    "<b>User:</b> {} (<code>{}</code>)"
-    "<b>Reason:</b> {}"
-    "<b>Warn Count:</b> <code>{}/{}</code>"
+    <b>{}:</b>
+    #WARN_BAN
+    <b>Admin:</b> {}
+    <b>User:</b> {} (<code>{}</code>)
+    <b>Reason:</b> {}
+    <b>Warn Count:</b> <code>{}/{}</code>
 warns_warn_log_channel: |
-    "<b>{}:</b>"
-    "#WARN"
-    "<b>Admin:</b> {}"
-    "<b>User:</b> {} (<code>{}</code>)"
-    "<b>Reason:</b> {}"
-    "<b>Counts:</b> <code>{}/{}</code>"
+    <b>{}:</b>
+    #WARN
+    <b>Admin:</b> {}
+    <b>User:</b> {} (<code>{}</code>)
+    <b>Reason:</b> {}
+    <b>Counts:</b> <code>{}/{}</code>
 warns_remove_log_channel: |
-    "<b>{}:</b>"
-    "#UNWARN"
-    "<b>Admin:</b> {}"
-    "<b>User:</b> {} (<code>{}</code>)"
+    <b>{}:</b>
+    #UNWARN
+    <b>Admin:</b> {}
+    <b>User:</b> {} (<code>{}</code>)
 warns_reset_log_channel: |
-    "<b>{}:</b>"
-    "#RESETWARNS"
-    "<b>Admin:</b> {}"
-    "<b>User:</b> {} (<code>{}</code>)"
+    <b>{}:</b>
+    #RESETWARNS
+    <b>Admin:</b> {}
+    <b>User:</b> {} (<code>{}</code>)
 warns_set_warn_limit_log_channel: |
-    "<b>{}:</b>"
-    "#SET_WARN_LIMIT"
-    "<b>Admin:</b> {}"
-    "Set the warn limit to <code>{}</code>"
+    <b>{}:</b>
+    #SET_WARN_LIMIT
+    <b>Admin:</b> {}
+    Set the warn limit to <code>{}</code>
 warns_strength_on_log_channel: |
-    "<b>{}:</b>\n"
-    "<b>Admin:</b> {}\n"
-    "Has enabled strong warns. Users will be banned."
+    <b>{}:</b>\n
+    <b>Admin:</b> {}\n
+    Has enabled strong warns. Users will be banned.
 warns_strength_off_log_channel: |
-    "<b>{}:</b>\n"
-    "<b>Admin:</b> {}\n"
-    "Has disabled strong warns. Users will only be kicked."
+    <b>{}:</b>\n
+    <b>Admin:</b> {}\n
+    Has disabled strong warns. Users will only be kicked.
 warns_btn_remove_warn: Remove warn
 warns_btn_rules: Rules
 warns_user_warned: "{} <b>has been warned!</b>\nThey have {}/{} warnings."
