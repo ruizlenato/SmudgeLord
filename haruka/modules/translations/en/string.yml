@@ -22,9 +22,9 @@ main_start_pm: |
     Hey there! My name is Haruka Aya - I'm here to help you manage your groups!
     Click Help button to find out more about how to use me to my full potential.
 
-    Join [Haruka Aya Group](https://t.me/HarukaAyaGroup) ( @HarukaAyaGroup ) if you need any support or help.
+    Join [the bot support group](https://t.me/HarukaAyaGroup) ( @HarukaAyaGroup ) if you need any bot support or help.
 
-    Follow [Haruka Aya](https://t.me/HarukaAya) ( @HarukaAya ) if you want to keep up with the news, updates and bot downtime!
+    Follow [Haruka Aya](https://t.me/HarukaAya) ( @HarukaAya ) if you want to keep up with the bot news, bot updates and bot downtime!
 
     Made with love by @RealAkito\n\nWant to add me to your group? [Click here!](t.me/HarukaAyaBot?startgroup=true)
 main_start_btn_support: 📢 Support Group
@@ -834,7 +834,7 @@ clear_success: "Note succesfully removed from *{}*."
 note_in_chat: "*Notes in {}:*\n"
 note_in_local: "*Local Notes:*\n"
 note_none_in_chat: "No notes in *{}*!"
-note_get: "\nYou can retrieve these notes by using `/get notename`, or `#notename`"
+note_get: "\nYou can retrieve these notes by using `/get notename`, or `#notename`.\nThe `#` with notename up there is not included in the notename itself, we just put `#` in it for easier copypaste."
 note_fail_to_import: "These files/photos failed to import due to originating from another bot. This is a telegram API restriction, and can't be avoided. Sorry for the inconvenience!"
 notes_help: |
     Save data for future users with notes!
