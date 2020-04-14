@@ -109,21 +109,15 @@ evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click 
 aex_cust_str: Please type your device **codename** and **Android Version**!\nFor example, `/aex tissot pie`
 android_help: |
     *Device Specific ROM for a device*
-    - /pearl <device>: Get the latest Pearl ROM for a device
     - /havoc <device>: Get the latest Havoc ROM for a device
     - /posp <device>: Get the latest POSP ROM for a device
-    - /viper <device>: Get the latest Viper ROM for a device
     - /evo <device>: Get the latest Evolution X ROM for a device
-    - /dotos <device>: Get the latest DotOS ROM for a device
     - /aex <device> <android version>: Get the latest AEX ROM for a device
-    - /pixys <device>: Get the latest Pixy ROM for a device
     - /los <device>: Get the latest LineageOS ROM for a device
     - /bootleggers <device>: Get the latest Bootleggers ROM for a device
-    - /miui <device>: Get the latest MIUI ROM for a device\n
+
     *GSI*
     - /phh: Get the latest Phh AOSP Oreo GSI!
-    - /descendant: Get the latest Descendant GSI!
-    - /enesrelease: Get the latest Enes upload
 
 
 # Antiflood
