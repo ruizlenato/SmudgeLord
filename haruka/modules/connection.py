@@ -163,7 +163,7 @@ def disconnect_chat(bot, update):
             #Rebuild user's keyboard
             keyboard(bot, update)
         else:
-            update.effective_message.reply_text("connection_dis_fail")
+            update.effective_message.reply_text(tld(chat.id, "connection_dis_fail"))
     elif update.effective_chat.type == 'supergroup':
         disconnection_status = sql.disconnect(
             update.effective_message.from_user.id)
