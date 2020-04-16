@@ -254,6 +254,7 @@ def gbanlist(bot: Bot, update: Update):
 
 @run_async
 def ungban_quicc(bot: Bot, update: Update, args: List[str]):
+    message = update.effective_message  # type: Optional[Message]
     try:
         user_id = int(args[0])
     except:
