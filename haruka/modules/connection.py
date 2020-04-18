@@ -1,17 +1,13 @@
 from typing import Optional, List
 
 from telegram import ParseMode
-from telegram import Message, Chat, Update, Bot, User
-from telegram.error import BadRequest
-from telegram.ext import CommandHandler, Filters
+from telegram import Chat, Update, Bot, User
+from telegram.ext import CommandHandler
 from telegram.ext.dispatcher import run_async
-from telegram.utils.helpers import mention_html
 
 import haruka.modules.sql.connection_sql as sql
-from haruka import dispatcher, LOGGER, SUDO_USERS
-from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict
-from haruka.modules.helper_funcs.extraction import extract_user, extract_user_and_text
-from haruka.modules.helper_funcs.string_handling import extract_time
+from haruka import dispatcher, SUDO_USERS
+from haruka.modules.helper_funcs.chat_status import user_admin
 
 from haruka.modules.translations.strings import tld
 

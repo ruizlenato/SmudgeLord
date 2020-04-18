@@ -1,5 +1,4 @@
 import threading
-import array as arr
 
 from sqlalchemy import Integer, Column, String, UnicodeText, func, distinct, Boolean
 from sqlalchemy.dialects import postgresql
@@ -81,7 +80,7 @@ def warn_user(user_id, chat_id, reason=None):
 
         warned_user.num_warns += 1
 
-        if reason is "":
+        if reason == "":
             reason = "No reason given."
 
         if reason:
@@ -111,7 +110,6 @@ def remove_warn(user_id, chat_id):
             warned_user.num_warns -= 1
 
             if warned_user and warned_user.reasons is not None:
-                pos = len(warned_user.reasons)
                 for reason in warned_user.reasons:
                     temp_reason.append(reason)
                 del temp_reason[-1]
@@ -226,6 +224,18 @@ def get_warn_setting(chat_id):
             return setting.warn_limit, setting.soft_warn
         else:
             return 3, False
+
+    finally:
+        SESSION.close()
+
+
+def get_soft_warn(chat_id):
+    try:
+        setting = SESSION.query(WarnSettings).get(str(chat_id))
+        if setting:
+            return setting.soft_warn
+        else:
+            return False
 
     finally:
         SESSION.close()

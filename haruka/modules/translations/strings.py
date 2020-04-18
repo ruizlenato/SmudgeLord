@@ -1,4 +1,3 @@
-import xml.etree.ElementTree as et
 import os
 import yaml
 from codecs import encode, decode

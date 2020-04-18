@@ -1,7 +1,7 @@
 import html
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Chat, Update, Bot, User
+from telegram import Update, Bot
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
@@ -17,10 +17,10 @@ from haruka.modules.translations.strings import tld
 @user_admin
 @loggable
 def purge(bot: Bot, update: Update, args: List[str]) -> str:
-    msg = update.effective_message  # type: Optional[Message]
+    msg = update.effective_message
     if msg.reply_to_message:
-        user = update.effective_user  # type: Optional[User]
-        chat = update.effective_chat  # type: Optional[Chat]
+        user = update.effective_user
+        chat = update.effective_chat
         if can_delete(chat, bot.id):
             message_id = msg.reply_to_message.message_id
             if args and args[0].isdigit():
@@ -71,9 +71,9 @@ def purge(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def del_message(bot: Bot, update: Update) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if update.effective_message.reply_to_message:
-        user = update.effective_user  # type: Optional[User]
+        user = update.effective_user
         if can_delete(chat, bot.id):
             update.effective_message.reply_to_message.delete()
             update.effective_message.delete()

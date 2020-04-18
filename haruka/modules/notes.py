@@ -1,13 +1,12 @@
 import re, ast
 from io import BytesIO
-from typing import Optional, List
+from typing import List
 
 from telegram import MAX_MESSAGE_LENGTH, ParseMode, InlineKeyboardMarkup
-from telegram import Message, Update, Bot
+from telegram import Bot, Update
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, RegexHandler
 from telegram.ext.dispatcher import run_async
-from telegram.utils.helpers import escape_markdown
 
 import haruka.modules.sql.notes_sql as sql
 from haruka import dispatcher, MESSAGE_DUMP, LOGGER
@@ -44,8 +43,8 @@ ENUM_FUNC_MAP = {
 
 # Do not async
 def get(bot, update, notename, show_none=True, no_format=False):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
@@ -55,7 +54,7 @@ def get(bot, update, notename, show_none=True, no_format=False):
         send_id = chat_id
 
     note = sql.get_note(chat_id, notename)
-    message = update.effective_message  # type: Optional[Message]
+    message = update.effective_message
 
     if note:
         pass
@@ -126,7 +125,7 @@ def get(bot, update, notename, show_none=True, no_format=False):
                         failtext += "\n\n```\n{}```".format(
                             note.value + revert_buttons(buttons))
                         message.reply_text(failtext, parse_mode="markdown")
-                    pass
+
             else:
                 ENUM_FUNC_MAP[note.msgtype](send_id,
                                             note.file,
@@ -154,7 +153,7 @@ def get(bot, update, notename, show_none=True, no_format=False):
 
 @run_async
 def cmd_get(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if len(args) >= 2 and args[1].lower() == "noformat":
         get(bot, update, args[0].lower(), show_none=True, no_format=True)
     elif len(args) >= 1:
@@ -175,8 +174,8 @@ def hash_get(bot: Bot, update: Update):
 @run_async
 @user_admin
 def save(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
     conn = connected(bot, update, chat, user.id)
     if conn:
         chat_id = conn
@@ -188,7 +187,7 @@ def save(bot: Bot, update: Update):
         else:
             chat_name = chat.title
 
-    msg = update.effective_message  # type: Optional[Message]
+    msg = update.effective_message
 
     note_name, text, data_type, content, buttons = get_note_type(msg)
     note_name = note_name.lower()
@@ -227,8 +226,8 @@ def save(bot: Bot, update: Update):
 @run_async
 @user_admin
 def clear(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
     conn = connected(bot, update, chat, user.id)
     if conn:
         chat_id = conn
@@ -254,8 +253,8 @@ def clear(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def list_notes(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
@@ -401,7 +400,7 @@ def __import_data__(chat_id, data):
     if failures:
         with BytesIO(str.encode("\n".join(failures))) as output:
             output.name = "failed_imports.txt"
-            text_caption = tld(chat.id, "note_fail_to_import")
+            text_caption = tld(chat_id, "note_fail_to_import")
             dispatcher.bot.send_document(chat_id,
                                          document=output,
                                          filename="failed_imports.txt",

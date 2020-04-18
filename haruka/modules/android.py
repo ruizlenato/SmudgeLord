@@ -1,22 +1,14 @@
-import html
 import json
-import time
-import yaml
 from datetime import datetime
 from typing import Optional, List
 from hurry.filesize import size as sizee
 
-from telegram import Message, Chat, Update, Bot, MessageEntity
+from telegram import Chat, Update, Bot
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import CommandHandler, run_async, Filters
-from telegram.utils.helpers import escape_markdown, mention_html
+from telegram.ext import run_async
 
 from haruka import dispatcher, LOGGER
-from haruka.__main__ import GDPR
-from haruka.__main__ import STATS, USER_INFO
 from haruka.modules.disable import DisableAbleCommandHandler
-from haruka.modules.helper_funcs.extraction import extract_user
-from haruka.modules.helper_funcs.filters import CustomFilters
 from haruka.modules.translations.strings import tld
 
 from requests import get
@@ -277,7 +269,6 @@ def phh(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def getaex(bot: Bot, update: Update, args: List[str]):
-    cmd_name = "aex"
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -301,7 +292,6 @@ def getaex(bot: Bot, update: Update, args: List[str]):
         else:
             developer = apidata.get('developer')
             developer_url = apidata.get('developer_url')
-            xda = apidata.get('forum_url')
             filename = apidata.get('filename')
             url = "https://downloads.aospextended.com/download/" + device + "/" + version + "/" + apidata.get(
                 'filename')

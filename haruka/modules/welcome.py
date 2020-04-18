@@ -1,6 +1,4 @@
 from html import escape
-import time
-import re
 from typing import Optional, List
 
 from telegram import Message, Chat, Update, Bot, User, CallbackQuery
@@ -339,9 +337,6 @@ def check_bot_button(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     query = update.callback_query  # type: Optional[CallbackQuery]
-    match = re.match(r"check_bot_\((.+?)\)", query.data)
-    user_id = int(match.group(1))
-    message = update.effective_message  # type: Optional[Message]
     getalluser = sql.get_chat_userlist(chat.id)
     if user.id in getalluser:
         query.answer(text=tld(chat.id, 'welcome_mute_btn_unmuted'))
@@ -356,7 +351,7 @@ def check_bot_button(bot: Bot, update: Update):
     else:
         try:
             query.answer(text=tld(chat.id, 'welcome_mute_btn_old_user'))
-        except:
+        except Exception:
             print("Nut")
 
 
@@ -539,7 +534,6 @@ def security_mute(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 def security_text(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
     getcur, cur_value, cust_text = sql.welcome_security(chat.id)
     if len(args) >= 1:
         text = " ".join(args)
@@ -556,7 +550,6 @@ def security_text(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 def security_text_reset(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
     getcur, cur_value, cust_text = sql.welcome_security(chat.id)
     sql.set_welcome_security(chat.id, getcur, cur_value,
                              tld(chat.id, 'welcome_mute_btn_default_text'))
@@ -732,7 +725,7 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
             try:
                 update.effective_message.reply_text(
                     tld(chat.id, 'welcome_goodbye_set_on'))
-            except:
+            except Exception:
                 print("Nut")
 
         elif args[0].lower() in ("off", "no"):
@@ -891,10 +884,6 @@ def clean_welcome(bot: Bot, update: Update, args: List[str]) -> str:
 #     welcome = welcome.replace('$surname', '{lastname}')
 #     welcome = welcome.replace('$rules', '{rules}')
 #     sql.set_custom_welcome(chat_id, welcome, sql.Types.TEXT)
-
-
-def __migrate__(old_chat_id, new_chat_id):
-    sql.migrate_chat(old_chat_id, new_chat_id)
 
 
 def __migrate__(old_chat_id, new_chat_id):

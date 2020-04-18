@@ -1,7 +1,5 @@
-from typing import Optional
-
-from telegram import Message, Update, Bot, User
-from telegram import MessageEntity, ParseMode
+from telegram import Update, Bot
+from telegram import MessageEntity
 from telegram.error import BadRequest
 from telegram.ext import Filters, MessageHandler, run_async
 
@@ -18,7 +16,7 @@ AFK_REPLY_GROUP = 8
 
 @run_async
 def afk(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
     if len(args) >= 2:
         reason = args[1]
@@ -33,9 +31,9 @@ def afk(bot: Bot, update: Update):
 
 @run_async
 def no_longer_afk(bot: Bot, update: Update):
-    user = update.effective_user  # type: Optional[User]
-    chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
+    user = update.effective_user
+    chat = update.effective_chat
+    message = update.effective_message
 
     if not user:  # ignore channels
         return
@@ -48,14 +46,14 @@ def no_longer_afk(bot: Bot, update: Update):
         try:
             message.reply_text(
                 tld(chat.id, "user_no_longer_afk").format(firstname))
-        except:
+        except Exception:
             return
 
 
 @run_async
 def reply_afk(bot: Bot, update: Update):
-    message = update.effective_message  # type: Optional[Message]
-    userc = update.effective_user  # type: Optional[User]
+    message = update.effective_message
+    userc = update.effective_user
     userc_id = userc.id
     if message.entities and message.parse_entities(
         [MessageEntity.TEXT_MENTION, MessageEntity.MENTION]):
@@ -103,7 +101,7 @@ def reply_afk(bot: Bot, update: Update):
 
 
 def check_afk(bot, update, user_id, fst_name, userc_id):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if sql.is_afk(user_id):
         user = sql.check_afk_status(user_id)
         if not user.reason:

@@ -1,8 +1,8 @@
 import html
-from typing import Optional, List
+from typing import List
 
 import telegram.ext as tg
-from telegram import Message, Chat, Update, Bot, ParseMode, User, MessageEntity
+from telegram import Update, Bot, ParseMode, MessageEntity
 from telegram import TelegramError
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, MessageHandler, Filters
@@ -126,7 +126,7 @@ def unrestr_members(bot,
 
 @run_async
 def locktypes(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     update.effective_message.reply_text("\n - ".join(
         tld(chat.id, "locks_list_title") + list(LOCK_TYPES) +
         list(RESTRICTION_TYPES)))
@@ -136,9 +136,9 @@ def locktypes(bot: Bot, update: Update):
 @bot_can_delete
 @loggable
 def lock(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
     if can_delete(chat, bot.id):
         if len(args) >= 1:
             if args[0] in LOCK_TYPES:
@@ -188,9 +188,9 @@ def lock(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def unlock(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
     if is_user_admin(chat, message.from_user.id):
         if len(args) >= 1:
             if args[0] in LOCK_TYPES:
@@ -244,8 +244,8 @@ def unlock(bot: Bot, update: Update, args: List[str]) -> str:
 @run_async
 @user_not_admin
 def del_lockables(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    message = update.effective_message
 
     for lockable, filter in LOCK_TYPES.items():
         if filter(message) and sql.is_locked(chat.id, lockable) and can_delete(
@@ -277,8 +277,8 @@ def del_lockables(bot: Bot, update: Update):
 @run_async
 @user_not_admin
 def rest_handler(bot: Bot, update: Update):
-    msg = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
+    msg = update.effective_message
+    chat = update.effective_chat
     for restriction, filter in RESTRICTION_TYPES.items():
         if filter(msg) and sql.is_restr_locked(
                 chat.id, restriction) and can_delete(chat, bot.id):
@@ -315,8 +315,8 @@ def build_lock_message(chat, chatP, user, chatname):
 @run_async
 @user_admin
 def list_locks(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
 
     chatname = chat.title
     res = build_lock_message(chat, chat, user, chatname)

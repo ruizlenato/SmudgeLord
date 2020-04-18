@@ -1,16 +1,16 @@
 import html
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Chat, Update, Bot, User
+from telegram import Update, Bot
 from telegram import ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
-from telegram.utils.helpers import escape_markdown, mention_html
+from telegram.utils.helpers import mention_html
 
-from haruka import dispatcher, updater
+from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
-from haruka.modules.helper_funcs.chat_status import bot_admin, can_promote, user_admin, can_pin
+from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, can_pin
 from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import admin_sql as sql
@@ -24,9 +24,9 @@ from haruka.modules.connection import connected
 @user_admin
 @loggable
 def promote(bot: Bot, update: Update, args: List[str]) -> str:
-    message = update.effective_message  # type: Optional[Message]
-    user = update.effective_user  # type: Optional[User]
-    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message
+    user = update.effective_user
+    chat = update.effective_chat
     conn = connected(bot, update, chat, user.id)
     if conn:
         chatD = dispatcher.bot.getChat(conn)
@@ -83,9 +83,9 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def demote(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    message = update.effective_message
+    user = update.effective_user
     conn = connected(bot, update, chat, user.id)
     if conn:
         chatD = dispatcher.bot.getChat(conn)
@@ -148,8 +148,8 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def pin(bot: Bot, update: Update, args: List[str]) -> str:
-    user = update.effective_user  # type: Optional[User]
-    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user
+    chat = update.effective_chat
 
     is_group = chat.type != "private" and chat.type != "channel"
 
@@ -185,7 +185,7 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
 @loggable
 def unpin(bot: Bot, update: Update) -> str:
     chat = update.effective_chat
-    user = update.effective_user  # type: Optional[User]
+    user = update.effective_user
 
     try:
         bot.unpinChatMessage(chat.id)
@@ -204,8 +204,8 @@ def unpin(bot: Bot, update: Update) -> str:
 @bot_admin
 @user_admin
 def invite(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chatP = dispatcher.bot.getChat(conn)
@@ -235,8 +235,8 @@ def invite(bot: Bot, update: Update):
 
 @run_async
 def adminlist(bot, update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chatP = dispatcher.bot.getChat(conn)
@@ -266,7 +266,7 @@ def adminlist(bot, update):
 @user_admin
 @run_async
 def reaction(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if len(args) >= 1:
         var = args[0]
         print(var)

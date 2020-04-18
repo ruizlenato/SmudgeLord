@@ -1,11 +1,10 @@
 import re
-from typing import Optional
 
 import telegram
-from telegram import ParseMode, InlineKeyboardMarkup, Message, Chat
+from telegram import ParseMode, InlineKeyboardMarkup
 from telegram import Update, Bot
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, MessageHandler, DispatcherHandlerStop, run_async
+from telegram.ext import MessageHandler, DispatcherHandlerStop, run_async
 from telegram.utils.helpers import escape_markdown
 
 from haruka import dispatcher, LOGGER
@@ -26,8 +25,8 @@ HANDLER_GROUP = 15
 
 @run_async
 def list_handlers(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
 
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
@@ -67,9 +66,9 @@ def list_handlers(bot: Bot, update: Update):
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
 def filters(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    msg = update.effective_message
     args = msg.text.split(
         None,
         1)  # use python's maxsplit to separate Cmd, keyword, and reply_text
@@ -160,8 +159,8 @@ def filters(bot: Bot, update: Update):
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
 def stop_filter(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
     args = update.effective_message.text.split(None, 1)
 
     conn = connected(bot, update, chat, user.id)
@@ -199,9 +198,9 @@ def stop_filter(bot: Bot, update: Update):
 
 @run_async
 def reply_filter(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    message = update.effective_message
+    user = update.effective_user
 
     if int(user.id) == int(777000):
         return
@@ -220,7 +219,7 @@ def reply_filter(bot: Bot, update: Update):
             elif filt.is_document:
                 try:
                     message.reply_document(filt.reply)
-                except:
+                except Exception:
                     print("L")
             elif filt.is_image:
                 message.reply_photo(filt.reply)
@@ -231,7 +230,7 @@ def reply_filter(bot: Bot, update: Update):
             elif filt.is_video:
                 try:
                     message.reply_video(filt.reply)
-                except:
+                except Exception:
                     print("Nut")
             elif filt.has_markdown:
                 buttons = sql.get_buttons(chat.id, filt.keyword)
@@ -262,7 +261,7 @@ def reply_filter(bot: Bot, update: Update):
                             LOGGER.exception(
                                 "Could not parse filter %s in chat %s",
                                 str(filt.keyword), str(chat.id))
-                        except:
+                        except Exception:
                             print("Nut")
 
             else:

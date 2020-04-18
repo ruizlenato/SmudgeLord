@@ -1,15 +1,14 @@
 import datetime
 import importlib
 import re
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Chat, Update, Bot
+from telegram import Update, Bot
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import (Unauthorized, BadRequest, TimedOut, NetworkError,
                             ChatMigrated, TelegramError)
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
-from telegram.utils.helpers import escape_markdown
 
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
@@ -83,7 +82,7 @@ def test(bot: Bot, update: Update):
 
 @run_async
 def start(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     # query = update.callback_query #Unused variable
     if update.effective_chat.type == "private":
         if len(args) >= 1:
@@ -103,20 +102,20 @@ def start(bot: Bot, update: Update, args: List[str]):
         try:
             update.effective_message.reply_text(
                 tld(chat.id, 'main_start_group'))
-        except:
+        except Exception:
             print("Nut")
 
 
 def send_start(bot, update):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     # Try to remove old message
     try:
         query = update.callback_query
         query.message.delete()
-    except:
+    except Exception:
         pass
 
-    # chat = update.effective_chat  # type: Optional[Chat] and unused variable
+    # chat = update.effective_chat and unused variable
     text = tld(chat.id, 'main_start_pm')
 
     keyboard = [[
@@ -165,7 +164,7 @@ def error_callback(bot, update, error):
 @run_async
 def help_button(bot: Bot, update: Update):
     query = update.callback_query
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     mod_match = re.match(r"help_module\((.+?)\)", query.data)
     prev_match = re.match(r"help_prev\((.+?)\)", query.data)
     next_match = re.match(r"help_next\((.+?)\)", query.data)
@@ -237,7 +236,7 @@ def help_button(bot: Bot, update: Update):
 
 @run_async
 def get_help(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
 
     # ONLY send help in PM
@@ -288,7 +287,7 @@ def get_help(bot: Bot, update: Update):
 
 
 def migrate_chats(bot: Bot, update: Update):
-    msg = update.effective_message  # type: Optional[Message]
+    msg = update.effective_message
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
         new_chat = msg.migrate_to_chat_id
@@ -361,17 +360,17 @@ def process_update(self, update):
             'An uncaught error was raised while updating process')
         return
 
-        t = CHATS_TIME.get(update.effective_chat.id,
-                           datetime.datetime(1970, 1, 1))
-        if t and now > t + datetime.timedelta(0, 1):
-            CHATS_TIME[update.effective_chat.id] = now
-            cnt = 0
-        else:
-            cnt += 1
+    t = CHATS_TIME.get(update.effective_chat.id, datetime.datetime(1970, 1, 1))
+    if t and now > t + datetime.timedelta(0, 1):
+        CHATS_TIME[update.effective_chat.id] = now
+        cnt = 0
+    else:
+        cnt += 1
 
-        if cnt > 10:
-            return
-        CHATS_CNT[update.effective_chat.id] = cnt
+    if cnt > 10:
+        return
+
+    CHATS_CNT[update.effective_chat.id] = cnt
 
     for group in self.groups:
         try:

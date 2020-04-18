@@ -45,7 +45,7 @@ def locale(bot, update, args):
 @user_admin
 def locale_button(bot, update):
     chat = update.effective_chat
-    user = update.effective_user  # type: Optional[User]
+    user = update.effective_user
     query = update.callback_query
     lang_match = re.findall(r"en|id|ru", query.data)
     if lang_match:
@@ -60,7 +60,7 @@ def locale_button(bot, update):
         LANGUAGE = prev_locale(chat.id)
         locale = LANGUAGE.locale_name
         curr_lang = list_locales[locale]
-    except:
+    except Exception:
         curr_lang = "English"
 
     text = tld(chat.id, "language_select_language")
@@ -73,7 +73,7 @@ def locale_button(bot, update):
             chatlng = prev_locale(conn).locale_name
             chatlng = list_locales[chatlng]
             text += tld(chat.id, "language_chat_language").format(chatlng)
-        except:
+        except Exception:
             chatlng = "English"
 
     text += tld(chat.id, "language_sel_user_lang")

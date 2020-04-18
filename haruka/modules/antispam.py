@@ -1,15 +1,15 @@
 import html
 import time
 from io import BytesIO
-from typing import Optional, List
+from typing import List, Optional
 
-from telegram import Message, Update, Bot, User, Chat, ParseMode, InlineKeyboardMarkup
+from telegram import Message, Update, Bot, User, Chat, ParseMode
 from telegram.error import BadRequest, TelegramError
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import haruka.modules.sql.antispam_sql as sql
-from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, MESSAGE_DUMP, STRICT_ANTISPAM, sw
+from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, MESSAGE_DUMP, STRICT_ANTISPAM  #, sw
 from haruka.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from haruka.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from haruka.modules.helper_funcs.filters import CustomFilters
@@ -102,7 +102,7 @@ def gban(bot: Bot, update: Update, args: List[str]):
                                  or "Deleted Account"), user_chat.id,
                     old_reason, full_reason),
                 parse_mode=ParseMode.HTML)
-        except:
+        except Exception:
             pass
 
         message.reply_text(tld(chat.id, "antispam_reason_updated").format(
@@ -124,7 +124,7 @@ def gban(bot: Bot, update: Update, args: List[str]):
                              user_chat.id, full_reason
                              or tld(chat.id, "antispam_no_reason")),
                          parse_mode=ParseMode.HTML)
-    except:
+    except Exception:
         print("nut")
 
     sql.gban_user(user_id, user_chat.username or user_chat.first_name,
@@ -134,7 +134,7 @@ def gban(bot: Bot, update: Update, args: List[str]):
         if int(banner.id) in [172811422, 214416808]:
             return
         chat.kick_member(user_chat.id)
-    except:
+    except Exception:
         print("Meh")
 
     #chats = get_all_chats()
@@ -194,7 +194,7 @@ def ungban(bot: Bot, update: Update, args: List[str]):
                              mention_html(banner.id, banner.first_name),
                              mention_html(user_chat.id, user_chat.first_name)),
                          parse_mode=ParseMode.HTML)
-    except:
+    except Exception:
         pass
 
     chats = get_all_chats()
@@ -258,7 +258,7 @@ def ungban_quicc(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message  # type: Optional[Message]
     try:
         user_id = int(args[0])
-    except:
+    except Exception:
         return
     sql.ungban_user(user_id)
     message.reply_text(
@@ -316,8 +316,8 @@ def enforce_gban(bot: Bot, update: Update):
                 if user and not is_user_admin(chat, user.id):
                     check_and_ban(update, user.id, should_message=False)
                     return
-    except:
-        print("Nut")
+    except Exception as f:
+        print(f"Nut {f}")
 
 
 @run_async
@@ -363,7 +363,6 @@ def __stats__():
 
 def __user_info__(user_id, chat_id):
     is_gbanned = sql.is_user_gbanned(user_id)
-    is_gmuted = sql.is_user_gmuted(user_id)
 
     if not user_id in SUDO_USERS:
 

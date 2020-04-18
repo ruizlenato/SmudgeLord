@@ -1,12 +1,12 @@
 import html
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Chat, Update, Bot, User
+from telegram import Update, Bot
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, Filters
+from telegram.ext import Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, User, CallbackQuery
+from telegram import ParseMode
 
 from haruka import dispatcher, LOGGER, SUDO_USERS
 from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict
@@ -24,9 +24,9 @@ from haruka.modules.disable import DisableAbleCommandHandler
 @user_admin
 @loggable
 def mute(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -89,9 +89,9 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def unmute(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -147,9 +147,9 @@ def unmute(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -243,9 +243,9 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -307,9 +307,9 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def media(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -365,9 +365,9 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
 
     conn = connected(bot, update, chat, user.id)
     if conn:

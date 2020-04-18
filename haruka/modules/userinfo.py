@@ -1,7 +1,7 @@
 import html
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Update, Bot, User
+from telegram import Update, Bot
 from telegram import ParseMode, MAX_MESSAGE_LENGTH
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import escape_markdown
@@ -16,9 +16,9 @@ from haruka.modules.translations.strings import tld
 
 @run_async
 def about_me(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message  # type: Optional[Message]
+    message = update.effective_message
     user_id = extract_user(message, args)
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     if user_id:
         user = bot.get_chat(user_id)
@@ -42,8 +42,8 @@ def about_me(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def set_about_me(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    message = update.effective_message
     user_id = message.from_user.id
     text = message.text
     info = text.split(
@@ -62,8 +62,8 @@ def set_about_me(bot: Bot, update: Update):
 
 @run_async
 def about_bio(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message
+    chat = update.effective_chat
     user_id = extract_user(message, args)
     if user_id:
         user = bot.get_chat(user_id)
@@ -87,9 +87,9 @@ def about_bio(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def set_about_bio(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
-    sender = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    message = update.effective_message
+    sender = update.effective_user
     if message.reply_to_message:
         repl_message = message.reply_to_message
         user_id = repl_message.from_user.id
@@ -100,7 +100,7 @@ def set_about_bio(bot: Bot, update: Update):
             message.reply_text(tld(chat.id, 'userinfo_bio_bot_sudo_only'))
             return
         elif user_id in SUDO_USERS and sender.id not in SUDO_USERS:
-            message.reply_text(userinfo_bio_sudo_sudo_only)
+            message.reply_text(tld(chat.id, 'userinfo_bio_sudo_sudo_only'))
             return
         elif user_id == OWNER_ID:
             message.reply_text(tld(chat.id, 'userinfo_bio_owner_nobio'))

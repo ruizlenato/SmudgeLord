@@ -1,20 +1,13 @@
-import subprocess
 import html
-import json
-import random
-import time
-import pyowm
 import wikipedia
 import re
-from pyowm import timeutils, exceptions
 from datetime import datetime
 from typing import Optional, List
-from PyLyrics import *
-from hurry.filesize import size
+import PyLyrics
 
 import requests
 from telegram import Message, Chat, Update, Bot, MessageEntity
-from telegram import ParseMode, ReplyKeyboardRemove, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ParseMode, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 from telegram.error import BadRequest
@@ -24,11 +17,8 @@ from haruka.__main__ import GDPR
 from haruka.__main__ import STATS, USER_INFO
 from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.extraction import extract_user
-from haruka.modules.helper_funcs.filters import CustomFilters
 
-from haruka.modules.sql.translation import prev_locale
-
-from haruka.modules.translations.strings import tld, tld_list
+from haruka.modules.translations.strings import tld
 
 from requests import get
 
@@ -250,11 +240,7 @@ def repo(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def lyrics(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message
-    text = message.text[len('/lyrics '):]
     song = " ".join(args).split("- ")
-    reply_text = tld(chat.id, "misc_lyrics_lookup")
     LYRICSINFO = "\n[Full Lyrics](http://lyrics.wikia.com/wiki/%s:%s)"
 
     if len(song) == 2:
@@ -269,7 +255,7 @@ def lyrics(bot: Bot, update: Update, args: List[str]):
         try:
             lyrics = "\n".join(
                 PyLyrics.getLyrics(song[0], song[1]).split("\n")[:20])
-        except ValueError as e:
+        except ValueError:
             return update.effective_message.reply_text("Song %s not found :(" %
                                                        song[1],
                                                        failed=True)
@@ -285,7 +271,7 @@ def lyrics(bot: Bot, update: Update, args: List[str]):
 @run_async
 def paste(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
-    BASE_URL = 'https://del.dog'
+    BURL = 'https://del.dog'
     message = update.effective_message
     if message.reply_to_message:
         data = message.reply_to_message.text
@@ -295,7 +281,7 @@ def paste(bot: Bot, update: Update, args: List[str]):
         message.reply_text(tld(chat.id, "misc_paste_invalid"))
         return
 
-    r = requests.post(f'{BASE_URL}/documents', data=data.encode('utf-8'))
+    r = requests.post(f'{BURL}/documents', data=data.encode('utf-8'))
 
     if r.status_code == 404:
         update.effective_message.reply_text(tld(chat.id, "misc_paste_404"))
@@ -309,10 +295,9 @@ def paste(bot: Bot, update: Update, args: List[str]):
 
     key = res['key']
     if res['isUrl']:
-        reply = tld(chat.id,
-                    "misc_paste_success").format(BASE_URL, key, BASE_URL, key)
+        reply = tld(chat.id, "misc_paste_success").format(BURL, key, BURL, key)
     else:
-        reply = f'{BASE_URL}/{key}'
+        reply = f'{BURL}/{key}'
     update.effective_message.reply_text(reply,
                                         parse_mode=ParseMode.MARKDOWN,
                                         disable_web_page_preview=True)
@@ -320,7 +305,7 @@ def paste(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def get_paste_content(bot: Bot, update: Update, args: List[str]):
-    BASE_URL = 'https://del.dog'
+    BURL = 'https://del.dog'
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -330,15 +315,15 @@ def get_paste_content(bot: Bot, update: Update, args: List[str]):
         message.reply_text(tld(chat.id, "misc_get_paste_invalid"))
         return
 
-    format_normal = f'{BASE_URL}/'
-    format_view = f'{BASE_URL}/v/'
+    format_normal = f'{BURL}/'
+    format_view = f'{BURL}/v/'
 
     if key.startswith(format_view):
         key = key[len(format_view):]
     elif key.startswith(format_normal):
         key = key[len(format_normal):]
 
-    r = requests.get(f'{BASE_URL}/raw/{key}')
+    r = requests.get(f'{BURL}/raw/{key}')
 
     if r.status_code != 200:
         try:
@@ -360,6 +345,7 @@ def get_paste_content(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def get_paste_stats(bot: Bot, update: Update, args: List[str]):
+    BURL = 'https://del.dog'
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -369,15 +355,15 @@ def get_paste_stats(bot: Bot, update: Update, args: List[str]):
         message.reply_text(tld(chat.id, "misc_get_paste_invalid"))
         return
 
-    format_normal = f'{BASE_URL}/'
-    format_view = f'{BASE_URL}/v/'
+    format_normal = f'{BURL}/'
+    format_view = f'{BURL}/v/'
 
     if key.startswith(format_view):
         key = key[len(format_view):]
     elif key.startswith(format_normal):
         key = key[len(format_normal):]
 
-    r = requests.get(f'{BASE_URL}/documents/{key}')
+    r = requests.get(f'{BURL}/documents/{key}')
 
     if r.status_code != 200:
         try:
@@ -395,7 +381,7 @@ def get_paste_stats(bot: Bot, update: Update, args: List[str]):
     document = r.json()['document']
     key = document['_id']
     views = document['viewCount']
-    reply = f'Stats for **[/{key}]({BASE_URL}/{key})**:\nViews: `{views}`'
+    reply = f'Stats for **[/{key}]({BURL}/{key})**:\nViews: `{views}`'
     update.effective_message.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
 
 

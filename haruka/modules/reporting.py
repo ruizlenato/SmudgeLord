@@ -1,6 +1,5 @@
 import html
-from typing import Optional, List
-import re
+from typing import List, Optional
 from telegram import Message, Chat, Update, Bot, User, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import BadRequest, Unauthorized
 from telegram.ext import CommandHandler, RegexHandler, run_async, Filters, CallbackQueryHandler
@@ -164,7 +163,8 @@ def report(bot: Bot, update: Update) -> str:
                 except Unauthorized:
                     pass
                 except BadRequest as excp:  # TODO: cleanup exceptions
-                    LOGGER.exception("Exception while reporting user")
+                    LOGGER.exception(
+                        f"Exception while reporting user : {excp}")
 
         message.reply_to_message.reply_text(tld(
             chat.id,
@@ -182,7 +182,6 @@ def __migrate__(old_chat_id, new_chat_id):
 def buttons(bot: Bot, update):
     query = update.callback_query
     splitter = query.data.replace("report_", "").split("=")
-    chat = update.effective_chat
     if splitter[1] == "kick":
         try:
             bot.kickChatMember(splitter[0], splitter[2])

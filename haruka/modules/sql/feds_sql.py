@@ -1,6 +1,6 @@
 import threading
 
-from sqlalchemy import Column, String, UnicodeText, func, distinct, Integer, Boolean
+from sqlalchemy import Column, String, UnicodeText, Integer, Boolean
 
 from haruka.modules.sql import SESSION, BASE
 
@@ -269,18 +269,6 @@ def user_demote_fed(fed_id, user_id):
         SESSION.commit()
         return True
 
-        curr = SESSION.query(UserF).all()
-        result = False
-        for r in curr:
-            if int(r.user_id) == int(user_id):
-                if r.fed_id == fed_id:
-                    SESSION.delete(r)
-                    SESSION.commit()
-                    result = True
-
-        SESSION.close()
-        return result
-
 
 def user_join_fed(fed_id, user_id):
     with FEDS_LOCK:
@@ -409,7 +397,7 @@ def fban_user(fed_id, user_id, first_name, last_name, user_name, reason):
         SESSION.add(r)
         try:
             SESSION.commit()
-        except:
+        except Exception:
             SESSION.rollback()
             return False
         finally:
@@ -427,7 +415,7 @@ def un_fban_user(fed_id, user_id):
                     SESSION.delete(I)
         try:
             SESSION.commit()
-        except:
+        except Exception:
             SESSION.rollback()
             return False
         finally:
@@ -469,7 +457,6 @@ def get_all_fban_users_target(fed_id, user_id):
 
 
 def get_all_fban_users_global():
-    list_fbanned = FEDERATION_BANNED_USERID
     total = []
     for x in list(FEDERATION_BANNED_USERID):
         for y in FEDERATION_BANNED_USERID[x]:
@@ -478,7 +465,6 @@ def get_all_fban_users_global():
 
 
 def get_all_feds_users_global():
-    list_fed = FEDERATION_BYFEDID
     total = []
     for x in list(FEDERATION_BYFEDID):
         total.append(FEDERATION_BYFEDID[x])

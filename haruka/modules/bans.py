@@ -3,7 +3,7 @@ from typing import Optional, List
 
 from telegram import Message, Chat, Update, Bot, User, ParseMode
 from telegram.error import BadRequest
-from telegram.ext import run_async, CommandHandler, Filters
+from telegram.ext import run_async, Filters
 from telegram.utils.helpers import mention_html
 
 from haruka import dispatcher, LOGGER
@@ -249,7 +249,6 @@ def kickme(bot: Bot, update: Update):
 def banme(bot: Bot, update: Update):
     user_id = update.effective_message.from_user.id
     chat = update.effective_chat
-    user = update.effective_user
     if is_user_admin(update.effective_chat, user_id):
         update.effective_message.reply_text(
             tld(chat.id, "bans_err_usr_is_admin"))

@@ -1,8 +1,8 @@
 import html
 import re
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Chat, Update, Bot, ParseMode
+from telegram import Update, Bot, ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, MessageHandler, Filters, run_async
 
@@ -22,9 +22,9 @@ BLACKLIST_GROUP = 11
 
 @run_async
 def blacklist(bot: Bot, update: Update, args: List[str]):
-    msg = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    msg = update.effective_message
+    chat = update.effective_chat
+    user = update.effective_user
 
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
@@ -61,9 +61,9 @@ def blacklist(bot: Bot, update: Update, args: List[str]):
 @run_async
 @user_admin
 def add_blacklist(bot: Bot, update: Update):
-    msg = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    msg = update.effective_message
+    chat = update.effective_chat
+    user = update.effective_user
     words = msg.text.split(None, 1)
 
     conn = connected(bot, update, chat, user.id)
@@ -103,9 +103,9 @@ def add_blacklist(bot: Bot, update: Update):
 @run_async
 @user_admin
 def unblacklist(bot: Bot, update: Update):
-    msg = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    msg = update.effective_message
+    chat = update.effective_chat
+    user = update.effective_user
     words = msg.text.split(None, 1)
 
     conn = connected(bot, update, chat, user.id)
@@ -163,8 +163,8 @@ def unblacklist(bot: Bot, update: Update):
 @run_async
 @user_not_admin
 def del_blacklist(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    message = update.effective_message
     to_match = extract_text(message)
     if not to_match:
         return

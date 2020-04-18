@@ -1,11 +1,10 @@
 import random
 from typing import Optional, List
 
-from telegram import Message, Update, Bot, User, ParseMode
-from telegram import MessageEntity
-from telegram.ext import Filters, MessageHandler, run_async
+from telegram import Message, Update, Bot, ParseMode, Chat
+from telegram.ext import run_async
 
-from haruka import dispatcher, LOGGER
+from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.string_handling import remove_emoji
 from haruka.modules.translations.strings import tld, tld_list
@@ -18,7 +17,6 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
     lan = " ".join(args)
-    audio = False
 
     if msg.reply_to_message and (msg.reply_to_message.audio
                                  or msg.reply_to_message.voice) or (

@@ -1,7 +1,6 @@
-import random, re, string, io, asyncio
+import random, re, io, asyncio
 from PIL import Image
 from io import BytesIO
-import base64
 from spongemock import spongemock
 from zalgo_text import zalgo
 from deeppyer import deepfry
@@ -9,12 +8,12 @@ import os
 from pathlib import Path
 import glob
 
-from typing import Optional, List
-from telegram import Message, Update, Bot, User, ParseMode, MessageEntity
-from telegram.ext import Filters, MessageHandler, run_async
+from typing import List
+from telegram import Update, Bot, ParseMode, Message
+from telegram.ext import run_async
 
-from haruka import dispatcher, DEEPFRY_TOKEN
-from haruka.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHandler
+from haruka import dispatcher, DEEPFRY_TOKEN, LOGGER
+from haruka.modules.disable import DisableAbleCommandHandler
 from telegram.utils.helpers import escape_markdown
 from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.translations.strings import tld, tld_list
@@ -27,7 +26,7 @@ WIDE_MAP[0x20] = 0x3000
 
 @run_async
 def owo(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     message = update.effective_message
 
     noreply = False
@@ -67,7 +66,7 @@ def owo(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def stretch(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     message = update.effective_message
 
     noreply = False
@@ -92,7 +91,7 @@ def stretch(bot: Bot, update: Update, args: List[str]):
 @run_async
 def vapor(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     noreply = False
     if message.reply_to_message:
@@ -119,7 +118,7 @@ def vapor(bot: Bot, update: Update, args: List[str]):
 @run_async
 def mafiatext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     noreply = False
     if message.reply_to_message:
@@ -157,7 +156,7 @@ def mafiatext(bot: Bot, update: Update, args: List[str]):
 @run_async
 def pidortext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     noreply = False
     if message.reply_to_message:
@@ -193,7 +192,7 @@ def pidortext(bot: Bot, update: Update, args: List[str]):
 @run_async
 def kimtext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     noreply = False
     if message.reply_to_message:
@@ -229,7 +228,7 @@ def kimtext(bot: Bot, update: Update, args: List[str]):
 @run_async
 def hitlertext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     noreply = False
     if message.reply_to_message:
@@ -266,7 +265,7 @@ def hitlertext(bot: Bot, update: Update, args: List[str]):
 @run_async
 def spongemocktext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     noreply = False
     if message.reply_to_message:
@@ -303,7 +302,7 @@ def spongemocktext(bot: Bot, update: Update, args: List[str]):
 @run_async
 def zalgotext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     noreply = False
     if message.reply_to_message:
@@ -329,7 +328,7 @@ def zalgotext(bot: Bot, update: Update, args: List[str]):
 @run_async
 def deepfryer(bot: Bot, update: Update):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if message.reply_to_message:
         data = message.reply_to_message.photo
         data2 = message.reply_to_message.sticker
@@ -381,16 +380,13 @@ async def process_deepfry(image: Image, reply: Message, bot: Bot):
 @run_async
 def shout(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
-    noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
     elif args:
-        noreply = True
         data = " ".join(args)
     else:
-        noreply = True
         data = tld(chat.id, "memes_no_message")
 
     msg = "```"
@@ -408,7 +404,7 @@ def shout(bot: Bot, update: Update, args: List[str]):
 @run_async
 def insults(bot: Bot, update: Update):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     text = random.choice(tld_list(chat.id, "memes_insults_list"))
 
     if message.reply_to_message:
@@ -419,15 +415,15 @@ def insults(bot: Bot, update: Update):
 
 @run_async
 def runs(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     update.effective_message.reply_text(
         random.choice(tld_list(chat.id, "memes_runs_list")))
 
 
 @run_async
 def slap(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
-    msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    msg = update.effective_message
 
     # reply to correct message
     reply_text = msg.reply_to_message.reply_text if msg.reply_to_message else msg.reply_text

@@ -25,7 +25,7 @@ def extract_user(message: Message, args: List[str]) -> Optional[int]:
 
 def extract_user_and_text(message: Message,
                           args: List[str]) -> (Optional[int], Optional[str]):
-    chat = message.chat  # type: Optional[Chat]
+    chat = message.chat
     prev_message = message.reply_to_message
     split_text = message.text.split(None, 1)
 

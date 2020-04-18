@@ -410,7 +410,7 @@ language_not_supported: "{} is not supported yet!"
 language_code_not_valid: That's not a valid lanuage code. Use an internationally accepted ISO code!
 language_current_locale: "Current locale for this chat is: *{}*"
 language_select_language: "*Select language* \n"
-language_user_language: "User language: `{}`"
+language_user_language: "User language: `{}`\n\nHelp us bring more languages to the bot by contributing to the project in [Crowdin](https://crowdin.com/project/haruka)!"
 language_chat_language: "\nConnected chat language: `{}`"
 language_sel_user_lang: "*\n\nSelect a new user language:*"
 #Locks

@@ -30,7 +30,7 @@ async def deepfry(img: Image,
                   type=DeepfryTypes.RED) -> Image:
     """
     Deepfry an image.
-    
+
     img: PIL.Image - Image to deepfry.
     [token]: str - Token to use for Microsoft facial recognition API. If this is not supplied, lens flares will not be added.
     [url_base]: str = 'westcentralus' - API base to use. Only needed if your key's region is not `westcentralus`.
@@ -38,6 +38,7 @@ async def deepfry(img: Image,
 
     Returns: PIL.Image - Deepfried image.
     """
+
     img = img.copy().convert('RGB')
 
     if type not in DeepfryTypes:

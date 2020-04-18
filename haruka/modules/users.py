@@ -1,12 +1,8 @@
 import re
 from io import BytesIO
 from time import sleep
-from typing import Optional
-
-from typing import Optional, List
-from telegram import TelegramError, Chat, Message
-from telegram import Update, Bot
-from telegram import ParseMode
+from typing import List
+from telegram import TelegramError, Update, Bot, ParseMode
 from telegram.error import BadRequest
 from telegram.ext import MessageHandler, Filters, CommandHandler
 from telegram.ext.dispatcher import run_async
@@ -15,7 +11,7 @@ import haruka.modules.sql.users_sql as sql
 from haruka import dispatcher, OWNER_ID, LOGGER, SUDO_USERS, SUPPORT_USERS
 from telegram.utils.helpers import escape_markdown
 from haruka.modules.helper_funcs.filters import CustomFilters
-from haruka.modules.helper_funcs.chat_status import is_user_ban_protected, bot_admin
+from haruka.modules.helper_funcs.chat_status import bot_admin
 
 from haruka.modules.translations.strings import tld
 
@@ -77,8 +73,8 @@ def broadcast(bot: Bot, update: Update):
 
 @run_async
 def log_user(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    msg = update.effective_message
 
     sql.update_user(msg.from_user.id, msg.from_user.username, chat.id,
                     chat.title)
@@ -109,7 +105,7 @@ def chats(bot: Bot, update: Update):
             chatfile += "{}. {} | {} | {} | {}\n".format(
                 P, chat.chat_name, chat.chat_id, chat_members, invitelink)
             P = P + 1
-        except:
+        except Exception:
             pass
 
     with BytesIO(str.encode(chatfile)) as output:

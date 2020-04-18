@@ -4,7 +4,6 @@ from typing import Optional
 from haruka import dispatcher, LOGGER
 from haruka.modules.helper_funcs.chat_status import user_admin
 from haruka.modules.sql import log_channel_sql as sql
-from haruka.modules.helper_funcs.misc import is_module_loaded
 from haruka.modules.translations.strings import tld
 
 from telegram import Bot, Update, ParseMode, Message, Chat
@@ -18,7 +17,7 @@ def loggable(func):
     def log_action(bot: Bot, update: Update, *args, **kwargs):
         try:
             result = func(bot, update, *args, **kwargs)
-        except:
+        except Exception:
             return
         chat = update.effective_chat  # type: Optional[Chat]
         message = update.effective_message  # type: Optional[Message]
@@ -73,7 +72,7 @@ def logging(bot: Bot, update: Update):
                                        escape_markdown(log_channel_info.title),
                                        log_channel),
                                parse_mode=ParseMode.MARKDOWN)
-        except:
+        except Exception:
             print("Nut")
     else:
         message.reply_text(tld(chat.id, "log_channel_none"))
@@ -132,7 +131,7 @@ def unsetlog(bot: Bot, update: Update):
                 log_channel,
                 tld(chat.id, "log_channel_unlink_success").format(chat.title))
             message.reply_text(tld(chat.id, "Log channel has been un-set."))
-        except:
+        except Exception:
             print("Nut")
     else:
         message.reply_text(tld(chat.id, "log_channel_unlink_none"))

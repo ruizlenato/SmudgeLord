@@ -1,19 +1,15 @@
-from math import ceil
-from typing import List, Dict
-
-from telegram import Bot, ParseMode, ReplyKeyboardMarkup, KeyboardButton
-from telegram.error import TelegramError
+from telegram import ReplyKeyboardMarkup, KeyboardButton
 
 from haruka import dispatcher
 from haruka.modules.translations.strings import tld
-from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
+from telegram.ext import CommandHandler
 
 import haruka.modules.sql.connection_sql as con_sql
 
 
 def keyboard(bot, update):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat
+    user = update.effective_user
     conn_id = con_sql.get_connected_chat(user.id)
     if conn_id and not conn_id == False:
         btn1 = "/disconnect - {}".format(tld(chat.id, "keyboard_disconnect"))
@@ -24,17 +20,17 @@ def keyboard(bot, update):
             history = con_sql.get_history(user.id)
         try:
             chat_name1 = dispatcher.bot.getChat(history.chat_id1).title
-        except:
+        except Exception:
             chat_name1 = ""
 
         try:
             chat_name2 = dispatcher.bot.getChat(history.chat_id2).title
-        except:
+        except Exception:
             chat_name2 = ""
 
         try:
             chat_name3 = dispatcher.bot.getChat(history.chat_id3).title
-        except:
+        except Exception:
             chat_name3 = ""
 
         if chat_name1:
@@ -55,8 +51,7 @@ def keyboard(bot, update):
     update.effective_message.reply_text(
         tld(chat.id, "keyboard_updated"),
         reply_markup=ReplyKeyboardMarkup([[
-            KeyboardButton("/help - {}".format(tld(chat.id,
-                                                   "keyboard_bothelp"))),
+            KeyboardButton("/help"),
             KeyboardButton("/notes - {}".format(tld(chat.id,
                                                     "keyboard_notes")))
         ], [KeyboardButton(btn1)], [KeyboardButton(btn2)],

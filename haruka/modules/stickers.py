@@ -1,16 +1,14 @@
-import hashlib
 import os
 import math
 import urllib.request as urllib
 
-from io import BytesIO
 from PIL import Image
 
-from typing import Optional, List
+from typing import List
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram import TelegramError
 from telegram import Update, Bot
-from telegram.ext import CommandHandler, run_async
+from telegram.ext import run_async
 from telegram.utils.helpers import escape_markdown
 
 from haruka import dispatcher
@@ -122,7 +120,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
         except TelegramError as e:
             if e.message == "Stickerset_invalid":
                 makepack_internal(msg, user, open('kangsticker.png', 'rb'),
-                                  sticker_emoji, bot, packname, packnum)
+                                  sticker_emoji, bot, packname, packnum, chat)
             elif e.message == "Sticker_png_dimensions":
                 im.save(kangsticker, "PNG")
                 bot.add_sticker_to_set(user_id=user.id,
@@ -186,7 +184,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
         except TelegramError as e:
             if e.message == "Stickerset_invalid":
                 makepack_internal(msg, user, open('kangsticker.png', 'rb'),
-                                  sticker_emoji, bot, packname, packnum)
+                                  sticker_emoji, bot, packname, packnum, chat)
             elif e.message == "Sticker_png_dimensions":
                 im.save(kangsticker, "PNG")
                 bot.add_sticker_to_set(user_id=user.id,
@@ -222,8 +220,8 @@ def kang(bot: Bot, update: Update, args: List[str]):
         os.remove("kangsticker.png")
 
 
-def makepack_internal(msg, user, png_sticker, emoji, bot, packname, packnum):
-    chat = msg.chat  # type: Optional[Chat]
+def makepack_internal(msg, user, png_sticker, emoji, bot, packname, packnum,
+                      chat):
     name = user.first_name
     name = name[:50]
     try:

@@ -1,12 +1,10 @@
 from functools import wraps
-from typing import Optional
 
-from telegram import User, Chat, ChatMember, Update, Bot
+from telegram import Chat, ChatMember, Update, Bot
 
 from haruka import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 import haruka.modules.sql.admin_sql as admin_sql
 from haruka.modules.translations.strings import tld
-import haruka.modules.sql.antispam_sql as sql
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:
@@ -59,7 +57,7 @@ def is_user_in_chat(chat: Chat, user_id: int) -> bool:
 def bot_can_delete(func):
     @wraps(func)
     def delete_rights(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat  # type: Optional[Chat]
+        chat = update.effective_chat
 
         if can_delete(update.effective_chat, bot.id):
             return func(bot, update, *args, **kwargs)
@@ -73,7 +71,7 @@ def bot_can_delete(func):
 def can_pin(func):
     @wraps(func)
     def pin_rights(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat  # type: Optional[Chat]
+        chat = update.effective_chat
 
         if update.effective_chat.get_member(bot.id).can_pin_messages:
             return func(bot, update, *args, **kwargs)
@@ -87,7 +85,7 @@ def can_pin(func):
 def can_promote(func):
     @wraps(func)
     def promote_rights(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat  # type: Optional[Chat]
+        chat = update.effective_chat
 
         if update.effective_chat.get_member(bot.id).can_promote_members:
             return func(bot, update, *args, **kwargs)
@@ -101,7 +99,7 @@ def can_promote(func):
 def can_restrict(func):
     @wraps(func)
     def promote_rights(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat  # type: Optional[Chat]
+        chat = update.effective_chat
 
         if update.effective_chat.get_member(bot.id).can_restrict_members:
             return func(bot, update, *args, **kwargs)
@@ -115,7 +113,7 @@ def can_restrict(func):
 def bot_admin(func):
     @wraps(func)
     def is_admin(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat  # type: Optional[Chat]
+        chat = update.effective_chat
 
         if is_bot_admin(update.effective_chat, bot.id):
             return func(bot, update, *args, **kwargs)
@@ -129,12 +127,12 @@ def bot_admin(func):
 def user_admin(func):
     @wraps(func)
     def is_admin(bot: Bot, update: Update, *args, **kwargs):
-        user = update.effective_user  # type: Optional[User]
-        chat = update.effective_chat  # type: Optional[Chat]
+        user = update.effective_user
+        chat = update.effective_chat
         if user and is_user_admin(update.effective_chat, user.id):
             try:
                 return func(bot, update, *args, **kwargs)
-            except:
+            except Exception:
                 return
 
         elif not user:
@@ -153,7 +151,7 @@ def user_admin(func):
 def user_admin_no_reply(func):
     @wraps(func)
     def is_admin(bot: Bot, update: Update, *args, **kwargs):
-        user = update.effective_user  # type: Optional[User]
+        user = update.effective_user
         if user and is_user_admin(update.effective_chat, user.id):
             return func(bot, update, *args, **kwargs)
 
@@ -169,7 +167,7 @@ def user_admin_no_reply(func):
 def user_not_admin(func):
     @wraps(func)
     def is_not_admin(bot: Bot, update: Update, *args, **kwargs):
-        user = update.effective_user  # type: Optional[User]
+        user = update.effective_user
         if user and not is_user_admin(update.effective_chat, user.id):
             return func(bot, update, *args, **kwargs)
 

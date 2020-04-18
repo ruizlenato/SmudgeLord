@@ -254,7 +254,7 @@ def escape_chars(text: str, to_escape: List[str]) -> str:
 
 def extract_time(message, time_val):
     if any(time_val.endswith(unit) for unit in ('m', 'h', 'd')):
-        chat = message.chat  # type: Optional[Chat]
+        chat = message.chat
         unit = time_val[-1]
         time_num = time_val[:-1]  # type: str
         if not time_num.isdigit():

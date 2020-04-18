@@ -1,16 +1,12 @@
-import html
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Chat, Update, Bot, User
+from telegram import Update, Bot
 from telegram.error import BadRequest
-from telegram.ext import run_async, CommandHandler, Filters
-from telegram.utils.helpers import mention_html
+from telegram.ext import run_async, CommandHandler
 
-from haruka import dispatcher
-from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, \
-    is_user_admin, is_user_in_chat, is_bot_admin
+from haruka import dispatcher, LOGGER
+from haruka.modules.helper_funcs.chat_status import bot_admin, is_user_ban_protected, is_user_in_chat, is_bot_admin
 from haruka.modules.helper_funcs.extraction import extract_user_and_text
-from haruka.modules.helper_funcs.string_handling import extract_time
 from haruka.modules.helper_funcs.filters import CustomFilters
 
 RBAN_ERRORS = {
@@ -67,7 +63,7 @@ RUNMUTE_ERRORS = {
 @run_async
 @bot_admin
 def rban(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     message = update.effective_message
 
     if not args:
@@ -141,7 +137,7 @@ def rban(bot: Bot, update: Update, args: List[str]):
 @run_async
 @bot_admin
 def runban(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     message = update.effective_message
 
     if not args:
@@ -219,7 +215,7 @@ def runban(bot: Bot, update: Update, args: List[str]):
 @bot_admin
 def rkick(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     if not args:
         message.reply_text("You don't seem to be referring to a chat/user.")
@@ -366,7 +362,7 @@ def rmute(bot: Bot, update: Update, args: List[str]):
 @bot_admin
 def runmute(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     if not args:
         message.reply_text("You don't seem to be referring to a chat/user.")

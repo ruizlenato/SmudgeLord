@@ -1,7 +1,7 @@
-from typing import Union, List, Optional
+from typing import Union, List
 
 from future.utils import string_types
-from telegram import ParseMode, Update, Bot, Chat, User
+from telegram import ParseMode, Update, Bot
 from telegram.ext import CommandHandler, RegexHandler, Filters
 from telegram.utils.helpers import escape_markdown
 
@@ -38,8 +38,8 @@ if is_module_loaded(FILENAME):
                     ADMIN_CMDS.extend(command)
 
         def check_update(self, update):
-            chat = update.effective_chat  # type: Optional[Chat]
-            user = update.effective_user  # type: Optional[User]
+            chat = update.effective_chat
+            user = update.effective_user
             if super().check_update(update):
                 # Should be safe since check_update passed.
                 command = update.effective_message.text_html.split(
@@ -71,7 +71,7 @@ if is_module_loaded(FILENAME):
     @run_async
     @user_admin
     def disable(bot: Bot, update: Update, args: List[str]):
-        chat = update.effective_chat  # type: Optional[Chat]
+        chat = update.effective_chat
         if len(args) >= 1:
             disable_cmd = args[0]
             if disable_cmd.startswith(CMD_STARTERS):
@@ -93,7 +93,7 @@ if is_module_loaded(FILENAME):
     @run_async
     @user_admin
     def enable(bot: Bot, update: Update, args: List[str]):
-        chat = update.effective_chat  # type: Optional[Chat]
+        chat = update.effective_chat
         if len(args) >= 1:
             enable_cmd = args[0]
             if enable_cmd.startswith(CMD_STARTERS):
@@ -114,7 +114,7 @@ if is_module_loaded(FILENAME):
     @run_async
     @user_admin
     def list_cmds(bot: Bot, update: Update):
-        chat = update.effective_chat  # type: Optional[Chat]
+        chat = update.effective_chat
         if DISABLE_CMDS + DISABLE_OTHER:
             result = ""
             for cmd in set(DISABLE_CMDS + DISABLE_OTHER):
