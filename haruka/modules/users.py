@@ -195,14 +195,15 @@ def leavechat(bot: Bot, update: Update, args: List[int]):
         try:
             chat = update.effective_chat
             if chat.type == "private":
-                update.effective_message.reply_text("You do not seem to be referring to a chat!")
+                update.effective_message.reply_text(
+                    "You do not seem to be referring to a chat!")
                 return
             chat_id = chat.id
             reply_text = "`I'll leave this group`"
             bot.send_message(chat_id,
-                            reply_text,
-                            parse_mode='Markdown',
-                            disable_web_page_preview=True)
+                             reply_text,
+                             parse_mode='Markdown',
+                             disable_web_page_preview=True)
             bot.leaveChat(chat_id)
         except BadRequest as excp:
             if excp.message == "Chat not found":
@@ -216,9 +217,9 @@ def leavechat(bot: Bot, update: Update, args: List[int]):
         titlechat = bot.get_chat(chat_id).title
         reply_text = "`I'll Go Away!`"
         bot.send_message(chat_id,
-                        reply_text,
-                        parse_mode='Markdown',
-                        disable_web_page_preview=True)
+                         reply_text,
+                         parse_mode='Markdown',
+                         disable_web_page_preview=True)
         bot.leaveChat(chat_id)
         update.effective_message.reply_text(
             "I'll left group {}".format(titlechat))
@@ -265,20 +266,16 @@ def slist(bot: Bot, update: Update):
 
 @run_async
 def chat_checker(bot: Bot, update: Update):
-  if update.effective_message.chat.get_member(bot.id).can_send_messages == False:
-    bot.leaveChat(update.effective_message.chat.id)
+    if update.effective_message.chat.get_member(
+            bot.id).can_send_messages == False:
+        bot.leaveChat(update.effective_message.chat.id)
 
 
 def __user_info__(user_id, chat_id):
     if user_id == dispatcher.bot.id:
-        return tld(
-            chat_id,
-            "users_seen_is_bot"
-        )
+        return tld(chat_id, "users_seen_is_bot")
     num_chats = sql.get_user_num_chats(user_id)
-    return tld(
-        chat_id,
-        "users_seen").format(num_chats)
+    return tld(chat_id, "users_seen").format(num_chats)
 
 
 def __stats__():
@@ -320,7 +317,8 @@ SLIST_HANDLER = CommandHandler("slist",
                                slist,
                                filters=CustomFilters.sudo_filter
                                | CustomFilters.support_filter)
-CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.group, chat_checker)
+CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.group,
+                                      chat_checker)
 
 dispatcher.add_handler(SNIPE_HANDLER)
 dispatcher.add_handler(BANALL_HANDLER)

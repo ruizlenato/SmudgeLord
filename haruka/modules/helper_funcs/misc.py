@@ -73,14 +73,16 @@ def paginate_modules(chat_id,
         pairs = pairs[modulo_page * 7:7 * (modulo_page + 1)] + [
             (EqInlineKeyboardButton(
                 "<<", callback_data="{}_prev({})".format(prefix, modulo_page)),
-             EqInlineKeyboardButton(tld(chat_id, 'btn_go_back'), callback_data="bot_start"),
+             EqInlineKeyboardButton(tld(chat_id, 'btn_go_back'),
+                                    callback_data="bot_start"),
              EqInlineKeyboardButton(">>",
                                     callback_data="{}_next({})".format(
                                         prefix, modulo_page)))
         ]
     else:
         pairs += [[
-            EqInlineKeyboardButton(tld(chat_id, 'btn_go_back'), callback_data="bot_start")
+            EqInlineKeyboardButton(tld(chat_id, 'btn_go_back'),
+                                   callback_data="bot_start")
         ]]
 
     return pairs

@@ -36,7 +36,9 @@ def purge(bot: Bot, update: Update, args: List[str]) -> str:
                     bot.deleteMessage(chat.id, m_id)
                 except BadRequest as err:
                     if err.message == "Message can't be deleted":
-                        bot.send_message(chat.id, tld(chat.id, "purge_msg_cant_del_too_old"))
+                        bot.send_message(
+                            chat.id, tld(chat.id,
+                                         "purge_msg_cant_del_too_old"))
 
                     elif err.message != "Message to delete not found":
                         LOGGER.exception("Error while purging chat messages.")
@@ -45,7 +47,8 @@ def purge(bot: Bot, update: Update, args: List[str]) -> str:
                 msg.delete()
             except BadRequest as err:
                 if err.message == "Message can't be deleted":
-                    bot.send_message(chat.id, tld(chat.id, "purge_msg_cant_del_too_old"))
+                    bot.send_message(
+                        chat.id, tld(chat.id, "purge_msg_cant_del_too_old"))
 
                 elif err.message != "Message to delete not found":
                     LOGGER.exception("Error while purging chat messages.")

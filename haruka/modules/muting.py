@@ -51,12 +51,10 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
     if member:
 
         if user_id in SUDO_USERS:
-            message.reply_text(
-                tld(chat.id, "mute_not_sudo"))
+            message.reply_text(tld(chat.id, "mute_not_sudo"))
 
         elif is_user_admin(chatD, user_id, member=member):
-            message.reply_text(
-                tld(chat.id, "mute_not_m_admin"))
+            message.reply_text(tld(chat.id, "mute_not_m_admin"))
 
         elif member.can_send_messages is None or member.can_send_messages:
             bot.restrict_chat_member(chatD.id,
@@ -77,7 +75,8 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
                                               mention_html(member.user.id, member.user.first_name))
 
         else:
-            message.reply_text(tld(chat.id, "mute_already_mute").format(chatD.title))
+            message.reply_text(
+                tld(chat.id, "mute_already_mute").format(chatD.title))
     else:
         message.reply_text(
             tld(chat.id, "mute_not_in_chat").format(chatD.title))
@@ -123,10 +122,9 @@ def unmute(bot: Bot, update: Update, args: List[str]) -> str:
                                      can_send_other_messages=True,
                                      can_add_web_page_previews=True)
             keyboard = []
-            reply = tld(chat.id,
-                        "unmute_success").format(
-                            mention_html(member.user.id,
-                                         member.user.first_name), chatD.title)
+            reply = tld(chat.id, "unmute_success").format(
+                mention_html(member.user.id, member.user.first_name),
+                chatD.title)
             message.reply_text(reply,
                                reply_markup=keyboard,
                                parse_mode=ParseMode.HTML)
@@ -165,8 +163,7 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
-        message.reply_text(
-            tld(chat.id, "mute_not_refer"))
+        message.reply_text(tld(chat.id, "mute_not_refer"))
         return ""
 
     try:
@@ -183,14 +180,11 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
         return ""
 
     if user_id == bot.id:
-        message.reply_text(
-            tld(chat.id, "mute_is_bot"))
+        message.reply_text(tld(chat.id, "mute_is_bot"))
         return ""
 
     if not reason:
-        message.reply_text(
-            tld(chat.id,
-                "tmute_no_time"))
+        message.reply_text(tld(chat.id, "tmute_no_time"))
         return ""
 
     split_reason = reason.split(None, 1)
@@ -222,13 +216,11 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
                                      until_date=mutetime,
                                      can_send_messages=False)
             message.reply_text(
-                tld(chat.id,
-                    "tmute_success").format(time_val, chatD.title))
+                tld(chat.id, "tmute_success").format(time_val, chatD.title))
             return log
         else:
             message.reply_text(
-                tld(chat.id,
-                    "mute_already_mute").format(chatD.title))
+                tld(chat.id, "mute_already_mute").format(chatD.title))
 
     except BadRequest as excp:
         if excp.message == "Reply message not found":
@@ -241,8 +233,7 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
             LOGGER.warning(update)
             LOGGER.exception("ERROR muting user %s in chat %s (%s) due to %s",
                              user_id, chat.title, chat.id, excp.message)
-            message.reply_text(
-                tld(chat.id, "mute_cant_mute"))
+            message.reply_text(tld(chat.id, "mute_cant_mute"))
 
     return ""
 
@@ -267,11 +258,7 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text(
-            tld(
-                chat.id,
-                "restrict_invalid"
-            ))
+        message.reply_text(tld(chat.id, "restrict_invalid"))
         return ""
 
     if user_id == bot.id:
@@ -292,10 +279,9 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
                                      can_send_other_messages=False,
                                      can_add_web_page_previews=False)
             keyboard = []
-            reply = tld(chat.id,
-                        "restrict_success").format(
-                            mention_html(member.user.id,
-                                         member.user.first_name), chatD.title)
+            reply = tld(chat.id, "restrict_success").format(
+                mention_html(member.user.id, member.user.first_name),
+                chatD.title)
             message.reply_text(reply,
                                reply_markup=keyboard,
                                parse_mode=ParseMode.HTML)
@@ -308,8 +294,7 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
                                               mention_html(member.user.id, member.user.first_name), user_id)
 
         else:
-            message.reply_text(
-                tld(chat.id, "restrict_already_restricted"))
+            message.reply_text(tld(chat.id, "restrict_already_restricted"))
     else:
         message.reply_text(
             tld(chat.id, "mute_not_in_chat").format(chatD.title))
@@ -337,11 +322,7 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text(
-            tld(
-                chat.id,
-                "unrestrict_invalid"
-            ))
+        message.reply_text(tld(chat.id, "unrestrict_invalid"))
         return ""
 
     member = chatD.get_member(int(user_id))
@@ -350,10 +331,7 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
         if member.can_send_messages and member.can_send_media_messages \
                 and member.can_send_other_messages and member.can_add_web_page_previews:
             message.reply_text(
-                tld(
-                    chat.id,
-                    "unrestrict_not_restricted"
-                ).format(chatD.title))
+                tld(chat.id, "unrestrict_not_restricted").format(chatD.title))
         else:
             bot.restrict_chat_member(chatD.id,
                                      int(user_id),
@@ -376,10 +354,7 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
                                                            mention_html(user.id, user.first_name),
                                                            mention_html(member.user.id, member.user.first_name), user_id)
     else:
-        message.reply_text(
-            tld(
-                chat.id,
-                "unrestrict_not_in_chat"))
+        message.reply_text(tld(chat.id, "unrestrict_not_in_chat"))
 
     return ""
 
@@ -406,8 +381,7 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
-        message.reply_text(
-            tld(chat.id, "mute_not_refer"))
+        message.reply_text(tld(chat.id, "mute_not_refer"))
         return ""
 
     try:
@@ -420,19 +394,15 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
             raise
 
     if is_user_admin(chat, user_id, member):
-        message.reply_text(
-            tld(chat.id, "restrict_is_admin"))
+        message.reply_text(tld(chat.id, "restrict_is_admin"))
         return ""
 
     if user_id == bot.id:
-        message.reply_text(
-            tld(chat.id, "restrict_is_bot"))
+        message.reply_text(tld(chat.id, "restrict_is_bot"))
         return ""
 
     if not reason:
-        message.reply_text(
-            tld(chat.id,
-                "nomedia_need_time"))
+        message.reply_text(tld(chat.id, "nomedia_need_time"))
         return ""
 
     split_reason = reason.split(None, 1)
@@ -468,14 +438,12 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
                                      can_send_other_messages=False,
                                      can_add_web_page_previews=False)
             message.reply_text(
-                tld(chat.id,
-                    "nomedia_success").format(
-                        time_val, chatD.title))
+                tld(chat.id, "nomedia_success").format(time_val, chatD.title))
             return log
         else:
             message.reply_text(
-                tld(chat.id, "restrict_already_restricted").format(
-                    chatD.title))
+                tld(chat.id,
+                    "restrict_already_restricted").format(chatD.title))
 
     except BadRequest as excp:
         if excp.message == "Reply message not found":

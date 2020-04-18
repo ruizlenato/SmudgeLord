@@ -33,7 +33,6 @@ from haruka.modules.translations.strings import tld, tld_list
 from requests import get
 
 
-
 @run_async
 def get_bot_ip(bot: Bot, update: Update):
     res = requests.get("http://ipinfo.io/ip")
@@ -48,19 +47,27 @@ def get_id(bot: Bot, update: Update, args: List[str]):
         if update.effective_message.reply_to_message and update.effective_message.reply_to_message.forward_from:
             user1 = update.effective_message.reply_to_message.from_user
             user2 = update.effective_message.reply_to_message.forward_from
-            update.effective_message.reply_markdown(tld(chat.id, "misc_get_id_1").format(escape_markdown(user2.first_name), user2.id,
-                     escape_markdown(user1.first_name), user1.id))
+            update.effective_message.reply_markdown(
+                tld(chat.id,
+                    "misc_get_id_1").format(escape_markdown(user2.first_name),
+                                            user2.id,
+                                            escape_markdown(user1.first_name),
+                                            user1.id))
         else:
             user = bot.get_chat(user_id)
-            update.effective_message.reply_markdown(tld(chat.id, "misc_get_id_2").format(escape_markdown(user.first_name),
-                                           user.id))
+            update.effective_message.reply_markdown(
+                tld(chat.id,
+                    "misc_get_id_2").format(escape_markdown(user.first_name),
+                                            user.id))
     else:
         chat = update.effective_chat  # type: Optional[Chat]
         if chat.type == "private":
-            update.effective_message.reply_markdown(tld(chat.id, "misc_id_1").format(chat.id))
+            update.effective_message.reply_markdown(
+                tld(chat.id, "misc_id_1").format(chat.id))
 
         else:
-            update.effective_message.reply_markdown(tld(chat.id, "misc_id_2").format(chat.id))
+            update.effective_message.reply_markdown(
+                tld(chat.id, "misc_id_2").format(chat.id))
 
 
 @run_async
@@ -88,15 +95,19 @@ def info(bot: Bot, update: Update, args: List[str]):
 
     text = tld(chat.id, "misc_info_1")
     text += tld(chat.id, "misc_info_id").format(user.id)
-    text += tld(chat.id, "misc_info_first").format(html.escape(user.first_name))
+    text += tld(chat.id,
+                "misc_info_first").format(html.escape(user.first_name))
 
     if user.last_name:
-        text += tld(chat.id, "misc_info_name").format(html.escape(user.last_name))
+        text += tld(chat.id,
+                    "misc_info_name").format(html.escape(user.last_name))
 
     if user.username:
-        text += tld(chat.id, "misc_info_username").format(html.escape(user.username))
+        text += tld(chat.id,
+                    "misc_info_username").format(html.escape(user.username))
 
-    text += tld(chat.id, "misc_info_user_link").format(mention_html(user.id, "link"))
+    text += tld(chat.id,
+                "misc_info_user_link").format(mention_html(user.id, "link"))
 
     if user.id == OWNER_ID:
         text += tld(chat.id, "misc_info_is_owner")
@@ -139,7 +150,7 @@ def reply_keyboard_remove(bot: Bot, update: Update):
     reply_markup = ReplyKeyboardRemove(remove_keyboard=True)
     old_message = bot.send_message(
         chat_id=update.message.chat_id,
-        text='trying', # This text will not get translated
+        text='trying',  # This text will not get translated
         reply_markup=reply_markup,
         reply_to_message_id=update.message.message_id)
     bot.delete_message(chat_id=update.message.chat_id,
@@ -163,11 +174,8 @@ def markdown_help(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     update.effective_message.reply_text(tld(chat.id, "misc_md_list"),
                                         parse_mode=ParseMode.HTML)
-    update.effective_message.reply_text(
-        tld(chat.id, "misc_md_try"))
-    update.effective_message.reply_text(
-        tld(
-            chat.id, "misc_md_help"))
+    update.effective_message.reply_text(tld(chat.id, "misc_md_try"))
+    update.effective_message.reply_text(tld(chat.id, "misc_md_help"))
 
 
 @run_async
@@ -271,9 +279,7 @@ def lyrics(bot: Bot, update: Update, args: List[str]):
             return update.effective_message.reply_text(lyrics + lyricstext,
                                                        parse_mode="MARKDOWN")
     else:
-        return update.effective_message.reply_text(
-            "",
-            failed=True)
+        return update.effective_message.reply_text("", failed=True)
 
 
 @run_async
@@ -303,7 +309,8 @@ def paste(bot: Bot, update: Update, args: List[str]):
 
     key = res['key']
     if res['isUrl']:
-        reply = tld(chat.id, "misc_paste_success").format(BASE_URL, key, BASE_URL, key)
+        reply = tld(chat.id,
+                    "misc_paste_success").format(BASE_URL, key, BASE_URL, key)
     else:
         reply = f'{BASE_URL}/{key}'
     update.effective_message.reply_text(reply,
@@ -339,9 +346,11 @@ def get_paste_content(bot: Bot, update: Update, args: List[str]):
             update.effective_message.reply_text(res['message'])
         except Exception:
             if r.status_code == 404:
-                update.effective_message.reply_text(tld(chat.id, "misc_paste_404"))
+                update.effective_message.reply_text(
+                    tld(chat.id, "misc_paste_404"))
             else:
-                update.effective_message.reply_text(tld(chat.id, "misc_get_pasted_unknown"))
+                update.effective_message.reply_text(
+                    tld(chat.id, "misc_get_pasted_unknown"))
         r.raise_for_status()
 
     update.effective_message.reply_text('```' + escape_markdown(r.text) +
@@ -376,9 +385,11 @@ def get_paste_stats(bot: Bot, update: Update, args: List[str]):
             update.effective_message.reply_text(res['message'])
         except Exception:
             if r.status_code == 404:
-                update.effective_message.reply_text(tld(chat.id, "misc_paste_404"))
+                update.effective_message.reply_text(
+                    tld(chat.id, "misc_paste_404"))
             else:
-                update.effective_message.reply_text(tld(chat.id, "misc_get_pasted_unknown"))
+                update.effective_message.reply_text(
+                    tld(chat.id, "misc_get_pasted_unknown"))
         r.raise_for_status()
 
     document = r.json()['document']
@@ -421,8 +432,8 @@ def wiki(bot: Bot, update: Update):
             update.effective_message.reply_text("⚠ Error: {}".format(et))
         except wikipedia.exceptions.DisambiguationError as eet:
             update.effective_message.reply_text(
-                "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}".format(eet)
-            )
+                "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}"
+                .format(eet))
 
 
 __help__ = True
@@ -431,9 +442,7 @@ ID_HANDLER = DisableAbleCommandHandler("id",
                                        get_id,
                                        pass_args=True,
                                        admin_ok=True)
-IP_HANDLER = CommandHandler("ip",
-                            get_bot_ip,
-                            filters=Filters.chat(OWNER_ID))
+IP_HANDLER = CommandHandler("ip", get_bot_ip, filters=Filters.chat(OWNER_ID))
 LYRICS_HANDLER = DisableAbleCommandHandler("lyrics",
                                            lyrics,
                                            pass_args=True,

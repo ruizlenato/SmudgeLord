@@ -11,7 +11,6 @@ from haruka.modules.helper_funcs.misc import is_module_loaded
 
 from haruka.modules.translations.strings import tld
 
-
 FILENAME = __name__.rsplit(".", 1)[-1]
 
 # If module is due to be loaded, then setup all the magical handlers
@@ -103,7 +102,7 @@ if is_module_loaded(FILENAME):
             if sql.enable_command(chat.id, enable_cmd):
                 update.effective_message.reply_text(
                     tld(chat.id, "disable_enable_success").format(enable_cmd),
-                        parse_mode=ParseMode.MARKDOWN)
+                    parse_mode=ParseMode.MARKDOWN)
             else:
                 update.effective_message.reply_text(
                     tld(chat.id, "disable_already_enabled"))
@@ -120,9 +119,9 @@ if is_module_loaded(FILENAME):
             result = ""
             for cmd in set(DISABLE_CMDS + DISABLE_OTHER):
                 result += " - `{}`\n".format(escape_markdown(cmd))
-            update.effective_message.reply_text(
-                tld(chat.id, "disable_able_commands").format(result),
-                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(
+                chat.id, "disable_able_commands").format(result),
+                                                parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_able_commands_none"))

@@ -13,6 +13,7 @@ from haruka.modules.helper_funcs.string_handling import markdown_parser
 
 from haruka.modules.translations.strings import tld
 
+
 @run_async
 def get_rules(bot: Bot, update: Update):
     chat_id = update.effective_chat.id
@@ -28,23 +29,20 @@ def send_rules(update, chat_id, from_pm=False):
         chat = bot.get_chat(chat_id)
     except BadRequest as excp:
         if excp.message == "Chat not found" and from_pm:
-            bot.send_message(
-                user.id,
-                tld(chat.id, "rules_shortcut_not_setup_properly"))
+            bot.send_message(user.id,
+                             tld(chat.id, "rules_shortcut_not_setup_properly"))
             return
         else:
             raise
 
     rules = sql.get_rules(chat_id)
     text = tld(chat.id, "rules_display").format(escape_markdown(chat.title),
-                                                  rules)
+                                                rules)
 
     if from_pm and rules:
         bot.send_message(user.id, text, parse_mode=ParseMode.MARKDOWN)
     elif from_pm:
-        bot.send_message(
-            user.id,
-            tld(chat.id, "rules_not_found"))
+        bot.send_message(user.id, tld(chat.id, "rules_not_found"))
     elif rules:
         rules_text = tld(chat.id, "rules")
         update.effective_message.reply_text(
@@ -101,7 +99,6 @@ def __migrate__(old_chat_id, new_chat_id):
 
 
 __help__ = True
-
 
 GET_RULES_HANDLER = CommandHandler("rules", get_rules, filters=Filters.group)
 SET_RULES_HANDLER = CommandHandler("setrules",

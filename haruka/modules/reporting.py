@@ -12,7 +12,6 @@ from haruka.modules.log_channel import loggable
 from haruka.modules.sql import reporting_sql as sql
 from haruka.modules.translations.strings import tld
 
-
 REPORT_GROUP = 5
 
 
@@ -167,7 +166,10 @@ def report(bot: Bot, update: Update) -> str:
                 except BadRequest as excp:  # TODO: cleanup exceptions
                     LOGGER.exception("Exception while reporting user")
 
-        message.reply_to_message.reply_text(tld(chat.id, "reports_success").format(mention_html(user.id, user.first_name)), parse_mode=ParseMode.HTML)
+        message.reply_to_message.reply_text(tld(
+            chat.id,
+            "reports_success").format(mention_html(user.id, user.first_name)),
+                                            parse_mode=ParseMode.HTML)
         return msg
 
     return ""

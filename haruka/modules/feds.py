@@ -345,9 +345,9 @@ def fed_info(bot: Bot, update: Update, args: List[str]):
     getfchat = sql.all_fed_chats(fed_id)
 
     text = tld(chat.id, "feds_info").format(fed_id, info['fname'],
-                                           mention_html(owner.id, owner_name),
-                                           TotalAdminFed, len(getfbanned),
-                                           len(getfchat))
+                                            mention_html(owner.id, owner_name),
+                                            TotalAdminFed, len(getfbanned),
+                                            len(getfchat))
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
 

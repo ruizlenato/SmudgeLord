@@ -35,22 +35,19 @@ def add_blacklist_url(bot: Bot, update: Update):
         if len(to_blacklist) == 1:
             extract_url = tldextract.extract(to_blacklist[0])
             if extract_url.domain and extract_url.suffix:
-                message.reply_text(
-                    tld(chat.id, "url_blacklist_success").format(
+                message.reply_text(tld(
+                    chat.id, "url_blacklist_success").format(
                         html.escape(extract_url.domain + "." +
                                     extract_url.suffix)),
-                    parse_mode=ParseMode.HTML)
+                                   parse_mode=ParseMode.HTML)
             else:
-                message.reply_text(
-                    tld(chat.id, "url_blacklist_invalid"))
+                message.reply_text(tld(chat.id, "url_blacklist_invalid"))
         else:
-            message.reply_text(
-                tld(chat.id, "url_blacklist_success_2").format(
-                    len(blacklisted)),
-                parse_mode=ParseMode.HTML)
+            message.reply_text(tld(chat.id, "url_blacklist_success_2").format(
+                len(blacklisted)),
+                               parse_mode=ParseMode.HTML)
     else:
-        message.reply_text(
-            tld(chat.id, "url_blacklist_invalid_2"))
+        message.reply_text(tld(chat.id, "url_blacklist_invalid_2"))
 
 
 @run_async
@@ -74,28 +71,29 @@ def rm_blacklist_url(bot: Bot, update: Update):
 
         if len(to_unblacklist) == 1:
             if unblacklisted:
-                message.reply_text(
-                    tld(chat.id, "url_blacklist_remove_success").format(
-                        html.escape(to_unblacklist[0])),
-                    parse_mode=ParseMode.HTML)
+                message.reply_text(tld(chat.id,
+                                       "url_blacklist_remove_success").format(
+                                           html.escape(to_unblacklist[0])),
+                                   parse_mode=ParseMode.HTML)
             else:
-                message.reply_text(tld(chat.id, "url_blacklist_remove_invalid"))
+                message.reply_text(tld(chat.id,
+                                       "url_blacklist_remove_invalid"))
         elif unblacklisted == len(to_unblacklist):
             message.reply_text(
-                tld(chat.id, "url_blacklist_remove_success_2").format(
-                    unblacklisted),
+                tld(chat.id,
+                    "url_blacklist_remove_success_2").format(unblacklisted),
                 parse_mode=ParseMode.HTML)
         elif not unblacklisted:
-            message.reply_text(
-                tld(chat.id, "url_blacklist_remove_invalid_2"),
-                parse_mode=ParseMode.HTML)
+            message.reply_text(tld(chat.id, "url_blacklist_remove_invalid_2"),
+                               parse_mode=ParseMode.HTML)
         else:
-            message.reply_text(
-                tld(chat.id, "url_blacklist_remove_success_3").format(unblacklisted, len(to_unblacklist) - unblacklisted), parse_mode=ParseMode.HTML)
+            message.reply_text(tld(chat.id,
+                                   "url_blacklist_remove_success_3").format(
+                                       unblacklisted,
+                                       len(to_unblacklist) - unblacklisted),
+                               parse_mode=ParseMode.HTML)
     else:
-        message.reply_text(
-            tld(chat.id, "url_blacklist_remove_invalid_3")
-        )
+        message.reply_text(tld(chat.id, "url_blacklist_remove_invalid_3"))
 
 
 @run_async
@@ -157,7 +155,6 @@ GET_BLACKLISTED_URLS = CommandHandler("geturl",
 URL_DELETE_HANDLER = MessageHandler(Filters.entity("url"),
                                     del_blacklist_url,
                                     edited_updates=True)
-
 
 __help__ = True
 

@@ -13,6 +13,7 @@ from haruka.modules.helper_funcs.extraction import extract_user
 
 from haruka.modules.translations.strings import tld
 
+
 @run_async
 def about_me(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message  # type: Optional[Message]
@@ -32,9 +33,11 @@ def about_me(bot: Bot, update: Update, args: List[str]):
                                             parse_mode=ParseMode.MARKDOWN)
     elif message.reply_to_message:
         username = message.reply_to_message.from_user.first_name
-        update.effective_message.reply_text(tld(chat.id, 'userinfo_about_not_set').format(username))
+        update.effective_message.reply_text(
+            tld(chat.id, 'userinfo_about_not_set').format(username))
     else:
-        update.effective_message.reply_text(tld(chat.id, 'userinfo_about_not_set_you'))
+        update.effective_message.reply_text(
+            tld(chat.id, 'userinfo_about_not_set_you'))
 
 
 @run_async
@@ -51,8 +54,10 @@ def set_about_me(bot: Bot, update: Update):
             sql.set_user_me_info(user_id, info[1])
             message.reply_text(tld(chat.id, 'userinfo_about_set_success'))
         else:
-            message.reply_text(tld(chat.id, 'userinfo_about_too_long').
-                format(MAX_MESSAGE_LENGTH // 4, len(info[1])))
+            message.reply_text(
+                tld(chat.id,
+                    'userinfo_about_too_long').format(MAX_MESSAGE_LENGTH // 4,
+                                                      len(info[1])))
 
 
 @run_async
@@ -73,9 +78,11 @@ def about_bio(bot: Bot, update: Update, args: List[str]):
                                             parse_mode=ParseMode.MARKDOWN)
     elif message.reply_to_message:
         username = user.first_name
-        update.effective_message.reply_text(tld(chat.id, 'userinfo_bio_none_they').format(username))
+        update.effective_message.reply_text(
+            tld(chat.id, 'userinfo_bio_none_they').format(username))
     else:
-        update.effective_message.reply_text(tld(chat.id, 'userinfo_bio_none_you'))
+        update.effective_message.reply_text(
+            tld(chat.id, 'userinfo_bio_none_you'))
 
 
 @run_async
@@ -109,7 +116,9 @@ def set_about_bio(bot: Bot, update: Update):
                 message.reply_text("Updated {}'s bio!".format(
                     repl_message.from_user.first_name))
             else:
-                message.reply_text(tld(chat.id, 'userinfo_bio_too_long').format(MAX_MESSAGE_LENGTH // 4, len(bio[1])))
+                message.reply_text(
+                    tld(chat.id, 'userinfo_bio_too_long').format(
+                        MAX_MESSAGE_LENGTH // 4, len(bio[1])))
     else:
         message.reply_text(tld(chat.id, 'userinfo_bio_set_no_reply'))
 

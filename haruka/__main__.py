@@ -5,7 +5,7 @@ from typing import Optional, List
 
 from telegram import Message, Chat, Update, Bot
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.error import (Unauthorized, BadRequest, TimedOut, NetworkError, 
+from telegram.error import (Unauthorized, BadRequest, TimedOut, NetworkError,
                             ChatMigrated, TelegramError)
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
@@ -64,7 +64,8 @@ for module_name in ALL_MODULES:
 # Do NOT async this!
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
-        keyboard = InlineKeyboardMarkup(paginate_modules(chat_id, 0, HELPABLE, "help"))
+        keyboard = InlineKeyboardMarkup(
+            paginate_modules(chat_id, 0, HELPABLE, "help"))
 
     dispatcher.bot.send_message(chat_id=chat_id,
                                 text=text,
@@ -100,7 +101,8 @@ def start(bot: Bot, update: Update, args: List[str]):
             send_start(bot, update)
     else:
         try:
-            update.effective_message.reply_text(tld(chat.id, 'main_start_group'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'main_start_group'))
         except:
             print("Nut")
 
@@ -122,8 +124,10 @@ def send_start(bot, update):
                              url="https://t.me/HarukaAyaGroup")
     ]]
     keyboard += [[
-        InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_lang'), callback_data="set_lang_"),
-        InlineKeyboardButton(text=tld(chat.id, 'btn_help'), callback_data="help_back")
+        InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_lang'),
+                             callback_data="set_lang_"),
+        InlineKeyboardButton(text=tld(chat.id, 'btn_help'),
+                             callback_data="help_back")
     ]]
 
     update.effective_message.reply_text(

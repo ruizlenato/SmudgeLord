@@ -136,10 +136,7 @@ def new_member(bot: Bot, update: Update):
                     "I have been added to {} with ID: <pre>{}</pre>".format(
                         chat.title, chat.id),
                     parse_mode=ParseMode.HTML)
-                bot.send_message(
-                    chat.id,
-                    tld(chat.id, 'welcome_added_to_grp')
-                )
+                bot.send_message(chat.id, tld(chat.id, 'welcome_added_to_grp'))
 
             else:
                 if is_user_gbanned(new_mem.id):
@@ -382,7 +379,8 @@ def left_member(bot: Bot, update: Update):
 
             # Give the owner a special goodbye
             if left_mem.id == OWNER_ID:
-                update.effective_message.reply_text(tld(chat.id, 'welcome_bot_owner_left'))
+                update.effective_message.reply_text(
+                    tld(chat.id, 'welcome_bot_owner_left'))
                 return
 
             # if media goodbye, use appropriate function for it
@@ -486,12 +484,16 @@ def security(bot: Bot, update: Update, args: List[str]) -> str:
                                                     parse_mode="markdown")
                 return ""
             sql.set_welcome_security(chat.id, True, str(cur_value), cust_text)
-            update.effective_message.reply_text(tld(chat.id, 'welcome_mute_enabled'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_mute_enabled'))
         elif (var == "no" or var == "n" or var == "off"):
             sql.set_welcome_security(chat.id, False, str(cur_value), cust_text)
-            update.effective_message.reply_text(tld(chat.id, 'welcome_mute_disabled'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_mute_disabled'))
         else:
-            update.effective_message.reply_text(tld(chat.id, 'common_invalid_arg'), parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(chat.id,
+                                                    'common_invalid_arg'),
+                                                parse_mode=ParseMode.MARKDOWN)
     else:
         getcur, cur_value, cust_text = sql.welcome_security(chat.id)
         if getcur:
@@ -500,7 +502,8 @@ def security(bot: Bot, update: Update, args: List[str]) -> str:
             getcur = "False"
         if cur_value[:1] == "0":
             cur_value = "None"
-        text = tld(chat.id, 'welcome_mute_curr_settings').format(getcur, cur_value, cust_text)
+        text = tld(chat.id, 'welcome_mute_curr_settings').format(
+            getcur, cur_value, cust_text)
         update.effective_message.reply_text(text, parse_mode="markdown")
 
 
@@ -525,9 +528,11 @@ def security_mute(bot: Bot, update: Update, args: List[str]) -> str:
         update.effective_message.reply_text(text)
     else:
         if str(cur_value) == "0":
-            update.effective_message.reply_text(tld(chat.id, 'welcome_mute_time_settings_none'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_mute_time_settings_none'))
         else:
-            update.effective_message.reply_text(tld(chat.id, 'welcome_mute_time_settings').format(cur_value))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_mute_time_settings').format(cur_value))
 
 
 @run_async
@@ -542,7 +547,9 @@ def security_text(bot: Bot, update: Update, args: List[str]) -> str:
         text = tld(chat.id, 'welcome_mute_btn_text_changed').format(text)
         update.effective_message.reply_text(text, parse_mode="markdown")
     else:
-        update.effective_message.reply_text(tld(chat.id, 'welcome_mute_btn_curr_text').format(cust_text), parse_mode="markdown")
+        update.effective_message.reply_text(tld(
+            chat.id, 'welcome_mute_btn_curr_text').format(cust_text),
+                                            parse_mode="markdown")
 
 
 @run_async
@@ -551,11 +558,12 @@ def security_text_reset(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
     getcur, cur_value, cust_text = sql.welcome_security(chat.id)
-    sql.set_welcome_security(chat.id, getcur, cur_value, tld(chat.id, 'welcome_mute_btn_default_text'))
-    update.effective_message.reply_text(
-        tld(chat.id, 'welcome_mute_btn_text_reset').format(tld(chat.id, 'welcome_mute_btn_default_text')),
-        parse_mode="markdown"
-    )
+    sql.set_welcome_security(chat.id, getcur, cur_value,
+                             tld(chat.id, 'welcome_mute_btn_default_text'))
+    update.effective_message.reply_text(tld(
+        chat.id, 'welcome_mute_btn_text_reset').format(
+            tld(chat.id, 'welcome_mute_btn_default_text')),
+                                        parse_mode="markdown")
 
 
 @run_async
@@ -567,20 +575,30 @@ def cleanservice(bot: Bot, update: Update, args: List[str]) -> str:
             var = args[0]
             if (var == "no" or var == "off"):
                 sql.set_clean_service(chat.id, False)
-                update.effective_message.reply_text(tld(chat.id, 'welcome_clean_service_off'))
+                update.effective_message.reply_text(
+                    tld(chat.id, 'welcome_clean_service_off'))
             elif (var == "yes" or var == "on"):
                 sql.set_clean_service(chat.id, True)
-                update.effective_message.reply_text(tld(chat.id, 'welcome_clean_service_on'))
+                update.effective_message.reply_text(
+                    tld(chat.id, 'welcome_clean_service_on'))
             else:
-                update.effective_message.reply_text(tld(chat.id, 'common_invalid_arg'), parse_mode=ParseMode.MARKDOWN)
+                update.effective_message.reply_text(
+                    tld(chat.id, 'common_invalid_arg'),
+                    parse_mode=ParseMode.MARKDOWN)
         else:
-            update.effective_message.reply_text(tld(chat.id, 'common_invalid_arg'), parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(chat.id,
+                                                    'common_invalid_arg'),
+                                                parse_mode=ParseMode.MARKDOWN)
     else:
         curr = sql.clean_service(chat.id)
         if curr:
-            update.effective_message.reply_text(tld(chat.id, 'welcome_clean_service_on'), parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(
+                chat.id, 'welcome_clean_service_on'),
+                                                parse_mode=ParseMode.MARKDOWN)
         else:
-            update.effective_message.reply_text(tld(chat.id, 'welcome_clean_service_off'), parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(
+                chat.id, 'welcome_clean_service_off'),
+                                                parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
@@ -606,9 +624,12 @@ def welcome(bot: Bot, update: Update, args: List[str]):
         if cur_value[:1] == "0":
             welcsec += tld(chat.id, 'welcome_mute_time_short_none')
         else:
-            welcsec += tld(chat.id, 'welcome_mute_time_short').format(cur_value)
+            welcsec += tld(chat.id,
+                           'welcome_mute_time_short').format(cur_value)
 
-        text = tld(chat.id, 'welcome_settings').format(pref, prev_welc, cleanserv, welcsec, cust_text)
+        text = tld(chat.id,
+                   'welcome_settings').format(pref, prev_welc, cleanserv,
+                                              welcsec, cust_text)
         update.effective_message.reply_text(text,
                                             parse_mode=ParseMode.MARKDOWN)
 
@@ -645,15 +666,18 @@ def welcome(bot: Bot, update: Update, args: List[str]):
     elif len(args) >= 1:
         if args[0].lower() in ("on", "yes"):
             sql.set_welc_preference(str(chat.id), True)
-            update.effective_message.reply_text(tld(chat.id, 'welcome_greet_set_on'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_greet_set_on'))
 
         elif args[0].lower() in ("off", "no"):
             sql.set_welc_preference(str(chat.id), False)
-            update.effective_message.reply_text(tld(chat.id, 'welcome_greet_set_off'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_greet_set_off'))
 
         else:
             # idek what you're writing, say yes or no
-            update.effective_message.reply_text(tld(chat.id, 'common_invalid_arg'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'common_invalid_arg'))
 
 
 @run_async
@@ -668,8 +692,9 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
         if cust_content == None:
             cust_content = goodbye_m
 
-        update.effective_message.reply_text(tld(chat.id, 'welcome_goodbye_settings').format(pref),
-            parse_mode=ParseMode.MARKDOWN)
+        update.effective_message.reply_text(tld(
+            chat.id, 'welcome_goodbye_settings').format(pref),
+                                            parse_mode=ParseMode.MARKDOWN)
 
         if goodbye_type == sql.Types.BUTTON_TEXT:
             buttons = sql.get_gdbye_buttons(chat.id)
@@ -705,17 +730,21 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
         if args[0].lower() in ("on", "yes"):
             sql.set_gdbye_preference(str(chat.id), True)
             try:
-                update.effective_message.reply_text(tld(chat.id, 'welcome_goodbye_set_on'))
+                update.effective_message.reply_text(
+                    tld(chat.id, 'welcome_goodbye_set_on'))
             except:
                 print("Nut")
 
         elif args[0].lower() in ("off", "no"):
             sql.set_gdbye_preference(str(chat.id), False)
-            update.effective_message.reply_text(tld(chat.id, 'welcome_goodbye_set_off'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_goodbye_set_off'))
 
         else:
             # idek what you're writing, say yes or no
-            update.effective_message.reply_text(tld(chat.id, 'common_invalid_arg'), parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(chat.id,
+                                                    'common_invalid_arg'),
+                                                parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
@@ -729,7 +758,8 @@ def set_welcome(bot: Bot, update: Update) -> str:
     # If user is not set text and not reply a message
     if not msg.reply_to_message:
         if len(msg.text.split()) == 1:
-            msg.reply_text(tld(chat.id, 'welcome_set_welcome_no_text'), parse_mode="markdown")
+            msg.reply_text(tld(chat.id, 'welcome_set_welcome_no_text'),
+                           parse_mode="markdown")
             return ""
 
     text, data_type, content, buttons = get_welcome_type(msg)
@@ -755,7 +785,8 @@ def reset_welcome(bot: Bot, update: Update) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     sql.set_custom_welcome(chat.id, None, sql.DEFAULT_WELCOME, sql.Types.TEXT)
-    update.effective_message.reply_text(tld(chat.id, 'welcome_reset_welcome_success'))
+    update.effective_message.reply_text(
+        tld(chat.id, 'welcome_reset_welcome_success'))
     return "<b>{}:</b>" \
            "\n#RESET_WELCOME" \
            "\n<b>Admin:</b> {}" \
@@ -775,7 +806,8 @@ def set_goodbye(bot: Bot, update: Update) -> str:
     # If user is not set text and not reply a message
     if not msg.reply_to_message:
         if len(msg.text.split()) == 1:
-            msg.reply_text(tld(chat.id, 'welcome_set_welcome_no_text'), parse_mode="markdown")
+            msg.reply_text(tld(chat.id, 'welcome_set_welcome_no_text'),
+                           parse_mode="markdown")
             return ""
 
     if data_type is None:
@@ -798,7 +830,8 @@ def reset_goodbye(bot: Bot, update: Update) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     sql.set_custom_gdbye(chat.id, None, sql.DEFAULT_GOODBYE, sql.Types.TEXT)
-    update.effective_message.reply_text(tld(chat.id, 'welcome_reset_goodbye_success'))
+    update.effective_message.reply_text(
+        tld(chat.id, 'welcome_reset_goodbye_success'))
     return "<b>{}:</b>" \
            "\n#RESET_GOODBYE" \
            "\n<b>Admin:</b> {}" \
@@ -816,14 +849,17 @@ def clean_welcome(bot: Bot, update: Update, args: List[str]) -> str:
     if not args:
         clean_pref = sql.get_clean_pref(chat.id)
         if clean_pref:
-            update.effective_message.reply_text(tld(chat.id, 'welcome_clean_curr_on'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_clean_curr_on'))
         else:
-            update.effective_message.reply_text(tld(chat.id, 'welcome_clean_curr_off'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'welcome_clean_curr_off'))
         return ""
 
     if args[0].lower() in ("on", "yes"):
         sql.set_clean_welcome(str(chat.id), True)
-        update.effective_message.reply_text(tld(chat.id, 'welcome_clean_set_on'))
+        update.effective_message.reply_text(
+            tld(chat.id, 'welcome_clean_set_on'))
         return "<b>{}:</b>" \
                "\n#CLEAN_WELCOME" \
                "\n<b>Admin:</b> {}" \
@@ -831,7 +867,8 @@ def clean_welcome(bot: Bot, update: Update, args: List[str]) -> str:
                                                                          mention_html(user.id, user.first_name))
     elif args[0].lower() in ("off", "no"):
         sql.set_clean_welcome(str(chat.id), False)
-        update.effective_message.reply_text(tld(chat.id, 'welcome_clean_set_off'))
+        update.effective_message.reply_text(
+            tld(chat.id, 'welcome_clean_set_off'))
         return "<b>{}:</b>" \
                "\n#CLEAN_WELCOME" \
                "\n<b>Admin:</b> {}" \

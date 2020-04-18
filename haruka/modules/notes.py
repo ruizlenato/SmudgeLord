@@ -19,7 +19,6 @@ from haruka.modules.helper_funcs.msg_types import get_note_type
 from haruka.modules.translations.strings import tld
 from haruka.modules.connection import connected
 
-
 FILE_MATCHER = re.compile(r"^###file_id(!photo)?###:(.*?)(?:\s|$)")
 STICKER_MATCHER = re.compile(r"^###sticker(!photo)?###:")
 BUTTON_MATCHER = re.compile(r"^###button(!photo)?###:(.*?)(?:\s|$)")
@@ -208,7 +207,10 @@ def save(bot: Bot, update: Update):
                            data_type,
                            buttons=buttons,
                            file=content)
-        msg.reply_text(tld(chat.id, "save_success").format(note_name, chat_name, note_name, note_name), parse_mode=ParseMode.MARKDOWN)
+        msg.reply_text(tld(chat.id,
+                           "save_success").format(note_name, chat_name,
+                                                  note_name, note_name),
+                       parse_mode=ParseMode.MARKDOWN)
     else:
         sql.add_note_to_db(chat_id,
                            note_name,
@@ -216,7 +218,10 @@ def save(bot: Bot, update: Update):
                            data_type,
                            buttons=buttons,
                            file=content)
-        msg.reply_text(tld(chat.id, "save_updated").format(note_name, chat_name, note_name, note_name), parse_mode=ParseMode.MARKDOWN)
+        msg.reply_text(tld(chat.id,
+                           "save_updated").format(note_name, chat_name,
+                                                  note_name, note_name),
+                       parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
@@ -239,9 +244,12 @@ def clear(bot: Bot, update: Update, args: List[str]):
         notename = args[0].lower()
 
         if sql.rm_note(chat_id, notename):
-            update.effective_message.reply_text(tld(chat.id, "clear_success").format(chat_name), parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(
+                chat.id, "clear_success").format(chat_name),
+                                                parse_mode=ParseMode.MARKDOWN)
         else:
-            update.effective_message.reply_text(tld(chat.id, "note_not_existed"))
+            update.effective_message.reply_text(
+                tld(chat.id, "note_not_existed"))
 
 
 @run_async
@@ -273,8 +281,9 @@ def list_notes(bot: Bot, update: Update):
         msg += note_name
 
     if not note_list:
-        update.effective_message.reply_text(tld(chat.id, "note_none_in_chat").format(chat_name),
-            parse_mode=ParseMode.MARKDOWN)
+        update.effective_message.reply_text(tld(
+            chat.id, "note_none_in_chat").format(chat_name),
+                                            parse_mode=ParseMode.MARKDOWN)
 
     elif len(msg) != 0:
         msg += tld(chat.id, "note_get")
@@ -393,12 +402,10 @@ def __import_data__(chat_id, data):
         with BytesIO(str.encode("\n".join(failures))) as output:
             output.name = "failed_imports.txt"
             text_caption = tld(chat.id, "note_fail_to_import")
-            dispatcher.bot.send_document(
-                chat_id,
-                document=output,
-                filename="failed_imports.txt",
-                caption=text_caption
-                )
+            dispatcher.bot.send_document(chat_id,
+                                         document=output,
+                                         filename="failed_imports.txt",
+                                         caption=text_caption)
 
 
 def __stats__():
@@ -411,7 +418,6 @@ def __migrate__(old_chat_id, new_chat_id):
 
 
 __help__ = True
-
 
 GET_HANDLER = CommandHandler("get", cmd_get, pass_args=True)
 HASH_GET_HANDLER = RegexHandler(r"^#[^\s]+", hash_get)

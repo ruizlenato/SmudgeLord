@@ -252,6 +252,7 @@ def gbanlist(bot: Bot, update: Update):
             filename="gbanlist.txt",
             caption="Here is the list of currently gbanned users.")
 
+
 @run_async
 def ungban_quicc(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message  # type: Optional[Message]
@@ -260,7 +261,8 @@ def ungban_quicc(bot: Bot, update: Update, args: List[str]):
     except:
         return
     sql.ungban_user(user_id)
-    message.reply_text(f"Yeety mighty your mom is gay, {user_id} have been ungbanned.")
+    message.reply_text(
+        f"Yeety mighty your mom is gay, {user_id} have been ungbanned.")
 
 
 def check_and_ban(update, user_id, should_message=True):
@@ -404,10 +406,10 @@ UNGBAN_HANDLER = CommandHandler("ungban",
                                 | CustomFilters.support_filter)
 
 UNGBANQ_HANDLER = CommandHandler("ungban_quicc",
-                                ungban_quicc,
-                                pass_args=True,
-                                filters=CustomFilters.sudo_filter
-                                | CustomFilters.support_filter)
+                                 ungban_quicc,
+                                 pass_args=True,
+                                 filters=CustomFilters.sudo_filter
+                                 | CustomFilters.support_filter)
 
 GBAN_LIST = CommandHandler("gbanlist",
                            gbanlist,

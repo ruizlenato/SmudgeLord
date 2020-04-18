@@ -29,7 +29,7 @@ WIDE_MAP[0x20] = 0x3000
 def owo(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message
-    
+
     noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
@@ -420,7 +420,8 @@ def insults(bot: Bot, update: Update):
 @run_async
 def runs(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
-    update.effective_message.reply_text(random.choice(tld_list(chat.id, "memes_runs_list")))
+    update.effective_message.reply_text(
+        random.choice(tld_list(chat.id, "memes_runs_list")))
 
 
 @run_async
@@ -476,17 +477,35 @@ def slap(bot: Bot, update: Update, args: List[str]):
 
 __help__ = True
 
-OWO_HANDLER = DisableAbleCommandHandler("owo", owo, admin_ok=True, pass_args=True)
+OWO_HANDLER = DisableAbleCommandHandler("owo",
+                                        owo,
+                                        admin_ok=True,
+                                        pass_args=True)
 STRETCH_HANDLER = DisableAbleCommandHandler("stretch", stretch, pass_args=True)
 VAPOR_HANDLER = DisableAbleCommandHandler("vapor",
                                           vapor,
                                           pass_args=True,
                                           admin_ok=True)
-MOCK_HANDLER = DisableAbleCommandHandler("mock", spongemocktext, admin_ok=True, pass_args=True)
-KIM_HANDLER = DisableAbleCommandHandler("kim", kimtext, admin_ok=True, pass_args=True)
-MAFIA_HANDLER = DisableAbleCommandHandler("mafia", mafiatext, admin_ok=True, pass_args=True)
-PIDOR_HANDLER = DisableAbleCommandHandler("pidor", pidortext, admin_ok=True, pass_args=True)
-HITLER_HANDLER = DisableAbleCommandHandler("hitler", hitlertext, admin_ok=True, pass_args=True)
+MOCK_HANDLER = DisableAbleCommandHandler("mock",
+                                         spongemocktext,
+                                         admin_ok=True,
+                                         pass_args=True)
+KIM_HANDLER = DisableAbleCommandHandler("kim",
+                                        kimtext,
+                                        admin_ok=True,
+                                        pass_args=True)
+MAFIA_HANDLER = DisableAbleCommandHandler("mafia",
+                                          mafiatext,
+                                          admin_ok=True,
+                                          pass_args=True)
+PIDOR_HANDLER = DisableAbleCommandHandler("pidor",
+                                          pidortext,
+                                          admin_ok=True,
+                                          pass_args=True)
+HITLER_HANDLER = DisableAbleCommandHandler("hitler",
+                                           hitlertext,
+                                           admin_ok=True,
+                                           pass_args=True)
 ZALGO_HANDLER = DisableAbleCommandHandler("zalgofy", zalgotext, pass_args=True)
 DEEPFRY_HANDLER = DisableAbleCommandHandler("deepfry",
                                             deepfryer,

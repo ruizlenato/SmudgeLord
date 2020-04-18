@@ -21,8 +21,7 @@ def locale(bot, update, args):
                 switch_to_locale(chat.id, locale)
                 update.message.reply_text(
                     tld(chat.id, 'language_switch_success').format(
-                        chat.title,
-                        list_locales[locale]))
+                        chat.title, list_locales[locale]))
             else:
                 update.message.reply_text(
                     tld(chat.id,

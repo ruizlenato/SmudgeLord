@@ -136,8 +136,7 @@ def unblacklist(bot: Bot, update: Update):
                     html.escape(to_unblacklist[0]), chat_name),
                                parse_mode=ParseMode.HTML)
             else:
-                msg.reply_text(
-                    tld(chat.id, "blacklist_err_not_trigger"))
+                msg.reply_text(tld(chat.id, "blacklist_err_not_trigger"))
 
         elif successful == len(to_unblacklist):
             msg.reply_text(tld(chat.id, "blacklist_multi_del").format(
