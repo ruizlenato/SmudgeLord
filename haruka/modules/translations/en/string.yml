@@ -703,8 +703,6 @@ misc_md_list: |
   This will create two buttons on a single line, instead of one button per line.
 misc_md_try: Try forwarding the following message to me, and you'll see!
 misc_md_help: "/save test This is a markdown test. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl:github.com) [button2](buttonurl://google.com:same)"
-misc_lyrics_lookup: "Looks up for lyrics"
-misc_lyrics_invalid: Invalid syntax! Try Artist - Song name .For example, Luis Fonsi - Despacito
 misc_paste_invalid: What am I supposed to do with this?!
 misc_paste_404: Failed to reach dogbin
 misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
@@ -719,7 +717,6 @@ misc_help: |
   - /markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.
   - /git: Returns info about a GitHub user or organization.
   - /repo: Return the GitHub user or organization repository list (Limited at 40)
-  - /lyrics: Find your favorite songs lyrics!
   - /paste: Create a paste or a shortened url using [dogbin](https://del.dog)
   - /getpaste: Get the content of a paste or shortened url from [dogbin](https://del.dog)
   - /pastestats: Get stats of a paste or shortened url from [dogbin](https://del.dog)

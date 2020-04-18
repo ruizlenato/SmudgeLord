@@ -730,8 +730,6 @@ misc_md_list: |
   Ini akan membuat dua tombol pada satu baris, bukan satu tombol per baris.
 misc_md_try: Coba teruskan pesan berikut ini kepada saya, dan Anda akan melihatnya!
 misc_md_help: "/save test Ini adalah tes macam bentuk kata. _miring_, * tebal *, `kode`, [URL](example.com) [button](buttonurl://github.com) [button2](buttonurl://google.com:same)"
-misc_lyrics_lookup: "Mencari lirik"
-misc_lyrics_invalid: Sintaks tidak valid! Coba Artis - Nama lagu. Misalnya, Luis Fonsi - Despacito
 misc_paste_invalid: Apa yang harus saya lakukan dengan ini?!
 misc_paste_404: Gagal mencapai dogbin
 misc_paste_success: "URL singkat: {}/{}\nAnda dapat melihat statistik, dll. [here]({} / v / {})"
@@ -746,7 +744,6 @@ misc_help: |
   - /markdownhelp: ringkasan cepat tentang bagaimana markdown bekerja di telegram - hanya dapat dipanggil dalam obrolan pribadi.
   - /git: Mengembalikan info tentang pengguna atau organisasi GitHub.
   - /repo: Kembalikan daftar repositori pengguna atau organisasi GitHub (Terbatas pada 40)
-  - /lyrics: Temukan lirik lagu favorit Anda!
   - /paste: Buat menempelkan atau url singkat menggunakan [dogbin](https://del.dog)
   - /getpaste: Dapatkan konten tempel atau url singkat dari [dogbin](https://del.dog)
   - /pastestats: Dapatkan statistik tempel atau url singkat dari [dogbin](https://del.dog)

@@ -3,7 +3,6 @@ import wikipedia
 import re
 from datetime import datetime
 from typing import Optional, List
-import PyLyrics
 
 import requests
 from telegram import Message, Chat, Update, Bot, MessageEntity
@@ -239,36 +238,6 @@ def repo(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def lyrics(bot: Bot, update: Update, args: List[str]):
-    song = " ".join(args).split("- ")
-    LYRICSINFO = "\n[Full Lyrics](http://lyrics.wikia.com/wiki/%s:%s)"
-
-    if len(song) == 2:
-        while song[1].startswith(" "):
-            song[1] = song[1][1:]
-        while song[0].startswith(" "):
-            song[0] = song[0][1:]
-        while song[1].endswith(" "):
-            song[1] = song[1][:-1]
-        while song[0].endswith(" "):
-            song[0] = song[0][:-1]
-        try:
-            lyrics = "\n".join(
-                PyLyrics.getLyrics(song[0], song[1]).split("\n")[:20])
-        except ValueError:
-            return update.effective_message.reply_text("Song %s not found :(" %
-                                                       song[1],
-                                                       failed=True)
-        else:
-            lyricstext = LYRICSINFO % (song[0].replace(
-                " ", "_"), song[1].replace(" ", "_"))
-            return update.effective_message.reply_text(lyrics + lyricstext,
-                                                       parse_mode="MARKDOWN")
-    else:
-        return update.effective_message.reply_text("", failed=True)
-
-
-@run_async
 def paste(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
     BURL = 'https://del.dog'
@@ -429,10 +398,6 @@ ID_HANDLER = DisableAbleCommandHandler("id",
                                        pass_args=True,
                                        admin_ok=True)
 IP_HANDLER = CommandHandler("ip", get_bot_ip, filters=Filters.chat(OWNER_ID))
-LYRICS_HANDLER = DisableAbleCommandHandler("lyrics",
-                                           lyrics,
-                                           pass_args=True,
-                                           admin_ok=True)
 INFO_HANDLER = DisableAbleCommandHandler("info",
                                          info,
                                          pass_args=True,
@@ -472,7 +437,6 @@ dispatcher.add_handler(MD_HELP_HANDLER)
 dispatcher.add_handler(STATS_HANDLER)
 dispatcher.add_handler(GDPR_HANDLER)
 dispatcher.add_handler(GITHUB_HANDLER)
-dispatcher.add_handler(LYRICS_HANDLER)
 dispatcher.add_handler(REPO_HANDLER)
 dispatcher.add_handler(
     DisableAbleCommandHandler("removebotkeyboard", reply_keyboard_remove))
