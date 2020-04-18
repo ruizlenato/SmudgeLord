@@ -25,8 +25,8 @@ def loggable(func):
         if result:
             if chat.type == chat.SUPERGROUP and chat.username:
                 result += tld(
-                    chat.id, "log_channel_link".format(chat.username,
-                                                       message.message_id))
+                    chat.id, "log_channel_link").format(chat.username,
+                                                       message.message_id)
             log_chat = sql.get_chat_log_channel(chat.id)
             if log_chat:
                 send_log(bot, log_chat, chat.id, result)
