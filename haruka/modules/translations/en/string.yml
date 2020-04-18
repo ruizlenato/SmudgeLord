@@ -1085,6 +1085,9 @@ userinfo_bio_set_no_reply: Reply to someone's message to set their bio!
 userinfo_message_about_bio: <b>About user:</b>\n{}\n<b>What others say:</b>\n{}
 userinfo_message_bio: <b>What others say:</b>\n{bio}\n
 userinfo_message_about: <b>About user:</b>\n{}
+userinfo_what_i_and_other_say: <b>About user:</b>\n{}\n<b>What others say:</b>\n{}
+userinfo_what_other_say: <b>What others say:</b>\n{}\n
+userinfo_what_i_say: <b>About user:</b>\n{}
 userinfo_help: |
     - /setbio <text>: while replying, will save another user's bio
     - /bio: will get your or another user's bio. This cannot be set by yourself.
