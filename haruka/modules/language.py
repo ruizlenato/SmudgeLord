@@ -17,7 +17,7 @@ def locale(bot, update, args):
     if len(args) > 0:
         locale = args[0].lower()
         if locale in list_locales:
-            if locale in ('en', 'id'):
+            if locale in ('en', 'id', 'ru'):
                 switch_to_locale(chat.id, locale)
                 update.message.reply_text(
                     tld(chat.id, 'language_switch_success').format(
@@ -47,7 +47,7 @@ def locale_button(bot, update):
     chat = update.effective_chat
     user = update.effective_user  # type: Optional[User]
     query = update.callback_query
-    lang_match = re.findall(r"en|id", query.data)
+    lang_match = re.findall(r"en|id|ru", query.data)
     if lang_match:
         if lang_match[0]:
             switch_to_locale(chat.id, lang_match[0])
@@ -82,9 +82,10 @@ def locale_button(bot, update):
         text,
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup([[
-            InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en")
-        ]] + [[
+            InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
             InlineKeyboardButton("Indonesian 🇮🇩", callback_data="set_lang_id")
+        ]] + [[
+            InlineKeyboardButton("Russian 🇷🇺", callback_data="set_lang_ru")
         ]] + [[
             InlineKeyboardButton(f"⬅️ {tld(chat.id, 'btn_go_back')}",
                                  callback_data="bot_start")
