@@ -270,6 +270,31 @@ def reply_filter(bot: Bot, update: Update):
             break
 
 
+@run_async
+@user_admin
+def stop_all_filters(bot: Bot, update: Update):
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
+
+    if chat.type == "private":
+        pass
+    else:
+        owner = chat.get_member(user.id)
+        if owner.status != 'creator':
+            message.reply_text(tld(chat.id, "notes_must_be_creator"))
+            return
+
+    filters_list = sql.get_chat_triggers(chat.id)
+
+    x = 0
+    for filter in filters_list:
+        x += 1
+        sql.remove_filter(chat.id, filter)
+
+    message.reply_text(tld(chat.id, "cust_filters_cleanup_success").format(x))
+
+
 def __stats__():
     return "{} filters, across {} chats.".format(sql.num_filters(),
                                                  sql.num_chats())
@@ -283,6 +308,7 @@ __help__ = True
 
 FILTER_HANDLER = DisableAbleCommandHandler("filter", filters)
 STOP_HANDLER = DisableAbleCommandHandler("stop", stop_filter)
+STOPALL_HANDLER = DisableAbleCommandHandler("stopall", stop_all_filters)
 LIST_HANDLER = DisableAbleCommandHandler("filters",
                                          list_handlers,
                                          admin_ok=True)
@@ -290,5 +316,6 @@ CUST_FILTER_HANDLER = MessageHandler(CustomFilters.has_text, reply_filter)
 
 dispatcher.add_handler(FILTER_HANDLER)
 dispatcher.add_handler(STOP_HANDLER)
+dispatcher.add_handler(STOPALL_HANDLER)
 dispatcher.add_handler(LIST_HANDLER)
 dispatcher.add_handler(CUST_FILTER_HANDLER, HANDLER_GROUP)
