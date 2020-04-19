@@ -15,7 +15,7 @@ from haruka.modules.connection import connected
 def locale(bot, update, args):
     chat = update.effective_chat
     if len(args) > 0:
-        locale = args[0].lower()
+        locale = args[0]
         if locale in list_locales:
             if locale in ('en-US', 'id', 'ru'):
                 switch_to_locale(chat.id, locale)
