@@ -130,27 +130,27 @@ def mafiatext(bot: Bot, update: Update, args: List[str]):
         noreply = True
         data = tld(chat.id, "memes_no_message")
 
-    if not Path('mafia.jpg').is_file():
+    if not Path('images/mafia.jpg').is_file():
         LOGGER.warning(
-            "mafia.jpg not found! Mafia memes module is turned off!")
+            "images/mafia.jpg not found! Mafia memes module is turned off!")
         return
 
-    for mocked in glob.glob("mocked*"):
+    for mocked in glob.glob("images/mafiaed*"):
         os.remove(mocked)
     reply_text = spongemock.mock(data)
 
     randint = random.randint(1, 699)
-    magick = """convert mafia.jpg -font Impact -pointsize 50 -size 1280x720 -stroke white -strokewidth 1 -fill black -background none -gravity north caption:"{}" -flatten mafiaed{}.jpg""".format(
+    magick = """convert images/mafia.jpg -font Impact -pointsize 50 -size 1280x720 -stroke white -strokewidth 1 -fill black -background none -gravity north caption:"{}" -flatten images/mafiaed{}.jpg""".format(
         reply_text, randint)
     os.system(magick)
-    with open('mafiaed{}.jpg'.format(randint), 'rb') as mockedphoto:
+    with open('images/mafiaed{}.jpg'.format(randint), 'rb') as mockedphoto:
         if noreply:
             message.reply_photo(photo=mockedphoto,
                                 reply=message.reply_to_message)
         else:
             message.reply_to_message.reply_photo(
                 photo=mockedphoto, reply=message.reply_to_message)
-    os.remove('mafiaed{}.jpg'.format(randint))
+    os.remove('images/mafiaed{}.jpg'.format(randint))
 
 
 @run_async
@@ -168,25 +168,25 @@ def pidortext(bot: Bot, update: Update, args: List[str]):
         noreply = True
         data = tld(chat.id, "memes_no_message")
 
-    if not Path('4pda.jpg').is_file():
-        LOGGER.warning("4pda.jpg not found! Pidor memes module is turned off!")
+    if not Path('images/4pda.jpg').is_file():
+        LOGGER.warning("images/4pda.jpg not found! Pidor memes module is turned off!")
         return
-    for mocked in glob.glob("mocked*"):
+    for mocked in glob.glob("images/4pdaed*"):
         os.remove(mocked)
     reply_text = spongemock.mock(data)
 
     randint = random.randint(1, 699)
-    magick = """convert 4pda.jpg -font Impact -pointsize 50 -size 400x300 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten 4pdaed{}.jpg""".format(
+    magick = """convert images/4pda.jpg -font Impact -pointsize 50 -size 400x300 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten images/4pdaed{}.jpg""".format(
         reply_text, randint)
     os.system(magick)
-    with open('4pdaed{}.jpg'.format(randint), 'rb') as mockedphoto:
+    with open('images/4pdaed{}.jpg'.format(randint), 'rb') as mockedphoto:
         if noreply:
             message.reply_photo(photo=mockedphoto,
                                 reply=message.reply_to_message)
         else:
             message.reply_to_message.reply_photo(
                 photo=mockedphoto, reply=message.reply_to_message)
-    os.remove('4pdaed{}.jpg'.format(randint))
+    os.remove('images/4pdaed{}.jpg'.format(randint))
 
 
 @run_async
@@ -204,25 +204,25 @@ def kimtext(bot: Bot, update: Update, args: List[str]):
         noreply = True
         data = tld(chat.id, "memes_no_message")
 
-    if not Path('kim.jpg').is_file():
-        LOGGER.warning("kim.jpg not found! Kim memes module is turned off!")
+    if not Path('images/kim.jpg').is_file():
+        LOGGER.warning("images/kim.jpg not found! Kim memes module is turned off!")
         return
-    for mocked in glob.glob("mocked*"):
+    for mocked in glob.glob("kimed*"):
         os.remove(mocked)
     reply_text = spongemock.mock(data)
 
     randint = random.randint(1, 699)
-    magick = """convert kim.jpg -font Impact -pointsize 50 -size 480x360 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten kimed{}.jpg""".format(
+    magick = """convert images/kim.jpg -font Impact -pointsize 50 -size 480x360 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten images/kimed{}.jpg""".format(
         reply_text, randint)
     os.system(magick)
-    with open('kimed{}.jpg'.format(randint), 'rb') as mockedphoto:
+    with open('images/kimed{}.jpg'.format(randint), 'rb') as mockedphoto:
         if noreply:
             message.reply_photo(photo=mockedphoto,
                                 reply=message.reply_to_message)
         else:
             message.reply_to_message.reply_photo(
                 photo=mockedphoto, reply=message.reply_to_message)
-    os.remove('kimed{}.jpg'.format(randint))
+    os.remove('images/kimed{}.jpg'.format(randint))
 
 
 @run_async
@@ -240,26 +240,26 @@ def hitlertext(bot: Bot, update: Update, args: List[str]):
         noreply = True
         data = tld(chat.id, "memes_no_message")
 
-    if not Path('hitler.jpg').is_file():
+    if not Path('images/hitler.jpg').is_file():
         LOGGER.warning(
-            "hitler.jpg not found! Hitler memes module is turned off!")
+            "images/hitler.jpg not found! Hitler memes module is turned off!")
         return
-    for mocked in glob.glob("hitlered*"):
+    for mocked in glob.glob("images/hitlered*"):
         os.remove(mocked)
     reply_text = spongemock.mock(data)
 
     randint = random.randint(1, 699)
-    magick = """convert hitler.jpg -font Impact -pointsize 50 -size 615x409 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten hitlered{}.jpg""".format(
+    magick = """convert images/hitler.jpg -font Impact -pointsize 50 -size 615x409 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten images/hitlered{}.jpg""".format(
         reply_text, randint)
     os.system(magick)
-    with open('hitlered{}.jpg'.format(randint), 'rb') as mockedphoto:
+    with open('images/hitlered{}.jpg'.format(randint), 'rb') as mockedphoto:
         if noreply:
             message.reply_photo(photo=mockedphoto,
                                 reply=message.reply_to_message)
         else:
             message.reply_to_message.reply_photo(
                 photo=mockedphoto, reply=message.reply_to_message)
-    os.remove('hitlered{}.jpg'.format(randint))
+    os.remove('images/hitlered{}.jpg'.format(randint))
 
 
 @run_async
@@ -277,26 +277,26 @@ def spongemocktext(bot: Bot, update: Update, args: List[str]):
         noreply = True
         data = tld(chat.id, "memes_no_message")
 
-    if not Path('bob.jpg').is_file():
+    if not Path('images/bob.jpg').is_file():
         LOGGER.warning(
-            "bob.jpg not found! Spongemock memes module is turned off!")
+            "images/bob.jpg not found! Spongemock memes module is turned off!")
         return
-    for mocked in glob.glob("mocked*"):
+    for mocked in glob.glob("images/mocked*"):
         os.remove(mocked)
     reply_text = spongemock.mock(data)
 
     randint = random.randint(1, 699)
-    magick = """convert bob.jpg -font Impact -pointsize 30 -size 512x300 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten mocked{}.jpg""".format(
+    magick = """convert images/bob.jpg -font Impact -pointsize 30 -size 512x300 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten images/mocked{}.jpg""".format(
         reply_text, randint)
     os.system(magick)
-    with open('mocked{}.jpg'.format(randint), 'rb') as mockedphoto:
+    with open('images/mocked{}.jpg'.format(randint), 'rb') as mockedphoto:
         if noreply:
             message.reply_photo(photo=mockedphoto,
                                 reply=message.reply_to_message)
         else:
             message.reply_to_message.reply_photo(
                 photo=mockedphoto, reply=message.reply_to_message)
-    os.remove('mocked{}.jpg'.format(randint))
+    os.remove('images/mocked{}.jpg'.format(randint))
 
 
 @run_async
