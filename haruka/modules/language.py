@@ -1,4 +1,4 @@
-from haruka.modules.sql.translation import switch_to_locale, prev_locale
+from haruka.modules.sql.locales_sql import switch_to_locale, prev_locale
 from haruka.modules.translations.strings import tld
 from telegram.ext import CommandHandler
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
@@ -17,7 +17,7 @@ def locale(bot, update, args):
     if len(args) > 0:
         locale = args[0].lower()
         if locale in list_locales:
-            if locale in ('en', 'id', 'ru'):
+            if locale in ('en-US', 'id', 'ru'):
                 switch_to_locale(chat.id, locale)
                 if chat.type == "private":
                     update.message.reply_text(
@@ -42,7 +42,7 @@ def locale(bot, update, args):
                                       parse_mode=ParseMode.MARKDOWN)
         else:
             update.message.reply_text(tld(
-                chat.id, "language_current_locale").format("English"),
+                chat.id, "language_current_locale").format("English (US)"),
                                       parse_mode=ParseMode.MARKDOWN)
 
 
@@ -51,7 +51,7 @@ def locale_button(bot, update):
     chat = update.effective_chat
     user = update.effective_user
     query = update.callback_query
-    lang_match = re.findall(r"en|id|ru", query.data)
+    lang_match = re.findall(r"en-US|id|ru", query.data)
     if lang_match:
         if lang_match[0]:
             switch_to_locale(chat.id, lang_match[0])
@@ -65,7 +65,7 @@ def locale_button(bot, update):
         locale = LANGUAGE.locale_name
         curr_lang = list_locales[locale]
     except Exception:
-        curr_lang = "English"
+        curr_lang = "English (US)"
 
     text = tld(chat.id, "language_select_language")
     text += tld(chat.id, "language_user_language").format(curr_lang)
@@ -78,7 +78,7 @@ def locale_button(bot, update):
             chatlng = list_locales[chatlng]
             text += tld(chat.id, "language_chat_language").format(chatlng)
         except Exception:
-            chatlng = "English"
+            chatlng = "English (US)"
 
     text += tld(chat.id, "language_sel_user_lang")
 
@@ -86,7 +86,7 @@ def locale_button(bot, update):
         text,
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup([[
-            InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en"),
+            InlineKeyboardButton("English (US) 🇺🇸", callback_data="set_lang_en-US"),
             InlineKeyboardButton("Indonesian 🇮🇩", callback_data="set_lang_id")
         ]] + [[
             InlineKeyboardButton("Russian 🇷🇺", callback_data="set_lang_ru")

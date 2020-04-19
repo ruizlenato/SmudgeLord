@@ -3,9 +3,9 @@ import yaml
 from codecs import encode, decode
 
 from haruka import LOGGER
-from haruka.modules.sql.translation import prev_locale
+from haruka.modules.sql.locales_sql import prev_locale
 
-LANGUAGES = ['en', 'id', 'ru']
+LANGUAGES = ['en-US', 'id', 'ru']
 
 strings = {}
 
@@ -20,9 +20,9 @@ def tld(chat_id, t, show_none=True):
 
     if LANGUAGE:
         LOCALE = LANGUAGE.locale_name
-        if LOCALE in ('en') and t in strings['en']:
+        if LOCALE in ('en-US') and t in strings['en-US']:
             result = decode(
-                encode(strings['en'][t], 'latin-1', 'backslashreplace'),
+                encode(strings['en-US'][t], 'latin-1', 'backslashreplace'),
                 'unicode-escape')
             return result
         elif LOCALE in ('id') and t in strings['id']:
@@ -36,9 +36,9 @@ def tld(chat_id, t, show_none=True):
                 'unicode-escape')
             return result
 
-    if t in strings['en']:
+    if t in strings['en-US']:
         result = decode(
-            encode(strings['en'][t], 'latin-1', 'backslashreplace'),
+            encode(strings['en-US'][t], 'latin-1', 'backslashreplace'),
             'unicode-escape')
         return result
 
@@ -52,15 +52,15 @@ def tld_list(chat_id, t):
 
     if LANGUAGE:
         LOCALE = LANGUAGE.locale_name
-        if LOCALE in ('en') and t in strings['en']:
-            return strings['en'][t]
+        if LOCALE in ('en-US') and t in strings['en-US']:
+            return strings['en-US'][t]
         elif LOCALE in ('id') and t in strings['id']:
             return strings['id'][t]
         elif LOCALE in ('ru') and t in strings['ru']:
             return strings['ru'][t]
 
-    if t in strings['en']:
-        return strings['en'][t]
+    if t in strings['en-US']:
+        return strings['en-US'][t]
 
     LOGGER.warning(f"#NOSTR No string found for {t}.")
     return f"No string found for {t}.\nReport it in @HarukaAyaGroup."

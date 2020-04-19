@@ -4,7 +4,7 @@ from haruka.modules.sql import SESSION, BASE
 
 
 class Locales(BASE):
-    __tablename__ = "Locales"
+    __tablename__ = "locales"
     chat_id = Column(String(14), primary_key=True)
     locale_name = Column(UnicodeText)
 
