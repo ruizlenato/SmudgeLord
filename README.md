@@ -16,6 +16,11 @@ You can also join our support group [here!](https://t.me/HarukaAyaBot)
 
 Help us bring more languages to the bot by contributing to the project in [Crowdin](https://crowdin.com/project/haruka)!
 
+## Contributing to the project
+* You must sign off on your commit.
+* You must sign the commit via GPG Key.
+* Make sure your PR passes all CI.
+
 ## Thanks to
 * RealAkito - Current Haruka Aya Owner
 * zakaryan2004 - For helping out a lot with this project.
