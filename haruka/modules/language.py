@@ -1,5 +1,5 @@
 from haruka.modules.sql.locales_sql import switch_to_locale, prev_locale
-from haruka.modules.translations.strings import tld
+from haruka.modules.translations.strings import tld, LANGUAGES
 from telegram.ext import CommandHandler
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from haruka import dispatcher
@@ -14,37 +14,47 @@ from haruka.modules.connection import connected
 @user_admin
 def locale(bot, update, args):
     chat = update.effective_chat
+    message = update.effective_message
     if len(args) > 0:
         locale = args[0]
         if locale in list_locales:
-            if locale in ('en-US', 'en-GB', 'id', 'ru'):
+            if locale in LANGUAGES:
                 switch_to_locale(chat.id, locale)
                 if chat.type == "private":
-                    update.message.reply_text(
+                    message.reply_text(
                         tld(chat.id, 'language_switch_success_pm').format(
                             list_locales[locale]))
                 else:
-                    update.message.reply_text(
+                    message.reply_text(
                         tld(chat.id, 'language_switch_success').format(
                             chat.title, list_locales[locale]))
             else:
-                update.message.reply_text(
-                    tld(chat.id,
-                        "language_not_supported").format(list_locales[locale]))
+                text = tld(chat.id, "language_not_supported").format(
+                    list_locales[locale])
+                text += "\n\n*Currently available languages:*\n"
+                for lang in LANGUAGES:
+                    locale = list_locales[lang]
+                    text += "\n *{}* - `{}`".format(locale, lang)
+                message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
         else:
-            update.message.reply_text(tld(chat.id, "language_code_not_valid"))
+            text = tld(chat.id, "language_code_not_valid")
+            text += "\n\n*Currently available languages:*\n"
+            for lang in LANGUAGES:
+                locale = list_locales[lang]
+                text += "\n *{}* - `{}`".format(locale, lang)
+            message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
     else:
         LANGUAGE = prev_locale(chat.id)
         if LANGUAGE:
             locale = LANGUAGE.locale_name
             native_lang = list_locales[locale]
-            update.message.reply_text(tld(
+            message.reply_text(tld(
                 chat.id, "language_current_locale").format(native_lang),
-                                      parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
         else:
-            update.message.reply_text(tld(
+            message.reply_text(tld(
                 chat.id, "language_current_locale").format("English (US)"),
-                                      parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
 
 
 @user_admin
