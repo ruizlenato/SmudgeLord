@@ -142,11 +142,12 @@ def temp_ban(bot: Bot, update: Update, args: List[str]) -> str:
 
     try:
         chat.kick_member(user_id, until_date=bantime)
-        message.reply_text(
-            tld(chat.id, "bans_tbanned_success").format(
-                mention_html(user.id, user.first_name),
-                mention_html(member.user.id, member.user.first_name),
-                html.escape(chat.title), time_val))
+        reply = tld(chat.id, "bans_tbanned_success").format(
+            mention_html(user.id, user.first_name),
+            mention_html(member.user.id, member.user.first_name),
+            html.escape(chat.title), time_val)
+        reply += tld(chat.id, "bans_logger_reason").format(reason)
+        message.reply_text(reply, parse_mode=ParseMode.HTML)
         return log
 
     except BadRequest as excp:
@@ -203,11 +204,14 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
 
     res = chat.unban_member(user_id)  # unban on current user = kick
     if res:
-        message.reply_text(tld(chat.id, "bans_kick_success").format(
+        reply = tld(chat.id, "bans_kick_success").format(
             mention_html(user.id, user.first_name),
             mention_html(member.user.id, member.user.first_name),
-            html.escape(chat.title)),
-                           parse_mode=ParseMode.HTML)
+            html.escape(chat.title))
+        reply += tld(chat.id, "bans_logger_reason").format(reason)
+
+        message.reply_text(reply, parse_mode=ParseMode.HTML)
+
         log = tld(chat.id, "bans_kick_logger").format(
             html.escape(chat.title), mention_html(user.id, user.first_name),
             mention_html(member.user.id, member.user.first_name),

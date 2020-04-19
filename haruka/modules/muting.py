@@ -207,7 +207,7 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
           "\n<b>Time:</b> {}".format(html.escape(chat.title), mention_html(user.id, user.first_name),
                                      mention_html(member.user.id, member.user.first_name), time_val)
     if reason:
-        log += "\n<b>Reason:</b> {}".format(reason)
+        log += tld(chat.id, "bans_logger_reason").format(reason)
 
     try:
         if member.can_send_messages is None or member.can_send_messages:
@@ -426,7 +426,7 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
           "\n<b>• Time:</b> {}".format(html.escape(chat.title), mention_html(user.id, user.first_name),
                                        mention_html(member.user.id, member.user.first_name), user_id, time_val)
     if reason:
-        log += "\n<b>• Reason:</b> {}".format(reason)
+        log += tld(chat.id, "bans_logger_reason").format(reason)
 
     try:
         if member.can_send_messages is None or member.can_send_messages:

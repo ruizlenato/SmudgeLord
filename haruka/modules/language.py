@@ -21,7 +21,8 @@ def locale(bot, update, args):
                 switch_to_locale(chat.id, locale)
                 if chat.type == "private":
                     update.message.reply_text(
-                        tld(chat.id, 'language_switch_success_pm').format(list_locales[locale]))
+                        tld(chat.id, 'language_switch_success_pm').format(
+                            list_locales[locale]))
                 else:
                     update.message.reply_text(
                         tld(chat.id, 'language_switch_success').format(
@@ -55,8 +56,8 @@ def locale_button(bot, update):
     if lang_match:
         if lang_match[0]:
             switch_to_locale(chat.id, lang_match[0])
-            query.answer(text=tld(chat.id, 'language_switch_success_pm').format(
-                list_locales[lang_match[0]]))
+            query.answer(text=tld(chat.id, 'language_switch_success_pm').
+                         format(list_locales[lang_match[0]]))
         else:
             query.answer(text="Error!", show_alert=True)
 
@@ -86,7 +87,8 @@ def locale_button(bot, update):
         text,
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup([[
-            InlineKeyboardButton("English (US) 🇺🇸", callback_data="set_lang_en-US"),
+            InlineKeyboardButton("English (US) 🇺🇸",
+                                 callback_data="set_lang_en-US"),
             InlineKeyboardButton("Indonesian 🇮🇩", callback_data="set_lang_id")
         ]] + [[
             InlineKeyboardButton("Russian 🇷🇺", callback_data="set_lang_ru")
