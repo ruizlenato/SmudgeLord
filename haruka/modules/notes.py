@@ -289,6 +289,31 @@ def list_notes(bot: Bot, update: Update):
                                             parse_mode=ParseMode.MARKDOWN)
 
 
+@run_async
+@user_admin
+def remove_all_notes(bot: Bot, update: Update):
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
+
+    if chat.type == "private":
+        pass
+    else:
+        owner = chat.get_member(user.id)
+        if owner.status != 'creator':
+            message.reply_text(tld(chat.id, "notes_must_be_creator"))
+            return
+
+    note_list = sql.get_all_chat_notes(chat.id)
+    x = 0
+    for notename in note_list:
+        x += 1
+        note = notename.name.lower()
+        sql.rm_note(chat.id, note)
+
+    message.reply_text(tld(chat.id, "notes_cleanup_success").format(x))
+
+
 def __stats__():
     return "{} notes, accross {} chats.".format(sql.num_notes(),
                                                 sql.num_chats())
@@ -304,6 +329,7 @@ GET_HANDLER = CommandHandler("get", cmd_get, pass_args=True)
 HASH_GET_HANDLER = RegexHandler(r"^#[^\s]+", hash_get)
 
 SAVE_HANDLER = CommandHandler("save", save)
+REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall", remove_all_notes)
 DELETE_HANDLER = CommandHandler("clear", clear, pass_args=True)
 
 LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"],
@@ -315,3 +341,4 @@ dispatcher.add_handler(SAVE_HANDLER)
 dispatcher.add_handler(LIST_HANDLER)
 dispatcher.add_handler(DELETE_HANDLER)
 dispatcher.add_handler(HASH_GET_HANDLER)
+dispatcher.add_handler(REMOVE_ALL_NOTES_HANDLER)

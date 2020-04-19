@@ -772,6 +772,8 @@ note_in_local: "*Local Notes:*\n"
 note_none_in_chat: "No notes in *{}*!"
 note_get: "\nYou can retrieve these notes by using `/get notename`, or `#notename`.\nThe `#` with notename up there is not included in the notename itself, we just put `#` in it for easier copypaste."
 note_fail_to_import: "These files/photos failed to import due to originating from another bot. This is a telegram API restriction, and can't be avoided. Sorry for the inconvenience!"
+notes_must_be_creator: "You must be this chat creator."
+notes_cleanup_success: "{} notes from this chat have been removed."
 notes_help: |
   Save data for future users with notes!
   Notes are great to save random tidbits of information; a phone number, a nice gif, a funny picture - anything!
@@ -783,6 +785,7 @@ notes_help: |
    - /clear <name>: delete the note called "name"
    - /notes: List all notes in the current chat
    - /saved: same as /notes
+   - /clearall: Clean all notes in your group, only use this if you know what you're doing
 
   An example of how to save a note would be via:
   /save data This is some data!
