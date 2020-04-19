@@ -1,3 +1,4 @@
+---
 #Main
 send-help: |
   Hey there! My name is *{}*. I'm a modular group management bot with a few fun extras! Have a look at the following for an idea of some of the things I can help you with. \n
@@ -168,24 +169,6 @@ antispam_help: |
   Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
   *Admin only:*
   - /antispam <on/off/yes/no>: Change antispam security settings in the group, or return your current settings(when no arguments).
-#Backups
-modname_backups: Backups
-backups_file_corrupted: Try downloading and uploading the file yourself again, this one seems to be corrupted!
-backups_file_contains_multiple_chats: There is more than one group in this file and the chat.id is not the same! How am I supposed to import it?
-backups_from_another_chat: Backup comes from another chat, I can't return another chat to {}
-backups_err_unknown: There's a problem while importing the data! Please ask in @HarukaAyaGroup about why this happened.
-backups_from_another_bot: Restoring a backup from another bot is not suggested and might cause problems. Documents, photos, videos, audios, records might not be restored as they should have been. However, You can still request a feature regarding this in @HarukaAyaGroup!
-backups_restore_err: An error occurred while recovering the data. The process failed. If you experience a problem with this, please ask in @HarukaAyaGroup.
-backups_fully_restored: Backup fully restored{}.
-backups_err_timelimit: You can only backup once a day!\nYou can backup again in about `{}`
-backups_success: "Backed up successfully!\nChat: `{}`\nChat ID: `{}`\nOn: `{}`"
-backups_help: |
-  *Only for chat administrator:*
-  - /import: reply to the backup file done by Haruka Aya or some other bots like Group Butler or Emilia to import as much as possible, making transfers very easy! \
-  Note that files / photos cannot be imported due to telegram restrictions.\n
-  - /export: export group data. Exported data will include rules, notes (documents, images, music, video, audio, voice, text, text buttons), \
-  blacklists, disabled commands and locks. More will come gradually!\n
-  This module is still in beta! Report bugs in @HarukaAyaGroup !
 #Bans
 modname_bans: Bans
 bans_err_usr_not_found: I can't seem to find this user.

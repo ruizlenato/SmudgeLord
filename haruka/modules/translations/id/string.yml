@@ -167,24 +167,6 @@ antispam_help: |
   Antispam digunakan oleh pemilik bot untuk melarang spammer di semua grup. Ini membantu melindungi Anda dan grup Anda dengan menghapus pembanjir spam secepat mungkin. Ini diaktifkan secara default, tetapi Anda dapat mengubahnya dengan menggunakan perintah.\n
   *Hanya admin:*
   - /antispam <on/off/yes/no>: Ubah pengaturan keamanan antispam di grup, atau kembalikan pengaturan Anda saat ini (saat tidak ada argumen).
-#Backups
-modname_backups: Cadangan
-backups_file_corrupted: Coba unduh dan unggah kembali filenya lagi, yang ini sepertinya rusak!
-backups_file_contains_multiple_chats: Ada lebih dari satu grup di file ini dan chat.id tidak sama! Bagaimana saya mengimpornya?
-backups_from_another_chat: Cadangan berasal dari obrolan lain, saya tidak dapat mengembalikan obrolan lain ke {}
-backups_err_unknown: Ada masalah saat mengimpor data! Silakan bertanya di @HarukaAyaGroup tentang mengapa ini terjadi.
-backups_from_another_bot: Mengembalikan cadangan dari bot lain tidak disarankan dan dapat menyebabkan masalah. Dokumen, foto, video, audio, rekaman mungkin tidak dikembalikan seperti semestinya. Namun, Anda masih dapat meminta fitur terkait ini di @HarukaAyaGroup!
-backups_restore_err: Terjadi kesalahan saat memulihkan data. Proses mengalami kegagalan. Jika Anda mengalami masalah dengan ini, silakan tanyakan di @HarukaAyaGroup.
-backups_fully_restored: Cadangan sudah sepenuhnya dipulihkan {}.
-backups_err_timelimit: Anda hanya dapat mencadangkan sekali sehari!\nAnda dapat mencadangkan lagi setelah `{}` hari
-backups_success: "Berhasil dicadangkan!\nObrolan: `{}`\nID Obrolan: `{}`\nDi: `{}`"
-backups_help: |
-  *Hanya untuk obrolan administrator:*
-  - /import: balas ke file cadangan yang dilakukan oleh Haruka Aya atau beberapa bot lain seperti Group Butler atau Emilia untuk mengimpor sebanyak mungkin, membuat transfer menjadi sangat mudah! \
-  Perhatikan bahwa file / foto tidak dapat diimpor karena pembatasan telegram.\n
-  - /export: data grup ekspor. Data yang diekspor akan mencakup aturan, catatan (dokumen, gambar, musik, video, audio, suara, teks, tombol teks), \
-  daftar hitam, perintah dan kunci yang dinonaktifkan. Akan datang lebih banyak fitur tetapi secara bertahap!\n
-  Modul ini masih dalam versi beta! Laporkan bug di @HarukaAyaGroup!
 #Bans
 modname_bans: Pencekalan
 bans_err_usr_not_found: Sepertinya saya tidak dapat menemukan pengguna ini.
