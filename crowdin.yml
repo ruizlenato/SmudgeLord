@@ -1,0 +1,3 @@
+files:
+  - source:  haruka/modules/translations/en-US/string.yml
+    translation: /**/haruka/modules/translations/%locale%/string.yml
