@@ -11,7 +11,7 @@ strings = {}
 
 for i in LANGUAGES:
     strings[i] = yaml.full_load(
-        open(os.path.dirname(__file__) + f"/{i}/string.yml", "r"))
+        open(os.path.dirname(__file__) + f"/../locales/{i}.yml", "r"))
 
 
 def tld(chat_id, t, show_none=True):
