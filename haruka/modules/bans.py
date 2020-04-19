@@ -61,6 +61,7 @@ def ban(bot: Bot, update: Update, args: List[str]) -> str:
 
     if reason:
         log += tld(chat.id, "bans_logger_reason").format(reason)
+        reply += tld(chat.id, "bans_logger_reason").format(reason)
 
     try:
         chat.kick_member(user_id)
