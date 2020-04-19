@@ -151,11 +151,6 @@ if is_module_loaded(FILENAME):
     def __migrate__(old_chat_id, new_chat_id):
         sql.migrate_chat(old_chat_id, new_chat_id)
 
-    def __import_data__(chat_id, data):
-        disabled = data.get('disabled', {})
-        for disable_cmd in disabled:
-            sql.disable_command(chat_id, disable_cmd)
-
     __help__ = True
 
     DISABLE_HANDLER = CommandHandler("disable",

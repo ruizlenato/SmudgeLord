@@ -438,11 +438,6 @@ def __stats__():
                                                       sql.num_warn_filters(), sql.num_warn_filter_chats())
 
 
-def __import_data__(chat_id, data):
-    for user_id, count in data.get('warns', {}).items():
-        sql.warn_user(user_id, chat_id)
-
-
 def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 

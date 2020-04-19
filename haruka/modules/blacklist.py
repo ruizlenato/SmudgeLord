@@ -192,13 +192,6 @@ def __stats__():
         sql.num_blacklist_filters(), sql.num_blacklist_filter_chats())
 
 
-def __import_data__(chat_id, data):
-    # set chat blacklist
-    blacklist = data.get('blacklist', {})
-    for trigger in blacklist:
-        sql.add_to_blacklist(chat_id, trigger)
-
-
 __help__ = True
 
 #TODO: Add blacklist alternative modes: warn, ban, kick, or mute.
