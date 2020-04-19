@@ -17,20 +17,18 @@ help_pm_only: Contact me in PM to get the list of possible commands.
 btn_help: '❔ Help'
 btn_go_back: '⬅️ Back'
 main_start_group: Hey there! I'm alive :3
-
 main_start_pm: |
   Hey there! My name is Haruka Aya - I'm here to help you manage your groups!
-  Click Help button to find out more about how to use me to my full potential.
+  Click the Help button to find out more about how to use me to my full potential.
 
   Join [the bot support group](https://t.me/HarukaAyaGroup) ( @HarukaAyaGroup ) if you need any bot support or help.
 
   Follow [Haruka Aya](https://t.me/HarukaAya) ( @HarukaAya ) if you want to keep up with the bot news, bot updates and bot downtime!
 
   Made with love by @RealAkito\n\nWant to add me to your group? [Click here!](t.me/HarukaAyaBot?startgroup=true)
-
 main_start_btn_support: '📢 Support Group'
 main_start_btn_ctrlpnl: '🛠 Control panel'
-main_start_btn_lang: '🇺🇸 Language'
+main_start_btn_lang: '🇬🇧 Language'
 #Common
 common_err_no_admin: You aren't an admin!
 common_err_no_user: You don't seem to be referring to a user.
@@ -67,7 +65,7 @@ admin_help: |
   - /pin: Silently pins the message replied to. Add 'loud', 'notify' or 'violent' to send a notification to users.
   - /unpin: Unpins the currently pinned message
   - /invitelink: Gets the invite link of the group
-  - /promote: Promotes a user Reply to the user or use their username.
+  - /promote: Promotes a user. Reply to the user or use their username.
   - /demote: Demotes a user. Reply to the user or use their username.
 #AFK
 modname_afk: AFK
@@ -96,7 +94,7 @@ cust_releases: "*{} latest release(s)*\n"
 err_not_found: Couldn't find any results matching your query.
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
-err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
+err_json: Tell the ROM maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
 btn_dl: Click here to Download
 cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
 evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click the button down below to download the GSIs!
@@ -116,10 +114,10 @@ android_help: |
 modname_antiflood: Antiflood
 flood_mute: I would like to leave the flooding to natural disasters. But you, you were just a disappointment. *Muted*!
 flood_err_no_perm: I can't mute people here, give me permissions first! Until then, I'll disable antiflood.
-flood_logger_success: '<b>{}:</b>\n#MUTED\n<b>User:</b> {}\nFlooded the group.'
-flood_logger_fail: '<b>{}:</b>\n#INFO\nNo mute permissions! Antiflood disabled'
-flood_logger_set_off: '<b>{}:</b>\n#SETFLOOD\n<b>Admin:</b> {}\nDisabled antiflood.'
-flood_logger_set_on: '<b>{}:</b>\n#SETFLOOD\n<b>Admin:</b> {}\nSet antiflood to <code>{}</code>.'
+flood_logger_success: "<b>{}:</b>\n#MUTED\n<b>User:</b> {}\nFlooded the group."
+flood_logger_fail: "<b>{}:</b>\n#INFO\nNo mute permissions! Antiflood disabled"
+flood_logger_set_off: "<b>{}:</b>\n#SETFLOOD\n<b>Admin:</b> {}\nDisabled antiflood."
+flood_logger_set_on: "<b>{}:</b>\n#SETFLOOD\n<b>Admin:</b> {}\nSet antiflood to <code>{}</code>."
 flood_set: Antiflood has been updated and set to {}
 flood_set_off: Antiflood has been disabled.
 flood_status_off: I'm not currently enforcing flood control!
@@ -183,18 +181,18 @@ bans_banned_success: Admin {} has successfully banned {} in <b>{}</b>!
 bans_logger_reason: \n<b>Reason:</b> {}
 bans_err_unknown: "Unknown error: {} failed."
 bans_err_tban_no_arg: You haven't specified a time to ban this user for!
-bans_tban_logger: '<b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)\n<b>Time:</b> {}'
+bans_tban_logger: "<b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)\n<b>Time:</b> {}"
 bans_tbanned_success: Admin {} has successfully banned {} in <b>{}</b> for {}!
 bans_kick_is_bot: I'm not kicking myself!
 bans_kick_is_admin: Why would I kick an admin? That sounds like a pretty dumb idea.
 bans_kick_success: Admin {} has successfully kicked {} in <b>{}</b>!
-bans_kick_logger: '<b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)'
+bans_kick_logger: "<b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)"
 bans_kickme_success: No problem.
 bans_kickme_failed:
 bans_unban_user_in_chat: Why are you trying to unban someone that's already in the chat?
 bans_unban_success: Yep, this user can join!
-bans_unban_logger: '<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)'
-bans_sban_logger: '<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)'
+bans_unban_logger: "<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)"
+bans_sban_logger: "<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)"
 bans_help: |
   Some people need to be publicly banned; spammers, annoyances, or just trolls.\n
   This module allows you to do that easily, by exposing some common actions, so everyone will see!\n
@@ -330,7 +328,7 @@ feds_fedadmin_only: Only federation admins can do this!
 feds_delete_confirm: Are you sure you want to delete your federation? This action cannot be cancelled, you will lose your entire ban list, and <code>{}</code> federation will be permanently lost!
 feds_group_not_in_fed: This group is not in any federation!
 feds_group_part_of_fed: "This chat is part of the following federation:"
-feds_group_joined_fed: Uh, Are you gonna join two federations at one chat?
+feds_group_joined_fed: Uh, are you gonna join two federations in one chat?
 feds_fedid_invalid: Please enter a valid Federation ID.
 feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @HarukaAyaGroup for help.
 feds_join_success: Chat joined to federation!
@@ -356,12 +354,12 @@ feds_admins: |
   <b>Admins in federation '{}':<b>
 feds_help: |
   Ah, group management. Everything is fun, until the spammer starts entering your group, and you have to block it. Then you need to start banning more, and more, and it hurts.
-  But then you have many groups, and you don't want this spammer to be in one of your groups - how can you deal with it? Do you have to manually block it, in all your groups?
+  But then you have many groups, and you don't want this spammer to be in one of your groups - how can you deal with it? Do you have to manually block it in all your groups?
 
-  No longer! With Federation, you can make a ban in one chat overlap with all other chats.
+  Not anymore! With Federation, you can make a ban in one chat overlap with all other chats.
   You can even designate admin federations, so your trusted admin can ban all the chats you want to protect.
 
-  Still the experimental stage, creating a Federation can only be done by my maker
+  Still in the experimental stage, creating a Federation can only be done by my maker.
 
   Command:
   - /newfed <fedname>: create a new Federation with the name given. Users are only allowed to have one Federation. This method can also be used to rename the Federation. (max. 64 characters)
@@ -377,7 +375,7 @@ feds_help: |
   - /frules: See Federation regulations.
   - /chatfed: See the Federation in the current chat.
   - /fedadmins: Show Federation admin.
-  - /fbanlist: Displays all users who are victimized at the Federation at this time.
+  - /fbanlist: Displays all users who are victimised by the Federation at this time.
   - /fedchats: Get all the chats that are connected in the Federation.
   - /importfbans: Reply to the Federation backup message file to import the banned list to the Federation now.
 #TODO: To be continued
@@ -431,7 +429,7 @@ locks_list: |
    - previews = `{}`
    - all = `{}`
 locks_help: |
-  Do stickers annoy you? or you want to avoid people sharing links? or pictures? You're in the right place!\n
+  Do stickers annoy you? Or you want to avoid people sharing links? Or pictures? You're in the right place!\n
   The locks module allows you to lock away some common items in the telegram world; the bot will automatically delete them!\n
   Available commands are:
   - /lock <item(s)>: lock the usage of "item". Now, only admins will be able to use this type!
