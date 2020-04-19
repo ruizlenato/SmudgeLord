@@ -165,6 +165,7 @@ antispam_userinfo_gbanned: "Globally banned: <b>{}</b>"
 antispam_userinfo_gban_reason: "\nReason: {}"
 antispam_chatsettings_gban: "This chat is enforcing *gbans*: `{}`."
 anitspam_appeal: \n<b>Appeal at:</b> @HarukaAyaGroup
+antispam_spamwatch_banned: "<b>This user is detected as a spambot by SpamWatch and has been removed!</b>\n\n<b>Reason</b>: {}"
 antispam_help: |
   Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
   *Admin only:*

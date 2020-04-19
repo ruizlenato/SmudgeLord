@@ -1,15 +1,15 @@
 import html
 import time
 from io import BytesIO
-from typing import List, Optional
+from typing import List
 
-from telegram import Message, Update, Bot, User, Chat, ParseMode
+from telegram import Update, Bot, ParseMode
 from telegram.error import BadRequest, TelegramError
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import haruka.modules.sql.antispam_sql as sql
-from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, MESSAGE_DUMP, STRICT_ANTISPAM  #, sw
+from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, MESSAGE_DUMP, STRICT_ANTISPAM, sw
 from haruka.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from haruka.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from haruka.modules.helper_funcs.filters import CustomFilters
@@ -44,9 +44,9 @@ UNGBAN_ERRORS = {
 
 @run_async
 def gban(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
-    banner = update.effective_user  # type: Optional[User]
+    message = update.effective_message
+    chat = update.effective_chat
+    banner = update.effective_user
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
@@ -166,8 +166,8 @@ def gban(bot: Bot, update: Update, args: List[str]):
 
 @run_async
 def ungban(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message
+    chat = update.effective_chat
 
     user_id = extract_user(message, args)
     if not user_id:
@@ -183,7 +183,7 @@ def ungban(bot: Bot, update: Update, args: List[str]):
         message.reply_text(tld(chat.id, "antispam_user_not_gbanned"))
         return
 
-    banner = update.effective_user  # type: Optional[User]
+    banner = update.effective_user
 
     message.reply_text("I'll give {} a second chance, globally.".format(
         user_chat.first_name))
@@ -255,7 +255,7 @@ def gbanlist(bot: Bot, update: Update):
 
 @run_async
 def ungban_quicc(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message  # type: Optional[Message]
+    message = update.effective_message
     try:
         user_id = int(args[0])
     except Exception:
@@ -266,27 +266,33 @@ def ungban_quicc(bot: Bot, update: Update, args: List[str]):
 
 
 def check_and_ban(update, user_id, should_message=True):
-    chat = update.effective_chat  # type: Optional[Chat]
-    #sw_ban = sw.get_ban(int(user_id))
-    #if sw_ban:
-    #    update.effective_chat.kick_member(user_id)
-    #    if should_message:
-    #        update.effective_message.reply_markdown("**This user is detected as spam bot by SpamWatch and have been removed!**\n\nPlease visit @SpamWatchSupport to appeal!")
-    #        return
-    #    else:
-    #        return
+    chat = update.effective_chat
+    message = update.effective_message
+    if sw != None:
+        sw_ban = sw.get_ban(user_id)
+        if sw_ban:
+            spamwatch_reason = sw_ban.reason
+            chat.kick_member(user_id)
+            if should_message:
+                message.reply_text(
+                    tld(chat.id,
+                        "antispam_spamwatch_banned").format(spamwatch_reason),
+                    parse_mode=ParseMode.HTML)
+                return
+            else:
+                return
 
     if sql.is_user_gbanned(user_id):
-        update.effective_chat.kick_member(user_id)
+        chat.kick_member(user_id)
         if should_message:
             userr = sql.get_gbanned_user(user_id)
             usrreason = userr.reason
             if not usrreason:
                 usrreason = tld(chat.id, "antispam_no_reason")
 
-            update.effective_message.reply_text(tld(
+            message.reply_text(tld(
                 chat.id, "antispam_checkban_user_removed").format(usrreason),
-                                                parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
             return
 
 
@@ -297,9 +303,9 @@ def enforce_gban(bot: Bot, update: Update):
         if sql.does_chat_gban(
                 update.effective_chat.id) and update.effective_chat.get_member(
                     bot.id).can_restrict_members:
-            user = update.effective_user  # type: Optional[User]
-            chat = update.effective_chat  # type: Optional[Chat]
-            msg = update.effective_message  # type: Optional[Message]
+            user = update.effective_user
+            chat = update.effective_chat
+            msg = update.effective_message
 
             if user and not is_user_admin(chat, user.id):
                 check_and_ban(update, user.id)
@@ -312,7 +318,7 @@ def enforce_gban(bot: Bot, update: Update):
                     return
 
             if msg.reply_to_message:
-                user = msg.reply_to_message.from_user  # type: Optional[User]
+                user = msg.reply_to_message.from_user
                 if user and not is_user_admin(chat, user.id):
                     check_and_ban(update, user.id, should_message=False)
                     return
@@ -323,7 +329,7 @@ def enforce_gban(bot: Bot, update: Update):
 @run_async
 @user_admin
 def antispam(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if len(args) > 0:
         if args[0].lower() in ["on", "yes"]:
             sql.enable_antispam(chat.id)
