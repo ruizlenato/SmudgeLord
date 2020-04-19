@@ -4,7 +4,7 @@ from telegram import Chat, ChatMember, Update, Bot
 
 from haruka import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 import haruka.modules.sql.admin_sql as admin_sql
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:

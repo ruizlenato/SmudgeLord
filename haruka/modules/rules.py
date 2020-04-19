@@ -9,7 +9,7 @@ from haruka import dispatcher
 from haruka.modules.helper_funcs.chat_status import user_admin
 from haruka.modules.helper_funcs.string_handling import markdown_parser
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 
 @run_async

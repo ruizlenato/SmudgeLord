@@ -14,7 +14,7 @@ from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, can_p
 from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import admin_sql as sql
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 from haruka.modules.connection import connected
 

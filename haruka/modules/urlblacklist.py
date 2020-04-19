@@ -9,7 +9,7 @@ from haruka import LOGGER, dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.chat_status import user_admin, user_not_admin
 from haruka.modules.sql import urlblacklist_sql as sql
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 
 @run_async

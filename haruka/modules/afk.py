@@ -8,7 +8,7 @@ from haruka.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHa
 from haruka.modules.sql import afk_sql as sql
 from haruka.modules.users import get_user_id
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 AFK_GROUP = 7
 AFK_REPLY_GROUP = 8

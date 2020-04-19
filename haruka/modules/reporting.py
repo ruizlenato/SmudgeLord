@@ -9,7 +9,7 @@ from haruka import dispatcher, LOGGER
 from haruka.modules.helper_funcs.chat_status import user_not_admin, user_admin
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import reporting_sql as sql
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 REPORT_GROUP = 5
 

@@ -11,7 +11,7 @@ from haruka.modules.helper_funcs.chat_status import is_user_admin, user_admin, c
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import antiflood_sql as sql
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 FLOOD_GROUP = 3
 

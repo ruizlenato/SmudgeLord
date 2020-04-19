@@ -1,7 +1,7 @@
 from telegram import ReplyKeyboardMarkup, KeyboardButton
 
 from haruka import dispatcher
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 from telegram.ext import CommandHandler
 
 import haruka.modules.sql.connection_sql as con_sql

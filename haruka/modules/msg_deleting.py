@@ -10,7 +10,7 @@ from telegram.utils.helpers import mention_html
 from haruka import dispatcher, LOGGER
 from haruka.modules.helper_funcs.chat_status import user_admin, can_delete
 from haruka.modules.log_channel import loggable
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 
 @run_async

@@ -20,7 +20,7 @@ from haruka.modules.helper_funcs.string_handling import split_quotes
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import warns_sql as sql
 import haruka.modules.sql.rules_sql as rules_sql
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 WARN_HANDLER_GROUP = 9
 

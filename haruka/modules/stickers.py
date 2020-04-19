@@ -13,7 +13,7 @@ from telegram.utils.helpers import escape_markdown
 
 from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 
 @run_async

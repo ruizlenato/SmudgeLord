@@ -13,7 +13,7 @@ from telegram.utils.helpers import escape_markdown
 from haruka.modules.helper_funcs.filters import CustomFilters
 from haruka.modules.helper_funcs.chat_status import bot_admin
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 USERS_GROUP = 4
 CHAT_GROUP = 10

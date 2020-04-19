@@ -11,7 +11,7 @@ from haruka import dispatcher, SUDO_USERS, OWNER_ID
 from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.extraction import extract_user
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 
 @run_async

@@ -7,7 +7,7 @@ from telegram.ext import run_async
 from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.string_handling import remove_emoji
-from haruka.modules.translations.strings import tld, tld_list
+from haruka.modules.tr_engine.strings import tld, tld_list
 
 from googletrans import LANGUAGES, Translator
 

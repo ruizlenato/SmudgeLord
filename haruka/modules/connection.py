@@ -9,7 +9,7 @@ import haruka.modules.sql.connection_sql as sql
 from haruka import dispatcher, SUDO_USERS
 from haruka.modules.helper_funcs.chat_status import user_admin
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 from haruka.modules.keyboard import keyboard
 

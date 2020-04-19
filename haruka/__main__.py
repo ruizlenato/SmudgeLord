@@ -15,7 +15,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from haruka.modules import ALL_MODULES
 from haruka import dispatcher, updater, LOGGER, ALLOW_EXCL
 from haruka.modules.helper_funcs.misc import paginate_modules
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -26,6 +26,8 @@ DATA_IMPORT = []
 DATA_EXPORT = []
 
 GDPR = []
+
+importlib.import_module("haruka.modules.tr_engine.language")
 
 for module_name in ALL_MODULES:
     imported_module = importlib.import_module("haruka.modules." + module_name)

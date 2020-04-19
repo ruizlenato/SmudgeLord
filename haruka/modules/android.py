@@ -9,7 +9,7 @@ from telegram.ext import run_async
 
 from haruka import dispatcher, LOGGER
 from haruka.modules.disable import DisableAbleCommandHandler
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 from requests import get
 

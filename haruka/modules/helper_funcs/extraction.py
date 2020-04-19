@@ -5,7 +5,7 @@ from telegram.error import BadRequest
 
 from haruka import LOGGER
 from haruka.modules.users import get_user_id
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 
 def id_from_reply(message):

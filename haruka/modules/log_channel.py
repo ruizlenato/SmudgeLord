@@ -4,7 +4,7 @@ from typing import Optional
 from haruka import dispatcher, LOGGER
 from haruka.modules.helper_funcs.chat_status import user_admin
 from haruka.modules.sql import log_channel_sql as sql
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 from telegram import Bot, Update, ParseMode, Message, Chat
 from telegram.error import BadRequest, Unauthorized

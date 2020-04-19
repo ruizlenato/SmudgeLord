@@ -14,7 +14,7 @@ from haruka.modules.helper_funcs.extraction import extract_user, extract_user_an
 from haruka.modules.helper_funcs.string_handling import extract_time
 from haruka.modules.log_channel import loggable
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 from haruka.modules.connection import connected
 from haruka.modules.disable import DisableAbleCommandHandler
 

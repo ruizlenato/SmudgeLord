@@ -9,7 +9,7 @@ from haruka import dispatcher
 from haruka.modules.helper_funcs.handlers import CMD_STARTERS
 from haruka.modules.helper_funcs.misc import is_module_loaded
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 FILENAME = __name__.rsplit(".", 1)[-1]
 

@@ -18,7 +18,7 @@ from haruka.modules.disable import DisableAbleCommandHandler
 
 import haruka.modules.sql.feds_sql as sql
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 # Greeting all bot owners that is using this module,
 # The following people

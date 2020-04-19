@@ -17,7 +17,7 @@ from haruka.modules.helper_funcs.chat_status import can_delete, is_user_admin, u
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import users_sql
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 LOCK_TYPES = {
     'sticker':

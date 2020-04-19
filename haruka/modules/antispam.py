@@ -16,7 +16,7 @@ from haruka.modules.helper_funcs.filters import CustomFilters
 #from haruka.modules.helper_funcs.misc import send_to_list
 from haruka.modules.sql.users_sql import get_all_chats
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 GBAN_ENFORCE_GROUP = 6
 

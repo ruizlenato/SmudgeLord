@@ -15,7 +15,7 @@ from haruka.modules.helper_funcs.misc import split_message
 
 from haruka.modules.connection import connected
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 BLACKLIST_GROUP = 11
 

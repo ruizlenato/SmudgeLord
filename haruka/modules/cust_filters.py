@@ -16,7 +16,7 @@ from haruka.modules.helper_funcs.misc import build_keyboard
 from haruka.modules.helper_funcs.string_handling import split_quotes, button_markdown_parser
 from haruka.modules.sql import cust_filters_sql as sql
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 
 from haruka.modules.connection import connected
 

@@ -14,7 +14,7 @@ from haruka.modules.helper_funcs.chat_status import user_admin
 from haruka.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from haruka.modules.helper_funcs.msg_types import get_note_type
 
-from haruka.modules.translations.strings import tld
+from haruka.modules.tr_engine.strings import tld
 from haruka.modules.connection import connected
 
 FILE_MATCHER = re.compile(r"^###file_id(!photo)?###:(.*?)(?:\s|$)")
