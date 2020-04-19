@@ -165,7 +165,8 @@ def new_member(bot: Bot, update: Update):
                     else:
                         username = mention
 
-                    rules = "http://t.me/" + bot.username + "?start=" + str(chat.id)
+                    rules = "http://t.me/" + bot.username + "?start=" + str(
+                        chat.id)
 
                     # Build keyboard
                     buttons = sql.get_welc_buttons(chat.id)
@@ -180,7 +181,8 @@ def new_member(bot: Bot, update: Update):
                         count=count,
                         chatname=escape(chat.title),
                         id=new_mem.id,
-                        rules=keyb.append([InlineKeyboardButton("Rules", url=rules)]))
+                        rules=keyb.append(
+                            [InlineKeyboardButton("Rules", url=rules)]))
 
                     getsec, mutetime, custom_text = sql.welcome_security(
                         chat.id)
@@ -257,7 +259,8 @@ def new_member(bot: Bot, update: Update):
                     else:
                         username = mention
 
-                    rules = "http://t.me/" + bot.username + "?start=" + str(chat.id)
+                    rules = "http://t.me/" + bot.username + "?start=" + str(
+                        chat.id)
 
                     valid_format = escape_invalid_curly_brackets(
                         cust_welcome, VALID_WELCOME_FORMATTERS)
@@ -265,16 +268,17 @@ def new_member(bot: Bot, update: Update):
                     buttons = sql.get_welc_buttons(chat.id)
                     keyb = build_keyboard_parser(bot, chat.id, buttons)
 
-                    res = valid_format.format(first=escape(first_name),
-                                              last=escape(new_mem.last_name
-                                                          or first_name),
-                                              fullname=escape(fullname),
-                                              username=username,
-                                              mention=mention,
-                                              count=count,
-                                              chatname=escape(chat.title),
-                                              id=new_mem.id,
-                                              rules=keyb.append([InlineKeyboardButton("Rules", url=rules)]))
+                    res = valid_format.format(
+                        first=escape(first_name),
+                        last=escape(new_mem.last_name or first_name),
+                        fullname=escape(fullname),
+                        username=username,
+                        mention=mention,
+                        count=count,
+                        chatname=escape(chat.title),
+                        id=new_mem.id,
+                        rules=keyb.append(
+                            [InlineKeyboardButton("Rules", url=rules)]))
 
                 else:
                     res = sql.DEFAULT_WELCOME.format(first=first_name)
@@ -415,7 +419,8 @@ def left_member(bot: Bot, update: Update):
                 else:
                     username = mention
 
-                rules = "http://t.me/" + bot.username + "?start=" + str(chat.id)
+                rules = "http://t.me/" + bot.username + "?start=" + str(
+                    chat.id)
 
                 buttons = sql.get_gdbye_buttons(chat.id)
                 keyb = build_keyboard_parser(bot, chat.id, buttons)
@@ -429,8 +434,8 @@ def left_member(bot: Bot, update: Update):
                     count=count,
                     chatname=escape(chat.title),
                     id=left_mem.id,
-                    rules=keyb.append([InlineKeyboardButton("Rules", url=rules)]))
-
+                    rules=keyb.append(
+                        [InlineKeyboardButton("Rules", url=rules)]))
 
                 # Build keyboard
                 keyboard = InlineKeyboardMarkup(keyb)
@@ -457,7 +462,8 @@ def left_member(bot: Bot, update: Update):
                 else:
                     username = mention
 
-                rules = "http://t.me/" + bot.username + "?start=" + str(chat.id)
+                rules = "http://t.me/" + bot.username + "?start=" + str(
+                    chat.id)
 
                 buttons = sql.get_gdbye_buttons(chat.id)
                 keyb = build_keyboard_parser(bot, chat.id, buttons)
@@ -473,7 +479,10 @@ def left_member(bot: Bot, update: Update):
                                           count=count,
                                           chatname=escape(chat.title),
                                           id=left_mem.id,
-                                          rules=keyb.append([InlineKeyboardButton("Rules", url=rules)]))
+                                          rules=keyb.append([
+                                              InlineKeyboardButton("Rules",
+                                                                   url=rules)
+                                          ]))
 
                 keyb = build_keyboard_parser(bot, chat.id, buttons)
 
