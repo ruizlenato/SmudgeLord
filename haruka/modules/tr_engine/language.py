@@ -93,8 +93,10 @@ def locale_button(bot, update):
 
     text += tld(chat.id, "language_sel_user_lang")
 
-    query.message.reply_text(
-        text,
+    bot.edit_message_text(
+        chat_id=query.message.chat_id,
+        message_id=query.message.message_id,
+        text=text,
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup([[
             InlineKeyboardButton("English (US) 🇺🇸",
@@ -109,7 +111,7 @@ def locale_button(bot, update):
                                  callback_data="bot_start")
         ]]))
 
-    query.message.delete()
+    # query.message.delete()
     bot.answer_callback_query(query.id)
 
 

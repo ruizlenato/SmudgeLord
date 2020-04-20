@@ -110,12 +110,6 @@ def start(bot: Bot, update: Update, args: List[str]):
 
 def send_start(bot, update):
     chat = update.effective_chat
-    # Try to remove old message
-    try:
-        query = update.callback_query
-        query.message.delete()
-    except Exception:
-        pass
 
     # chat = update.effective_chat and unused variable
     text = tld(chat.id, 'main_start_pm')
@@ -131,11 +125,32 @@ def send_start(bot, update):
                              callback_data="help_back")
     ]]
 
-    update.effective_message.reply_text(
-        text,
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode=ParseMode.MARKDOWN,
-        disable_web_page_preview=True)
+    try:
+        query = update.callback_query
+        # query.message.delete()
+        bot.edit_message_text(chat_id=query.message.chat_id,
+                              message_id=query.message.message_id,
+                              text=text,
+                              parse_mode=ParseMode.MARKDOWN,
+                              reply_markup=InlineKeyboardMarkup(keyboard))
+    except Exception:
+        pass
+
+    if query:
+        try:
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=text,
+                                  parse_mode=ParseMode.MARKDOWN,
+                                  reply_markup=InlineKeyboardMarkup(keyboard))
+        except Exception:
+            return
+    else:
+        update.effective_message.reply_text(
+            text,
+            reply_markup=InlineKeyboardMarkup(keyboard),
+            parse_mode=ParseMode.MARKDOWN,
+            disable_web_page_preview=True)
 
 
 # for test purposes
