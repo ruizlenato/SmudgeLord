@@ -71,7 +71,8 @@ def send_help(chat_id, text, keyboard=None):
     dispatcher.bot.send_message(chat_id=chat_id,
                                 text=text,
                                 parse_mode=ParseMode.MARKDOWN,
-                                reply_markup=keyboard)
+                                reply_markup=keyboard,
+                                disable_web_page_preview=True)
 
 
 @run_async
@@ -132,7 +133,8 @@ def send_start(bot, update):
                               message_id=query.message.message_id,
                               text=text,
                               parse_mode=ParseMode.MARKDOWN,
-                              reply_markup=InlineKeyboardMarkup(keyboard))
+                              reply_markup=InlineKeyboardMarkup(keyboard),
+                              disable_web_page_preview=True)
     except Exception:
         pass
 
@@ -142,7 +144,8 @@ def send_start(bot, update):
                                   message_id=query.message.message_id,
                                   text=text,
                                   parse_mode=ParseMode.MARKDOWN,
-                                  reply_markup=InlineKeyboardMarkup(keyboard))
+                                  reply_markup=InlineKeyboardMarkup(keyboard),
+                                  disable_web_page_preview=True)
         except Exception:
             return
     else:
@@ -205,7 +208,8 @@ def help_button(bot: Bot, update: Update):
                                       InlineKeyboardButton(
                                           text=tld(chat.id, "btn_go_back"),
                                           callback_data="help_back")
-                                  ]]))
+                                  ]]),
+                                  disable_web_page_preview=True)
 
         elif back_match:
             bot.edit_message_text(chat_id=query.message.chat_id,
@@ -217,7 +221,8 @@ def help_button(bot: Bot, update: Update):
                                   parse_mode=ParseMode.MARKDOWN,
                                   reply_markup=InlineKeyboardMarkup(
                                       paginate_modules(chat.id, 0, HELPABLE,
-                                                       "help")))
+                                                       "help")),
+                                  disable_web_page_preview=True)
 
         # ensure no spinny white circle
         bot.answer_callback_query(query.id)
