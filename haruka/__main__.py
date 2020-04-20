@@ -167,10 +167,8 @@ def error_callback(bot, update, error):
 def help_button(bot: Bot, update: Update):
     query = update.callback_query
     chat = update.effective_chat
-    mod_match = re.match(r"help_module\((.+?)\)", query.data)
-    prev_match = re.match(r"help_prev\((.+?)\)", query.data)
-    next_match = re.match(r"help_next\((.+?)\)", query.data)
     back_match = re.match(r"help_back", query.data)
+    mod_match = re.match(r"help_module\((.+?)\)", query.data)
     try:
         if mod_match:
             module = mod_match.group(1)
@@ -191,28 +189,6 @@ def help_button(bot: Bot, update: Update):
                                              callback_data="help_back")
                                      ]]))
 
-        elif prev_match:
-            curr_page = int(prev_match.group(1))
-            query.message.reply_text(tld(chat.id, "send-help").format(
-                dispatcher.bot.first_name,
-                "" if not ALLOW_EXCL else tld(chat.id, "cmd_multitrigger")),
-                                     parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup(
-                                         paginate_modules(
-                                             chat.id, curr_page - 1, HELPABLE,
-                                             "help")))
-
-        elif next_match:
-            next_page = int(next_match.group(1))
-            query.message.reply_text(tld(chat.id, "send-help").format(
-                dispatcher.bot.first_name,
-                "" if not ALLOW_EXCL else tld(chat.id, "cmd_multitrigger")),
-                                     parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup(
-                                         paginate_modules(
-                                             chat.id, next_page + 1, HELPABLE,
-                                             "help")))
-
         elif back_match:
             query.message.reply_text(text=tld(chat.id, "send-help").format(
                 dispatcher.bot.first_name,
@@ -222,9 +198,11 @@ def help_button(bot: Bot, update: Update):
                                          paginate_modules(
                                              chat.id, 0, HELPABLE, "help")))
 
+
         # ensure no spinny white circle
         bot.answer_callback_query(query.id)
         query.message.delete()
+
     except BadRequest as excp:
         if excp.message == "Message is not modified":
             pass
