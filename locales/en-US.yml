@@ -130,7 +130,7 @@ antiflood_help: |
   - /flood: gets the current antiflood settings.
   - /setflood <number/off>: sets the number of messages at which to take action on a user.
 #Antispam
-modname_antispam: Antispam Security
+modname_antispam: Antispam
 antispam_err_usr_sudo: I spy with my little eyes... a sudo user war! Why are you guys turning on each other?
 antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
 antispam_err_usr_bot: '-_- So funny, let me gban myself, why don''t I? Nice try.'
@@ -210,7 +210,7 @@ bans_help: |
   An example of temporarily muting someone:
   /tmute @username 2h; this mutes a user for 2 hours.
 #Blacklist
-modname_blacklist: Word Blacklists
+modname_blacklist: Blacklists
 blacklist_active_list: Blacklist filters active in {}:\n
 blacklist_no_list: There are no blacklist filters in <b>{}</b>!
 blacklist_add: Added <code>{}</code> to the blacklist in <b>{}</b>!
@@ -233,11 +233,14 @@ blacklist_help: |
   Pro tip:
   Blacklists allow you to use some modifiers to match "unknown" characters. For example, you can use the ? character to match a single occurence of any non-whitespace character.
   You could also use the * modifier, which matches any number of any character. If you want to blacklist urls, this will allow you to match the full thing. It matches every character except spaces. This is cool if you want to stop, for example, url shorteners.
-  For example, the following will ban any bit.ly link:
-  /addblacklist "bit.ly/*" We dont like shorteners!
-  If you want to only match bit.ly/ links followed by three characters, you could use:
-  /addblacklist "bit.ly/???" We dont like shorteners!
-  This would match bit.ly/abc, but not bit.ly/abcd.
+  If you want to blacklist url, for example, bit.ly/ links, you could use:
+
+  Domain blacklisting, which is used to stop certain domains from being mentioned in a group, Any time an url on that domain is mentioned, /
+  the message will immediately be deleted.
+  - /geturl: View the current blacklisted urls
+  - /addurl <urls>: Add a domain to the blacklist. The bot will automatically parse the url.
+  - /delurl <urls>: Remove urls from the blacklist
+
 #Connections
 modname_connection: Connections
 connection_enable: Enabled connections to this chat for users.
@@ -888,18 +891,6 @@ url_blacklist_remove_success_3: "Removed <code>{}</code> domains from the blackl
 url_blacklist_remove_invalid_3: "Tell me which domains you would like to remove from the blacklist."
 url_blacklist_current: "Current <b>blacklisted</b> domains:\n"
 url_blacklist_no_existed: "There are no blacklisted domains here!"
-urlblacklist_help: |
-  Domain blacklisting is used to stop certain domains from being mentioned in a group, Any time an url on that domain is mentioned, /
-  the message will immediately be deleted.
-
-  *NOTE:* domain blacklisting do not affect group admins.
-
-  - /geturl: View the current blacklisted urls
-
-  *Admin only:*
-
-  - /addurl <urls>: Add a domain to the blacklist. The bot will automatically parse the url.
-  - /delurl <urls>: Remove urls from the blacklist
 #Greetings
 modname_welcome: Greetings
 welcome_added_to_grp: Thanks for adding me into your group! Don't forget to checkout our news channel!
