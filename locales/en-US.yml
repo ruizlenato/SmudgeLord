@@ -223,23 +223,19 @@ blacklist_err_multidel_no_trigger: None of those triggers existed, so nothing wa
 blacklist_err_multidel_some_no_trigger: Removed <code>{}</code> triggers from the blacklist in <b>{}</b>! {} did not exist, so were not removed.
 blacklist_chatsettings_word_count: There are {} blacklisted words.
 blacklist_help: |
-  You can set blacklist filters to take automatic action on people when they say certain things. This is done using:
+  You can set blacklist filters to take automatic action on people when they say certain things. This is done using:\n
   - /addblacklist <blacklist trigger> <blacklist reason>: blacklists the trigger. You can set sentences by putting quotes around the reason.
   - /unblacklist <blacklist trigger>: stop blacklisting a certain blacklist trigger.
   - /rmblacklist <blacklist trigger>: same as /unblacklist
-  - /blacklist: list all active blacklist filters\n
-  /addblacklist "the admins suck" Respect your admins!
-  This would delete any message containing 'the admins suck'.\n
-  Pro tip:
-  Blacklists allow you to use some modifiers to match "unknown" characters. For example, you can use the ? character to match a single occurence of any non-whitespace character.
-  You could also use the * modifier, which matches any number of any character. If you want to blacklist urls, this will allow you to match the full thing. It matches every character except spaces. This is cool if you want to stop, for example, url shorteners.
-  If you want to blacklist url, for example, bit.ly/ links, you could use:
-
-  Domain blacklisting, which is used to stop certain domains from being mentioned in a group, Any time an url on that domain is mentioned, /
-  the message will immediately be deleted.
+  - /blacklist: list all active blacklist filters
   - /geturl: View the current blacklisted urls
   - /addurl <urls>: Add a domain to the blacklist. The bot will automatically parse the url.
-  - /delurl <urls>: Remove urls from the blacklist
+  - /delurl <urls>: Remove urls from the blacklist.\n
+  Example:
+  /addblacklist "the admins suck" Respect your admins!
+  This would delete any message containing 'the admins suck'.\n
+  /addurl bit.ly
+  This would delete any message containing url "bit.ly".
 
 #Connections
 modname_connection: Connections
