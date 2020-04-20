@@ -208,7 +208,8 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
             mention_html(user.id, user.first_name),
             mention_html(member.user.id, member.user.first_name),
             html.escape(chat.title))
-        reply += tld(chat.id, "bans_logger_reason").format(reason)
+        if reason:
+            reply += tld(chat.id, "bans_logger_reason").format(reason)
 
         message.reply_text(reply, parse_mode=ParseMode.HTML)
 
