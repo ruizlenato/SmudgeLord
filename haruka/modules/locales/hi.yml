@@ -1,355 +1,350 @@
 ---
 #Main
 send-help: |
-  Salut! Je m'appelle *{}*. I'm a modular group management bot with a few fun extras! Have a look at the following for an idea of some of the things I can help you with. \n
-   Principales commandes disponibles :
-   - /start: Commande pour vérifier si le bot est en ligne ou non.
-   - /help: Vous renvoie ce message en message privé.
-   - /help <nom de module>: Vous envoie des informations sur ce module en message privé.
-   - /donate: informations sur comment faire un don!
-   - /lang: Changer la langue du bot
-   - /settings:
-   - en message privé : vous enverra les paramètres de tous les modules supportés.
-   - dans un groupe: vous renverra en messagerie privé, avec tous les paramètre de ce tchat.{}
-cmd_multitrigger: \nToutes les commandes peuvent être utilisées avec `/` ou `!`.
-here_is_help: Voici l'aide pour le module *{}* :\n\n{}
-help_not_found: Texte d'aide pour <code>{}</code> non trouvé !
-help_pm_only: Me contacter en message privé pour obtenir la liste de toutes les commandes disponibles.
-btn_help: '❔ Aide'
-btn_go_back: '⬅️ Retour'
-main_start_group: Salut ! Je suis en ligne :3
+  नमस्कार! मेरा नाम *{}* हे. मैं एक मॉड्यूलर ग्रुप मैनेजमेंट बॉट हूं और में कुछ मजेदार अतिरिक्त के साथ हूं! एक नज़र ईऩ चीजो पें डाले जो आपको विचार देगा मैं क्या सहाय्ता कर सक्ता हूंं. \n
+  मुख्य आदेश जो उपलब्ध हैं
+  - /start: हरुका जिंदा है या नहीं 
+  - /help: इनबॉक्स में संदेश भेजती है
+  - /help <मोड्यूल का नाम>: मोढ्युल के बारे में इनबॉक्स करेगी
+  - /donate: जानकारी कैसे दान करें
+  - /lang: बॉट का भाषा परिवर्तन करे
+  - /settings: 
+  - पीएम में: सभी समर्थित मॉड्यूल के लिए आपको अपनी सेटिंग्स भेजेगी.
+  - एक ग्रुप में: चैट की सेटिंग के साथ, आपको पीएम पर रीडायरेक्ट करेगा.{}
+cmd_multitrigger: \nसभी आदेशों का उपयोग या तो `/` या `!` के साथ किया जा सकता है।.
+here_is_help: यहाँ *{}* मॉड्यूल के लिए कुछ मदद दी गई है:\n\n{}
+help_not_found: <कोड>{}</कोड> नहीं मिला!
+help_pm_only: संभावित आदेशों की सूची प्राप्त करने के लिए पीएम से संपर्क करें।
+btn_help: 'संभावित आदेशों की सूची प्राप्त करने के लिए मुझे निजी संदेश में संपर्क करें।'
+btn_go_back: '⬅️ वापस जाओ'
+main_start_group: सुनो! मैं जिंदा हूं
 main_start_pm: |
-  Salut ! Je m'appelle Haruka Aya - Je suis là pour vous aider à manager vos groupes !
-  Appuyez sur le bouton d'aide pour obtenir plus d'informations sur comment m'utilisé au maximum de mon potentiel.
+  सुनो! मेरा नाम Haruka Aya है - मैं यहां आपके ग्रुप का प्रबंधन करने में आपकी सहायता करने के लिए हूं!
+  मेरी पूर्ण क्षमता का उपयोग करने के तरीके के बारे में अधिक जानने के लिए मदद बटन पर क्लिक करें।
 
-  Rejoignez [Groupe Haruka Aya](https://t.me/HarukaAyaGroup) ( @HarukaAyaGroup ) si vous avez besoin d'assistance.
+  [बॉट सपोर्ट ग्रुप] (https://t.me/HarukaAyaGroup) ( @HarukaAyaGroup ) से जुड़ें अगर आपको किसी बॉट सपोर्ट या मदद की ज़रूरत है। केवल बॉट सहायता की आवश्यकता होने पर शामिल हों।
 
-  Suivez [Haruka Aya](https://t.me/HarukaAya) ( @HarukaAya ) si vous souhaitez rester informé des nouveautés, mises à jour et maintenance du bot !
+  यदि आप बॉट समाचार, बॉट अपडेट और बॉट डाउनटाइम के बारे में जानना चाहते हैं तो [Haruka Aya] (https://t.me/HarukaAya)( @HarukaAya ) से जुड़ें!
 
-  Fait avec amour par @RealAkito\n\nVous souhaitez m'ajouter à votre group ? [Cliquez ici !](t.me/HarukaAyaBot?startgroup=true)
-main_start_btn_support: '📢 Groupe d''assistance'
-main_start_btn_ctrlpnl: '🛠 Panneau de contrôle'
-main_start_btn_lang: '🇺🇸 Langue'
+  @RealAkito द्वारा प्यार के साथ बनाया गया\n\nमुझे अपने समूह में जोड़ना चाहते हैं? [यहां क्लिक करें!](t.me/HarukaAyaBot?startgroup=true)
+main_start_btn_support: '📢 सहायता ग्रुप'
+main_start_btn_ctrlpnl: '🛠️ नियंत्रण कक्ष'
+main_start_btn_lang: '🇮🇳 भाषा'
 #Common
-common_err_no_admin: Vous n'êtes pas administrateur !
-common_err_no_user: Vous ne semblez pas faire référence à un utilisateur.
-common_err_invalid_chatid: ID de tchat invalide !
-common_yes: "Oui"
-common_no: "Non"
-common_cmd_group_only: Cette commande ne peut être utilisée que dans un groupe, pas en message privé.
-common_cmd_pm_only: Cette commande ne peut être utilisée que en message privé, pas dans un groupe.
-common_group_creator_only: Seul le créateur du groupe peut utiliser cette commande !
-common_this_chat: Ce tchat
-common_invalid_arg: Argument invalide ! Tapez `on`/`yes` ou `off`/`yes` !
+common_err_no_admin: आप एक व्यवस्थापक नहीं हैं!
+common_err_no_user: आप किसी उपयोगकर्ता का संदर्भ नहीं दे रहे हैं।
+common_err_invalid_chatid: अमान्य चैट आईडी!
+common_yes: "हाँ"
+common_no: "नहीं"
+common_cmd_group_only: यह कमांड केवल एक ग्रुपमें उपयोग किया जा सकता है, पीएम में नहीं।
+common_cmd_pm_only: यह कमांड केवल एक निजी संदेश में इस्तेमाल किया जा सकता है, ग्रुप में नहीं।
+common_group_creator_only: केवल ग्रुप निर्माता ही इस कमांड का उपयोग कर सकता है!
+common_this_chat: यह चैट
+common_invalid_arg: अवैध तर्क! कृपया `on`/`Yes` या `off`/`no` टाइप करें!
 #Admins
-modname_admin: Administrateur
-admin_err_no_perm: Je ne peut pas promouvoir/rétrograder les membres ici ! Assurez vous que je sois administrateur et que je puisse ajouter de nouveaux administrateurs.
-admin_err_user_admin: Comment pourrais-je promouvoir un membre déjà administrateur ?
-admin_err_self_promote: Je ne peux pas m'auto-promouvoir ! Demandez à un administrateur de le faire pour moi.
-admin_promote_success: Administrateur {} promu avec succès {} dans <b>{}</b> !
-admin_err_demote_creator: Ce membre est le CRÉATEUR du tchat, comment pourrais-je le rétrograder ?
-admin_err_demote_noadmin: Je ne peux pas rétrograder ceux qui n'ont pas été promus !
-admin_err_self_demote: Je ne peux pas me rétrograder !
-admin_demote_success: Administrateur {} rétrogradé avec succès {} dans <b>{}</b> !
-admin_err_cant_demote: Je ne peux pas rétrograder. Je ne suis peut-être pas admisnistrateur, ou le statut d'administrateur m'a été accordé par un autre membre, je ne peux pas agir sur eux !
-admin_list: "Administrateurs dans *{}* :"
-admin_list_creator: (Créateur)
-admin_err_no_perm_invitelink: Je n'ai pas accès au lien d'invitation, essayez de changer mes permissions !
-admin_err_chat_no_invitelink: Désolé, mais je ne peux donner des liens d'invitation que pour les super groupes ou les canaux !
-admin_disable_reaction: Réponse aux commandes administrateur utilisées par des membres désactivée.
-admin_enable_reaction: Réponse aux commandes administrateur utilisées par des membres activée.
-admin_err_wrong_arg: Merci d'entrer 'True' ou 'False' !
-admin_reaction_status: La réponse aux commandes administrateur utilisées par des membres est actuellement *{}* !
+modname_admin: व्यवस्थापक
+admin_err_no_perm: मैं यहां लोगों को बढ़ावा/अवनति नही दे सक्ती हुं! सुनिश्चित करें कि मैं एक व्यवस्थापक हूं और नए व्यवस्थापक को बढ़ावा दे सकती हूं।
+admin_err_user_admin: मैं किसी ऐसे व्यक्ति को कैसे बढ़ावा दे सकता हूं जो पहले से ही एक व्यवस्थापक है?
+admin_err_self_promote: मैं खुद को बढ़ावा नहीं दे सकती! मेरे लिए एक व्यवस्थापक से‌ करवायें
+admin_promote_success: व्यवस्थापक {} सफलतापूर्वक बढ़ावा देदीया {} में <b>{} </b>!
+admin_err_demote_creator: यह व्यक्ति चैट का निर्माता है, मैं उन्हें कैसे अवनति कर सकता हूं?
+admin_err_demote_noadmin: जिन लोगों को बढ़ावा नहीं दिया गया था, उन्हें पदावनत नहीं कर सकते!
+admin_err_self_demote: मैं खुद को अवनत नहीं कर सकता!
+admin_demote_success: व्यवस्थापन {} सफलतापूर्वक निरस्त कर दिया हैं {} में <b>{}</b>!
+admin_err_cant_demote: Could not demote. I might not be admin, or the admin status was appointed by another user, so I can't act upon them!
+admin_list: "Admins in *{}*:"
+admin_list_creator: (Creator)
+admin_err_no_perm_invitelink: I don't have access to the invite link, try changing my permissions!
+admin_err_chat_no_invitelink: Sorry, but I can only give invite links for supergroups and channels!
+admin_disable_reaction: Disabled response to user-triggered admin commands.
+admin_enable_reaction: Enabled response to user-triggered admin commands.
+admin_err_wrong_arg: Please enter True or False!
+admin_reaction_status: Response for user-triggered admin commands is currently *{}*!
 admin_help: |
-  /adminlist | /admins: Liste des administrateurs du tchat\n
-   *Administrateur uniquement :*
-   - /pin: Épingle silencieusement le message en réponse. Ajoutez 'loud', 'notify' ou 'violent' pour envoyer une notifications aux membres.
-   - /unpin: Désépingle le message actuellement épinglé
-   - /invitelink: Obtenir le lien d'invitation du groupe
-   - /promote: Promeut un membre. Répondez au membre ou utlisez son nom d'utilisateur.
-   - /demote: Rétrograde un membre. Répondez au membre ou utlisez son nom d'utilisateur.
+  /adminlist | /admins: Lists the admins in the chat\n
+  *Admin only:*
+  - /pin: Silently pins the message replied to. Add 'loud', 'notify' or 'violent' to send a notification to users.
+  - /unpin: Unpins the currently pinned message
+  - /invitelink: Gets the invite link of the group
+  - /promote: Promotes a user Reply to the user or use their username.
+  - /demote: Demotes a user. Reply to the user or use their username.
 #AFK
-modname_afk: Indisponible
-user_now_afk: "{} est actuellement indisponible !"
-user_no_longer_afk: "{} est de nouveau disponible !"
-status_afk_noreason: "{} est indisponible !"
-status_afk_reason: "{} est indisponible ! Raison :\\n{}"
+modname_afk: AFK
+user_now_afk: "{} is now AFK!"
+user_no_longer_afk: "{} is no longer AFK!"
+status_afk_noreason: "{} is AFK!"
+status_afk_reason: "{} is AFK! Says it's because of:\n{}"
 afk_help: |
-  - /afk <raison>: Vous indique comme étant indisponible.
-  - brb <raison>: Identique à la commande afk, mais n'est pas une commande.\n
-  Quand vous êtes marqué comme indisponible, toute mention de vous recevra un message indiquant que vous êtes indisponible !
+  - /afk <reason>: Mark yourself as AFK.
+  - brb <reason>: Same as the afk command, but not a command.\n
+  When marked as AFK, any mentions will be replied to with a message stating that you're not available!
 #Android
 modname_android: Android
-download: "*Téléchargement :* [{}]({})\n"
-build_size: "*Taille du build :* `{}`\n"
-build_date: "*Date de build :* `{}`\n"
-version: "*Version :* `{}`\n"
-android_version: "*Version Android :* `{}`\n"
-rom_type: "*Type de ROM:* `{}`\n"
-maintainer: "*Mainteneur :* {}\n"
-xda_thread: "*Discussion XDA :* [Here]({})\n"
-changelog: "*Liste des modifications pour l'appareil :* `{}`\n"
-weekly: "*Hebdomadaire*\n"
-miui_release: "*Recovery ROM*\n\n*Stable*\n"
-cust_releases: "*{} dernière(s) version(s)*\n"
-err_not_found: Acun résultat ne correspond à votre recherche.
-err_api: Impossible d'atteindre l'API.
-err_example_device: Pourquoi essayez vous d'obtenir le modèle d'exemple ?
-err_json: Dites au maintenuer de votre ROM de corriger le fichier JSON de mise à jour OTA. Je suis sûr que cela ne marchera pas avec les MàJ OTA ni avec ce bot :P
-btn_dl: Cliquez ici pour télécharger
-cmd_example: Veuillez saisir le **nom de code** de votre appareil !\nPar exemple, `/{} tissot`
-evox_gsi: Veuillez vérifier le canal de mise à jour de Evolution X (@EvolutionXUpdates) ou cliquez ci-dessous pour télécharger les GSIs!
-aex_cust_str: Veuillez saisir le **nom de code** et la **version Android** de votre appareil !\nPar exemple, `/aex tissot pie`
+download: "* डाउनलोड:* [{}]({})"
+build_size: "* बिल्ड का आकार:* `{}`"
+build_date: "* निर्माण की तारीख:* `{}`"
+version: "* संस्करण:* `{}`"
+android_version: "* एंड्रॉयड संस्करण:* `{}`"
+rom_type: "* रोम का प्रकार:* `{}`\n"
+maintainer: "* मेंटेनर:* {}\n"
+xda_thread: "* XDA लिंक:* [यहाँ]({})\n"
+changelog: "*Device Changelog:* `{}`\n"
+weekly: "* साप्ताहिक*\n"
+miui_release: "* रिकवरी रॉम*\n\n* स्थिर*\n"
+cust_releases: "*{} नई रिलीज*\n"
+err_not_found: आपके प्रश्न से मेल खाते कोई परिणाम नहीं मिल सके।
+err_api: API तक नहीं पहुंच सका।
+err_example_device: Why are you trying to get the example device?
+err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
+btn_dl: Click here to Download
+cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
+evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click the button down below to download the GSIs!
+aex_cust_str: Please type your device **codename** and **Android Version**!\nFor example, `/aex tissot pie`
 android_help: |
-  *ROM spécifique à un appareil*
-  - /pearl <appareil>: Obtenez la dernière ROM Pearl pour un appareil
-  - /havoc <appareil>: Obtenez la dernière ROM Havoc pour un appareil
-  - /posp <appareil>: Obtenez la dernière ROM POSP pour un appareil
-  - /viper <appareil>: Obtenez la dernière ROM Viper pour un appareil
-  - /evo <appareil>: Obtenez la dernière ROM Evo pour un appareil
-  - /dotos <appareil>: Obtenez la dernière ROM DOTos pour un appareil
-  - /aex <appareil> <android version>: Obtenez la dernière ROM AEX pour un appareil
-  - /pixys <appareil>: Obtenez la dernière ROM Pixys pour un appareil
-  - /los <appareil>: Obtenez la dernière ROM LOS pour un appareil
-  - /bootleggers <appareil>: Obtenez la dernière Bootleggers Pearl pour un appareil
-  - /miui <appareil>: Obtenez la dernière ROM MIUI pour un appareil\n
+  *Device Specific ROM for a device*
+  - /havoc <device>: Get the latest Havoc ROM for a device
+  - /posp <device>: Get the latest POSP ROM for a device
+  - /evo <device>: Get the latest Evolution X ROM for a device
+  - /aex <device> <android version>: Get the latest AEX ROM for a device
+  - /los <device>: Get the latest LineageOS ROM for a device
+  - /bootleggers <device>: Get the latest Bootleggers ROM for a device
+
   *GSI*
-  - /phh: Obtenez la dernière ROM Phh AOSP Oreo GSI !
-  - /descendant: Obtenez la dernière ROM Descendant GSI !
-  - /enesrelease: Obtenez la dernière version uploadée par Enes!
+  - /phh: Get the latest Phh AOSP Oreo GSI!
 #Antiflood
-modname_antiflood: Anti-spam
-flood_mute: Tu ne l'avais pas vu venir celle-là. *Réduit au silence* !
-flood_err_no_perm: Je ne peux pas rendre muet les membres ici, il faut d'abord m'en donner la permission ! En attendant, je désactive la protection anti-spam.
-flood_logger_success: "<b>{}:</b>\n#MUTED\n<b>Utilisateur :</b> {}\nSpammait le groupe."
-flood_logger_fail: "<b>{}:</b>\n#INFO\nPas de permission pour rendre muet ! Anti-spam désactivé."
-flood_logger_set_off: "<b>{}:</b>\n#SETFLOOD\n<b>Administrateur :</b> {}\nAnti-spam désactivé."
-flood_logger_set_on: "<b>{}:</b>\n#SETFLOOD\n<b>Administrateur :</b> {}\nAnti-spam réglé sur <code>{}</code>."
-flood_set: La protection anti-spam a été modifié à {}
-flood_set_off: La protection anti-spam a été désactivée.
-flood_status_off: La protection anti-spam n'est pas active !
-flood_status_on: Les utilisateurs seront rendus muet s'ils envoient plus de {} messages consécutifs.
-flood_err_num: La protection anti-spam doit être réglée sur 0 (désactivée), ou un nombre plus grand que 3 (activée) !
-flood_err_args: Argument non reconnu - veuillez utiliser un nombre, 'off' ou 'no'.
+modname_antiflood: Antiflood
+flood_mute: I would like to leave the flooding to natural disasters. But you, you were just a disappointment. *Muted*!
+flood_err_no_perm: I can't mute people here, give me permissions first! Until then, I'll disable antiflood.
+flood_logger_success: "<b>{}:</b>\n#MUTED\n<b>User:</b> {}\nFlooded the group."
+flood_logger_fail: "<b>{}:</b>\n#INFO\nNo mute permissions! Antiflood disabled"
+flood_logger_set_off: "<b>{}:</b>\n#SETFLOOD\n<b>Admin:</b> {}\nDisabled antiflood."
+flood_logger_set_on: "<b>{}:</b>\n#SETFLOOD\n<b>Admin:</b> {}\nSet antiflood to <code>{}</code>."
+flood_set: Antiflood has been updated and set to {}
+flood_set_off: Antiflood has been disabled.
+flood_status_off: I'm not currently enforcing flood control!
+flood_status_on: I'm currently muting users if they send more than {} consecutive messages.
+flood_err_num: Antiflood has to be either 0 (disabled), or a number bigger than 3 (enabled)!
+flood_err_args: Unrecognized argument - please use a number, 'off', or 'no'.
 antiflood_help: |
-  Vous savez parfois quand quelqu'un arrive, envoie 100 messages et ruine la conversation ? Avec la protection anti-spam cela n'arrivera plus !\n
-  La protection anti-spam vous permet de réagir face aux utilisateurs qui envoient plus de **x** messages d'affilée.\n
-  Les commandes disponibles sont :
-  - /flood: renvoie le réglage actuel du niveau anti-spam.
-  - /setflood <nombre/off>: défini le nombre de messages à partir duquel des mesures sont prisent contre l'utilisateur.
+  You know how sometimes people join, send 100 messages, and ruin your chat? With antiflood, that happens no more!\n
+  Antiflood allows you to take action on users that send more than **x** messages in a row.\n
+  Available commands are:
+  - /flood: gets the current antiflood settings.
+  - /setflood <number/off>: sets the number of messages at which to take action on a user.
 #Antispam
-modname_antispam: Protection anti-spam
-antispam_err_usr_sudo: J'espionne avec mes petits yeux... la guerre des linges de commandes débute ! Pourquoi vous retourvez-vous les uns contre les autres ?
-antispam_err_usr_support: OOOH, quelqu'un essaye de bannir globalement (gban) un membre de l'assistance ! *apporte du popcorn*
-antispam_err_usr_bot: '-_- Très amusant, laissez moi me bannir, pourquoi pas après tout ? Bien essayé.'
-antispam_err_not_usr: Ce n'est pas un utilisateur !
-antispam_err_usr_deleted: Ce compte à été supprimé ! Pourquoi s'embêter à le bannir ?
-antispam_err_no_new_reason: Cet utilisateur est déjà banni globalement (gban) ; Je changerais bien la raison, mais vous ne m'en avez pas donné de nouvelle...
+modname_antispam: Antispam Security
+antispam_err_usr_sudo: I spy with my little eyes... a sudo user war! Why are you guys turning on each other?
+antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
+antispam_err_usr_bot: '-_- So funny, let me gban myself, why don''t I? Nice try.'
+antispam_err_not_usr: That's not a user!
+antispam_err_usr_deleted: That's a deleted account! Why even bother gbanning them?
+antispam_err_no_new_reason: This user is already gbanned; I'd change the reason, but you haven't given me one...
 antispam_logger_update_gban: |
-  <b>Nouvelle raison de bannissement global</b>\n
-  <b>Sudo administrateur :</b> {}\n
-  <b>Utilisateur :</b> {}\n
-  <b>Identifiant :</b> <code>{}</code>\n
-  <b>Raison précédente :</b> {}\n
-  <b>Nouvelle raison :</b> {}
-antispam_reason_updated: "Cet utilisateur est déjà banni globalement (gban). J'ai mis à jour la raison.\nRaison précédente : <code>{}</code>\nNouvelle raison: <code>{}</code>"
-antispam_new_gban: Bannissement global (gban) {} avec l'Id <code>{}</code>...
-antispam_logger_new_gban: "{} banni globalement (gban) l'utilisateur {} avec l'identifiant <code>{}</code> pour la raison suivante : <code>{}</code>."
-antispam_no_reason: Pas de raison spécifiée
-antispam_user_not_gbanned: Cet utilisateur n'est pas banni globalement (gban) !
-antispam_ungbanned: Je vais donner une seconde chance à {}, globalement.
-antispam_logger_ungban: "{} à gracié {}."
-antispam_err_ungban: "Impossible de gracier globalement (ungban) car : {}"
-antispam_ungban_success: Gracié (ungban) avec succès !
-antispam_checkban_user_removed: "*Cet utilisateur est banni globalement (gban) et a été exclut.*\nRaison: `{}`"
-antispam_on: J'ai activé la sécurité globale dans ce groupe. Cela vous aidera à vous protéger des spammeurs, des personnes douteuses et des pires trolls.
-antispam_off: J'ai désactivé la sécurité globale dans ce groupe. Les bans globaux (gban) n'affecterons plus vos membres dorénavant. Vous serez moins bien protégés contre les trolls et spammeurs !
-antispam_err_wrong_arg: "Donnez moi un argument pour choisir le réglage ! on/off, yes/no !\n\nLe réglage actuel est : {}\nQuand la valeur est 'True', tout ban global (gban) sera appliqué dans votre groupe. Quand la valeur est 'False', ils ne le seront pas, vous laissant à la merci des spammeurs."
-antispam_userinfo_gbanned: "Globalement banni (gban) : <b>{}</b>"
-antispam_userinfo_gban_reason: "\nRaison : {}"
-antispam_chatsettings_gban: "Ce tchat utilise le *ban global (gban)* : `{}`."
-anitspam_appeal: \n<b>Réclamation :</b> @HarukaAyaGroup
+  <b>New Reason of Global Ban</b>\n
+  <b>Sudo Admin:</b> {}\n
+  <b>User:</b> {}\n
+  <b>ID:</b> <code>{}</code>\n
+  <b>Previous Reason:</b> {}\n
+  <b>New Reason:</b> {}
+antispam_reason_updated: "This user has already been gbanned. I have updated the reason.\nPrevious reason: <code>{}</code>\nNew reason: <code>{}</code>"
+antispam_new_gban: Global Banning {} with the id <code>{}</code>...
+antispam_logger_new_gban: "{} is gbanning user {} with the id <code>{}</code> with the following reason: <code>{}</code>."
+antispam_no_reason: No reason given
+antispam_user_not_gbanned: This user is not gbanned!
+antispam_ungbanned: I'll give {} a second chance, globally.
+antispam_logger_ungban: "{} has ungbanned user {}."
+antispam_err_ungban: "Could not ungban due to: {}"
+antispam_ungban_success: Ungbanned successfully!
+antispam_checkban_user_removed: "*This user is gbanned and has been removed.*\nReason: `{}`"
+antispam_on: I've enabled antispam security in this group. This will help to protect you from spammers, unsavoury characters, and the biggest trolls.
+antispam_off: I've disabled antispam security in this group. GBans won't affect your users anymore. You'll be less protected from any trolls and spammers though!
+antispam_err_wrong_arg: "Give me some arguments to choose a setting! on/off, yes/no!\n\nYour current setting is: {}\nWhen True, any gbans that happen will also happen in your group. When False, they won't, leaving you at the possible mercy of spammers."
+antispam_userinfo_gbanned: "Globally banned: <b>{}</b>"
+antispam_userinfo_gban_reason: "\nReason: {}"
+antispam_chatsettings_gban: "This chat is enforcing *gbans*: `{}`."
+anitspam_appeal: \n<b>Appeal at:</b> @HarukaAyaGroup
 antispam_spamwatch_banned: "<b>This user is detected as a spambot by SpamWatch and has been removed!</b>\n\n<b>Reason</b>: {}"
 antispam_help: |
-  Le bannissement affecte tous les utilisateurs présents dans les groupes faisant usage de ce bot. Cela permet de vous protéger ainsi que vos groupes en bannissant les spammeurs le plus rapidement possible. Ce paramètre est activé par défault, mais vous pouvez le changer en utilisant cette commande.\n
-  *Administrateurs uniquement :*
-  - /antispam <on/off/yes/no>: Changer le paramètre de bannissement dans le groupe, ou revenir au paramètre actuel (sans argument).
+  Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
+  *Admin only:*
+  - /antispam <on/off/yes/no>: Change antispam security settings in the group, or return your current settings(when no arguments).
 #Bans
-modname_bans: Bannissements
-bans_err_usr_not_found: Je ne parviens pas à trouver cet utilisateur.
-bans_err_usr_is_bot: Je ne vais pas me bannir moi-même, êtes-vous fous ?
-bans_err_usr_is_admin: Pourquoi bannirais-je un administrateur ? Cela semble être une idée saugrenue.
+modname_bans: Bans
+bans_err_usr_not_found: I can't seem to find this user.
+bans_err_usr_is_bot: I'm not gonna BAN myself, are you crazy?
+bans_err_usr_is_admin: Why would I ban an admin? That sounds like a pretty dumb idea.
 bans_logger: |
   <b>{}:</b>
   #BANNED
-  <b>Administrateur :</b> {}
-  <b>Utilisateur :</b> {}(<code>{}</code>)
-bans_banned_success: L'administrateur {} à banni avec succès {} dans <b>{}</b> !
-bans_logger_reason: \n<b>Raison :</b> {}
-bans_err_unknown: "Erreur inconnue : {} a échoué."
-bans_err_tban_no_arg: Vous n'avez pas spécifié de délai pour bannir cet utilisateur !
-bans_tban_logger: "<b>{} :</b>\n#TEMP_BANNED\n<b>Administrateur :</b> {}\n<b>Utilisateur :</b> {} (<code>{}</code>)\n<b>Heure :</b> {}"
-bans_tbanned_success: L'administrateur {} à banni avec succès {} dans <b>{}</b> pour {} !
-bans_kick_is_bot: Je ne m'excluerais pas !
-bans_kick_is_admin: Pourquoi devrais-je exclure un administrateur ? Cela semble être une idée saugrenue.
-bans_kick_success: L'administrateur {} à exclu avec succès {} dans <b>{}</b> !
-bans_kick_logger: "<b>{} :</b>\n#KICKED\n<b>Administrateur :</b> {}\n<b>Utilisateur :</b> {} (<code>{}</code>)"
-bans_kickme_success: Pas de problème.
+  <b>Admin:</b> {}
+  <b>User:</b> {} (<code>{}</code>)
+bans_banned_success: Admin {} has successfully banned {} in <b>{}</b>!
+bans_logger_reason: \n<b>Reason:</b> {}
+bans_err_unknown: "Unknown error: {} failed."
+bans_err_tban_no_arg: You haven't specified a time to ban this user for!
+bans_tban_logger: "<b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)\n<b>Time:</b> {}"
+bans_tbanned_success: Admin {} has successfully banned {} in <b>{}</b> for {}!
+bans_kick_is_bot: I'm not kicking myself!
+bans_kick_is_admin: Why would I kick an admin? That sounds like a pretty dumb idea.
+bans_kick_success: Admin {} has successfully kicked {} in <b>{}</b>!
+bans_kick_logger: "<b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)"
+bans_kickme_success: No problem.
 bans_kickme_failed:
-bans_unban_user_in_chat: Pourquoi essayez vous de gracier un utilisateur déjà présent dans le tchat ?
-bans_unban_success: Oui, cet utilisateur peut rejoindre !
-bans_unban_logger: "<b>{}:</b>\n#BANNED\n<b>Administrateur :</b> {}\n<b>Utilisateur :</b> {}(<code>{}</code>)"
-bans_sban_logger: "<b>{}:</b>\n#BANNED\n<b>Administrateur :</b> {}\n<b>Utilisateur :</b> {}(<code>{}</code>)"
+bans_unban_user_in_chat: Why are you trying to unban someone that's already in the chat?
+bans_unban_success: Yep, this user can join!
+bans_unban_logger: "<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)"
+bans_sban_logger: "<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)"
 bans_help: |
-  Certaines personnes doivent être publiquement bannies ; spammeurs, personnes désagréables, ou trolls.\n
-  Ce module vous permet de faire cela aisément, en affichant certaines actions basiques que chacun puisse voir !\n
-  Les commandes disponibles sont :
-  - /ban : banni un utilisateur dans le tchat.
-  - /banme : vous banni vous-même.
-  - /tban : banni temporairement un utilisateur dans le tchat, definnissez une durée avec un entier <d/h/m> (jours, heures ou minutes)
-  - /unban : gracie un utilisateur dans le tchat.
-  - /sban : banni silencieusement un utilisateur dans le chat.
-  - /mute : rend muet un utilisateur dans le tchat.
-  - /tmute : rend temporairement muet un utilisateur dans le tchat. Définissez une durée avec un entier <d/h/m> (jours, heures ou minutes)
-  - /unmute : permet à un utilisateur rendu muet de parler à nouveau.
-  - /kick : expulse un utilisateur du tchat.
-  - /kickme : vous expulse.\n
-  Toutes les commandes donctionnent par aguments ou réponse, sauf 'banme' and 'kickme' (qui ne requièrent aucun argument).\n
-  Un exemple pour rendre quelqu'un muet temporairement :
-  /tmute @nomUtilisateur 2h ; Ceci rend muet un utilisateur pour 2 heures.
+  Some people need to be publicly banned; spammers, annoyances, or just trolls.\n
+  This module allows you to do that easily, by exposing some common actions, so everyone will see!\n
+  Available commands are:
+  - /ban: Bans a user in the chat.
+  - /banme: Ban yourself.
+  - /tban: Temporarily bans a user in the chat, set time using int<d/h/m> (days, hours or minutes)
+  - /unban: Unbans a user in the chat.
+  - /sban: Silently bans a user in the chat.
+  - /mute: Mute a user in the chat.
+  - /tmute: Temporarily mute a user in the chat. set time using int<d/h/m> (days, hours or minutes)
+  - /unmute: Unmutes a user in the chat.
+  - /kick: Kicks a user from the chat.
+  - /kickme: Kick yourself.\n
+  All commands work via handle or reply, except banme and kickme(which require no arguments).\n
+  An example of temporarily muting someone:
+  /tmute @username 2h; this mutes a user for 2 hours.
 #Blacklist
-modname_blacklist: Expressions censurées
-blacklist_active_list: Filtres de liste noire actifs dans {} :\n
-blacklist_no_list: Il n'y a pas de filtre de liste noire dans <b>{}</b> !
-blacklist_add: Ajout de <code>{}</code> à la liste noire dans <b>{}</b> !
-blacklist_del: Retrait de <code>{}</code> de la liste noire dans <b>{}</b> !
-blacklist_multi_del: Retrait de <code>{}</code> de la liste noire dans <b>{}</b> !
-blacklist_err_add_no_args: Dites moi quelles expressions vous souhaitez {} de la liste noire.
-blacklist_err_del_no_args: Dites moi quelles expressions vous souhaitez retirer de la liste noire.
-blacklist_err_not_trigger: Ceci n'est pas une expression contenue dans la liste noire !
-blacklist_err_multidel_no_trigger: Aucune de ces expressions n'est présente, donc rien n'a été retiré de la liste noire.
-blacklist_err_multidel_some_no_trigger: Retrait de <code>{}</code> de la liste noire dans <b>{}</b> ! L'expression '{}' n'est pas présente et n'a pas été retirée.
-blacklist_chatsettings_word_count: Il y a {} expressions en liste noire.
+modname_blacklist: Word Blacklists
+blacklist_active_list: Blacklist filters active in {}:\n
+blacklist_no_list: There are no blacklist filters in <b>{}</b>!
+blacklist_add: Added <code>{}</code> to the blacklist in <b>{}</b>!
+blacklist_del: Removed <code>{}</code> from the blacklist in <b>{}</b>!
+blacklist_multi_del: Removed <code>{}</code> triggers from the blacklist in <b>{}</b>!
+blacklist_err_add_no_args: Tell me what words you would like to {} the blacklist.
+blacklist_err_del_no_args: Tell me what words you would like to remove from the blacklist.
+blacklist_err_not_trigger: This isn't a blacklisted trigger!
+blacklist_err_multidel_no_trigger: None of those triggers existed, so nothing was removed from blacklist.
+blacklist_err_multidel_some_no_trigger: Removed <code>{}</code> triggers from the blacklist in <b>{}</b>! {} did not exist, so were not removed.
+blacklist_chatsettings_word_count: There are {} blacklisted words.
 blacklist_help: |
-  Vous pouvez paramétrer des filtres pour automatiquement éxécuter des actions sur les utilisateurs lorsqu'ils emploient certaines expressions. Ceci est possible en utilisant :
-  - /addblacklist <expression interdite> <raison>: ajoute l'expression interdite en liste noire. Vous pouvez utiliser des phrases en ajoutant des guillemets pour la raison.
-  - /unblacklist <expression interdite>: retire l'expression interdite en liste noire.
-  - /rmblacklist <expression interdite>: identique à /unblacklist.
-  - /blacklist: liste toutes les expressions contenues en liste noire\n
-  /addblacklist "les administrateurs sont nazes" Respectez vos administrateurs !
-  Ceci va supprimer tout message contenant "les administrateurs sont nazes".\n
-  Conseil de pro :
-  La liste noire vous permet d'utiliser des modificateurs pour détecter des caractères "inconnus". Par exemple, vous pouvez utiliser le caractère ? pour obtenir une correspondance avec tout caractère qui n'est pas un espace.
-  Vous pouvez aussi utiliser le modificateur * qui correspond à n'importe quel nombre de caratères de n'importe quel type. Si vous voulez bloquer des adresses url, cela vous permet d'obtenir une correspondance. Cela englobe tout caractère sauf les espaces. C'est pratique si vous souhaitez, par exemple, bloquer les réducteurs d'url.
-  Par exemple, ceci bloque les liens bit.ly :
-  /addblacklist "bit.ly/*" Nous n'aimons pas les réducteurs d'url !
-  Si vous voulez obtenir une correspondance sur les liens bit.ly/ suivis de trois caractères, vous pouvez utiliser :
-  /addblacklist "bit.ly/???" Nous n'aimons pas les réducteurs d'url !
-  Ceci obtiendra une correspondance pour bit.ly/abc, mais pas pour bit.ly/abcd.
+  You can set blacklist filters to take automatic action on people when they say certain things. This is done using:
+  - /addblacklist <blacklist trigger> <blacklist reason>: blacklists the trigger. You can set sentences by putting quotes around the reason.
+  - /unblacklist <blacklist trigger>: stop blacklisting a certain blacklist trigger.
+  - /rmblacklist <blacklist trigger>: same as /unblacklist
+  - /blacklist: list all active blacklist filters\n
+  /addblacklist "the admins suck" Respect your admins!
+  This would delete any message containing 'the admins suck'.\n
+  Pro tip:
+  Blacklists allow you to use some modifiers to match "unknown" characters. For example, you can use the ? character to match a single occurence of any non-whitespace character.
+  You could also use the * modifier, which matches any number of any character. If you want to blacklist urls, this will allow you to match the full thing. It matches every character except spaces. This is cool if you want to stop, for example, url shorteners.
+  For example, the following will ban any bit.ly link:
+  /addblacklist "bit.ly/*" We dont like shorteners!
+  If you want to only match bit.ly/ links followed by three characters, you could use:
+  /addblacklist "bit.ly/???" We dont like shorteners!
+  This would match bit.ly/abc, but not bit.ly/abcd.
 #Connections
-modname_connection: Connexions
-connection_enable: Les connexions des utilisateurs à ce tchat sont activées.
-connection_disable: Les connexions des utilisateurs à ce tchat sont désactivées.
-connection_err_wrong_arg: Veuillez entrer 'on/yes/off/no' comme argument !
-connection_success: Connecté avec succès à *{}*
-connection_fail: Échec de la connexion !
-connection_err_not_allowed: Les connexions à ce tchat ne sont pas autorisées !
-connection_err_no_chatid: Entrez l'ID du tchat pour vous connecter !
-connection_dis_success: Déconnecté du tchat avec succès !
-connection_dis_fail: Échec de la déconnexion !
-connection_err_unknown: Le groupe à changé les droits de connexion ou vous n'êtes administrateur.\nJe vais vous déconnecter.
+modname_connection: Connections
+connection_enable: Enabled connections to this chat for users.
+connection_disable: Disabled connections to this chat for users.
+connection_err_wrong_arg: Please enter on/yes/off/no as an argument!
+connection_success: Successfully connected to *{}*
+connection_fail: Connection failed!
+connection_err_not_allowed: Connections to this chat are not allowed!
+connection_err_no_chatid: Input chat ID to connect!
+connection_dis_success: Disconnected from chat successfully!
+connection_dis_fail: Disconnecting failed!
+connection_err_unknown: Group has changed connection rights or you are not an admin anymore.\nI'll disconnect you.
 connection_help: |
-  Parfois, vous souhaitez simplement ajouter des notes et des filtres dans un tchat de groupe, mais vous ne voulez pas que tout le monde le voit ; C'est là que les connexions sont utiles...
-  Ceci vous permet de vous connecter à la base de données d'un groupe et d'ajouter des choses sans que les commandes n'apparaissent dans le tchat ! Pour des raisons évidentes, vous devez être un administrateur pour des choses ; mais chaque uttilisateur dans le groupe peut voir vos données.\n
-  Les actions suivantes sont disponibles pour les groupes connectés :
-  • Voir et modifier les notes
-  • Voir et modifier les filtres
-  • Voir et modifier la liste noire
-  • Promouvoir/rétrograder les utilisateurs
-  • Voir la liste des administrateurs, voir le lien d'invitation
-  • Désactiver/activer les commandes dans le tchat
-  • Rendre muet ou annuler un utilisateur rendu muet dans le tchat
-  • Restreindre ou annuler des restrictions sur les utilisateurs dans tchat
-  • Plus à l'avenir !\n
-  - Tapez /connect ou /connection dans le groupe auquel vous souhaitez vous connecter.
-  - /connection ou /connect <chatid> : connexion au tchat
-  - /disconnect : disconnexion du tchat
-  - /allowconnect on/yes/off/no : autorise ou non les utilisateurs à se connecter au groupe\n
-  Vous pouvez obtenir l'ID du tchat en utilisant la commande /id dans le tchat. Ne soyez pas surpris si l'ID est négatif ; tous les super groupes ont des ID négatifs.
+  Sometimes, you just want to add some notes and filters to a group chat, but you don't want everyone to see; This is where connections come in...
+  This allows you to connect to a chat's database, and add things to it without the commands appearing in chat! For obvious reasons, you need to be an admin to add things; but any member in the group can view your data.\n
+  Actions are available with connected groups:
+  • View and edit notes
+  • View and edit filters
+  • View and edit blacklists
+  • Promote/demote users
+  • See adminlist, see invitelink
+  • Disable/enable commands in chat
+  • Mute/unmute users in chat
+  • Restrict/unrestrict users in chat
+  • More in the future!\n
+  - Type /connect or /connection in the group you want to connect to.
+  - /connection or /connect <chatid>: Connect to remote chat
+  - /disconnect: Disconnect from chat
+  - /allowconnect on/yes/off/no: Allow connect users to group\n
+  You can retrieve the chat id by using the /id command in your chat. Don't be surprised if the id is negative; all super groups have negative ids.
 #Filters
-modname_cust_filters: Filtres
-cust_filters_list: "*Liste des filtres dans {} :*\n"
-cust_filters_local: filtres locaux
-cust_filters_err_btn_only: Le texte de réponse du filtre est manquant. Vous ne pouvez pas avoir UNIQUEMENT des boutons, il faut un message pour aller avec !
-cust_filters_err_empty: Vous n'avez pas spécifié avec quoi répondre !
-cust_filters_add_success: Élément '{}' ajouté dans *{}* !
-cust_filters_list_empty: Il n'y a aucun filtre actif dans {} !
-cust_filters_stop_success: D'accord, j'arrêterai de répondre à ceci dans *{}*.
-cust_filters_err_wrong_filter: Ceci n'est pas un filtre actif - éxécutez /filters pour voir tous les filtres actifs.
-cust_filters_err_protocol: Vous semblez essayer d'utiliser un protocol url non supporté. Telegram ne supporte pas les boutons pour certains protocols tels que tg://. Veuillez éssayer de nouveau, ou demandez de l'aide dans le groupe @HarukaAyaGroup.
-cust_filters_err_badformat: Ce filtre ne peut pas être envoyé car il est incorrectement formaté. Demandez dans le groupe @HarukaAyaGroup si vous ne parvenez pas à comprendre pourquoi !
-cust_filters_chatsettings_stats: Il y a `{}` filtres personnalisés ici.
+modname_cust_filters: Filters
+cust_filters_list: "*List of filters in {}:*\n"
+cust_filters_local: local filters
+cust_filters_err_btn_only: Filter reply text is missing. You can't ONLY have buttons, you need a message to go with it!
+cust_filters_err_empty: You didn't specify what to reply with!
+cust_filters_add_success: Handler '{}' added in *{}*!
+cust_filters_list_empty: There aren't any active filters in {}!
+cust_filters_stop_success: Yep, I'll stop replying to that in *{}*.
+cust_filters_err_wrong_filter: That's not an active filter - run /filters for all active filters.
+cust_filters_err_protocol: You seem to be trying to use an unsupported url protocol. Telegram doesn't support buttons for some protocols, such as tg://. Please try again, or ask in @HarukaAyaGroup for help.
+cust_filters_err_badformat: This filter could not be sent, as it is incorrectly formatted. Ask in @HarukaAyaGroup if you can't figure out why!
+cust_filters_chatsettings_stats: There are `{}` custom filters here.
 cust_filters_cleanup_success: "{} filters from this chat have been removed."
 cust_filters_help: |
-  Rendez votre tchat plus vivant avec des filtres ; le bot répondra à certains mots-clés !
-  Les filtres ne sont pas sensibles à la casse ; à chaque fois que quelqu'un utilise un de vos mots-clés, {} répondra quelque chose de différent ! Peut être utilisé pour créer vos propres commandes si désiré.
-  - /filters : liste tous les filtres actifs dans le chat.
-  *Administrateurs uniquement :*
-  - /filter <mot-clé> <message> : à chaque fois que quelqu'un utilise le <mot-clé>, le bot répondra avec le <message>. Pour un filtre avec plusieurs mots-clés, cite le premier mot-clé.
-  - /stop <mot-clé>: arrête ce filtre.\n
-  Un exemple de comment paraméter un filtre :
-  `/filter salut Salut ! Comment vas-tu ?`
-  Un filtre avec plusieurs mots-clés peut être paramétré via:
-  `/filter "salut mon ami" Salut ! ça faisait longtemps !`
-  Si vous souhaitez sauvegarder une image, un GIF, un sticker ou tout autre donnée, faites comme ceci :
-  `/filter <mot-clé>` en répondant à un sticker ou tout autre donnée que vous souhaitez définir comme réponse. Maintenant, à chaque fois que le <mot-clé> est utilisé ce contenu sera envoyé en réponse.
-  Maintenant, quelqu'un utilisant "salut" se véra répondre "Salut ! Comment vas-tu ?".
+  Make your chat more lively with filters; The bot will reply to certain words!
+  Filters are case insensitive; every time someone says your trigger words, {} will reply something else! can be used to create your own commands, if desired.
+  - /filters: list all active filters in this chat.
+  *Admin only:*
+  - /filter <keyword> <reply message>: Every time someone says "word", the bot will reply with "sentence". For multiple word filters, quote the first word.
+  - /stopall: Stop all filters, must be chat owner to do so. Only use this when you know what you're doing.
+  - /stop <filter keyword>: stop that filter.\n
+  An example of how to set a filter would be via:
+  `/filter hello Hello there! How are you?`
+  A multiword filter could be set via:
+  `/filter "hello friend" Hello back! Long time no see!`
+  If you want to save an image, gif, or sticker, or any other data, do the following:
+  `/filter word`, while replying to a sticker or whatever data you'd like. Now, every time someone mentions "word", that sticker will be sent as a reply.
+  Now, anyone saying "hello" will be replied to with "Hello there! How are you?".
 #Disable
-modname_disable: Désactivation des commandes
-disable_success: Utilisation de `{}` désactivée
-disable_err_undisableable: Cette commande ne peut pas être désactivée
-disable_err_no_cmd: Passez une commande en argument.
-disable_enable_success: Utilisation de `{}` activée
-disable_already_enabled: Cette commande est déjà activée.
-disable_able_commands: Les commandes suivantes sont commutables :\n{}
-disable_able_commands_none: Aucune commande ne peut être désactivée.
-disable_chatsettings_none_disabled: Aucune commande n'est désactivée !
-disable_chatsettings_list_disabled: Les commandes suivantes sont désactivées pour les non-administrateurs :\n{}
+modname_disable: Command Disabling
+disable_success: Disabled the use of `{}`
+disable_err_undisableable: That command can't be disabled
+disable_err_no_cmd: Pass a command as an argument.
+disable_enable_success: Enabled the use of `{}`
+disable_already_enabled: That command is already enabled.
+disable_able_commands: The following commands are toggleable:\n{}
+disable_able_commands_none: No commands can be disabled.
+disable_chatsettings_none_disabled: No commands are disabled!
+disable_chatsettings_list_disabled: The following commands are currently disabled for non-admins:\n{}
 disable_help: |
-  Tout le monde ne souhaite pas utiliser l'ensemble des commandes offertes par le bot. Désactiver certaines commandes permet d'eviter le spam et les abus.\n
-  Cela vous permet de désactiver certains commandes couramment utilisées, de manière à ce que les utilisateurs non-administrateurs ne les utilisent pas.
-  Cela vous permettra de les effacer automatiquement, évitant que les utilisateurs ne les spament.\n
-  - /cmds : vérifie l'état actuel des commandes désactivées\n
-  *Administrateurs uniquement :*
-  - /enable <commande> : active la <commande>
-  - /disable <commande> : désactive la <commande>
-  - /listcmds : liste toutes les commandes commutables
+  Not everyone wants every feature that the bot offers. Some commands are best when left unused to avoid spam and abuse.\n
+  This allows you to disable some commonly used commands, so non-admins can't use them.
+  It'll also allow you to autodelete them, stopping people from bluetexting.\n
+  - /cmds: check the current status of disabled commands\n
+  *Admin only:*
+  - /enable <cmd name>: Enable a command
+  - /disable <cmd name>: Disable a command
+  - /listcmds: List all toggleable commands
 #Feds
-modname_feds: Fédérations
-feds_create_fail: La création de fédération a échoué ! Demandez de l'aide dans le groupe @HarukaAyaGroup.
-feds_create_success: "*Vous avez créé une nouvelle fédération avec succès !*\nNom : `{}`\nID : `{}`\n\nÉxécutez la commande suivante pour les ajouter à cette fédération :\n`/joinfed {}`"
-feds_create_success_logger: "La fédération <b>{}</b> a été créée avec l'ID: <pre>{}</pre>"
-feds_err_no_args: Veuillez écrire le nom la fédération.
-feds_delete_not_found: Cette fédération n'a pas été trouvée !
-feds_owner_only: Seuls les possésseurs de la fédération peuvent effectuer cette action !
-feds_fedadmin_only: Seuls les administrateurs de la fédération peuvent effectuer cette action !
-feds_delete_confirm: Êtes-vous sûr de vouloir supprimer votre fédération ? Cette action ne peut pas être annulée, vous allez perdre votre liste de bannissement et la fédération <code>{}</code> va être définitivement supprimée !
-feds_group_not_in_fed: Ce groupe n'est dans aucune fédération !
-feds_group_part_of_fed: "Ce tchat fait parti de la fédération suivante :"
-feds_group_joined_fed: Hum, alliez vous rejoindre deux fédérations avec avec un même tchat ?
-feds_fedid_invalid: Veuillez un ID de fédération valide.
-feds_join_unknown_err: La tentative d'adhésion à la fédération a échoué à cause d'une erreur inconnue, demandez de l'aide dans le groupe @HarukaAyaGroup.
-feds_join_success: Le tchat a rejoint la fédération avec succès !
-feds_leave_success: "Ce tchat à quitté la fédération : {} !"
-feds_leave_not_joined: Comment pourriez vous quitter une fédération que vous n'avez jamais rejoint ?!
-feds_promote_owner: Pourquoi essayez vous de promouvoir le possésseur de la fédération ?
-feds_promote_bot: Je suis déjà administrateur de fédération dans toutes les fédérations !
-feds_promote_success: Promu avec succès !
-feds_promote_failed: Échec de la promotion !
-feds_demote_bot: Je ne peux pas me rétrograder moi-même d'une fédération !
-feds_demote_target_not_admin: Je ne peux pas rétrograder des utilisateurs qui ne sont pas administrateurs de fédération !
-feds_demote_success: Partez d'ici !
-feds_demote_failed: Échec de la rétrogradation !
+modname_feds: Federations
+feds_create_fail: Federation creation failed! Ask in @HarukaAyaGroup for help.
+feds_create_success: "*You have successfully created a new federation!*\nName: `{}`\nID: `{}`\n\nRun the command below in groups to add them to the federation:\n`/joinfed {}`"
+feds_create_success_logger: "Federation <b>{}</b> has been created with ID: <pre>{}</pre>"
+feds_err_no_args: Please write down the name of the federation.
+feds_delete_not_found: This federation is not found!
+feds_owner_only: Only federation owners can do this!
+feds_fedadmin_only: Only federation admins can do this!
+feds_delete_confirm: Are you sure you want to delete your federation? This action cannot be cancelled, you will lose your entire ban list, and <code>{}</code> federation will be permanently lost!
+feds_group_not_in_fed: This group is not in any federation!
+feds_group_part_of_fed: "This chat is part of the following federation:"
+feds_group_joined_fed: Uh, Are you gonna join two federations at one chat?
+feds_fedid_invalid: Please enter a valid Federation ID.
+feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @HarukaAyaGroup for help.
+feds_join_success: Chat joined to federation!
+feds_leave_success: "This chat has left the federation: {}!"
+feds_leave_not_joined: How can you leave a federation that you never joined?!
+feds_promote_owner: Why are you trying to promote the federation owner?
+feds_promote_bot: I am already a federation admin in all federations!
+feds_promote_success: Promoted successfully!
+feds_promote_failed: Failed to promote!
+feds_demote_bot: I can't demote myself from a federation!
+feds_demote_target_not_admin: I cannot demote people who are not federation admins!
+feds_demote_success: Get out of here!
+feds_demote_failed: Demoting failed!
 feds_info: |
   <b>ℹ️ Federation Information:</b>
   FedID: <code>{}</code>
