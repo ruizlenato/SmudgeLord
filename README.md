@@ -2,7 +2,7 @@
 
 To anyone coming here to **clone this bot**, no support will be given for it. If you dare to join the support group and asks for how to run this bot, you'll be banned with no warning and you can blame no one but yourself for that.
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/fbbb2ca43fa44938a7371706eb39411e)](https://app.codacy.com/gh/HarukaNetwork/HarukaAya?utm_source=github.com&utm_medium=referral&utm_content=HarukaNetwork/HarukaAya&utm_campaign=Badge_Grade_Dashboard)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6b3b94ad8a3840e9860d009429dedef4)](https://www.codacy.com/gl/HarukaNetwork/HarukaAya?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=HarukaNetwork/HarukaAya&amp;utm_campaign=Badge_Grade)
 [![Crowdin](https://badges.crowdin.net/haruka/localized.svg)](https://crowdin.com/project/haruka)
 
 A modular Telegram Python bot running on python3 with an sqlalchemy database.
