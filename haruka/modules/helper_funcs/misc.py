@@ -1,5 +1,4 @@
 from functools import wraps
-from math import ceil
 from typing import List, Dict
 
 from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode, Update
