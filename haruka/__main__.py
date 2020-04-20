@@ -181,27 +181,32 @@ def help_button(bot: Bot, update: Update):
                 LOGGER.exception(f"Help string for {module} not found!")
 
             text = tld(chat.id, "here_is_help").format(mod_name, help_txt)
-            query.message.reply_text(text=text,
-                                     parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup([[
-                                         InlineKeyboardButton(
-                                             text=tld(chat.id, "btn_go_back"),
-                                             callback_data="help_back")
-                                     ]]))
+
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=text,
+                                  parse_mode=ParseMode.MARKDOWN,
+                                  reply_markup=InlineKeyboardMarkup([[
+                                      InlineKeyboardButton(
+                                          text=tld(chat.id, "btn_go_back"),
+                                          callback_data="help_back")
+                                  ]]))
 
         elif back_match:
-            query.message.reply_text(text=tld(chat.id, "send-help").format(
-                dispatcher.bot.first_name,
-                "" if not ALLOW_EXCL else tld(chat.id, "cmd_multitrigger")),
-                                     parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup(
-                                         paginate_modules(
-                                             chat.id, 0, HELPABLE, "help")))
-
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=tld(chat.id, "send-help").format(
+                                      dispatcher.bot.first_name,
+                                      "" if not ALLOW_EXCL else tld(
+                                          chat.id, "cmd_multitrigger")),
+                                  parse_mode=ParseMode.MARKDOWN,
+                                  reply_markup=InlineKeyboardMarkup(
+                                      paginate_modules(chat.id, 0, HELPABLE,
+                                                       "help")))
 
         # ensure no spinny white circle
         bot.answer_callback_query(query.id)
-        query.message.delete()
+        # query.message.delete()
 
     except BadRequest as excp:
         if excp.message == "Message is not modified":
