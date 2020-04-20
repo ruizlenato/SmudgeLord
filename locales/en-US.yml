@@ -298,7 +298,7 @@ cust_filters_help: |
   `/filter word`, while replying to a sticker or whatever data you'd like. Now, every time someone mentions "word", that sticker will be sent as a reply.
   Now, anyone saying "hello" will be replied to with "Hello there! How are you?".
 #Disable
-modname_disable: Command Disabling
+modname_disable: Disabling
 disable_success: Disabled the use of `{}`
 disable_err_undisableable: That command can't be disabled
 disable_err_no_cmd: Pass a command as an argument.
@@ -462,7 +462,7 @@ log_channel_help: |
   - sending /setlog in the channel
   - forwarding the /setlog to the group
 #Memes and etc.
-modname_memes: Memes and etc.
+modname_memes: Memes
 memes_no_message: I need a message to meme.
 memes_deepfry_nothing: What am I supposed to do with this?!
 memes_shout_notext: Where is text?
@@ -995,7 +995,7 @@ welcome_help: |
 users_seen: "I've seen them in <code>{}</code> chats in total."
 users_seen_is_bot: "I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."
 #Userinfo
-modname_userinfo: Bios and Abouts
+modname_userinfo: Bios/Abouts
 userinfo_about_not_set_they: "{} hasn't set an info message about themselves yet!"
 userinfo_about_not_set_you: You haven't set an info message about yourself yet!
 userinfo_about_set_success: Updated your info!

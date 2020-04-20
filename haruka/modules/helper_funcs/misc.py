@@ -60,17 +60,18 @@ def paginate_modules(chat_id,
             for x in module_dict.keys()
         ])
 
-    pairs = list(zip(modules[::3], modules[1::2], modules[2::3]))
+    pairs = list(zip(modules[::2], modules[1::2]))
 
     if len(modules) % 2 == 1:
         pairs.append((modules[-1], ))
 
-    max_num_pages = ceil(len(pairs) / 14)
-    modulo_page = page_n % max_num_pages
+    # max_num_pages = ceil(len(pairs) / 28)
+    # modulo_page = page_n % max_num_pages
 
     # can only have a certain amount of buttons side by side
-    if len(pairs) > 14:
-        pairs = pairs[modulo_page * 14:14]
+
+    #if len(pairs) > 21:
+    #    pairs = pairs[modulo_page * 28:28]
     # else:
     #     pairs += [[
     #         EqInlineKeyboardButton(tld(chat_id, 'btn_go_back'),
