@@ -108,7 +108,8 @@ def kang(bot: Bot, update: Update, args: List[str]):
                 im.save(kangsticker, "PNG")
             bot.add_sticker_to_set(user_id=user.id,
                                    name=packname,
-                                   png_sticker=open('images/kangsticker.png', 'rb'),
+                                   png_sticker=open('images/kangsticker.png',
+                                                    'rb'),
                                    emojis=sticker_emoji)
             msg.reply_text(tld(chat.id, 'stickers_kang_success').format(
                 packname, sticker_emoji),
@@ -119,7 +120,8 @@ def kang(bot: Bot, update: Update, args: List[str]):
             return
         except TelegramError as e:
             if e.message == "Stickerset_invalid":
-                makepack_internal(msg, user, open('images/kangsticker.png', 'rb'),
+                makepack_internal(msg, user,
+                                  open('images/kangsticker.png', 'rb'),
                                   sticker_emoji, bot, packname, packnum, chat)
             elif e.message == "Sticker_png_dimensions":
                 im.save(kangsticker, "PNG")
@@ -172,7 +174,8 @@ def kang(bot: Bot, update: Update, args: List[str]):
             msg.reply_photo(photo=open('images/kangsticker.png', 'rb'))
             bot.add_sticker_to_set(user_id=user.id,
                                    name=packname,
-                                   png_sticker=open('images/kangsticker.png', 'rb'),
+                                   png_sticker=open('images/kangsticker.png',
+                                                    'rb'),
                                    emojis=sticker_emoji)
             msg.reply_text(tld(chat.id, 'stickers_kang_success').format(
                 packname, sticker_emoji),
@@ -183,7 +186,8 @@ def kang(bot: Bot, update: Update, args: List[str]):
             return
         except TelegramError as e:
             if e.message == "Stickerset_invalid":
-                makepack_internal(msg, user, open('images/kangsticker.png', 'rb'),
+                makepack_internal(msg, user,
+                                  open('images/kangsticker.png', 'rb'),
                                   sticker_emoji, bot, packname, packnum, chat)
             elif e.message == "Sticker_png_dimensions":
                 im.save(kangsticker, "PNG")

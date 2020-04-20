@@ -11,7 +11,7 @@ import haruka.modules.sql.welcome_sql as sql
 from haruka.modules.sql.antispam_sql import is_user_gbanned
 from haruka import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP
 from haruka.modules.helper_funcs.chat_status import user_admin, is_user_ban_protected
-from haruka.modules.helper_funcs.misc import build_keyboard_parser, revert_buttons
+from haruka.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from haruka.modules.helper_funcs.msg_types import get_welcome_type
 from haruka.modules.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets, extract_time, markdown_to_html
@@ -20,7 +20,7 @@ from haruka.modules.tr_engine.strings import tld
 
 VALID_WELCOME_FORMATTERS = [
     'first', 'last', 'fullname', 'username', 'id', 'count', 'chatname',
-    'mention', 'rules'
+    'mention'
 ]
 
 ENUM_FUNC_MAP = {
@@ -164,14 +164,6 @@ def new_member(bot: Bot, update: Update):
                         username = "@" + escape(new_mem.username)
                     else:
                         username = mention
-
-                    rules = "http://t.me/" + bot.username + "?start=" + str(
-                        chat.id)
-
-                    # Build keyboard
-                    buttons = sql.get_welc_buttons(chat.id)
-                    keyb = build_keyboard_parser(bot, chat.id, buttons)
-
                     formatted_text = cust_welcome.format(
                         first=escape(first_name),
                         last=escape(new_mem.last_name or first_name),
@@ -180,10 +172,10 @@ def new_member(bot: Bot, update: Update):
                         mention=mention,
                         count=count,
                         chatname=escape(chat.title),
-                        id=new_mem.id,
-                        rules=keyb.append(
-                            [InlineKeyboardButton("Rules", url=rules)]))
-
+                        id=new_mem.id)
+                    # Build keyboard
+                    buttons = sql.get_welc_buttons(chat.id)
+                    keyb = build_keyboard(buttons)
                     getsec, mutetime, custom_text = sql.welcome_security(
                         chat.id)
 
@@ -259,27 +251,19 @@ def new_member(bot: Bot, update: Update):
                     else:
                         username = mention
 
-                    rules = "http://t.me/" + bot.username + "?start=" + str(
-                        chat.id)
-
                     valid_format = escape_invalid_curly_brackets(
                         cust_welcome, VALID_WELCOME_FORMATTERS)
-
+                    res = valid_format.format(first=escape(first_name),
+                                              last=escape(new_mem.last_name
+                                                          or first_name),
+                                              fullname=escape(fullname),
+                                              username=username,
+                                              mention=mention,
+                                              count=count,
+                                              chatname=escape(chat.title),
+                                              id=new_mem.id)
                     buttons = sql.get_welc_buttons(chat.id)
-                    keyb = build_keyboard_parser(bot, chat.id, buttons)
-
-                    res = valid_format.format(
-                        first=escape(first_name),
-                        last=escape(new_mem.last_name or first_name),
-                        fullname=escape(fullname),
-                        username=username,
-                        mention=mention,
-                        count=count,
-                        chatname=escape(chat.title),
-                        id=new_mem.id,
-                        rules=keyb.append(
-                            [InlineKeyboardButton("Rules", url=rules)]))
-
+                    keyb = build_keyboard(buttons)
                 else:
                     res = sql.DEFAULT_WELCOME.format(first=first_name)
                     keyb = []
@@ -419,12 +403,6 @@ def left_member(bot: Bot, update: Update):
                 else:
                     username = mention
 
-                rules = "http://t.me/" + bot.username + "?start=" + str(
-                    chat.id)
-
-                buttons = sql.get_gdbye_buttons(chat.id)
-                keyb = build_keyboard_parser(bot, chat.id, buttons)
-
                 formatted_text = cust_goodbye.format(
                     first=escape(first_name),
                     last=escape(left_mem.last_name or first_name),
@@ -433,11 +411,11 @@ def left_member(bot: Bot, update: Update):
                     mention=mention,
                     count=count,
                     chatname=escape(chat.title),
-                    id=left_mem.id,
-                    rules=keyb.append(
-                        [InlineKeyboardButton("Rules", url=rules)]))
+                    id=left_mem.id)
 
                 # Build keyboard
+                buttons = sql.get_gdbye_buttons(chat.id)
+                keyb = build_keyboard(buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
 
                 # Send message
@@ -462,12 +440,6 @@ def left_member(bot: Bot, update: Update):
                 else:
                     username = mention
 
-                rules = "http://t.me/" + bot.username + "?start=" + str(
-                    chat.id)
-
-                buttons = sql.get_gdbye_buttons(chat.id)
-                keyb = build_keyboard_parser(bot, chat.id, buttons)
-
                 valid_format = escape_invalid_curly_brackets(
                     cust_goodbye, VALID_WELCOME_FORMATTERS)
                 res = valid_format.format(first=escape(first_name),
@@ -478,13 +450,9 @@ def left_member(bot: Bot, update: Update):
                                           mention=mention,
                                           count=count,
                                           chatname=escape(chat.title),
-                                          id=left_mem.id,
-                                          rules=keyb.append([
-                                              InlineKeyboardButton("Rules",
-                                                                   url=rules)
-                                          ]))
-
-                keyb = build_keyboard_parser(bot, chat.id, buttons)
+                                          id=left_mem.id)
+                buttons = sql.get_gdbye_buttons(chat.id)
+                keyb = build_keyboard(buttons)
 
             else:
                 res = sql.DEFAULT_GOODBYE
@@ -665,7 +633,7 @@ def welcome(bot: Bot, update: Update, args: List[str]):
                 update.effective_message.reply_text(welcome_m)
 
             else:
-                keyb = build_keyboard_parser(bot, chat.id, buttons)
+                keyb = build_keyboard(buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
 
                 send(update, welcome_m, keyboard, sql.DEFAULT_WELCOME)
@@ -679,7 +647,7 @@ def welcome(bot: Bot, update: Update, args: List[str]):
                                             caption=welcome_m)
 
             else:
-                keyb = build_keyboard_parser(bot, chat.id, buttons)
+                keyb = build_keyboard(buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
                 ENUM_FUNC_MAP[welcome_type](chat.id,
                                             cust_content,
@@ -728,7 +696,7 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
                 update.effective_message.reply_text(goodbye_m)
 
             else:
-                keyb = build_keyboard_parser(bot, chat.id, buttons)
+                keyb = build_keyboard(buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
 
                 send(update, goodbye_m, keyboard, sql.DEFAULT_GOODBYE)
@@ -742,7 +710,7 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
                                             caption=goodbye_m)
 
             else:
-                keyb = build_keyboard_parser(bot, chat.id, buttons)
+                keyb = build_keyboard(buttons)
                 keyboard = InlineKeyboardMarkup(keyb)
                 ENUM_FUNC_MAP[goodbye_type](chat.id,
                                             cust_content,

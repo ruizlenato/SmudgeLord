@@ -169,7 +169,8 @@ def pidortext(bot: Bot, update: Update, args: List[str]):
         data = tld(chat.id, "memes_no_message")
 
     if not Path('images/4pda.jpg').is_file():
-        LOGGER.warning("images/4pda.jpg not found! Pidor memes module is turned off!")
+        LOGGER.warning(
+            "images/4pda.jpg not found! Pidor memes module is turned off!")
         return
     for mocked in glob.glob("images/4pdaed*"):
         os.remove(mocked)
@@ -205,7 +206,8 @@ def kimtext(bot: Bot, update: Update, args: List[str]):
         data = tld(chat.id, "memes_no_message")
 
     if not Path('images/kim.jpg').is_file():
-        LOGGER.warning("images/kim.jpg not found! Kim memes module is turned off!")
+        LOGGER.warning(
+            "images/kim.jpg not found! Kim memes module is turned off!")
         return
     for mocked in glob.glob("kimed*"):
         os.remove(mocked)
