@@ -123,7 +123,8 @@ def report(bot: Bot, update: Update) -> str:
                     if not chat.type == Chat.SUPERGROUP:
                         bot.send_message(admin.user.id,
                                          msg + link,
-                                         parse_mode=ParseMode.HTML)
+                                         parse_mode=ParseMode.HTML,
+                                         disable_web_page_preview=True)
 
                         if should_forward:
                             message.reply_to_message.forward(admin.user.id)
@@ -136,7 +137,8 @@ def report(bot: Bot, update: Update) -> str:
                     if not chat.username:
                         bot.send_message(admin.user.id,
                                          msg + link,
-                                         parse_mode=ParseMode.HTML)
+                                         parse_mode=ParseMode.HTML,
+                                         disable_web_page_preview=True)
 
                         if should_forward:
                             message.reply_to_message.forward(admin.user.id)
@@ -150,7 +152,8 @@ def report(bot: Bot, update: Update) -> str:
                         bot.send_message(admin.user.id,
                                          msg + link,
                                          parse_mode=ParseMode.HTML,
-                                         reply_markup=reply_markup)
+                                         reply_markup=reply_markup,
+                                         disable_web_page_preview=True)
 
                         if should_forward:
                             message.reply_to_message.forward(admin.user.id)
@@ -169,7 +172,8 @@ def report(bot: Bot, update: Update) -> str:
         message.reply_to_message.reply_text(tld(
             chat.id,
             "reports_success").format(mention_html(user.id, user.first_name)),
-                                            parse_mode=ParseMode.HTML)
+                                            parse_mode=ParseMode.HTML,
+                                            disable_web_page_preview=True)
         return msg
 
     return ""
