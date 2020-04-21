@@ -15,7 +15,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 import json
 from datetime import datetime
 from typing import Optional, List
@@ -164,9 +163,10 @@ def evo(bot: Bot, update: Update):
     )
 
     if fetch.status_code == 500:
-        message.reply_text("Haruka Aya have been trying to connect to Github User Content, It seem like Github User Content is down")
+        message.reply_text(
+            "Haruka Aya have been trying to connect to Github User Content, It seem like Github User Content is down"
+        )
         return
-
 
     if fetch.status_code == 200:
         try:

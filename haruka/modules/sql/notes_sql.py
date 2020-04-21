@@ -15,7 +15,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 # Note: chat_id's are stored as strings because the int is too large to be stored in a PSQL database.
 import threading
 

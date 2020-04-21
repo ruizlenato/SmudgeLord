@@ -15,7 +15,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 import re
 from typing import List
 
@@ -116,9 +115,9 @@ def get(bot, update, notename, show_none=True, no_format=False):
                 raise
     else:
         if note:
-           text = note.value
+            text = note.value
         else:
-           text = None
+            text = None
 
         keyb = []
         parseMode = ParseMode.MARKDOWN

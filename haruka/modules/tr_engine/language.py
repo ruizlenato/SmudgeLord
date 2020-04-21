@@ -15,7 +15,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 from haruka.modules.sql.locales_sql import switch_to_locale, prev_locale
 from haruka.modules.tr_engine.strings import tld, LANGUAGES
 from telegram.ext import CommandHandler
