@@ -11,7 +11,7 @@ from telegram.utils.helpers import mention_html
 import haruka.modules.sql.antispam_sql as sql
 from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, GBAN_DUMP, STRICT_ANTISPAM, sw
 from haruka.modules.helper_funcs.chat_status import user_admin, is_user_admin
-from haruka.modules.helper_funcs.extraction import extract_user, extract_user_and_text
+from haruka.modules.helper_funcs.extraction import extract_user_and_text
 from haruka.modules.helper_funcs.filters import CustomFilters
 #from haruka.modules.helper_funcs.misc import send_to_list
 from haruka.modules.sql.users_sql import get_all_chats
