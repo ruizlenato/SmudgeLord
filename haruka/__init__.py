@@ -49,7 +49,15 @@ try:
 except ValueError:
     raise Exception("Your 'message_dump' must be set.")
 
-OWNER_USERNAME = CONFIG['owner_username']
+try:
+    GBAN_DUMP = CONFIG['gban_dump']
+except ValueError:
+    raise Exception("Your 'gban_dump' must be set.")
+
+try:
+    OWNER_USERNAME = CONFIG['owner_username']
+except ValueError:
+    raise Exception("Your 'owner_username' must be set.")
 
 try:
     SUDO_USERS = set(int(x) for x in CONFIG['sudo_users'] or [])

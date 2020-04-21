@@ -138,19 +138,33 @@ antispam_err_not_usr: That's not a user!
 antispam_err_usr_deleted: That's a deleted account! Why even bother gbanning them?
 antispam_err_no_new_reason: This user is already gbanned; I'd change the reason, but you haven't given me one...
 antispam_logger_update_gban: |
-  <b>New Reason of Global Ban</b>\n
-  <b>Sudo Admin:</b> {}\n
-  <b>User:</b> {}\n
-  <b>ID:</b> <code>{}</code>\n
-  <b>Previous Reason:</b> {}\n
+  <b>New Reason of Global Ban</b>
+  <b>Sudo Admin:</b> {}
+  <b>User:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Previous Reason:</b> {}
   <b>New Reason:</b> {}
 antispam_reason_updated: "This user has already been gbanned. I have updated the reason.\nPrevious reason: <code>{}</code>\nNew reason: <code>{}</code>"
-antispam_new_gban: Global Banning {} with the id <code>{}</code>...
-antispam_logger_new_gban: "{} is gbanning user {} with the id <code>{}</code> with the following reason: <code>{}</code>."
+antispam_new_gban: |
+  <b>Initializing Global Ban</b>
+  <b>User:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Reason:</b> {}
+antispam_logger_new_gban: |
+  <b>Global Ban</b>
+  <b>Sudo Admin:</b> {}
+  <b>User:</b> {} 
+  <b>ID:</b> <code>{}</code>
+  <b>Reason:</b> {}
 antispam_no_reason: No reason given
 antispam_user_not_gbanned: This user is not gbanned!
 antispam_ungbanned: I'll give {} a second chance, globally.
-antispam_logger_ungban: "{} has ungbanned user {}."
+antispam_logger_ungban: |
+  <b>Global Ban Removal</b>
+  <b>Sudo Admin:</b> {}
+  <b>User:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Reason:</b> {}
 antispam_err_ungban: "Could not ungban due to: {}"
 antispam_ungban_success: Ungbanned successfully!
 antispam_checkban_user_removed: "*This user is gbanned and has been removed.*\nReason: `{}`"

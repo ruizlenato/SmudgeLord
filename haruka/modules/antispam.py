@@ -9,7 +9,7 @@ from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import haruka.modules.sql.antispam_sql as sql
-from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, MESSAGE_DUMP, STRICT_ANTISPAM, sw
+from haruka import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, GBAN_DUMP, STRICT_ANTISPAM, sw
 from haruka.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from haruka.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from haruka.modules.helper_funcs.filters import CustomFilters
@@ -79,23 +79,20 @@ def gban(bot: Bot, update: Update, args: List[str]):
         message.reply_text(tld(chat.id, "antispam_err_usr_deleted"))
         return
 
+    if not reason:
+        message.reply_text("Global Ban must have a reason!")
+        return
+
     full_reason = f"{reason} // GBanned by {banner.first_name} id {banner.id}"
 
     if sql.is_user_gbanned(user_id):
-        if not reason:
-            message.reply_text(tld(chat.id, "antispam_err_no_new_reason"))
-            return
-
         old_reason = sql.update_gban_reason(
             user_id, user_chat.username or user_chat.first_name,
             full_reason) or "None"
 
-        if int(banner.id) in [172811422, 214416808]:
-            return
-
         try:
             bot.send_message(
-                MESSAGE_DUMP,
+                GBAN_DUMP,
                 tld(chat.id, "antispam_logger_update_gban").format(
                     mention_html(banner.id, banner.first_name),
                     mention_html(user_chat.id, user_chat.first_name
@@ -113,11 +110,11 @@ def gban(bot: Bot, update: Update, args: List[str]):
 
     starting = tld(chat.id, "antispam_new_gban").format(
         mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-        user_chat.id)
+        user_chat.id, reason)
     message.reply_text(starting, parse_mode=ParseMode.HTML)
 
     try:
-        bot.send_message(MESSAGE_DUMP,
+        bot.send_message(GBAN_DUMP,
                          tld(chat.id, "antispam_logger_new_gban").format(
                              mention_html(banner.id, banner.first_name),
                              mention_html(user_chat.id, user_chat.first_name),
@@ -129,13 +126,6 @@ def gban(bot: Bot, update: Update, args: List[str]):
 
     sql.gban_user(user_id, user_chat.username or user_chat.first_name,
                   full_reason)
-
-    try:
-        if int(banner.id) in [172811422, 214416808]:
-            return
-        chat.kick_member(user_chat.id)
-    except Exception:
-        print("Meh")
 
     #chats = get_all_chats()
     #for chat in chats:
@@ -152,14 +142,14 @@ def gban(bot: Bot, update: Update, args: List[str]):
     #        pass
     #    else:
     #        message.reply_text("Could not gban due to: {}".format(excp.message))
-    #        bot.send_message(MESSAGE_DUMP, "Could not gban due to: {}".format(excp.message))
+    #        bot.send_message(GBAN_DUMP, "Could not gban due to: {}".format(excp.message))
     #        sql.ungban_user(user_id)
     #        os.environ['GPROCESS'] = '0'
     #        return
     #except TelegramError:
     #    pass
 
-    #bot.send_message(MESSAGE_DUMP,
+    #bot.send_message(GBAN_DUMP,
     #               "{} has been successfully gbanned!".format(mention_html(user_chat.id, user_chat.first_name)),
     #               parse_mode=ParseMode.HTML)
 
@@ -169,7 +159,8 @@ def ungban(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat
 
-    user_id = extract_user(message, args)
+    user_id, reason = extract_user_and_text(message, args)
+
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
         return
@@ -183,16 +174,27 @@ def ungban(bot: Bot, update: Update, args: List[str]):
         message.reply_text(tld(chat.id, "antispam_user_not_gbanned"))
         return
 
+    if not reason:
+        message.reply_text(
+            "Removal of Global Ban requires a reason to do so, why not send me one?"
+        )
+        return
+
     banner = update.effective_user
 
-    message.reply_text("I'll give {} a second chance, globally.".format(
-        user_chat.first_name))
+    message.reply_text(
+        "<b>Initializing Global Ban Removal</b>\n<b>Sudo Admin:</b> {}\n<b>User:</b> {}\n<b>ID:</b> <code>{}</code>\n<b>Reason:</b> {}"
+        .format(mention_html(banner.id, banner.first_name),
+                mention_html(user_chat.id, user_chat.first_name), user_chat.id,
+                reason),
+        parse_mode=ParseMode.HTML)
 
     try:
-        bot.send_message(MESSAGE_DUMP,
+        bot.send_message(GBAN_DUMP,
                          tld(chat.id, "antispam_logger_ungban").format(
                              mention_html(banner.id, banner.first_name),
-                             mention_html(user_chat.id, user_chat.first_name)),
+                             mention_html(user_chat.id, user_chat.first_name),
+                             user_chat.id, reason),
                          parse_mode=ParseMode.HTML)
     except Exception:
         pass
@@ -225,9 +227,7 @@ def ungban(bot: Bot, update: Update, args: List[str]):
 
     sql.ungban_user(user_id)
 
-    bot.send_message(MESSAGE_DUMP, tld(chat.id, "antispam_ungban_success"))
-
-    message.reply_text(tld(chat.id, "antispam_ungban_success"))
+    message.reply_text(tld(update.effective_chat, "antispam_ungban_success"))
 
 
 @run_async
@@ -399,7 +399,7 @@ ANTISPAM_STATUS = CommandHandler("antispam",
                                  pass_args=True,
                                  filters=Filters.group)
 
-GBAN_HANDLER = CommandHandler(["gban", "fban"],
+GBAN_HANDLER = CommandHandler("gban",
                               gban,
                               pass_args=True,
                               filters=CustomFilters.sudo_filter

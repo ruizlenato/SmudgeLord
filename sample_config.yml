@@ -7,6 +7,7 @@ owner_id: 123456
 owner_username: "OWNER USERNAME"
 database_url: "postgres://username:password@host:5432/database_name"
 message_dump: "CHAT ID"
+gban_dump: "CHAT ID"
 load: []
 no_load: []
 strict_antispam: False
