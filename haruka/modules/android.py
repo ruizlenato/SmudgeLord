@@ -25,54 +25,6 @@ LOGGER.info("android: Original Android Modules by @RealAkito on Telegram")
 
 
 @run_async
-def havoc(bot: Bot, update: Update):
-    cmd_name = "havoc"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-    device = message.text[len(f'/{cmd_name} '):]
-
-    fetch = get(
-        f'https://raw.githubusercontent.com/Havoc-Devices/android_vendor_OTA/pie/{device}.json'
-    )
-
-    if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    if fetch.status_code == 200:
-        usr = fetch.json()
-        response = usr['response'][0]
-        filename = response['filename']
-        url = response['url']
-        buildsize_a = response['size']
-        buildsize_b = sizee(int(buildsize_a))
-        version = response['version']
-
-        reply_text = tld(chat.id, "download").format(filename, url)
-        reply_text += tld(chat.id, "build_size").format(buildsize_b)
-        reply_text += tld(chat.id, "version").format(version)
-
-        keyboard = [[
-            InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-        ]]
-        message.reply_text(reply_text,
-                           reply_markup=InlineKeyboardMarkup(keyboard),
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    elif fetch.status_code == 404:
-        reply_text = tld(chat.id, "err_not_found")
-
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
-
-
-@run_async
 def posp(bot: Bot, update: Update):
     cmd_name = "posp"
     message = update.effective_message
@@ -182,10 +134,6 @@ def evo(bot: Bot, update: Update):
     if device == "x01bd":
         device = "X01BD"
 
-    fetch = get(
-        f'https://raw.githubusercontent.com/Evolution-X-Devices/official_devices/master/builds/{device}.json'
-    )
-
     if device == '':
         reply_text = tld(chat.id, "cmd_example").format(cmd_name)
         message.reply_text(reply_text,
@@ -193,19 +141,14 @@ def evo(bot: Bot, update: Update):
                            disable_web_page_preview=True)
         return
 
-    if device == 'gsi':
-        reply_text = tld(chat.id, "evox_gsi")
+    fetch = get(
+        f'https://raw.githubusercontent.com/Evolution-X-Devices/official_devices/master/builds/{device}.json'
+    )
 
-        keyboard = [[
-            InlineKeyboardButton(
-                text=tld(chat.id, "btn_dl"),
-                url="https://sourceforge.net/projects/evolution-x/files/GSI/")
-        ]]
-        message.reply_text(reply_text,
-                           reply_markup=InlineKeyboardMarkup(keyboard),
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
+    if fetch.status_code == 500:
+        message.reply_text("Haruka Aya have been trying to connect to Github User Content, It seem like Github User Content is down")
         return
+
 
     if fetch.status_code == 200:
         try:
@@ -393,7 +336,6 @@ GETAEX_HANDLER = DisableAbleCommandHandler("aex",
                                            pass_args=True,
                                            admin_ok=True)
 EVO_HANDLER = DisableAbleCommandHandler("evo", evo, admin_ok=True)
-HAVOC_HANDLER = DisableAbleCommandHandler("havoc", havoc, admin_ok=True)
 PHH_HANDLER = DisableAbleCommandHandler("phh",
                                         phh,
                                         pass_args=True,
@@ -406,7 +348,6 @@ BOOTLEGGERS_HANDLER = DisableAbleCommandHandler("bootleggers",
 
 dispatcher.add_handler(GETAEX_HANDLER)
 dispatcher.add_handler(EVO_HANDLER)
-dispatcher.add_handler(HAVOC_HANDLER)
 dispatcher.add_handler(PHH_HANDLER)
 dispatcher.add_handler(POSP_HANDLER)
 dispatcher.add_handler(LOS_HANDLER)

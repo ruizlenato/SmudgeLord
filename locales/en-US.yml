@@ -100,7 +100,6 @@ evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click 
 aex_cust_str: Please type your device **codename** and **Android Version**!\nFor example, `/aex tissot pie`
 android_help: |
   *Device Specific ROM for a device*
-  - /havoc <device>: Get the latest Havoc ROM for a device
   - /posp <device>: Get the latest POSP ROM for a device
   - /evo <device>: Get the latest Evolution X ROM for a device
   - /aex <device> <android version>: Get the latest AEX ROM for a device
