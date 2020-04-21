@@ -104,10 +104,9 @@ android_help: |
   - /evo <device>: Get the latest Evolution X ROM for a device
   - /aex <device> <android version>: Get the latest AEX ROM for a device
   - /los <device>: Get the latest LineageOS ROM for a device
-  - /bootleggers <device>: Get the latest Bootleggers ROM for a device
-
+  - /bootleggers <device>: Get the latest Bootleggers ROM for a device\n
   *GSI*
-  - /phh: Get the latest Phh AOSP Oreo GSI!
+  - /phh: Get the latest Phh AOSP GSI!
 #Antiflood
 modname_antiflood: Antiflood
 flood_mute: I would like to leave the flooding to natural disasters. But you, you were just a disappointment. *Muted*!
