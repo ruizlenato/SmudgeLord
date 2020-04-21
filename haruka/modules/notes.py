@@ -71,7 +71,7 @@ def get(bot, update, notename, show_none=True, no_format=False):
     else:
         reply_id = message.message_id
 
-    if note.is_reply:
+    if note and note.is_reply:
         if MESSAGE_DUMP:
             try:
                 bot.forward_message(chat_id=chat_id,
