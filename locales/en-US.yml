@@ -673,11 +673,11 @@ misc_info_first: "\nFirst Name: {}"
 misc_info_name: "\nLast Name: {}"
 misc_info_username: "\nUsername: @{}"
 misc_info_user_link: "\nUser link: {}\n"
-misc_info_is_owner: "\n\nThis guy is my owner, I can't do anything against him!"
-misc_info_is_original_owner: "\nThis person is my original creator, though he abandoned my sister Marie already :("
-misc_info_is_sudo: "\nThis person is one of my sudo users! He'll be helping you if you need support about bot."
-misc_info_is_support: "\nThis person is one of my support users! He can gban those spammers and bad guys."
-misc_info_is_whitelisted: "\nThis person is a whitelisted user, one rarely gets this role, you can't ban or kick him."
+misc_info_is_owner: "\nThis person is my owner! They have total power over me."
+misc_info_is_original_owner: "\nThis person is my creator, beginning of me, though he abandoned my original, sister Marie, already :("
+misc_info_is_sudo: "\nThis person is one of my sudo users!"
+misc_info_is_support: "\nThis person is one of my support users!"
+misc_info_is_whitelisted: "\nThis person is one of my whitelisted user, one rarely gets this role, you can't ban or kick him."
 misc_gdpr: Deleting identifiable data...
 misc_md_list: |
   Markdown is a very powerful formatting tool supported by telegram. Haruka Aya has some enhancements, to make sure that \
