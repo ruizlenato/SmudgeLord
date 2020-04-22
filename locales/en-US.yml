@@ -51,7 +51,6 @@ admin_err_self_demote: I can't demote myself!
 admin_demote_success: Admin {} has successfully demoted {} in <b>{}</b>!
 admin_err_cant_demote: Could not demote. I might not be admin, or the admin status was appointed by another user, so I can't act upon them!
 admin_list: "Admins in *{}*:"
-admin_list_creator: (Creator)
 admin_err_no_perm_invitelink: I don't have access to the invite link, try changing my permissions!
 admin_err_chat_no_invitelink: Sorry, but I can only give invite links for supergroups and channels!
 admin_disable_reaction: Disabled response to user-triggered admin commands.

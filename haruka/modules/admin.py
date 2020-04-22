@@ -23,7 +23,7 @@ from telegram import ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
-from telegram.utils.helpers import mention_html
+from telegram.utils.helpers import mention_html, escape_markdown
 
 from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
@@ -251,30 +251,17 @@ def invite(bot: Bot, update: Update):
 
 
 @run_async
-def adminlist(bot, update):
+def adminlist(bot: Bot, update: Update):
     chat = update.effective_chat
-    user = update.effective_user
-    conn = connected(bot, update, chat, user.id, need_admin=False)
-    if conn:
-        chatP = dispatcher.bot.getChat(conn)
-    else:
-        chatP = update.effective_chat
-        if chat.type == "private":
-            return
-
-    administrators = chatP.get_administrators()
-
-    text = tld(chat.id,
-               "admin_list").format(chatP.title
-                                    or tld(chat.id, "admin_this_chat"))
+    administrators = update.effective_chat.get_administrators()
+    text = tld(chat.id, "admin_list").format(update.effective_chat.title or tld(chat.id, "common_this_chat").lower())
     for admin in administrators:
         user = admin.user
-        status = admin.status
-        name = user.first_name
-        name += f" {user.last_name}" if user.last_name else ""
-        name += tld(chat.id,
-                    "admin_list_creator") if status == "creator" else ""
-        text += f"\n• `{name}`"
+        name = "[{}](tg://user?id={})".format(user.first_name, user.id)
+        if user.username:
+            esc = escape_markdown("@" + user.username)
+            name = "[{}](tg://user?id={})".format(esc, user.id)
+        text += "\n - {}".format(name)
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
 
