@@ -323,7 +323,6 @@ disable_help: |
   *Только админам:*
   - /enable <имя cmd>: Включить команду
   - /disable <имя cmd>: Отключить команду
-  - /listcmds: Список всех переключаемых команд
 #Feds
 modname_feds: Федерации
 feds_create_fail: Создание федерации не удалось! Обратитесь в @HarukaAyaGroup за помощью.

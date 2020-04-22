@@ -315,7 +315,6 @@ disable_help: |
   *Hanya admin:*
   - /enable <cmd name>: Mengaktifkan perintah
   - /disable <cmd name>: Nonaktifkan perintah
-  - /listcmds: Daftar semua perintah yang bisa diubah
 #Feds
 modname_feds: Federasi
 feds_create_fail: Pembuatan federasi gagal! Tanyakan pada @HarukaAyaGroup untuk bantuan.

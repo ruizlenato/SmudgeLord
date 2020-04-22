@@ -323,7 +323,6 @@ disable_help: |
   *Administrateurs uniquement :*
   - /enable <commande> : active la <commande>
   - /disable <commande> : désactive la <commande>
-  - /listcmds : liste toutes les commandes commutables
 #Feds
 modname_feds: Fédérations
 feds_create_fail: La création de fédération a échoué ! Demandez de l'aide dans le groupe @HarukaAyaGroup.

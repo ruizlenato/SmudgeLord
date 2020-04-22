@@ -318,7 +318,6 @@ disable_help: |
   *Admin only:*
   - /enable <cmd name>: Enable a command
   - /disable <cmd name>: Disable a command
-  - /listcmds: List all toggleable commands
 #Feds
 modname_feds: Federations
 feds_create_fail: Federation creation failed! Ask in @HarukaAyaGroup for help.
