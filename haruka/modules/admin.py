@@ -254,7 +254,9 @@ def invite(bot: Bot, update: Update):
 def adminlist(bot: Bot, update: Update):
     chat = update.effective_chat
     administrators = update.effective_chat.get_administrators()
-    text = tld(chat.id, "admin_list").format(update.effective_chat.title or tld(chat.id, "common_this_chat").lower())
+    text = tld(chat.id, "admin_list").format(
+        update.effective_chat.title
+        or tld(chat.id, "common_this_chat").lower())
     for admin in administrators:
         user = admin.user
         name = "[{}](tg://user?id={})".format(user.first_name, user.id)

@@ -131,7 +131,8 @@ def get(bot, update, notename, show_none=True, no_format=False):
         keyboard = InlineKeyboardMarkup(keyb)
 
         try:
-            if note.msgtype in (sql.Types.BUTTON_TEXT, sql.Types.TEXT):
+            if note and note.msgtype in (sql.Types.BUTTON_TEXT,
+                                         sql.Types.TEXT):
                 try:
                     bot.send_message(send_id,
                                      text,
