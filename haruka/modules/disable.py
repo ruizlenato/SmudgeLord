@@ -188,7 +188,7 @@ if is_module_loaded(FILENAME):
     dispatcher.add_handler(DISABLE_HANDLER)
     dispatcher.add_handler(ENABLE_HANDLER)
     dispatcher.add_handler(COMMANDS_HANDLER)
-    dispatcher.add_handler(TOGGLE_HANDLER)
+    # dispatcher.add_handler(TOGGLE_HANDLER)
 
 else:
     DisableAbleCommandHandler = CommandHandler
