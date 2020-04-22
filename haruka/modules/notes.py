@@ -337,8 +337,8 @@ def remove_all_notes(bot: Bot, update: Update):
 
 
 def __stats__():
-    return "{} notes, accross {} chats.".format(sql.num_notes(),
-                                                sql.num_chats())
+    return "• `{}` notes, accross `{}` chats.".format(sql.num_notes(),
+                                                      sql.num_chats())
 
 
 def __migrate__(old_chat_id, new_chat_id):

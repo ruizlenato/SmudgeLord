@@ -100,7 +100,7 @@ def clear_rules(bot: Bot, update: Update):
 
 
 def __stats__():
-    return "{} chats have rules set.".format(sql.num_chats())
+    return "• `{}` chats have rules set.".format(sql.num_chats())
 
 
 def __migrate__(old_chat_id, new_chat_id):

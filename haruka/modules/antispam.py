@@ -100,7 +100,8 @@ def gban(bot: Bot, update: Update, args: List[str]):
         message.reply_text("Global Ban must have a reason!")
         return
 
-    full_reason = html.escape(f"{reason} // GBanned by {banner.first_name} id {banner.id}")
+    full_reason = html.escape(
+        f"{reason} // GBanned by {banner.first_name} id {banner.id}")
 
     if sql.is_user_gbanned(user_id):
         old_reason = sql.update_gban_reason(
@@ -380,7 +381,7 @@ def clear_gbans(bot: Bot, update: Update):
 
 
 def __stats__():
-    return "{} gbanned users. [Note, We regularly clean off deleted account from the database]".format(
+    return "• `{}` gbanned users [We regularly clean off deleted account from the database].".format(
         sql.num_gbanned_users())
 
 
