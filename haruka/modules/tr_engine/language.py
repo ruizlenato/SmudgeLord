@@ -34,7 +34,12 @@ def locale(bot, update, args):
     chat = update.effective_chat
     message = update.effective_message
     if len(args) > 0:
-        locale = args[0]
+        locale = args[0].lower()
+        if locale == 'en-us':
+            locale = 'en-US'
+        if locale in ['en-uk', 'en-gb']:
+            locale = 'en-GB'
+
         if locale in list_locales:
             if locale in LANGUAGES:
                 chat_lang_set(chat.id, locale)

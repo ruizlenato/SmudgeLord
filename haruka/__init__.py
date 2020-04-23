@@ -93,7 +93,11 @@ except ValueError:
     raise Exception(
         "Your whitelisted users list does not contain valid integers.")
 
-REDIS = StrictRedis(host='localhost', port=6379, db=0)
+REDIS_HOST = CONFIG['redis_host']
+REDIS_PORT = CONFIG['redis_port']
+REDIS_DB = CONFIG['redis_db']
+
+REDIS = StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 try:
     REDIS.ping()

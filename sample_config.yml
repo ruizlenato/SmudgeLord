@@ -5,7 +5,6 @@ is_example_config_or_not: "Ahhhhhhhhhhh i am not blind so i'll follow what the l
 bot_token: "Your bot token"
 owner_id: 123456
 owner_username: "OWNER USERNAME"
-database_url: "postgres://username:password@host:5432/database_name"
 message_dump: "CHAT ID"
 gban_dump: "CHAT ID"
 load: []
@@ -16,6 +15,12 @@ allow_excl: False
 deepfry_token: None
 del_cmds: False
 sw_api: ''
+
+# Database
+database_url: "postgres://username:password@host:5432/database_name"
+redis_host: "localhost"
+redis_port: 6379
+redis_db: 0
 
 # Permission
 sudo_users: []
