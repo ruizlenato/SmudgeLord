@@ -27,8 +27,7 @@ LANGUAGES = ['en-US', 'en-GB', 'id', 'ru']
 strings = {}
 
 for i in LANGUAGES:
-    strings[i] = yaml.full_load(
-        open(os.path.dirname(__file__) + f"/../../../locales/{i}.yml", "r"))
+    strings[i] = yaml.full_load(open("locales/" + i + ".yml", "r"))
 
 
 def tld(chat_id, t, show_none=True):
