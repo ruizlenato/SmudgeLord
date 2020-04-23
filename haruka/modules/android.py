@@ -162,7 +162,7 @@ def evo(bot: Bot, update: Update):
         f'https://raw.githubusercontent.com/Evolution-X-Devices/official_devices/master/builds/{device}.json'
     )
 
-    if fetch.status_code == 500:
+    if fetch.status_code in [500, 504, 505]:
         message.reply_text(
             "Haruka Aya have been trying to connect to Github User Content, It seem like Github User Content is down"
         )
