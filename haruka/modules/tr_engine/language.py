@@ -15,12 +15,13 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from haruka.modules.sql.locales_sql import switch_to_locale, prev_locale
+from haruka.modules.sql.locales_sql import switch_to_locale
 from haruka.modules.tr_engine.strings import tld, LANGUAGES
 from telegram.ext import CommandHandler
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from haruka import dispatcher
 from haruka.modules.tr_engine.list_locale import list_locales
+from haruka.modules.sql.redis import get_lang_chat, chat_lang_set
 from haruka.modules.helper_funcs.chat_status import user_admin
 from telegram.ext import CallbackQueryHandler
 import re
@@ -36,6 +37,7 @@ def locale(bot, update, args):
         locale = args[0]
         if locale in list_locales:
             if locale in LANGUAGES:
+                chat_lang_set(chat.id, locale)
                 switch_to_locale(chat.id, locale)
                 if chat.type == "private":
                     message.reply_text(
@@ -61,17 +63,11 @@ def locale(bot, update, args):
                 text += "\n *{}* - `{}`".format(locale, lang)
             message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
     else:
-        LANGUAGE = prev_locale(chat.id)
-        if LANGUAGE:
-            locale = LANGUAGE.locale_name
-            native_lang = list_locales[locale]
-            message.reply_text(tld(
-                chat.id, "language_current_locale").format(native_lang),
-                               parse_mode=ParseMode.MARKDOWN)
-        else:
-            message.reply_text(tld(
-                chat.id, "language_current_locale").format("English (US)"),
-                               parse_mode=ParseMode.MARKDOWN)
+        locale = get_lang_chat(chat.id)
+        native_lang = list_locales[locale]
+        message.reply_text(tld(chat.id,
+                               "language_current_locale").format(native_lang),
+                           parse_mode=ParseMode.MARKDOWN)
 
 
 @user_admin
@@ -82,18 +78,15 @@ def locale_button(bot, update):
     lang_match = re.findall(r"en-US|en-GB|id|ru", query.data)
     if lang_match:
         if lang_match[0]:
+            chat_lang_set(chat.id, lang_match[0])
             switch_to_locale(chat.id, lang_match[0])
             query.answer(text=tld(chat.id, 'language_switch_success_pm').
                          format(list_locales[lang_match[0]]))
         else:
             query.answer(text="Error!", show_alert=True)
 
-    try:
-        LANGUAGE = prev_locale(chat.id)
-        locale = LANGUAGE.locale_name
-        curr_lang = list_locales[locale]
-    except Exception:
-        curr_lang = "English (US)"
+    locale = get_lang_chat(chat.id)
+    curr_lang = list_locales[locale]
 
     text = tld(chat.id, "language_select_language")
     text += tld(chat.id, "language_user_language").format(curr_lang)
@@ -102,7 +95,7 @@ def locale_button(bot, update):
 
     if conn:
         try:
-            chatlng = prev_locale(conn).locale_name
+            chatlng = get_lang_chat(conn)
             chatlng = list_locales[chatlng]
             text += tld(chat.id, "language_chat_language").format(chatlng)
         except Exception:

@@ -16,6 +16,7 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from haruka import REDIS
+from haruka.modules.sql.locales_sql import switch_to_locale, prev_locale
 
 
 # AFK
@@ -38,6 +39,32 @@ def afk_reason(userid):
 def end_afk(userid):
     REDIS.delete(f'is_afk_{userid}')
     return True
+
+
+# Languages
+# These code doesn't make much sense, trust me, It will in the future.
+def get_lang_chat(chatid):
+    rget = REDIS.get(f'chatlang_{chatid}')
+
+    if rget:
+        locale = strb(REDIS.get(f'chatlang_{chatid}'))
+        return locale
+    else:
+        try:
+            curr_lang = prev_locale(chatid)
+            locale = curr_lang.locale_name
+            chat_lang_set(f'chatlang_{chatid}', locale)
+            return locale
+        except Exception:  # Every chat must have LANGUAGES!!!!
+            locale = "en-US"
+            # Both SQL and Redis
+            switch_to_locale(chatid, locale)
+            chat_lang_set(f'chatlang_{chatid}', locale)
+            return locale
+
+
+def chat_lang_set(chatid, locale):
+    REDIS.set(f'chatlang_{chatid}', locale)
 
 
 # Helpers
