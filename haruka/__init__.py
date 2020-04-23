@@ -19,6 +19,7 @@ import logging
 import sys
 import yaml
 import spamwatch
+from redis import StrictRedis
 
 import telegram.ext as tg
 
@@ -91,6 +92,13 @@ try:
 except ValueError:
     raise Exception(
         "Your whitelisted users list does not contain valid integers.")
+
+REDIS = StrictRedis(host='localhost', port=6379, db=0)
+
+try:
+    REDIS.ping()
+except BaseException:
+    raise Exception("Your redis server is not alive, please check again.")
 
 DB_URI = CONFIG['database_url']
 LOAD = CONFIG['load']
