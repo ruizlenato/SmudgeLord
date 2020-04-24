@@ -399,7 +399,7 @@ language_not_supported: "{} еще не поддерживается!"
 language_code_not_valid: Это не правильный код языка. Используйте международно принятый код ISO!
 language_current_locale: "Текущий язык для этого чата: *{}*"
 language_select_language: "*Выбрать язык*\n"
-language_user_language: "Пользовательский язык: `{}`\n\nПомогите нам добавить больше языков для бота, внеся свой вклад в проект [Crowdin](https://crowdin.com/project/haruka)!"
+language_user_language: "Пользовательский язык: `{}`\n\nПомогите нам добавить больше языков для бота, внеся свой вклад в проект [Crowdin](https://translate.harukaaya.me/HarukaAya)!"
 language_chat_language: "\nЯзык подключенного чата: `{}`"
 language_sel_user_lang: "*\n\nВыберите новый пользовательский язык:*"
 #Locks
