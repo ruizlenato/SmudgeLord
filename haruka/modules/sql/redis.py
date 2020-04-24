@@ -19,28 +19,6 @@ from haruka import REDIS
 from haruka.modules.sql.locales_sql import switch_to_locale, prev_locale
 
 
-# AFK
-def is_user_afk(userid):
-    rget = REDIS.get(f'is_afk_{userid}')
-    if rget:
-        return True
-    else:
-        return False
-
-
-def start_afk(userid, reason):
-    REDIS.set(f'is_afk_{userid}', reason)
-
-
-def afk_reason(userid):
-    return strb(REDIS.get(f'is_afk_{userid}'))
-
-
-def end_afk(userid):
-    REDIS.delete(f'is_afk_{userid}')
-    return True
-
-
 # Languages
 # These code doesn't make much sense, trust me, It will in the future.
 def get_lang_chat(chatid):

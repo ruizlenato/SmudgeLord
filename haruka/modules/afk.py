@@ -22,7 +22,7 @@ from telegram.ext import Filters, MessageHandler, run_async
 
 from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHandler
-from haruka.modules.sql.redis import start_afk, end_afk, is_user_afk, afk_reason
+from haruka.modules.sql import afk_sql as sql
 from haruka.modules.users import get_user_id
 
 from haruka.modules.tr_engine.strings import tld
@@ -38,9 +38,9 @@ def afk(bot: Bot, update: Update):
     if len(args) >= 2:
         reason = args[1]
     else:
-        reason = "none"
+        reason = ""
 
-    start_afk(update.effective_user.id, reason)
+    sql.set_afk(update.effective_user.id, reason)
     fname = update.effective_user.first_name
     update.effective_message.reply_text(
         tld(chat.id, "user_now_afk").format(fname))
@@ -55,10 +55,7 @@ def no_longer_afk(bot: Bot, update: Update):
     if not user:  # ignore channels
         return
 
-    if not is_user_afk(user.id):  #Check if user is afk or not
-        return
-
-    res = end_afk(user.id)
+    res = sql.rm_afk(user.id)
     if res:
         if message.new_chat_members:  #dont say msg
             return
@@ -122,9 +119,9 @@ def reply_afk(bot: Bot, update: Update):
 
 def check_afk(bot, update, user_id, fst_name, userc_id):
     chat = update.effective_chat
-    if is_user_afk(user_id):
-        afkreason = afk_reason(user_id)
-        if afkreason == "none":
+    if sql.is_afk(user_id):
+        user = sql.check_afk_status(user_id)
+        if not user.reason:
             if int(userc_id) == int(user_id):
                 return
             res = tld(chat.id, "status_afk_noreason").format(fst_name)
@@ -132,7 +129,8 @@ def check_afk(bot, update, user_id, fst_name, userc_id):
         else:
             if int(userc_id) == int(user_id):
                 return
-            res = tld(chat.id, "status_afk_reason").format(fst_name, afkreason)
+            res = tld(chat.id,
+                      "status_afk_reason").format(fst_name, user.reason)
             update.effective_message.reply_text(res)
 
 
