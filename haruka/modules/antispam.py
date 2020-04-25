@@ -179,6 +179,8 @@ def ungban(bot: Bot, update: Update, args: List[str]):
 
     user_id, reason = extract_user_and_text(message, args)
 
+    reason = html.escape(reason)
+
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
         return
