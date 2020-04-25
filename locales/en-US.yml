@@ -740,6 +740,7 @@ unmute_invalid: "You'll need to either give me a username to unmute, or reply to
 unmute_not_muted: "This user already has the right to speak in {}."
 unmute_success: "Yep, {} can start talking again in {}!"
 unmute_not_in_chat: "This user isn't even in the chat, unmuting them won't make them talk more than they already do."
+unmute_is_an_admin: "Unmuting an admin is a trend now? No, That's pretty dumb."
 mute_not_refer: "You don't seem to be referring to a user."
 mute_not_existed: "I can't seem to find this user"
 mute_is_admin: "I really wish I could mute admins..."

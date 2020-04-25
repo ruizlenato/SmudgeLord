@@ -26,7 +26,7 @@ from telegram.utils.helpers import mention_html
 from telegram import ParseMode
 
 from haruka import dispatcher, LOGGER, SUDO_USERS
-from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict
+from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict, is_user_ban_protected
 from haruka.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from haruka.modules.helper_funcs.string_handling import extract_time
 from haruka.modules.log_channel import loggable
@@ -124,7 +124,18 @@ def unmute(bot: Bot, update: Update, args: List[str]) -> str:
         message.reply_text(tld(chat.id, "unmute_invalid"))
         return ""
 
-    member = chatD.get_member(int(user_id))
+    try:
+        member = chatD.get_member(int(user_id))
+    except BadRequest as excp:
+        if excp.message == "User not found.":
+            message.reply_text(tld(chat.id, "bans_err_usr_not_found"))
+            return ""
+        else:
+            raise
+
+    if is_user_ban_protected(chat, user_id, member):
+        message.reply_text(tld(chat.id, "unmute_is_an_admin"))
+        return ""
 
     if member.status != 'kicked' and member.status != 'left':
         if member.can_send_messages and member.can_send_media_messages \
