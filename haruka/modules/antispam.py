@@ -219,35 +219,36 @@ def ungban(bot: Bot, update: Update, args: List[str]):
     except Exception:
         pass
 
-    chats = get_all_chats()
-    for chat in chats:
-        chat_id = chat.chat_id
+    # chats = get_all_chats()
+    # for chat in chats:
+    #     chat_id = chat.chat_id
 
-        # Check if this group has disabled gbans
-        if not sql.does_chat_gban(chat_id):
-            continue
+    #     # Check if this group has disabled gbans
+    #     if not sql.does_chat_gban(chat_id):
+    #         continue
 
-        try:
-            member = bot.get_chat_member(chat_id, user_id)
-            if member.status == 'kicked':
-                bot.unban_chat_member(chat_id, user_id)
+    #     try:
+    #         member = bot.get_chat_member(chat_id, user_id)
+    #         if member.status == 'kicked':
+    #             bot.unban_chat_member(chat_id, user_id)
 
-        except BadRequest as excp:
-            if excp.message in UNGBAN_ERRORS:
-                pass
-            else:
-                message.reply_text(
-                    tld(chat.id, "antispam_err_ungban").format(excp.message))
-                bot.send_message(
-                    OWNER_ID,
-                    tld(chat.id, "antispam_err_ungban").format(excp.message))
-                return
-        except TelegramError:
-            pass
+    #     except BadRequest as excp:
+    #         if excp.message in UNGBAN_ERRORS:
+    #             pass
+    #         else:
+    #             message.reply_text(
+    #                 tld(chat.id, "antispam_err_ungban").format(excp.message))
+    #             bot.send_message(
+    #                 OWNER_ID,
+    #                 tld(chat.id, "antispam_err_ungban").format(excp.message))
+    #             return
+    #     except TelegramError:
+    #         pass
 
     sql.ungban_user(user_id)
 
-    message.reply_text(tld(update.effective_chat.id, "antispam_ungban_success"))
+    message.reply_text("This user have been ungbanned succesfully, they might have to ask 'admins' of chats they were banned to unban manually due to global ban." \
+                       "\n\nPlease forward this message to them or let them know about this.")
 
 
 @run_async

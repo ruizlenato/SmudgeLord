@@ -163,7 +163,6 @@ antispam_logger_ungban: |
   <b>ID:</b> <code>{}</code>
   <b>Reason:</b> {}
 antispam_err_ungban: "Could not ungban due to: {}"
-antispam_ungban_success: Ungbanned successfully!
 antispam_checkban_user_removed: "*This user is gbanned and has been removed.*\nReason: `{}`"
 antispam_on: I've enabled antispam security in this group. This will help to protect you from spammers, unsavoury characters, and the biggest trolls.
 antispam_off: I've disabled antispam security in this group. GBans won't affect your users anymore. You'll be less protected from any trolls and spammers though!
