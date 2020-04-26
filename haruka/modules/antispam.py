@@ -247,7 +247,7 @@ def ungban(bot: Bot, update: Update, args: List[str]):
 
     sql.ungban_user(user_id)
 
-    message.reply_text(tld(update.effective_chat, "antispam_ungban_success"))
+    message.reply_text(tld(update.effective_chat.id, "antispam_ungban_success"))
 
 
 @run_async
