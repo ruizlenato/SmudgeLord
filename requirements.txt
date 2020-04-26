@@ -13,7 +13,7 @@ psycopg2-binary
 PyLyrics
 pynewtonmath
 pyowm
-python-telegram-bot==11.1.0
+git+https://gitlab.com/HarukaNetwork/OSS/PTB.git
 python-rapidjson
 PyYAML==5.1.2
 redis
