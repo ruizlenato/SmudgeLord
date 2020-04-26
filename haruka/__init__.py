@@ -99,8 +99,7 @@ REDIS_DB = CONFIG['redis_db']
 
 REDIS = StrictRedis(host=REDIS_HOST,
                     port=REDIS_PORT,
-                    db=REDIS_DB,
-                    decode_responses=True)
+                    db=REDIS_DB)
 
 try:
     REDIS.ping()
