@@ -72,13 +72,11 @@ GIF = Filters.animation
 OTHER = Filters.game | Filters.sticker | GIF
 MEDIA = Filters.audio | Filters.document | Filters.video | Filters.voice | Filters.photo
 MESSAGES = Filters.text | Filters.contact | Filters.location | Filters.venue | Filters.command | MEDIA | OTHER
-PREVIEWS = Filters.entity("url")
 
 RESTRICTION_TYPES = {
     'messages': MESSAGES,
     'media': MEDIA,
     'other': OTHER,
-    # 'previews': PREVIEWS, # NOTE: this has been removed cos its useless atm.
     'all': Filters.all
 }
 
@@ -172,15 +170,6 @@ def lock(bot: Bot, update: Update, args: List[str]) -> str:
 
             elif args[0] in RESTRICTION_TYPES:
                 sql.update_restriction(chat.id, args[0], locked=True)
-                if args[0] == "previews":
-                    members = users_sql.get_chat_members(str(chat.id))
-                    restr_members(bot,
-                                  chat.id,
-                                  members,
-                                  messages=True,
-                                  media=True,
-                                  other=True)
-
                 message.reply_text(tld(chat.id,
                                        "locks_lock_success").format(args[0]),
                                    parse_mode=ParseMode.MARKDOWN)
