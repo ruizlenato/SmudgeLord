@@ -284,7 +284,7 @@ def list_notes(bot: Bot, update: Update):
     else:
         chat_id = update.effective_chat.id
         if chat.type == "private":
-            chat_name = ""
+            chat_name = tld(chat.id, "note_is_local")
             msg = tld(chat.id, "note_in_local")
         else:
             chat_name = chat.title
