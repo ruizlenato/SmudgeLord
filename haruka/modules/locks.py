@@ -32,7 +32,6 @@ from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
     bot_can_delete, is_bot_admin
 from haruka.modules.log_channel import loggable
-from haruka.modules.sql import users_sql
 
 from haruka.modules.tr_engine.strings import tld
 

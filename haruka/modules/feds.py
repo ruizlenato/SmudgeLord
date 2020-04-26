@@ -19,12 +19,10 @@ from io import BytesIO
 from typing import List
 import uuid
 import re
-import json
-import time
 
 from telegram.error import BadRequest, TelegramError, Unauthorized
 from telegram import ParseMode, Update, Bot, MessageEntity, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import run_async, CommandHandler, Filters, CallbackQueryHandler
+from telegram.ext import run_async, CommandHandler, CallbackQueryHandler
 from telegram.utils.helpers import mention_html, mention_markdown
 
 from haruka import dispatcher, OWNER_ID, SUDO_USERS, WHITELIST_USERS, MESSAGE_DUMP, LOGGER

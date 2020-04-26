@@ -21,7 +21,7 @@ from io import BytesIO
 from typing import List
 
 from telegram import Update, Bot, ParseMode
-from telegram.error import BadRequest, TelegramError
+from telegram.error import BadRequest  #,  TelegramError
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
@@ -31,7 +31,7 @@ from haruka.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from haruka.modules.helper_funcs.extraction import extract_user_and_text
 from haruka.modules.helper_funcs.filters import CustomFilters
 #from haruka.modules.helper_funcs.misc import send_to_list
-from haruka.modules.sql.users_sql import get_all_chats
+# from haruka.modules.sql.users_sql import get_all_chats
 
 from haruka.modules.tr_engine.strings import tld
 
