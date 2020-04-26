@@ -71,9 +71,8 @@ class ChatMembers(BASE):
         self.user = user
 
     def __repr__(self):
-        return "<Chat user {} ({}) in chat {} ({})>".format(
-            self.user.username, self.user.user_id, self.chat.chat_name,
-            self.chat.chat_id)
+        return "<Chat user {} in chat {}>".format(
+            self.user, self.chat)
 
 
 Users.__table__.create(checkfirst=True)
@@ -157,6 +156,13 @@ def get_user_num_chats(user_id):
     try:
         return SESSION.query(ChatMembers).filter(
             ChatMembers.user == int(user_id)).count()
+    finally:
+        SESSION.close()
+
+def get_user_all_chats(user_id):
+    try:
+        return SESSION.query(ChatMembers).filter(
+            ChatMembers.user == int(user_id)).all()
     finally:
         SESSION.close()
 
