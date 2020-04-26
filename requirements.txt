@@ -14,7 +14,7 @@ PyLyrics
 pynewtonmath
 pyowm
 python-telegram-bot==11.1.0
-ujson
+python-rapidjson
 PyYAML==5.1.2
 redis
 requests>=2.20.0
