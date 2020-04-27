@@ -698,16 +698,14 @@ misc_get_pasted_invalid: Please supply a dogbin url!
 misc_get_pasted_unknown: Unknown error occured
 misc_covid_error: An error have occured!, Are you sure the country name is correct?
 misc_covid_total_tests: "*Total Tests*: {}"
-misc_covid_total_tests_str: "*Total Tests*: {}"
 misc_covid: |
   *COVID-19 Statistics for {}*\n
-  *New Cases*: {}
-  *New Deaths*: {}
-  *Confirmed Cases*: {}
+  *Confirmed Cases*: {} _(+{})_
   *Active Cases*: {}
   *Critical Cases*: {}
-  *Deaths*: {}
+  *Deaths*: {} _(+{})_
   *Recovered*: {}
+  *Total tests*: {}
 misc_help: |
   - /id: get the current group id. If used by replying to a message, gets that user's id.
   - /info: get information about a user.

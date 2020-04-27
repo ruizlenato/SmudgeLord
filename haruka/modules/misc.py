@@ -435,16 +435,14 @@ def covid(bot: Bot, update: Update):
     new_deaths = format_integer(c_case["new_deaths"])
     recovered = format_integer(c_case["recovered"])
     total_tests = c_case["total_tests"]
-    reply = tld(chat.id,
-                "misc_covid").format(country, new_cases, new_deaths, confirmed,
-                                     active, critical, deaths, recovered)
     if total_tests == 0:
         total_tests = "N/A"
-        reply += tld(chat.id, "misc_covid_total_tests_str").format(total_tests)
     else:
         total_tests = format_integer(c_case["total_tests"])
-        reply += tld(chat.id, "misc_covid_total_tests").format(total_tests)
-
+    reply = tld(chat.id,
+                "misc_covid").format(country, confirmed, new_cases, active,
+                                     critical, deaths, new_deaths, recovered,
+                                     total_tests)
     message.reply_markdown(reply)
 
 
