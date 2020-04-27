@@ -148,13 +148,14 @@ def get(bot, update, notename, show_none=True, no_format=False):
                         message.reply_text(failtext, parse_mode="markdown")
 
             else:
-                ENUM_FUNC_MAP[note.msgtype](send_id,
-                                            note.file,
-                                            caption=text,
-                                            reply_to_message_id=reply_id,
-                                            parse_mode=parseMode,
-                                            disable_web_page_preview=True,
-                                            reply_markup=keyboard)
+                if note:
+                    ENUM_FUNC_MAP[note.msgtype](send_id,
+                                                note.file,
+                                                caption=text,
+                                                reply_to_message_id=reply_id,
+                                                parse_mode=parseMode,
+                                                disable_web_page_preview=True,
+                                                reply_markup=keyboard)
 
         except BadRequest as excp:
             if excp.message == "Entity_mention_user_invalid":
