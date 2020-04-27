@@ -18,8 +18,10 @@
 import html
 import wikipedia
 import re
+import locale
 from datetime import datetime
 from typing import Optional, List
+from covid import Covid
 
 import requests
 from telegram import Message, Chat, Update, Bot, MessageEntity
@@ -37,6 +39,9 @@ from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.tr_engine.strings import tld
 
 from requests import get
+
+cvid = Covid(source="worldometers")
+locale.setlocale(locale.LC_ALL, 'en_US')
 
 
 @run_async
@@ -409,6 +414,33 @@ def wiki(bot: Bot, update: Update):
                 .format(eet))
 
 
+@run_async
+def covid(bot: Bot, update: Update):
+    message = update.effective_message
+    chat = update.effective_chat
+    country = str(message.text[len(f'/covid '):])
+    if country.lower() == "south korea" or "korea":
+        country = "s. korea"
+    try:
+        c_case = cvid.get_status_by_country_name(country)
+    except Exception:
+        message.reply_text(tld(chat.id, "misc_covid_error"))
+        return
+    active = c_case["active"]
+    confirmed = c_case["confirmed"]
+    country = c_case["country"]
+    critical = c_case["critical"]
+    deaths = c_case["deaths"]
+    new_cases = c_case["new_cases"]
+    new_deaths = c_case["new_deaths"]
+    recovered = c_case["recovered"]
+    total_tests = c_case["total_tests"]
+    message.reply_markdown(
+        tld(chat.id, "misc_covid").format(country, new_cases, new_deaths,
+                                          confirmed, active, critical, deaths,
+                                          recovered, total_tests))
+
+
 __help__ = True
 
 ID_HANDLER = DisableAbleCommandHandler("id",
@@ -442,6 +474,7 @@ PASTE_STATS_HANDLER = DisableAbleCommandHandler("pastestats",
                                                 pass_args=True)
 UD_HANDLER = DisableAbleCommandHandler("ud", ud)
 WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki)
+COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True)
 
 dispatcher.add_handler(UD_HANDLER)
 dispatcher.add_handler(PASTE_HANDLER)
@@ -459,3 +492,4 @@ dispatcher.add_handler(REPO_HANDLER)
 dispatcher.add_handler(
     DisableAbleCommandHandler("removebotkeyboard", reply_keyboard_remove))
 dispatcher.add_handler(WIKI_HANDLER)
+dispatcher.add_handler(COVID_HANDLER)

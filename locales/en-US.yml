@@ -696,6 +696,17 @@ misc_paste_404: Failed to reach dogbin
 misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
 misc_get_pasted_invalid: Please supply a dogbin url!
 misc_get_pasted_unknown: Unknown error occured
+misc_covid_error: An error have occured!, Are you sure the country name is correct?
+misc_covid: |
+  *COVID-19 Statistics for {}*\n
+  *New Cases*: {:n}
+  *New Deaths*: {:n}
+  *Confirmed Cases*: {:n}
+  *Active Cases*: {:n}
+  *Critical Cases*: {:n}
+  *Deaths*: {:n}
+  *Recovered*: {:n}
+  *Total Tests*: {:n}
 misc_help: |
   - /id: get the current group id. If used by replying to a message, gets that user's id.
   - /info: get information about a user.
@@ -712,6 +723,8 @@ misc_help: |
   - /removebotkeyboard: Got a nasty bot keyboard stuck in your group?
   - /exec <language> <code> [/stdin <stdin>]: Execute a code in a specified language. Send an empty command to get the supported languages.
   - /wiki <keywords>: Get wikipedia articles just using this bot!
+  *Special | COVID-19*
+  - /covid <country name>: Powered by worldometers, Give stats about COVID-19. Use world for overall stats.
 #Purge
 modname_msg_deleting: Purges
 purge_msg_cant_del_too_old: Cannot delete all messages. The messages may be too old, I might not have delete rights, or this might not be a supergroup.
