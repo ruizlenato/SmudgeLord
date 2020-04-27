@@ -105,6 +105,7 @@ try:
     REDIS.ping()
 except BaseException:
     raise Exception("Your redis server is not alive, please check again.")
+    exit
 
 DB_URI = CONFIG['database_url']
 LOAD = CONFIG['load']
@@ -127,7 +128,10 @@ if spamwatch_api == "None":
     sw = None
     LOGGER.warning("SpamWatch API key is missing! Check your config.env.")
 else:
-    sw = spamwatch.Client(spamwatch_api)
+    try:
+        sw = spamwatch.Client(spamwatch_api)
+    except:
+        sw = None
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
