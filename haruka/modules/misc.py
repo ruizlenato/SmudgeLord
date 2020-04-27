@@ -18,7 +18,6 @@
 import html
 import wikipedia
 import re
-import locale
 from datetime import datetime
 from typing import Optional, List
 from covid import Covid
@@ -41,7 +40,6 @@ from haruka.modules.tr_engine.strings import tld
 from requests import get
 
 cvid = Covid(source="worldometers")
-locale.setlocale(locale.LC_ALL, 'en_US')
 
 
 @run_async
@@ -428,14 +426,14 @@ def covid(bot: Bot, update: Update):
     except Exception:
         message.reply_text(tld(chat.id, "misc_covid_error"))
         return
-    active = c_case["active"]
-    confirmed = c_case["confirmed"]
+    active = format_integer(c_case["active"])
+    confirmed = format_integer(c_case["confirmed"])
     country = c_case["country"]
-    critical = c_case["critical"]
-    deaths = c_case["deaths"]
-    new_cases = c_case["new_cases"]
-    new_deaths = c_case["new_deaths"]
-    recovered = c_case["recovered"]
+    critical = format_integer(c_case["critical"])
+    deaths = format_integer(c_case["deaths"])
+    new_cases = format_integer(c_case["new_cases"])
+    new_deaths = format_integer(c_case["new_deaths"])
+    recovered = format_integer(c_case["recovered"])
     total_tests = c_case["total_tests"]
     reply = tld(chat.id,
                 "misc_covid").format(country, new_cases, new_deaths, confirmed,
@@ -444,9 +442,30 @@ def covid(bot: Bot, update: Update):
         total_tests = "N/A"
         reply += tld(chat.id, "misc_covid_total_tests_str").format(total_tests)
     else:
+        total_tests = format_integer(c_case["total_tests"])
         reply += tld(chat.id, "misc_covid_total_tests").format(total_tests)
 
     message.reply_markdown(reply)
+
+
+def format_integer(number, thousand_separator=','):
+    def reverse(string):
+        string = "".join(reversed(string))
+        return string
+
+    s = reverse(str(number))
+    count = 0
+    result = ''
+    for char in s:
+        count = count + 1
+        if count % 3 == 0:
+            if len(s) == count:
+                result = char + result
+            else:
+                result = thousand_separator + char + result
+        else:
+            result = char + result
+    return result
 
 
 __help__ = True
