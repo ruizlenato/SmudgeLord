@@ -419,7 +419,9 @@ def covid(bot: Bot, update: Update):
     message = update.effective_message
     chat = update.effective_chat
     country = str(message.text[len(f'/covid '):])
-    if country.lower() == "south korea" or "korea":
+    if country == '':
+        country = "world"
+    if country.lower() in ["south korea", "korea"]:
         country = "s. korea"
     try:
         c_case = cvid.get_status_by_country_name(country)
@@ -435,10 +437,16 @@ def covid(bot: Bot, update: Update):
     new_deaths = c_case["new_deaths"]
     recovered = c_case["recovered"]
     total_tests = c_case["total_tests"]
-    message.reply_markdown(
-        tld(chat.id, "misc_covid").format(country, new_cases, new_deaths,
-                                          confirmed, active, critical, deaths,
-                                          recovered, total_tests))
+    reply = tld(chat.id,
+                "misc_covid").format(country, new_cases, new_deaths, confirmed,
+                                     active, critical, deaths, recovered)
+    if total_tests == 0:
+        total_tests = "N/A"
+        reply += tld(chat.id, "misc_covid_total_tests_str").format(total_tests)
+    else:
+        reply += tld(chat.id, "misc_covid_total_tests").format(total_tests)
+
+    message.reply_markdown(reply)
 
 
 __help__ = True
