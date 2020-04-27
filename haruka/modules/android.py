@@ -15,7 +15,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import json
 from datetime import datetime
 from typing import Optional, List
 from hurry.filesize import size as sizee
@@ -42,14 +41,16 @@ LOGGER.info("android: Original Android Modules by @RealAkito on Telegram")
 
 
 @run_async
-def posp(bot: Bot, update: Update):
-    cmd_name = "posp"
+def posp(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
-    device = message.text[len(f'/{cmd_name} '):]
+    try:
+        device = args[0]
+    except:
+        device = ''
 
     if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
+        reply_text = tld(chat.id, "cmd_example").format("posp")
         message.reply_text(reply_text,
                            parse_mode=ParseMode.MARKDOWN,
                            disable_web_page_preview=True)
@@ -88,14 +89,16 @@ def posp(bot: Bot, update: Update):
 
 
 @run_async
-def los(bot: Bot, update: Update):
-    cmd_name = "los"
+def los(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
-    device = message.text[len(f'/{cmd_name} '):]
+    try:
+        device = args[0]
+    except:
+        device = ''
 
     if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
+        reply_text = tld(chat.id, "cmd_example").format("los")
         message.reply_text(reply_text,
                            parse_mode=ParseMode.MARKDOWN,
                            disable_web_page_preview=True)
@@ -132,11 +135,13 @@ def los(bot: Bot, update: Update):
 
 
 @run_async
-def evo(bot: Bot, update: Update):
-    cmd_name = "evo"
+def evo(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
-    device = message.text[len(f'/{cmd_name} '):]
+    try:
+        device = args[0]
+    except:
+        device = ''
 
     if device == "example":
         reply_text = tld(chat.id, "err_example_device")
@@ -152,7 +157,7 @@ def evo(bot: Bot, update: Update):
         device = "X01BD"
 
     if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
+        reply_text = tld(chat.id, "cmd_example").format("evo")
         message.reply_text(reply_text,
                            parse_mode=ParseMode.MARKDOWN,
                            disable_web_page_preview=True)
@@ -209,7 +214,7 @@ def evo(bot: Bot, update: Update):
         return
 
 
-def phh(bot: Bot, update: Update, args: List[str]):
+def phh(bot: Bot, update: Update):
     romname = "Phh's"
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
@@ -229,65 +234,16 @@ def phh(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def getaex(bot: Bot, update: Update, args: List[str]):
+def bootleggers(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
-
-    AEX_OTA_API = "https://api.aospextended.com/ota/"
-
-    if len(args) != 2:
-        reply_text = tld(chat.id, "aex_cust_str")
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    device = args[0]
-    version = args[1]
-    res = get(AEX_OTA_API + device + '/' + version.lower())
-    if res.status_code == 200:
-        apidata = json.loads(res.text)
-        if apidata.get('error'):
-            message.reply_text(tld(chat.id, "err_not_found"))
-            return
-        else:
-            developer = apidata.get('developer')
-            developer_url = apidata.get('developer_url')
-            filename = apidata.get('filename')
-            url = "https://downloads.aospextended.com/download/" + device + "/" + version + "/" + apidata.get(
-                'filename')
-            builddate = datetime.strptime(apidata.get('build_date'),
-                                          "%Y%m%d-%H%M").strftime("%d %B %Y")
-            buildsize = sizee(int(apidata.get('filesize')))
-
-            reply_text = tld(chat.id, "download").format(filename, url)
-            reply_text += tld(chat.id, "build_size").format(buildsize)
-            reply_text += tld(chat.id, "build_date").format(builddate)
-            reply_text += tld(
-                chat.id,
-                "maintainer").format(f"[{developer}]({developer_url})")
-
-            keyboard = [[
-                InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-            ]]
-            message.reply_text(reply_text,
-                               reply_markup=InlineKeyboardMarkup(keyboard),
-                               parse_mode=ParseMode.MARKDOWN,
-                               disable_web_page_preview=True)
-            return
-    else:
-        message.reply_text(tld(chat.id, "err_not_found"))
-
-
-@run_async
-def bootleggers(bot: Bot, update: Update):
-    cmd_name = "bootleggers"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-    codename = message.text[len(f'/{cmd_name} '):]
+    try:
+        codename = args[0]
+    except:
+        codename = ''
 
     if codename == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
+        reply_text = tld(chat.id, "cmd_example").format("bootleggers")
         message.reply_text(reply_text,
                            parse_mode=ParseMode.MARKDOWN,
                            disable_web_page_preview=True)
@@ -349,24 +305,26 @@ def bootleggers(bot: Bot, update: Update):
 
 __help__ = True
 
-GETAEX_HANDLER = DisableAbleCommandHandler("aex",
-                                           getaex,
-                                           pass_args=True,
-                                           admin_ok=True)
-EVO_HANDLER = DisableAbleCommandHandler("evo", evo, admin_ok=True)
-PHH_HANDLER = DisableAbleCommandHandler("phh",
-                                        phh,
+EVO_HANDLER = DisableAbleCommandHandler("evo",
+                                        evo,
                                         pass_args=True,
                                         admin_ok=True)
-POSP_HANDLER = DisableAbleCommandHandler("posp", posp, admin_ok=True)
-LOS_HANDLER = DisableAbleCommandHandler("los", los, admin_ok=True)
+PHH_HANDLER = DisableAbleCommandHandler("phh", phh, admin_ok=True)
+POSP_HANDLER = DisableAbleCommandHandler("posp",
+                                         posp,
+                                         pass_args=True,
+                                         admin_ok=True)
+LOS_HANDLER = DisableAbleCommandHandler("los",
+                                        los,
+                                        pass_args=True,
+                                        admin_ok=True)
 BOOTLEGGERS_HANDLER = DisableAbleCommandHandler("bootleggers",
                                                 bootleggers,
+                                                pass_args=True,
                                                 admin_ok=True)
 
-dispatcher.add_handler(GETAEX_HANDLER)
 dispatcher.add_handler(EVO_HANDLER)
 dispatcher.add_handler(PHH_HANDLER)
-dispatcher.add_handler(POSP_HANDLER)
+# dispatcher.add_handler(POSP_HANDLER)
 dispatcher.add_handler(LOS_HANDLER)
 dispatcher.add_handler(BOOTLEGGERS_HANDLER)

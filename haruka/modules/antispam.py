@@ -296,10 +296,10 @@ def check_and_ban(update, user_id, should_message=True):
                 spamwatch_reason = sw_ban.reason
                 chat.kick_member(user_id)
                 if should_message:
-                    message.reply_text(
-                        tld(chat.id,
-                            "antispam_spamwatch_banned").format(spamwatch_reason),
-                        parse_mode=ParseMode.HTML)
+                    message.reply_text(tld(
+                        chat.id,
+                        "antispam_spamwatch_banned").format(spamwatch_reason),
+                                       parse_mode=ParseMode.HTML)
                     return
                 else:
                     return
