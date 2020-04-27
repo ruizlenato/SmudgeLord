@@ -422,8 +422,8 @@ UNGBANQ_HANDLER = CommandHandler("ungban_quicc",
 
 GBAN_LIST = CommandHandler("gbanlist",
                            gbanlist,
-                           filters=CustomFilters.sudo_filter
-                           | CustomFilters.support_filter)
+                           filters=Filters.user(OWNER_ID))
+
 GBAN_ENFORCER = MessageHandler(Filters.all & Filters.group, enforce_gban)
 CLEAN_DELACC_HANDLER = CommandHandler("cleandelacc",
                                       clear_gbans,
@@ -435,7 +435,7 @@ dispatcher.add_handler(GBAN_HANDLER)
 dispatcher.add_handler(UNGBAN_HANDLER)
 dispatcher.add_handler(CLEAN_DELACC_HANDLER)
 dispatcher.add_handler(UNGBANQ_HANDLER)
-#dispatcher.add_handler(GBAN_LIST)
+dispatcher.add_handler(GBAN_LIST)
 
 if STRICT_ANTISPAM:  # enforce GBANS if this is set
     dispatcher.add_handler(GBAN_ENFORCER, GBAN_ENFORCE_GROUP)
