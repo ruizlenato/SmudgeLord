@@ -103,6 +103,8 @@ android_help: |
   - /bootleggers <device>: Get the latest Bootleggers ROM for a device\n
   *GSI*
   - /phh: Get the latest Phh AOSP GSI!
+  *Misc*
+  - /magisk: Get latest Magisk releases
 #Antiflood
 modname_antiflood: Antiflood
 flood_mute: I would like to leave the flooding to natural disasters. But you, you were just a disappointment. *Muted*!
