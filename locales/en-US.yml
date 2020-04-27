@@ -723,9 +723,10 @@ misc_help: |
   - /ud: Type the word or expression you want to search. For example /ud Gay
   - /removebotkeyboard: Got a nasty bot keyboard stuck in your group?
   - /exec <language> <code> [/stdin <stdin>]: Execute a code in a specified language. Send an empty command to get the supported languages.
-  - /wiki <keywords>: Get wikipedia articles just using this bot!
+  - /wiki <keywords>: Get wikipedia articles just using this bot!\n
   *Special | COVID-19*
-  - /covid <country name>: Powered by worldometers, Give stats about COVID-19. Use world for overall stats.
+  - /covid: Powered by Worldometers, Give stats about overall stats of COVID-19.
+  - /covid <country name>: Powered by Worldometers, Give stats about COVID-19.
 #Purge
 modname_msg_deleting: Purges
 purge_msg_cant_del_too_old: Cannot delete all messages. The messages may be too old, I might not have delete rights, or this might not be a supergroup.
