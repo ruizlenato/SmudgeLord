@@ -15,7 +15,6 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from datetime import datetime
 from typing import List
 from hurry.filesize import size as sizee
 
@@ -46,7 +45,7 @@ def posp(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat
     try:
         device = args[0]
-    except:
+    except Exception:
         device = ''
 
     if device == '':
@@ -94,7 +93,7 @@ def los(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat
     try:
         device = args[0]
-    except:
+    except Exception:
         device = ''
 
     if device == '':
@@ -140,7 +139,7 @@ def evo(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat
     try:
         device = args[0]
-    except:
+    except Exception:
         device = ''
 
     if device == "example":
@@ -239,7 +238,7 @@ def bootleggers(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat
     try:
         codename = args[0]
-    except:
+    except Exception:
         codename = ''
 
     if codename == '':

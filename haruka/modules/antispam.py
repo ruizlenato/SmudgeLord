@@ -283,7 +283,7 @@ def check_and_ban(update, user_id, should_message=True):
                     return
                 else:
                     return
-    except:
+    except Exception:
         pass
 
     if sql.is_user_gbanned(user_id):

@@ -33,9 +33,9 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.info("Starting haruka...")
 
 # If Python version is < 3.6, stops the bot.
-if sys.version_info[0] < 3 or sys.version_info[1] < 6:
+if sys.version_info[0] < 3 or sys.version_info[1] < 8:
     LOGGER.error(
-        "You MUST have a python version of at least 3.6! Multiple features depend on this. Bot quitting."
+        "You MUST have a python version of at least 3.8! Multiple features depend on this. Bot quitting."
     )
     quit(1)
 
@@ -61,37 +61,44 @@ try:
     OWNER_ID = int(CONFIG['owner_id'])
 except ValueError:
     raise Exception("Your 'owner_id' variable is not a valid integer.")
+    quit(1)
 
 try:
     MESSAGE_DUMP = CONFIG['message_dump']
 except ValueError:
     raise Exception("Your 'message_dump' must be set.")
+    quit(1)
 
 try:
     GBAN_DUMP = CONFIG['gban_dump']
 except ValueError:
     raise Exception("Your 'gban_dump' must be set.")
+    quit(1)
 
 try:
     OWNER_USERNAME = CONFIG['owner_username']
 except ValueError:
     raise Exception("Your 'owner_username' must be set.")
+    quit(1)
 
 try:
     SUDO_USERS = set(int(x) for x in CONFIG['sudo_users'] or [])
 except ValueError:
     raise Exception("Your sudo users list does not contain valid integers.")
+    quit(1)
 
 try:
     SUPPORT_USERS = set(int(x) for x in CONFIG['support_users'] or [])
 except ValueError:
     raise Exception("Your support users list does not contain valid integers.")
+    quit(1)
 
 try:
     WHITELIST_USERS = set(int(x) for x in CONFIG['whitelist_users'] or [])
 except ValueError:
     raise Exception(
         "Your whitelisted users list does not contain valid integers.")
+    quit(1)
 
 REDIS_HOST = CONFIG['redis_host']
 REDIS_PORT = CONFIG['redis_port']
@@ -103,7 +110,7 @@ try:
     REDIS.ping()
 except BaseException:
     raise Exception("Your redis server is not alive, please check again.")
-    exit
+    quit(1)
 
 DB_URI = CONFIG['database_url']
 LOAD = CONFIG['load']
