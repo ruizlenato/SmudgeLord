@@ -142,34 +142,15 @@ def gban(bot: Bot, update: Update, args: List[str]):
     except Exception:
         print("nut")
 
+    try:
+        bot.kick_chat_member(chat.id, user_chat.id)
+    except BadRequest as excp:
+        if excp.message in GBAN_ERRORS:
+            pass
+
+
     sql.gban_user(user_id, user_chat.username or user_chat.first_name,
                   full_reason)
-
-    #chats = get_all_chats()
-    #for chat in chats:
-    #    chat_id = chat.chat_id
-
-    #Check if this group has disabled gbans
-    #if not sql.does_chat_gban(chat_id):
-    #    continue
-
-    #try:
-    #    bot.kick_chat_member(chat_id, user_id)
-    #except BadRequest as excp:
-    #    if excp.message in GBAN_ERRORS:
-    #        pass
-    #    else:
-    #        message.reply_text("Could not gban due to: {}".format(excp.message))
-    #        bot.send_message(GBAN_DUMP, "Could not gban due to: {}".format(excp.message))
-    #        sql.ungban_user(user_id)
-    #        os.environ['GPROCESS'] = '0'
-    #        return
-    #except TelegramError:
-    #    pass
-
-    #bot.send_message(GBAN_DUMP,
-    #               "{} has been successfully gbanned!".format(mention_html(user_chat.id, user_chat.first_name)),
-    #               parse_mode=ParseMode.HTML)
 
 
 @run_async
