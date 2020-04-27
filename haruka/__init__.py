@@ -118,7 +118,6 @@ NO_LOAD = CONFIG['no_load']
 DEL_CMDS = CONFIG['del_cmds']
 STRICT_ANTISPAM = CONFIG['strict_antispam']
 WORKERS = CONFIG['workers']
-ALLOW_EXCL = CONFIG['allow_excl']
 DEEPFRY_TOKEN = CONFIG['deepfry_token']
 
 SUDO_USERS.add(OWNER_ID)
@@ -152,5 +151,4 @@ from haruka.modules.helper_funcs.handlers import CustomCommandHandler, CustomReg
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
 
-if ALLOW_EXCL:
-    tg.CommandHandler = CustomCommandHandler
+tg.CommandHandler = CustomCommandHandler

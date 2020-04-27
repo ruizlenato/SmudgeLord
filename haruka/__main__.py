@@ -30,7 +30,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from haruka.modules import ALL_MODULES
-from haruka import dispatcher, updater, LOGGER, ALLOW_EXCL
+from haruka import dispatcher, updater, LOGGER
 from haruka.modules.helper_funcs.misc import paginate_modules
 from haruka.modules.tr_engine.strings import tld
 
@@ -110,8 +110,7 @@ def start(bot: Bot, update: Update, args: List[str]):
                 send_help(
                     update.effective_chat.id,
                     tld(chat.id, "send-help").format(
-                        dispatcher.bot.first_name, "" if not ALLOW_EXCL else
-                        tld(chat.id, "cmd_multitrigger")))
+                        dispatcher.bot.first_name, tld(chat.id, "cmd_multitrigger")))
 
             elif args[0][1:].isdigit() and "rules" in IMPORTED:
                 IMPORTED["rules"].send_rules(update, args[0], from_pm=True)
@@ -231,10 +230,7 @@ def help_button(bot: Bot, update: Update):
         elif back_match:
             bot.edit_message_text(chat_id=query.message.chat_id,
                                   message_id=query.message.message_id,
-                                  text=tld(chat.id, "send-help").format(
-                                      dispatcher.bot.first_name,
-                                      "" if not ALLOW_EXCL else tld(
-                                          chat.id, "cmd_multitrigger")),
+                                  text=tld(chat.id, "send-help").format(dispatcher.bot.first_name, tld(chat.id, "cmd_multitrigger")),
                                   parse_mode=ParseMode.MARKDOWN,
                                   reply_markup=InlineKeyboardMarkup(
                                       paginate_modules(chat.id, 0, HELPABLE,
@@ -297,8 +293,7 @@ def get_help(bot: Bot, update: Update):
     send_help(
         chat.id,
         tld(chat.id, "send-help").format(
-            dispatcher.bot.first_name,
-            "" if not ALLOW_EXCL else tld(chat.id, "cmd_multitrigger")))
+            dispatcher.bot.first_name, tld(chat.id, "cmd_multitrigger")))
 
 
 def migrate_chats(bot: Bot, update: Update):
