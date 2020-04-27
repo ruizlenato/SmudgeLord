@@ -148,7 +148,6 @@ def gban(bot: Bot, update: Update, args: List[str]):
         if excp.message in GBAN_ERRORS:
             pass
 
-
     sql.gban_user(user_id, user_chat.username or user_chat.first_name,
                   full_reason)
 

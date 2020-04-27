@@ -16,10 +16,10 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from typing import Optional, List
+from typing import List
 from hurry.filesize import size as sizee
 
-from telegram import Chat, Update, Bot
+from telegram import Update, Bot
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import run_async
 
@@ -43,7 +43,7 @@ LOGGER.info("android: Original Android Modules by @RealAkito on Telegram")
 @run_async
 def posp(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     try:
         device = args[0]
     except:
@@ -91,7 +91,7 @@ def posp(bot: Bot, update: Update, args: List[str]):
 @run_async
 def los(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     try:
         device = args[0]
     except:
@@ -137,7 +137,7 @@ def los(bot: Bot, update: Update, args: List[str]):
 @run_async
 def evo(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     try:
         device = args[0]
     except:
@@ -217,7 +217,7 @@ def evo(bot: Bot, update: Update, args: List[str]):
 def phh(bot: Bot, update: Update):
     romname = "Phh's"
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     usr = get(
         f'https://api.github.com/repos/phhusson/treble_experimentations/releases/latest'
@@ -236,7 +236,7 @@ def phh(bot: Bot, update: Update):
 @run_async
 def bootleggers(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     try:
         codename = args[0]
     except:
@@ -303,6 +303,34 @@ def bootleggers(bot: Bot, update: Update, args: List[str]):
                        disable_web_page_preview=True)
 
 
+@run_async
+def magisk(bot: Bot, update: Update):
+    message = update.effective_message
+    url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
+    releases = '*Latest Magisk Releases:*\n'
+    variant = [
+        'master/stable', 'master/beta', 'canary/release', 'canary/debug'
+    ]
+    for variants in variant:
+        data = get(url + variants + '.json').json()
+        if variants == "master/stable":
+            name = "*Stable*"
+        elif variants == "master/beta":
+            name = "*Beta*"
+        elif variants == "canary/release":
+            name = "*Canary*"
+        elif variants == "canary/debug":
+            name = "*Canary (Debug)*"
+
+        releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
+                    f'[APK v{data["app"]["version"]}]({data["app"]["link"]}) | ' \
+                    f'[Uninstaller]({data["uninstaller"]["link"]})\n'
+
+    message.reply_text(releases,
+                       parse_mode=ParseMode.MARKDOWN,
+                       disable_web_page_preview=True)
+
+
 __help__ = True
 
 EVO_HANDLER = DisableAbleCommandHandler("evo",
@@ -322,9 +350,11 @@ BOOTLEGGERS_HANDLER = DisableAbleCommandHandler("bootleggers",
                                                 bootleggers,
                                                 pass_args=True,
                                                 admin_ok=True)
+MAGISK_HANDLER = DisableAbleCommandHandler("magisk", magisk, admin_ok=True)
 
 dispatcher.add_handler(EVO_HANDLER)
 dispatcher.add_handler(PHH_HANDLER)
 # dispatcher.add_handler(POSP_HANDLER)
 dispatcher.add_handler(LOS_HANDLER)
 dispatcher.add_handler(BOOTLEGGERS_HANDLER)
+dispatcher.add_handler(MAGISK_HANDLER)
