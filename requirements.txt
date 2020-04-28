@@ -18,7 +18,7 @@ PyLyrics
 pynewtonmath
 pyowm
 python-rapidjson
-PyYAML==5.1.2
+PyYAML
 redis
 requests>=2.20.0
 spamwatch
