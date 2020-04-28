@@ -21,11 +21,14 @@ from haruka.modules.tr_engine.strings import tld
 
 @register(incoming=True, pattern="^/purge")
 async def purge(event):
-    if not await user_is_admin(user_id=event.from_id, message=event):
-        await event.reply(tld(chat, "helpers_user_not_admin"))
+    if event.from_id == None:
         return
 
     chat = event.chat_id
+
+    if not await user_is_admin(user_id=event.from_id, message=event):
+        await event.reply(tld(chat, "helpers_user_not_admin"))
+        return
 
     if not await can_delete_messages(message=event):
         await event.reply(tld(chat, "helpers_bot_cant_delete"))
@@ -54,6 +57,11 @@ async def purge(event):
 
 @register(incoming=True, pattern="^/del$")
 async def delet(event):
+    if event.from_id == None:
+        return
+
+    chat = event.chat_id
+
     if not await user_is_admin(user_id=event.from_id, message=event):
         await event.reply(tld(chat, "helpers_user_not_admin"))
         return
