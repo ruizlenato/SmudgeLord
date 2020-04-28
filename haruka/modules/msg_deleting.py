@@ -70,3 +70,6 @@ async def delet(event):
     chat = await event.get_input_chat()
     delall = [msg, currentmsg]
     await event.client.delete_messages(chat, delall)
+
+
+__help__ = True
