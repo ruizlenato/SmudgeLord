@@ -1,3 +1,7 @@
+#### Bot lib ####
+git+https://gitlab.com/HarukaNetwork/OSS/PTB.git
+telethon
+#################
 aiohttp>=2.2.5
 bleach
 emoji
@@ -13,7 +17,6 @@ psycopg2-binary
 PyLyrics
 pynewtonmath
 pyowm
-git+https://gitlab.com/HarukaNetwork/OSS/PTB.git
 python-rapidjson
 PyYAML==5.1.2
 redis
