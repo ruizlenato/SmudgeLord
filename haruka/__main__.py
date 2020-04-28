@@ -348,6 +348,8 @@ def main():
                           clean=True,
                           bootstrap_retries=-1,
                           read_latency=3.0)
+
+    LOGGER.info("Successfully loaded")
     if len(argv) not in (1, 3, 4):
         tbot.disconnect()
     else:
@@ -428,4 +430,3 @@ if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
     tbot.start(bot_token=TOKEN)
     main()
-    LOGGER.info("Successfully loaded")

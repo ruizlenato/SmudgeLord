@@ -15,15 +15,12 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-from typing import List
+import urllib
+
 from hurry.filesize import size as sizee
-
-from telegram import Update, Bot
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import run_async
-
-from haruka import dispatcher, LOGGER
-from haruka.modules.disable import DisableAbleCommandHandler
+from telethon import custom
+from haruka.events import register
+from haruka import LOGGER
 from haruka.modules.tr_engine.strings import tld
 
 from requests import get
@@ -39,68 +36,21 @@ from requests import get
 LOGGER.info("android: Original Android Modules by @RealAkito on Telegram")
 
 
-@run_async
-def posp(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat
+@register(pattern=r"^/los(?: |$)(\S*)")
+async def los(event):
+    if event.from_id == None:
+        return
+
+    chat_id = event.chat_id
     try:
-        device = args[0]
+        device_ = event.pattern_match.group(1)
+        device = urllib.parse.quote_plus(device_)
     except Exception:
         device = ''
 
     if device == '':
-        reply_text = tld(chat.id, "cmd_example").format("posp")
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    fetch = get(
-        f'https://api.potatoproject.co/checkUpdate?device={device}&type=weekly'
-    )
-    if fetch.status_code == 200 and len(fetch.json()['response']) != 0:
-        usr = fetch.json()
-        response = usr['response'][0]
-        filename = response['filename']
-        url = response['url']
-        buildsize_a = response['size']
-        buildsize_b = sizee(int(buildsize_a))
-        version = response['version']
-
-        reply_text = tld(chat.id, "download").format(filename, url)
-        reply_text += tld(chat.id, "build_size").format(buildsize_b)
-        reply_text += tld(chat.id, "version").format(version)
-
-        keyboard = [[
-            InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-        ]]
-        message.reply_text(reply_text,
-                           reply_markup=InlineKeyboardMarkup(keyboard),
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
-        return
-
-    else:
-        reply_text = tld(chat.id, "err_not_found")
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
-
-
-@run_async
-def los(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat
-    try:
-        device = args[0]
-    except Exception:
-        device = ''
-
-    if device == '':
-        reply_text = tld(chat.id, "cmd_example").format("los")
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
+        reply_text = tld(chat_id, "cmd_example").format("los")
+        await event.reply(reply_text, link_preview=False)
         return
 
     fetch = get(f'https://download.lineageos.org/api/v1/{device}/nightly/*')
@@ -113,40 +63,34 @@ def los(bot: Bot, update: Update, args: List[str]):
         buildsize_b = sizee(int(buildsize_a))
         version = response['version']
 
-        reply_text = tld(chat.id, "download").format(filename, url)
-        reply_text += tld(chat.id, "build_size").format(buildsize_b)
-        reply_text += tld(chat.id, "version").format(version)
+        reply_text = tld(chat_id, "download").format(filename, url)
+        reply_text += tld(chat_id, "build_size").format(buildsize_b)
+        reply_text += tld(chat_id, "version").format(version)
 
-        keyboard = [[
-            InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-        ]]
-        message.reply_text(reply_text,
-                           reply_markup=InlineKeyboardMarkup(keyboard),
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
+        keyboard = [custom.Button.url(tld(chat_id, "btn_dl"), f"{url}")]
+        await event.reply(reply_text, buttons=keyboard, link_preview=False)
         return
 
     else:
-        reply_text = tld(chat.id, "err_not_found")
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
+        reply_text = tld(chat_id, "err_not_found")
+    await event.reply(reply_text, link_preview=False)
 
 
-@run_async
-def evo(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat
+@register(pattern=r"^/evo(?: |$)(\S*)")
+async def evo(event):
+    if event.from_id == None:
+        return
+
+    chat_id = event.chat_id
     try:
-        device = args[0]
+        device_ = event.pattern_match.group(1)
+        device = urllib.parse.quote_plus(device_)
     except Exception:
         device = ''
 
     if device == "example":
-        reply_text = tld(chat.id, "err_example_device")
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
+        reply_text = tld(chat_id, "err_example_device")
+        await event.reply(reply_text, link_preview=False)
         return
 
     if device == "x00t":
@@ -156,10 +100,8 @@ def evo(bot: Bot, update: Update, args: List[str]):
         device = "X01BD"
 
     if device == '':
-        reply_text = tld(chat.id, "cmd_example").format("evo")
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
+        reply_text = tld(chat_id, "cmd_example").format("evo")
+        await event.reply(reply_text, link_preview=False)
         return
 
     fetch = get(
@@ -167,7 +109,7 @@ def evo(bot: Bot, update: Update, args: List[str]):
     )
 
     if fetch.status_code in [500, 504, 505]:
-        message.reply_text(
+        await event.reply(
             "Haruka Aya have been trying to connect to Github User Content, It seem like Github User Content is down"
         )
         return
@@ -183,45 +125,39 @@ def evo(bot: Bot, update: Update, args: List[str]):
             size_a = usr['size']
             size_b = sizee(int(size_a))
 
-            reply_text = tld(chat.id, "download").format(filename, url)
-            reply_text += tld(chat.id, "build_size").format(size_b)
-            reply_text += tld(chat.id, "android_version").format(version)
-            reply_text += tld(chat.id, "maintainer").format(
+            reply_text = tld(chat_id, "download").format(filename, url)
+            reply_text += tld(chat_id, "build_size").format(size_b)
+            reply_text += tld(chat_id, "android_version").format(version)
+            reply_text += tld(chat_id, "maintainer").format(
                 f"[{maintainer}](https://t.me/{maintainer_url})")
 
-            keyboard = [[
-                InlineKeyboardButton(text=tld(chat.id, "btn_dl"), url=f"{url}")
-            ]]
-            message.reply_text(reply_text,
-                               reply_markup=InlineKeyboardMarkup(keyboard),
-                               parse_mode=ParseMode.MARKDOWN,
-                               disable_web_page_preview=True)
+            keyboard = [custom.Button.url(tld(chat_id, "btn_dl"), f"{url}")]
+            await event.reply(reply_text, buttons=keyboard, link_preview=False)
             return
 
         except ValueError:
-            reply_text = tld(chat.id, "err_json")
-            message.reply_text(reply_text,
-                               parse_mode=ParseMode.MARKDOWN,
-                               disable_web_page_preview=True)
+            reply_text = tld(chat_id, "err_json")
+            await event.reply(reply_text, link_preview=False)
             return
 
     elif fetch.status_code == 404:
-        reply_text = tld(chat.id, "err_not_found")
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
+        reply_text = tld(chat_id, "err_not_found")
+        await event.reply(reply_text, link_preview=False)
         return
 
 
-def phh(bot: Bot, update: Update):
+@register(pattern=r"^/phh$")
+async def phh(event):
+    if event.from_id == None:
+        return
+
     romname = "Phh's"
-    message = update.effective_message
-    chat = update.effective_chat
+    chat_id = event.chat_id
 
     usr = get(
         f'https://api.github.com/repos/phhusson/treble_experimentations/releases/latest'
     ).json()
-    reply_text = tld(chat.id, "cust_releases").format(romname)
+    reply_text = tld(chat_id, "cust_releases").format(romname)
     for i in range(len(usr)):
         try:
             name = usr['assets'][i]['name']
@@ -229,23 +165,24 @@ def phh(bot: Bot, update: Update):
             reply_text += f"[{name}]({url})\n"
         except IndexError:
             continue
-    message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN)
+    await event.reply(reply_text)
 
 
-@run_async
-def bootleggers(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat
+@register(pattern=r"^/bootleggers(?: |$)(\S*)")
+async def bootleggers(event):
+    if event.from_id == None:
+        return
+
+    chat_id = event.chat_id
     try:
-        codename = args[0]
+        codename_ = event.pattern_match.group(1)
+        codename = urllib.parse.quote_plus(codename_)
     except Exception:
         codename = ''
 
     if codename == '':
-        reply_text = tld(chat.id, "cmd_example").format("bootleggers")
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
+        reply_text = tld(chat_id, "cmd_example").format("bootleggers")
+        await event.reply(reply_text, link_preview=False)
         return
 
     fetch = get('https://bootleggersrom-devices.github.io/api/devices.json')
@@ -281,79 +218,52 @@ def bootleggers(bot: Bot, update: Update, args: List[str]):
                         oh = oh.title()
 
                     if oh == 'SourceForge folder':
-                        reply_text += f"\n*{oh}:* [Here]({baby})"
+                        reply_text += f"\n**{oh}:** [Here]({baby})\n"
                     elif oh == 'Mirror link':
-                        reply_text += f"\n*{oh}:* [Here]({baby})"
+                        if not baby == "Error404":
+                            reply_text += f"\n**{oh}:** [Here]({baby})\n"
                     else:
-                        reply_text += f"\n*{oh}:* `{baby}`"
+                        reply_text += f"\n**{oh}:** `{baby}`"
 
-            reply_text += tld(chat.id, "xda_thread").format(
+            reply_text += tld(chat_id, "xda_thread").format(
                 devices[devicetoget]['xdathread'])
-            reply_text += tld(chat.id, "download").format(
+            reply_text += tld(chat_id, "download").format(
                 devices[devicetoget]['filename'],
                 devices[devicetoget]['download'])
         else:
-            reply_text = tld(chat.id, "err_not_found")
+            reply_text = tld(chat_id, "err_not_found")
 
     elif fetch.status_code == 404:
-        reply_text = tld(chat.id, "err_api")
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
+        reply_text = tld(chat_id, "err_api")
+    await event.reply(reply_text, link_preview=False)
 
 
-@run_async
-def magisk(bot: Bot, update: Update):
-    message = update.effective_message
+@register(pattern=r"^/magisk$")
+async def magisk(event):
+    if event.from_id == None:
+        return
+
     url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
-    releases = '*Latest Magisk Releases:*\n'
+    releases = '**Latest Magisk Releases:**\n'
     variant = [
         'master/stable', 'master/beta', 'canary/release', 'canary/debug'
     ]
     for variants in variant:
         data = get(url + variants + '.json').json()
         if variants == "master/stable":
-            name = "*Stable*"
+            name = "**Stable**"
         elif variants == "master/beta":
-            name = "*Beta*"
+            name = "**Beta**"
         elif variants == "canary/release":
-            name = "*Canary*"
+            name = "**Canary**"
         elif variants == "canary/debug":
-            name = "*Canary (Debug)*"
+            name = "**Canary (Debug)**"
 
         releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
                     f'[APK v{data["app"]["version"]}]({data["app"]["link"]}) | ' \
                     f'[Uninstaller]({data["uninstaller"]["link"]})\n'
 
-    message.reply_text(releases,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
+    await event.reply(releases, link_preview=False)
 
 
 __help__ = True
-
-EVO_HANDLER = DisableAbleCommandHandler("evo",
-                                        evo,
-                                        pass_args=True,
-                                        admin_ok=True)
-PHH_HANDLER = DisableAbleCommandHandler("phh", phh, admin_ok=True)
-POSP_HANDLER = DisableAbleCommandHandler("posp",
-                                         posp,
-                                         pass_args=True,
-                                         admin_ok=True)
-LOS_HANDLER = DisableAbleCommandHandler("los",
-                                        los,
-                                        pass_args=True,
-                                        admin_ok=True)
-BOOTLEGGERS_HANDLER = DisableAbleCommandHandler("bootleggers",
-                                                bootleggers,
-                                                pass_args=True,
-                                                admin_ok=True)
-MAGISK_HANDLER = DisableAbleCommandHandler("magisk", magisk, admin_ok=True)
-
-dispatcher.add_handler(EVO_HANDLER)
-dispatcher.add_handler(PHH_HANDLER)
-# dispatcher.add_handler(POSP_HANDLER)
-dispatcher.add_handler(LOS_HANDLER)
-dispatcher.add_handler(BOOTLEGGERS_HANDLER)
-dispatcher.add_handler(MAGISK_HANDLER)

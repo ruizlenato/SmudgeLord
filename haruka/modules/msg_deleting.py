@@ -19,7 +19,7 @@ from haruka.modules.helper_funcs.telethon.chat_status import user_is_admin, can_
 from haruka.modules.tr_engine.strings import tld
 
 
-@register(incoming=True, pattern="^/purge")
+@register(pattern="^/purge")
 async def purge(event):
     if event.from_id == None:
         return
@@ -55,7 +55,7 @@ async def purge(event):
     await event.respond(text, parse_mode='md')
 
 
-@register(incoming=True, pattern="^/del$")
+@register(pattern="^/del$")
 async def delet(event):
     if event.from_id == None:
         return

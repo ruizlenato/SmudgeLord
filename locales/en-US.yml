@@ -77,18 +77,18 @@ afk_help: |
   When marked as AFK, any mentions will be replied to with a message stating that you're not available!
 #Android
 modname_android: Android
-download: "*Download:* [{}]({})\n"
-build_size: "*Build Size:* `{}`\n"
-build_date: "*Build Date:* `{}`\n"
-version: "*Version:* `{}`\n"
-android_version: "*Android Version:* `{}`\n"
-rom_type: "*ROM Type:* `{}`\n"
-maintainer: "*Maintainer:* {}\n"
-xda_thread: "*XDA Thread:* [Here]({})\n"
-changelog: "*Device Changelog:* `{}`\n"
-weekly: "*Weekly*\n"
-miui_release: "*Recovery ROM*\n\n*Stable*\n"
-cust_releases: "*{} latest release(s)*\n"
+download: "**Download:** [{}]({})\n"
+build_size: "**Build Size:** `{}`\n"
+build_date: "**Build Date:** `{}`\n"
+version: "**Version:** `{}`\n"
+android_version: "**Android Version:** `{}`\n"
+rom_type: "**ROM Type:** `{}`\n"
+maintainer: "**Maintainer:** {}\n"
+xda_thread: "**XDA Thread:** [Here]({})\n"
+changelog: "**Device Changelog:** `{}`\n"
+weekly: "**Weekly**\n"
+miui_release: "**Recovery ROM**\n\n**Stable**\n"
+cust_releases: "**{} latest release(s)**\n"
 err_not_found: Couldn't find any results matching your query.
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
