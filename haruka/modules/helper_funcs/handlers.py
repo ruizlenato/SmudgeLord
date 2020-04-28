@@ -33,7 +33,8 @@ class CustomCommandHandler(tg.CommandHandler):
             (update.message or update.edited_message and self.allow_edited)):
             message = update.message or update.edited_message
 
-            if update.effective_user and int(update.effective_user.id) == 777000:
+            if update.effective_user and int(
+                    update.effective_user.id) == 777000:
                 return False
 
             if message.text and len(message.text) > 1:

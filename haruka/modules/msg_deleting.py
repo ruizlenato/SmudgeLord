@@ -1,5 +1,4 @@
 #    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
 
 #    This program is free software: you can redistribute it and/or modify
@@ -15,103 +14,59 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import html
-from typing import List
-
-from telegram import Update, Bot
-from telegram.error import BadRequest
-from telegram.ext import CommandHandler, Filters
-from telegram.ext.dispatcher import run_async
-from telegram.utils.helpers import mention_html
-
-from haruka import dispatcher, LOGGER
-from haruka.modules.helper_funcs.chat_status import user_admin, can_delete
-from haruka.modules.log_channel import loggable
+from haruka.events import register
+from haruka.modules.helper_funcs.telethon.chat_status import user_is_admin, can_delete_messages
 from haruka.modules.tr_engine.strings import tld
 
 
-@run_async
-@user_admin
-@loggable
-def purge(bot: Bot, update: Update, args: List[str]) -> str:
-    msg = update.effective_message
-    if msg.reply_to_message:
-        user = update.effective_user
-        chat = update.effective_chat
-        if can_delete(chat, bot.id):
-            message_id = msg.reply_to_message.message_id
-            if args and args[0].isdigit():
-                if int(args[0]) < int(1):
-                    return
+@register(incoming=True, pattern="^/purge")
+async def purge(event):
+    if not await user_is_admin(user_id=event.from_id, message=event):
+        await event.reply(tld(chat, "helpers_user_not_admin"))
+        return
 
-                delete_to = message_id + int(args[0])
-            else:
-                delete_to = msg.message_id - 1
-            for m_id in range(delete_to, message_id - 1,
-                              -1):  # Reverse iteration over message ids
-                try:
-                    bot.deleteMessage(chat.id, m_id)
-                except BadRequest as err:
-                    if err.message == "Message can't be deleted":
-                        bot.send_message(
-                            chat.id, tld(chat.id,
-                                         "purge_msg_cant_del_too_old"))
+    chat = event.chat_id
 
-                    elif err.message != "Message to delete not found":
-                        LOGGER.exception("Error while purging chat messages.")
+    if not await can_delete_messages(message=event):
+        await event.reply(tld(chat, "helpers_bot_cant_delete"))
+        return
 
-            try:
-                msg.delete()
-            except BadRequest as err:
-                if err.message == "Message can't be deleted":
-                    bot.send_message(
-                        chat.id, tld(chat.id, "purge_msg_cant_del_too_old"))
+    msg = await event.get_reply_message()
+    if not msg:
+        await event.reply(tld(chat, "purge_invalid"))
+        return
+    msgs = []
+    msg_id = msg.id
+    delete_to = event.message.id - 1
+    await event.client.delete_messages(chat, event.message.id)
 
-                elif err.message != "Message to delete not found":
-                    LOGGER.exception("Error while purging chat messages.")
+    msgs.append(event.reply_to_msg_id)
+    for m_id in range(delete_to, msg_id - 1, -1):
+        msgs.append(m_id)
+        if len(msgs) == 100:
+            await event.client.delete_messages(chat, msgs)
+            msgs = []
 
-            bot.send_message(chat.id, tld(chat.id, "purge_msg_success"))
-            return "<b>{}:</b>" \
-                   "\n#PURGE" \
-                   "\n<b>• Admin:</b> {}" \
-                   "\nPurged <code>{}</code> messages.".format(html.escape(chat.title),
-                                                               mention_html(user.id, user.first_name),
-                                                               delete_to - message_id)
-
-    else:
-        msg.reply_text(tld(chat.id, "purge_invalid"))
-
-    return ""
+    await event.client.delete_messages(chat, msgs)
+    text = tld(chat, "purge_msg_success")
+    await event.respond(text, parse_mode='md')
 
 
-@run_async
-@user_admin
-@loggable
-def del_message(bot: Bot, update: Update) -> str:
-    chat = update.effective_chat
-    if update.effective_message.reply_to_message:
-        user = update.effective_user
-        if can_delete(chat, bot.id):
-            update.effective_message.reply_to_message.delete()
-            update.effective_message.delete()
-            return "<b>{}:</b>" \
-                   "\n#DEL" \
-                   "\n<b>• Admin:</b> {}" \
-                   "\nMessage deleted.".format(html.escape(chat.title),
-                                               mention_html(user.id, user.first_name))
-    else:
-        update.effective_message.reply_text(tld(chat.id, "purge_invalid2"))
+@register(incoming=True, pattern="^/del$")
+async def delet(event):
+    if not await user_is_admin(user_id=event.from_id, message=event):
+        await event.reply(tld(chat, "helpers_user_not_admin"))
+        return
 
-    return ""
+    if not await can_delete_messages(message=event):
+        await event.reply(tld(chat, "helpers_bot_cant_delete"))
+        return
 
-
-__help__ = True
-
-DELETE_HANDLER = CommandHandler("del", del_message, filters=Filters.group)
-PURGE_HANDLER = CommandHandler("purge",
-                               purge,
-                               filters=Filters.group,
-                               pass_args=True)
-
-dispatcher.add_handler(DELETE_HANDLER)
-dispatcher.add_handler(PURGE_HANDLER)
+    msg = await event.get_reply_message()
+    if not msg:
+        await event.reply(tld(chat, "purge_invalid"))
+        return
+    currentmsg = event.message
+    chat = await event.get_input_chat()
+    delall = [msg, currentmsg]
+    await event.client.delete_messages(chat, delall)

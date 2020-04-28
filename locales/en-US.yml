@@ -1137,7 +1137,7 @@ helpers_bot_cant_pin: I can't pin messages here! Make sure I'm admin and can pin
 helpers_bot_cant_pro_demote: I can't promote/demote people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_cant_restrict: I can't restrict people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_not_admin: I'm not an admin!
-helpers_user_not_admin: Who dis non-admin telling me what to do?
+helpers_user_not_admin: You must be this chat administrator to perform this action!
 #extraction
 helpers_user_not_in_db: |
   I don't have that user in my user database.

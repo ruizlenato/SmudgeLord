@@ -21,6 +21,7 @@ import yaml
 import spamwatch
 from redis import StrictRedis
 
+from telethon import TelegramClient
 import telegram.ext as tg
 
 #Enable logging
@@ -56,6 +57,8 @@ if not CONFIG['is_example_config_or_not'] == "not_sample_anymore":
     quit(1)
 
 TOKEN = CONFIG['bot_token']
+API_KEY = CONFIG['api_key']
+API_HASH = CONFIG['api_hash']
 
 try:
     OWNER_ID = int(CONFIG['owner_id'])
@@ -140,6 +143,8 @@ else:
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
 dispatcher = updater.dispatcher
+
+tbot = TelegramClient("haruka", API_KEY, API_HASH)
 
 SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
