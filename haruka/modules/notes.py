@@ -320,18 +320,30 @@ def remove_all_notes(bot: Bot, update: Update):
     message = update.effective_message
 
     if chat.type == "private":
+        chat.title = tld(chat.id, "note_is_local")
         pass
     else:
         owner = chat.get_member(user.id)
+        chat.title = chat.title
         if owner.status != 'creator':
             message.reply_text(tld(chat.id, "notes_must_be_creator"))
             return
 
     note_list = sql.get_all_chat_notes(chat.id)
+    if not note_list:
+        message.reply_text(tld(chat.id,
+                               "note_none_in_chat").format(chat.title),
+                           parse_mode=ParseMode.MARKDOWN)
+        return
+
     x = 0
+    a_note = []
     for notename in note_list:
         x += 1
         note = notename.name.lower()
+        a_note.append(note)
+
+    for note in a_note:
         sql.rm_note(chat.id, note)
 
     message.reply_text(tld(chat.id, "notes_cleanup_success").format(x))
