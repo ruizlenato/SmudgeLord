@@ -295,19 +295,30 @@ def stop_all_filters(bot: Bot, update: Update):
     message = update.effective_message
 
     if chat.type == "private":
+        chat.title = tld(chat.id, "cust_filters_local")
         pass
     else:
         owner = chat.get_member(user.id)
+        chat.title = chat.title
         if owner.status != 'creator':
             message.reply_text(tld(chat.id, "notes_must_be_creator"))
             return
 
-    filters_list = sql.get_chat_triggers(chat.id)
-
     x = 0
-    for filter in filters_list:
+    flist = sql.get_chat_triggers(chat.id)
+
+    if not flist:
+        message.reply_text(
+            tld(chat.id, "cust_filters_list_empty").format(chat.title))
+        return
+
+    f_flist = []
+    for f in flist:
         x += 1
-        sql.remove_filter(chat.id, filter)
+        f_flist.append(f)
+
+    for fx in f_flist:
+        sql.remove_filter(chat.id, fx)
 
     message.reply_text(tld(chat.id, "cust_filters_cleanup_success").format(x))
 
