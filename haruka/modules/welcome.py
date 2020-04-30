@@ -26,7 +26,7 @@ from telegram.utils.helpers import mention_html
 
 import haruka.modules.sql.welcome_sql as sql
 from haruka.modules.sql.antispam_sql import is_user_gbanned
-from haruka import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP
+from haruka import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP, sw
 from haruka.modules.helper_funcs.chat_status import user_admin, is_user_ban_protected
 from haruka.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from haruka.modules.helper_funcs.msg_types import get_welcome_type
@@ -144,6 +144,11 @@ def new_member(bot: Bot, update: Update):
 
             if is_user_gbanned(new_mem.id):
                 return
+
+            if sw != None:
+                sw_ban = sw.get_ban(new_mem.id)
+                if sw_ban:
+                    return
 
             if new_mem.id == bot.id:
                 bot.send_message(
@@ -385,6 +390,12 @@ def left_member(bot: Bot, update: Update):
 
             if is_user_gbanned(left_mem.id):
                 return
+
+            if sw != None:
+                sw_ban = sw.get_ban(left_mem.id)
+                if sw_ban:
+                    return
+
             # Ignore bot being kicked
             if left_mem.id == bot.id:
                 return
