@@ -202,8 +202,8 @@ def stop_filter(bot: Bot, update: Update):
         return
 
     for keyword in chat_filters:
-        if keyword == args[1]:
-            sql.remove_filter(chat_id, args[1])
+        if keyword == args[1].lower():
+            sql.remove_filter(chat_id, args[1].lower())
             update.effective_message.reply_text(
                 tld(chat.id, "cust_filters_stop_success").format(chat_name),
                 parse_mode=telegram.ParseMode.MARKDOWN)
