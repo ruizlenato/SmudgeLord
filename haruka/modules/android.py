@@ -24,6 +24,7 @@ from haruka import LOGGER
 from haruka.modules.tr_engine.strings import tld
 
 from requests import get
+import rapidjson as json
 
 # Greeting all bot owners that is using this module,
 # - RealAkito (used to be peaktogoo) [Module Maker]
@@ -55,7 +56,7 @@ async def los(event):
 
     fetch = get(f'https://download.lineageos.org/api/v1/{device}/nightly/*')
     if fetch.status_code == 200 and len(fetch.json()['response']) != 0:
-        usr = fetch.json()
+        usr = json.loads(fetch.content)
         response = usr['response'][0]
         filename = response['filename']
         url = response['url']
@@ -116,7 +117,7 @@ async def evo(event):
 
     if fetch.status_code == 200:
         try:
-            usr = fetch.json()
+            usr = json.loads(fetch.content)
             filename = usr['filename']
             url = usr['url']
             version = usr['version']
@@ -154,9 +155,10 @@ async def phh(event):
     romname = "Phh's"
     chat_id = event.chat_id
 
-    usr = get(
-        f'https://api.github.com/repos/phhusson/treble_experimentations/releases/latest'
-    ).json()
+    fetch = get(
+        "https://api.github.com/repos/phhusson/treble_experimentations/releases/latest"
+    )
+    usr = json.loads(fetch.content)
     reply_text = tld(chat_id, "cust_releases").format(romname)
     for i in range(len(usr)):
         try:
@@ -187,7 +189,7 @@ async def bootleggers(event):
 
     fetch = get('https://bootleggersrom-devices.github.io/api/devices.json')
     if fetch.status_code == 200:
-        nestedjson = fetch.json()
+        nestedjson = json.loads(fetch.content)
 
         if codename.lower() == 'x00t':
             devicetoget = 'X00T'
@@ -249,7 +251,8 @@ async def magisk(event):
         'master/stable', 'master/beta', 'canary/release', 'canary/debug'
     ]
     for variants in variant:
-        data = get(url + variants + '.json').json()
+        fetch = get(url + variants + '.json')
+        data = json.loads(fetch.content)
         if variants == "master/stable":
             name = "**Stable**"
         elif variants == "master/beta":
