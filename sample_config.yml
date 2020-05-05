@@ -19,9 +19,6 @@ sw_api: ''
 
 # Database
 database_url: "postgres://username:password@host:5432/database_name"
-redis_host: "localhost"
-redis_port: 6379
-redis_db: 0
 
 # Permission
 sudo_users: []

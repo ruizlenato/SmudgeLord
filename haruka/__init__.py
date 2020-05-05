@@ -19,7 +19,6 @@ import logging
 import sys
 import yaml
 import spamwatch
-from redis import StrictRedis
 
 from telethon import TelegramClient
 import telegram.ext as tg
@@ -101,18 +100,6 @@ try:
 except ValueError:
     raise Exception(
         "Your whitelisted users list does not contain valid integers.")
-    quit(1)
-
-REDIS_HOST = CONFIG['redis_host']
-REDIS_PORT = CONFIG['redis_port']
-REDIS_DB = CONFIG['redis_db']
-
-REDIS = StrictRedis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
-
-try:
-    REDIS.ping()
-except BaseException:
-    raise Exception("Your redis server is not alive, please check again.")
     quit(1)
 
 DB_URI = CONFIG['database_url']

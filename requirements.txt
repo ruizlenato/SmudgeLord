@@ -19,7 +19,6 @@ pynewtonmath
 pyowm
 python-rapidjson
 PyYAML
-redis
 requests>=2.20.0
 spamwatch
 spongemock
