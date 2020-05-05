@@ -217,7 +217,6 @@ def stop_filter(bot: Bot, update: Update):
 def reply_filter(bot: Bot, update: Update):
     chat = update.effective_chat
     message = update.effective_message
-    user = update.effective_user
 
     if update.effective_user.id == 777000:
         return
@@ -296,7 +295,6 @@ def stop_all_filters(bot: Bot, update: Update):
 
     if chat.type == "private":
         chat.title = tld(chat.id, "cust_filters_local")
-        pass
     else:
         owner = chat.get_member(user.id)
         chat.title = chat.title

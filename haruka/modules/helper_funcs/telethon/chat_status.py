@@ -15,7 +15,6 @@
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from haruka import tbot, SUDO_USERS, WHITELIST_USERS
-from telethon import functions, types
 from telethon.tl.types import ChannelParticipantsAdmins
 
 

@@ -63,44 +63,37 @@ try:
     OWNER_ID = int(CONFIG['owner_id'])
 except ValueError:
     raise Exception("Your 'owner_id' variable is not a valid integer.")
-    quit(1)
 
 try:
     MESSAGE_DUMP = CONFIG['message_dump']
 except ValueError:
     raise Exception("Your 'message_dump' must be set.")
-    quit(1)
 
 try:
     GBAN_DUMP = CONFIG['gban_dump']
 except ValueError:
     raise Exception("Your 'gban_dump' must be set.")
-    quit(1)
 
 try:
     OWNER_USERNAME = CONFIG['owner_username']
 except ValueError:
     raise Exception("Your 'owner_username' must be set.")
-    quit(1)
 
 try:
     SUDO_USERS = set(int(x) for x in CONFIG['sudo_users'] or [])
 except ValueError:
     raise Exception("Your sudo users list does not contain valid integers.")
-    quit(1)
 
 try:
     SUPPORT_USERS = set(int(x) for x in CONFIG['support_users'] or [])
 except ValueError:
     raise Exception("Your support users list does not contain valid integers.")
-    quit(1)
 
 try:
     WHITELIST_USERS = set(int(x) for x in CONFIG['whitelist_users'] or [])
 except ValueError:
     raise Exception(
         "Your whitelisted users list does not contain valid integers.")
-    quit(1)
 
 DB_URI = CONFIG['database_url']
 LOAD = CONFIG['load']
@@ -124,7 +117,7 @@ if spamwatch_api == "None":
 else:
     try:
         sw = spamwatch.Client(spamwatch_api)
-    except:
+    except Exception:
         sw = None
 
 updater = tg.Updater(TOKEN, workers=WORKERS)

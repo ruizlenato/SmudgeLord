@@ -321,7 +321,6 @@ def remove_all_notes(bot: Bot, update: Update):
 
     if chat.type == "private":
         chat.title = tld(chat.id, "note_is_local")
-        pass
     else:
         owner = chat.get_member(user.id)
         chat.title = chat.title
