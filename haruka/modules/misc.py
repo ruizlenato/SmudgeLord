@@ -379,6 +379,8 @@ def get_paste_stats(bot: Bot, update: Update, args: List[str]):
 def ud(bot: Bot, update: Update):
     message = update.effective_message
     text = message.text[len('/ud '):]
+    if text == '':
+        text = "Cockblocked By Steve Jobs"
     results = get(
         f'http://api.urbandictionary.com/v0/define?term={text}').json()
     reply_text = f'Word: {text}\nDefinition: {results["list"][0]["definition"]}'
