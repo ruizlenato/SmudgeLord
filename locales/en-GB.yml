@@ -76,25 +76,22 @@ afk_help: |
   When marked as AFK, any mentions will be replied to with a message stating that you're not available!
 #Android
 modname_android: Android
-download: "*Download:* [{}]({})\n"
-build_size: "*Build Size:* `{}`\n"
-build_date: "*Build Date:* `{}`\n"
-version: "*Version:* `{}`\n"
-android_version: "*Android Version:* `{}`\n"
-rom_type: "*ROM Type:* `{}`\n"
-maintainer: "*Maintainer:* {}\n"
-xda_thread: "*XDA Thread:* [Here]({})\n"
-changelog: "*Device Changelog:* `{}`\n"
-weekly: "*Weekly*\n"
-miui_release: "*Recovery ROM*\n\n*Stable*\n"
-cust_releases: "*{} latest release(s)*\n"
+download: "**Download:** [{}]({})\n"
+build_size: "**Build Size:** `{}`\n"
+build_date: "**Build Date:** `{}`\n"
+version: "**Version:** `{}`\n"
+android_version: "**Android Version:** `{}`\n"
+rom_type: "**ROM Type:** `{}`\n"
+maintainer: "**Maintainer:** {}\n"
+xda_thread: "**XDA Thread:** [Here]({})\n"
+changelog: "**Device Changelog:** `{}`\n"
+weekly: "**Weekly**\n"
 err_not_found: Couldn't find any results matching your query.
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
 err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
 btn_dl: Click here to Download
 cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
-evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click the button down below to download the GSIs!
 android_help: |
   *Device Specific ROM for a device*
   - /evo <device>: Get the latest Evolution X ROM for a device
@@ -195,6 +192,7 @@ bans_kick_is_admin: Why would I kick an admin? That sounds like a pretty dumb id
 bans_kick_success: Admin {} has successfully kicked {} in <b>{}</b>!
 bans_kick_logger: "<b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)"
 bans_kickme_success: No problem.
+bans_kickme_failed: I cannot kick you! You're lucky today.
 bans_unban_user_in_chat: Why are you trying to unban someone that's already in the chat?
 bans_unban_success: Yep, this user can join!
 bans_unban_logger: "<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)"
@@ -695,7 +693,14 @@ misc_get_pasted_invalid: Please supply a dogbin url!
 misc_get_pasted_unknown: Unknown error occured
 misc_covid_error: An error have occured!, Are you sure the country name is correct?
 misc_covid_total_tests: "*Total Tests*: {}"
-misc_covid_total_tests_str: "*Total Tests*: {}"
+misc_covid: |
+  *COVID-19 Statistics for {}*\n
+  *Confirmed Cases*: {} _(+{})_
+  *Active Cases*: {}
+  *Critical Cases*: {}
+  *Deaths*: {} _(+{})_
+  *Recovered*: {}
+  *Total tests*: {}
 misc_help: |
   - /id: get the current group id. If used by replying to a message, gets that user's id.
   - /info: get information about a user.
@@ -1127,7 +1132,7 @@ helpers_bot_cant_pin: I can't pin messages here! Make sure I'm admin and can pin
 helpers_bot_cant_pro_demote: I can't promote/demote people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_cant_restrict: I can't restrict people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_not_admin: I'm not an admin!
-helpers_user_not_admin: Who dis non-admin telling me what to do?
+helpers_user_not_admin: You must be this chat administrator to perform this action!
 #extraction
 helpers_user_not_in_db: |
   I don't have that user in my user database.
