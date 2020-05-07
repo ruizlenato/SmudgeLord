@@ -87,15 +87,12 @@ maintainer: "**Maintainer:** {}\n"
 xda_thread: "**XDA Thread:** [Here]({})\n"
 changelog: "**Device Changelog:** `{}`\n"
 weekly: "**Weekly**\n"
-miui_release: "**Recovery ROM**\n\n**Stable**\n"
-cust_releases: "**{} latest release(s)**\n"
 err_not_found: Couldn't find any results matching your query.
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
 err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
 btn_dl: Click here to Download
 cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
-evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click the button down below to download the GSIs!
 android_help: |
   *Device Specific ROM for a device*
   - /evo <device>: Get the latest Evolution X ROM for a device
@@ -196,7 +193,7 @@ bans_kick_is_admin: Why would I kick an admin? That sounds like a pretty dumb id
 bans_kick_success: Admin {} has successfully kicked {} in <b>{}</b>!
 bans_kick_logger: '<b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)'
 bans_kickme_success: No problem.
-bans_kickme_failed:
+bans_kickme_failed: I cannot kick you! You're lucky today.
 bans_unban_user_in_chat: Why are you trying to unban someone that's already in the chat?
 bans_unban_success: Yep, this user can join!
 bans_unban_logger: '<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)'
