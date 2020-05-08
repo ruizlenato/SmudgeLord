@@ -152,14 +152,13 @@ async def phh(event):
     if event.from_id == None:
         return
 
-    romname = "Phh's"
     chat_id = event.chat_id
 
     fetch = get(
         "https://api.github.com/repos/phhusson/treble_experimentations/releases/latest"
     )
     usr = json.loads(fetch.content)
-    reply_text = tld(chat_id, "cust_releases").format(romname)
+    reply_text = tld(chat_id, "phh_releases")
     for i in range(len(usr)):
         try:
             name = usr['assets'][i]['name']

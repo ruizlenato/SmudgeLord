@@ -87,6 +87,7 @@ maintainer: "**Maintainer:** {}\n"
 xda_thread: "**XDA Thread:** [Here]({})\n"
 changelog: "**Device Changelog:** `{}`\n"
 weekly: "**Weekly**\n"
+phh_releases: "**Phh's latest GSI release(s)**\n"
 err_not_found: Couldn't find any results matching your query.
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
