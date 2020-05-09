@@ -153,7 +153,7 @@ antispam_err_usr_sudo: I spy with my little eyes... a sudo user war! Why are you
 antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
 antispam_err_usr_bot: -_- So funny, let me gban myself, why don't I? Nice try.
 antispam_err_not_usr: That's not a user!
-antispam_err_usr_deleted: That's a deleted account! Why even bother gbanning them?
+antispam_err_user_deleted: That's a deleted account! Why even bother gbanning them?
 antispam_err_no_new_reason: This user is already gbanned; I'd change the reason, but you haven't given me one...
 antispam_logger_update_gban: |
     <b>New Reason of Global Ban</b>\n
@@ -1205,5 +1205,4 @@ direct_links_help: |
  - /direct <link>: paste a link(URL) to generate a direct download link.
 
  List of supported sites (URLs):
- Google Drive - MediaFire - SourceForge
- 
+ Google Drive - MediaFire - SourceForge 
