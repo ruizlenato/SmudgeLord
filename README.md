@@ -5,13 +5,12 @@ A simple group management bot with multiple admin features, it has evolved into 
 bots aiming to provide simple plugin expansion via a simple drag and drop.
 
 Thanks For:
-* [FFBOT] - For translations modules.
 * [Nuno Penim](https://github.com/nunopenim) - For Combot Anti Spam System API, GitHub API etc...
 * [Corsicanu](https://github.com/corsicanu) - For Samsung Firmware commands
 * [Real Phoenix](https://github.com/rsktg) - For Chatbot(IA)and LastFM module
-
+* [Haruka](https://gitlab.com/HarukaNetwork/OSS/HarukaAya)
 ## Starting the bot.
 
 Once you've setup your database and your configuration (see below) is complete, simply run:
 
-`python3 -m smudge`
+`python3 -m haruka`
