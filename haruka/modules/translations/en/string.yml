@@ -1196,3 +1196,14 @@ last_fm_help: |
  - /setuser <username>: sets your last.fm username.
  - /clearuser: removes your last.fm username from the bot's database.
  - /lastfm: returns wh at you're scrobbling on last.fm
+
+#direct_links
+modname_direct_links: Links Diretos
+direct_links_help: |
+ This module allows you to generate direct links from various websites.
+
+ - /direct <link>: paste a link(URL) to generate a direct download link.
+
+ List of supported sites (URLs):
+ Google Drive - MediaFire - SourceForge
+ 
