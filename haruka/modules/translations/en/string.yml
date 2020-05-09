@@ -26,7 +26,7 @@ main_start_pm: |
 
     Go to my PM [Renatoh](https://t.me/Renatoh) If you have a problem!
 
-    Made with love by @Renatoh\n\nWant to add me to your group? [Click here!](t.me/HarukaAyaBot?startgroup=true)
+    Made with love by @Renatoh\n\nWant to add me to your group? [Click here!](t.me/SmudgeLordbot?startgroup=true)
 main_start_btn_support: 📢 Support Group
 main_start_btn_ctrlpnl: 🛠 Control panel
 main_start_btn_lang: 🇺🇸 Language
@@ -178,7 +178,7 @@ antispam_err_wrong_arg: "Give me some arguments to choose a setting! on/off, yes
 antispam_userinfo_gbanned: "Globally banned: <b>{}</b>"
 antispam_userinfo_gban_reason: "\nReason: {}"
 antispam_chatsettings_gban: "This chat is enforcing *gbans*: `{}`."
-anitspam_appeal: \n<b>Appeal at:</b> @HarukaAyaGroup
+anitspam_appeal: \n<b>Appeal at:</b> @Renatoh
 antispam_help: |
     Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
     *Admin only:*
@@ -190,19 +190,19 @@ modname_backups: Backups
 backups_file_corrupted: Try downloading and uploading the file yourself again, this one seems to be corrupted!
 backups_file_contains_multiple_chats: There is more than one group in this file and the chat.id is not the same! How am I supposed to import it?
 backups_from_another_chat: Backup comes from another chat, I can't return another chat to {}
-backups_err_unknown: There is problem while importing the data! Please ask in @HarukaAyaGroup about why this happened.
-backups_from_another_bot: Restoring a backup from another bot is not suggested and might cause problems. Documents, photos, videos, audios, records might not be restored as they should have been. However, You can still request a feature regarding this in @HarukaAyaGroup!
-backups_restore_err: An error occurred while recovering the data. The process failed. If you experience a problem with this, please ask in @HarukaAyaGroup.
+backups_err_unknown: There is problem while importing the data! Please ask in @Renatoh about why this happened.
+backups_from_another_bot: Restoring a backup from another bot is not suggested and might cause problems. Documents, photos, videos, audios, records might not be restored as they should have been. However, You can still request a feature regarding this in @Renatoh!
+backups_restore_err: An error occurred while recovering the data. The process failed. If you experience a problem with this, please ask in @Renatoh.
 backups_fully_restored: Backup fully restored{}.
 backups_err_timelimit: You can only backup once a day!\nYou can backup again in about `{}`
 backups_success: "Backed up successfully!\nChat: `{}`\nChat ID: `{}`\nOn: `{}`"
 backups_help: |
     *Only for chat administrator:*
-    - /import: reply to the backup file done by Haruka Aya or other some other bots like Group Butler or Emilia to import as much as possible, making transfers very easy! \
+    - /import: reply to the backup file done by Smudge Lord or other some other bots like Group Butler or Emilia to import as much as possible, making transfers very easy! \
     Note that files / photos cannot be imported due to telegram restrictions.\n
     - /export: export group data. Exported data will include rules, notes (documents, images, music, video, audio, voice, text, text buttons), \
     blacklists, disabled commands and locks. More will come gradually!\n
-    This module is still in beta! Report bugs in @HarukaAyaGroup !
+    This module is still in beta! Report bugs in @Renatoh !
 
 
 # Bans
@@ -322,8 +322,8 @@ cust_filters_add_success: Handler '{}' added in *{}*!
 cust_filters_list_empty: There aren't any active filters in {}!
 cust_filters_stop_success: Yep, I'll stop replying to that in *{}*.
 cust_filters_err_wrong_filter: That's not an active filter - run /filters for all active filters.
-cust_filters_err_protocol: You seem to be trying to use an unsupported url protocol. Telegram doesn't support buttons for some protocols, such as tg://. Please try again, or ask in @HarukaAyaGroup for help.
-cust_filters_err_badformat: This filter could not be sent, as it is incorrectly formatted. Ask in @HarukaAyaGroup if you can't figure out why!
+cust_filters_err_protocol: You seem to be trying to use an unsupported url protocol. Telegram doesn't support buttons for some protocols, such as tg://. Please try again, or ask in @Renatoh for help.
+cust_filters_err_badformat: This filter could not be sent, as it is incorrectly formatted. Ask in @Renatoh if you can't figure out why!
 cust_filters_chatsettings_stats: There are `{}` custom filters here.
 cust_filters_help: |
     Make your chat more lively with filters; The bot will reply to certain words!
@@ -364,7 +364,7 @@ disable_help: |
 
 # Feds
 modname_feds: Federations
-feds_create_fail: Federation creation failed! Ask in @HarukaAyaGroup for help.
+feds_create_fail: Federation creation failed! Ask in @Renatoh for help.
 feds_create_success: "*You have successfully created a new federation!*\nName: `{}`\nID: `{}`\n\nRun the command below in groups to add them to the federation:\n`/joinfed {}`"
 feds_create_success_logger: "Federation <b>{}</b> has been created with ID: <pre>{}</pre>"
 feds_err_no_args: Please write down the name of the federation.
@@ -376,7 +376,7 @@ feds_group_not_in_fed: This group is not in any federation!
 feds_group_part_of_fed: "This chat is part of the following federation:"
 feds_group_joined_fed: Uh, Are you gonna join two federations at one chat?
 feds_fedid_invalid: Please enter a valid Federation ID.
-feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @HarukaAyaGroup for help.
+feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @Renatoh for help.
 feds_join_success: Chat joined to federation!
 feds_leave_success: "This chat has left the federation: {}!"
 feds_leave_not_joined: How can you leave a federation that you never joined?!
@@ -723,7 +723,7 @@ misc_info_is_support: "\nThis person is one of my support users! He can gban tho
 misc_info_is_whitelisted: "\nThis person is whitelisted users, one rarely get this role, you can't ban or kick him."
 misc_gdpr: Deleting identifiable data...
 misc_md_list: |
-    Markdown is a very powerful formatting tool supported by telegram. Haruka Aya has some enhancements, to make sure that \
+    Markdown is a very powerful formatting tool supported by telegram. SmudgeLord has some enhancements, to make sure that \
     saved messages are correctly parsed, and to allow you to create buttons.
     - <code>_italic_</code>: wrapping text with '_' will produce italic text
     - <code>*bold*</code>: wrapping text with '*' will produce bold text
@@ -834,7 +834,7 @@ note_msg_del: "Looks like the original sender of this note has deleted their mes
 note_url_invalid: "The URL of the button is invalid! Please update this note!"
 note_mention_invalid: "Looks like you tried to mention someone I've never seen before. Forward one of their messages to me and I'll be able to tag them!"
 note_incorrect_import: "This note was an incorrectly imported file from another bot - I can't use it. Save it manually if needed. I'll remove it from your notes list."
-note_cannot_send: "This note could not be sent, as it is incorrectly formatted, Please ask in @HarukaAyaGroup if you can't figure out why!"
+note_cannot_send: "This note could not be sent, as it is incorrectly formatted, Please ask in @renatoh if you can't figure out why!"
 get_invalid: "Note name missing! Write the name of the note you want to get."
 note_is_local: "local notes"
 save_invalid: "There's nothing to save!"
@@ -1189,3 +1189,10 @@ helpers_user_not_in_db: |
 # string_handling
 helpers_string_handling_invalid_time_amount: Invalid time amount specified.
 helpers_string_handling_invalid_time_type: "Invalid time type specified. Expected m, h, d, got: {}."
+
+#LastFM
+modname_last_fm: LastFM
+last_fm_help: |
+ - /setuser <username>: sets your last.fm username.
+ - /clearuser: removes your last.fm username from the bot's database.
+ - /lastfm: returns wh at you're scrobbling on last.fm

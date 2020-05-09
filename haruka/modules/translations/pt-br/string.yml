@@ -1188,3 +1188,14 @@ helpers_user_not_in_db: |
 # string_handling
 helpers_string_handling_invalid_time_amount: Invalid time amount specified.
 helpers_string_handling_invalid_time_type: "Invalid time type specified. Expected m, h, d, got: {}."
+
+#LastFM
+modname_last_fm: LastFM
+last_fm_help: |
+ - /setuser <username>: Configure seu Username(nome de usuário)  do LastFM.
+ - /clearuser:  remove seu nome de usuário last.fm do banco de dados do bot.
+ - /lastfm:  retorna o quando você está scrobbling(escutando) no last.fm.
+ 
+ Exemplos:
+ Configurando seu Username:
+ "/setusername renatohribeh"
