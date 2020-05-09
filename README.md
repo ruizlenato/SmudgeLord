@@ -8,7 +8,6 @@ Thanks For:
 * [Nuno Penim](https://github.com/nunopenim) - For Combot Anti Spam System API, GitHub API etc...
 * [Corsicanu](https://github.com/corsicanu) - For Samsung Firmware commands
 * [Real Phoenix](https://github.com/rsktg) - For Chatbot(IA)and LastFM module
-* [Haruka](https://gitlab.com/HarukaNetwork/OSS/HarukaAya)
 ## Starting the bot.
 
 Once you've setup your database and your configuration (see below) is complete, simply run:
