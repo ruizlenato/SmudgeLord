@@ -1199,3 +1199,13 @@ last_fm_help: |
  Exemplos:
  Configurando seu Username:
  "/setusername renatohribeh"
+
+#direct_links
+modname_direct_links: Links Diretos
+direct_links_help: |
+Este módulo permite gerar links diretos a partir de vários sites.
+
+- /direct <link>: cole um link (URL) para gerar um link de download direto.
+
+Lista de sites suportados (URLs):
+Google Drive - MediaFire - SourceForge
