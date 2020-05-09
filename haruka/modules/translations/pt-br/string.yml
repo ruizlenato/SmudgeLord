@@ -152,7 +152,7 @@ antispam_err_usr_sudo: Eu espio com meus olhinhos... uma guerra de usuários sud
 antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
 antispam_err_usr_bot: -_- So funny, let me gban myself, why don't I? Nice try.
 antispam_err_not_usr: Isso não é um usuário!
-antispam_err_usr_deleted: That's a deleted account! Why even bother gbanning them?
+antispam_err_user_deleted: Está conta foi excluida, impossivel banir-la
 antispam_err_no_new_reason: This user is already gbanned; I'd change the reason, but you haven't given me one...
 antispam_logger_update_gban: |
     <b>Novo motivo do banimento global</b>\n
@@ -165,7 +165,7 @@ antispam_reason_updated: "This user has already been gbanned. I have updated the
 antispam_new_gban: Banimento Global {}/n ID do Usuario Banido <code>{}</code>...
 antispam_logger_new_gban: "{} baniu globalmente o usuario {}/n ID do Usuario Banido: <code>{}</code> with the following reason: <code>{}</code>."
 antispam_no_reason: Nenhuma razão dada
-antispam_user_not_gbanned: This user is not gbanned!
+antispam_user_not_gbanned: Este usuário não está banido globalmente!
 antispam_ungbanned: Eu vou dar para {} uma segunda chance, globalmente.
 antispam_logger_ungban: "{} removeu o banimento global de {}."
 antispam_err_ungban: "Could not ungban due to: {}"
@@ -189,9 +189,9 @@ modname_backups: Backups
 backups_file_corrupted: Try downloading and uploading the file yourself again, this one seems to be corrupted!
 backups_file_contains_multiple_chats: There is more than one group in this file and the chat.id is not the same! How am I supposed to import it?
 backups_from_another_chat: Backup comes from another chat, I can't return another chat to {}
-backups_err_unknown: There is problem while importing the data! Please ask in @HarukaAyaGroup about why this happened.
-backups_from_another_bot: Restoring a backup from another bot is not suggested and might cause problems. Documents, photos, videos, audios, records might not be restored as they should have been. However, You can still request a feature regarding this in @HarukaAyaGroup!
-backups_restore_err: An error occurred while recovering the data. The process failed. If you experience a problem with this, please ask in @HarukaAyaGroup.
+backups_err_unknown: There is problem while importing the data! Please ask in @Renatoh about why this happened.
+backups_from_another_bot: Restoring a backup from another bot is not suggested and might cause problems. Documents, photos, videos, audios, records might not be restored as they should have been. However, You can still request a feature regarding this in @Renatoh!
+backups_restore_err: An error occurred while recovering the data. The process failed. If you experience a problem with this, please ask in @Renatoh.
 backups_fully_restored: Backup fully restored{}.
 backups_err_timelimit: You can only backup once a day!\nYou can backup again in about `{}`
 backups_success: "Backed up successfully!\nChat: `{}`\nChat ID: `{}`\nOn: `{}`"
@@ -201,7 +201,7 @@ backups_help: |
     Note that files / photos cannot be imported due to telegram restrictions.\n
     - /export: export group data. Exported data will include rules, notes (documents, images, music, video, audio, voice, text, text buttons), \
     blacklists, disabled commands and locks. More will come gradually!\n
-    This module is still in beta! Report bugs in @HarukaAyaGroup !
+    This module is still in beta! Report bugs in @Renatoh !
 
 
 # Bans
@@ -321,8 +321,8 @@ cust_filters_add_success: Filtro '{}' adicionado em *{}*!
 cust_filters_list_empty: Não há filtros ativos em {}!
 cust_filters_stop_success: Sim, vou parar de responder a isso em *{}*.
 cust_filters_err_wrong_filter: That's not an active filter - run /filters for all active filters.
-cust_filters_err_protocol: You seem to be trying to use an unsupported url protocol. Telegram doesn't support buttons for some protocols, such as tg://. Please try again, or ask in @HarukaAyaGroup for help.
-cust_filters_err_badformat: This filter could not be sent, as it is incorrectly formatted. Ask in @HarukaAyaGroup if you can't figure out why!
+cust_filters_err_protocol: You seem to be trying to use an unsupported url protocol. Telegram doesn't support buttons for some protocols, such as tg://. Please try again, or ask in @Renatoh for help.
+cust_filters_err_badformat: This filter could not be sent, as it is incorrectly formatted. Ask in @Renatoh if you can't figure out why!
 cust_filters_chatsettings_stats: There are `{}` custom filters here.
 cust_filters_help: |
     Torne o seu bate-papo mais animado com filtros; O bot responderá a certas palavras!
@@ -363,7 +363,7 @@ disable_help: |
 
 # Feds
 modname_feds: Federations
-feds_create_fail: Federation creation failed! Ask in @HarukaAyaGroup for help.
+feds_create_fail: Federation creation failed! Ask in @Renatoh for help.
 feds_create_success: "*You have successfully created a new federation!*\nName: `{}`\nID: `{}`\n\nRun the command below in groups to add them to the federation:\n`/joinfed {}`"
 feds_create_success_logger: "Federation <b>{}</b> has been created with ID: <pre>{}</pre>"
 feds_err_no_args: Please write down the name of the federation.
@@ -375,7 +375,7 @@ feds_group_not_in_fed: This group is not in any federation!
 feds_group_part_of_fed: "This chat is part of the following federation:"
 feds_group_joined_fed: Uh, Are you gonna join two federations at one chat?
 feds_fedid_invalid: Please enter a valid Federation ID.
-feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @HarukaAyaGroup for help.
+feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @Renatoh for help.
 feds_join_success: Chat joined to federation!
 feds_leave_success: "This chat has left the federation: {}!"
 feds_leave_not_joined: How can you leave a federation that you never joined?!
@@ -435,10 +435,10 @@ keyboard_notes: Notes
 
 
 # Language
-language_switch_success: Switched to {} successfully!
-language_not_supported: "{} is not supported yet!"
-language_code_not_valid: That's not a valid lanuage code. Use an internationally accepted ISO code!
-language_current_locale: "Current locale for this chat is: *{}*"
+language_switch_success: Idioma alterado para {} com sucesso!
+language_not_supported: "{} ainda não é suportado"
+language_code_not_valid: Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!
+language_current_locale: "O idioma atual deste grupo é: *{}*"
 language_select_language: "*Selecione o idioma* \n"
 language_user_language: "Idioma do usuário: `{}`"
 language_chat_language: "\nConnected chat language: `{}`"
