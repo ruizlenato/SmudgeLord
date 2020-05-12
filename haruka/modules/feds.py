@@ -688,50 +688,7 @@ def get_frules(bot: Bot, update: Update, args: List[str]):
     text = "*Rules in this fed:*\n"
     text += rules
     update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
-
-
-@run_async
-def fed_broadcast(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat
-    msg = update.effective_message
-    user = update.effective_user
-    if args:
-        chat = update.effective_chat
-        fed_id = sql.get_fed_id(chat.id)
-        fedinfo = sql.get_fed_info(fed_id)
-        text = "*New broadcast from the Federation {}*\n".format(
-            fedinfo['fname'])
-        # Parsing md
-        raw_text = msg.text
-        args = raw_text.split(
-            None, 1)  # use python's maxsplit to separate cmd and args
-        txt = args[1]
-        offset = len(txt) - len(
-            raw_text)  # set correct offset relative to command
-        text_parser = markdown_parser(txt,
-                                      entities=msg.parse_entities(),
-                                      offset=offset)
-        text += text_parser
-        try:
-            broadcaster = user.first_name
-        except Exception:
-            broadcaster = user.first_name + " " + user.last_name
-        text += "\n\n- {}".format(mention_markdown(user.id, broadcaster))
-        chat_list = sql.all_fed_chats(fed_id)
-        failed = 0
-        for chat in chat_list:
-            try:
-                bot.sendMessage(chat, text, parse_mode="markdown")
-            except TelegramError:
-                failed += 1
-                LOGGER.warning("Couldn't send broadcast to %s, group name %s",
-                               str(chat.chat_id), str(chat.chat_name))
-
-        send_text = "The federation broadcast is complete"
-        if failed >= 1:
-            send_text += "{} the group failed to receive the message, probably because it left the Federation.".format(
-                failed)
-        update.effective_message.reply_text(send_text)
+    return
 
 
 @run_async
@@ -937,9 +894,6 @@ BAN_FED_HANDLER = DisableAbleCommandHandler(["fban", "fedban"],
                                             fed_ban,
                                             pass_args=True)
 UN_BAN_FED_HANDLER = CommandHandler("unfban", unfban, pass_args=True)
-FED_BROADCAST_HANDLER = CommandHandler("fbroadcast",
-                                       fed_broadcast,
-                                       pass_args=True)
 FED_SET_RULES_HANDLER = CommandHandler("setfrules", set_frules, pass_args=True)
 FED_GET_RULES_HANDLER = CommandHandler("frules", get_frules, pass_args=True)
 FED_CHAT_HANDLER = CommandHandler("chatfed", fed_chat, pass_args=True)
@@ -958,7 +912,6 @@ dispatcher.add_handler(DEMOTE_FED_HANDLER)
 dispatcher.add_handler(INFO_FED_HANDLER)
 dispatcher.add_handler(BAN_FED_HANDLER)
 dispatcher.add_handler(UN_BAN_FED_HANDLER)
-dispatcher.add_handler(FED_BROADCAST_HANDLER)
 dispatcher.add_handler(FED_SET_RULES_HANDLER)
 dispatcher.add_handler(FED_GET_RULES_HANDLER)
 dispatcher.add_handler(FED_CHAT_HANDLER)
