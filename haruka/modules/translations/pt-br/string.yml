@@ -44,7 +44,7 @@ common_invalid_arg: Argumento inválido! Por favor digite `on`/`yes` or `off`/`n
 
 # Admins
 modname_admin: Admin
-admin_err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
+err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
 admin_err_user_admin: Como devo promover alguém que já é administrador?
 admin_err_self_promote: I can't promote myself! Get an admin to do it for me.
 admin_promote_success: Admin {} has successfully promoted {} in <b>{}</b>!
@@ -91,17 +91,17 @@ build_date: "*Build Date:* `{}`\n"
 version: "*Version:* `{}`\n"
 android_version: "*Android Version:* `{}`\n"
 rom_type: "*ROM Type:* `{}`\n"
-maintainer: "*Maintainer:* {}\n"
+maintainer: "*Mantenedor:* {}\n"
 xda_thread: "*XDA Thread:* [Here]({})\n"
 changelog: "*Device Changelog:* `{}`\n"
 weekly: "*Weekly*\n"
-miui_release: "*Recovery ROM*\n\n*Stable*\n"
-cust_releases: "*{} latest release(s)*\n"
-err_not_found: Couldn't find any results matching your query.
-err_api: Couldn't reach the API.
+miui_release: "*Recovery ROM*\n\n*Estavel*\n"
+cust_releases: "*{} Último lançamento(s)*\n"
+err_not_found: Não foi possível encontrar nenhum resultado correspondente à sua consulta.
+err_api: Não foi possível acessar a API.
 err_example_device: Why are you trying to get the example device?
-err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
-btn_dl: Click here to Download
+err_json: Diga ao mantenedor da ROM para corrigir o json do OTA. Tenho certeza que isso não funcionará com o OTA e também não funcionará com este bot :P
+btn_dl: Clique aqui para baixar
 cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
 evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click the button down below to download the GSIs!
 aex_cust_str: Please type your device **codename** and **Android Version**!\nFor example, `/aex tissot pie`
@@ -162,10 +162,10 @@ antispam_logger_update_gban: |
     <b>Antigo motivo:</b> {}\n
     <b>Novo motivo:</b> {}
 antispam_reason_updated: "This user has already been gbanned. I have updated the reason.\nPrevious reason: <code>{}</code>\nNew reason: <code>{}</code>"
-antispam_new_gban: Banimento Global {}/n ID do Usuario Banido <code>{}</code>...
+antispam_new_gban: Banimento Global {} /nID do Usuario Banido <code>{}</code>...
 antispam_logger_new_gban: "{} baniu globalmente o usuario {}/n ID do Usuario Banido: <code>{}</code> with the following reason: <code>{}</code>."
 antispam_no_reason: Nenhuma razão dada
-antispam_user_not_gbanned: This user is not gbanned!
+antispam_user_not_gbanned: Este usuário não está banido globalmente!
 antispam_ungbanned: Eu vou dar para {} uma segunda chance, globalmente.
 antispam_logger_ungban: "{} removeu o banimento global de {}."
 antispam_err_ungban: "Could not ungban due to: {}"
@@ -186,22 +186,22 @@ antispam_help: |
 
 # Backups
 modname_backups: Backups
-backups_file_corrupted: Try downloading and uploading the file yourself again, this one seems to be corrupted!
-backups_file_contains_multiple_chats: There is more than one group in this file and the chat.id is not the same! How am I supposed to import it?
+backups_file_corrupted: Tente baixar e fazer upload do arquivo você mesmo novamente, este parece estar corrompido!
+backups_file_contains_multiple_chats: Há mais de um grupo nesse arquivo e o chat.id não é o mesmo! Como devo importá-lo?
 backups_from_another_chat: Backup comes from another chat, I can't return another chat to {}
-backups_err_unknown: There is problem while importing the data! Please ask in @HarukaAyaGroup about why this happened.
-backups_from_another_bot: Restoring a backup from another bot is not suggested and might cause problems. Documents, photos, videos, audios, records might not be restored as they should have been. However, You can still request a feature regarding this in @HarukaAyaGroup!
-backups_restore_err: An error occurred while recovering the data. The process failed. If you experience a problem with this, please ask in @HarukaAyaGroup.
-backups_fully_restored: Backup fully restored{}.
+backups_err_unknown: Há um problema ao importar os dados! Por favor, pergunte no @Renatoh sobre por que isso aconteceu.
+backups_from_another_bot: A restauração de um backup de outro bot não é sugerida e pode causar problemas. Documentos, fotos, vídeos, áudios e registros podem não ser restaurados como deveriam. No entanto, você ainda pode solicitar um recurso sobre isso com o @Renatoh!
+backups_restore_err: An error occurred while recovering the data. The process failed. If you experience a problem with this, please ask in @Renatoh.
+backups_fully_restored: Backup totalmente restaurado{}.
 backups_err_timelimit: You can only backup once a day!\nYou can backup again in about `{}`
 backups_success: "Backed up successfully!\nChat: `{}`\nChat ID: `{}`\nOn: `{}`"
 backups_help: |
     *Somente para administrador de bate-papo:*
-    - /import: reply to the backup file done by Haruka Aya or other some other bots like Group Butler or Emilia to import as much as possible, making transfers very easy! \
+    - /import: responda ao arquivo de backup feito por SmudgeLord ou outros BOTs, como o Group Butler ou Emilia, para importar o máximo possível, facilitando a transferência! \
     Note that files / photos cannot be imported due to telegram restrictions.\n
     - /export: export group data. Exported data will include rules, notes (documents, images, music, video, audio, voice, text, text buttons), \
     blacklists, disabled commands and locks. More will come gradually!\n
-    This module is still in beta! Report bugs in @HarukaAyaGroup !
+    This module is still in beta! Report bugs in @Renatoh !
 
 
 # Bans
@@ -321,8 +321,8 @@ cust_filters_add_success: Filtro '{}' adicionado em *{}*!
 cust_filters_list_empty: Não há filtros ativos em {}!
 cust_filters_stop_success: Sim, vou parar de responder a isso em *{}*.
 cust_filters_err_wrong_filter: That's not an active filter - run /filters for all active filters.
-cust_filters_err_protocol: You seem to be trying to use an unsupported url protocol. Telegram doesn't support buttons for some protocols, such as tg://. Please try again, or ask in @HarukaAyaGroup for help.
-cust_filters_err_badformat: This filter could not be sent, as it is incorrectly formatted. Ask in @HarukaAyaGroup if you can't figure out why!
+cust_filters_err_protocol: You seem to be trying to use an unsupported url protocol. Telegram doesn't support buttons for some protocols, such as tg://. Please try again, or ask in @Renatoh for help.
+cust_filters_err_badformat: This filter could not be sent, as it is incorrectly formatted. Ask in @Renatoh if you can't figure out why!
 cust_filters_chatsettings_stats: There are `{}` custom filters here.
 cust_filters_help: |
     Torne o seu bate-papo mais animado com filtros; O bot responderá a certas palavras!
@@ -363,7 +363,7 @@ disable_help: |
 
 # Feds
 modname_feds: Federations
-feds_create_fail: Federation creation failed! Ask in @HarukaAyaGroup for help.
+feds_create_fail: Federation creation failed! Ask in @Renatoh for help.
 feds_create_success: "*You have successfully created a new federation!*\nName: `{}`\nID: `{}`\n\nRun the command below in groups to add them to the federation:\n`/joinfed {}`"
 feds_create_success_logger: "Federation <b>{}</b> has been created with ID: <pre>{}</pre>"
 feds_err_no_args: Please write down the name of the federation.
@@ -375,7 +375,7 @@ feds_group_not_in_fed: This group is not in any federation!
 feds_group_part_of_fed: "This chat is part of the following federation:"
 feds_group_joined_fed: Uh, Are you gonna join two federations at one chat?
 feds_fedid_invalid: Please enter a valid Federation ID.
-feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @HarukaAyaGroup for help.
+feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @Renatoh for help.
 feds_join_success: Chat joined to federation!
 feds_leave_success: "This chat has left the federation: {}!"
 feds_leave_not_joined: How can you leave a federation that you never joined?!
@@ -436,7 +436,7 @@ keyboard_notes: Notes
 
 # Language
 language_switch_success: Switched to {} successfully!
-language_not_supported: "{} is not supported yet!"
+language_not_supported: "{} ainda não é suportado!\n\nIdiomas suportados:\nPortuguês - pt-br\nInglês - en-us"
 language_code_not_valid: That's not a valid lanuage code. Use an internationally accepted ISO code!
 language_current_locale: "Current locale for this chat is: *{}*"
 language_select_language: "*Selecione o idioma* \n"
@@ -556,20 +556,20 @@ memes_runs_list:
     - "Multiple calculations later, I have decided my interest in your shenanigans is exactly 0."
     - "Legend has it, they're still running."
     - "Keep it up, not sure we want you here anyway."
-    - "You're a wiza- Oh. Wait. You're not Harry, keep moving."
-    - "NO RUNNING IN THE HALLWAYS!"
-    - "Hasta la vista, baby."
-    - "Who let the dogs out?"
-    - "It's funny, because no one cares."
-    - "Ah, what a waste. I liked that one."
-    - "Frankly, my dear, I don't give a damn."
-    - "My milkshake brings all the boys to yard... So run faster!"
-    - "You can't HANDLE the truth!"
-    - "A long time ago, in a galaxy far far away... Someone would've cared about that. Not anymore though."
-    - "Hey, look at them! They're running from the inevitable banhammer... Cute."
-    - "Han shot first. So will I."
-    - "What are you running after, a white rabbit?"
-    - "As The Doctor would say... RUN!"
+    - "Você é uma bruxa ... Oh. Esperar. Você não é Harry, continue andando."
+    - "NÃO EXECUTAR NOS CORREDORES!"
+    - "Até mais querida."
+    - "Quem deixou os cães sair?"
+    - "É engraçado, porque ninguém se importa."
+    - "Ah, que desperdício. Gostei daquele."
+    - "Francamente, minha querida, eu não dou a mínima."
+    - "Meu batido leva todos os garotos ao quintal ... Então corra mais rápido!"
+    - "Você não pode lidar com a verdade!"
+    - "Há muito tempo, em uma galáxia muito distante ... Alguém teria se importado com isso. Não mais embora."
+    - "Ei, olhe para eles! Eles estão fugindo do banhammer inevitável ... Bonito."
+    - "Han atirou primeiro. Então eu vou."
+    - "O que você está correndo atrás, um coelho branco?"
+    - "Como o médico diria ... EXECUTAR!"
 memes_insults_list:
     - "Owww ... Such a stupid idiot."
     - "Don't drink and type."
@@ -634,73 +634,70 @@ memes_insults_list:
     - "Hit Uranium with a slow moving neutron in your presence. It will be a worthwhile experience."
     - "You can be the first person to step on sun. Have a try."
 memes_slaps_templates_list:
-    - "{user1} {hits} {user2} with a {item}."
-    - "{user1} {hits} {user2} in the face with a {item}."
-    - "{user1} {hits} {user2} around a bit with a {item}."
-    - "{user1} {throws} a {item} at {user2}."
-    - "{user1} grabs a {item} and {throws} it at {user2}'s face."
-    - "{user1} launches a {item} in {user2}'s general direction."
-    - "{user1} starts slapping {user2} silly with a {item}."
-    - "{user1} pins {user2} down and repeatedly {hits} them with a {item}."
-    - "{user1} grabs up a {item} and {hits} {user2} with it."
-    - "{user1} ties {user2} to a chair and {throws} a {item} at them."
-    - "{user1} gave a friendly push to help {user2} learn to swim in lava."
+    - "{user1} {hits} {user2} com um {item}."
+    - "{user1} {hits} {user2} no rosto com um {item}."
+    - "{user1} {hits} {user2} um pouco com um {item}."
+    - "{user1} {throws} {item} no {user2}."
+    - "{user1} {throws} {item} na cara do {user2} ."
+    - "{user1} joga {item} na cabeça do {user2}."
+    - "{user1} pensa em bater no {user2} com {item}."
+    - "{user1} derruba {user2} e repetidamente o {hits} com {item}."
+    - "{user1} pega {item} e {hits} no {user2}."
+    - "{user1} amarra {user2} em uma cadeira e {throws} {item}."
+    - "{user1} deu um empurrão amigável no {user2} para que ele aprenda a nadar na lava"
 memes_items_list:
-    - "cast iron skillet"
-    - "large trout"
-    - "baseball bat"
-    - "cricket bat"
-    - "wooden cane"
-    - "nail"
-    - "printer"
-    - "shovel"
-    - "CRT monitor"
-    - "physics textbook"
-    - "toaster"
-    - "portrait of Richard Stallman"
-    - "television"
-    - "five ton truck"
-    - "roll of duct tape"
-    - "book"
+    - "frigideira de ferro fundido"
+    - "truta grande"
+    - "taco de beisebol"
+    - "bastão de cricket"
+    - "bengala de madeira"
+    - "unha"
+    - "penis de borracha"
+    - "pá"
+    - "Monitor CRT"
+    - "um Nokia 3310"
+    - "torradeira"
+    - "Notebook da positivo"
+    - "televisão"
+    - "caminhão de cinco toneladas"
+    - "rolo de fita adesiva"
+    - "livro"
     - "laptop"
-    - "old television"
-    - "sack of rocks"
-    - "rainbow trout"
-    - "rubber chicken"
-    - "spiked bat"
-    - "fire extinguisher"
-    - "heavy rock"
-    - "chunk of dirt"
-    - "beehive"
-    - "piece of rotten meat"
-    - "bear"
-    - "ton of bricks"
+    - "televisão antiga"
+    - "saco de pedras"
+    - "um vibrador gigante"
+    - "galinha de borracha"
+    - "morcego cravado"
+    - "extintor de incêndio"
+    - "litro de 51"
+    - "pedaço de terra"
+    - "colméia"
+    - "pedaço de carne podre"
+    - "Urso"
+    - "a mãe do admin"
 memes_throw_list:
-    - "throws"
-    - "flings"
-    - "chucks"
-    - "hurls"
+    - "joga"
+    - "arremessar"
+    - "mandris"
+    - "arremessa"
 memes_hit_list:
-    - "hits"
-    - "whacks"
-    - "slaps"
-    - "smacks"
-    - "bashes"
+    - "golpeia"
+    - "bate"
+    - "golpeia"
+    - "esmurra"
+    - "ataca"
 memes_help: |
     Some meme commands, find it all out yourself!
 
     - /owo: OWO de text
     - /stretch: STRETCH de text
     - /vapor: owo vapor dis
-    - /hitler: Quote a message and type this command to make a caption of hitler
-    - /mock: Does the same as /hitler but spongemock instead
-    - /kim: Does the same as /hitler but with Kim Jong Un instead (O no plox dont bomb my house)
-    - /pidor: 4pda memes
+    - /mock: Quote a message and type this command to make a caption of spongemock
     - /shout: Write anything that u want it to should
     - /zalgofy: reply to a message to gitch it out!
     - /runs: reply a random string from an array of replies.
     - /insults: reply a random string from an array of replies.
-    - /slap: slap a user, or get slapped if not a reply.
+    - /slap: dar um tapa em um usuário ou dar um tapa se não for uma resposta.
 
 
 # Misc
@@ -757,6 +754,8 @@ misc_covid: |
   *Mortes*: {} _(+{})_
   *Recuperados*: {}
   *Testes Totais*: {}
+  
+  Para saber informações sobre o Brasil acesse: covid19brasil.ml
 misc_help: |
      - /id: obtenha o ID do grupo atual. Se usado respondendo a uma mensagem, obtém a identificação do usuário.
      - /info: get information about a user.
