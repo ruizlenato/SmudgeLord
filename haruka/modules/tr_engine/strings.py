@@ -21,7 +21,7 @@ from codecs import encode, decode
 from haruka import LOGGER
 from haruka.modules.sql.locales_sql import prev_locale
 
-LANGUAGES = ['en-US', 'en-GB', 'id', 'ru']
+LANGUAGES = ['en-US', 'en-GB', 'id', 'ru', 'es']
 
 strings = {}
 
@@ -54,6 +54,11 @@ def tld(chat_id, t, show_none=True):
                 encode(strings['ru'][t], 'latin-1', 'backslashreplace'),
                 'unicode-escape')
             return result
+        elif LOCALE in ('es') and t in strings['es']:
+            result = decode(
+                encode(strings['es'][t], 'latin-1', 'backslashreplace'),
+                'unicode-escape')
+            return result
 
     if t in strings['en-US']:
         result = decode(
@@ -79,6 +84,8 @@ def tld_list(chat_id, t):
             return strings['id'][t]
         elif LOCALE in ('ru') and t in strings['ru']:
             return strings['ru'][t]
+        elif LOCALE in ('es') and t in strings['es']:
+            return strings['es'][t]
 
     if t in strings['en-US']:
         return strings['en-US'][t]
