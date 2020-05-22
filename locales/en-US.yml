@@ -87,6 +87,7 @@ maintainer: "**Maintainer:** {}\n"
 xda_thread: "**XDA Thread:** [Here]({})\n"
 changelog: "**Device Changelog:** `{}`\n"
 weekly: "**Weekly**\n"
+phh_releases: "**Phh's latest GSI release(s)**\n"
 err_not_found: Couldn't find any results matching your query.
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
@@ -687,7 +688,7 @@ misc_md_list: |
   [two](buttonurl://google.com:same)</code>
   This will create two buttons on a single line, instead of one button per line.
 misc_md_try: Try forwarding the following message to me, and you'll see!
-misc_md_help: "/save test This is a markdown test. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl:github.com) [button2](buttonurl://google.com:same)"
+misc_md_help: "/save test This is a markdown test. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl://github.com) [button2](buttonurl://google.com:same)"
 misc_paste_invalid: What am I supposed to do with this?!
 misc_paste_404: Failed to reach dogbin
 misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
@@ -842,11 +843,11 @@ rules_button_click: "Click the button below to get this group's rules."
 rules: "Rules"
 rules_success: "Successfully set rules for this group."
 rules_help: |
-  " - /rules: get the rules for this chat.
+  - /rules: get the rules for this chat.
 
   *Admin only:*
    - /clearrules: clear the rules for this chat.
-   - /setrules <your rules here>: set the rules for this chat."
+   - /setrules <your rules here>: set the rules for this chat.
 #Translator
 modname_translator: Translator
 translator_translated: |

@@ -98,7 +98,8 @@ android_help: |
   - /evo <device>: Adquirir la última Evolución X ROM para un dispositivo
   - /los <device>: Adquirir la última LineageOS ROM para un dispositivo
   - /<device>: Adquirir el último Bootleggers ROM para un dispositivo\n
-  *GSI*- /phh: Adquirir la última Phh AOSP GSI!
+  *GSI*
+  - /phh: Adquirir la última Phh AOSP GSI!
   *Misc*
   - /magisk: Adquirir la última versión de Magisk
 #Antiflood
@@ -296,7 +297,7 @@ cust_filters_help: |
   Un ejemplo de cómo establecer un filtro sería por ejemplo:
   `/filter hola Hola! ¿Cómo estás?`
   Un filtro multipalabra podría establecerse a través de:
-  `/filter "hola amigo" ¡Hola de vuelta! ¡Largo tiempo no ver!
+  `/filter "hola amigo" ¡Hola de vuelta! ¡Largo tiempo no ver!`
   Si desea guardar una imagen, gif, o sticker, o cualquier otro dato, haz lo siguiente:
   `/filter word`, mientras respondes a una etiqueta o a los datos que quieras. Ahora, cada vez que alguien mencione "palabra", esa etiqueta será enviada como respuesta.
   Ahora, cualquiera que diga "Hola" será respondido con "¡Hola allí! ¿Cómo estás?".
@@ -395,7 +396,7 @@ language_not_supported: "¡{} aún no está soportado!"
 language_code_not_valid: Eso no es un código de idioma válido. ¡Usa un código ISO internacionalmente aceptado!
 language_current_locale: "El idioma actual para este chat es: *{}*"
 language_select_language: "*Seleccionar idioma* \n"
-language_user_language: "Lenguage de usuario: `{}`\n.\nAyúdanos a incorporar más lenguajes al bot contribuyendo con el proyecto en [Crowdin]\n(https://translate.harukaaya.me/HarukaAya)!\n"
+language_user_language: "Lenguage de usuario: `{}`\n\nAyúdanos a incorporar más lenguajes al bot contribuyendo con el proyecto en [Crowdin](https://translate.harukaaya.me/HarukaAya)!\n"
 language_chat_language: "\nIdioma de chat conectado: `{}`"
 language_sel_user_lang: "*\n\nSeleccione un nuevo idioma de usuario:*"
 #Locks
@@ -685,7 +686,7 @@ misc_md_list: |
   [two](buttonurl://google.com:same)</code>
   Esto creará dos botones en una sola línea, en lugar de un botón por línea.
 misc_md_try: Intenta reenviarme el siguiente mensaje, ¡y verás!
-misc_md_help: "/save test Esta es una prueba de markdown. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl:github.com) [button2](buttonurl://google.com:same)"
+misc_md_help: "/save test Esta es una prueba de markdown. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl://github.com) [button2](buttonurl://google.com:same)"
 misc_paste_invalid: '¿Qué se supone que tengo que hacer con esto?'
 misc_paste_404: Error al llegar al dogbin
 misc_paste_success: "URL acortada: {}/{}\nPuedes ver las estadísticas, etc. [here]({}/v/{})"
@@ -840,11 +841,11 @@ rules_button_click: "Haga clic en el botón de abajo para obtener las reglas de 
 rules: "Reglas"
 rules_success: "Se han establecido correctamente las reglas para este grupo."
 rules_help: |
-  " - /rules: obtener las reglas para este chat.
+  - /rules: obtener las reglas para este chat.
 
   *Solo administrador:*
    - /clearrules: limpia las reglas para este chat.
-   - /setrules <your rules here>: establece las reglas para este chat."
+   - /setrules <your rules here>: establece las reglas para este chat.
 #Translator
 modname_translator: Traductor
 translator_translated: |

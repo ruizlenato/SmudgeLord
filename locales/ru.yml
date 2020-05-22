@@ -682,7 +682,7 @@ misc_md_list: |
   [two](buttonurl://google.com:same)</code>
   Это создаст две кнопки в одной строке вместо одной кнопки в строке.
 misc_md_try: Попробуйте переслать мне следующее сообщение, и вы увидите!
-misc_md_help: "/save тест Это разметка тест. _курсив_, *подчеркнутый*, `код`, [URL](example.com) [button](buttonurl:github.com) [button2](buttonurl://google.com:same)"
+misc_md_help: "/save тест Это разметка тест. _курсив_, *подчеркнутый*, `код`, [URL](example.com) [button](buttonurl://github.com) [button2](buttonurl://google.com:same)"
 misc_paste_invalid: Что мне с этим делать?!
 misc_paste_404: Не удалось добраться до dogbin
 misc_paste_success: "Сокращенная ссылка: {}/{}\nВы можете просматривать статистику и т.д. [here]({}/v/{})"
@@ -836,11 +836,11 @@ rules_button_click: "Нажмите кнопку ниже, чтобы получ
 rules: "Правила"
 rules_success: "Правила успешно установлены для этой группы."
 rules_help: |
-  " - /rules: получить правила для этого чата.
+  - /rules: получить правила для этого чата.
 
   *Только админ:*
    - /clearrules: очистить правила для этого чата.
-   - /setrules <your rules here>: установить правила для этого чата."
+   - /setrules <your rules here>: установить правила для этого чата.
 #Translator
 modname_translator: Переводчик
 translator_translated: |
