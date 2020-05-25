@@ -401,7 +401,13 @@ def ud(bot: Bot, update: Update):
 
 @run_async
 def wiki(bot: Bot, update: Update):
-    kueri = re.split(pattern="wiki", string=update.effective_message.text)
+    msg = update.effective_message
+
+    msg.reply_text("🇧🇷Para pesquisar no wikipedia em português use /wikipt e em Ingles use /wikien\n \n🇺🇸To search wikipedia in Portuguese use /wikipt and in English use /wikien")
+
+@run_async
+def wikien(bot: Bot, update: Update):
+    kueri = re.split(pattern="wikien", string=update.effective_message.text)
     wikipedia.set_lang("en")
     if len(str(kueri[1])) == 0:
         update.effective_message.reply_text("Enter keywords!")
@@ -414,7 +420,7 @@ def wiki(bot: Bot, update: Update):
             ]])
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
-                                text=wikipedia.summary(kueri, sentences=10),
+                                text=wikipedia.summary(kueri, sentences=3),
                                 reply_markup=keyboard)
         except wikipedia.PageError as e:
             update.effective_message.reply_text("⚠ Error: {}".format(e))
@@ -425,31 +431,30 @@ def wiki(bot: Bot, update: Update):
                 "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}".format(eet)
             )
 
-
 @run_async
 def wikipt(bot: Bot, update: Update):
     kueri = re.split(pattern="wikipt", string=update.effective_message.text)
     wikipedia.set_lang("pt")
     if len(str(kueri[1])) == 0:
-        update.effective_message.reply_text("Enter keywords!")
+        update.effective_message.reply_text("Escreva o que você quer procurar no Wikipedia!")
     else:
         try:
-            pertama = update.effective_message.reply_text("🔄 Loading...")
+            pertama = update.effective_message.reply_text("🔄 Carregando...")
             keyboard = InlineKeyboardMarkup([[
-                InlineKeyboardButton(text="🔧 More Info...",
+                InlineKeyboardButton(text="🔧 Mais Informações...",
                                      url=wikipedia.page(kueri).url)
             ]])
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
-                                text=wikipedia.summary(kueri, sentences=10),
+                                text=wikipedia.summary(kueri, sentences=3),
                                 reply_markup=keyboard)
         except wikipedia.PageError as e:
-            update.effective_message.reply_text("⚠ Error: {}".format(e))
+            update.effective_message.reply_text("⚠ Erro: {}".format(e))
         except BadRequest as et:
-            update.effective_message.reply_text("⚠ Error: {}".format(et))
+            update.effective_message.reply_text("⚠ Erro: {}".format(et))
         except wikipedia.exceptions.DisambiguationError as eet:
             update.effective_message.reply_text(
-                "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}".format(eet)
+                "⚠ Error\n Há muitas coisa! Expresse melhor para achar o resultado!\nPossíveis resultados da consulta:\n{}".format(eet)
             )
 @run_async
 def covid(bot: Bot, update: Update):
@@ -544,6 +549,7 @@ PASTE_STATS_HANDLER = DisableAbleCommandHandler("pastestats",
                                                 pass_args=True)
 UD_HANDLER = DisableAbleCommandHandler("ud", ud)
 WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki)
+WIKIEN_HANDLER = DisableAbleCommandHandler("wikien", wikien)
 WIKIPT_HANDLER = DisableAbleCommandHandler("wikipt", wikipt)
 COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True)
 
@@ -567,4 +573,5 @@ dispatcher.add_handler(
     DisableAbleCommandHandler("removebotkeyboard", reply_keyboard_remove))
 dispatcher.add_handler(WIKI_HANDLER)
 dispatcher.add_handler(WIKIPT_HANDLER)
+dispatcher.add_handler(WIKIEN_HANDLER)
 dispatcher.add_handler(COVID_HANDLER)
