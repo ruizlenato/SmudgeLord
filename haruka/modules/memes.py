@@ -361,7 +361,7 @@ def deepfryer(bot: Bot, update: Update):
 async def process_deepfry(image: Image, reply: Message, bot: Bot, update: Update):
     image = await deepfry(img=image, token=DEEPFRY_TOKEN, url_base='westeurope')
     if image is None:
-        update.effective_message.reply_text("There has been an unspecified failrule")
+        update.effective_message.reply_text("There has been an unspecified failure")
         return
     bio = BytesIO()
     bio.name = 'image.jpeg'
