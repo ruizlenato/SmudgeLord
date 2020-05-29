@@ -354,13 +354,15 @@ def deepfryer(bot: Bot, update: Update):
     # the following needs to be executed async (because dumb lib)
     #bot = context.bot
     loop = asyncio.new_event_loop()
-    loop.run_until_complete(process_deepfry(image, message.reply_to_message, bot))
+    loop.run_until_complete(process_deepfry(image, message.reply_to_message, bot, update))
     loop.close()
 
 
-async def process_deepfry(image: Image, reply: Message, bot: Bot):
+async def process_deepfry(image: Image, reply: Message, bot: Bot, update: Update):
     image = await deepfry(img=image, token=DEEPFRY_TOKEN, url_base='westeurope')
-
+    if image is None:
+        update.effective_message.reply_text("There has been an unspecified failrule")
+        return
     bio = BytesIO()
     bio.name = 'image.jpeg'
     image.save(bio, 'JPEG')
