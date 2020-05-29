@@ -339,7 +339,7 @@ def deepfryer(bot: Bot, update: Update, ):
 
     # check if message does contain media and cancel when not
     if not data and not data2:
-        message.reply_text(tl(chat.id, "What am I supposed to do with this?!"))
+        message.reply_text("What am I supposed to do with this?!")
         return
 
     # download last photo (highres) as byte array
