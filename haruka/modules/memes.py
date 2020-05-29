@@ -346,24 +346,21 @@ def deepfryer(bot: Bot, update: Update, ):
     if data:
         photodata = data[len(data) - 1].get_file().download_as_bytearray()
         image = Image.open(io.BytesIO(photodata))
-    elif data2:
+    else:
         sticker = context.bot.get_file(data2.file_id)
         sticker.download('sticker.png')
         image = Image.open("sticker.png")
 
     # the following needs to be executed async (because dumb lib)
-    bot = context.bot
+    ##bot = context.bot
     loop = asyncio.new_event_loop()
-    loop.run_until_complete(
-        process_deepfry(image, message.reply_to_message, bot, context))
+    loop.run_until_complete(process_deepfry(image, message.reply_to_message, bot, context))
     loop.close()
 
 
 async def process_deepfry(image: Image, reply: Message, bot: Bot, context):
     bot = context.bot
-    image = await deepfry(img=image,
-                          token=DEEPFRY_TOKEN,
-                          url_base='westeurope')
+    image = await deepfry(img=image, token=DEEPFRY_TOKEN, url_base='westeurope')
 
     bio = BytesIO()
     bio.name = 'image.jpeg'
