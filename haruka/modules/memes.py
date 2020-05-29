@@ -327,7 +327,7 @@ def zalgotext(bot: Bot, update: Update, args: List[str]):
 
 
 @run_async
-def deepfryer(bot: Bot, update: Update, ):
+def deepfryer(bot: Bot, update: Update):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
     if message.reply_to_message:
@@ -354,12 +354,11 @@ def deepfryer(bot: Bot, update: Update, ):
     # the following needs to be executed async (because dumb lib)
     #bot = context.bot
     loop = asyncio.new_event_loop()
-    loop.run_until_complete(process_deepfry(image, message.reply_to_message, bot, context))
+    loop.run_until_complete(process_deepfry(image, message.reply_to_message, bot))
     loop.close()
 
 
-async def process_deepfry(image: Image, reply: Message, bot: Bot, context):
-    bot = context.bot
+async def process_deepfry(image: Image, reply: Message, bot: Bot):
     image = await deepfry(img=image, token=DEEPFRY_TOKEN, url_base='westeurope')
 
     bio = BytesIO()
