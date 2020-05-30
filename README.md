@@ -5,7 +5,7 @@ A simple group management bot with multiple admin features, it has evolved into 
 bots aiming to provide simple plugin expansion via a simple drag and drop.
 
 Thanks For:
-* [Nuno Penim](https://github.com/nunopenim) [Cezar H](https://https://github.com/usernein) - For helping me with some things
+* [Nuno Penim](https://github.com/nunopenim) and [Cezar H](https://https://github.com/usernein) - For helping me with some things
 * [Corsicanu](https://github.com/corsicanu) - For Samsung Firmware commands
 * [Real Phoenix](https://github.com/rsktg) - For LastFM module
 * [あきと ミズキト - Real Akito](https://github.com/RealAkito) - for reworked federation, Android module and other things...
