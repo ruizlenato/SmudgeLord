@@ -17,9 +17,10 @@ hurry.filesize
 googletrans
 tldextract
 PyYAML==5.1.2 
-pyowm
+pyowm==2.10.0
 wikipedia
 bleach
 markdown2
 spamwatch
 bs4
+covid

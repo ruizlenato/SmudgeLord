@@ -162,15 +162,15 @@ antispam_logger_update_gban: |
     <b>Antigo motivo:</b> {}\n
     <b>Novo motivo:</b> {}
 antispam_reason_updated: "This user has already been gbanned. I have updated the reason.\nPrevious reason: <code>{}</code>\nNew reason: <code>{}</code>"
-antispam_new_gban: Banimento Global {} /nID do Usuario Banido <code>{}</code>...
-antispam_logger_new_gban: "{} baniu globalmente o usuario {}/n ID do Usuario Banido: <code>{}</code> with the following reason: <code>{}</code>."
+antispam_new_gban: Banimento Global {} \nID do Usuario Banido <code>{}</code>...
+antispam_logger_new_gban: "{} baniu globalmente o usuario {}\n ID do Usuario Banido: <code>{}</code> com o seguinte motivo: <code>{}</code>."
 antispam_no_reason: Nenhuma razão dada
 antispam_user_not_gbanned: Este usuário não está banido globalmente!
 antispam_ungbanned: Eu vou dar para {} uma segunda chance, globalmente.
 antispam_logger_ungban: "{} removeu o banimento global de {}."
 antispam_err_ungban: "Could not ungban due to: {}"
 antispam_ungban_success: Ungbanned successfully!
-antispam_checkban_user_removed: "*This user is gbanned and has been removed.*\nReason: `{}`"
+antispam_checkban_user_removed: "*Este usuário recebeu um banimento global e foi removido.*\nRasão: `{}`"
 antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers, personagens desagradáveis ​​e os maiores trolls.
 antispam_off: Desativei a segurança antispam neste grupo. GBans não afetarão mais seus usuários. Você estará menos protegido contra trolls e spammers!
 antispam_err_wrong_arg: "Give me some arguments to choose a setting! on/off, yes/no!\n\nYour current setting is: {}\nWhen True, any gbans that happen will also happen in your group. When False, they won't, leaving you at the possible mercy of spammers."
@@ -263,12 +263,12 @@ blacklist_err_multidel_some_no_trigger: Removed <code>{}</code> triggers from th
 blacklist_chatsettings_word_count: There are {} blacklisted words.
 blacklist_help: |
     Você pode definir filtros de lista negra para executar ações automáticas nas pessoas quando elas dizem certas coisas. Isso é feito usando:
-    - /addblacklist <blacklist trigger> <blacklist reason>: blacklists the trigger. You can set sentences by putting quotes around the reason.
-    - /unblacklist <blacklist trigger>: stop blacklisting a certain blacklist trigger.
-    - /rmblacklist <blacklist trigger>: same as /unblacklist
-    - /blacklist: list all active blacklist filters\n
-    /addblacklist "the admins suck" Respect your admins!
-    This would delete any message containing 'the admins suck'.\n
+    - /addblacklist <gatilho da lista negra> <razão da lista negra>: lista negra de gatilho. Você pode definir frases colocando aspas em torno do motivo.
+    - /unblacklist <gatilho da lista negra>: parar na lista negra de um determinado gatilho da lista negra.
+    - /rmblacklist <gatilho da lista negra>: mesmo que /unblacklist
+    - /blacklist: lista todos os filtros ativos da lista negra\n
+    /addblacklist "os administradores são idiotas" Respeite seus administradores!
+    Isso excluiria qualquer mensagem contendo 'os administradores são idiotas'.\n
     Pro tip:
     Blacklists allow you to use some modifiers to match "unknown" characters. For example, you can use the ? character to match a single occurence of any non-whitespace character.
     You could also use the * modifier, which matches any number of any character. If you want to blacklist urls, this will allow you to match the full thing. It matches every character except spaces. This is cool if you want to stop, for example, url shorteners.
