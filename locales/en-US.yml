@@ -34,8 +34,8 @@ common_err_no_user: You don't seem to be referring to a user.
 common_err_invalid_chatid: Invalid Chat ID!
 common_yes: "Yes"
 common_no: "No"
-common_cmd_group_only: This command can only be used in a group, not PM.
-common_cmd_pm_only: This command can only be used in a PM, not a group.
+common_cmd_group_only: This command can only be used in a group, not PM. Try connecting to a group!
+common_cmd_pm_only: This command can only be used in PM, not a group.
 common_group_creator_only: Only the group creator can use this command!
 common_this_chat: This chat
 common_invalid_arg: Invalid argument! Please type `on`/`yes` or `off`/`no`!
@@ -842,6 +842,7 @@ rules_not_found: "The group admins haven't set any rules for this chat yet. This
 rules_button_click: "Click the button below to get this group's rules."
 rules: "Rules"
 rules_success: "Successfully set rules for this group."
+rules_clean_success: "Successfully cleared rules!"
 rules_help: |
   - /rules: get the rules for this chat.
 

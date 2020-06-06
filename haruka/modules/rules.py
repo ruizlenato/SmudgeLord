@@ -27,12 +27,26 @@ from haruka.modules.helper_funcs.chat_status import user_admin
 from haruka.modules.helper_funcs.string_handling import markdown_parser
 
 from haruka.modules.tr_engine.strings import tld
+from haruka.modules.connection import connected
 
 
 @run_async
 def get_rules(bot: Bot, update: Update):
-    chat_id = update.effective_chat.id
-    send_rules(update, chat_id)
+    chat = update.effective_chat
+    user = update.effective_user
+    from_pm = False
+
+    conn = connected(bot, update, chat, user.id)
+    if conn:
+        chat_id = conn
+        from_pm = True
+    else:
+        if chat.type == 'private':
+            msg.reply_text(tld(chat.id, 'common_cmd_group_only'))
+            return
+        chat_id = chat.id
+
+    send_rules(update, chat_id, from_pm)
 
 
 # Do not async - not from a handler
@@ -74,8 +88,18 @@ def send_rules(update, chat_id, from_pm=False):
 @run_async
 @user_admin
 def set_rules(bot: Bot, update: Update):
-    chat_id = update.effective_chat.id
+    chat = update.effective_chat
+    user = update.effective_user
     msg = update.effective_message
+
+    conn = connected(bot, update, chat, user.id)
+    if conn: chat_id = conn
+    else:
+        if chat.type == 'private':
+            msg.reply_text(tld(chat.id, 'common_cmd_group_only'))
+            return
+        chat_id = chat.id
+
     raw_text = msg.text
     args = raw_text.split(None,
                           1)  # use python's maxsplit to separate cmd and args
@@ -88,15 +112,25 @@ def set_rules(bot: Bot, update: Update):
                                          offset=offset)
 
         sql.set_rules(chat_id, markdown_rules)
-        update.effective_message.reply_text(tld(chat_id, "rules_success"))
+        msg.reply_text(tld(chat.id, "rules_success"))
 
 
 @run_async
 @user_admin
 def clear_rules(bot: Bot, update: Update):
-    chat_id = update.effective_chat.id
+    chat = update.effective_chat
+    user = update.effective_user
+
+    conn = connected(bot, update, chat, user.id)
+    if conn: chat_id = conn
+    else:
+        if chat.type == 'private':
+            msg.reply_text(tld(chat.id, 'common_cmd_group_only'))
+            return
+        chat_id = chat.id
+
     sql.set_rules(chat_id, "")
-    update.effective_message.reply_text("Successfully cleared rules!")
+    update.effective_message.reply_text(tld(chat.id, 'rules_clean_success'))
 
 
 def __stats__():
@@ -109,13 +143,11 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-GET_RULES_HANDLER = CommandHandler("rules", get_rules, filters=Filters.group)
+GET_RULES_HANDLER = CommandHandler("rules", get_rules)
 SET_RULES_HANDLER = CommandHandler("setrules",
-                                   set_rules,
-                                   filters=Filters.group)
+                                   set_rules)
 RESET_RULES_HANDLER = CommandHandler("clearrules",
-                                     clear_rules,
-                                     filters=Filters.group)
+                                     clear_rules)
 
 dispatcher.add_handler(GET_RULES_HANDLER)
 dispatcher.add_handler(SET_RULES_HANDLER)
