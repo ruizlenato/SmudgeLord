@@ -379,6 +379,27 @@ disable_help: |
     - /disable <comando>: Desabilitar um comando
     - /listcmds: Listar todos os comandos alternáveis
 
+#github
+repo_saved: Atalho do repositório salvo com sucesso!
+author_github: "<b>Autor:</b> <a href='{}'>{}</a>\n"
+release_name_github: "<b>Nome da versão(release):</b> {}\n\n"
+asset_github: "<b>Arquivo:</b> \n"
+size_github: "Tamanho: {} MB"
+download_count_github: "\nNumero de Downloads: {} \n\n"
+invalid_repo_github: "Nome do repo inválido"
+github_sortcuts: "<b>Atalhos para respositorios do github disponiveis em {}:</b>\n\n"
+github_help_list: "\nVocê pode conferir estes atalhos utilizando <code>/fetch repo</code>, ou <code>&repo</code>\n"
+github_help: |
+  *Precisa de alguma release de um repositório do GitHub, mas não quer ir para o GitHub e ir para o repositório? Aqui estão alguns comandos que podem facilitar sua vida com o GitHub.*
+  *Os comandos disponíveis são:*
+   - /gitr <usuário>/<repo> [opcional: <número>: para buscar lançamentos(releases) anteriores]: irá buscas o lançamento(release) mais recente desse repositório.
+   - /git: Retorna informações sobre um usuário ou organização do GitHub.
+   - /repo: Retorna a lista de repositórios de usuários ou organizações do GitHub (limitada a 40 repositorios).
+   - /listrepo: Liste todos os atalhos de repositório no grupo atual
+   - /fetch <word>: obtenha o atalho repo registrado com essa essa palavra.
+   - &<palavra>: igual a /fetch palavra
+   - /changelog <palavras>: obtém o changelog de um atalho de repositório salvo
+
 # Language
 language_switch_success: Alterado para {} com sucesso!
 language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles 🇺🇸 - en \nPortugues 🇧🇷 - pt"

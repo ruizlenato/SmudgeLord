@@ -59,7 +59,7 @@ admin_disable_reaction: Disabled response to user-triggered admin commands.
 admin_enable_reaction: Enabled response to user-triggered admin commands.
 admin_err_wrong_arg: Please enter True or False!
 admin_reaction_status: Response for user-triggered admin commands is currently *{}*!
-zombies_admin_noperm: Eu não sou admin aqui então eu não posso remover essas contas excluídas.
+zombies_admin_noperm: I am not an admin here so I cannot remove these deleted accounts.
 zombies_searching_accounts: 'Searching for zombie accounts...'
 zombies_cleaning: Cleaning deleted accounts..
 zombies_result_accounts: found **{}** deleted account(s) in this group\nclean them by using `/delusers` clean
@@ -382,6 +382,28 @@ disable_help: |
     - /enable <cmd name>: Enable a command
     - /disable <cmd name>: Disable a command
     - /listcmds: List all toggleable commands
+
+#GitHub
+modname_github: GitHub
+repo_saved: "Repo shortcut saved successfully!"
+author_github: "<b>Author:</b> <a href='{}'>{}</a>\n"
+release_name_github: "<b>Release Name:</b> {}\n\n"
+asset_github: "<b>Asset:</b> \n"
+size_github: "Size: {} MB"
+download_count_github: "\nDownload Count: {} \n\n"
+invalid_repo_github: "Invalid repo name"
+github_sortcuts: "<b>GitHub repo shotcuts in {}:</b>\n"
+github_help_list: "\nYou can retrieve these repos by using <code>/fetch repo</code>, or <code>&repo</code>\n"
+github_help: |
+  *Need some GitHub release but don't want to have to go to GitHub and go to the repository? Here are some commands that can make your life easier with GitHub.*
+  *Available commands are:*
+   - /gitr <user>/<repo> [optional: <number>: for fetch releases in past]: will fetch the most recent release from that repo.
+   - /git: Returns info about a GitHub user or organization.
+   - /repo: Return the GitHub user or organization repository list (Limited at 40).
+   - /fetch <word>: get the repo shortcut registered to that word.
+   - &<word>: same as /fetch word
+   - /changelog <word>: gets the changelog of a saved repo shortcut
+   - /listrepo: List all repo shortcuts in the current chat
 
 
 # Language
