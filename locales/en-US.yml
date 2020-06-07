@@ -67,10 +67,10 @@ admin_help: |
   - /demote: Demotes a user. Reply to the user or use their username.
 #AFK
 modname_afk: AFK
-user_now_afk: "{} is now AFK!"
-user_no_longer_afk: "{} is no longer AFK!"
-status_afk_noreason: "{} is AFK!"
-status_afk_reason: "{} is AFK! Says it's because of:\n{}"
+user_now_afk: "User {} is now AFK!"
+user_no_longer_afk: "User {} is no longer AFK!"
+status_afk_noreason: "User {} is AFK!"
+status_afk_reason: "User {} is AFK! Says it's because of:\n{}"
 afk_help: |
   - /afk <reason>: Mark yourself as AFK.
   - brb <reason>: Same as the afk command, but not a command.\n
@@ -415,24 +415,24 @@ locks_lock_bots_kick: Only admins are allowed to add bots to this chat! Kicked!
 locks_list_empty: There are no current locks in *{}*.
 locks_list: |
   These are the locks in *{}*:
-   - sticker = `{}`
-   - audio = `{}`
-   - voice = `{}`
-   - document = `{}`
-   - video = `{}`
-   - videonote = `{}`
-   - contact = `{}`
-   - photo = `{}`
-   - gif = `{}`
-   - url = `{}`
-   - bots = `{}`
-   - forward = `{}`
-   - game = `{}`
-   - location = `{}`
-   - messages = `{}`
-   - media = `{}`
-   - other = `{}`
-   - all = `{}`
+   - `sticker` = *{}*
+   - `audio` = *{}*
+   - `voice` = *{}*
+   - `document` = *{}*
+   - `video` = *{}*
+   - `videonote` = *{}*
+   - `contact` = *{}*
+   - `photo` = *{}*
+   - `gif` = *{}*
+   - `url` = *{}*
+   - `bots` = *{}*
+   - `forward` = *{}*
+   - `game` = *{}*
+   - `location` = *{}*
+   - `messages` = *{}*
+   - `media` = *{}*
+   - `other` = *{}*
+   - `all` = *{}*
 locks_help: |
   Do stickers annoy you? or you want to avoid people sharing links? or pictures? You're in the right place!\n
   The locks module allows you to lock away some common items in the telegram world; the bot will automatically delete them!\n
@@ -741,7 +741,7 @@ mute_invalid: "You'll need to either give me a username to mute, or reply to som
 mute_not_myself: "I'm not muting myself!"
 mute_not_sudo: "No! I'm not muting bot sudoers! That would be a pretty dumb idea."
 mute_not_m_admin: "No! I'm not muting chat administrator! That would be a pretty dumb idea."
-mute_success: "{} is muted in {}!"
+mute_success: "User {} is muted in {}!"
 mute_already_mute: "This user is already muted in {}!"
 mute_not_in_chat: "This user isn't in the {}!"
 unmute_invalid: "You'll need to either give me a username to unmute, or reply to someone to be unmuted."
@@ -759,7 +759,7 @@ mute_cant_mute: "Well damn, I can't mute that user."
 restrict_invalid: "You'll need to either give me a username to restrict, or reply to someone to be restricted."
 restrict_is_bot: "I'm not restricting myself!"
 restrict_is_admin: "Afraid I can't restrict admins!"
-restrict_success: "{} is restricted from sending media in {}!"
+restrict_success: "User {} is restricted from sending media in {}!"
 restrict_already_restricted: "This user is already restricted in {}!"
 unrestrict_invalid: "You'll need to either give me a username to unrestrict, or reply to someone to be unrestricted."
 unrestrict_not_restricted: "This user already has the rights to send anything in {}."
@@ -822,7 +822,7 @@ reports_chat_on: "Turned on reporting! Admins who have turned on reports will be
 reports_chat_off: "Turned off reporting! No admins will be notified on /report or @admin."
 reports_pm_pref: "Your current report preference is: `{}`"
 reports_chat_pref: "This chat's current setting is: `{}`"
-reports_success: "{} reported the message to the admins."
+reports_success: "User {} reported the message to the admins."
 reports_pm_enable: "Enabled reporting in your pm!"
 reports_pm_disable: "Disabled reporting in your pm!"
 reporting_help: |
@@ -1003,11 +1003,11 @@ users_seen: "I've seen them in <code>{}</code> chats in total."
 users_seen_is_bot: "I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."
 #Userinfo
 modname_userinfo: Bios/Abouts
-userinfo_about_not_set_they: "{} hasn't set an info message about themselves yet!"
+userinfo_about_not_set_they: "User {} hasn't set an info message about themselves yet!"
 userinfo_about_not_set_you: You haven't set an info message about yourself yet!
 userinfo_about_set_success: Updated your info!
 userinfo_about_too_long: Your info needs to be under {} characters! You have {}.
-userinfo_bio_none_they: "{} doesn't have any bio set."
+userinfo_bio_none_they: "User {} doesn't have any bio set."
 userinfo_bio_none_you: No one has set a bio for you!
 userinfo_bio_you_cant_set: Ha, you can't set your own bio! You're at the mercy of others here...
 userinfo_bio_bot_sudo_only: Erm... yeah, I only trust sudo users to set my bio.
@@ -1091,7 +1091,7 @@ warns_strength_off_log_channel: |
   Has disabled strong warns. Users will only be kicked.
 warns_btn_remove_warn: Remove warn
 warns_btn_rules: Rules
-warns_user_warned: "{} <b>has been warned!</b>\nThey have {}/{} warnings."
+warns_user_warned: "User {} <b>has been warned!</b>\nThey have {}/{} warnings."
 warns_latest_warn_reason: \nThe latest warning was because:\n<code>{}</code>
 warns_remove_admin_only: You are not authorized to remove this warn! Only administrators may remove warns.
 warns_remove_success: Warn removed by {}.
