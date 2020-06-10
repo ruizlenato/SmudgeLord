@@ -144,10 +144,8 @@ def __migrate__(old_chat_id, new_chat_id):
 __help__ = True
 
 GET_RULES_HANDLER = CommandHandler("rules", get_rules)
-SET_RULES_HANDLER = CommandHandler("setrules",
-                                   set_rules)
-RESET_RULES_HANDLER = CommandHandler("clearrules",
-                                     clear_rules)
+SET_RULES_HANDLER = CommandHandler("setrules", set_rules)
+RESET_RULES_HANDLER = CommandHandler("clearrules", clear_rules)
 
 dispatcher.add_handler(GET_RULES_HANDLER)
 dispatcher.add_handler(SET_RULES_HANDLER)
