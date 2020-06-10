@@ -33,8 +33,8 @@ common_err_no_user: Вы, кажется, не имеете в виду поль
 common_err_invalid_chatid: Неверный идентификатор чата!
 common_yes: "Да"
 common_no: "Нет"
-common_cmd_group_only: Эта команда может использоваться только в группе, но не в личке.
-common_cmd_pm_only: Эта команда может использоваться только в личном кабинете, а не в группе.
+common_cmd_group_only: Эта команда может быть использована только в группе, а не в ЛС. Попробуйте подключиться к группе!
+common_cmd_pm_only: Эта команда может быть использована только в ЛС, а не в группе.
 common_group_creator_only: Только создатель группы может использовать эту команду!
 common_this_chat: Этот чат
 common_invalid_arg: Недействительный аргумент! Пожалуйста, введите `on`/`yes` или `off`/`no`!
@@ -86,7 +86,7 @@ maintainer: "**Сопровождающий:** {}\n"
 xda_thread: "**Тема XDA:** [Here]({})\n"
 changelog: "**Изменения устройства:** `{}`\n"
 weekly: "**Еженедельная**\n"
-phh_releases: "**Последний(ие) релиз(ы) GSI Phh's**"
+phh_releases: "**последний(ие) релиз(ы) Phh's GSI**"
 err_not_found: Не удалось найти результаты, соответствующие вашему запросу.
 err_api: Не удалось связаться с API.
 err_example_device: Почему вы пытаетесь получить пример устройства?
@@ -682,7 +682,7 @@ misc_md_list: |
   [two](buttonurl://google.com:same)</code>
   Это создаст две кнопки в одной строке вместо одной кнопки в строке.
 misc_md_try: Попробуйте переслать мне следующее сообщение, и вы увидите!
-misc_md_help: "/save тест Это разметка тест. _курсив_, *подчеркнутый*, `код`, [URL](example.com) [button](buttonurl://github.com) [button2](buttonurl://google.com:same)"
+misc_md_help: "/save test Это уцененный тест. _italics_, *bold*, `code`, [URL](example.com) [button] (buttonurl://github.com) [button2](buttonurl://google.com:same)"
 misc_paste_invalid: Что мне с этим делать?!
 misc_paste_404: Не удалось добраться до dogbin
 misc_paste_success: "Сокращенная ссылка: {}/{}\nВы можете просматривать статистику и т.д. [here]({}/v/{})"
@@ -835,12 +835,13 @@ rules_not_found: "Администраторы группы еще не уста
 rules_button_click: "Нажмите кнопку ниже, чтобы получить правила этой группы."
 rules: "Правила"
 rules_success: "Правила успешно установлены для этой группы."
+rules_clean_success: "Правила успешно удалены!"
 rules_help: |
-  - /rules: получить правила для этого чата.
+  -/rules: получите правила для этого чата.
 
-  *Только админ:*
-   - /clearrules: очистить правила для этого чата.
-   - /setrules <your rules here>: установить правила для этого чата.
+  *Admin only:*
+   - /clearrules: чистит права для этого чата
+   - /setrules <ваши правила здесь>: устанавливает правила для этого чата
 #Translator
 modname_translator: Переводчик
 translator_translated: |
