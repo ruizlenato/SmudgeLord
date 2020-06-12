@@ -30,6 +30,7 @@ from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.chat_status import user_admin
 from haruka.modules.helper_funcs.misc import build_keyboard, revert_buttons
 from haruka.modules.helper_funcs.msg_types import get_note_type
+from telegram.utils.helpers import escape_markdown
 
 from haruka.modules.tr_engine.strings import tld
 from haruka.modules.connection import connected
@@ -219,7 +220,7 @@ def save(bot: Bot, update: Update):
         return
 
     if len(text.strip()) == 0:
-        text = note_name
+        text = escape_markdown(note_name)
 
     if not sql.get_note(chat_id, note_name):
         sql.add_note_to_db(chat_id,
