@@ -269,14 +269,18 @@ blacklist_help: |
     - /blacklist: lista todos os filtros ativos da lista negra\n
     /addblacklist "os administradores são idiotas" Respeite seus administradores!
     Isso excluiria qualquer mensagem contendo 'os administradores são idiotas'.\n
-    Pro tip:
-    Blacklists allow you to use some modifiers to match "unknown" characters. For example, you can use the ? character to match a single occurence of any non-whitespace character.
-    You could also use the * modifier, which matches any number of any character. If you want to blacklist urls, this will allow you to match the full thing. It matches every character except spaces. This is cool if you want to stop, for example, url shorteners.
-    For example, the following will ban any bit.ly link:
-    /addblacklist "bit.ly/*" We dont like shorteners!
-    If you want to only match bit.ly/ links followed by three characters, you could use:
-    /addblacklist "bit.ly/???" We dont like shorteners!
-    This would match bit.ly/abc, but not bit.ly/abcd.
+   
+    A lista negra de domínios é usada para impedir que determinados domínios sejam mencionados em um grupo. Sempre que um URL desse domínio é mencionado, /
+    a mensagem será excluída imediatamente e automaticamente.
+
+    *OBSERVAÇÃO:* lista negra de domínio não afeta administradores de grupo.
+
+    - /geturl: Exibir os URLs atuais da lista negra
+
+    *Apenas administrador:*
+
+    - /addurl <urls>: Adicione um domínio à lista negra. O bot analisará automaticamente o URL.
+    - /delurl <urls>: Remova os URLs da lista negra
 
 # Conexões
 modname_connection: Conexões
