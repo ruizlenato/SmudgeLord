@@ -286,15 +286,15 @@ blacklist_help: |
 modname_connection: Conexões
 connection_enable: Conexões ativadas para este chat.
 connection_disable: Conexões desativadas para este chat.
-connection_err_wrong_arg: Please enter on/yes/off/no as an argument!
+connection_err_wrong_arg: Por favor, insira on/yes/off/no como argumento!
 connection_success: Conectado com sucesso a *{}*
 connection_fail: Falha na conexão!
-connection_err_not_allowed: Connections to this chat are not allowed!
-connection_err_no_chatid: Input chat ID to connect!
-connection_dis_success: Disconnected from chat successfully!
-connection_dis_fail: Disconnecting failed!
-connection_err_no_admin: You need to be an admin in the connected group!
-connection_err_unknown: Group has changed connection rights or you are not an admin anymore.\nI'll disconnect you.
+connection_err_not_allowed: Conexões a este bate-papo não são permitidas!
+connection_err_no_chatid: Digite o ID do chat para conectar-se
+connection_dis_success: Desconectado do bate-papo com sucesso!
+connection_dis_fail: Falha na desconexão!
+connection_err_no_admin: Você precisa ser um administrador no grupo conectado!
+connection_err_unknown: O grupo mudou os direitos de conexão ou você não é mais um administrador.\nVou desconectá-lo.
 connection_help: |
     Às vezes, você só deseja adicionar notas e filtros a um bate-papo em grupo, mas não quer que todos vejam; É aqui que entram as conexões...
     Isso permite que você se conecte ao banco de dados de um chat e adicione itens a ele sem que os comandos apareçam no chat! Por razões óbvias, você precisa ser um administrador para adicionar coisas; mas qualquer membro do grupo pode visualizar seus dados.\n
@@ -1082,12 +1082,12 @@ warns_list_warns: "Este usuário tem {}/{} advertencias, pelos seguintes motivos
 warns_list_warns_no_reason: Este usuário tem {}/{} advertencias, mas não há razões para nenhum deles.
 warns_list_warns_none: Este usuário não tem nenhuma advertencia!
 warns_handler_add_success: Warn handler added for '{}'!
-warns_filters_list_empty: No warning filters are active here!
+warns_filters_list_empty: Nenhum filtro de aviso está ativo aqui!
 warns_filters_remove_success: Yep, I'll stop warning people for that.
-warns_filter_doesnt_exist: That's not a current warning filter - run /warnlist for all active warning filters.
-warns_filters_list: <b>Current warning filters in this chat:</b>\n
-warns_warnlimit_min_1: The minimum warn limit is 1!
-warns_warnlimit_updated_success: Updated the warn limit to {}.
+warns_filter_doesnt_exist: Esse não é um filtro de advertencia - use o /warnlist para ver todos os filtros de aviso ativos.
+warns_filters_list: <b>Filtros de aviso atuais neste bate-papo:</b>\n
+warns_warnlimit_min_1: O limite mínimo de advertencias é 1!
+warns_warnlimit_updated_success: Atualizado o limite de advertencias para {}.
 warns_warnlimit_invalid_arg: Invalid argument! The argument should be a number, not less than 1.
 warns_warnlimit_current: The current warn limit is {}.
 warns_strength_on_success: Exceeding warn limit will now ban the user!
