@@ -222,7 +222,7 @@ bans_tban_logger: <b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<
 bans_tbanned_success: Admin {} has successfully banned {} in <b>{}</b> for {}!
 bans_kick_is_bot: Eu não vou me kikar!
 bans_kick_is_admin: Por que eu chutaria um administrador? Parece uma ideia bem idiota.
-bans_kick_success: Admin {} has successfully kicked {} in <b>{}</b>!
+bans_kick_success: Admin {} kikou {} em <b>{}</b>!
 bans_kick_logger: <b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)
 bans_kickme_success: Sem Problemas.
 bans_kickme_failed:
@@ -250,8 +250,8 @@ bans_help: |
 
 # Blacklist
 modname_blacklist: Listas negras de palavras
-blacklist_active_list: Blacklist filters active in {}:\n
-blacklist_no_list: There are no blacklist filters in <b>{}</b>!
+blacklist_active_list: Filtros da lista negra ativos em {}:\n
+blacklist_no_list: Não há filtros de lista negra no <b>{}</b>!
 blacklist_add: Added <code>{}</code> to the blacklist in <b>{}</b>!
 blacklist_del: Removed <code>{}</code> from the blacklist in <b>{}</b>!
 blacklist_multi_del: Removed <code>{}</code> triggers from the blacklist in <b>{}</b>!
