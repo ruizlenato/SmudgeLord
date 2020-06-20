@@ -147,7 +147,7 @@ antiflood_help: |
 
 
 # Antispam
-modname_antispam: Segurança Antispam
+modname_antispam: Antispam
 antispam_err_usr_sudo: Eu espio com meus olhinhos... uma guerra de usuários sudo! Por que vocês estão se virando?
 antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
 antispam_err_usr_bot: -_- So funny, let me gban myself, why don't I? Nice try.
@@ -249,7 +249,7 @@ bans_help: |
     /tmute @username 2h; isso muta um usuário por 2 horas.
 
 # Blacklist
-modname_blacklist: Listas negras de palavras
+modname_blacklist: Listas negras
 blacklist_active_list: Filtros da lista negra ativos em {}:\n
 blacklist_no_list: Não há filtros de lista negra no <b>{}</b>!
 blacklist_add: Added <code>{}</code> to the blacklist in <b>{}</b>!
@@ -810,48 +810,48 @@ notes_help: |
 
 
 # Reporting
-modname_reporting: Reporting
-reports_pm_on: "Turned on reporting! You'll be notified whenever anyone reports something."
-reports_pm_off: "Turned off reporting! You wont get any reports."
-reports_chat_on: "Turned on reporting! Admins who have turned on reports will be notified when /report or @admin are called."
-reports_chat_off: "Turned off reporting! No admins will be notified on /report or @admin."
-reports_pm_pref: "Your current report preference is: `{}`"
-reports_chat_pref: "This chat's current setting is: `{}`"
-reports_success: "{} reported the message to the admins."
-reports_pm_enable: "Enabled reporting in your pm!"
-reports_pm_disable: "Disabled reporting in your pm!"
+modname_reporting: Denuncias
+reports_pm_on: "Denuncias ativadas! Você será notificado sempre que alguém denunciar algo."
+reports_pm_off: "Desativou as denuncias! Você não receberá nenhum relatório."
+reports_chat_on: "Relatórios ativados! Os administradores que ativaram os relatórios serão notificados quando /report ou @admin forem chamados."
+reports_chat_off: "Relatório desativado! Nenhum administrador será notificado com o /report ou @admin."
+reports_pm_pref: "Sua preferência de relatório atual é: `{}`"
+reports_chat_pref: "A configuração atual deste bate-papo é: `{}`"
+reports_success: "{} denunciou a mensagem aos administradores."
+reports_pm_enable: "Relatórios ativados no seu PV!"
+reports_pm_disable: "Relatórios desativados no seu PV!"
 reports_help: |
-    " - /report <reason>: reply to a message to report it to admins.
-     - @admin: reply to a message to report it to admins.
-    NOTE: neither of these will get triggered if used by admins
+    " - /report <rasão>: responda a uma mensagem para denunciá-la aos administradores.
+     - @admin: responda a uma mensagem para denunciá-la aos administradores.
+    NOTE: nenhum deles será acionado se usado pelos administradores
 
-    *Admin only:*
-     - /reports <on/off>: change report setting, or view current status.
-       - If done in pm, toggles your status.
-       - If in chat, toggles that chat's status."
+    *Apenas administradores:*
+     - /reports <on/off>: alterar a configuração das Denuncias ou exibir o status atual.
+       - Se feito em pm, alterna seu status.
+       - Se estiver no bate-papo, alterna o status desse bate-papo. "
 
 
 # Rules
-modname_rules: Rules
+modname_rules: Regras
 rules_shortcut_not_setup_properly: "The rules shortcut for this chat hasn't been set properly! Ask admins to fix this."
 rules_display: "The rules for *{}* are:\n\n{}"
-rules_not_found: "The group admins haven't set any rules for this chat yet. This probably doesn't mean it's lawless though...!"
-rules_button_click: "Click the button below to get this group's rules."
-rules: "Rules"
-rules_success: "Successfully set rules for this group."
+rules_not_found: "Os administradores do grupo ainda não definiram nenhuma regra para este bate-papo. Provavelmente isso não significa que é ilegal ...!"
+rules_button_click: "Clique no botão abaixo para obter as regras deste grupo."
+rules: "Regras"
+rules_success: "Definir com êxito regras para este grupo."
 rules_help: |
-    " - /rules: get the rules for this chat.
+    " - /rules: obtenha as regras para este grupo.
 
-    *Admin only:*
-     - /clearrules: clear the rules for this chat.
-     - /setrules <your rules here>: set the rules for this chat."
+    *Apenas administradores:*
+     - /clearrules: limpe as regras em um grupo.
+     - /setrules <your rules here>: defina as regras em um grupo."
 
 
 # Translator
 modname_translator: Tradutor
 translator_translated: Traduzido de {} para {}.\n{}
-translator_err: Error occured while translating:\n{}
-translator_help: "- /tr (language code): Get the translation of the replied message."
+translator_err: Ocorreu um erro ao traduzir:\n{}
+translator_help: "- /tr (código do idioma): Obter a tradução da mensagem respondida."
 
 
 # URL Blacklist
@@ -883,7 +883,7 @@ urlblacklist_help: |
 
 
 # Greetings
-modname_welcome: Boas Vindas e Despedidas
+modname_welcome: Boas Vindas
 welcome_added_to_grp: Obrigado por me adicionar ao seu grupo!
 welcome_mute_btn_unmuted: Agora você pode digitar!
 welcome_mute_btn_old_user: Você não é um novo usuário!

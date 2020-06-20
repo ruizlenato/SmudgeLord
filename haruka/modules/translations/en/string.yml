@@ -27,7 +27,7 @@ main_start_pm: |
     Go to my PM [Renatoh](https://t.me/Renatoh) If you have a problem!
 
     Made with love by @Renatoh\n\nWant to add me to your group? [Click here!](t.me/SmudgeLordbot?startgroup=true)
-main_start_btn_support: 📢 Support Group
+main_start_btn_support: 📢 Support Chat
 main_start_btn_ctrlpnl: 🛠 Control panel
 main_start_btn_lang: 🇺🇸 Language
 
@@ -148,7 +148,7 @@ antiflood_help: |
 
 
 # Antispam
-modname_antispam: Antispam Security
+modname_antispam: Antispam
 antispam_err_usr_sudo: I spy with my little eyes... a sudo user war! Why are you guys turning on each other?
 antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
 antispam_err_usr_bot: -_- So funny, let me gban myself, why don't I? Nice try.
@@ -250,7 +250,7 @@ bans_help: |
     /tmute @username 2h; this mutes a user for 2 hours.
 
 # Blacklist
-modname_blacklist: Word Blacklists
+modname_blacklist: Blacklists
 blacklist_active_list: Blacklist filters active in {}:\n
 blacklist_no_list: There are no blacklist filters in <b>{}</b>!
 blacklist_add: Added <code>{}</code> to the blacklist in <b>{}</b>!
@@ -1128,7 +1128,7 @@ last_fm_help: |
  - /lastfm: returns wh at you're scrobbling on last.fm
 
 #direct_links
-modname_direct_links: Links Diretos
+modname_direct_links: Lirect Links
 direct_links_help: |
  This module allows you to generate direct links from various websites.
 

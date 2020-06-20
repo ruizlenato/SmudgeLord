@@ -159,7 +159,7 @@ URL_DELETE_HANDLER = MessageHandler(Filters.entity("url"),
                                     edited_updates=True)
 
 
-__help__ = True
+__help__ = False
 
 dispatcher.add_handler(URL_BLACKLIST_HANDLER)
 dispatcher.add_handler(ADD_URL_BLACKLIST_HANDLER)
