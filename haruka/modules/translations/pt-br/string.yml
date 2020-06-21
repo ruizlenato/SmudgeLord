@@ -62,10 +62,10 @@ admin_enable_reaction: Resposta ativada para comandos de administrador acionados
 admin_err_wrong_arg: Por favor, insira True ou False!
 admin_reaction_status: Response for user-triggered admin commands is currently *{}*!
 admin_help: |
-    /adminlist | /admins: Lists the admins in the chat\n
-    *Apenas administrador:*
-    - /pin: Silently pins the message replied to. Add 'loud', 'notify' or 'violent' to send a notification to users.
-    - /unpin: Desmarca a mensagem atualmente afixada
+    /adminlist | /admins: Lista os administradores no chat\n
+    *Apenas administradores:*
+    - /pin: Fixa silenciosamente a mensagem respondida. Adicione 'alto', 'notificar' ou 'violento' para enviar uma notificação aos usuários.
+    - /unpin: Desmarca a mensagem atualmente fixada
     - /invitelink: Obtém o link de convite do grupo
     - /promote: Promove uma resposta ao usuário ou usa seu nome de usuário.
     - /demote: Rebaixa um usuário. Responda ao usuário ou use seu nome de usuário.
@@ -256,7 +256,7 @@ blacklist_add: Added <code>{}</code> to the blacklist in <b>{}</b>!
 blacklist_del: Removed <code>{}</code> from the blacklist in <b>{}</b>!
 blacklist_multi_del: Removed <code>{}</code> triggers from the blacklist in <b>{}</b>!
 blacklist_err_add_no_args: Tell me what words you would like to {} the blacklist.
-blacklist_err_del_no_args: Tell me what words you would like to remove from the blacklist.
+blacklist_err_del_no_args: Diga-me que palavras você gostaria de remover da lista negra.
 blacklist_err_not_trigger: This isn't a blacklisted trigger!
 blacklist_err_multidel_no_trigger: None of those trigger existed, so nothing was removed from blacklist.
 blacklist_err_multidel_some_no_trigger: Removed <code>{}</code> triggers from the blacklist in <b>{}</b>! {} did not exist, so were not removed.
@@ -387,7 +387,7 @@ language_sel_user_lang: "*\n\nSelecione um novo idioma de usuário:*"
 
 
 # Locks
-modname_locks: Locks
+modname_locks: Bloqueios
 locks_list_title: "Locks: "
 locks_lock_success: Locked `{}` messages for all non-admins!
 locks_unlock_success: Unlocked `{}` messages for everyone!
@@ -420,14 +420,14 @@ locks_list: |
      - previews = `{}`
      - all = `{}`
 locks_help: |
-    Do stickers annoy you? or want to avoid people sharing links? or pictures? You're in the right place!\n
-    The locks module allows you to lock away some common items in the telegram world; the bot will automatically delete them!\n
-    Available commands are:
-    - /lock <item(s)>: lock the usage of "item". Now, only admins will be able to use this type!
-    - /unlock <item(s)>: unlock "item". Everyone can use them again.
-    - /locks: list the lock status in the chat.
-    - /locktypes: gets a list of all things that can be locked. (have a look at this!)\n
-    eg: lock stickers with:
+    Os adesivos te incomodam? ou deseja evitar que as pessoas compartilhem links? ou fotos? Você está no lugar certo!\n
+    O módulo de travas permite bloquear alguns itens comuns no mundo do telegrama; o bot irá excluí-los automaticamente!\n
+    Os comandos disponíveis são:
+    - /lock <item(s)>: bloquear o uso de "item". Apenas os administradores poderão usar esse tipo!
+    - /unlock <item(s)>: desbloquear "item". Todos podem usá-los novamente.
+    - /locks: listar o status do bloqueio no chat.
+    - /locktypes: obtém uma lista de todas as coisas que podem ser bloqueadas. (Veja isso!)\n
+    por exemplo: bloqueio de adesivos:
     /lock sticker
 
 
