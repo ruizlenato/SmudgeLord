@@ -824,7 +824,7 @@ reports_chat_pref: "This chat's current setting is: `{}`"
 reports_success: "{} reported the message to the admins."
 reports_pm_enable: "Enabled reporting in your pm!"
 reports_pm_disable: "Disabled reporting in your pm!"
-reports_help: |
+reporting_help: |
     " - /report <reason>: reply to a message to report it to admins.
      - @admin: reply to a message to report it to admins.
     NOTE: neither of these will get triggered if used by admins

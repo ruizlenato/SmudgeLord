@@ -820,7 +820,7 @@ reports_chat_pref: "A configuração atual deste bate-papo é: `{}`"
 reports_success: "{} denunciou a mensagem aos administradores."
 reports_pm_enable: "Relatórios ativados no seu PV!"
 reports_pm_disable: "Relatórios desativados no seu PV!"
-reports_help: |
+reporting_help: |
     " - /report <rasão>: responda a uma mensagem para denunciá-la aos administradores.
      - @admin: responda a uma mensagem para denunciá-la aos administradores.
     NOTE: nenhum deles será acionado se usado pelos administradores
