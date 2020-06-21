@@ -348,7 +348,7 @@ cust_filters_help: |
 
 
 # Disable
-modname_disable: Command Disabling
+modname_disable: Disable
 disable_success: Disabled the use of `{}`
 disable_err_undisableable: That command can't be disabled
 disable_err_no_cmd: Pass a command as an argument.
