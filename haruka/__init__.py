@@ -13,7 +13,7 @@ logging.basicConfig(
 
 LOGGER = logging.getLogger(__name__)
 
-LOGGER.info("Starting haruka...")
+LOGGER.info("Starting Smudge...")
 
 # If Python version is < 3.6, stops the bot.
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:

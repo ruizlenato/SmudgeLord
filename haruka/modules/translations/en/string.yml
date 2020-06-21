@@ -971,30 +971,6 @@ users_seen: "I've seen them in <code>{}</code> chats in total."
 users_seen_is_bot: "I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."
 
 
-# Userinfo
-modname_userinfo: Bios and Abouts
-userinfo_about_not_set_they: "{} hasn't set an info message about themselves yet!"
-userinfo_about_not_set_you: You haven't set an info message about yourself yet!
-userinfo_about_set_success: Updated your info!
-userinfo_about_too_long: Your info needs to be under {} characters! You have {}.
-userinfo_bio_none_they: "{} doesn't have any bio set."
-userinfo_bio_none_you: No one has set a bio for you!
-userinfo_bio_you_cant_set: Ha, you can't set your own bio! You're at the mercy of others here...
-userinfo_bio_bot_sudo_only: Erm... yeah, I only trust sudo users to set my bio.
-userinfo_bio_sudo_sudo_only: Erm... yeah, I only trust sudo users to set sudo users bio.
-userinfo_bio_owner_nobio: You ain't setting my master's bio!
-userinfo_bio_too_long: A bio needs to be under {} characters! You tried to set {}.
-userinfo_bio_set_no_reply: Reply to someone's message to set their bio!
-userinfo_message_about_bio: <b>About user:</b>\n{}\n<b>What others say:</b>\n{}
-userinfo_message_bio: <b>What others say:</b>\n{bio}\n
-userinfo_message_about: <b>About user:</b>\n{}
-userinfo_help: |
-    - /setbio <text>: while replying, will save another user's bio
-    - /bio: will get your or another user's bio. This cannot be set by yourself.
-    - /setme <text>: will set your info
-    - /me: will get your or another user's info
-
-
 # Stickers
 modname_stickers: Stickers
 stickers_stickerid: Sticker ID:\n```{}```

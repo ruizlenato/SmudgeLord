@@ -393,13 +393,13 @@ locks_lock_success: Locked `{}` messages for all non-admins!
 locks_unlock_success: Unlocked `{}` messages for everyone!
 locks_type_invalid: What are you trying to lock...? Try /locktypes for the list of lockables.
 locks_bot_not_admin: Make sure I'm a group administrator and have permission to delete messages, then try again.
-locks_lock_no_type: You haven't specified a type to lock.
-lokcs_unlock_no_type: You haven't specified a type to unlock.
-locks_lock_bots_no_admin: I see a bot, and I've been told to stop them joining... but I'm not an admin!
-locks_lock_bots_kick: Only admins are allowed to add bots to this chat! Kicked!
+locks_lock_no_type: Você não especificou um item para bloquear.
+lokcs_unlock_no_type: Você não especificou um item para desbloquear.
+locks_lock_bots_no_admin: Eu vejo um bot e me disseram para impedi-los de entrar... mas eu não sou um administrador!
+locks_lock_bots_kick: Somente administradores têm permissão para adicionar bots a este bate-papo! Chutado!
 locks_list_empty: There are no current locks in *{}*.
 locks_list: |
-    These are the locks in *{}*:
+    Estes são os bloqueios *{}*:
      - sticker = `{}`
      - audio = `{}`
      - voice = `{}`
@@ -432,7 +432,7 @@ locks_help: |
 
 
 # Log channel
-modname_log_channel: Log Channel
+modname_log_channel: Canal de registro
 log_channel_link: \n<b>Link:</b> <a href=\"http://telegram.me/{}/{}\">click here</a>
 log_channel_deleted: This log channel has been deleted - unsetting.
 log_channel_err_format: \n\nFormatting has been disabled due to an unexpected error.
@@ -445,22 +445,22 @@ log_channel_invalid_message: This isn't a forwarded message! Please read help(ty
 log_channel_unlink_success: Channel has been unlinked from {}!
 log_channel_unlink_none: No log channel has been set yet!
 log_channel_help: |
-    *Admin only:*
-    - /logchannel: get log channel info
-    - /setlog: set the log channel.
-    - /unsetlog: unset the log channel.\n
-    Setting the log channel is done by:
-    - adding the bot to the desired channel (as an admin!)
-    - sending /setlog in the channel
-    - forwarding the /setlog to the group
+    *Apenas administradores:*
+    - /logchannel: obter informações do canal de log
+    - /setlog: defina o canal de registro.
+    - /unsetlog: remova o canal de log.\n
+    A configuração do canal de log é feita por:
+    - adicionando o bot ao canal desejado (como administrador!)
+    - envio /setlog no canal
+    - encaminhando o /setlog para o grupo
 
 
 # Memes and etc.
-modname_memes: Memes and etc.
-memes_no_message: I need a message to meme.
-memes_deepfry_nothing: What am I supposed to do with this?!
-memes_shout_notext: Where is text?
-memes_not_doing_that: I'm not doing that!
+modname_memes: Memes
+memes_no_message: Eu preciso de uma mensagem para meme.
+memes_deepfry_nothing: O que eu devo fazer com isso ?!
+memes_shout_notext: Onde está o texto?
+memes_not_doing_that: Eu não estou fazendo isso!
 memes_runs_list:
     - "Where do you think you're going?"
     - "Huh? what? did they get away?"
@@ -628,37 +628,37 @@ memes_hit_list:
     - "esmurra"
     - "ataca"
 memes_help: |
-    Some meme commands, find it all out yourself!
+    Alguns comandos de meme, descubra tudo sozinho!
 
     - /owo: OWO de text
     - /stretch: STRETCH de text
     - /vapor: owo vapor dis
-    - /mock: Quote a message and type this command to make a caption of spongemock
-    - /shout: Write anything that u want it to should
-    - /zalgofy: reply to a message to gitch it out!
-    - /runs: reply a random string from an array of replies.
-    - /insults: reply a random string from an array of replies.
+    - /mock: Cite uma mensagem e digite este comando para criar uma legenda para spongemock
+    - /shout: Escreva o que você quiser
+    - /zalgofy: responda a uma mensagem para esclarecê-la!
+    - /runs: responda uma sequência aleatória de uma matriz de respostas.
+    - /insults: responda uma sequência aleatória de uma matriz de respostas.
     - /slap: dar um tapa em um usuário ou dar um tapa se não for uma resposta.
 
 
 # Misc
-modname_misc: Misc
+modname_misc: Diversos
 misc_get_id_1: The original sender, {}, has an ID of `{}`.\nThe forwarder, {}, has an ID of `{}`.
 misc_get_id_2: "{}'s id is `{}`."
-misc_id_1: Your id is `{}`.
-misc_id_2: This group's id is `{}`.
-misc_info_1: "<b>User info</b>:"
+misc_id_1: Seu id é `{}`.
+misc_id_2: O ID deste grupo é `{}`.
+misc_info_1: "<b>Informação de usuário</b>:"
 misc_info_id: "\nID: <code>{}</code>"
-misc_info_first: "\nFirst Name: {}"
-misc_info_name: "\nLast Name: {}"
+misc_info_first: "\nPrimeiro nome: {}"
+misc_info_name: "\nÚltimo nome: {}"
 misc_info_username: "\nUsername: @{}"
 misc_info_user_link: "\nUser link: {}\n"
 misc_info_is_owner: "\n\nThis guy is my owner, I can't do anything against him!"
 misc_info_is_original_owner: "\nThis person is my original creator, though he abandoned my sister Marie already :("
-misc_info_is_sudo: "\nThis person is one of my sudo users! He'll be helping you if you need support about bot."
-misc_info_is_support: "\nThis person is one of my support users! He can gban those spammers and bad guys."
-misc_info_is_whitelisted: "\nThis person is whitelisted users, one rarely get this role, you can't ban or kick him."
-misc_gdpr: Deleting identifiable data...
+misc_info_is_sudo: "\nEssa pessoa é um dos meus usuários do sudo! Ele o ajudará se você precisar de suporte sobre bot."
+misc_info_is_support: "\nEssa pessoa é um dos meus usuários de suporte! Ele pode banir aqueles spammers ".
+misc_info_is_whitelisted: "\nEssa pessoa é um usuário da lista de permissões, raramente é possível obter esse papel, você não pode bani-lo ou chutá-lo."
+misc_gdpr: Excluindo dados identificáveis ​​...
 misc_md_list: |
     Markdown is a very powerful formatting tool supported by telegram. Haruka Aya has some enhancements, to make sure that \
     saved messages are correctly parsed, and to allow you to create buttons.
@@ -683,8 +683,8 @@ misc_lyrics_invalid: Sintaxe inválida! Tente Artista - Nome da música. Por exe
 misc_paste_invalid: What am I supposed to do with this?!
 misc_paste_404: Failed to reach dogbin
 misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
-misc_get_pasted_invalid: Please supply a dogbin url!
-misc_get_pasted_unknown: Unknown error occured
+misc_get_pasted_invalid: Forneça um URL de dogbin!
+misc_get_pasted_unknown: Ocorreu um erro desconhecido
 misc_covid_error: Ocorreu um erro!, Tem certeza de que o nome do país está correto?
 misc_covid_total_tests: "*Testes Totais*: {}"
 misc_covid: |
@@ -699,20 +699,20 @@ misc_covid: |
   Para saber informações sobre o Brasil acesse: covid19brasil.ml
 misc_help: |
      - /id: obtenha o ID do grupo atual. Se usado respondendo a uma mensagem, obtém a identificação do usuário.
-     - /info: get information about a user.
-     - /gdpr: deletes your information from the bot's database. Private chats only.
-     - /stickerid: reply to a sticker to me to tell you its file ID.
-     - /getsticker: reply to a sticker to me to upload its raw PNG file.
-     - /markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.
+     - /info: obtenha informações sobre um usuário.
+     - /gdpr: exclui suas informações do banco de dados do bot. Apenas bate-papos particulares.
+     - /stickerid: responda a um adesivo para que eu diga seu ID de arquivo.
+     - /getsticker: responda a um adesivo para fazer o upload do arquivo PNG bruto.
+     - /markdownhelp: resumo rápido de como a remarcação funciona em telegrama - só pode ser chamado em chat particulares.
      - /git: Retorna informações sobre um usuário ou organização do GitHub.
      - /repo: Retornar a lista de repositórios de usuários ou organizações do GitHub (Limitado em 40)
      - /lyrics: Encontre suas letras de músicas favoritas!
-     - /paste: Create a paste or a shortened url using [dogbin](https://del.dog)
-     - /getpaste: Get the content of a paste or shortened url from [dogbin](https://del.dog)
-     - /pastestats: Get stats of a paste or shortened url from [dogbin](https://del.dog)
-     - /ud: Type the word or expression you want to search. For example /ud Gay
-     - /removebotkeyboard: Got a nasty bot keyboard stuck in your group?
-     - /exec <language> <code> [/stdin <stdin>]: Execute a code in a specified language. Send an empty command to get the supported languages.
+     - /paste: Crie uma pasta ou um URL abreviado usando [dogbin](https://del.dog)
+     - /getpaste: Obtenha o conteúdo de uma pasta ou URL abreviado de [dogbin](https://del.dog)
+     - /pastestats: Obter estatísticas de uma pasta ou URL abreviado de [dogbin](https://del.dog)
+     - /ud: Digite a palavra ou expressão que deseja pesquisar. Por exemplo /ud Gay
+     - /removebotkeyboard: Tem um teclado bot desagradável preso no seu grupo?
+     - /exec <language> <code> [/stdin <stdin>]: Execute um código em um idioma especificado. Envie um comando vazio para obter os idiomas suportados.
      - /wiki <keywords>: Obtenha artigos da Wikipedia apenas usando este bot! </wikipt para artigos em portugues>
 
 
@@ -859,7 +859,7 @@ modname_urlblacklist: Listas negras de domínio(URLs)
 url_blacklist_success: "Domínio(URL) adicionado <code>{}</code> a lista negra!"
 url_blacklist_invalid: "Você está tentando colocar um URL inválido na lista negra"
 url_blacklist_success_2: Domínio(URL) adicionado <code>{}</code> a lista negra.
-url_blacklist_invalid_2: "Tell me which urls you would like to add to the blacklist."
+url_blacklist_invalid_2: "Diga-me quais URLs você gostaria de adicionar à lista negra."
 url_blacklist_remove_success:  "Removed <code>{}</code> from the blacklist!"
 url_blacklist_remove_success_2: "Removed <code>{}</code> domains from the blacklist."
 url_blacklist_remove_invalid: "This isn't a blacklisted domain...!"
@@ -980,30 +980,6 @@ users_seen: "I've seen them in <code>{}</code> chats in total."
 users_seen_is_bot: "I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."
 
 
-# Userinfo
-modname_userinfo: Bios and Abouts
-userinfo_about_not_set_they: "{} hasn't set an info message about themselves yet!"
-userinfo_about_not_set_you: You haven't set an info message about yourself yet!
-userinfo_about_set_success: Updated your info!
-userinfo_about_too_long: Your info needs to be under {} characters! You have {}.
-userinfo_bio_none_they: "{} doesn't have any bio set."
-userinfo_bio_none_you: No one has set a bio for you!
-userinfo_bio_you_cant_set: Ha, you can't set your own bio! You're at the mercy of others here...
-userinfo_bio_bot_sudo_only: Erm... yeah, I only trust sudo users to set my bio.
-userinfo_bio_sudo_sudo_only: Erm... yeah, I only trust sudo users to set sudo users bio.
-userinfo_bio_owner_nobio: You ain't setting my master's bio!
-userinfo_bio_too_long: A bio needs to be under {} characters! You tried to set {}.
-userinfo_bio_set_no_reply: Reply to someone's message to set their bio!
-userinfo_message_about_bio: <b>About user:</b>\n{}\n<b>What others say:</b>\n{}
-userinfo_message_bio: <b>What others say:</b>\n{bio}\n
-userinfo_message_about: <b>About user:</b>\n{}
-userinfo_help: |
-    - /setbio <text>: while replying, will save another user's bio
-    - /bio: will get your or another user's bio. This cannot be set by yourself.
-    - /setme <text>: will set your info
-    - /me: will get your or another user's info
-
-
 # Stickers
 modname_stickers: Stickers
 stickers_stickerid: Sticker ID:\n```{}```
@@ -1019,7 +995,7 @@ stickers_kang_too_much: "Error: Tamanho máximo do pacote atingido. Press F to p
 stickers_kang_no_reply: Por favor responda uma imagem ou sticker para que eu possa kangar\nOh, a propósito. aqui estão seus pacotes:\n
 stickers_pack_name_exists: Seu pacote pode ser encontrado [aqui](t.me/addstickers/%s)
 stickers_pack_contact_pm: Fale comigo no PV primeiro.
-stickers_pack_create_error: Failed to create sticker pack. Possibly due to blek mejik.
+stickers_pack_create_error: Falha ao criar o pacote de stickers.
 stickers_help: |
     - /stickerid: responda a um adesivo para eu lhe dizer seu ID de arquivo.
     - /getsticker: responda a um adesivo para fazer o upload do arquivo PNG bruto.
@@ -1094,7 +1070,7 @@ warns_strength_on_success: Exceeding warn limit will now ban the user!
 warns_strength_off_success: Exceeding warn limit will now kick the user! Users will be able to join after being kicked.
 warns_strength_invalid_arg: Invalid argument! Only on/yes/no/off are accepted!
 warns_strength_off: Warns are currently set to *kick* users when they exceed the limits.
-warns_strength_on: Warns are currently set to *ban* users when they exceed the limits.
+warns_strength_on: No momento, os avisos estão definidos para *banir* usuários quando excederem os limites.
 warns_help: |
     - /warns <userhandle>: verifique quantos advertencias um usuário possui (e veja os motivos, se houver).
     - /warnlist: lista de todos os filtros de advertencias atuais
@@ -1126,8 +1102,8 @@ helpers_user_not_in_db: |
     Você poderá interagir com eles se responder à mensagem dessa pessoa ou encaminhar uma delas (isso só funcionará se o usuário não tiver sua conta oculta).
 
 # string_handling
-helpers_string_handling_invalid_time_amount: Invalid time amount specified.
-helpers_string_handling_invalid_time_type: "Invalid time type specified. Expected m, h, d, got: {}."
+helpers_string_handling_invalid_time_amount: Quantidade de tempo inválida especificada.
+helpers_string_handling_invalid_time_type: "Tipo de hora inválido especificado. Esperado m, h, d, obteve: {}."
 
 #LastFM
 modname_last_fm: LastFM

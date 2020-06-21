@@ -13,7 +13,7 @@ from haruka.modules.sql import antiflood_sql as sql
 
 from haruka.modules.translations.strings import tld
 
-FLOOD_GROUP = 3
+FLOOD_GROUP = 10
 
 
 @run_async
