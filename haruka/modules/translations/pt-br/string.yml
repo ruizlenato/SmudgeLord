@@ -126,7 +126,7 @@ android_help: |
 
 # Antiflood
 modname_antiflood: Antiflood
-flood_mute: você fala de mais. *Silenciado*!
+flood_mute: você fala muito. Ficará mutado por flood ate um admin remover o mute!
 flood_err_no_perm: Não consigo silenciar as pessoas aqui, me dê permissões primeiro! Até lá, desabilitarei o antiflood.
 flood_logger_success: <b>{}:</b>\n#MUTED\n<b>User:</b> {}\nFlooded the group.
 flood_logger_fail: <b>{}:</b>\n#INFO\nNo mute permissions! Antiflood disabled
@@ -758,8 +758,8 @@ restrict_already_restricted: "This user is already restricted in {}!"
 unrestrict_invalid: "You'll need to either give me a username to unrestrict, or reply to someone to be unrestricted."
 unrestrict_not_restricted: "This user already has the rights to send anything in {}."
 unrestrict_success: "Yep, {} can send media again in {}!"
-unrestrict_not_in_chat: "This user isn't even in the chat, unrestricting them won't make them send anything than they already do!"
-nomedia_need_time: "You haven't specified a time to restrict this user for!"
+unrestrict_not_in_chat: "Esse usuário não está nem no bate-papo, não restringi-lo, não fará com que ele envie nada além do que já!"
+nomedia_need_time: "Você não especificou um horário para restringir este usuário!"
 nomedia_success: "Restricted from sending media for {} in {}!"
 restrict_cant_restrict: "Não consigo restringir esse usuário."
 muteme_muted: "Sem problemas, Mutado!"
