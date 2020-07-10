@@ -219,7 +219,7 @@ bans_logger_reason: \n<b>Motivo:</b> {}
 bans_err_unknown: "error 404: {} falhou."
 bans_err_tban_no_arg: Você não especificou um horário para banir este usuário!
 bans_tban_logger: <b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)\n<b>Time:</b> {}
-bans_tbanned_success: Admin {} has successfully banned {} in <b>{}</b> for {}!
+bans_tbanned_success: Admin {} baniu com sucesso {} no grupo <b>{}</b> por {}!
 bans_kick_is_bot: Eu não vou me kikar!
 bans_kick_is_admin: Por que eu chutaria um administrador? Parece uma ideia bem idiota.
 bans_kick_success: Admin {} kikou {} em <b>{}</b>!
@@ -656,7 +656,7 @@ misc_info_user_link: "\nUser link: {}\n"
 misc_info_is_owner: "\n\nThis guy is my owner, I can't do anything against him!"
 misc_info_is_original_owner: "\nThis person is my original creator, though he abandoned my sister Marie already :("
 misc_info_is_sudo: "\nEssa pessoa é um dos meus usuários do sudo! Ele o ajudará se você precisar de suporte sobre bot."
-misc_info_is_support: "\nEssa pessoa é um dos meus usuários de suporte! Ele pode banir aqueles spammers ".
+misc_info_is_support: "\nEssa pessoa é um dos meus usuários de suporte! Ele pode banir aqueles spammers."
 misc_info_is_whitelisted: "\nEssa pessoa é um usuário da lista de permissões, raramente é possível obter esse papel, você não pode bani-lo ou chutá-lo."
 misc_gdpr: Excluindo dados identificáveis ​​...
 misc_md_list: |
