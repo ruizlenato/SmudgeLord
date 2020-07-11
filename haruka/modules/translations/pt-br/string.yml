@@ -92,38 +92,27 @@ version: "*Version:* `{}`\n"
 android_version: "*Android Version:* `{}`\n"
 rom_type: "*ROM Type:* `{}`\n"
 maintainer: "*Mantenedor:* {}\n"
-xda_thread: "*XDA Thread:* [Here]({})\n"
-changelog: "*Device Changelog:* `{}`\n"
 weekly: "*Weekly*\n"
 miui_release: "*Recovery ROM*\n\n*Estavel*\n"
 cust_releases: "*{} Último lançamento(s)*\n"
 err_not_found: Não foi possível encontrar nenhum resultado correspondente à sua consulta.
 err_api: Não foi possível acessar a API.
 err_example_device: Why are you trying to get the example device?
-err_json: Diga ao mantenedor da ROM para corrigir o json do OTA. Tenho certeza que isso não funcionará com o OTA e também não funcionará com este bot :P
 btn_dl: Clique aqui para baixar
 cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
-evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click the button down below to download the GSIs!
-aex_cust_str: Please type your device **codename** and **Android Version**!\nFor example, `/aex tissot pie`
 android_help: |
-    *Device Specific ROM for a device*
-    - /pearl <device>: Obtenha o última versão da Pearl ROM para um device
-    - /havoc <device>: Obtenha o última versão da Havoc ROM para um device
-    - /posp <device>: Obtenha o última versão da POSP ROM para um device
-    - /viper <device>: Obtenha o última versão da Viper ROM para um device
-    - /evo <device>: Obtenha o última versão da Evolution X ROM para um device
-    - /dotos <device>: Obtenha o última versão da DotOS ROM para um device
-    - /aex <device> <android version>: Obtenha o última versão da AEX ROM para um device
-    - /pixys <device>: Obtenha o última versão da Pixy ROM para um device
-    - /los <device>: Obtenha o última versão da LineageOS ROM para um device
-    - /bootleggers <device>: Obtenha o última versão da Bootleggers ROM para um device
-    - /miui <device>: Obtenha o última versão da MIUI ROM para um device\n
+    *Ferramentas úteis:*
+     - /device <codinome>: Obtenha informações básicas do dispositivo Android com o codinome(codename).
+     - /magisk: Obtenha a versão mais recente do magisk para Stable/Beta/Canary.
+     - /twrp <codinome>: obtém o último twrp para o dispositivo Android usando o codinome(codename).
+     - /odin: Obtenha a versão mais recente do odin para dispositivos Samsung.\n
     *GSI*
     - /phh: Obtenha o última versão da Phh AOSP Oreo GSI!
-    - /descendant: Obtenha o última versão da Descendant GSI!
-    - /enesrelease: Obtenha o última versão da Enes upload
-
-
+    - /descendant: Obtenha o última versão da Descendant GSI!\n
+    Firmwares:
+    - /getfw <model> <csc>: (SAMSUNG) obtém links de download de firmware de samfrew, sammobile e sfirmwares para o dispositivo fornecido.
+    - /checkfw <model> <csc>: (SAMSUNG) mostra as informações mais recentes do firmware do dispositivo fornecido, obtidas no servidor samsung.
+    - /miui <device>: Obtenha o última versão da MIUI ROM para um device
 # Antiflood
 modname_antiflood: Antiflood
 flood_mute: você fala muito. Ficará mutado por flood ate um admin remover o mute!
@@ -368,18 +357,18 @@ disable_help: |
 # TODO: To be continued
 
 # Keyboard
-keyboard_disconnect: Disconnect from a chat
-keyboard_connect: Connect to a chat
-keyboard_updated: Keyboard Updated
+keyboard_disconnect: Desconectar de um Grupo
+keyboard_connect: Conectar-se a um Grupo
+keyboard_updated: Teclado atualizado
 keyboard_bothelp: Bot Help
 keyboard_notes: Notes
 
 
 # Language
-language_switch_success: Switched to {} successfully!
+language_switch_success: Alterado para {} com sucesso!
 language_not_supported: "{} ainda não é suportado!\n\nIdiomas suportados:\nPortuguês - pt-br\nInglês - en-us"
-language_code_not_valid: That's not a valid lanuage code. Use an internationally accepted ISO code!
-language_current_locale: "Current locale for this chat is: *{}*"
+language_code_not_valid: Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!
+language_current_locale: "A localidade atual deste Grupo é: *{}*"
 language_select_language: "*Selecione o idioma* \n"
 language_user_language: "Idioma do usuário: `{}`"
 language_chat_language: "\nConnected chat language: `{}`"
