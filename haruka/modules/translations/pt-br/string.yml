@@ -44,14 +44,14 @@ common_invalid_arg: Argumento inválido! Por favor digite `on`/`yes` or `off`/`n
 
 # Admins
 modname_admin: Admin
-err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
+admin_err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
 admin_err_user_admin: Como devo promover alguém que já é administrador?
-admin_err_self_promote: I can't promote myself! Get an admin to do it for me.
-admin_promote_success: Admin {} has successfully promoted {} in <b>{}</b>!
+admin_err_self_promote: Eu não posso me promover
+admin_promote_success: Admin {} promoveu com sucesso {} em <b>{}</b>!
 admin_err_demote_creator: Essa pessoa é o CRIADOR do bate-papo, como eu a rebaixaria?
 admin_err_demote_noadmin: Não é possível rebaixar aqueles que não foram promovidos!
 admin_err_self_demote: Eu não posso me rebaixar!
-admin_demote_success: Admin {} has successfully demoted {} in <b>{}</b>!
+admin_demote_success: Admin {} rebaixou com sucesso {} em <b>{}</b>!
 admin_err_cant_demote: Não foi possível rebaixar. Talvez eu não seja administrador ou o status de administrador tenha sido indicado por outro usuário, portanto não posso agir de acordo com eles!
 admin_list: "Admins in *{}*:"
 admin_list_creator:  (Criador)
@@ -64,7 +64,7 @@ admin_reaction_status: Response for user-triggered admin commands is currently *
 admin_help: |
     /adminlist | /admins: Lista os administradores no chat\n
     *Apenas administradores:*
-    - /pin: Fixa silenciosamente a mensagem respondida. Adicione 'alto', 'notificar' ou 'violento' para enviar uma notificação aos usuários.
+    - /pin: Adicione 'silent' para não notificar os usuarios.
     - /unpin: Desmarca a mensagem atualmente fixada
     - /invitelink: Obtém o link de convite do grupo
     - /promote: Promove uma resposta ao usuário ou usa seu nome de usuário.
@@ -722,8 +722,8 @@ msg_deleting_help: |
 
 # Muting
 mute_invalid: "Você precisará me dar um nome de usuário para silenciar ou responder a alguém para ser silenciado."
-mute_not_myself: "I'm not muting myself!"
-mute_not_sudo: "Não!Isso seria uma ideia bem idiota, não posso silenciar o meu sudo."
+mute_not_myself: "Eu não vou mutar!"
+mute_not_sudo: "Não! Isso seria uma ideia bem idiota, não posso silenciar o meu sudo."
 mute_not_m_admin: "Não! Não posso silenciar o(a) administrador(a) do chat! Isso seria uma ideia bem idiota."
 mute_success: "{} está silenciado(mutado) em {}!"
 mute_already_mute: "Este usuário já silenciado(mutado) em {}!"
@@ -739,7 +739,7 @@ mute_is_bot: "Eu não vou me silenciar, você está louco?"
 tmute_no_time: "Você não especificou um tempo para o silêncio(mute)!"
 tmute_success: "Silenciado por {} no grupo {}!"
 mute_cant_mute: "Droga, eu não posso silenciar esse usuário."
-restrict_invalid: "You'll need to either give me a username to restrict, or reply to someone to be restricted."
+restrict_invalid: "Você precisará me fornecer um nome de usuário para restringir ou responder a alguém para restringir."
 restrict_is_bot: "Eu não vou me restringir!"
 restrict_is_admin: "Não posso restringir administradores!"
 restrict_success: "{} is restricted from sending media in {}!"
@@ -823,8 +823,8 @@ reporting_help: |
 # Rules
 modname_rules: Regras
 rules_shortcut_not_setup_properly: "The rules shortcut for this chat hasn't been set properly! Ask admins to fix this."
-rules_display: "The rules for *{}* are:\n\n{}"
-rules_not_found: "Os administradores do grupo ainda não definiram nenhuma regra para este bate-papo. Provavelmente isso não significa que é ilegal ...!"
+rules_display: "As regras para *{}* estão:\n\n{}"
+rules_not_found: "Os administradores do grupo ainda não definiram nenhuma regra para este bate-papo."
 rules_button_click: "Clique no botão abaixo para obter as regras deste grupo."
 rules: "Regras"
 rules_success: "Definir com êxito regras para este grupo."
@@ -844,31 +844,31 @@ translator_help: "- /tr (código do idioma): Obter a tradução da mensagem resp
 
 
 # URL Blacklist
-modname_urlblacklist: Listas negras de domínio(URLs)
-url_blacklist_success: "Domínio(URL) adicionado <code>{}</code> a lista negra!"
-url_blacklist_invalid: "Você está tentando colocar um URL inválido na lista negra"
-url_blacklist_success_2: Domínio(URL) adicionado <code>{}</code> a lista negra.
-url_blacklist_invalid_2: "Diga-me quais URLs você gostaria de adicionar à lista negra."
+modname_urlblacklist: Listas de Bloquio de domínio(URLs)
+url_blacklist_success: "Domínio(URL) adicionado <code>{}</code> a lista de bloqueio!"
+url_blacklist_invalid: "Você está tentando colocar um URL inválido na lista bloqueio"
+url_blacklist_success_2: Domínio(URL) adicionado <code>{}</code> a lista bloqueio.
+url_blacklist_invalid_2: "Diga-me quais URLs você gostaria de adicionar à lista bloqueio."
 url_blacklist_remove_success:  "Removed <code>{}</code> from the blacklist!"
 url_blacklist_remove_success_2: "Removed <code>{}</code> domains from the blacklist."
 url_blacklist_remove_invalid: "This isn't a blacklisted domain...!"
 url_blacklist_remove_invalid_2 : "None of these domains exist, so they weren't removed."
 url_blacklist_remove_success_3: "Removed <code>{}</code> domains from the blacklist. {} did not exist, so were not removed."
-url_blacklist_remove_invalid_3: "Tell me which domains you would like to remove from the blacklist."
-url_blacklist_current: "Current <b>blacklisted</b> domains:\n"
-url_blacklist_no_existed: "Não há domínios(URLs) na lista negra aqui!"
+url_blacklist_remove_invalid_3: "Diga-me quais domínios você deseja remover da lista de bloqueio."
+url_blacklist_current: "Domínios atuais <b>na lista de bloqueio</b>:\n"
+url_blacklist_no_existed: "Não há domínios(URLs) na lista bloqueio aqui!"
 urlblacklist_help: |
-    A lista negra de domínios é usada para impedir que determinados domínios sejam mencionados em um grupo. Sempre que um URL desse domínio é mencionado, /
+    A lista de Bloqueio de domínios é usada para impedir que determinados domínios sejam mencionados em um grupo. Sempre que um URL desse domínio é mencionado, /
     a mensagem será excluída imediatamente e automaticamente.
 
-    *OBSERVAÇÃO:* lista negra de domínio não afeta administradores de grupo.
+    *OBSERVAÇÃO:* lista bloqueio de domínio não afeta administradores de grupo.
 
-    - /geturl: Exibir os URLs atuais da lista negra
+    - /geturl: Exibir os URLs atuais da lista de bloqueio
 
     *Apenas administrador:*
 
-    - /addurl <urls>: Adicione um domínio à lista negra. O bot analisará automaticamente o URL.
-    - /delurl <urls>: Remova os URLs da lista negra
+    - /addurl <urls>: Adicione um domínio à lista de bloqueio. O bot analisará automaticamente o URL.
+    - /delurl <urls>: Remova os URLs da lista de bloqueio
 
 
 # Greetings
@@ -889,9 +889,9 @@ welcome_mute_btn_text_changed: "O texto do botão de segurança foi alterado par
 welcome_mute_btn_curr_text: "O texto atual do botão de segurança é: `{}`"
 welcome_mute_btn_default_text: Clique aqui para provar que você é humano!
 welcome_mute_btn_text_reset: "O texto do botão de segurança foi redefinido para: `{}`"
-welcome_clean_service_off: I'll leave service messages.
-welcome_clean_service_on: I'll clean service messages.
-welcome_mute_time_short_none: (Muted forever until user clicks the button)
+welcome_clean_service_off: Vou deixar mensagens de serviço.
+welcome_clean_service_on: Vou limpar as mensagens de serviço.
+welcome_mute_time_short_none: (Silenciado para sempre até o usuário clicar no botão)
 welcome_mute_time_short: (Muting user for {})
 welcome_greet_set_on: Os novos membros serão agora recebidos com uma calorosa mensagem de boas-vindas!
 welcome_greet_set_off: Novos membros não serão mais recebidos com uma mensagem de boas-vindas!
@@ -965,8 +965,8 @@ welcome_help: |
 
 
 # Users
-users_seen: "I've seen them in <code>{}</code> chats in total."
-users_seen_is_bot: "I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."
+users_seen: "Eu os vi em <code>{}</code> bate-papos no total."
+users_seen_is_bot: "Eu os vi em ... Uau. Eles estão me perseguindo? Eles estão nos mesmos lugares que eu estou ... oh. Sou eu."
 
 
 # Stickers
@@ -993,10 +993,10 @@ stickers_help: |
 
 # Warnings
 modname_warns: Advertencias
-warns_warn_admin_no_warn: I'm not going to warn an admin!
-warns_warn_admin_autofilter: Automated warn filter
-warns_max_warn_kick: "{} warnings, {} has been kicked!"
-warns_max_warn_ban: "{} warnings, {} has been banned!"
+warns_warn_admin_no_warn: Não vou adverter um administrador!
+warns_warn_admin_autofilter: Filtro de advertencias automatizado
+warns_max_warn_kick: "{} Advertencias, {} foi kikado!"
+warns_max_warn_ban: "{} Advertencias, {} foi banido!"
 warns_warn_ban_log_channel: |
     "<b>{}:</b>"
     "#WARN_BAN"
