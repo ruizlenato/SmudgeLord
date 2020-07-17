@@ -302,7 +302,7 @@ def get_paste_content(bot: Bot, update: Update, args: List[str]):
     if len(args) >= 1:
         key = args[0]
     else:
-        message.reply_text(tld(chat.id, "misc_get_paste_invalid"))
+        message.reply_text(tld(chat.id, "misc_get_pasted_invalid"))
         return
 
     format_normal = f'{BURL}/'
@@ -342,7 +342,7 @@ def get_paste_stats(bot: Bot, update: Update, args: List[str]):
     if len(args) >= 1:
         key = args[0]
     else:
-        message.reply_text(tld(chat.id, "misc_get_paste_invalid"))
+        message.reply_text(tld(chat.id, "misc_get_pasted_invalid"))
         return
 
     format_normal = f'{BURL}/'

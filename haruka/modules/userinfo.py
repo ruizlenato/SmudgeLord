@@ -51,7 +51,7 @@ def about_me(bot: Bot, update: Update, args: List[str]):
     elif message.reply_to_message:
         username = message.reply_to_message.from_user.first_name
         update.effective_message.reply_text(
-            tld(chat.id, 'userinfo_about_not_set').format(username))
+            tld(chat.id, 'userinfo_about_not_set_they').format(username))
     else:
         update.effective_message.reply_text(
             tld(chat.id, 'userinfo_about_not_set_you'))
