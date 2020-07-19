@@ -57,7 +57,7 @@ def last_fm(bot: Bot, update: Update):
         artist = first_track.get("artist").get("name")
         song = first_track.get("name")
         loved = int(first_track.get("loved"))
-        rep = f"{user} is currently listening to:\n"
+        rep = f"{user} is currently listening to:\n\n"
         if not loved:
             rep += f"🎧  <code>{artist} - {song}</code>"
         else:
@@ -70,6 +70,41 @@ def last_fm(bot: Bot, update: Update):
         rep = f"{user} was listening to:\n"
         for artist, song in track_dict.items():
             rep += f"🎧  <code>{artist} - {song}</code>\n"
+        last_user = requests.get(f"{base_url}?method=user.getinfo&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("user")
+        scrobbles = last_user.get("playcount")
+        rep += f"\n(<code>{scrobbles}</code> scrobbles so far)"
+        
+    msg.reply_text(rep, parse_mode=ParseMode.HTML)
+
+@run_async
+def top_tracks(bot: Bot, update: Update):
+    msg = update.effective_message
+    user = update.effective_user.first_name
+    user_id = update.effective_user.id
+    username = sql.get_user(user_id)
+    if not username:
+        msg.reply_text("🇺🇸You haven't set your username yet!\n🇧🇷Você não colocou seu username")
+        return
+    
+    base_url = "http://ws.audioscrobbler.com/2.0"
+    res = requests.get(f"{base_url}?method=user.gettoptracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json")
+    if not res.status_code == 200:
+        msg.reply_text("Hmm... something went wrong.\nPlease ensure that you've set the correct username!")
+        return
+        
+    else:
+        tracks = res.json().get("toptracks").get("track")
+        track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(1)}
+        track_dict2 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(2)}
+        track_dict3 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
+
+        rep = f"{user} Top tracks :\n\n"
+        for artist, song in track_dict.items():
+            rep += f"🥇  <code>{artist} - {song}</code>\n"
+        for artist, song in track_dict2.items():
+            rep += f"🥈  <code>{artist} - {song}</code>\n"
+        for artist, song in track_dict3.items():
+            rep += f"🥉  <code>{artist} - {song}</code>\n"
         last_user = requests.get(f"{base_url}?method=user.getinfo&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("user")
         scrobbles = last_user.get("playcount")
         rep += f"\n(<code>{scrobbles}</code> scrobbles so far)"
@@ -91,8 +126,11 @@ __mod_name__ = "Last.FM"
 
 SET_USER_HANDLER = CommandHandler("setuser", set_user, pass_args=True)
 CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user)
-LASTFM_HANDLER = DisableAbleCommandHandler("lastfm", last_fm)
+LASTFM_HANDLER = DisableAbleCommandHandler(["lastfm", "lt", "last", "l"], last_fm)
+TOPTRACKS_HANDLER = CommandHandler(["lasttop", "top", "lastop", "toplast", "overall","t"], top_tracks)
+
 
 dispatcher.add_handler(SET_USER_HANDLER)
 dispatcher.add_handler(CLEAR_USER_HANDLER)
 dispatcher.add_handler(LASTFM_HANDLER)
+dispatcher.add_handler(TOPTRACKS_HANDLER)
