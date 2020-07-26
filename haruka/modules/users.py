@@ -145,7 +145,7 @@ def snipe(bot: Bot, update: Update, args: List[str]):
     try:
         chat_id = str(args[0])
         del args[0]
-    except TypeError as excp:
+    except TypeError:
         update.effective_message.reply_text(
             "Please give me a chat to echo to!")
     to_send = " ".join(args)

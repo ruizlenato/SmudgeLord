@@ -114,79 +114,6 @@ def vapor(bot: Bot, update: Update, args: List[str]):
 # D A N K modules by @deletescape ^^^
 # Less D A N K modules by @skittles9823 # holi fugg I did some maymays vvv
 
-
-@run_async
-def pidortext(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    noreply = False
-    if message.reply_to_message:
-        data = message.reply_to_message.text
-    elif args:
-        noreply = True
-        data = message.text.split(None, 1)[1]
-    else:
-        noreply = True
-        data = tld(chat.id, "memes_no_message")
-
-    if not Path('4pda.jpg').is_file():
-        LOGGER.warning("4pda.jpg not found! Pidor memes module is turned off!")
-        return
-    for mocked in glob.glob("mocked*"):
-        os.remove(mocked)
-    reply_text = spongemock.mock(data)
-
-    randint = random.randint(1, 699)
-    magick = """convert 4pda.jpg -font Impact -pointsize 50 -size 400x300 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten 4pdaed{}.jpg""".format(
-        reply_text, randint)
-    os.system(magick)
-    with open('4pdaed{}.jpg'.format(randint), 'rb') as mockedphoto:
-        if noreply:
-            message.reply_photo(photo=mockedphoto,
-                                reply=message.reply_to_message)
-        else:
-            message.reply_to_message.reply_photo(
-                photo=mockedphoto, reply=message.reply_to_message)
-    os.remove('4pdaed{}.jpg'.format(randint))
-
-@run_async
-def spongemocktext(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    noreply = False
-    if message.reply_to_message:
-        data = message.reply_to_message.text
-    elif args:
-        noreply = True
-        data = message.text.split(None, 1)[1]
-    else:
-        noreply = True
-        data = tld(chat.id, "memes_no_message")
-
-    if not Path('bob.jpg').is_file():
-        LOGGER.warning(
-            "bob.jpg not found! Spongemock memes module is turned off!")
-        return
-    for mocked in glob.glob("mocked*"):
-        os.remove(mocked)
-    reply_text = spongemock.mock(data)
-
-    randint = random.randint(1, 699)
-    magick = """convert bob.jpg -font Impact -pointsize 30 -size 512x300 -stroke black -strokewidth 1 -fill white -background none -gravity north caption:"{}" -flatten mocked{}.jpg""".format(
-        reply_text, randint)
-    os.system(magick)
-    with open('mocked{}.jpg'.format(randint), 'rb') as mockedphoto:
-        if noreply:
-            message.reply_photo(photo=mockedphoto,
-                                reply=message.reply_to_message)
-        else:
-            message.reply_to_message.reply_photo(
-                photo=mockedphoto, reply=message.reply_to_message)
-    os.remove('mocked{}.jpg'.format(randint))
-
-
 @run_async
 def zalgotext(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
@@ -312,8 +239,6 @@ VAPOR_HANDLER = DisableAbleCommandHandler("vapor",
                                           vapor,
                                           pass_args=True,
                                           admin_ok=True)
-MOCK_HANDLER = DisableAbleCommandHandler("mock", spongemocktext, admin_ok=True, pass_args=True)
-PIDOR_HANDLER = DisableAbleCommandHandler("pidor", pidortext, admin_ok=True, pass_args=True)
 ZALGO_HANDLER = DisableAbleCommandHandler("zalgofy", zalgotext, pass_args=True)
 SHOUT_HANDLER = DisableAbleCommandHandler("shout", shout, pass_args=True)
 INSULTS_HANDLER = DisableAbleCommandHandler("insults", insults, admin_ok=True)

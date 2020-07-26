@@ -250,7 +250,6 @@ def kickme(bot: Bot, update: Update):
 def banme(bot: Bot, update: Update):
     user_id = update.effective_message.from_user.id
     chat = update.effective_chat
-    user = update.effective_user
     if is_user_admin(update.effective_chat, user_id):
         update.effective_message.reply_text(
             tld(chat.id, "bans_err_usr_is_admin"))
