@@ -1,9 +1,9 @@
 # SmudgeLord :3
 A modular Telegram Python bot running on python3 with an sqlalchemy database.
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/2fe39cfba98e4b8d971a092a0c7687b3)](https://www.codacy.com/manual/RenatohRibeiro/Smudge?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RenatohRibeiro/Smudge&amp;utm_campaign=Badge_Grade)
+
 Can be found as [Smudge](https://SmudgeLordBOT) on Telegram.
-
-
 
 A group management bot with multiple admin features, it has evolved into becoming a basis for modular
 bots aiming to provide simple plugin expansion via a simple drag and drop.
