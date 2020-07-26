@@ -2,7 +2,6 @@ import random, re, string, io, asyncio
 from PIL import Image
 from io import BytesIO
 import base64
-from spongemock import spongemock
 from zalgo_text import zalgo
 import os
 from pathlib import Path
@@ -23,12 +22,11 @@ WIDE_MAP[0x20] = 0x3000
 
 # D A N K modules by @deletescape vvv
 
-
 @run_async
 def owo(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     message = update.effective_message
-    
+
     noreply = False
     if message.reply_to_message:
         data = message.reply_to_message.text
@@ -248,12 +246,10 @@ SLAP_HANDLER = DisableAbleCommandHandler("slap",
                                          pass_args=True,
                                          admin_ok=True)
 
-dispatcher.add_handler(PIDOR_HANDLER)
 dispatcher.add_handler(SHOUT_HANDLER)
 dispatcher.add_handler(OWO_HANDLER)
 dispatcher.add_handler(STRETCH_HANDLER)
 dispatcher.add_handler(VAPOR_HANDLER)
-dispatcher.add_handler(MOCK_HANDLER)
 dispatcher.add_handler(ZALGO_HANDLER)
 dispatcher.add_handler(INSULTS_HANDLER)
 dispatcher.add_handler(RUNS_HANDLER)
