@@ -1,6 +1,7 @@
 # SmudgeLord :3
 A modular Telegram Python bot running on python3 with an sqlalchemy database.
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/50724f379eb24648b11aa98ee0863283)](https://app.codacy.com/manual/RenatohRibeiro/SmudgeLord?utm_source=github.com&utm_medium=referral&utm_content=RenatohRibeiro/SmudgeLord&utm_campaign=Badge_Grade_Dashboard)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/2fe39cfba98e4b8d971a092a0c7687b3)](https://www.codacy.com/manual/RenatohRibeiro/Smudge?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RenatohRibeiro/Smudge&amp;utm_campaign=Badge_Grade)
 
 Can be found as [Smudge](https://SmudgeLordBOT) on Telegram.
