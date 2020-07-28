@@ -9,6 +9,7 @@ from haruka import dispatcher, LASTFM_API_KEY
 from haruka.modules.disable import DisableAbleCommandHandler
 
 import haruka.modules.sql.last_fm_sql as sql
+from haruka.modules.translations.strings import tld
 
 
 @run_async
