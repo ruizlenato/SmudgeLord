@@ -1103,7 +1103,7 @@ lastfm_nonetracks: You don't seem to have scrobbled any songs...
 lastfm_scrb: <code>{} - {}</code>
 lastfm_scrb_loved: <code>{} - {}</code> (❤️)
 lastfm_scr: \n(<code>{}</code> scrobbles so far)
-lastfm_scrr: <code>{} - {}</code>\n
+lastfm_scrr: 🎧 <code>{} - {}</code>\n
 last_fm_help: |
  - /setuser <username>: sets your last.fm username.
  - /clearuser: removes your last.fm username from the bot's database.
