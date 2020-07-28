@@ -1095,7 +1095,7 @@ helpers_string_handling_invalid_time_amount: Quantidade de tempo inválida espec
 helpers_string_handling_invalid_time_type: "Tipo de hora inválido especificado. Esperado m, h, d, obteve: {}."
 
 #LastFM
-modname_last_fm: 
+modname_last_fm: Lastfm
 setuser_lastfm_error: Não é assim que isso funciona...\nEscreva /setuser seguido do seu nome de usuário!
 clearuser_lastfm: Nome de usuário do Last.fm limpo com sucesso do meu banco de dados!
 setuser_lastfm: Nome de usuário definido como {}!
