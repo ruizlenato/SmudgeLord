@@ -1,7 +1,7 @@
 import threading
 from typing import Union
 
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, String, Boolean
 
 from haruka.modules.sql import SESSION, BASE
 

@@ -1,21 +1,14 @@
-import subprocess
 import html
-import json
-import random
-import time
-import pyowm
 import wikipedia
 import re
-from pyowm import timeutils, exceptions
 from datetime import datetime
 from typing import Optional, List
 from PyLyrics import *
-from hurry.filesize import size
 from covid import Covid
 
 import requests
 from telegram import Message, Chat, Update, Bot, MessageEntity
-from telegram import ParseMode, ReplyKeyboardRemove, ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import ParseMode, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 from telegram.error import BadRequest
@@ -25,11 +18,8 @@ from haruka.__main__ import GDPR
 from haruka.__main__ import STATS, USER_INFO
 from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.extraction import extract_user
-from haruka.modules.helper_funcs.filters import CustomFilters
 
-from haruka.modules.sql.translation import prev_locale
-
-from haruka.modules.translations.strings import tld, tld_list
+from haruka.modules.translations.strings import tld
 
 from requests import get
 

@@ -2,7 +2,7 @@
 
 import requests
 
-from telegram import Bot, Update, Message, Chat, ParseMode, User
+from telegram import Bot, Update, ParseMode
 from telegram.ext import run_async, CommandHandler
 
 from haruka import dispatcher, LASTFM_API_KEY

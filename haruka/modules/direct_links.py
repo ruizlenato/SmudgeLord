@@ -13,7 +13,6 @@ from bs4 import BeautifulSoup
 from telegram.ext import run_async, CommandHandler
 
 from haruka import dispatcher
-from haruka.modules.translations.strings import tld
 
 
 @run_async

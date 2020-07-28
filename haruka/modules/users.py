@@ -15,7 +15,7 @@ import haruka.modules.sql.users_sql as sql
 from haruka import dispatcher, OWNER_ID, LOGGER, SUDO_USERS, SUPPORT_USERS
 from telegram.utils.helpers import escape_markdown
 from haruka.modules.helper_funcs.filters import CustomFilters
-from haruka.modules.helper_funcs.chat_status import is_user_ban_protected, bot_admin
+from haruka.modules.helper_funcs.chat_status import bot_admin
 
 from haruka.modules.translations.strings import tld
 
