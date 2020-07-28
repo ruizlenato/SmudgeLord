@@ -1095,6 +1095,15 @@ helpers_string_handling_invalid_time_type: "Invalid time type specified. Expecte
 
 #LastFM
 modname_last_fm: LastFM
+setuser_lastfm_error: That's not how this works...\nRun /setuser followed by your username!
+clearuser_lastfm: Last.fm username successfully cleared from my database!
+setuser_lastfm: Username set as {}!
+lastfm_userwrong: Hmm... something went wrong.\nPlease ensure that you've set the correct username!
+lastfm_nonetracks: You don't seem to have scrobbled any songs...
+lastfm_scrb: <code>{} - {}</code>
+lastfm_scrb_loved: <code>{} - {}</code> (❤️)
+lastfm_scr: \n(<code>{}</code> scrobbles so far)
+lastfm_scrr: <code>{} - {}</code>\n
 last_fm_help: |
  - /setuser <username>: sets your last.fm username.
  - /clearuser: removes your last.fm username from the bot's database.

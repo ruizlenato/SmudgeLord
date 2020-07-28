@@ -1095,7 +1095,16 @@ helpers_string_handling_invalid_time_amount: Quantidade de tempo inválida espec
 helpers_string_handling_invalid_time_type: "Tipo de hora inválido especificado. Esperado m, h, d, obteve: {}."
 
 #LastFM
-modname_last_fm: LastFM
+modname_last_fm: 
+setuser_lastfm_error: Não é assim que isso funciona...\nEscreva /setuser seguido do seu nome de usuário!
+clearuser_lastfm: Nome de usuário do Last.fm limpo com sucesso do meu banco de dados!
+setuser_lastfm: Nome de usuário definido como {}!
+lastfm_userwrong: Hmm ... algo deu errado.\nVerifique se você definiu o nome de usuário correto!
+lastfm_nonetracks: Você não parece ter escutado(scrobbled) nenhuma música...
+lastfm_scrb: <code>{} - {}</code>
+lastfm_scrb_loved: <code>{} - {}</code> (❤️)
+lastfm_scr: \n(<code>{}</code> scrobbles até agora)
+lastfm_scrr: <code>{} - {}</code>\n
 last_fm_help: |
  - /setuser <username>: Configure seu Username(nome de usuário)  do LastFM.
  - /clearuser:  remove seu nome de usuário last.fm do banco de dados do bot.
