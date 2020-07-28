@@ -1,10 +1,9 @@
 from typing import Optional, List
 
-from telegram import Message, Update, Bot, User
-from telegram import MessageEntity
-from telegram.ext import Filters, MessageHandler, run_async
+from telegram import Message, Update, Bot
+from telegram.ext import run_async
 
-from haruka import dispatcher, LOGGER
+from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
 
 from googletrans import Translator

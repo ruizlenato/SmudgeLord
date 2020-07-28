@@ -11,7 +11,7 @@ from telegram.utils.helpers import mention_html
 
 from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
-from haruka.modules.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin_no_reply, user_admin, \
+from haruka.modules.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin, \
     can_restrict
 from haruka.modules.helper_funcs.extraction import extract_text, extract_user_and_text, extract_user
 from haruka.modules.helper_funcs.filters import CustomFilters

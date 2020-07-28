@@ -1,4 +1,3 @@
-from math import ceil
 from typing import List, Dict
 
 from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode
@@ -6,7 +5,6 @@ from telegram.error import TelegramError
 
 from haruka import LOAD, NO_LOAD
 from haruka.modules.translations.strings import tld
-from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):

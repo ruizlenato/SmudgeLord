@@ -2,23 +2,18 @@ import json, time, os
 from io import BytesIO
 from typing import Optional
 
-from telegram import MAX_MESSAGE_LENGTH, ParseMode, InlineKeyboardMarkup
+from telegram import ParseMode
 from telegram import Message, Chat, Update, Bot
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, run_async, Filters
+from telegram.ext import CommandHandler, run_async
 
 import haruka.modules.sql.notes_sql as sql
-from haruka import dispatcher, LOGGER, OWNER_ID, SUDO_USERS, MESSAGE_DUMP
+from haruka import dispatcher, LOGGER, MESSAGE_DUMP
 from haruka.__main__ import DATA_IMPORT
 from haruka.modules.helper_funcs.chat_status import user_admin
-from haruka.modules.helper_funcs.misc import build_keyboard, revert_buttons
-from haruka.modules.helper_funcs.msg_types import get_note_type
-from haruka.modules.rules import get_rules
 import haruka.modules.sql.rules_sql as rulessql
-from haruka.modules.sql import warns_sql as warnssql
 import haruka.modules.sql.blacklist_sql as blacklistsql
 from haruka.modules.sql import disable_sql as disabledsql
-from haruka.modules.sql import cust_filters_sql as filtersql
 import haruka.modules.sql.welcome_sql as welcsql
 import haruka.modules.sql.locks_sql as locksql
 from haruka.modules.connection import connected

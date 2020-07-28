@@ -1,18 +1,12 @@
-import random, re, string, io, asyncio
-from PIL import Image
-from io import BytesIO
-import base64
+import random, re
 from zalgo_text import zalgo
-import os
-from pathlib import Path
-import glob
 
 from typing import Optional, List
-from telegram import Message, Update, Bot, User, ParseMode, MessageEntity
-from telegram.ext import Filters, MessageHandler, run_async
+from telegram import Message, Update, Bot, ParseMode
+from telegram.ext import run_async
 
-from haruka import dispatcher, DEEPFRY_TOKEN
-from haruka.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHandler
+from haruka import dispatcher
+from haruka.modules.disable import DisableAbleCommandHandler
 from telegram.utils.helpers import escape_markdown
 from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.translations.strings import tld, tld_list
