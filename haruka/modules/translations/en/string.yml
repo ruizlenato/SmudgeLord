@@ -1101,6 +1101,7 @@ setuser_lastfm: Username set as {}!
 lastfm_userwrong: Hmm... something went wrong.\nPlease ensure that you've set the correct username!
 lastfm_nonetracks: You don't seem to have scrobbled any songs...
 lastfm_scrb: <code>{} - {}</code>
+lastfm_listening: {user} is currently listening to:\n
 lastfm_scrb_loved: <code>{} - {}</code> (❤️)
 lastfm_scr: \n(<code>{}</code> scrobbles so far)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
