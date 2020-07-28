@@ -1102,6 +1102,7 @@ setuser_lastfm: Nome de usuário definido como {}!
 lastfm_userwrong: Hmm ... algo deu errado.\nVerifique se você definiu o nome de usuário correto!
 lastfm_nonetracks: Você não parece ter escutado(scrobbled) nenhuma música...
 lastfm_scrb: <code>{} - {}</code>
+lastfm_usernotset: Você não colocou seu username do lastfm!
 lastfm_listening: "{} está ouvindo atualmente:\n\n"
 lastfm_scrb_loved: <code>{} - {}</code> (❤️)
 lastfm_scr: \n(<code>{}</code> scrobbles até agora)
