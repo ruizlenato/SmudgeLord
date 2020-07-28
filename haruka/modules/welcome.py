@@ -1,5 +1,4 @@
 from html import escape
-import time
 import re
 from typing import Optional, List
 

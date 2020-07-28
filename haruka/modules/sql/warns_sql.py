@@ -1,5 +1,4 @@
 import threading
-import array as arr
 
 from sqlalchemy import Integer, Column, String, UnicodeText, func, distinct, Boolean
 from sqlalchemy.dialects import postgresql
