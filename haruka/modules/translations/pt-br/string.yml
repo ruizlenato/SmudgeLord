@@ -805,7 +805,7 @@ reports_pm_off: "Desativou as denuncias! Você não receberá nenhum relatório.
 reports_chat_on: "Relatórios ativados! Os administradores que ativaram os relatórios serão notificados quando /report ou @admin forem chamados."
 reports_chat_off: "Relatório desativado! Nenhum administrador será notificado com o /report ou @admin."
 reports_pm_pref: "Sua preferência de relatório atual é: `{}`"
-reports_chat_pref: "A configuração atual deste bate-papo é: `{}`"
+reports_chat_pref: "A configuração atual deste bate-papo é: c"
 reports_success: "{} denunciou a mensagem aos administradores."
 reports_pm_enable: "Relatórios ativados no seu PV!"
 reports_pm_disable: "Relatórios desativados no seu PV!"
@@ -1102,7 +1102,7 @@ setuser_lastfm: Nome de usuário definido como {}!
 lastfm_userwrong: Hmm ... algo deu errado.\nVerifique se você definiu o nome de usuário correto!
 lastfm_nonetracks: Você não parece ter escutado(scrobbled) nenhuma música...
 lastfm_scrb: <code>{} - {}</code>
-lastfm_listening: {} está ouvindo atualmente:\n
+lastfm_listening: "{} está ouvindo atualmente:\n"
 lastfm_scrb_loved: <code>{} - {}</code> (❤️)
 lastfm_scr: \n(<code>{}</code> scrobbles até agora)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
