@@ -64,7 +64,7 @@ def last_fm(bot: Bot, update: Update):
         artist = first_track.get("artist").get("name")
         song = first_track.get("name")
         loved = int(first_track.get("loved"))
-        rep = tld(chat.id, "lastfm_listening").format(scrobbles)
+        rep = tld(chat.id, "lastfm_listening").format
         if not loved:
             rep += tld(chat.id, "lastfm_scrb").format(artist, song)
         else:
