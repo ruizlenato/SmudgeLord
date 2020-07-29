@@ -756,7 +756,7 @@ note_cannot_send: "Esta nota não pôde ser enviada, pois está formatada incorr
 get_invalid: "Anote o nome ausente! Escreva o nome da nota que deseja obter."
 note_is_local: "local notes"
 save_invalid: "Não há nada para salvar!"
-save_success: "Ok, eu adicionei a nota `{}` no grupo *{}*.\nConfira essa nota usando `/get {}`, or `#{}`"
+save_success: "Ok, eu adicionei a nota `{}`.\nConfira essa nota usando `/get {}`, or `#{}`"
 save_updated: "Ok, Nota `{}` no grupo *{}* foi atualizada!.\nConfira essa nota usando `/get {}`, or `#{}`"
 clear_success: "Nota apagada com sucesso no grupo *{}*."
 note_in_chat: "*Notas no grupo {}:*\n"
@@ -817,7 +817,7 @@ rules_display: "As regras para *{}* estão:\n\n{}"
 rules_not_found: "Os administradores do grupo ainda não definiram nenhuma regra para este bate-papo."
 rules_button_click: "Clique no botão abaixo para obter as regras deste grupo."
 rules: "Regras"
-rules_success: "Definir com êxito regras para este grupo."
+rules_success: "Novas regras do grupo foram definidas com sucesso!."
 rules_help: |
     " - /rules: obtenha as regras para este grupo.
 
