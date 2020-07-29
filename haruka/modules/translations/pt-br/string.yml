@@ -44,7 +44,7 @@ common_invalid_arg: Argumento inválido! Por favor digite `on`/`yes` or `off`/`n
 
 # Admins
 modname_admin: Admin
-admin_err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
+err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
 admin_err_user_admin: Como devo promover alguém que já é administrador?
 admin_err_self_promote: Eu não posso me promover
 admin_promote_success: Admin {} promoveu com sucesso {} em <b>{}</b>!
@@ -53,7 +53,7 @@ admin_err_demote_noadmin: Não é possível rebaixar aqueles que não foram prom
 admin_err_self_demote: Eu não posso me rebaixar!
 admin_demote_success: Admin {} rebaixou com sucesso {} em <b>{}</b>!
 admin_err_cant_demote: Não foi possível rebaixar. Talvez eu não seja administrador ou o status de administrador tenha sido indicado por outro usuário, portanto não posso agir de acordo com eles!
-admin_list: "Admins in *{}*:"
+admin_list: "Administradores em *{}*:"
 admin_list_creator:  (Criador)
 admin_err_no_perm_invitelink: Não tenho acesso ao link do convite, tente alterar minhas permissões!
 admin_err_chat_no_invitelink: Desculpe, mas posso fornecer links de convite apenas para supergrupos e canais!
@@ -76,7 +76,7 @@ modname_afk: AFK
 user_now_afk: "{} agora está AFK!"
 user_no_longer_afk: "{} não está mais AFK!"
 status_afk_noreason: "{} Está AFK!"
-status_afk_reason: "{} está AFK! Diz que é por causa de:\n{}"
+status_afk_reason: "{} está AFK! Disse que está:\n{}"
 afk_help: |
     - /afk <reason>: Marque a si mesmo como AFK.
     - brb <reason>: O mesmo que o comando afk, mas não um comando.\n
@@ -138,11 +138,11 @@ antiflood_help: |
 # Antispam
 modname_antispam: Antispam
 antispam_err_usr_sudo: Eu espio com meus olhinhos... uma guerra de usuários sudo! Por que vocês estão se virando?
-antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
-antispam_err_usr_bot: -_- So funny, let me gban myself, why don't I? Nice try.
+antispam_err_usr_support: OOOH, Alguem está tentando banir um de meus sudos *barulho da pipoca*
+antispam_err_usr_bot: -_- Tão engraçado, let me gban myself, porque eu não? Boa tentativa.
 antispam_err_not_usr: Isso não é um usuário!
-antispam_err_usr_deleted: That's a deleted account! Why even bother gbanning them?
-antispam_err_no_new_reason: This user is already gbanned; I'd change the reason, but you haven't given me one...
+antispam_err_usr_deleted: Essa é uma conta excluída! Por que se incomodar em banhá-los?
+antispam_err_no_new_reason: Este usuário já está em uso livre; Eu mudaria o motivo, mas você não me deu um ...
 antispam_logger_update_gban: |
     <b>Novo motivo do banimento global</b>\n
     <b>Sudo Admin:</b> {}\n
@@ -150,7 +150,7 @@ antispam_logger_update_gban: |
     <b>ID:</b> <code>{}</code>\n
     <b>Antigo motivo:</b> {}\n
     <b>Novo motivo:</b> {}
-antispam_reason_updated: "This user has already been gbanned. I have updated the reason.\nPrevious reason: <code>{}</code>\nNew reason: <code>{}</code>"
+antispam_reason_updated: "Este usuário já foi banido. Eu atualizei o motivo.\nMotivo anterior: <code>{}</code>\nMotivo Novo: <code>{}</code>"
 antispam_new_gban: Banimento Global {} \nID do Usuario Banido <code>{}</code>...
 antispam_logger_new_gban: "{} baniu globalmente o usuario {}\n ID do Usuario Banido: <code>{}</code> com o seguinte motivo: <code>{}</code>."
 antispam_no_reason: Nenhuma razão dada
@@ -158,15 +158,15 @@ antispam_user_not_gbanned: Este usuário não está banido globalmente!
 antispam_ungbanned: Eu vou dar para {} uma segunda chance, globalmente.
 antispam_logger_ungban: "{} removeu o banimento global de {}."
 antispam_err_ungban: "Could not ungban due to: {}"
-antispam_ungban_success: Ungbanned successfully!
+antispam_ungban_success: Desbanido Globalmente com Sucesso!
 antispam_checkban_user_removed: "*Este usuário recebeu um banimento global e foi removido.*\nRasão: `{}`"
 antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers, personagens desagradáveis ​​e os maiores trolls.
 antispam_off: Desativei a segurança antispam neste grupo. GBans não afetarão mais seus usuários. Você estará menos protegido contra trolls e spammers!
-antispam_err_wrong_arg: "Give me some arguments to choose a setting! on/off, yes/no!\n\nYour current setting is: {}\nWhen True, any gbans that happen will also happen in your group. When False, they won't, leaving you at the possible mercy of spammers."
-antispam_userinfo_gbanned: "Globally banned: <b>{}</b>"
+antispam_err_wrong_arg: "Dê-me alguns argumentos para escolher uma configuração! on/off, yes/no!\n\nSua configuração atual é: {}\nQuando Verdadeiro, quaisquer gbans que acontecerem também acontecerão no seu grupo. Quando Falso, eles não vão, deixando você à mercê de possíveis spammers."
+antispam_userinfo_gbanned: "Banido Globalmente: <b>{}</b>"
 antispam_userinfo_gban_reason: "\nReason: {}"
-antispam_chatsettings_gban: "This chat is enforcing *gbans*: `{}`."
-anitspam_appeal: \n<b>Appeal at:</b> @Renatoh
+antispam_chatsettings_gban: "Este bate-papo está reforçando *gbans*: `{}`."
+anitspam_appeal: \n<b>Recurso em:</b> @Renatoh
 antispam_help: |
     O anti-spam é usado pelos proprietários dos bots para proibir spammers em todos os grupos. Isso ajuda a proteger você e seus grupos removendo os flooders de spam o mais rápido possível. Isso está ativado por padrão, mas você pode alterar isso usando o comando.\n
     *Apenas administrador:*
@@ -353,16 +353,6 @@ disable_help: |
     - /enable <cmd name>: Habilitar um comando
     - /disable <cmd name>: Desabilitar um comando
     - /listcmds: Listar todos os comandos alternáveis
-
-# TODO: To be continued
-
-# Keyboard
-keyboard_disconnect: Desconectar de um Grupo
-keyboard_connect: Conectar-se a um Grupo
-keyboard_updated: Teclado atualizado
-keyboard_bothelp: Bot Help
-keyboard_notes: Notes
-
 
 # Language
 language_switch_success: Alterado para {} com sucesso!
@@ -1095,7 +1085,7 @@ helpers_string_handling_invalid_time_amount: Quantidade de tempo inválida espec
 helpers_string_handling_invalid_time_type: "Tipo de hora inválido especificado. Esperado m, h, d, obteve: {}."
 
 #LastFM
-modname_last_fm: Lastfm
+modname_last_fm: LastFM
 setuser_lastfm_error: Não é assim que isso funciona...\nEscreva /setuser seguido do seu nome de usuário!
 clearuser_lastfm: Nome de usuário do Last.fm limpo com sucesso do meu banco de dados!
 setuser_lastfm: Nome de usuário definido como {}!

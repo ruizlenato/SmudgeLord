@@ -45,7 +45,7 @@ common_invalid_arg: Invalid argument! Please type `on`/`yes` or `off`/`no`!
 
 # Admins
 modname_admin: Admin
-admin_err_no_perm: I can't promote/demote people here! Make sure I'm an admin and can appoint new admins.
+err_no_perm: I can't promote/demote people here! Make sure I'm an admin and can appoint new admins.
 admin_err_user_admin: How am I meant to promote someone who's already an admin?
 admin_err_self_promote: I can't promote myself! Get an admin to do it for me.
 admin_promote_success: Admin {} has successfully promoted {} in <b>{}</b>!
@@ -364,15 +364,6 @@ disable_help: |
     - /enable <cmd name>: Enable a command
     - /disable <cmd name>: Disable a command
     - /listcmds: List all toggleable commands
-
-# TODO: To be continued
-
-# Keyboard
-keyboard_disconnect: Disconnect from a chat
-keyboard_connect: Connect to a chat
-keyboard_updated: Keyboard Updated
-keyboard_bothelp: Bot Help
-keyboard_notes: Notes
 
 
 # Language
