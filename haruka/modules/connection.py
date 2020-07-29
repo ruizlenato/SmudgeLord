@@ -11,8 +11,6 @@ from haruka.modules.helper_funcs.chat_status import user_admin
 
 from haruka.modules.translations.strings import tld
 
-from haruka.modules.keyboard import keyboard
-
 
 @user_admin
 @run_async
