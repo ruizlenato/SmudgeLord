@@ -369,7 +369,7 @@ disable_help: |
 # Language
 language_switch_success: Switched to {} successfully!
 language_not_supported: "{} is not supported yet!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 -  en \nPortuguese🇧🇷 - pt-BR"
-language_code_not_valid: That's not a valid lanuage code. Use an internationally accepted ISO code!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 -  ```en``` \nPortuguese🇧🇷 - ```pt-BR```
+language_code_not_valid: That's not a valid lanuage code. Use an internationally accepted ISO code!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 - en \nPortuguese🇧🇷 - pt-BR
 language_current_locale: "Current locale for this chat is: *{}*"
 language_select_language: "*Select language* \n"
 language_user_language: "User language: `{}`"
