@@ -141,7 +141,7 @@ antispam_err_usr_sudo: Eu espio com meus olhinhos... uma guerra de usuários sud
 antispam_err_usr_support: OOOH, Alguem está tentando banir um de meus sudos *barulho da pipoca*
 antispam_err_usr_bot: -_- Tão engraçado, let me gban myself, porque eu não? Boa tentativa.
 antispam_err_not_usr: Isso não é um usuário!
-antispam_err_usr_deleted: Essa é uma conta excluída! Por que se incomodar em banhá-los?
+antispam_err_user_deleted: Essa é uma conta excluída! Por que se incomodar em banhá-los?
 antispam_err_no_new_reason: Este usuário já está em uso livre; Eu mudaria o motivo, mas você não me deu um ...
 antispam_logger_update_gban: |
     <b>Novo motivo do banimento global</b>\n
@@ -356,8 +356,8 @@ disable_help: |
 
 # Language
 language_switch_success: Alterado para {} com sucesso!
-language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 -  en \nPortugues🇧🇷 - pt-BR"
-language_code_not_valid: Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 -  en \nPortugues🇧🇷 - pt-BR
+language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - `en` \nPortugues🇧🇷 - `pt-BR`"
+language_code_not_valid: "Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - `en` \nPortugues🇧🇷 - `pt-BR`"
 language_current_locale: "A localidade atual deste Grupo é: *{}*"
 language_select_language: "*Selecione o idioma* \n"
 language_user_language: "Idioma do usuário: `{}`"

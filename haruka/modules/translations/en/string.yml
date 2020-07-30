@@ -150,7 +150,7 @@ antispam_err_usr_sudo: I spy with my little eyes... a sudo user war! Why are you
 antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
 antispam_err_usr_bot: -_- So funny, let me gban myself, why don't I? Nice try.
 antispam_err_not_usr: That's not a user!
-antispam_err_usr_deleted: That's a deleted account! Why even bother gbanning them?
+antispam_err_user_deleted: That's a deleted account! Why even bother gbanning them?
 antispam_err_no_new_reason: This user is already gbanned; I'd change the reason, but you haven't given me one...
 antispam_logger_update_gban: |
     <b>New Reason of Global Ban</b>\n
@@ -368,8 +368,8 @@ disable_help: |
 
 # Language
 language_switch_success: Switched to {} successfully!
-language_not_supported: "{} is not supported yet!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 -  en \nPortuguese🇧🇷 - pt-BR"
-language_code_not_valid: That's not a valid lanuage code. Use an internationally accepted ISO code!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 -  ```en``` \nPortuguese🇧🇷 - ```pt-BR```
+language_not_supported: "{} is not supported yet!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 -  `en` \nPortuguese🇧🇷 - `pt-BR`"
+language_code_not_valid: "That's not a valid lanuage code. Use an internationally accepted ISO code!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 -  `en` \nPortuguese🇧🇷 - `pt-BR`"
 language_current_locale: "Current locale for this chat is: *{}*"
 language_select_language: "*Select language* \n"
 language_user_language: "User language: `{}`"
