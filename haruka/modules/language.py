@@ -22,24 +22,33 @@ def locale(bot, update, args):
                 update.message.reply_text(
                     tld(chat.id, 'language_switch_success').format(
                         list_locales[locale]))
-            else:
-                update.message.reply_text(
-                    tld(chat.id,
-                        "language_not_supported").format(list_locales[locale]))
+           else:
+                text = tld(chat.id, "language_not_supported").format(
+                    list_locales[locale])
+                text += "\n\n*Currently available languages:*\n"
+                for lang in LANGUAGES:
+                    locale = list_locales[lang]
+                    text += "\n *{}* - `{}`".format(locale, lang)
+                message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
         else:
-            update.message.reply_text(tld(chat.id, "language_code_not_valid"))
+            text = tld(chat.id, "language_code_not_valid")
+            text += "\n\n*Currently available languages:*\n"
+            for lang in LANGUAGES:
+                locale = list_locales[lang]
+                text += "\n *{}* - `{}`".format(locale, lang)
+            message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
     else:
         LANGUAGE = prev_locale(chat.id)
         if LANGUAGE:
             locale = LANGUAGE.locale_name
             native_lang = list_locales[locale]
-            update.message.reply_text(tld(
+            message.reply_text(tld(
                 chat.id, "language_current_locale").format(native_lang),
-                                      parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
         else:
-            update.message.reply_text(tld(
-                chat.id, "language_current_locale").format("English"),
-                                      parse_mode=ParseMode.MARKDOWN)
+            message.reply_text(tld(
+                chat.id, "language_current_locale").format("English (US)"),
+                               parse_mode=ParseMode.MARKDOWN)
 
 
 @user_admin
