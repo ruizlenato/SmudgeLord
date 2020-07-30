@@ -356,8 +356,8 @@ disable_help: |
 
 # Language
 language_switch_success: Alterado para {} com sucesso!
-language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - `en` \nPortugues🇧🇷 - `pt-BR`"
-language_code_not_valid: "Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - `en` \nPortugues🇧🇷 - `pt-BR`"
+language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - ```en``` \nPortugues🇧🇷 - ```pt-BR```"
+language_code_not_valid: "Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - ```en``` \nPortugues🇧🇷 - ```pt-BR```"
 language_current_locale: "A localidade atual deste Grupo é: *{}*"
 language_select_language: "*Selecione o idioma* \n"
 language_user_language: "Idioma do usuário: `{}`"
