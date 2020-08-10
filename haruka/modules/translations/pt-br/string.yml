@@ -56,11 +56,11 @@ admin_err_cant_demote: Não foi possível rebaixar. Talvez eu não seja administ
 admin_list: "Administradores em *{}*:"
 admin_list_creator:  (Criador)
 admin_err_no_perm_invitelink: Não tenho acesso ao link do convite, tente alterar minhas permissões!
-admin_err_chat_no_invitelink: Desculpe, mas posso fornecer links de convite apenas para supergrupos e canais!
-admin_disable_reaction: Resposta desativada para comandos de administrador acionados pelo usuário.
-admin_enable_reaction: Resposta ativada para comandos de administrador acionados pelo usuário.
+admin_err_chat_no_invitelink: Desculpe, mas só posso dar links de convite para supergrupos e canais!
+admin_disable_reaction: Resposta desativada para comandos de administração usados por membros.
+admin_disable_reaction: Resposta desativada para comandos de administração usados por membros.
 admin_err_wrong_arg: Por favor, insira True ou False!
-admin_reaction_status: Response for user-triggered admin commands is currently *{}*!
+admin_reaction_status: 'A resposta para comandos de administração usados por membros é atualmente *{}*!'
 admin_help: |
     /adminlist | /admins: Lista os administradores no chat\n
     *Apenas administradores:*
@@ -86,12 +86,12 @@ afk_help: |
 # Android
 modname_android: Android
 download: "*Download:* [{}]({})\n"
-build_size: "*Build Size:* `{}`\n"
-build_date: "*Build Date:* `{}`\n"
-version: "*Version:* `{}`\n"
-android_version: "*Android Version:* `{}`\n"
-rom_type: "*ROM Type:* `{}`\n"
-maintainer: "*Mantenedor:* {}\n"
+build_size: "**Tamanho do arquivo:** `{}`\n"
+build_date: "**Data da compilação:** `{}`\n"
+version: "**Versão:** `{}`\n"
+android_version: "**Versão do Android:** `{}`\n"
+rom_type: "**Tipo de ROM:** `{}`\n"
+maintainer: "**Mantedor:** `{}`\n"
 weekly: "*Weekly*\n"
 miui_release: "*Recovery ROM*\n\n*Estavel*\n"
 cust_releases: "*{} Último lançamento(s)*\n"
@@ -137,7 +137,7 @@ antiflood_help: |
 
 # Antispam
 modname_antispam: Antispam
-antispam_err_usr_sudo: Eu espio com meus olhinhos... uma guerra de usuários sudo! Por que vocês estão se virando?
+antispam_err_usr_sudo: Eu espio com meus olhinhos... uma briga de usuários sudo!
 antispam_err_usr_support: OOOH, Alguem está tentando banir um de meus sudos *barulho da pipoca*
 antispam_err_usr_bot: -_- Tão engraçado, let me gban myself, porque eu não? Boa tentativa.
 antispam_err_not_usr: Isso não é um usuário!
@@ -157,16 +157,16 @@ antispam_no_reason: Nenhuma razão dada
 antispam_user_not_gbanned: Este usuário não está banido globalmente!
 antispam_ungbanned: Eu vou dar para {} uma segunda chance, globalmente.
 antispam_logger_ungban: "{} removeu o banimento global de {}."
-antispam_err_ungban: "Could not ungban due to: {}"
+antispam_err_ungban: "Não foi possível desbanir globalmente devido: {} "
 antispam_ungban_success: Desbanido Globalmente com Sucesso!
-antispam_checkban_user_removed: "*Este usuário recebeu um banimento global e foi removido.*\nRasão: `{}`"
-antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers, personagens desagradáveis ​​e os maiores trolls.
-antispam_off: Desativei a segurança antispam neste grupo. GBans não afetarão mais seus usuários. Você estará menos protegido contra trolls e spammers!
+antispam_checkban_user_removed: "*Este usuário recebeu um banimento global e foi removido.*\nRazão: `{}`"
+antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers.
+antispam_off: Desativei a segurança antispam neste grupo. GBans não afetarão mais seus usuários.
 antispam_err_wrong_arg: "Dê-me alguns argumentos para escolher uma configuração! on/off, yes/no!\n\nSua configuração atual é: {}\nQuando Verdadeiro, quaisquer gbans que acontecerem também acontecerão no seu grupo. Quando Falso, eles não vão, deixando você à mercê de possíveis spammers."
 antispam_userinfo_gbanned: "Banido Globalmente: <b>{}</b>"
 antispam_userinfo_gban_reason: "\nReason: {}"
 antispam_chatsettings_gban: "Este bate-papo está reforçando *gbans*: `{}`."
-anitspam_appeal: \n<b>Recurso em:</b> @Renatoh
+anitspam_appeal: \n<b>Fale com:</b> @Renatoh
 antispam_help: |
     O anti-spam é usado pelos proprietários dos bots para proibir spammers em todos os grupos. Isso ajuda a proteger você e seus grupos removendo os flooders de spam o mais rápido possível. Isso está ativado por padrão, mas você pode alterar isso usando o comando.\n
     *Apenas administrador:*
@@ -335,15 +335,15 @@ cust_filters_help: |
 
 # Disable
 modname_disable: Desativação de comando
-disable_success: Disabled the use of `{}`
-disable_err_undisableable: That command can't be disabled
-disable_err_no_cmd: Pass a command as an argument.
-disable_enable_success: Enabled the use of `{}`
-disable_already_enabled: That command is already enabled.
-disable_able_commands: The following commands are toggleable:\n{}
-disable_able_commands_none: No commands can be disabled.
-disable_chatsettings_none_disabled: No commands are disabled!
-disable_chatsettings_list_disabled: The following commands are currently disabled for non-admins:\n{}
+disable_success: O uso do comando `{}` foi desativado.
+disable_err_undisableable: O uso deste comando não pode ser desativado.
+disable_err_no_cmd: Por favor, diga o comando a ser desativado.
+disable_enable_success: O uso do comando `{}` foi ativado.
+disable_already_enabled: Esse comando já está ativado.
+disable_able_commands: Os seguintes comandos são ativáveis:\n{}
+disable_able_commands_none: Nenhum comando pode ser desativado.
+disable_chatsettings_none_disabled: 'Não há nenhum comando desativado!'
+disable_chatsettings_list_disabled: Os seguintes comandos estão desativados para não-administradores:\n{}
 disable_help: |
     Nem todo mundo quer todos os recursos que o bot oferece. Alguns comandos são melhores quando deixados sem uso para evitar spam e abuso.\n
     Isso permite que você desabilite alguns comandos usados ​​com frequência, para que não-administradores não possam usá-los.
@@ -367,39 +367,39 @@ language_sel_user_lang: "*\n\nSelecione um novo idioma de usuário:*"
 
 # Locks
 modname_locks: Bloqueios
-locks_list_title: "Locks: "
-locks_lock_success: Locked `{}` messages for all non-admins!
-locks_unlock_success: Unlocked `{}` messages for everyone!
-locks_type_invalid: What are you trying to lock...? Try /locktypes for the list of lockables.
-locks_bot_not_admin: Make sure I'm a group administrator and have permission to delete messages, then try again.
+locks_list_title: "Bloqueios: "
+locks_lock_success: 'Mensagem `{}` bloqueada para todos os não-administradores.'
+locks_unlock_success: 'Mensagem `{}` desbloqueada para todos!'
+locks_type_invalid: 'O que você está tentando bloquear? Digite /locktypes ver para a lista de bloqueios. '
+locks_bot_not_admin: Verifique se eu sou um administrador do grupo e tenho permissão para excluir mensagens e tente novamente.
 locks_lock_no_type: Você não especificou um item para bloquear.
 lokcs_unlock_no_type: Você não especificou um item para desbloquear.
-locks_lock_bots_no_admin: Eu vejo um bot e me disseram para impedi-los de entrar... mas eu não sou um administrador!
-locks_lock_bots_kick: Somente administradores têm permissão para adicionar bots a este bate-papo! Chutado!
-locks_list_empty: There are no current locks in *{}*.
+locks_lock_bots_no_admin: Eu vejo um bot e eles me disseram para não deixar ele entrar... mas eu não sou um administrador!
+locks_lock_bots_kick: 'Somente administradores podem adicionar bots a este chat, você está expulso!'
+locks_list_empty: Atualmente não há bloqueios em *{}*.
 locks_list: |
     Estes são os bloqueios *{}*:
      - sticker = `{}`
      - audio = `{}`
-     - voice = `{}`
-     - document = `{}`
-     - video = `{}`
-     - videonote = `{}`
-     - contact = `{}`
-     - photo = `{}`
+     - Mensagens de voz = `{}`
+     - documentos = `{}`
+     - videos = `{}`
+     - Mensagens de videos = `{}`
+     - contatos = `{}`
+     - fotos = `{}`
      - gif = `{}`
      - url = `{}`
      - bots = `{}`
-     - forward = `{}`
-     - game = `{}`
-     - location = `{}`
+     - mensagens encaminhadas = `{}`
+     - jogos = `{}`
+     - localizações = `{}`
      - messages = `{}`
-     - media = `{}`
-     - other = `{}`
+     - mensagens = `{}`
+     - outros = `{}`
      - previews = `{}`
-     - all = `{}`
+     - todos = `{}`
 locks_help: |
-    Os adesivos te incomodam? ou deseja evitar que as pessoas compartilhem links? ou fotos? Você está no lugar certo!\n
+    Os (Stickers)adesivos te incomodam? ou deseja evitar que as pessoas compartilhem links? ou fotos? Você está no lugar certo!\n
     O módulo de travas permite bloquear alguns itens comuns no mundo do telegrama; o bot irá excluí-los automaticamente!\n
     Os comandos disponíveis são:
     - /lock <item(s)>: bloquear o uso de "item". Apenas os administradores poderão usar esse tipo!
@@ -412,17 +412,17 @@ locks_help: |
 
 # Log channel
 modname_log_channel: Canal de registro
-log_channel_link: \n<b>Link:</b> <a href=\"http://telegram.me/{}/{}\">click here</a>
-log_channel_deleted: This log channel has been deleted - unsetting.
-log_channel_err_format: \n\nFormatting has been disabled due to an unexpected error.
+log_channel_link: \n<b>Link:</b> <a href=\"http://telegram.me/{}/{}\">clique aqui</a>
+log_channel_deleted: Este canal de logs foi removido - incompatibilidade.
+log_channel_err_format: \n\nO formato foi desativado devido a um erro inesperado.
 log_channel_grp_curr_conf: "This group has all its logs sent to: {} (`{}`)"
-log_channel_none: No log channel has been set for this group!
-log_channel_fwd_cmd: Now, forward the /setlog command to the group you want to connect this channel to!
-log_channel_chn_curr_conf: This channel has been set as the log channel for {}.
-log_channel_link_success: Set the log channel successfully!
-log_channel_invalid_message: This isn't a forwarded message! Please read help(type /help in a PM with the bot) for more information about this command.
-log_channel_unlink_success: Channel has been unlinked from {}!
-log_channel_unlink_none: No log channel has been set yet!
+log_channel_none: 'Nenhum canal de registro foi estabelecido para este grupo!'
+log_channel_fwd_cmd: Agora execute o comando /setlog no grupo o qual você deseja conectar este canal!
+log_channel_chn_curr_conf: Este canal foi estabelecido como o canal de registro para {}.
+log_channel_link_success: 'O canal de registro foi estabelecido com sucesso!'
+log_channel_invalid_message: 'Esta não é uma mensagem encaminhada! Leia a ajuda (digite /help em uma PM com o bot) para obter mais informações sobre este comando.'
+log_channel_unlink_success: 'O canal foi desvinculado de {}!'
+log_channel_unlink_none: 'Nenhum canal de registro foi estabelecido!'
 log_channel_help: |
     *Apenas administradores:*
     - /logchannel: obter informações do canal de log
@@ -491,68 +491,68 @@ memes_runs_list:
     - "O que você está correndo atrás, um coelho branco?"
     - "Como o médico diria ... EXECUTAR!"
 memes_insults_list:
-    - "Owww ... Such a stupid idiot."
-    - "Don't drink and type."
-    - "I think you should go home or better a mental asylum."
-    - "Command not found. Just like your brain."
-    - "Do you realize you are making a fool of yourself? Apparently not."
-    - "You can type better than that."
-    - "Bot rule 544 section 9 prevents me from replying to stupid humans like you."
-    - "Sorry, we do not sell brains."
-    - "Believe me you are not normal."
-    - "I bet your brain feels as good as new, seeing that you never use it."
-    - "If I wanted to kill myself I'd climb your ego and jump to your IQ."
-    - "Zombies eat brains... you're safe."
-    - "You didn't evolve from apes, they evolved from you."
-    - "Come back and talk to me when your I.Q. exceeds your age."
-    - "I'm not saying you're stupid, I'm just saying you've got bad luck when it comes to thinking."
-    - "What language are you speaking? Cause it sounds like bullshit."
-    - "Stupidity is not a crime so you are free to go."
-    - "You are proof that evolution CAN go in reverse."
-    - "I would ask you how old you are but I know you can't count that high."
-    - "As an outsider, what do you think of the human race?"
-    - "Brains aren't everything. In your case they're nothing."
-    - "Ordinarily people live and learn. You just live."
-    - "I don't know what makes you so stupid, but it really works."
-    - "Keep talking, someday you'll say something intelligent! (I doubt it though)"
-    - "Shock me, say something intelligent."
-    - "Your IQ's lower than your shoe size."
-    - "Alas! Your neurotransmitters are no more working."
-    - "Are you crazy you fool."
-    - "Everyone has the right to be stupid but you are abusing the privilege."
-    - "I'm sorry I hurt your feelings when I called you stupid. I thought you already knew that."
-    - "You should try tasting cyanide."
-    - "Your enzymes are meant to digest rat poison."
-    - "You should try sleeping forever."
-    - "Pick up a gun and shoot yourself."
-    - "You could make a world record by jumping from a plane without parachute."
-    - "Stop talking BS and jump in front of a running bullet train."
-    - "Try bathing with Hydrochloric Acid instead of water."
-    - "Try this: if you hold your breath underwater for an hour, you can then hold it forever."
-    - "Go Green! Stop inhaling Oxygen."
-    - "God was searching for you. You should leave to meet him."
-    - "give your 100%. Now, go donate blood."
-    - "Try jumping from a hundred story building but you can do it only once."
-    - "You should donate your brain seeing that you never used it."
-    - "Volunteer for target in an firing range."
-    - "Head shots are fun. Get yourself one."
-    - "You should try swimming with great white sharks."
-    - "You should paint yourself red and run in a bull marathon."
-    - "You can stay underwater for the rest of your life without coming back up."
-    - "How about you stop breathing for like 1 day? That'll be great."
-    - "Try provoking a tiger while you both are in a cage."
-    - "Have you tried shooting yourself as high as 100m using a canon."
-    - "You should try holding TNT in your mouth and igniting it."
-    - "Try playing catch and throw with RDX its fun."
-    - "I heard phogine is poisonous but i guess you wont mind inhaling it for fun."
-    - "Launch yourself into outer space while forgetting oxygen on Earth."
-    - "You should try playing snake and ladders, with real snakes and no ladders."
-    - "Dance naked on a couple of HT wires."
-    - "True Volcano is the best swimming pool for you."
-    - "You should try hot bath in a volcano."
-    - "Try to spend one day in a coffin and it will be yours forever."
-    - "Hit Uranium with a slow moving neutron in your presence. It will be a worthwhile experience."
-    - "You can be the first person to step on sun. Have a try."
+    - "Owww ... um idiota tão estúpido."
+    - "Não bebam pessoal."
+    - "Acho que devo ir para casa ou melhor, um assíncrono mental."
+    - "Comando não encontrado. Como seu pai."
+    - "Você percebe que está fazendo algo bobo? Aparentemente não."
+    - "Você pode escrever melhor que isso."
+    - "A regra bot 544 da seção 9 me impede de responder a seres humanos estúpidos como você."
+    - "Desculpe, nós não vendemos fechaduras."
+    - "Acredite, você não é normal."
+    - "Aposto que seu cérebro parece tão bom quanto novo, visto que você nunca o usa."
+    - "Se eu quisesse me matar, vou elevar seu ego e pular para o seu QI."
+    - "Zumbis comem cérebros ... você está seguro."
+    - "Você não evoluiu dos macacos, eles evoluíram de você."
+    - "Volte e fale comigo quando o seu QI exceder a sua idade."
+    - "Não estou dizendo que você é estúpido, só estou dizendo que você teve azar quando se trata de pensar."
+    - "Em que língua você está falando? Porque parece uma merda."
+    - "A estupidez não é um crime, então você é livre para sair."
+    - "Você é a prova de que a evolução CAN pode ser revertida."
+    - "Eu pergunto quantos anos você tem, mas eu sei que você não pode contar tão alto."
+    - "Como alguém de fora, o que você acha da raça humana?"
+    - "As chuvas não são tudo, no seu caso não são nada."
+    - "Pessoas normais vivem e aprendem. Você apenas vive."
+    - "Eu não sei o que faz você ser tão estúpido, mas realmente funciona."
+    - "Continue falando, um dia você dirá algo inteligente! (Duvido, no entanto)"
+    - "Estou surpreso, diga algo inteligente."
+    - "Seu QI é menor que o tamanho dos seus sapatos."
+    - "Uau! Seus neurotransmissores não funcionam mais."
+    - "Você é louco por ser burro?"
+    - "Todo mundo tem o direito de ser estúpido, mas o privilégio está sendo abusado."
+    - "Desculpe quando te chamei de idiota. Pensei que você já sabia disso."
+    - "Você deve tentar provar cianeto."
+    - "Suas enzimas são projetadas para digerir veneno de rato."
+    - "Você deveria tentar dormir para sempre."
+    - "Pegue uma arma e atire em si mesmo."
+    - "Você poderia fazer um recorde mundial pulando de um avião sem pára-quedas."
+    - "Pare de falar besteiras e pule na frente de um trem-bala."
+    - "Tente tomar banho com ácido clorídrico em vez de água."
+    - "Tente o seguinte: se você ficar sem fôlego por uma hora, poderá salvá-lo para sempre."
+    - "Fica verde! Pare de inalar oxigênio."
+    - "Deus estava procurando por você. Você deveria sair para encontrá-lo."
+    - "Dê 100%. Agora, doe sangue."
+    - "Tente pular de cem andares, mas você só pode fazê-lo uma vez."
+    - "Você deve doar seu cérebro, visto que nunca o usou."
+    - "Ofereça-se para mirar em um campo de tiro."
+    - "Fotos na cabeça são divertidas. Pegue uma."
+    - "Você deve tentar nadar com grandes tubarões brancos."
+    - "Você deve se pintar de vermelho e correr em uma maratona de bolas."
+    - "Você pode ficar embaixo da água pelo resto da vida sem voltar a subir."
+    - "Que tal você parar de respirar como um dia? Isso será ótimo."
+    - "Tente provocar um tigre enquanto ambos estão em uma gaiola."
+    - "Você já tentou atirar em si mesmo a 100 metros de distância usando um canon."
+    - "Você deve tentar manter o TNT na boca e ligá-lo."
+    - "Tente jogar catch and launch com RDX, sua diversão."
+    - "Ouvi dizer que a fotografia é venenosa, mas suponho que você não se importe em inalá-la por diversão."
+    - "Deixe-se ir para o espaço esquecendo o oxigênio na Terra."
+    - "Você deve tentar jogar cobra e escadas, com cobras reais e sem escadas."
+    - "Dance nua em um par de cabos HT."
+    - "O verdadeiro vulcão é a melhor piscina para você."
+    - "Você deve tentar o banho quente em um vulcão."
+    - "Tente passar um dia em uma lanchonete e será sua para sempre."
+    - "Acerte o urânio com um trenó lento em sua presença. Será uma experiência que vale a pena."
+    - "Você pode ser a primeira pessoa a pisar no sol. Experimente."
 memes_slaps_templates_list:
     - "{user1} {hits} {user2} com um {item}."
     - "{user1} {hits} {user2} no rosto com um {item}."
@@ -580,11 +580,11 @@ memes_items_list:
     - "Notebook da positivo"
     - "televisão"
     - "caminhão de cinco toneladas"
-    - "rolo de fita adesiva"
+    - "piroca"
     - "livro"
     - "laptop"
     - "televisão antiga"
-    - "saco de pedras"
+    - "chifre do administrador"
     - "um vibrador gigante"
     - "galinha de borracha"
     - "morcego cravado"
@@ -597,8 +597,8 @@ memes_items_list:
     - "a mãe do admin"
 memes_throw_list:
     - "joga"
-    - "arremessar"
-    - "mandris"
+    - "lança"
+    - "envia"
     - "arremessa"
 memes_hit_list:
     - "golpeia"
@@ -889,7 +889,7 @@ welcome_goodbye_set_on: Os membros que deixarão receberão uma mensagem de desp
 welcome_goodbye_set_off: Os membros não receberá mais uma mensagem de despedida!
 welcome_set_welcome_no_text: You must provide the welcome message! Type `/help greetings` in my PM for some help for the Greetings module!
 welcome_set_welcome_no_datatype: Couldn't find the welcome message's data type.
-welcome_set_welcome_success: Definir mensagem de boas-vindas personalizada com sucesso!
+welcome_set_welcome_success: Mensagens de boas-vindas foram definidas com sucesso!
 welcome_reset_welcome_success: mensagem de boas-vindas redefinidas para o padrão com sucesso!
 welcome_set_goodbye_success: Defina a mensagem de despedidas personalizada com sucesso!
 welcome_reset_goodbye_success: Redefinir a mensagem de despedidas para o padrão com sucesso!
@@ -992,14 +992,14 @@ warns_warn_ban_log_channel: |
     "#WARN_BAN"
     "<b>Admin:</b> {}"
     "<b>Usuario:</b> {} (<code>{}</code>)"
-    "<b>Rasão:</b> {}"
+    "<b>Razão:</b> {}"
     "<b>Quantidade de adevertencias:</b> <code>{}/{}</code>"
 warns_warn_log_channel: |
     "<b>{}:</b>"
     "#WARN"
     "<b>Admin:</b> {}"
     "<b>Usuario:</b> {} (<code>{}</code>)"
-    "<b>Rasão:</b> {}"
+    "<b>Razão:</b> {}"
     "<b>Quantidade de adevertencias:</b> <code>{}/{}</code>"
 warns_remove_log_channel: |
     "<b>{}:</b>"
@@ -1019,11 +1019,11 @@ warns_set_warn_limit_log_channel: |
 warns_strength_on_log_channel: |
     "<b>{}:</b>\n"
     "<b>Admin:</b> {}\n"
-    "Has enabled strong warns. Users will be banned."
+    "Você acionou warns. Os usuários serão banidos.."
 warns_strength_off_log_channel: |
     "<b>{}:</b>\n"
     "<b>Admin:</b> {}\n"
-    "Has disabled strong warns. Users will only be kicked."
+    "Agora os membros serão apenas kikados."
 warns_btn_remove_warn: Remover Advertencia
 warns_btn_rules: Regras
 warns_user_warned: "{} <b>foi advertido!</b>\nEle(a) têm {}/{} Advertencias."
@@ -1043,12 +1043,12 @@ warns_filter_doesnt_exist: Esse não é um filtro de advertencia - use o /warnli
 warns_filters_list: <b>Filtros de aviso atuais neste bate-papo:</b>\n
 warns_warnlimit_min_1: O limite mínimo de advertencias é 1!
 warns_warnlimit_updated_success: Atualizado o limite de advertencias para {}.
-warns_warnlimit_invalid_arg: Invalid argument! The argument should be a number, not less than 1.
-warns_warnlimit_current: The current warn limit is {}.
-warns_strength_on_success: Exceeding warn limit will now ban the user!
-warns_strength_off_success: Exceeding warn limit will now kick the user! Users will be able to join after being kicked.
-warns_strength_invalid_arg: Invalid argument! Only on/yes/no/off are accepted!
-warns_strength_off: Warns are currently set to *kick* users when they exceed the limits.
+warns_warnlimit_invalid_arg: 'Argumento não válido, o argumento deve ser um número maior ou igual a 1.'
+warns_warnlimit_current: O limite de warns atual é {}.
+warns_strength_on_success: 'Ultrapassar o limite de warns agora irá banir o usuário'
+warns_strength_off_success: 'Ultrapassar o limite de warns agora irá kickar o usuário. Usuários kickados podem entrar novamente no chat.'
+warns_strength_invalid_arg: 'Argumento inválido. os argumentos aceitos são on/yes/no/off!'
+warns_strength_off: Os warns estão configurados para *kickar* os usuários quando eles ultrapassam os limites.
 warns_strength_on: No momento, os avisos estão definidos para *banir* usuários quando excederem os limites.
 warns_help: |
     - /warns <userhandle>: verifique quantos advertencias um usuário possui (e veja os motivos, se houver).
