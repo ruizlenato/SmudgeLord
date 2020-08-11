@@ -31,6 +31,8 @@ main_start_btn_support: 📢 Chat de Suporte
 main_start_btn_ctrlpnl: 🛠 Control panel
 main_start_btn_lang: 🇧🇷 Idioma
 
+modname_sed: sed
+sed_unspecified_error: There has been an unspecified error
 # Common
 common_err_no_user: Você não parece estar se referindo a um usuário.
 common_err_invalid_chatid: ID de bate-papo inválido!
@@ -437,8 +439,6 @@ log_channel_help: |
 # Memes and etc.
 modname_memes: Memes
 memes_no_message: Eu preciso de uma mensagem para meme.
-memes_deepfry_nothing: O que eu devo fazer com isso ?!
-memes_shout_notext: Onde está o texto?
 memes_not_doing_that: Eu não estou fazendo isso!
 memes_runs_list:
     - "Where do you think you're going?"
@@ -491,14 +491,14 @@ memes_runs_list:
     - "O que você está correndo atrás, um coelho branco?"
     - "Como o médico diria ... EXECUTAR!"
 memes_insults_list:
-    - "Owww ... um idiota tão estúpido."
-    - "Não bebam pessoal."
-    - "Acho que devo ir para casa ou melhor, um assíncrono mental."
+    - "Por que você é tão idiota assim?"
+    - "Infelizmente sua mãe não conseguiu abortar você a tempo."
+    - "Acho melhor você sair da minha frente, não gosto de poluição visual."
     - "Comando não encontrado. Como seu pai."
     - "Você percebe que está fazendo algo bobo? Aparentemente não."
     - "Você pode escrever melhor que isso."
-    - "A regra bot 544 da seção 9 me impede de responder a seres humanos estúpidos como você."
-    - "Desculpe, nós não vendemos fechaduras."
+    - "A regra bot 157 da seção 9 me impede de responder a seres humanos estúpidos como você."
+    - "Tão idiota que tenho ate vontade não responder."
     - "Acredite, você não é normal."
     - "Aposto que seu cérebro parece tão bom quanto novo, visto que você nunca o usa."
     - "Se eu quisesse me matar, vou elevar seu ego e pular para o seu QI."
@@ -574,10 +574,10 @@ memes_items_list:
     - "unha"
     - "penis de borracha"
     - "pá"
-    - "Monitor CRT"
+    - "ventilador"
     - "um Nokia 3310"
     - "torradeira"
-    - "Notebook da positivo"
+    - "Laptop da positivo"
     - "televisão"
     - "caminhão de cinco toneladas"
     - "piroca"

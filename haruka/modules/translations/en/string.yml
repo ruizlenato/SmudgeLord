@@ -863,7 +863,7 @@ url_blacklist_no_existed: "There are no blacklisted domains here!"
 
 # Greetings
 modname_welcome: Greetings
-welcome_added_to_grp: Thanks for adding me into your group! Don't forgot to checkout our news channel!
+welcome_added_to_grp: "Thanks for adding me into your group!\n 🇺🇸 use /setlang to change your language\n 🇧🇷 use / setlang para trocar o seu idioma!"
 welcome_mute_btn_unmuted: Unmuted! You may now type!
 welcome_mute_btn_old_user: You're not a new user!
 welcome_bot_owner_left: Well, My mater have left, The party now ended!

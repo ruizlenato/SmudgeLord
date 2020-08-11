@@ -127,32 +127,6 @@ def zalgotext(bot: Bot, update: Update, args: List[str]):
     else:
         message.reply_to_message.reply_text(reply_text)
 
-@run_async
-def shout(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    noreply = False
-    if message.reply_to_message:
-        data = message.reply_to_message.text
-    elif args:
-        noreply = True
-        data = " ".join(args)
-    else:
-        noreply = True
-        data = tld(chat.id, "memes_no_message")
-
-    msg = "```"
-    result = []
-    result.append(' '.join([s for s in data]))
-    for pos, symbol in enumerate(data[1:]):
-        result.append(symbol + ' ' + '  ' * pos + symbol)
-    result = list("\n".join(result))
-    result[0] = data[0]
-    result = "".join(result)
-    msg = "```\n" + result + "```"
-    return update.effective_message.reply_text(msg, parse_mode="MARKDOWN")
-
 
 @run_async
 def insults(bot: Bot, update: Update):
@@ -232,7 +206,6 @@ VAPOR_HANDLER = DisableAbleCommandHandler("vapor",
                                           pass_args=True,
                                           admin_ok=True)
 ZALGO_HANDLER = DisableAbleCommandHandler("zalgofy", zalgotext, pass_args=True)
-SHOUT_HANDLER = DisableAbleCommandHandler("shout", shout, pass_args=True)
 INSULTS_HANDLER = DisableAbleCommandHandler("insults", insults, admin_ok=True)
 RUNS_HANDLER = DisableAbleCommandHandler("runs", runs, admin_ok=True)
 SLAP_HANDLER = DisableAbleCommandHandler("slap",
@@ -240,7 +213,6 @@ SLAP_HANDLER = DisableAbleCommandHandler("slap",
                                          pass_args=True,
                                          admin_ok=True)
 
-dispatcher.add_handler(SHOUT_HANDLER)
 dispatcher.add_handler(OWO_HANDLER)
 dispatcher.add_handler(STRETCH_HANDLER)
 dispatcher.add_handler(VAPOR_HANDLER)
