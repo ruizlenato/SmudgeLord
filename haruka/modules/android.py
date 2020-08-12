@@ -247,7 +247,7 @@ async def magisk(event):
     url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
     releases = '**Latest Magisk Releases:**\n'
     variant = [
-        'master/stable', 'master/beta', 'canary/release', 'canary/debug'
+        'master/stable', 'master/beta', 'canary/debug'
     ]
     for variants in variant:
         fetch = get(url + variants + '.json')
@@ -260,10 +260,6 @@ async def magisk(event):
             name = "**Beta**"
             cc = 0
             branch = "master"
-        elif variants == "canary/release":
-            name = "**Canary**"
-            cc = 1
-            branch = "canary"
         elif variants == "canary/debug":
             name = "**Canary (Debug)**"
             cc = 1
