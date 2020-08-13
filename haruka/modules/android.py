@@ -159,7 +159,7 @@ def checkfw(bot, update, args):
 def magisk(bot, update):
     url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
     releases = ""
-    for type, path in {"Stable": "master/stable", "Beta": "master/beta", "Canary": "canary/debug"}.items():
+    for type, path in {"Stable": "master/stable", "Beta": "master/beta", "Canary(Debug)": "canary/debug"}.items():
         data = get(url + path + '.json').json()
         releases += f'{type}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
                     f'[APP v{data["app"]["version"]}]({data["app"]["link"]}) | ' \
