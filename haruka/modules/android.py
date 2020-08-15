@@ -36,7 +36,7 @@ def device(bot, update, args):
     db = get(DEVICES_DATA).json()
     newdevice = device.strip('lte') if device.startswith('beyond') else device
     try:
-        reply = f'\n\n'
+        reply = '\n\n'
         brand = db[newdevice][0]['brand']
         name = db[newdevice][0]['name']
         model = db[newdevice][0]['model']
@@ -68,12 +68,12 @@ def odin(bot, update, args):
 @run_async
 def getfw(bot, update, args):
     if not len(args) == 2:
-        reply = f'Give me something to fetch, like: <code>/getfw SM-N975F DBT</code>'
+        reply = 'Give me something to fetch, like: <code>/getfw SM-N975F DBT</code>'
         update.effective_message.reply_text("{}".format(reply),
                     parse_mode=ParseMode.HTML)
         return
     temp,csc = args
-    model = f'sm-'+temp if not temp.upper().startswith('SM-') else temp
+    model = 'sm-'+temp if not temp.upper().startswith('SM-') else temp
     test = get(f'https://samfrew.com/model/{model.upper()}/region/{csc.upper()}/')
     if test.status_code == 404:
         reply = f"Couldn't find any firmware downloads for <code>{model.upper()} {csc.upper()}</code>, make sure you gave me the right CSC and model!"
@@ -96,13 +96,13 @@ def getfw(bot, update, args):
             reply += f' • Phone: `{phone}`\n'
         if os:
             reply += f' • Android: `{os}`\n'
-    reply += f'\n'
+    reply += '\n'
     reply += f'*Downloads for {model.upper()} {csc.upper()}:*\n'
     reply += f' • [samfrew.com]({url1})\n'
     reply += f' • [sammobile.com]({url2})\n'
     reply += f' • [sfirmware.com]({url3})\n'
     reply += f' • [samfw.com]({url4}) ❇️\n\n'
-    reply += f'❇️,the site with this symbol is the best site to download\n'
+    reply += '❇️,the site with this symbol is the best site to download\n'
     update.message.reply_text("{}".format(reply),
                            parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
@@ -110,12 +110,12 @@ def getfw(bot, update, args):
 @run_async
 def checkfw(bot, update, args):
     if not len(args) == 2:
-        reply = f'Give me something to fetch, like:\n`/checkfw SM-N975F DBT`'
+        reply = 'Give me something to fetch, like:\n`/checkfw SM-N975F DBT`'
         update.effective_message.reply_text("{}".format(reply),
                     parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
         return
     temp,csc = args
-    model = f'sm-'+temp if not temp.upper().startswith('SM-') else temp
+    model = 'sm-'+temp if not temp.upper().startswith('SM-') else temp
     fota = get(f'http://fota-cloud-dn.ospserver.net/firmware/{csc.upper()}/{model.upper()}/version.xml')
     test = get(f'http://fota-cloud-dn.ospserver.net/firmware/{csc.upper()}/{model.upper()}/version.test.xml')
     if test.status_code != 200:
@@ -135,7 +135,7 @@ def checkfw(bot, update, args):
             reply += f' • Phone: `{phone1}`\n'
         if os1:
             reply += f' • Android: `{os1}`\n'
-        reply += f'\n'
+        reply += '\n'
     else:
         reply = f'*No public release found for {model.upper()} {csc.upper()}.*\n\n'
     reply += f'*Latest test firmware for {model.upper()} {csc.upper()}:*\n'
@@ -146,7 +146,7 @@ def checkfw(bot, update, args):
             reply += f' • Phone: `{phone2}`\n'
         if os2:
             reply += f' • Android: `{os2}`\n'
-        reply += f'\n'
+        reply += '\n'
     else:
         md5=page2.find("latest").text.strip()
         reply += f' • Hash: `{md5}`\n • Android: `{os2}`\n\n'
@@ -196,7 +196,7 @@ def twrp(bot, update, args):
             if (err.message == "Message to delete not found" ) or (err.message == "Message can't be deleted" ):
                 return
     else:
-        reply = f'\n'            
+        reply = '\n'            
         db = get(DEVICES_DATA).json()
         newdevice = device.strip('lte') if device.startswith('beyond') else device
         try:
@@ -226,7 +226,7 @@ def phh(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
 
     usr = get(
-        f'https://api.github.com/repos/phhusson/treble_experimentations/releases/latest'
+        'https://api.github.com/repos/phhusson/treble_experimentations/releases/latest'
     ).json()
     reply_text = tld(chat.id, "cust_releases").format(romname)
     for i in range(len(usr)):
@@ -244,7 +244,7 @@ def descendant(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat  # type: Optional[Chat]
 
-    usr = get(f'https://api.github.com/repos/Descendant/InOps/releases/latest'
+    usr = get('https://api.github.com/repos/Descendant/InOps/releases/latest'
               ).json()
     reply_text = tld(chat.id, "cust_releases").format(romname)
     for i in range(len(usr)):
