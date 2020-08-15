@@ -3,6 +3,8 @@
 is_example_config_or_not: "Ahhhhhhhhhhh i am not blind so i'll follow what the line above me asked"
 ##############################
 bot_token: "Your bot token"
+api_key: ''
+api_hash: ''
 owner_id: 123456
 owner_username: "OWNER USERNAME"
 message_dump: "CHAT ID"
