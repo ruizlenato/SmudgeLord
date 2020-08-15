@@ -13,7 +13,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from haruka.modules import ALL_MODULES
-from haruka import dispatcher, updater, LOGGER, ALLOW_EXCL
+from haruka import dispatcher, updater, LOGGER, ALLOW_EXCL, TOKEN, tbot
 from haruka.modules.helper_funcs.misc import paginate_modules
 from haruka.modules.translations.strings import tld
 
@@ -332,6 +332,13 @@ def main():
                           read_latency=3.0)
     updater.idle()
 
+    LOGGER.info("Successfully loaded")
+    if len(argv) not in (1, 3, 4):
+        tbot.disconnect()
+    else:
+        tbot.run_until_disconnected()
+
+    updater.idle()
 
 CHATS_CNT = {}
 CHATS_TIME = {}
@@ -404,4 +411,5 @@ def process_update(self, update):
 if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
     LOGGER.info("Successfully loaded")
+    tbot.start(bot_token=TOKEN)
     main()
