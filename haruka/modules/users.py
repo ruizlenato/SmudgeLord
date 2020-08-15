@@ -3,7 +3,7 @@ from io import BytesIO
 from time import sleep
 from typing import Optional
 
-from typing import Optional, List
+from typing import List
 from telegram import TelegramError, Chat, Message
 from telegram import Update, Bot
 from telegram import ParseMode
