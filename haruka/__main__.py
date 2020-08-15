@@ -330,7 +330,6 @@ def main():
                           clean=True,
                           bootstrap_retries=-1,
                           read_latency=3.0)
-    updater.idle()
 
     LOGGER.info("Successfully loaded")
     if len(argv) not in (1, 3, 4):
@@ -339,6 +338,7 @@ def main():
         tbot.run_until_disconnected()
 
     updater.idle()
+
 
 CHATS_CNT = {}
 CHATS_TIME = {}
@@ -363,17 +363,17 @@ def process_update(self, update):
             'An uncaught error was raised while updating process')
         return
 
-        t = CHATS_TIME.get(update.effective_chat.id,
-                           datetime.datetime(1970, 1, 1))
-        if t and now > t + datetime.timedelta(0, 1):
-            CHATS_TIME[update.effective_chat.id] = now
-            cnt = 0
-        else:
-            cnt += 1
+    t = CHATS_TIME.get(update.effective_chat.id, datetime.datetime(1970, 1, 1))
+    if t and now > t + datetime.timedelta(0, 1):
+        CHATS_TIME[update.effective_chat.id] = now
+        cnt = 0
+    else:
+        cnt += 1
 
-        if cnt > 10:
-            return
-        CHATS_CNT[update.effective_chat.id] = cnt
+    if cnt > 10:
+        return
+
+    CHATS_CNT[update.effective_chat.id] = cnt
 
     for group in self.groups:
         try:
@@ -410,6 +410,5 @@ def process_update(self, update):
 
 if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
-    LOGGER.info("Successfully loaded")
     tbot.start(bot_token=TOKEN)
     main()
