@@ -1115,3 +1115,17 @@ direct_links_help: |
 
  Lista de sites suportados (URLs):
  Google Drive - MediaFire - SourceForge
+
+
+#OrangeFox
+fox_devices_title: "**OrangeFox Recovery está atualmente disponível para:**"
+fox_get_release: Você pode obter a ultima versão lançada do orangefox com `/orangefox (codinome)`
+fox_device_not_found: Esse device não foi encontrado!
+fox_release_not_found: "Versão não encontrada!"
+fox_release_device: "**📱 Device:** {fullname} (`{codename}`)\n"
+fox_release_version: "**📃 Versão:** `{}`\n"
+fox_release_maintainer: "**👨🏻‍💻 Mantedor:** {name}, {status}\n"
+fox_release_maintained_1: Mantido
+fox_release_maintained_3: Dropado(Não mantido)
+fox_release_date: "**📆 Data de lançamento:** {}\n"
+fox_release_md5: "**✅ MD5 do arquivo :** `{}`\n"
