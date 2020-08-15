@@ -39,6 +39,8 @@ if not CONFIG['is_example_config_or_not'] == "not_sample_anymore":
     quit(1)
 
 TOKEN = CONFIG['bot_token']
+API_KEY = CONFIG['api_key']
+API_HASH = CONFIG['api_hash']
 
 try:
     OWNER_ID = int(CONFIG['owner_id'])
