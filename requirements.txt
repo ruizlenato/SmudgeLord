@@ -12,8 +12,8 @@ pynewtonmath
 zalgo-text
 geopy
 nltk
-aiohttp
-Pillow
+aiohttp>=2.2.5
+Pillow>=4.2.0
 PyLyrics
 hurry.filesize
 googletrans
