@@ -401,7 +401,7 @@ def __import_data__(chat_id, data):
 
 
 def __stats__():
-    return "{} notes, accross {} chats.".format(sql.num_notes(),
+    return "• `{}` notes, accross `{}` chats.".format(sql.num_notes(),
                                                 sql.num_chats())
 
 

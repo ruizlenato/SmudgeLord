@@ -267,7 +267,7 @@ def reply_filter(bot: Bot, update: Update):
 
 
 def __stats__():
-    return "{} filters, across {} chats.".format(sql.num_filters(),
+    return "• `{}` filters, across `{}` chats.".format(sql.num_filters(),
                                                  sql.num_chats())
 
 
