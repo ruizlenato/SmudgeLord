@@ -354,7 +354,7 @@ def clear_gbans(bot: Bot, update: Update):
 
 
 def __stats__():
-    return "• `{}` gbanned users. [Note, We regularly clean off deleted account from the database]".format(
+    return "• `{}` gbanned users [We regularly clean off deleted account from the database].".format(
         sql.num_gbanned_users())
 
 
