@@ -26,4 +26,3 @@ markdown2
 spamwatch
 bs4
 covid
-lmxl>=4.5.2
