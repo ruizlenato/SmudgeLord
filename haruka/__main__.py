@@ -118,8 +118,8 @@ def send_start(bot, update):
     text = tld(chat.id, 'main_start_pm')
 
     keyboard = [[
-        InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_support'),
-                             url="https://t.me/Renatoh")
+        InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_source'),
+                             url="https://github.com/RenatohRibeiro/SmudgeLord")
     ]]
     keyboard += [[
         InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_lang'), callback_data="set_lang_"),
