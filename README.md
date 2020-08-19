@@ -1,6 +1,6 @@
 # SmudgeLord :3
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/50724f379eb24648b11aa98ee0863283)](https://app.codacy.com/manual/RenatohRibeiro/SmudgeLord?utm_source=github.com&utm_medium=referral&utm_content=RenatohRibeiro/SmudgeLord&utm_campaign=Badge_Grade_Dashboard)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/b97fcc04647642459c1e14469548e98e)](https://www.codacy.com/manual/RenatohRibeiro/SmudgeLord?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RenatohRibeiro/SmudgeLord&amp;utm_campaign=Badge_Grade)
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/RenatohRibeiro/SmudgeLord/?ref=repository-badge)
 
 A modular Telegram Python bot running on python3 with an sqlalchemy database.
