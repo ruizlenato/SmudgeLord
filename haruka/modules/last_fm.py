@@ -91,13 +91,13 @@ def top_tracks(bot: Bot, update: Update):
     user_id = update.effective_user.id
     username = sql.get_user(user_id)
     if not username:
-        msg.reply_text("🇺🇸You haven't set your username yet!\n🇧🇷Você não colocou seu username")
+        msg.reply_text(tld(chat.id, "lastfm_usernotset"))
         return
     
     base_url = "http://ws.audioscrobbler.com/2.0"
     res = requests.get(f"{base_url}?method=user.gettoptracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json")
     if not res.status_code == 200:
-        msg.reply_text("Hmm... something went wrong.\nPlease ensure that you've set the correct username!")
+        msg.reply_text(tld(chat.id, "lastfm_userwrong"))
         return
         
     else:
@@ -127,6 +127,7 @@ Share what you're what listening to with the help of this module!
  - /setuser <username>: sets your last.fm username.
  - /clearuser: removes your last.fm username from the bot's database.
  - /lastfm: returns what you're scrobbling on last.fm.
+ - /toptracks: returns the songs you most listened to.
 """
 
 __mod_name__ = "Last.FM"

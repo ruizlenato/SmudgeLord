@@ -1098,6 +1098,7 @@ last_fm_help: |
  - /setuser <username>: sets your last.fm username.
  - /clearuser: removes your last.fm username from the bot's database.
  - /lastfm: returns wh at you're scrobbling on last.fm
+ - /returns the songs you most listened to
 
 #direct_links
 modname_direct_links: Lirect Links

@@ -1096,8 +1096,8 @@ lastfm_scrr: 🎧 <code>{} - {}</code>\n
 last_fm_help: |
  - /setuser <username>: Configure seu Username(nome de usuário)  do LastFM.
  - /clearuser:  remove seu nome de usuário last.fm do banco de dados do bot.
- - /lastfm:  retorna o quando você está scrobbling(escutando) no last.fm.
- 
+ - /lastfm:  mostra o que você está scrobbling(escutando) no last.fm.
+ - /lastfm: mostra as musicas que você mais escutou.
  Exemplos:
  Configurando seu Username:
  "/setusername renatohribeh"
