@@ -125,6 +125,7 @@ def chart(bot: Bot, update: Update):
     msg = update.effective_message
     user = update.effective_user.first_name
     user_id = update.effective_user.id
+    chat = update.effective_chat
     username = sql.get_user(user_id)
     if not username:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
