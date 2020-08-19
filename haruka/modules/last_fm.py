@@ -106,7 +106,7 @@ def top_tracks(bot: Bot, update: Update):
         track_dict2 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(2)}
         track_dict3 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
 
-        rep = f"{user} Top tracks :\n\n"
+        rep = tld(chat.id, "lastfm_listening").format(user)
         for artist, song in track_dict.items():
             rep += f"🥇  <code>{artist} - {song}</code>\n"
         for artist, song in track_dict2.items():
