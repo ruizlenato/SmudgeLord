@@ -118,6 +118,41 @@ def top_tracks(bot: Bot, update: Update):
         rep += f"\n(<code>{scrobbles}</code> scrobbles so far)"
         
     msg.reply_text(rep, parse_mode=ParseMode.HTML)
+
+@run_async
+def chart(bot: Bot, update: Update):
+    msg = update.effective_message
+    user = update.effective_user.first_name
+    user_id = update.effective_user.id
+    username = sql.get_user(user_id)
+    if not username:
+        msg.reply_text(tld(chat.id, "lastfm_usernotset"))
+        return
+    
+    base_url = "http://ws.audioscrobbler.com/2.0"
+    res = requests.get(f"{base_url}?method=user.getweeklytrackchart&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json")
+    if not res.status_code == 200:
+        msg.reply_text(tld(chat.id, "lastfm_userwrong"))
+        return
+        
+    else:
+        tracks = res.json().get("toptracks").get("track")
+        track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(1)}
+        track_dict2 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(2)}
+        track_dict3 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
+
+        rep = f"{user} Top tracks :\n\n"
+        for artist, song in track_dict.items():
+            rep += f"🥇  <code>{artist} - {song}</code>\n"
+        for artist, song in track_dict2.items():
+            rep += f"🥈  <code>{artist} - {song}</code>\n"
+        for artist, song in track_dict3.items():
+            rep += f"🥉  <code>{artist} - {song}</code>\n"
+        last_user = requests.get(f"{base_url}?method=user.getinfo&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("user")
+        scrobbles = last_user.get("playcount")
+        rep += f"\n(<code>{scrobbles}</code> scrobbles so far)"
+        
+    msg.reply_text(rep, parse_mode=ParseMode.HTML)
     
     
 __help__ = """
@@ -137,8 +172,10 @@ SET_USER_HANDLER = CommandHandler("setuser", set_user, pass_args=True)
 CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user)
 LASTFM_HANDLER = DisableAbleCommandHandler(["lastfm", "lt", "last", "l"], last_fm)
 TOPTRACKS_HANDLER = CommandHandler(["lasttop", "top", "lastop", "toplast", "overall","t"], top_tracks)
+CHART_HANDLER = DisableAbleCommandHandler(["chart", "topweek", "tk"], chart)
 
 
+dispatcher.add_handler(CHART_HANDLER)
 dispatcher.add_handler(SET_USER_HANDLER)
 dispatcher.add_handler(CLEAR_USER_HANDLER)
 dispatcher.add_handler(LASTFM_HANDLER)
