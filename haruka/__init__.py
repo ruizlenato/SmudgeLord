@@ -56,17 +56,17 @@ except ValueError:
 OWNER_USERNAME = CONFIG['owner_username']
 
 try:
-    SUDO_USERS = set(int(x) for x in CONFIG['sudo_users'] or [])
+    SUDO_USERS = {int(x) for x in CONFIG['sudo_users'] or []}
 except ValueError:
     raise Exception("Your sudo users list does not contain valid integers.")
 
 try:
-    SUPPORT_USERS = set(int(x) for x in CONFIG['support_users'] or [])
+    SUPPORT_USERS = {int(x) for x in CONFIG['support_users'] or []}
 except ValueError:
     raise Exception("Your support users list does not contain valid integers.")
 
 try:
-    WHITELIST_USERS = set(int(x) for x in CONFIG['whitelist_users'] or [])
+    WHITELIST_USERS = {int(x) for x in CONFIG['whitelist_users'] or []}
 except ValueError:
     raise Exception(
         "Your whitelisted users list does not contain valid integers.")

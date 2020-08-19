@@ -11,7 +11,7 @@ from telegram.utils.helpers import escape_markdown
 from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.translations.strings import tld, tld_list
 
-WIDE_MAP = dict((i, i + 0xFEE0) for i in range(0x21, 0x7F))
+WIDE_MAP = {i: i + 0xFEE0 for i in range(0x21, 0x7F)}
 WIDE_MAP[0x20] = 0x3000
 
 # D A N K modules by @deletescape vvv
