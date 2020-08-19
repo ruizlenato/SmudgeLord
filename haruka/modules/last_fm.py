@@ -136,7 +136,7 @@ def chart(bot: Bot, update: Update):
         return
         
     else:
-        tracks = res.json().get("toptracks").get("track")
+        tracks = res.json().get("weeklytrackchart").get("track")
         track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(1)}
         track_dict2 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(2)}
         track_dict3 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
