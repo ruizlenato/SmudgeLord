@@ -479,7 +479,7 @@ def security(bot: Bot, update: Update, args: List[str]) -> str:
         if (var == "yes" or var == "y" or var == "on"):
             check = bot.getChatMember(chat.id, bot.id)
             if check.status == 'member' or check[
-                    'can_restrict_members'] == False:
+                    'can_restrict_members'] is False:
                 text = tld(chat.id, 'welcome_mute_bot_cant_mute')
                 update.effective_message.reply_text(text,
                                                     parse_mode="markdown")

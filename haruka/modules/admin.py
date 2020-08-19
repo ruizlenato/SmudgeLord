@@ -286,7 +286,7 @@ def reaction(bot: Bot, update: Update, args: List[str]) -> str:
     else:
         status = sql.command_reaction(chat.id)
         update.effective_message.reply_text(tld(
-            chat.id, "admin_reaction_status").format('enabled' if status ==
+            chat.id, "admin_reaction_status").format('enabled' if status is
                                                      True else 'disabled'),
                                             parse_mode=ParseMode.MARKDOWN)
 

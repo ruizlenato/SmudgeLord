@@ -137,7 +137,7 @@ def user_admin(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             update.effective_message.delete()
 
-        elif (admin_sql.command_reaction(chat.id) == True):
+        elif (admin_sql.command_reaction(chat.id) is True):
             update.effective_message.reply_text(tld(chat.id, 'helpers_user_not_admin'))
 
     return is_admin

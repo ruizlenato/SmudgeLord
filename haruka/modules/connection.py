@@ -54,7 +54,7 @@ def connect_chat(bot, update, args):
             if (bot.get_chat_member(
                     connect_chat, update.effective_message.from_user.id).status
                     in ('administrator', 'creator') or
-                (sql.allow_connect_to_chat(connect_chat) == True)
+                (sql.allow_connect_to_chat(connect_chat) is True)
                     and bot.get_chat_member(
                         connect_chat,
                         update.effective_message.from_user.id).status in
@@ -123,7 +123,7 @@ def connect_chat(bot, update, args):
         if (bot.get_chat_member(
                 connect_chat, update.effective_message.from_user.id).status in
             ('administrator', 'creator') or
-            (sql.allow_connect_to_chat(connect_chat) == True)
+            (sql.allow_connect_to_chat(connect_chat) is True)
                 and bot.get_chat_member(connect_chat, update.effective_message.
                                         from_user.id).status in 'member') or (
                                             user.id in SUDO_USERS):
@@ -179,7 +179,7 @@ def connected(bot, update, chat, user_id, need_admin=True):
         conn_id = sql.get_connected_chat(user_id).chat_id
         if (bot.get_chat_member(
                 conn_id, user_id).status in ('administrator', 'creator') or
-            (sql.allow_connect_to_chat(connect_chat) == True)
+            (sql.allow_connect_to_chat(connect_chat) is True)
                 and bot.get_chat_member(
                     user_id, update.effective_message.from_user.id).status in
             ('member')) or (user_id in SUDO_USERS):

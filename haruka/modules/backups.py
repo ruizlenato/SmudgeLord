@@ -325,7 +325,7 @@ def export_data(bot: Bot, update: Update, chat_data):
 # Temporary data
 def put_chat(chat_id, value, chat_data):
     # print(chat_data)
-    if value == False:
+    if value is False:
         status = False
     else:
         status = True
