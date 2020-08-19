@@ -1093,6 +1093,7 @@ lastfm_listening: "{} está ouvindo atualmente:\n\n"
 lastfm_scrb_loved: <code>{} - {}</code> (❤️)
 lastfm_scr: \n(<code>{}</code> scrobbles até agora)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
+lastfm_toptrack: "{} - Top Musicas"
 last_fm_help: |
  - /setuser <username>: Configure seu Username(nome de usuário)  do LastFM.
  - /clearuser:  remove seu nome de usuário last.fm do banco de dados do bot.
