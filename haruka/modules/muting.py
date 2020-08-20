@@ -1,24 +1,7 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import html
-from typing import List
+from typing import Optional, List
 
-from telegram import Update, Bot
+from telegram import Message, Chat, Update, Bot, User
 from telegram.error import BadRequest
 from telegram.ext import Filters
 from telegram.ext.dispatcher import run_async
@@ -26,12 +9,12 @@ from telegram.utils.helpers import mention_html
 from telegram import ParseMode
 
 from haruka import dispatcher, LOGGER, SUDO_USERS
-from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict, is_user_ban_protected
+from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict
 from haruka.modules.helper_funcs.extraction import extract_user, extract_user_and_text
 from haruka.modules.helper_funcs.string_handling import extract_time
 from haruka.modules.log_channel import loggable
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 from haruka.modules.connection import connected
 from haruka.modules.disable import DisableAbleCommandHandler
 
@@ -41,9 +24,9 @@ from haruka.modules.disable import DisableAbleCommandHandler
 @user_admin
 @loggable
 def mute(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -68,10 +51,12 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
     if member:
 
         if user_id in SUDO_USERS:
-            message.reply_text(tld(chat.id, "mute_not_sudo"))
+            message.reply_text(
+                tld(chat.id, "mute_not_sudo"))
 
         elif is_user_admin(chatD, user_id, member=member):
-            message.reply_text(tld(chat.id, "mute_not_m_admin"))
+            message.reply_text(
+                tld(chat.id, "mute_not_m_admin"))
 
         elif member.can_send_messages is None or member.can_send_messages:
             bot.restrict_chat_member(chatD.id,
@@ -92,8 +77,7 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
                                               mention_html(member.user.id, member.user.first_name))
 
         else:
-            message.reply_text(
-                tld(chat.id, "mute_already_mute").format(chatD.title))
+            message.reply_text(tld(chat.id, "mute_already_mute").format(chatD.title))
     else:
         message.reply_text(
             tld(chat.id, "mute_not_in_chat").format(chatD.title))
@@ -106,9 +90,9 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def unmute(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -124,18 +108,7 @@ def unmute(bot: Bot, update: Update, args: List[str]) -> str:
         message.reply_text(tld(chat.id, "unmute_invalid"))
         return ""
 
-    try:
-        member = chatD.get_member(int(user_id))
-    except BadRequest as excp:
-        if excp.message == "User not found.":
-            message.reply_text(tld(chat.id, "bans_err_usr_not_found"))
-            return ""
-        else:
-            raise
-
-    if is_user_ban_protected(chat, user_id, member):
-        message.reply_text(tld(chat.id, "unmute_is_an_admin"))
-        return ""
+    member = chatD.get_member(int(user_id))
 
     if member.status != 'kicked' and member.status != 'left':
         if member.can_send_messages and member.can_send_media_messages \
@@ -150,9 +123,10 @@ def unmute(bot: Bot, update: Update, args: List[str]) -> str:
                                      can_send_other_messages=True,
                                      can_add_web_page_previews=True)
             keyboard = []
-            reply = tld(chat.id, "unmute_success").format(
-                mention_html(member.user.id, member.user.first_name),
-                chatD.title)
+            reply = tld(chat.id,
+                        "unmute_success").format(
+                            mention_html(member.user.id,
+                                         member.user.first_name), chatD.title)
             message.reply_text(reply,
                                reply_markup=keyboard,
                                parse_mode=ParseMode.HTML)
@@ -175,9 +149,9 @@ def unmute(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -191,7 +165,8 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
-        message.reply_text(tld(chat.id, "mute_not_refer"))
+        message.reply_text(
+            tld(chat.id, "mute_not_refer"))
         return ""
 
     try:
@@ -208,11 +183,14 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
         return ""
 
     if user_id == bot.id:
-        message.reply_text(tld(chat.id, "mute_is_bot"))
+        message.reply_text(
+            tld(chat.id, "mute_is_bot"))
         return ""
 
     if not reason:
-        message.reply_text(tld(chat.id, "tmute_no_time"))
+        message.reply_text(
+            tld(chat.id,
+                "tmute_no_time"))
         return ""
 
     split_reason = reason.split(None, 1)
@@ -235,7 +213,7 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
           "\n<b>Time:</b> {}".format(html.escape(chat.title), mention_html(user.id, user.first_name),
                                      mention_html(member.user.id, member.user.first_name), time_val)
     if reason:
-        log += tld(chat.id, "bans_logger_reason").format(reason)
+        log += "\n<b>Reason:</b> {}".format(reason)
 
     try:
         if member.can_send_messages is None or member.can_send_messages:
@@ -244,11 +222,13 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
                                      until_date=mutetime,
                                      can_send_messages=False)
             message.reply_text(
-                tld(chat.id, "tmute_success").format(time_val, chatD.title))
+                tld(chat.id,
+                    "tmute_success").format(time_val, chatD.title))
             return log
         else:
             message.reply_text(
-                tld(chat.id, "mute_already_mute").format(chatD.title))
+                tld(chat.id,
+                    "mute_already_mute").format(chatD.title))
 
     except BadRequest as excp:
         if excp.message == "Reply message not found":
@@ -261,7 +241,8 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
             LOGGER.warning(update)
             LOGGER.exception("ERROR muting user %s in chat %s (%s) due to %s",
                              user_id, chat.title, chat.id, excp.message)
-            message.reply_text(tld(chat.id, "mute_cant_mute"))
+            message.reply_text(
+                tld(chat.id, "mute_cant_mute"))
 
     return ""
 
@@ -271,9 +252,9 @@ def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -286,7 +267,11 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text(tld(chat.id, "restrict_invalid"))
+        message.reply_text(
+            tld(
+                chat.id,
+                "restrict_invalid"
+            ))
         return ""
 
     if user_id == bot.id:
@@ -307,9 +292,10 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
                                      can_send_other_messages=False,
                                      can_add_web_page_previews=False)
             keyboard = []
-            reply = tld(chat.id, "restrict_success").format(
-                mention_html(member.user.id, member.user.first_name),
-                chatD.title)
+            reply = tld(chat.id,
+                        "restrict_success").format(
+                            mention_html(member.user.id,
+                                         member.user.first_name), chatD.title)
             message.reply_text(reply,
                                reply_markup=keyboard,
                                parse_mode=ParseMode.HTML)
@@ -322,7 +308,8 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
                                               mention_html(member.user.id, member.user.first_name), user_id)
 
         else:
-            message.reply_text(tld(chat.id, "restrict_already_restricted"))
+            message.reply_text(
+                tld(chat.id, "restrict_already_restricted"))
     else:
         message.reply_text(
             tld(chat.id, "mute_not_in_chat").format(chatD.title))
@@ -335,9 +322,9 @@ def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def media(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -350,7 +337,11 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id = extract_user(message, args)
     if not user_id:
-        message.reply_text(tld(chat.id, "unrestrict_invalid"))
+        message.reply_text(
+            tld(
+                chat.id,
+                "unrestrict_invalid"
+            ))
         return ""
 
     member = chatD.get_member(int(user_id))
@@ -359,7 +350,10 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
         if member.can_send_messages and member.can_send_media_messages \
                 and member.can_send_other_messages and member.can_add_web_page_previews:
             message.reply_text(
-                tld(chat.id, "unrestrict_not_restricted").format(chatD.title))
+                tld(
+                    chat.id,
+                    "unrestrict_not_restricted"
+                ).format(chatD.title))
         else:
             bot.restrict_chat_member(chatD.id,
                                      int(user_id),
@@ -382,7 +376,10 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
                                                            mention_html(user.id, user.first_name),
                                                            mention_html(member.user.id, member.user.first_name), user_id)
     else:
-        message.reply_text(tld(chat.id, "unrestrict_not_in_chat"))
+        message.reply_text(
+            tld(
+                chat.id,
+                "unrestrict_not_in_chat"))
 
     return ""
 
@@ -393,9 +390,9 @@ def media(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
 
     conn = connected(bot, update, chat, user.id)
     if conn:
@@ -409,7 +406,8 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
-        message.reply_text(tld(chat.id, "mute_not_refer"))
+        message.reply_text(
+            tld(chat.id, "mute_not_refer"))
         return ""
 
     try:
@@ -422,15 +420,19 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
             raise
 
     if is_user_admin(chat, user_id, member):
-        message.reply_text(tld(chat.id, "restrict_is_admin"))
+        message.reply_text(
+            tld(chat.id, "restrict_is_admin"))
         return ""
 
     if user_id == bot.id:
-        message.reply_text(tld(chat.id, "restrict_is_bot"))
+        message.reply_text(
+            tld(chat.id, "restrict_is_bot"))
         return ""
 
     if not reason:
-        message.reply_text(tld(chat.id, "nomedia_need_time"))
+        message.reply_text(
+            tld(chat.id,
+                "nomedia_need_time"))
         return ""
 
     split_reason = reason.split(None, 1)
@@ -454,7 +456,7 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
           "\n<b>• Time:</b> {}".format(html.escape(chat.title), mention_html(user.id, user.first_name),
                                        mention_html(member.user.id, member.user.first_name), user_id, time_val)
     if reason:
-        log += tld(chat.id, "bans_logger_reason").format(reason)
+        log += "\n<b>• Reason:</b> {}".format(reason)
 
     try:
         if member.can_send_messages is None or member.can_send_messages:
@@ -466,12 +468,14 @@ def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
                                      can_send_other_messages=False,
                                      can_add_web_page_previews=False)
             message.reply_text(
-                tld(chat.id, "nomedia_success").format(time_val, chatD.title))
+                tld(chat.id,
+                    "nomedia_success").format(
+                        time_val, chatD.title))
             return log
         else:
             message.reply_text(
-                tld(chat.id,
-                    "restrict_already_restricted").format(chatD.title))
+                tld(chat.id, "restrict_already_restricted").format(
+                    chatD.title))
 
     except BadRequest as excp:
         if excp.message == "Reply message not found":
