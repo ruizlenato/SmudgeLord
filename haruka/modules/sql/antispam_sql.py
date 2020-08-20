@@ -1,20 +1,3 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import threading
 
 from sqlalchemy import Column, UnicodeText, Integer, String, Boolean
@@ -44,6 +27,28 @@ class GloballyBannedUsers(BASE):
         }
 
 
+class GloballyMutedUsers(BASE):
+    __tablename__ = "gmutes"
+    user_id = Column(Integer, primary_key=True)
+    name = Column(UnicodeText, nullable=False)
+    reason = Column(UnicodeText)
+
+    def __init__(self, user_id, name, reason=None):
+        self.user_id = user_id
+        self.name = name
+        self.reason = reason
+
+    def __repr__(self):
+        return "<GMuted User {} ({})>".format(self.name, self.user_id)
+
+    def to_dict(self):
+        return {
+            "user_id": self.user_id,
+            "name": self.name,
+            "reason": self.reason
+        }
+
+
 class AntispamSettings(BASE):
     __tablename__ = "antispam_settings"
     chat_id = Column(String(14), primary_key=True)
@@ -58,6 +63,7 @@ class AntispamSettings(BASE):
 
 
 GloballyBannedUsers.__table__.create(checkfirst=True)
+GloballyMutedUsers.__table__.create(checkfirst=True)
 AntispamSettings.__table__.create(checkfirst=True)
 
 GBANNED_USERS_LOCK = threading.RLock()
@@ -65,6 +71,11 @@ ASPAM_SETTING_LOCK = threading.RLock()
 GBANNED_LIST = set()
 GBANSTAT_LIST = set()
 ANTISPAMSETTING = set()
+
+GMUTED_USERS_LOCK = threading.RLock()
+GMUTE_SETTING_LOCK = threading.RLock()
+GMUTED_LIST = set()
+GMUTESTAT_LIST = set()
 
 
 def gban_user(user_id, name, reason=None):
@@ -178,6 +189,94 @@ def __load_gban_stat_list():
         SESSION.close()
 
 
+#Gmute
+
+
+def gmute_user(user_id, name, reason=None):
+    with GMUTED_USERS_LOCK:
+        user = SESSION.query(GloballyMutedUsers).get(user_id)
+        if not user:
+            user = GloballyMutedUsers(user_id, name, reason)
+        else:
+            user.name = name
+            user.reason = reason
+
+        SESSION.merge(user)
+        SESSION.commit()
+        __load_gmuted_userid_list()
+
+
+def update_gmute_reason(user_id, name, reason=None):
+    with GMUTED_USERS_LOCK:
+        user = SESSION.query(GloballyMutedUsers).get(user_id)
+        if not user:
+            return False
+        user.name = name
+        user.reason = reason
+
+        SESSION.merge(user)
+        SESSION.commit()
+        return True
+
+
+def ungmute_user(user_id):
+    with GMUTED_USERS_LOCK:
+        user = SESSION.query(GloballyMutedUsers).get(user_id)
+        if user:
+            SESSION.delete(user)
+
+        SESSION.commit()
+        __load_gmuted_userid_list()
+
+
+def is_user_gmuted(user_id):
+    return user_id in GMUTED_LIST
+
+
+def get_gmuted_user(user_id):
+    try:
+        return SESSION.query(GloballyMutedUsers).get(user_id)
+    finally:
+        SESSION.close()
+
+
+def get_gmute_list():
+    try:
+        return [x.to_dict() for x in SESSION.query(GloballyMutedUsers).all()]
+    finally:
+        SESSION.close()
+
+
+def does_chat_gmute(chat_id):
+    return str(chat_id) not in GMUTESTAT_LIST
+
+
+def num_gmuted_users():
+    return len(GMUTED_LIST)
+
+
+def __load_gmuted_userid_list():
+    global GMUTED_LIST
+    try:
+        GMUTED_LIST = {
+            x.user_id
+            for x in SESSION.query(GloballyMutedUsers).all()
+        }
+    finally:
+        SESSION.close()
+
+
+def __load_gmute_stat_list():
+    global GMUTESTAT_LIST
+    try:
+        GMUTESTAT_LIST = {
+            x.chat_id
+            for x in SESSION.query(AntispamSettings).all() if not x.setting
+        }
+    finally:
+        SESSION.close()
+
+
 def migrate_chat(old_chat_id, new_chat_id):
     with ASPAM_SETTING_LOCK:
         gban = SESSION.query(AntispamSettings).get(str(old_chat_id))
@@ -185,9 +284,17 @@ def migrate_chat(old_chat_id, new_chat_id):
             gban.chat_id = new_chat_id
             SESSION.add(gban)
 
+        gmute = SESSION.query(AntispamSettings).get(str(old_chat_id))
+        if gmute:
+            gmute.chat_id = new_chat_id
+            SESSION.add(gmute)
+
         SESSION.commit()
 
 
 # Create in memory userid to avoid disk access
 __load_gbanned_userid_list()
 __load_gban_stat_list()
+
+__load_gmuted_userid_list()
+__load_gmute_stat_list()
