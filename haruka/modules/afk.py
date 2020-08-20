@@ -1,21 +1,6 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
+from typing import Optional
 
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-from telegram import Update, Bot
+from telegram import Message, Update, Bot, User
 from telegram import MessageEntity
 from telegram.error import BadRequest
 from telegram.ext import Filters, MessageHandler, run_async
@@ -25,7 +10,7 @@ from haruka.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHa
 from haruka.modules.sql import afk_sql as sql
 from haruka.modules.users import get_user_id
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 AFK_GROUP = 7
 AFK_REPLY_GROUP = 8
@@ -33,14 +18,7 @@ AFK_REPLY_GROUP = 8
 
 @run_async
 def afk(bot: Bot, update: Update):
-    chat = update.effective_chat
-    user = update.effective_user
-    if not user:  # ignore channels
-        return
-
-    if user.id == 777000:
-        return
-
+    chat = update.effective_chat  # type: Optional[Chat]
     args = update.effective_message.text.split(None, 1)
     if len(args) >= 2:
         reason = args[1]
@@ -55,9 +33,9 @@ def afk(bot: Bot, update: Update):
 
 @run_async
 def no_longer_afk(bot: Bot, update: Update):
-    user = update.effective_user
-    chat = update.effective_chat
-    message = update.effective_message
+    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message  # type: Optional[Message]
 
     if not user:  # ignore channels
         return
@@ -70,14 +48,14 @@ def no_longer_afk(bot: Bot, update: Update):
         try:
             message.reply_text(
                 tld(chat.id, "user_no_longer_afk").format(firstname))
-        except Exception:
+        except:
             return
 
 
 @run_async
 def reply_afk(bot: Bot, update: Update):
-    message = update.effective_message
-    userc = update.effective_user
+    message = update.effective_message  # type: Optional[Message]
+    userc = update.effective_user  # type: Optional[User]
     userc_id = userc.id
     if message.entities and message.parse_entities(
         [MessageEntity.TEXT_MENTION, MessageEntity.MENTION]):
@@ -125,7 +103,7 @@ def reply_afk(bot: Bot, update: Update):
 
 
 def check_afk(bot, update, user_id, fst_name, userc_id):
-    chat = update.effective_chat
+    chat = update.effective_chat  # type: Optional[Chat]
     if sql.is_afk(user_id):
         user = sql.check_afk_status(user_id)
         if not user.reason:
