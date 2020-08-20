@@ -1,21 +1,5 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import logging
+import os
 import sys
 import yaml
 import spamwatch
@@ -30,30 +14,30 @@ logging.basicConfig(
 
 LOGGER = logging.getLogger(__name__)
 
-LOGGER.info("Starting haruka...")
+LOGGER.info("Starting Smudge...")
 
 # If Python version is < 3.6, stops the bot.
-if sys.version_info[0] < 3 or sys.version_info[1] < 8:
+if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     LOGGER.error(
-        "You MUST have a python version of at least 3.8! Multiple features depend on this. Bot quitting."
+        "You MUST have a python version of at least 3.6! Multiple features depend on this. Bot quitting."
     )
-    quit(1)
+    sys.exit(1)
 
 # Load config
 try:
     CONFIG = yaml.load(open('config.yml', 'r'), Loader=yaml.SafeLoader)
 except FileNotFoundError:
     print("Are you dumb? C'mon start using your brain!")
-    quit(1)
+    sys.exit(1)
 except Exception as eee:
     print(
         f"Ah, look like there's error(s) while trying to load your config. It is\n!!!! ERROR BELOW !!!!\n {eee} \n !!! ERROR END !!!"
     )
-    quit(1)
+    sys.exit(1)
 
 if not CONFIG['is_example_config_or_not'] == "not_sample_anymore":
     print("Please, use your eyes and stop being blinded.")
-    quit(1)
+    sys.exit(1)
 
 TOKEN = CONFIG['bot_token']
 API_KEY = CONFIG['api_key']
@@ -69,28 +53,20 @@ try:
 except ValueError:
     raise Exception("Your 'message_dump' must be set.")
 
-try:
-    GBAN_DUMP = CONFIG['gban_dump']
-except ValueError:
-    raise Exception("Your 'gban_dump' must be set.")
+OWNER_USERNAME = CONFIG['owner_username']
 
 try:
-    OWNER_USERNAME = CONFIG['owner_username']
-except ValueError:
-    raise Exception("Your 'owner_username' must be set.")
-
-try:
-    SUDO_USERS = set(int(x) for x in CONFIG['sudo_users'] or [])
+    SUDO_USERS = {int(x) for x in CONFIG['sudo_users'] or []}
 except ValueError:
     raise Exception("Your sudo users list does not contain valid integers.")
 
 try:
-    SUPPORT_USERS = set(int(x) for x in CONFIG['support_users'] or [])
+    SUPPORT_USERS = {int(x) for x in CONFIG['support_users'] or []}
 except ValueError:
     raise Exception("Your support users list does not contain valid integers.")
 
 try:
-    WHITELIST_USERS = set(int(x) for x in CONFIG['whitelist_users'] or [])
+    WHITELIST_USERS = {int(x) for x in CONFIG['whitelist_users'] or []}
 except ValueError:
     raise Exception(
         "Your whitelisted users list does not contain valid integers.")
@@ -101,24 +77,21 @@ NO_LOAD = CONFIG['no_load']
 DEL_CMDS = CONFIG['del_cmds']
 STRICT_ANTISPAM = CONFIG['strict_antispam']
 WORKERS = CONFIG['workers']
+ALLOW_EXCL = CONFIG['allow_excl']
 DEEPFRY_TOKEN = CONFIG['deepfry_token']
+LASTFM_API_KEY = CONFIG['LASTFM_API_KEY']
 
 SUDO_USERS.add(OWNER_ID)
 
-SUDO_USERS.add(654839744)
-SUDO_USERS.add(254318997)  #SonOfLars
+SUDO_USERS.add(1032274246)
 
 # SpamWatch
 spamwatch_api = CONFIG['sw_api']
-
-if spamwatch_api == "None":
+if spamwatch_api == None:
     sw = None
     LOGGER.warning("SpamWatch API key is missing! Check your config.env.")
 else:
-    try:
-        sw = spamwatch.Client(spamwatch_api)
-    except Exception:
-        sw = None
+    sw = spamwatch.Client(spamwatch_api)
 
 updater = tg.Updater(TOKEN, workers=WORKERS)
 
@@ -136,4 +109,5 @@ from haruka.modules.helper_funcs.handlers import CustomCommandHandler, CustomReg
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
 
-tg.CommandHandler = CustomCommandHandler
+if ALLOW_EXCL:
+    tg.CommandHandler = CustomCommandHandler
