@@ -2,6 +2,7 @@
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/b97fcc04647642459c1e14469548e98e)](https://www.codacy.com/manual/RenatohRibeiro/SmudgeLord?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RenatohRibeiro/SmudgeLord&amp;utm_campaign=Badge_Grade)
 [![DeepSource](https://static.deepsource.io/deepsource-badge-light-mini.svg)](https://deepsource.io/gh/RenatohRibeiro/SmudgeLord/?ref=repository-badge)
+[![GitHub contributors](https://img.shields.io/github/contributors/RenatohRibeiro/SmudgeLord.svg)](https://GitHub.com/RenatohRibeiro/SmudgeLord/graphs/contributors/)
 
 A modular Telegram Python bot running on python3 with an sqlalchemy database.
 
@@ -22,6 +23,4 @@ I'm based on [Haruka Aya](https://t.me/HarukaAyaBot),
 * [Rhyse Simpson - skittles](https://github.com/skittles9823) - For memes
 * [MrYacha](https://gitlab.com/MrYacha/HarukaAya) - OrangeFox Module
 
-*Once you've setup your database and your configuration (see below) is complete, simply run:*
-
-`python3 -m haruka`
+And for all other unlisted [contributors](https://github.com/RenatohRibeiro/SmudgeLord/graphs/contributors).
