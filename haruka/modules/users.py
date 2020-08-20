@@ -1,24 +1,12 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import re
+from io import BytesIO
 from time import sleep
+from typing import Optional
+
 from typing import List
-from telegram import TelegramError, Update, Bot, ParseMode
+from telegram import TelegramError, Chat, Message
+from telegram import Update, Bot
+from telegram import ParseMode
 from telegram.error import BadRequest
 from telegram.ext import MessageHandler, Filters, CommandHandler
 from telegram.ext.dispatcher import run_async
@@ -29,7 +17,7 @@ from telegram.utils.helpers import escape_markdown
 from haruka.modules.helper_funcs.filters import CustomFilters
 from haruka.modules.helper_funcs.chat_status import bot_admin
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 USERS_GROUP = 4
 CHAT_GROUP = 10
@@ -89,8 +77,8 @@ def broadcast(bot: Bot, update: Update):
 
 @run_async
 def log_user(bot: Bot, update: Update):
-    chat = update.effective_chat
-    msg = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    msg = update.effective_message  # type: Optional[Message]
 
     sql.update_user(msg.from_user.id, msg.from_user.username, chat.id,
                     chat.title)
@@ -105,11 +93,59 @@ def log_user(bot: Bot, update: Update):
 
 
 @run_async
+def chats(bot: Bot, update: Update):
+    all_chats = sql.get_all_chats() or []
+    chatfile = 'List of chats.\n0. Chat name | Chat ID | Members count | Invitelink\n'
+    P = 1
+    for chat in all_chats:
+        try:
+            curr_chat = bot.getChat(chat.chat_id)
+            bot_member = curr_chat.get_member(bot.id)
+            chat_members = curr_chat.get_members_count(bot.id)
+            if bot_member.can_invite_users:
+                invitelink = bot.exportChatInviteLink(chat.chat_id)
+            else:
+                invitelink = "0"
+            chatfile += "{}. {} | {} | {} | {}\n".format(
+                P, chat.chat_name, chat.chat_id, chat_members, invitelink)
+            P = P + 1
+        except:
+            pass
+
+    with BytesIO(str.encode(chatfile)) as output:
+        output.name = "chatlist.txt"
+        update.effective_message.reply_document(
+            document=output,
+            filename="chatlist.txt",
+            caption="Here is the list of chats in my database.")
+
+
+@run_async
+def banall(bot: Bot, update: Update, args: List[int]):
+    if args:
+        chat_id = str(args[0])
+        all_mems = sql.get_chat_members(chat_id)
+    else:
+        chat_id = str(update.effective_chat.id)
+        all_mems = sql.get_chat_members(chat_id)
+    for mems in all_mems:
+        try:
+            bot.kick_chat_member(chat_id, mems.user)
+            update.effective_message.reply_text("Tried banning " +
+                                                str(mems.user))
+            sleep(0.1)
+        except BadRequest as excp:
+            update.effective_message.reply_text(excp.message + " " +
+                                                str(mems.user))
+            continue
+
+
+@run_async
 def snipe(bot: Bot, update: Update, args: List[str]):
     try:
         chat_id = str(args[0])
         del args[0]
-    except TypeError as excp:
+    except TypeError:
         update.effective_message.reply_text(
             "Please give me a chat to echo to!")
     to_send = " ".join(args)
@@ -159,15 +195,14 @@ def leavechat(bot: Bot, update: Update, args: List[int]):
         try:
             chat = update.effective_chat
             if chat.type == "private":
-                update.effective_message.reply_text(
-                    "You do not seem to be referring to a chat!")
+                update.effective_message.reply_text("You do not seem to be referring to a chat!")
                 return
             chat_id = chat.id
             reply_text = "`I'll leave this group`"
             bot.send_message(chat_id,
-                             reply_text,
-                             parse_mode='Markdown',
-                             disable_web_page_preview=True)
+                            reply_text,
+                            parse_mode='Markdown',
+                            disable_web_page_preview=True)
             bot.leaveChat(chat_id)
         except BadRequest as excp:
             if excp.message == "Chat not found":
@@ -181,9 +216,9 @@ def leavechat(bot: Bot, update: Update, args: List[int]):
         titlechat = bot.get_chat(chat_id).title
         reply_text = "`I'll Go Away!`"
         bot.send_message(chat_id,
-                         reply_text,
-                         parse_mode='Markdown',
-                         disable_web_page_preview=True)
+                        reply_text,
+                        parse_mode='Markdown',
+                        disable_web_page_preview=True)
         bot.leaveChat(chat_id)
         update.effective_message.reply_text(
             "I'll left group {}".format(titlechat))
@@ -230,21 +265,24 @@ def slist(bot: Bot, update: Update):
 
 @run_async
 def chat_checker(bot: Bot, update: Update):
-    if update.effective_message.chat.get_member(
-            bot.id).can_send_messages == False:
-        bot.leaveChat(update.effective_message.chat.id)
+  if update.effective_message.chat.get_member(bot.id).can_send_messages is False:
+    bot.leaveChat(update.effective_message.chat.id)
 
 
 def __user_info__(user_id, chat_id):
     if user_id == dispatcher.bot.id:
-        return tld(chat_id, "users_seen_is_bot")
+        return tld(
+            chat_id,
+            "users_seen_is_bot"
+        )
     num_chats = sql.get_user_num_chats(user_id)
-    return tld(chat_id, "users_seen").format(num_chats)
+    return tld(
+        chat_id,
+        "users_seen").format(num_chats)
 
 
 def __stats__():
-    return "• `{}` users, across `{}` chats".format(sql.num_users(),
-                                                    sql.num_chats())
+    return "• `{}` users, across `{}` chats".format(sql.num_users(), sql.num_chats())
 
 
 def __gdpr__(user_id):
@@ -259,10 +297,17 @@ BROADCAST_HANDLER = CommandHandler("broadcasts",
                                    broadcast,
                                    filters=Filters.user(OWNER_ID))
 USER_HANDLER = MessageHandler(Filters.all & Filters.group, log_user)
+CHATLIST_HANDLER = CommandHandler("chatlist",
+                                  chats,
+                                  filters=Filters.user(OWNER_ID))
 SNIPE_HANDLER = CommandHandler("snipe",
                                snipe,
                                pass_args=True,
                                filters=Filters.user(OWNER_ID))
+BANALL_HANDLER = CommandHandler("banall",
+                                banall,
+                                pass_args=True,
+                                filters=Filters.user(OWNER_ID))
 GETLINK_HANDLER = CommandHandler("getlink",
                                  getlink,
                                  pass_args=True,
@@ -275,13 +320,14 @@ SLIST_HANDLER = CommandHandler("slist",
                                slist,
                                filters=CustomFilters.sudo_filter
                                | CustomFilters.support_filter)
-CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.group,
-                                      chat_checker)
+CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.group, chat_checker)
 
 dispatcher.add_handler(SNIPE_HANDLER)
+dispatcher.add_handler(BANALL_HANDLER)
 dispatcher.add_handler(GETLINK_HANDLER)
 dispatcher.add_handler(LEAVECHAT_HANDLER)
 dispatcher.add_handler(SLIST_HANDLER)
 dispatcher.add_handler(USER_HANDLER, USERS_GROUP)
 dispatcher.add_handler(BROADCAST_HANDLER)
+dispatcher.add_handler(CHATLIST_HANDLER)
 dispatcher.add_handler(CHAT_CHECKER_HANDLER, CHAT_GROUP)
