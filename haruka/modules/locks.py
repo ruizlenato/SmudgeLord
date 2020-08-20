@@ -1,25 +1,8 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import html
-from typing import List
+from typing import Optional, List
 
 import telegram.ext as tg
-from telegram import Update, Bot, ParseMode, MessageEntity
+from telegram import Message, Chat, Update, Bot, ParseMode, User, MessageEntity
 from telegram import TelegramError
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, MessageHandler, Filters
@@ -32,8 +15,9 @@ from haruka.modules.disable import DisableAbleCommandHandler
 from haruka.modules.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
     bot_can_delete, is_bot_admin
 from haruka.modules.log_channel import loggable
+from haruka.modules.sql import users_sql
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 LOCK_TYPES = {
     'sticker':
@@ -71,11 +55,13 @@ GIF = Filters.animation
 OTHER = Filters.game | Filters.sticker | GIF
 MEDIA = Filters.audio | Filters.document | Filters.video | Filters.voice | Filters.photo
 MESSAGES = Filters.text | Filters.contact | Filters.location | Filters.venue | Filters.command | MEDIA | OTHER
+PREVIEWS = Filters.entity("url")
 
 RESTRICTION_TYPES = {
     'messages': MESSAGES,
     'media': MEDIA,
     'other': OTHER,
+    # 'previews': PREVIEWS, # NOTE: this has been removed cos its useless atm.
     'all': Filters.all
 }
 
@@ -140,26 +126,26 @@ def unrestr_members(bot,
 
 @run_async
 def locktypes(bot: Bot, update: Update):
-    chat = update.effective_chat
-    update.effective_message.reply_text(
-        "\n - ".join([tld(chat.id, "locks_list_title")] +
-                     sorted(list(LOCK_TYPES) + list(RESTRICTION_TYPES))))
+    chat = update.effective_chat  # type: Optional[Chat]
+    update.effective_message.reply_text("\n - ".join(
+        tld(chat.id, "locks_list_title") + list(LOCK_TYPES) +
+        list(RESTRICTION_TYPES)))
 
 
 @user_admin
 @bot_can_delete
 @loggable
 def lock(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
     if can_delete(chat, bot.id):
         if len(args) >= 1:
             if args[0] in LOCK_TYPES:
                 sql.update_lock(chat.id, args[0], locked=True)
-                message.reply_text(tld(chat.id,
-                                       "locks_lock_success").format(args[0]),
-                                   parse_mode=ParseMode.MARKDOWN)
+                message.reply_text(
+                    tld(chat.id, "locks_lock_success").format(args[0]),
+                    parse_mode=ParseMode.MARKDOWN)
 
                 return "<b>{}:</b>" \
                        "\n#LOCK" \
@@ -169,9 +155,18 @@ def lock(bot: Bot, update: Update, args: List[str]) -> str:
 
             elif args[0] in RESTRICTION_TYPES:
                 sql.update_restriction(chat.id, args[0], locked=True)
-                message.reply_text(tld(chat.id,
-                                       "locks_lock_success").format(args[0]),
-                                   parse_mode=ParseMode.MARKDOWN)
+                if args[0] == "previews":
+                    members = users_sql.get_chat_members(str(chat.id))
+                    restr_members(bot,
+                                  chat.id,
+                                  members,
+                                  messages=True,
+                                  media=True,
+                                  other=True)
+
+                message.reply_text(
+                    tld(chat.id, "locks_lock_success").format(args[0]),
+                    parse_mode=ParseMode.MARKDOWN)
                 return "<b>{}:</b>" \
                        "\n#LOCK" \
                        "\n<b>Admin:</b> {}" \
@@ -193,16 +188,16 @@ def lock(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def unlock(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
     if is_user_admin(chat, message.from_user.id):
         if len(args) >= 1:
             if args[0] in LOCK_TYPES:
                 sql.update_lock(chat.id, args[0], locked=False)
-                message.reply_text(tld(chat.id,
-                                       "locks_unlock_success").format(args[0]),
-                                   parse_mode=ParseMode.MARKDOWN)
+                message.reply_text(
+                    tld(chat.id, "locks_unlock_success").format(args[0]),
+                    parse_mode=ParseMode.MARKDOWN)
                 return "<b>{}:</b>" \
                        "\n#UNLOCK" \
                        "\n<b>Admin:</b> {}" \
@@ -228,9 +223,9 @@ def unlock(bot: Bot, update: Update, args: List[str]) -> str:
                 # elif args[0] == "all":
                 #     unrestr_members(bot, chat.id, members, True, True, True, True)
 
-                message.reply_text(tld(chat.id,
-                                       "locks_unlock_success").format(args[0]),
-                                   parse_mode=ParseMode.MARKDOWN)
+                message.reply_text(
+                    tld(chat.id, "locks_unlock_success").format(args[0]),
+                    parse_mode=ParseMode.MARKDOWN)
 
                 return "<b>{}:</b>" \
                        "\n#UNLOCK" \
@@ -249,8 +244,8 @@ def unlock(bot: Bot, update: Update, args: List[str]) -> str:
 @run_async
 @user_not_admin
 def del_lockables(bot: Bot, update: Update):
-    chat = update.effective_chat
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message  # type: Optional[Message]
 
     for lockable, filter in LOCK_TYPES.items():
         if filter(message) and sql.is_locked(chat.id, lockable) and can_delete(
@@ -282,8 +277,8 @@ def del_lockables(bot: Bot, update: Update):
 @run_async
 @user_not_admin
 def rest_handler(bot: Bot, update: Update):
-    msg = update.effective_message
-    chat = update.effective_chat
+    msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
     for restriction, filter in RESTRICTION_TYPES.items():
         if filter(msg) and sql.is_restr_locked(
                 chat.id, restriction) and can_delete(chat, bot.id):
@@ -320,8 +315,8 @@ def build_lock_message(chat, chatP, user, chatname):
 @run_async
 @user_admin
 def list_locks(bot: Bot, update: Update):
-    chat = update.effective_chat
-    user = update.effective_user
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
 
     chatname = chat.title
     res = build_lock_message(chat, chat, user, chatname)
@@ -331,6 +326,18 @@ def list_locks(bot: Bot, update: Update):
 
 def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
+
+
+def __import_data__(chat_id, data):
+    # set chat locks
+    locks = data.get('locks', {})
+    for itemlock in locks:
+        if itemlock in LOCK_TYPES:
+            sql.update_lock(chat_id, itemlock, locked=True)
+        elif itemlock in RESTRICTION_TYPES:
+            sql.update_restriction(chat_id, itemlock, locked=True)
+        else:
+            pass
 
 
 __help__ = True
