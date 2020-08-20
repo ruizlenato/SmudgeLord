@@ -1,27 +1,10 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 from functools import wraps
 from typing import Optional
 
 from haruka import dispatcher, LOGGER
 from haruka.modules.helper_funcs.chat_status import user_admin
 from haruka.modules.sql import log_channel_sql as sql
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 from telegram import Bot, Update, ParseMode, Message, Chat
 from telegram.error import BadRequest, Unauthorized
@@ -34,14 +17,15 @@ def loggable(func):
     def log_action(bot: Bot, update: Update, *args, **kwargs):
         try:
             result = func(bot, update, *args, **kwargs)
-        except Exception:
+        except:
             return
         chat = update.effective_chat  # type: Optional[Chat]
         message = update.effective_message  # type: Optional[Message]
         if result:
             if chat.type == chat.SUPERGROUP and chat.username:
-                result += tld(chat.id, "log_channel_link").format(
-                    chat.username, message.message_id)
+                result += tld(
+                    chat.id, "log_channel_link".format(chat.username,
+                                                       message.message_id))
             log_chat = sql.get_chat_log_channel(chat.id)
             if log_chat:
                 send_log(bot, log_chat, chat.id, result)
@@ -89,7 +73,7 @@ def logging(bot: Bot, update: Update):
                                        escape_markdown(log_channel_info.title),
                                        log_channel),
                                parse_mode=ParseMode.MARKDOWN)
-        except Exception:
+        except:
             print("Nut")
     else:
         message.reply_text(tld(chat.id, "log_channel_none"))
@@ -148,7 +132,7 @@ def unsetlog(bot: Bot, update: Update):
                 log_channel,
                 tld(chat.id, "log_channel_unlink_success").format(chat.title))
             message.reply_text(tld(chat.id, "Log channel has been un-set."))
-        except Exception:
+        except:
             print("Nut")
     else:
         message.reply_text(tld(chat.id, "log_channel_unlink_none"))

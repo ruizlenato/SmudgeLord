@@ -1,22 +1,5 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import html
-from typing import List, Optional
+from typing import Optional, List
 from telegram import Message, Chat, Update, Bot, User, ParseMode, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.error import BadRequest, Unauthorized
 from telegram.ext import CommandHandler, RegexHandler, run_async, Filters, CallbackQueryHandler
@@ -26,7 +9,8 @@ from haruka import dispatcher, LOGGER
 from haruka.modules.helper_funcs.chat_status import user_not_admin, user_admin
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import reporting_sql as sql
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
+
 
 REPORT_GROUP = 5
 
@@ -140,8 +124,7 @@ def report(bot: Bot, update: Update) -> str:
                     if not chat.type == Chat.SUPERGROUP:
                         bot.send_message(admin.user.id,
                                          msg + link,
-                                         parse_mode=ParseMode.HTML,
-                                         disable_web_page_preview=True)
+                                         parse_mode=ParseMode.HTML)
 
                         if should_forward:
                             message.reply_to_message.forward(admin.user.id)
@@ -154,8 +137,7 @@ def report(bot: Bot, update: Update) -> str:
                     if not chat.username:
                         bot.send_message(admin.user.id,
                                          msg + link,
-                                         parse_mode=ParseMode.HTML,
-                                         disable_web_page_preview=True)
+                                         parse_mode=ParseMode.HTML)
 
                         if should_forward:
                             message.reply_to_message.forward(admin.user.id)
@@ -169,8 +151,7 @@ def report(bot: Bot, update: Update) -> str:
                         bot.send_message(admin.user.id,
                                          msg + link,
                                          parse_mode=ParseMode.HTML,
-                                         reply_markup=reply_markup,
-                                         disable_web_page_preview=True)
+                                         reply_markup=reply_markup)
 
                         if should_forward:
                             message.reply_to_message.forward(admin.user.id)
@@ -183,14 +164,9 @@ def report(bot: Bot, update: Update) -> str:
                 except Unauthorized:
                     pass
                 except BadRequest as excp:  # TODO: cleanup exceptions
-                    LOGGER.exception(
-                        f"Exception while reporting user : {excp}")
+                    LOGGER.exception("Exception while reporting user")
 
-        message.reply_to_message.reply_text(tld(
-            chat.id,
-            "reports_success").format(mention_html(user.id, user.first_name)),
-                                            parse_mode=ParseMode.HTML,
-                                            disable_web_page_preview=True)
+        message.reply_to_message.reply_text(tld(chat.id, "reports_success").format(mention_html(user.id, user.first_name)), parse_mode=ParseMode.HTML)
         return msg
 
     return ""
@@ -203,6 +179,7 @@ def __migrate__(old_chat_id, new_chat_id):
 def buttons(bot: Bot, update):
     query = update.callback_query
     splitter = query.data.replace("report_", "").split("=")
+    chat = update.effective_chat
     if splitter[1] == "kick":
         try:
             bot.kickChatMember(splitter[0], splitter[2])
