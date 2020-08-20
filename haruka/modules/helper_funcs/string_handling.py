@@ -1,20 +1,3 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import re
 import time
 from typing import Dict, List
@@ -25,7 +8,7 @@ import emoji
 from telegram import MessageEntity
 from telegram.utils.helpers import escape_markdown
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 # NOTE: the url \ escape may cause double escapes
 # match * (bold) (don't escape if in url)
@@ -171,8 +154,8 @@ def button_markdown_parser(txt: str,
         else:
             note_data += markdown_note[prev:to_check]
             prev = match.start(1) - 1
-    else:
-        note_data += markdown_note[prev:]
+        
+    note_data += markdown_note[prev:]
 
     return note_data, buttons
 
@@ -271,12 +254,11 @@ def escape_chars(text: str, to_escape: List[str]) -> str:
 
 def extract_time(message, time_val):
     if any(time_val.endswith(unit) for unit in ('m', 'h', 'd')):
-        chat = message.chat
+        chat = message.chat # type: Optional[Chat]
         unit = time_val[-1]
         time_num = time_val[:-1]  # type: str
         if not time_num.isdigit():
-            message.reply_text(
-                tld(chat.id, 'helpers_string_handling_invalid_time_amount'))
+            message.reply_text(tld(chat.id, 'helpers_string_handling_invalid_time_amount'))
             return ""
 
         if unit == 'm':
@@ -290,9 +272,7 @@ def extract_time(message, time_val):
             return ""
         return bantime
     else:
-        message.reply_text(
-            tld(chat.id, 'helpers_string_handling_invalid_time_type').format(
-                time_val[-1]))
+        message.reply_text(tld(chat.id, 'helpers_string_handling_invalid_time_type').format(time_val[-1]))
         return ""
 
 
@@ -303,8 +283,3 @@ def markdown_to_html(text):
     return bleach.clean(_html,
                         tags=['strong', 'em', 'a', 'code', 'pre'],
                         strip=True)[:-1]
-
-
-def remove_emoji(inputString):
-    """ Remove emojis and other non-safe characters from string """
-    return emoji.get_emoji_regexp().sub(u'', inputString)

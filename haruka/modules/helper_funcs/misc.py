@@ -1,28 +1,10 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-from functools import wraps
 from typing import List, Dict
 
-from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode, Update
+from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode
 from telegram.error import TelegramError
 
-from haruka import LOAD, NO_LOAD, OWNER_ID
-from haruka.modules.tr_engine.strings import tld
+from haruka import LOAD, NO_LOAD
+from haruka.modules.translations.strings import tld
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):
@@ -50,9 +32,8 @@ def split_message(msg: str) -> List[str]:
             else:
                 result.append(small_msg)
                 small_msg = line
-        else:
-            # Else statement at the end of the for loop, so append the leftover string.
-            result.append(small_msg)
+        # Else statement at the end of the for loop, so append the leftover string.
+        result.append(small_msg)
 
         return result
 
@@ -101,7 +82,6 @@ def paginate_modules(chat_id,
     #     ]]
 
     return pairs
-
 
 def send_to_list(bot: Bot,
                  send_to: list,

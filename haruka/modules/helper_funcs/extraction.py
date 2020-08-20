@@ -1,20 +1,3 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 from typing import List, Optional
 
 from telegram import Message, MessageEntity
@@ -22,7 +5,7 @@ from telegram.error import BadRequest
 
 from haruka import LOGGER
 from haruka.modules.users import get_user_id
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 
 def id_from_reply(message):
@@ -42,7 +25,7 @@ def extract_user(message: Message, args: List[str]) -> Optional[int]:
 
 def extract_user_and_text(message: Message,
                           args: List[str]) -> (Optional[int], Optional[str]):
-    chat = message.chat
+    chat = message.chat  # type: Optional[Chat]
     prev_message = message.reply_to_message
     split_text = message.text.split(None, 1)
 
