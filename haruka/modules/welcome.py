@@ -1,20 +1,3 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 from html import escape
 from typing import Optional, List
 
@@ -33,7 +16,7 @@ from haruka.modules.helper_funcs.msg_types import get_welcome_type
 from haruka.modules.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets, extract_time, markdown_to_html
 from haruka.modules.log_channel import loggable
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 VALID_WELCOME_FORMATTERS = [
     'first', 'last', 'fullname', 'username', 'id', 'count', 'chatname',
@@ -145,7 +128,7 @@ def new_member(bot: Bot, update: Update):
             if is_user_gbanned(new_mem.id):
                 return
 
-            if sw != None:
+            if sw is not None:
                 sw_ban = sw.get_ban(new_mem.id)
                 if sw_ban:
                     return
@@ -162,7 +145,7 @@ def new_member(bot: Bot, update: Update):
                 if is_user_gbanned(new_mem.id):
                     return
                 # If welcome message is media, send with appropriate function
-                if welc_type != sql.Types.TEXT and welc_type != sql.Types.BUTTON_TEXT:
+                if welc_type not in (sql.Types.TEXT, sql.Types.BUTTON_TEXT):
                     reply = update.message.message_id
                     cleanserv = sql.clean_service(chat.id)
                     # Clean service welcome
@@ -391,7 +374,7 @@ def left_member(bot: Bot, update: Update):
             if is_user_gbanned(left_mem.id):
                 return
 
-            if sw != None:
+            if sw is not None:
                 sw_ban = sw.get_ban(left_mem.id)
                 if sw_ban:
                     return
@@ -407,7 +390,7 @@ def left_member(bot: Bot, update: Update):
                 return
 
             # if media goodbye, use appropriate function for it
-            if goodbye_type != sql.Types.TEXT and goodbye_type != sql.Types.BUTTON_TEXT:
+            if goodbye_type not in (sql.Types.TEXT, sql.Types.BUTTON_TEXT):
                 reply = update.message.message_id
                 cleanserv = sql.clean_service(chat.id)
                 # Clean service welcome
@@ -498,10 +481,10 @@ def security(bot: Bot, update: Update, args: List[str]) -> str:
     getcur, cur_value, cust_text = sql.welcome_security(chat.id)
     if len(args) >= 1:
         var = args[0].lower()
-        if (var == "yes" or var == "y" or var == "on"):
+        if (var in ("yes", "on")):
             check = bot.getChatMember(chat.id, bot.id)
             if check.status == 'member' or check[
-                    'can_restrict_members'] == False:
+                    'can_restrict_members'] is False:
                 text = tld(chat.id, 'welcome_mute_bot_cant_mute')
                 update.effective_message.reply_text(text,
                                                     parse_mode="markdown")
@@ -509,7 +492,7 @@ def security(bot: Bot, update: Update, args: List[str]) -> str:
             sql.set_welcome_security(chat.id, True, str(cur_value), cust_text)
             update.effective_message.reply_text(
                 tld(chat.id, 'welcome_mute_enabled'))
-        elif (var == "no" or var == "n" or var == "off"):
+        elif (var in ("no", "off")):
             sql.set_welcome_security(chat.id, False, str(cur_value), cust_text)
             update.effective_message.reply_text(
                 tld(chat.id, 'welcome_mute_disabled'))
@@ -594,11 +577,11 @@ def cleanservice(bot: Bot, update: Update, args: List[str]) -> str:
     if chat.type != chat.PRIVATE:
         if len(args) >= 1:
             var = args[0]
-            if (var == "no" or var == "off"):
+            if (var in ("no", "off")):
                 sql.set_clean_service(chat.id, False)
                 update.effective_message.reply_text(
                     tld(chat.id, 'welcome_clean_service_off'))
-            elif (var == "yes" or var == "on"):
+            elif (var in ("yes", "on")):
                 sql.set_clean_service(chat.id, True)
                 update.effective_message.reply_text(
                     tld(chat.id, 'welcome_clean_service_on'))
@@ -654,7 +637,7 @@ def welcome(bot: Bot, update: Update, args: List[str]):
         update.effective_message.reply_text(text,
                                             parse_mode=ParseMode.MARKDOWN)
 
-        if welcome_type == sql.Types.BUTTON_TEXT or welcome_type == sql.Types.TEXT:
+        if welcome_type in (sql.Types.BUTTON_TEXT, sql.Types.TEXT):
             buttons = sql.get_welc_buttons(chat.id)
             if noformat:
                 welcome_m += revert_buttons(buttons)
@@ -710,7 +693,7 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
         noformat = args and args[0] == "noformat"
         pref, goodbye_m, cust_content, goodbye_type = sql.get_gdbye_pref(
             chat.id)
-        if cust_content == None:
+        if cust_content is None:
             cust_content = goodbye_m
 
         update.effective_message.reply_text(tld(

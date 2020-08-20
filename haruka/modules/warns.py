@@ -1,26 +1,9 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import html
 import re
-from typing import List
+from typing import Optional, List
 
 import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, User
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode, User, CallbackQuery
 from telegram import Message, Chat, Update, Bot
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, run_async, DispatcherHandlerStop, MessageHandler, Filters, CallbackQueryHandler
@@ -37,7 +20,7 @@ from haruka.modules.helper_funcs.string_handling import split_quotes
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import warns_sql as sql
 import haruka.modules.sql.rules_sql as rules_sql
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 WARN_HANDLER_GROUP = 9
 
@@ -77,10 +60,10 @@ def warn(user: User,
             reply += "\n - {}".format(html.escape(warn_reason))
 
         keyboard = []
-        log_reason = tld(chat.id, 'warns_warn_ban_log_channel').format(
-            html.escape(chat.title), warner_tag,
-            mention_html(user.id, user.first_name), user.id, reason, num_warns,
-            limit)
+        log_reason = tld(chat.id, 'warns_warn_ban_log_channel').format(html.escape(chat.title),
+                                                                  warner_tag,
+                                                                  mention_html(user.id, user.first_name),
+                                                                  user.id, reason, num_warns, limit)
 
     else:
         keyboard = [[
@@ -101,10 +84,10 @@ def warn(user: User,
             reply += tld(chat.id, 'warns_latest_warn_reason').format(
                 html.escape(reason))
 
-        log_reason = tld(chat.id, 'warns_warn_log_channel').format(
-            html.escape(chat.title), warner_tag,
-            mention_html(user.id, user.first_name), user.id, reason, num_warns,
-            limit)
+        log_reason = tld(chat.id, 'warns_warn_log_channel').format(html.escape(chat.title),
+                                                                  warner_tag,
+                                                                  mention_html(user.id, user.first_name),
+                                                                  user.id, reason, num_warns, limit)
 
     try:
         message.reply_text(reply,
@@ -126,33 +109,31 @@ def warn(user: User,
 @bot_admin
 @loggable
 def rmwarn_handler(bot: Bot, update: Update) -> str:
-    chat = update.effective_chat
-    query = update.callback_query
-    user = update.effective_user
+    chat = update.effective_chat  # type: Optional[Chat]
+    query = update.callback_query  # type: Optional[CallbackQuery]
+    user = update.effective_user  # type: Optional[User]
     match = re.match(r"rm_warn\((.+?)\)", query.data)
     if match:
         user_id = match.group(1)
         if not is_user_admin(chat, int(user.id)):
-            query.answer(text=tld(chat.id, 'warns_remove_admin_only'),
-                         show_alert=True)
+            query.answer(
+                text=tld(chat.id, 'warns_remove_admin_only'),
+                show_alert=True)
             return ""
         res = sql.remove_warn(user_id, chat.id)
         if res:
-            update.effective_message.edit_text(tld(
-                chat.id, 'warns_remove_success').format(
-                    mention_html(user.id, user.first_name)),
+            update.effective_message.edit_text(tld(chat.id, 'warns_remove_success').format(
+                mention_html(user.id, user.first_name)),
                                                parse_mode=ParseMode.HTML)
             user_member = chat.get_member(user_id)
-            return tld(chat.id, 'warns_remove_log_channel').format(
-                html.escape(chat.title), mention_html(user.id,
-                                                      user.first_name),
-                mention_html(user_member.user.id, user_member.user.first_name),
-                user_member.user.id)
+            return tld(chat.id, 'warns_remove_log_channel').format(html.escape(chat.title),
+                                                                mention_html(user.id, user.first_name),
+                                                                mention_html(user_member.user.id, user_member.user.first_name),
+                                                                user_member.user.id)
         else:
-            update.effective_message.edit_text(tld(
-                chat.id, 'warns_user_has_no_warns').format(
+            update.effective_message.edit_text(tld(chat.id, 'warns_user_has_no_warns').format(
                     mention_html(user.id, user.first_name)),
-                                               parse_mode=ParseMode.HTML)
+                parse_mode=ParseMode.HTML)
 
     return ""
 
@@ -161,7 +142,8 @@ def rmwarn_handler(bot: Bot, update: Update) -> str:
 @bot_admin
 @loggable
 def sendrules_handler(bot: Bot, update: Update) -> str:
-    query = update.callback_query
+    query = update.callback_query  # type: Optional[CallbackQuery]
+    user = update.effective_user  # type: Optional[User]
     print(query)
     print(query.data)
     match = re.match(r"send_rules\((.+?)\)", query.data)
@@ -177,9 +159,9 @@ def sendrules_handler(bot: Bot, update: Update) -> str:
 @bot_admin
 @loggable
 def remove_warns(bot: Bot, update: Update, args: List[str]) -> str:
-    message = update.effective_message
-    chat = update.effective_chat
-    user = update.effective_user
+    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
 
     user_id = extract_user(message, args)
 
@@ -187,9 +169,10 @@ def remove_warns(bot: Bot, update: Update, args: List[str]) -> str:
         sql.remove_warn(user_id, chat.id)
         message.reply_text(tld(chat.id, 'warns_latest_remove_success'))
         warned = chat.get_member(user_id).user
-        return tld(chat.id, 'warns_remove_log_channel').format(
-            html.escape(chat.title), mention_html(user.id, user.first_name),
-            mention_html(warned.id, warned.first_name), warned.id)
+        return tld(chat.id, 'warns_remove_log_channel').format(html.escape(chat.title),
+                                                       mention_html(user.id, user.first_name),
+                                                       mention_html(warned.id, warned.first_name),
+                                                       warned.id)
     else:
         message.reply_text(tld(chat.id, 'common_err_no_user'))
     return ""
@@ -200,9 +183,9 @@ def remove_warns(bot: Bot, update: Update, args: List[str]) -> str:
 @can_restrict
 @loggable
 def warn_user(bot: Bot, update: Update, args: List[str]) -> str:
-    message = update.effective_message
-    chat = update.effective_chat
-    warner = update.effective_user
+    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
+    warner = update.effective_user  # type: Optional[User]
 
     user_id, reason = extract_user_and_text(message, args)
 
@@ -223,9 +206,9 @@ def warn_user(bot: Bot, update: Update, args: List[str]) -> str:
 @bot_admin
 @loggable
 def reset_warns(bot: Bot, update: Update, args: List[str]) -> str:
-    message = update.effective_message
-    chat = update.effective_chat
-    user = update.effective_user
+    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
 
     user_id = extract_user(message, args)
 
@@ -233,9 +216,10 @@ def reset_warns(bot: Bot, update: Update, args: List[str]) -> str:
         sql.reset_warns(user_id, chat.id)
         message.reply_text(tld(chat.id, 'warns_reset_success'))
         warned = chat.get_member(user_id).user
-        return tld(chat.id, 'warns_reset_log_channel').format(
-            html.escape(chat.title), mention_html(user.id, user.first_name),
-            mention_html(warned.id, warned.first_name), warned.id)
+        return tld(chat.id, 'warns_reset_log_channel').format(html.escape(chat.title),
+                                                            mention_html(user.id, user.first_name),
+                                                            mention_html(warned.id, warned.first_name),
+                                                            warned.id)
     else:
         message.reply_text(tld(chat.id, 'common_err_no_user'))
     return ""
@@ -243,8 +227,8 @@ def reset_warns(bot: Bot, update: Update, args: List[str]) -> str:
 
 @run_async
 def warns(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat
+    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
     user_id = extract_user(message, args) or update.effective_user.id
     result = sql.get_warns(user_id, chat.id)
     num = 1
@@ -254,7 +238,8 @@ def warns(bot: Bot, update: Update, args: List[str]):
         limit, soft_warn = sql.get_warn_setting(chat.id)
 
         if reasons:
-            text = tld(chat.id, 'warns_list_warns').format(num_warns, limit)
+            text = tld(chat.id, 'warns_list_warns').format(
+                num_warns, limit)
             for reason in reasons:
                 text += "\n {}. {}".format(num, reason)
                 num += 1
@@ -264,18 +249,17 @@ def warns(bot: Bot, update: Update, args: List[str]):
                 update.effective_message.reply_text(msg)
         else:
             update.effective_message.reply_text(
-                tld(chat.id,
-                    'warns_list_warns_no_reason').format(num_warns, limit))
+                tld(chat.id, 'warns_list_warns_no_reason').
+                format(num_warns, limit))
     else:
-        update.effective_message.reply_text(
-            tld(chat.id, 'warns_list_warns_none'))
+        update.effective_message.reply_text(tld(chat.id, 'warns_list_warns_none'))
 
 
 # Dispatcher handler stop - do not async
 @user_admin
 def add_warn_filter(bot: Bot, update: Update):
-    chat = update.effective_chat
-    msg = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    msg = update.effective_message  # type: Optional[Message]
 
     args = msg.text.split(
         None,
@@ -301,15 +285,14 @@ def add_warn_filter(bot: Bot, update: Update):
 
     sql.add_warn_filter(chat.id, keyword, content)
 
-    update.effective_message.reply_text(
-        tld(chat.id, 'warns_handler_add_success').format(keyword))
+    update.effective_message.reply_text(tld(chat.id, 'warns_handler_add_success').format(keyword))
     raise DispatcherHandlerStop
 
 
 @user_admin
 def remove_warn_filter(bot: Bot, update: Update):
-    chat = update.effective_chat
-    msg = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    msg = update.effective_message  # type: Optional[Message]
 
     args = msg.text.split(
         None,
@@ -342,12 +325,11 @@ def remove_warn_filter(bot: Bot, update: Update):
 
 @run_async
 def list_warn_filters(bot: Bot, update: Update):
-    chat = update.effective_chat
+    chat = update.effective_chat  # type: Optional[Chat]
     all_handlers = sql.get_chat_warn_triggers(chat.id)
 
     if not all_handlers:
-        update.effective_message.reply_text(
-            tld(chat.id, 'warns_filters_list_empty'))
+        update.effective_message.reply_text(tld(chat.id, 'warns_filters_list_empty'))
         return
 
     filter_list = tld(chat.id, 'warns_filters_list')
@@ -368,14 +350,8 @@ def list_warn_filters(bot: Bot, update: Update):
 @run_async
 @loggable
 def reply_filter(bot: Bot, update: Update) -> str:
-    chat = update.effective_chat
-    message = update.effective_message
-    user = update.effective_user
-    if not user:  #Ignore channel
-        return
-
-    if user.id == 777000:
-        return
+    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message  # type: Optional[Message]
 
     chat_warn_filters = sql.get_chat_warn_triggers(chat.id)
     to_match = extract_text(message)
@@ -385,7 +361,7 @@ def reply_filter(bot: Bot, update: Update) -> str:
     for keyword in chat_warn_filters:
         pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
         if re.search(pattern, to_match, flags=re.IGNORECASE):
-            user = update.effective_user
+            user = update.effective_user  # type: Optional[User]
             warn_filter = sql.get_warn_filter(chat.id, keyword)
             return warn(user, chat, warn_filter.reply, message)
     return ""
@@ -395,9 +371,9 @@ def reply_filter(bot: Bot, update: Update) -> str:
 @user_admin
 @loggable
 def set_warn_limit(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    msg = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    msg = update.effective_message  # type: Optional[Message]
 
     if args:
         if args[0].isdigit():
@@ -405,12 +381,9 @@ def set_warn_limit(bot: Bot, update: Update, args: List[str]) -> str:
                 msg.reply_text(tld(chat.id, 'warns_warnlimit_min_1'))
             else:
                 sql.set_warn_limit(chat.id, int(args[0]))
-                msg.reply_text(
-                    tld(chat.id,
-                        'warns_warnlimit_updated_success').format(args[0]))
-                return tld(chat.id, 'warns_set_warn_limit_log_channel').format(
-                    html.escape(chat.title),
-                    mention_html(user.id, user.first_name), args[0])
+                msg.reply_text(tld(chat.id, 'warns_warnlimit_updated_success').format(args[0]))
+                return tld(chat.id, 'warns_set_warn_limit_log_channel').format(html.escape(chat.title),
+                                                                        mention_html(user.id, user.first_name), args[0])
         else:
             msg.reply_text(tld(chat.id, 'warns_warnlimit_invalid_arg'))
     else:
@@ -423,35 +396,36 @@ def set_warn_limit(bot: Bot, update: Update, args: List[str]) -> str:
 @run_async
 @user_admin
 def set_warn_strength(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat
-    user = update.effective_user
-    msg = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    msg = update.effective_message  # type: Optional[Message]
 
     if args:
         if args[0].lower() in ("on", "yes"):
             sql.set_warn_strength(chat.id, False)
             msg.reply_text(tld(chat.id, 'warns_strength_on'))
-            return tld(chat.id, 'warns_strength_on_log_channel').format(
-                html.escape(chat.title), mention_html(user.id,
-                                                      user.first_name))
+            return tld(chat.id, 'warns_strength_on_log_channel').format(html.escape(chat.title),
+                                                                        mention_html(user.id, user.first_name))
 
         elif args[0].lower() in ("off", "no"):
             sql.set_warn_strength(chat.id, True)
             msg.reply_text(tld(chat.id, 'warns_strength_off'))
-            return tld(chat.id, 'warns_strength_off_log_channel').format(
-                html.escape(chat.title), mention_html(user.id,
-                                                      user.first_name))
+            return tld(chat.id, 'warns_strength_off_log_channel').format(html.escape(chat.title),
+                                                                        mention_html(user.id,
+                                                                        user.first_name))
 
         else:
             msg.reply_text(tld(chat.id, 'warns_strength_invalid_arg'))
     else:
-        soft_warn = sql.get_soft_warn(chat.id)
+        limit, soft_warn = sql.get_warn_setting(chat.id)
         if soft_warn:
-            msg.reply_text(tld(chat.id, 'warns_strength_off'),
-                           parse_mode=ParseMode.MARKDOWN)
+            msg.reply_text(
+                tld(chat.id, 'warns_strength_off'),
+                parse_mode=ParseMode.MARKDOWN)
         else:
-            msg.reply_text(tld(chat.id, 'warns_strength_on'),
-                           parse_mode=ParseMode.MARKDOWN)
+            msg.reply_text(
+                tld(chat.id, 'warns_strength_on'),
+                parse_mode=ParseMode.MARKDOWN)
     return ""
 
 
@@ -461,11 +435,18 @@ def __stats__():
                                                       sql.num_warn_filters(), sql.num_warn_filter_chats())
 
 
+def __import_data__(chat_id, data):
+    for user_id, count in data.get('warns', {}).items():
+        for x in range(int(count)):
+            sql.warn_user(user_id, chat_id)
+
+
 def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
 __help__ = True
+
 
 WARN_HANDLER = DisableAbleCommandHandler("warn",
                                          warn_user,
