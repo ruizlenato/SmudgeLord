@@ -1,24 +1,8 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import re
+from typing import Optional
 
 import telegram
-from telegram import ParseMode, InlineKeyboardMarkup
+from telegram import ParseMode, InlineKeyboardMarkup, Message, Chat
 from telegram import Update, Bot
 from telegram.error import BadRequest
 from telegram.ext import MessageHandler, DispatcherHandlerStop, run_async
@@ -33,7 +17,7 @@ from haruka.modules.helper_funcs.misc import build_keyboard
 from haruka.modules.helper_funcs.string_handling import split_quotes, button_markdown_parser
 from haruka.modules.sql import cust_filters_sql as sql
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 from haruka.modules.connection import connected
 
@@ -42,8 +26,8 @@ HANDLER_GROUP = 15
 
 @run_async
 def list_handlers(bot: Bot, update: Update):
-    chat = update.effective_chat
-    user = update.effective_user
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
 
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
@@ -83,9 +67,9 @@ def list_handlers(bot: Bot, update: Update):
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
 def filters(bot: Bot, update: Update):
-    chat = update.effective_chat
-    user = update.effective_user
-    msg = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    msg = update.effective_message  # type: Optional[Message]
     args = msg.text.split(
         None,
         1)  # use python's maxsplit to separate Cmd, keyword, and reply_text
@@ -176,8 +160,8 @@ def filters(bot: Bot, update: Update):
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
 def stop_filter(bot: Bot, update: Update):
-    chat = update.effective_chat
-    user = update.effective_user
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
     args = update.effective_message.text.split(None, 1)
 
     conn = connected(bot, update, chat, user.id)
@@ -202,8 +186,8 @@ def stop_filter(bot: Bot, update: Update):
         return
 
     for keyword in chat_filters:
-        if keyword == args[1].lower():
-            sql.remove_filter(chat_id, args[1].lower())
+        if keyword == args[1]:
+            sql.remove_filter(chat_id, args[1])
             update.effective_message.reply_text(
                 tld(chat.id, "cust_filters_stop_success").format(chat_name),
                 parse_mode=telegram.ParseMode.MARKDOWN)
@@ -215,12 +199,8 @@ def stop_filter(bot: Bot, update: Update):
 
 @run_async
 def reply_filter(bot: Bot, update: Update):
-    chat = update.effective_chat
-    message = update.effective_message
-
-    if update.effective_user.id == 777000:
-        return
-
+    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message  # type: Optional[Message]
     to_match = extract_text(message)
     if not to_match:
         return
@@ -235,7 +215,7 @@ def reply_filter(bot: Bot, update: Update):
             elif filt.is_document:
                 try:
                     message.reply_document(filt.reply)
-                except Exception:
+                except:
                     print("L")
             elif filt.is_image:
                 message.reply_photo(filt.reply)
@@ -246,7 +226,7 @@ def reply_filter(bot: Bot, update: Update):
             elif filt.is_video:
                 try:
                     message.reply_video(filt.reply)
-                except Exception:
+                except:
                     print("Nut")
             elif filt.has_markdown:
                 buttons = sql.get_buttons(chat.id, filt.keyword)
@@ -277,7 +257,7 @@ def reply_filter(bot: Bot, update: Update):
                             LOGGER.exception(
                                 "Could not parse filter %s in chat %s",
                                 str(filt.keyword), str(chat.id))
-                        except Exception:
+                        except:
                             print("Nut")
 
             else:
@@ -286,55 +266,26 @@ def reply_filter(bot: Bot, update: Update):
             break
 
 
-@run_async
-@user_admin
-def stop_all_filters(bot: Bot, update: Update):
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
-
-    if chat.type == "private":
-        chat.title = tld(chat.id, "cust_filters_local")
-    else:
-        owner = chat.get_member(user.id)
-        chat.title = chat.title
-        if owner.status != 'creator':
-            message.reply_text(tld(chat.id, "notes_must_be_creator"))
-            return
-
-    x = 0
-    flist = sql.get_chat_triggers(chat.id)
-
-    if not flist:
-        message.reply_text(
-            tld(chat.id, "cust_filters_list_empty").format(chat.title))
-        return
-
-    f_flist = []
-    for f in flist:
-        x += 1
-        f_flist.append(f)
-
-    for fx in f_flist:
-        sql.remove_filter(chat.id, fx)
-
-    message.reply_text(tld(chat.id, "cust_filters_cleanup_success").format(x))
-
-
 def __stats__():
     return "• `{}` filters, across `{}` chats.".format(sql.num_filters(),
-                                                       sql.num_chats())
+                                                 sql.num_chats())
 
 
 def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
+def __import_data__(chat_id, data):
+    # set chat filters
+    filters = data.get('filters', {})
+    for trigger in filters:
+        sql.add_to_blacklist(chat_id, trigger)
+
+
 __help__ = True
 
 FILTER_HANDLER = DisableAbleCommandHandler("filter", filters)
 STOP_HANDLER = DisableAbleCommandHandler("stop", stop_filter)
-STOPALL_HANDLER = DisableAbleCommandHandler("stopall", stop_all_filters)
 LIST_HANDLER = DisableAbleCommandHandler("filters",
                                          list_handlers,
                                          admin_ok=True)
@@ -342,6 +293,5 @@ CUST_FILTER_HANDLER = MessageHandler(CustomFilters.has_text, reply_filter)
 
 dispatcher.add_handler(FILTER_HANDLER)
 dispatcher.add_handler(STOP_HANDLER)
-dispatcher.add_handler(STOPALL_HANDLER)
 dispatcher.add_handler(LIST_HANDLER)
 dispatcher.add_handler(CUST_FILTER_HANDLER, HANDLER_GROUP)

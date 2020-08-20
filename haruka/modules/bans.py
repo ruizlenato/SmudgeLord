@@ -1,20 +1,3 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import html
 from typing import Optional, List
 
@@ -31,7 +14,7 @@ from haruka.modules.helper_funcs.extraction import extract_user_and_text
 from haruka.modules.helper_funcs.string_handling import extract_time
 from haruka.modules.log_channel import loggable
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 
 @run_async
@@ -78,7 +61,6 @@ def ban(bot: Bot, update: Update, args: List[str]) -> str:
 
     if reason:
         log += tld(chat.id, "bans_logger_reason").format(reason)
-        reply += tld(chat.id, "bans_logger_reason").format(reason)
 
     try:
         chat.kick_member(user_id)
@@ -221,15 +203,11 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
 
     res = chat.unban_member(user_id)  # unban on current user = kick
     if res:
-        reply = tld(chat.id, "bans_kick_success").format(
+        message.reply_text(tld(chat.id, "bans_kick_success").format(
             mention_html(user.id, user.first_name),
             mention_html(member.user.id, member.user.first_name),
-            html.escape(chat.title))
-        if reason:
-            reply += tld(chat.id, "bans_logger_reason").format(reason)
-
-        message.reply_text(reply, parse_mode=ParseMode.HTML)
-
+            html.escape(chat.title)),
+                           parse_mode=ParseMode.HTML)
         log = tld(chat.id, "bans_kick_logger").format(
             html.escape(chat.title), mention_html(user.id, user.first_name),
             mention_html(member.user.id, member.user.first_name),

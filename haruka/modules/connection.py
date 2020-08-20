@@ -1,20 +1,3 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 from typing import Optional, List
 
 from telegram import ParseMode
@@ -26,9 +9,7 @@ import haruka.modules.sql.connection_sql as sql
 from haruka import dispatcher, SUDO_USERS
 from haruka.modules.helper_funcs.chat_status import user_admin
 
-from haruka.modules.tr_engine.strings import tld
-
-from haruka.modules.keyboard import keyboard
+from haruka.modules.translations.strings import tld
 
 
 @user_admin
@@ -73,7 +54,7 @@ def connect_chat(bot, update, args):
             if (bot.get_chat_member(
                     connect_chat, update.effective_message.from_user.id).status
                     in ('administrator', 'creator') or
-                (sql.allow_connect_to_chat(connect_chat) == True)
+                (sql.allow_connect_to_chat(connect_chat) is True)
                     and bot.get_chat_member(
                         connect_chat,
                         update.effective_message.from_user.id).status in
@@ -142,7 +123,7 @@ def connect_chat(bot, update, args):
         if (bot.get_chat_member(
                 connect_chat, update.effective_message.from_user.id).status in
             ('administrator', 'creator') or
-            (sql.allow_connect_to_chat(connect_chat) == True)
+            (sql.allow_connect_to_chat(connect_chat) is True)
                 and bot.get_chat_member(connect_chat, update.effective_message.
                                         from_user.id).status in 'member') or (
                                             user.id in SUDO_USERS):
@@ -159,7 +140,7 @@ def connect_chat(bot, update, args):
                     parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text(
-                tld(chat.id, "common_err_no_admin"))
+                tld(chat.id, "common_err_not_admin"))
 
     else:
         update.effective_message.reply_text(tld(chat.id, "common_cmd_pm_only"))
@@ -176,10 +157,18 @@ def disconnect_chat(bot, update):
             #Rebuild user's keyboard
             keyboard(bot, update)
         else:
+            update.effective_message.reply_text("connection_dis_fail")
+    elif update.effective_chat.type == 'supergroup':
+        disconnection_status = sql.disconnect(
+            update.effective_message.from_user.id)
+        if disconnection_status:
+            sql.disconnected_chat = update.effective_message.reply_text(
+                tld(chat.id, "connection_dis_success"))
+            # Rebuild user's keyboard
+            keyboard(bot, update)
+        else:
             update.effective_message.reply_text(
                 tld(chat.id, "connection_dis_fail"))
-    elif update.effective_chat.type == 'supergroup':
-        update.effective_message.reply_text(tld(chat.id, 'common_cmd_pm_only'))
     else:
         update.effective_message.reply_text(tld(chat.id, "common_cmd_pm_only"))
 
@@ -190,7 +179,7 @@ def connected(bot, update, chat, user_id, need_admin=True):
         conn_id = sql.get_connected_chat(user_id).chat_id
         if (bot.get_chat_member(
                 conn_id, user_id).status in ('administrator', 'creator') or
-            (sql.allow_connect_to_chat(connect_chat) == True)
+            (sql.allow_connect_to_chat(connect_chat) is True)
                 and bot.get_chat_member(
                     user_id, update.effective_message.from_user.id).status in
             ('member')) or (user_id in SUDO_USERS):

@@ -1,24 +1,7 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import html
-from typing import List
+from typing import Optional, List
 
-from telegram import Update, Bot
+from telegram import Message, Chat, Update, Bot, User
 from telegram.error import BadRequest
 from telegram.ext import Filters, MessageHandler, CommandHandler, run_async
 from telegram.utils.helpers import mention_html
@@ -28,17 +11,17 @@ from haruka.modules.helper_funcs.chat_status import is_user_admin, user_admin, c
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import antiflood_sql as sql
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
-FLOOD_GROUP = 3
+FLOOD_GROUP = 10
 
 
 @run_async
 @loggable
 def check_flood(bot: Bot, update: Update) -> str:
-    user = update.effective_user
-    chat = update.effective_chat
-    msg = update.effective_message
+    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat  # type: Optional[Chat]
+    msg = update.effective_message  # type: Optional[Message]
 
     if not user:  # ignore channels
         return ""
@@ -70,9 +53,9 @@ def check_flood(bot: Bot, update: Update) -> str:
 @can_restrict
 @loggable
 def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
 
     if len(args) >= 1:
         val = args[0].lower()
@@ -108,7 +91,7 @@ def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
 
 @run_async
 def flood(bot: Bot, update: Update):
-    chat = update.effective_chat
+    chat = update.effective_chat  # type: Optional[Chat]
 
     limit = sql.get_flood_limit(chat.id)
     if limit == 0:

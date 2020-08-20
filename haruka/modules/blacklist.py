@@ -1,25 +1,8 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import html
 import re
-from typing import List
+from typing import Optional, List
 
-from telegram import Update, Bot, ParseMode
+from telegram import Message, Chat, Update, Bot, ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, MessageHandler, Filters, run_async
 
@@ -32,16 +15,16 @@ from haruka.modules.helper_funcs.misc import split_message
 
 from haruka.modules.connection import connected
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 BLACKLIST_GROUP = 11
 
 
 @run_async
 def blacklist(bot: Bot, update: Update, args: List[str]):
-    msg = update.effective_message
-    chat = update.effective_chat
-    user = update.effective_user
+    msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
 
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
@@ -78,9 +61,9 @@ def blacklist(bot: Bot, update: Update, args: List[str]):
 @run_async
 @user_admin
 def add_blacklist(bot: Bot, update: Update):
-    msg = update.effective_message
-    chat = update.effective_chat
-    user = update.effective_user
+    msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
     words = msg.text.split(None, 1)
 
     conn = connected(bot, update, chat, user.id)
@@ -97,8 +80,8 @@ def add_blacklist(bot: Bot, update: Update):
     if len(words) > 1:
         text = words[1]
         to_blacklist = list(
-            set(trigger.strip() for trigger in text.split("\n")
-                if trigger.strip()))
+            {trigger.strip() for trigger in text.split("\n")
+                if trigger.strip()})
         for trigger in to_blacklist:
             sql.add_to_blacklist(chat_id, trigger.lower())
 
@@ -120,9 +103,9 @@ def add_blacklist(bot: Bot, update: Update):
 @run_async
 @user_admin
 def unblacklist(bot: Bot, update: Update):
-    msg = update.effective_message
-    chat = update.effective_chat
-    user = update.effective_user
+    msg = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
     words = msg.text.split(None, 1)
 
     conn = connected(bot, update, chat, user.id)
@@ -139,8 +122,8 @@ def unblacklist(bot: Bot, update: Update):
     if len(words) > 1:
         text = words[1]
         to_unblacklist = list(
-            set(trigger.strip() for trigger in text.split("\n")
-                if trigger.strip()))
+            {trigger.strip() for trigger in text.split("\n")
+                if trigger.strip()})
         successful = 0
         for trigger in to_unblacklist:
             success = sql.rm_from_blacklist(chat_id, trigger.lower())
@@ -153,7 +136,8 @@ def unblacklist(bot: Bot, update: Update):
                     html.escape(to_unblacklist[0]), chat_name),
                                parse_mode=ParseMode.HTML)
             else:
-                msg.reply_text(tld(chat.id, "blacklist_err_not_trigger"))
+                msg.reply_text(
+                    tld(chat.id, "This isn't a blacklisted trigger!"))
 
         elif successful == len(to_unblacklist):
             msg.reply_text(tld(chat.id, "blacklist_multi_del").format(
@@ -180,8 +164,8 @@ def unblacklist(bot: Bot, update: Update):
 @run_async
 @user_not_admin
 def del_blacklist(bot: Bot, update: Update):
-    chat = update.effective_chat
-    message = update.effective_message
+    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message  # type: Optional[Message]
     to_match = extract_text(message)
     if not to_match:
         return
@@ -207,6 +191,13 @@ def __migrate__(old_chat_id, new_chat_id):
 def __stats__():
     return "• `{}` blacklist triggers, across `{}` chats.".format(
         sql.num_blacklist_filters(), sql.num_blacklist_filter_chats())
+
+
+def __import_data__(chat_id, data):
+    # set chat blacklist
+    blacklist = data.get('blacklist', {})
+    for trigger in blacklist:
+        sql.add_to_blacklist(chat_id, trigger)
 
 
 __help__ = True

@@ -1,29 +1,12 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import html
-from typing import List
+from typing import Optional, List
 
-from telegram import Update, Bot
+from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
-from telegram.utils.helpers import mention_html, escape_markdown
+from telegram.utils.helpers import mention_html
 
 from haruka import dispatcher
 from haruka.modules.disable import DisableAbleCommandHandler
@@ -31,7 +14,7 @@ from haruka.modules.helper_funcs.chat_status import bot_admin, user_admin, can_p
 from haruka.modules.helper_funcs.extraction import extract_user
 from haruka.modules.log_channel import loggable
 from haruka.modules.sql import admin_sql as sql
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
 
 from haruka.modules.connection import connected
 
@@ -41,9 +24,9 @@ from haruka.modules.connection import connected
 @user_admin
 @loggable
 def promote(bot: Bot, update: Update, args: List[str]) -> str:
-    message = update.effective_message
-    user = update.effective_user
-    chat = update.effective_chat
+    message = update.effective_message  # type: Optional[Message]
+    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat  # type: Optional[Chat]
     conn = connected(bot, update, chat, user.id)
     if conn:
         chatD = dispatcher.bot.getChat(conn)
@@ -53,7 +36,7 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
             return
 
     if not chatD.get_member(bot.id).can_promote_members:
-        update.effective_message.reply_text(tld(chat.id, "admin_err_no_perm"))
+        update.effective_message.reply_text(tld(chat.id, "err_no_perm"))
         return
 
     user_id = extract_user(message, args)
@@ -73,16 +56,17 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
     # set same perms as bot - bot can't assign higher perms than itself!
     bot_member = chatD.get_member(bot.id)
 
-    bot.promoteChatMember(chatD.id,
-                          user_id,
-                          can_change_info=bot_member.can_change_info,
-                          can_post_messages=bot_member.can_post_messages,
-                          can_edit_messages=bot_member.can_edit_messages,
-                          can_delete_messages=bot_member.can_delete_messages,
-                          can_invite_users=bot_member.can_invite_users,
-                          can_restrict_members=bot_member.can_restrict_members,
-                          can_pin_messages=bot_member.can_pin_messages,
-                          can_promote_members=bot_member.can_promote_members)
+    bot.promoteChatMember(
+        chatD.id,
+        user_id,
+        can_change_info=bot_member.can_change_info,
+        can_post_messages=bot_member.can_post_messages,
+        can_edit_messages=bot_member.can_edit_messages,
+        can_delete_messages=bot_member.can_delete_messages,
+        #can_invite_users=bot_member.can_invite_users,
+        can_restrict_members=bot_member.can_restrict_members,
+        can_pin_messages=bot_member.can_pin_messages,
+        can_promote_members=bot_member.can_promote_members)
 
     message.reply_text(tld(chat.id, "admin_promote_success").format(
         mention_html(user.id, user.first_name),
@@ -100,9 +84,9 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def demote(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    message = update.effective_message
-    user = update.effective_user
+    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message  # type: Optional[Message]
+    user = update.effective_user  # type: Optional[User]
     conn = connected(bot, update, chat, user.id)
     if conn:
         chatD = dispatcher.bot.getChat(conn)
@@ -165,8 +149,8 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def pin(bot: Bot, update: Update, args: List[str]) -> str:
-    user = update.effective_user
-    chat = update.effective_chat
+    user = update.effective_user  # type: Optional[User]
+    chat = update.effective_chat  # type: Optional[Chat]
 
     is_group = chat.type != "private" and chat.type != "channel"
 
@@ -202,7 +186,7 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
 @loggable
 def unpin(bot: Bot, update: Update) -> str:
     chat = update.effective_chat
-    user = update.effective_user
+    user = update.effective_user  # type: Optional[User]
 
     try:
         bot.unpinChatMessage(chat.id)
@@ -221,8 +205,8 @@ def unpin(bot: Bot, update: Update) -> str:
 @bot_admin
 @user_admin
 def invite(bot: Bot, update: Update):
-    chat = update.effective_chat
-    user = update.effective_user
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
     conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chatP = dispatcher.bot.getChat(conn)
@@ -251,19 +235,30 @@ def invite(bot: Bot, update: Update):
 
 
 @run_async
-def adminlist(bot: Bot, update: Update):
-    chat = update.effective_chat
-    administrators = update.effective_chat.get_administrators()
-    text = tld(chat.id, "admin_list").format(
-        update.effective_chat.title
-        or tld(chat.id, "common_this_chat").lower())
+def adminlist(bot, update):
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    conn = connected(bot, update, chat, user.id, need_admin=False)
+    if conn:
+        chatP = dispatcher.bot.getChat(conn)
+    else:
+        chatP = update.effective_chat
+        if chat.type == "private":
+            return
+
+    administrators = chatP.get_administrators()
+
+    text = tld(chat.id,
+               "admin_list").format(chatP.title
+                                    or tld(chat.id, "admin_this_chat"))
     for admin in administrators:
         user = admin.user
-        name = "[{}](tg://user?id={})".format(user.first_name, user.id)
-        if user.username:
-            esc = escape_markdown("@" + user.username)
-            name = "[{}](tg://user?id={})".format(esc, user.id)
-        text += "\n - {}".format(name)
+        status = admin.status
+        name = user.first_name
+        name += f" {user.last_name}" if user.last_name else ""
+        name += tld(chat.id,
+                    "admin_list_creator") if status == "creator" else ""
+        text += f"\n• `{name}`"
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.MARKDOWN)
 
@@ -272,7 +267,7 @@ def adminlist(bot: Bot, update: Update):
 @user_admin
 @run_async
 def reaction(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
+    chat = update.effective_chat  # type: Optional[Chat]
     if len(args) >= 1:
         var = args[0]
         print(var)
@@ -291,7 +286,7 @@ def reaction(bot: Bot, update: Update, args: List[str]) -> str:
     else:
         status = sql.command_reaction(chat.id)
         update.effective_message.reply_text(tld(
-            chat.id, "admin_reaction_status").format('enabled' if status ==
+            chat.id, "admin_reaction_status").format('enabled' if status is
                                                      True else 'disabled'),
                                             parse_mode=ParseMode.MARKDOWN)
 

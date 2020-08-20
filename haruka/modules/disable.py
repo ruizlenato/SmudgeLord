@@ -1,24 +1,7 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2020 Akito Mizukito (Haruka Network Development)
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-from typing import Union, List
+from typing import Union, List, Optional
 
 from future.utils import string_types
-from telegram import ParseMode, Update, Bot
+from telegram import ParseMode, Update, Bot, Chat, User
 from telegram.ext import CommandHandler, RegexHandler, Filters
 from telegram.utils.helpers import escape_markdown
 
@@ -26,7 +9,8 @@ from haruka import dispatcher
 from haruka.modules.helper_funcs.handlers import CMD_STARTERS
 from haruka.modules.helper_funcs.misc import is_module_loaded
 
-from haruka.modules.tr_engine.strings import tld
+from haruka.modules.translations.strings import tld
+
 
 FILENAME = __name__.rsplit(".", 1)[-1]
 
@@ -55,8 +39,8 @@ if is_module_loaded(FILENAME):
                     ADMIN_CMDS.extend(command)
 
         def check_update(self, update):
-            chat = update.effective_chat
-            user = update.effective_user
+            chat = update.effective_chat  # type: Optional[Chat]
+            user = update.effective_user  # type: Optional[User]
             if super().check_update(update):
                 # Should be safe since check_update passed.
                 command = update.effective_message.text_html.split(
@@ -88,7 +72,7 @@ if is_module_loaded(FILENAME):
     @run_async
     @user_admin
     def disable(bot: Bot, update: Update, args: List[str]):
-        chat = update.effective_chat
+        chat = update.effective_chat  # type: Optional[Chat]
         if len(args) >= 1:
             disable_cmd = args[0]
             if disable_cmd.startswith(CMD_STARTERS):
@@ -110,7 +94,7 @@ if is_module_loaded(FILENAME):
     @run_async
     @user_admin
     def enable(bot: Bot, update: Update, args: List[str]):
-        chat = update.effective_chat
+        chat = update.effective_chat  # type: Optional[Chat]
         if len(args) >= 1:
             enable_cmd = args[0]
             if enable_cmd.startswith(CMD_STARTERS):
@@ -119,7 +103,7 @@ if is_module_loaded(FILENAME):
             if sql.enable_command(chat.id, enable_cmd):
                 update.effective_message.reply_text(
                     tld(chat.id, "disable_enable_success").format(enable_cmd),
-                    parse_mode=ParseMode.MARKDOWN)
+                        parse_mode=ParseMode.MARKDOWN)
             else:
                 update.effective_message.reply_text(
                     tld(chat.id, "disable_already_enabled"))
@@ -131,14 +115,14 @@ if is_module_loaded(FILENAME):
     @run_async
     @user_admin
     def list_cmds(bot: Bot, update: Update):
-        chat = update.effective_chat
+        chat = update.effective_chat  # type: Optional[Chat]
         if DISABLE_CMDS + DISABLE_OTHER:
             result = ""
             for cmd in set(DISABLE_CMDS + DISABLE_OTHER):
                 result += " - `{}`\n".format(escape_markdown(cmd))
-            update.effective_message.reply_text(tld(
-                chat.id, "disable_able_commands").format(result),
-                                                parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(
+                tld(chat.id, "disable_able_commands").format(result),
+                parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_able_commands_none"))
@@ -168,6 +152,11 @@ if is_module_loaded(FILENAME):
     def __migrate__(old_chat_id, new_chat_id):
         sql.migrate_chat(old_chat_id, new_chat_id)
 
+    def __import_data__(chat_id, data):
+        disabled = data.get('disabled', {})
+        for disable_cmd in disabled:
+            sql.disable_command(chat_id, disable_cmd)
+
     __help__ = True
 
     DISABLE_HANDLER = CommandHandler("disable",
@@ -188,7 +177,7 @@ if is_module_loaded(FILENAME):
     dispatcher.add_handler(DISABLE_HANDLER)
     dispatcher.add_handler(ENABLE_HANDLER)
     dispatcher.add_handler(COMMANDS_HANDLER)
-    # dispatcher.add_handler(TOGGLE_HANDLER)
+    dispatcher.add_handler(TOGGLE_HANDLER)
 
 else:
     DisableAbleCommandHandler = CommandHandler
