@@ -1,38 +1,19 @@
-#    Haruka Aya (A telegram bot project)
-#    Copyright (C) 2017-2020 OrangeFox Recovery
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU Affero General Public License for more details.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
+import rapidjson as json
+from requests import get
 from telethon import custom
 
 from haruka import LOGGER
 from haruka.events import register
-from haruka.modules.tr_engine.strings import tld
-
-from requests import get
-import rapidjson as json
-
+from haruka.modules.translations.strings import tld
 
 API_HOST = 'https://api.orangefox.download/v2'
-
 
 LOGGER.info("orangefox: By @MrYacha, powered by OrangeFox API v2")
 
 
 @register(pattern=r"^/(orangefox|of|fox|ofox)(?: |$)(\S*)")
 async def orangefox(event):
-    if event.from_id == None:
+    if event.from_id is None:
         return
 
     chat_id = event.chat_id
@@ -70,6 +51,8 @@ async def orangefox(event):
         codename=device['codename']
     )
     reply_text += tld(chat_id, "fox_release_version").format(release['version'])
+    reply_text += tld(chat_id, "fox_release_date").format(release['date'])
+    reply_text += tld(chat_id, "fox_release_md5").format(release['md5'])
 
     if device['maintained'] == 3:
         status = tld(chat_id, "fox_release_maintained_3")
