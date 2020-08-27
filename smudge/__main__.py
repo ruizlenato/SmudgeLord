@@ -14,7 +14,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from smudge.modules import ALL_MODULES
-from smudge import dispatcher, updater, LOGGER, TOKEN, tbot
+from smudge import dispatcher, updater, LOGGER, TOKEN, tbot, pbot
 from smudge.modules.helper_funcs.misc import paginate_modules
 from smudge.modules.translations.strings import tld
 
@@ -27,6 +27,8 @@ DATA_IMPORT = []
 DATA_EXPORT = []
 
 GDPR = []
+
+SMUDGE_IMG = "https://telegra.ph/file/cb4a2ba5f488a11c3d0ee.png"
 
 for module_name in ALL_MODULES:
     imported_module = importlib.import_module("smudge.modules." + module_name)
@@ -129,12 +131,12 @@ def send_start(bot, update):
         InlineKeyboardButton(text=tld(chat.id, 'btn_help'), callback_data="help_back")
     ]]
 
-    update.effective_message.reply_text(
+    update.effective_message.reply_photo(
+        SMUDGE_IMG,
         text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN,
         disable_web_page_preview=True)
-
 
 # for test purposes
 def error_callback(bot, update, error):
@@ -391,4 +393,6 @@ def process_update(self, update):
 if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
     tbot.start(bot_token=TOKEN)
+    pbot.start()
     main()
+    idle()
