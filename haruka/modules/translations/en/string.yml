@@ -80,43 +80,39 @@ afk_help: |
     - brb <reason>: Same as the afk command, but not a command.\n
     When marked as AFK, any mentions will be replied to with a message telling that you're not available!
 
-
-# Android
+#Android
 modname_android: Android
-download: "*Download:* [{}]({})\n"
-build_size: "*Build Size:* `{}`\n"
-build_date: "*Build Date:* `{}`\n"
-version: "*Version:* `{}`\n"
-android_version: "*Android Version:* `{}`\n"
-rom_type: "*ROM Type:* `{}`\n"
-maintainer: "*Maintainer:* {}\n"
-xda_thread: "*XDA Thread:* [Here]({})\n"
-changelog: "*Device Changelog:* `{}`\n"
-weekly: "*Weekly*\n"
-miui_release: "*Recovery ROM*\n\n*Stable*\n"
-cust_releases: "*{} latest release(s)*\n"
+download: "**Download:** [{}]({})\n"
+build_size: "**Build Size:** `{}`\n"
+build_date: "**Build Date:** `{}`\n"
+version: "**Version:** `{}`\n"
+android_version: "**Android Version:** `{}`\n"
+rom_type: "**ROM Type:** `{}`\n"
+maintainer: "**Maintainer:** {}\n"
+xda_thread: "**XDA Thread:** [Here]({})\n"
+changelog: "**Device Changelog:** `{}`\n"
+weekly: "**Weekly**\n"
+phh_releases: "**Phh's latest GSI release(s)**\n"
 err_not_found: Couldn't find any results matching your query.
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
 err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
 btn_dl: Click here to Download
 cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
-evox_gsi: Please check Evolution X Updates channel(@EvolutionXUpdates) or click the button down below to download the GSIs!
-aex_cust_str: Please type your device **codename** and **Android Version**!\nFor example, `/aex tissot pie`
 android_help: |
-    *Useful tools:*
-     - /device <codename>: Get android device basic info from its codename.
-     - /magisk: Get the latest magisk release for Stable/Beta/Canary.
-     - /twrp <codename>: gets latest twrp for the android device using the codename.
-     - /odin: Get the latest version of odin for Samsung devices.\n
-    *GSI*
-    - /phh: Get the latest Phh AOSP Oreo GSI!
-    - /descendant: Get the latest Descendant GSI!
-    - /enesrelease: Get the latest Enes upload\n
-    *Firmwares:*
-    - /getfw <model> <csc>: (SAMSUNG) gets firmware download links from samfrew, sammobile and sfirmwares for the given device.
-    - /checkfw <model> <csc>: (SAMSUNG) shows the latest firmware info for the given device, taken from samsung server.
-    - /miui <device>: Get the latest MIUI ROM for a device
+  *Device Specific ROM for a device*
+  - /evo <device>: Get the latest Evolution X ROM for a device
+  - /los <device>: Get the latest LineageOS ROM for a device
+  - /bootleggers <device>: Get the latest Bootleggers ROM for a device\n
+  *GSI*
+  - /phh: Get the latest PHH AOSP GSIs!\n
+  *Misc*
+  - /magisk: Get latest Magisk releases.
+  - /twrp <codename>: Gets latest twrp for the android device using the codename.
+  - /ofox: Gets the list of officially supported devices by the Orange Fox Recovery Project.
+  - /ofox <device>: Gets the download link and basic OFRP information to the specified device.
+  - /codename <brand> <device>: Search for Android device codename.
+  - /device <codename>: Get info about an Android device.
 
 
 # Antiflood

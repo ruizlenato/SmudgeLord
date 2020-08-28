@@ -81,36 +81,40 @@ afk_help: |
     Quando marcado como AFK, qualquer menção será respondida com uma mensagem informando que você não está disponível!
 
 
-# Android
+#Android
 modname_android: Android
-download: "*Download:* [{}]({})\n"
+download: "**Download:** [{}]({})\n"
 build_size: "**Tamanho do arquivo:** `{}`\n"
 build_date: "**Data da compilação:** `{}`\n"
 version: "**Versão:** `{}`\n"
 android_version: "**Versão do Android:** `{}`\n"
 rom_type: "**Tipo de ROM:** `{}`\n"
 maintainer: "**Mantedor:** `{}`\n"
-weekly: "*Weekly*\n"
-miui_release: "*Recovery ROM*\n\n*Estavel*\n"
-cust_releases: "*{} Último lançamento(s)*\n"
+xda_thread: "**Tópico no XDA:** [AQUI]({})\n"
+changelog: "**Changelog:** `{}`\n"
+weekly: "**Semanalmente**"
+phh_releases: "**Últimos lançamentos de GSI do PHH:**\n"
 err_not_found: Não foi possível encontrar nenhum resultado correspondente à sua consulta.
 err_api: Não foi possível acessar a API.
-err_example_device: Why are you trying to get the example device?
+err_example_device: 'Por que você está tentando obter o dispositivo de exemplo?'
+err_json: Diga ao mantenedor da ROM para consertar seu json OTA. Estou certo de que isso não funcionará com o OTA e também não funcionará com este bot :P
 btn_dl: Clique aqui para baixar
-cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
+cmd_example: 'Digite o **codinome** do dispositivo!\nPor exemplo, `/{} tissot`'
 android_help: |
-    *Ferramentas úteis:*
-     - /device <codinome>: Obtenha informações básicas do dispositivo Android com o codinome(codename).
-     - /magisk: Obtenha a versão mais recente do magisk para Stable/Beta/Canary.
-     - /twrp <codinome>: obtém o último twrp para o dispositivo Android usando o codinome(codename).
-     - /odin: Obtenha a versão mais recente do odin para dispositivos Samsung.\n
-    *GSI*
-    - /phh: Obtenha o última versão da Phh AOSP Oreo GSI!
-    - /descendant: Obtenha o última versão da Descendant GSI!\n
-    Firmwares:
-    - /getfw <model> <csc>: (SAMSUNG) obtém links de download de firmware de samfrew, sammobile e sfirmwares para o dispositivo fornecido.
-    - /checkfw <model> <csc>: (SAMSUNG) mostra as informações mais recentes do firmware do dispositivo fornecido, obtidas no servidor samsung.
-    - /miui <device>: Obtenha o última versão da MIUI ROM para um device
+  *ROMs*
+  - /evo <device>: Obtenha a versão mais recente da ROM Evolution X para um dispositivo
+  - /los <device>: Receba a versão mais recente da ROM LineageOS para um dispositivo
+  - /bootleggers <device>: Receba a versão mais recente da ROM Bootleggers para um dispositivo\n
+  *GSI*
+  - /phh: Receba as últimas GSIs AOSP do PHH!\n
+  *Outros*
+  - /magisk: Receba as últimas versões do Magisk
+  - /twrp <codinome>: Obtém o twrp mais recente para um dispositivo Android através do codinome.
+  - /ofox: Obtém a lista de dispositivos oficialmente suportados pelo Orange Fox Recovery Project.
+  - /ofox <codinome>: Obtém o link de download e as informações básicas do OFRP para o dispositivo especificado.
+  - /codename <fabricante> <dispositivo>: Pesquise o codinome do dispositivo Android.
+  - /device <codinome>: Obtenha informações sobre um dispositivo Android.
+
 # Antiflood
 modname_antiflood: Antiflood
 flood_mute: você fala muito. Ficará mutado por flood ate um admin remover o mute!
