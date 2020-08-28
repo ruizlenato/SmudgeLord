@@ -1103,8 +1103,8 @@ lastfm_chart: "Chart semanal do {}\n\n"
 lastfm_collage: "Collage Semanal 3x3 dos albuns mais ouvidos pelo {}"
 last_fm_help: |
  - /setuser <username>: Configure seu Username(nome de usuário)  do LastFM.
- - /clearuser:  remove seu nome de usuário last.fm do banco de dados do bot.
- - /lastfm:  mostra o que você está scrobbling(escutando) no last.fm.
+ - /clearuser: remove seu nome de usuário last.fm do banco de dados do bot.
+ - /lastfm: mostra o que você está scrobbling(escutando) no last.fm.
  - /top: mostra as musicas que você mais escutou.
  - /chart: mostra as musicas que você mais escutou em uma semana.
  - /collage: faz uma colagem em 3x3 dos álbuns que você mais ouviu na semana.
