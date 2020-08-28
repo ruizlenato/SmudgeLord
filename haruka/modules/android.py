@@ -1,18 +1,14 @@
-import time
-import yaml
-from typing import Optional, List
+import urllib
+
+import rapidjson as json
 from bs4 import BeautifulSoup
-
-
-from telegram import Chat, Update, Bot
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import CommandHandler, run_async
-
-from haruka import dispatcher, LOGGER
-from haruka.modules.disable import DisableAbleCommandHandler
-from haruka.modules.translations.strings import tld
-
+from hurry.filesize import size as sizee
 from requests import get
+from telethon import custom
+
+from haruka import LOGGER
+from haruka.events import register
+from haruka.modules.translations.strings import tld
 
 # Greeting all bot owners that is using this module,
 # - RealAkito (used to be peaktogoo) [Module Maker]
@@ -22,213 +18,131 @@ from requests import get
 # This module was inspired by Android Helper Bot by Vachounet.
 # None of the code is taken from the bot itself, to avoid confusion.
 
-LOGGER.info("android: Original Android Modules by @RealAkito on Telegram, modified by @Renatoh on GitHub")
-DEVICES_DATA = 'https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json'
+LOGGER.info("android: Original Android Modules by @RealAkito on Telegram (modified by @Renatoh on Telegram)")
 
-@run_async
-def device(bot, update, args):
-    if len(args) == 0:
-        reply = '🇺🇸No codename provided, write a codename for fetching informations.\n\n🇧🇷Nenhum codinome fornecido, escreva um codinome para obter informações'
-        update.effective_message.reply_text("{}".format(reply),
-                                            parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
+@register(pattern=r"^/los(?: |$)(\S*)")
+async def los(event):
+    if event.from_id is None:
         return
-    device = " ".join(args)
-    db = get(DEVICES_DATA).json()
-    newdevice = device.strip('lte') if device.startswith('beyond') else device
+
+    chat_id = event.chat_id
     try:
-        reply = '\n\n'
-        brand = db[newdevice][0]['brand']
-        name = db[newdevice][0]['name']
-        model = db[newdevice][0]['model']
-        codename = newdevice
-        reply += f'<b>{brand} {name}</b>\n' \
-                 f'Model: <code>{model}</code>\n' \
-                 f'Codename: <code>{codename}</code>\n\n'
-    except KeyError:
-        reply = f"Couldn't find info about {device}!\n"
-        update.effective_message.reply_text("{}".format(reply),
-                                            parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-        return
-    update.message.reply_text("{}".format(reply),
-                              parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+        device_ = event.pattern_match.group(1)
+        device = urllib.parse.quote_plus(device_)
+    except Exception:
+        device = ''
 
-@run_async
-def odin(bot, update, args):
-    message = "*🇺🇸Tool to flash the stock firmware of your Samsung Galaxy*\n\n🇧🇷Ferramenta para atualizar o firmware padrão do seu Samsung Galaxy!"
-    keyboard = [
-        [InlineKeyboardButton("Odin", url="https://odin3download.com/tool/Odin3-v3.14.1.zip"),
-         InlineKeyboardButton("USB Drivers", url="https://developer.samsung.com/mobile/android-usb-driver.html")]
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    update.effective_message.bot.send_message(chat_id=update.message.chat_id, text=message,
-                                              reply_to_message_id=update.message.message_id,
-                                              reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
-
-
-@run_async
-def getfw(bot, update, args):
-    if not len(args) == 2:
-        reply = 'Give me something to fetch, like: <code>/getfw SM-N975F DBT</code>'
-        update.effective_message.reply_text("{}".format(reply),
-                    parse_mode=ParseMode.HTML)
+    if device == '':
+        reply_text = tld(chat_id, "cmd_example").format("los")
+        await event.reply(reply_text, link_preview=False)
         return
-    temp,csc = args
-    model = 'sm-'+temp if not temp.upper().startswith('SM-') else temp
-    test = get(f'https://samfrew.com/model/{model.upper()}/region/{csc.upper()}/')
-    if test.status_code == 404:
-        reply = f"Couldn't find any firmware downloads for <code>{model.upper()} {csc.upper()}</code>, make sure you gave me the right CSC and model!"
-        update.effective_message.reply_text("{}".format(reply),
-                    parse_mode=ParseMode.HTML)
-        return
-    url1 = f'https://samfrew.com/model/{model.upper()}/region/{csc.upper()}/'
-    url2 = f'https://www.sammobile.com/samsung/firmware/{model.upper()}/{csc.upper()}/'
-    url3 = f'https://sfirmware.com/samsung-{model.lower()}/#tab=firmwares'
-    url4 = f'https://samfw.com/firmware/{model.upper()}/{csc.upper()}/'
-    fota = get(f'http://fota-cloud-dn.ospserver.net/firmware/{csc.upper()}/{model.upper()}/version.xml')
-    page = BeautifulSoup(fota.content, 'lxml')
-    os = page.find("latest").get("o")
-    reply = ""
-    if page.find("latest").text.strip():
-        pda,csc2,phone=page.find("latest").text.strip().split('/')
-        reply += f'*Latest firmware for {model.upper()} {csc.upper()}:*\n'
-        reply += f' • PDA: `{pda}`\n • CSC: `{csc2}`\n'
-        if phone:
-            reply += f' • Phone: `{phone}`\n'
-        if os:
-            reply += f' • Android: `{os}`\n'
-    reply += '\n'
-    reply += f'*Downloads for {model.upper()} {csc.upper()}:*\n'
-    reply += f' • [samfrew.com]({url1})\n'
-    reply += f' • [sammobile.com]({url2})\n'
-    reply += f' • [sfirmware.com]({url3})\n'
-    reply += f' • [samfw.com]({url4}) ❇️\n\n'
-    reply += '❇️,the site with this symbol is the best site to download\n'
-    update.message.reply_text("{}".format(reply),
-                           parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
+    fetch = get(f'https://download.lineageos.org/api/v1/{device}/nightly/*')
+    if fetch.status_code == 200 and len(fetch.json()['response']) != 0:
+        usr = json.loads(fetch.content)
+        response = usr['response'][0]
+        filename = response['filename']
+        url = response['url']
+        buildsize_a = response['size']
+        buildsize_b = sizee(int(buildsize_a))
+        version = response['version']
 
-@run_async
-def checkfw(bot, update, args):
-    if not len(args) == 2:
-        reply = 'Give me something to fetch, like:\n`/checkfw SM-N975F DBT`'
-        update.effective_message.reply_text("{}".format(reply),
-                    parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+        reply_text = tld(chat_id, "download").format(filename, url)
+        reply_text += tld(chat_id, "build_size").format(buildsize_b)
+        reply_text += tld(chat_id, "version").format(version)
+
+        keyboard = [custom.Button.url(tld(chat_id, "btn_dl"), f"{url}")]
+        await event.reply(reply_text, buttons=keyboard, link_preview=False)
         return
-    temp,csc = args
-    model = 'sm-'+temp if not temp.upper().startswith('SM-') else temp
-    fota = get(f'http://fota-cloud-dn.ospserver.net/firmware/{csc.upper()}/{model.upper()}/version.xml')
-    test = get(f'http://fota-cloud-dn.ospserver.net/firmware/{csc.upper()}/{model.upper()}/version.test.xml')
-    if test.status_code != 200:
-        reply = f"Couldn't check for {temp.upper()} {csc.upper()}, make sure you gave me the right CSC and model!"
-        update.effective_message.reply_text("{}".format(reply),
-                    parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-        return
-    page1 = BeautifulSoup(fota.content, 'lxml')
-    page2 = BeautifulSoup(test.content, 'lxml')
-    os1 = page1.find("latest").get("o")
-    os2 = page2.find("latest").get("o")
-    if page1.find("latest").text.strip():
-        pda1,csc1,phone1=page1.find("latest").text.strip().split('/')
-        reply = f'*Latest released firmware for {model.upper()} {csc.upper()}:*\n'
-        reply += f' • PDA: `{pda1}`\n • CSC: `{csc1}`\n'
-        if phone1:
-            reply += f' • Phone: `{phone1}`\n'
-        if os1:
-            reply += f' • Android: `{os1}`\n'
-        reply += '\n'
+
     else:
-        reply = f'*No public release found for {model.upper()} {csc.upper()}.*\n\n'
-    reply += f'*Latest test firmware for {model.upper()} {csc.upper()}:*\n'
-    if len(page2.find("latest").text.strip().split('/')) == 3:
-        pda2,csc2,phone2=page2.find("latest").text.strip().split('/')
-        reply += f' • PDA: `{pda2}`\n • CSC: `{csc2}`\n'
-        if phone2:
-            reply += f' • Phone: `{phone2}`\n'
-        if os2:
-            reply += f' • Android: `{os2}`\n'
-        reply += '\n'
-    else:
-        md5=page2.find("latest").text.strip()
-        reply += f' • Hash: `{md5}`\n • Android: `{os2}`\n\n'
-    
-    update.message.reply_text("{}".format(reply),
-                           parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+        reply_text = tld(chat_id, "err_not_found")
+    await event.reply(reply_text, link_preview=False)
 
 
-@run_async
-def magisk(bot, update):
-    url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
-    releases = ""
-    for type, path in {"Stable": "master/stable", "Beta": "master/beta", "Canary(Debug)": "canary/debug"}.items():
-        data = get(url + path + '.json').json()
-        releases += f'{type}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
-                    f'[APP v{data["app"]["version"]}]({data["app"]["link"]}) | ' \
-                    f'[Uninstaller]({data["uninstaller"]["link"]})\n'
+@register(pattern=r"^/evo(?: |$)(\S*)")
+async def evo(event):
+    if event.from_id is None:
+        return
 
-    update.message.reply_text("*Latest Magisk Releases:*\n{}".format(releases),
-                              parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    chat_id = event.chat_id
+    try:
+        device_ = event.pattern_match.group(1)
+        device = urllib.parse.quote_plus(device_)
+    except Exception:
+        device = ''
 
-@run_async
-def twrp(bot, update, args):
-    if len(args) == 0:
-        reply='No codename provided, write a codename for fetching informations.'
-        del_msg = update.effective_message.reply_text("{}".format(reply),
-                               parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-        time.sleep(5)
+    if device == "example":
+        reply_text = tld(chat_id, "err_example_device")
+        await event.reply(reply_text, link_preview=False)
+        return
+
+    if device == "x00t":
+        device = "X00T"
+
+    if device == "x01bd":
+        device = "X01BD"
+
+    if device == '':
+        reply_text = tld(chat_id, "cmd_example").format("evo")
+        await event.reply(reply_text, link_preview=False)
+        return
+
+    fetch = get(
+        f'https://raw.githubusercontent.com/Evolution-X-Devices/official_devices/master/builds/{device}.json'
+    )
+
+    if fetch.status_code in [500, 504, 505]:
+        await event.reply(
+            "Smudge have been trying to connect to Github User Content, It seem like Github User Content is down"
+        )
+        return
+
+    if fetch.status_code == 200:
         try:
-            del_msg.delete()
-            update.effective_message.delete()
-        except BadRequest as err:
-            if (err.message == "Message to delete not found" ) or (err.message == "Message can't be deleted" ):
-                return
+            usr = json.loads(fetch.content)
+            filename = usr['filename']
+            url = usr['url']
+            version = usr['version']
+            maintainer = usr['maintainer']
+            maintainer_url = usr['telegram_username']
+            size_a = usr['size']
+            size_b = sizee(int(size_a))
 
-    device = " ".join(args)
-    url = get(f'https://eu.dl.twrp.me/{device}/')
-    if url.status_code == 404:
-        reply = f"Couldn't find twrp downloads for {device}!\n"
-        del_msg = update.effective_message.reply_text("{}".format(reply),
-                               parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-        time.sleep(5)
-        try:
-            del_msg.delete()
-            update.effective_message.delete()
-        except BadRequest as err:
-            if (err.message == "Message to delete not found" ) or (err.message == "Message can't be deleted" ):
-                return
-    else:
-        reply = '\n'            
-        db = get(DEVICES_DATA).json()
-        newdevice = device.strip('lte') if device.startswith('beyond') else device
-        try:
-            brand = db[newdevice][0]['brand']
-            name = db[newdevice][0]['name']
-            reply += f'*{brand} - {name}*\n'
-        except KeyError as err:
-            pass
-        page = BeautifulSoup(url.content, 'lxml')
-        date = page.find("em").text.strip()
-        reply += f'*Updated:* {date}\n'
-        trs = page.find('table').find_all('tr')
-        row = 2 if trs[0].find('a').text.endswith('tar') else 1
-        for i in range(row):
-            download = trs[i].find('a')
-            dl_link = f"https://eu.dl.twrp.me{download['href']}"
-            dl_file = download.text
-            size = trs[i].find("span", {"class": "filesize"}).text
-            reply += f'[{dl_file}]({dl_link}) - {size}\n'
+            reply_text = tld(chat_id, "download").format(filename, url)
+            reply_text += tld(chat_id, "build_size").format(size_b)
+            reply_text += tld(chat_id, "android_version").format(version)
+            reply_text += tld(chat_id, "maintainer").format(
+                f"[{maintainer}](https://t.me/{maintainer_url})")
 
-        update.message.reply_text("{}".format(reply),
-                               parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
-    
-def phh(bot: Bot, update: Update, args: List[str]):
-    romname = "Phh's"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
+            keyboard = [custom.Button.url(tld(chat_id, "btn_dl"), f"{url}")]
+            await event.reply(reply_text, buttons=keyboard, link_preview=False)
+            return
 
-    usr = get(
-        'https://api.github.com/repos/phhusson/treble_experimentations/releases/latest'
-    ).json()
-    reply_text = tld(chat.id, "cust_releases").format(romname)
+        except ValueError:
+            reply_text = tld(chat_id, "err_json")
+            await event.reply(reply_text, link_preview=False)
+            return
+
+    elif fetch.status_code == 404:
+        reply_text = tld(chat_id, "err_not_found")
+        await event.reply(reply_text, link_preview=False)
+        return
+
+
+@register(pattern=r"^/phh$")
+async def phh(event):
+    if event.from_id is None:
+        return
+
+    chat_id = event.chat_id
+
+    fetch = get(
+        "https://api.github.com/repos/phhusson/treble_experimentations/releases/latest"
+    )
+    usr = json.loads(fetch.content)
+    reply_text = tld(chat_id, "phh_releases")
     for i in range(len(usr)):
         try:
             name = usr['assets'][i]['name']
@@ -236,88 +150,206 @@ def phh(bot: Bot, update: Update, args: List[str]):
             reply_text += f"[{name}]({url})\n"
         except IndexError:
             continue
-    message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN)
+    await event.reply(reply_text)
 
 
-def descendant(bot: Bot, update: Update, args: List[str]):
-    romname = "Descendant GSI"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    usr = get('https://api.github.com/repos/Descendant/InOps/releases/latest'
-              ).json()
-    reply_text = tld(chat.id, "cust_releases").format(romname)
-    for i in range(len(usr)):
-        try:
-            name = usr['assets'][i]['name']
-            url = usr['assets'][i]['browser_download_url']
-            download_count = usr['assets'][i]['download_count']
-            reply_text += f"[{name}]({url}) - Downloaded `{download_count}` Times\n\n"
-        except IndexError:
-            continue
-    message.reply_text(reply_text, parse_mode=ParseMode.MARKDOWN)
-
-
-def miui(bot: Bot, update: Update):
-    cmd_name = "miui"
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-    device = message.text[len(f'/{cmd_name} '):]
-
-    giturl = "https://raw.githubusercontent.com/XiaomiFirmwareUpdater/miui-updates-tracker/master/"
-
-    if device == '':
-        reply_text = tld(chat.id, "cmd_example").format(cmd_name)
-        message.reply_text(reply_text,
-                           parse_mode=ParseMode.MARKDOWN,
-                           disable_web_page_preview=True)
+@register(pattern=r"^/bootleggers(?: |$)(\S*)")
+async def bootleggers(event):
+    if event.from_id is None:
         return
 
-    result = tld(chat.id, "miui_release")
-    stable_all = yaml.load(get(giturl +
-                               "stable_recovery/stable_recovery.yml").content,
-                           Loader=yaml.FullLoader)
-    data = [i for i in stable_all if device == i['codename']]
-    if len(data) != 0:
-        for i in data:
-            result += "[" + i['filename'] + "](" + i['download'] + ")\n\n"
+    chat_id = event.chat_id
+    try:
+        codename_ = event.pattern_match.group(1)
+        codename = urllib.parse.quote_plus(codename_)
+    except Exception:
+        codename = ''
 
-        result += tld(chat.id, "weekly")
-        weekly_all = yaml.load(
-            get(giturl + "weekly_recovery/weekly_recovery.yml").content,
-            Loader=yaml.FullLoader)
-        data = [i for i in weekly_all if device == i['codename']]
-        for i in data:
-            result += "[" + i['filename'] + "](" + i['download'] + ")"
+    if codename == '':
+        reply_text = tld(chat_id, "cmd_example").format("bootleggers")
+        await event.reply(reply_text, link_preview=False)
+        return
+
+    fetch = get('https://bootleggersrom-devices.github.io/api/devices.json')
+    if fetch.status_code == 200:
+        nestedjson = json.loads(fetch.content)
+
+        if codename.lower() == 'x00t':
+            devicetoget = 'X00T'
+        else:
+            devicetoget = codename.lower()
+
+        reply_text = ""
+        devices = {}
+
+        for device, values in nestedjson.items():
+            devices.update({device: values})
+
+        if devicetoget in devices:
+            for oh, baby in devices[devicetoget].items():
+                dontneedlist = ['id', 'filename', 'download', 'xdathread']
+                peaksmod = {
+                    'fullname': 'Device name',
+                    'buildate': 'Build date',
+                    'buildsize': 'Build size',
+                    'downloadfolder': 'SourceForge folder',
+                    'mirrorlink': 'Mirror link',
+                    'xdathread': 'XDA thread'
+                }
+                if baby and oh not in dontneedlist:
+                    if oh in peaksmod:
+                        oh = peaksmod.get(oh, oh.title())
+
+                    if oh == 'SourceForge folder':
+                        reply_text += f"\n**{oh}:** [Here]({baby})\n"
+                    elif oh == 'Mirror link':
+                        if not baby == "Error404":
+                            reply_text += f"\n**{oh}:** [Here]({baby})\n"
+                    else:
+                        reply_text += f"\n**{oh}:** `{baby}`"
+
+            reply_text += tld(chat_id, "xda_thread").format(
+                devices[devicetoget]['xdathread'])
+            reply_text += tld(chat_id, "download").format(
+                devices[devicetoget]['filename'],
+                devices[devicetoget]['download'])
+        else:
+            reply_text = tld(chat_id, "err_not_found")
+
+    elif fetch.status_code == 404:
+        reply_text = tld(chat_id, "err_api")
+    await event.reply(reply_text, link_preview=False)
+
+
+@register(pattern=r"^/twrp(?: |$)(\S*)")
+async def twrp(event):
+    textx = await event.get_reply_message()
+    device = event.pattern_match.group(1)
+    if device:
+        pass
+    elif textx:
+        device = textx.text.split(' ')[0]
     else:
-        result = tld(chat.id, "err_not_found")
+        await event.reply("Usage: `/twrp <codename>`")
+        return
+    url = get(f'https://dl.twrp.me/{device}/')
+    if url.status_code == 404:
+        reply = f"Couldn't find twrp downloads for `{device}`!\n"
+        await event.reply(reply)
+        return
+    page = BeautifulSoup(url.content, 'lxml')
+    download = page.find('table').find('tr').find('a')
+    dl_link = f"https://dl.twrp.me{download['href']}"
+    dl_file = download.text
+    size = page.find("span", {"class": "filesize"}).text
+    date = page.find("em").text.strip()
+    reply = f'**Latest TWRP for {device}:**\n' \
+            f'[{dl_file}]({dl_link}) - __{size}__\n' \
+            f'**Updated:** __{date}__\n'
+    await event.reply(reply)
 
-    message.reply_text(result, parse_mode=ParseMode.MARKDOWN)
+
+@register(pattern=r"^/magisk$")
+async def magisk(event):
+    if event.from_id is None:
+        return
+
+    url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
+    releases = '**Latest Magisk Releases:**\n'
+    variant = [
+        'master/stable', 'master/beta', 'canary/debug'
+    ]
+    for variants in variant:
+        fetch = get(url + variants + '.json')
+        data = json.loads(fetch.content)
+        if variants == "master/stable":
+            name = "**Stable**"
+            cc = 1
+            branch = "master"
+        elif variants == "master/beta":
+            name = "**Beta**"
+            cc = 0
+            branch = "master"
+        elif variants == "canary/debug":
+            name = "**Canary**"
+            cc = 1
+            branch = "canary"
+
+        releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
+                    f'[APK v{data["app"]["version"]}]({data["app"]["link"]}) | '
+
+        if cc == 1:
+            releases += f'[Uninstaller]({data["uninstaller"]["link"]}) | ' \
+                        f'[Changelog]({url}{branch}/notes.md)\n'
+        else:
+            releases += f'[Uninstaller]({data["uninstaller"]["link"]})\n'
+
+    await event.reply(releases, link_preview=False)
+
+
+@register(pattern=r"^/device(?: |$)(\S*)")
+async def device_info(event):
+    textx = await event.get_reply_message()
+    codename = event.pattern_match.group(1)
+    if codename:
+        pass
+    elif textx:
+        codename = textx.text
+    else:
+        await event.reply("Usage: `/device <codename> or <model>`")
+        return
+    data = json.loads(
+        get("https://raw.githubusercontent.com/androidtrackers/"
+            "certified-android-devices/master/by_device.json").text)
+    results = data.get(codename)
+    if results:
+        reply = f"**Search results for {codename}**:\n\n"
+        for item in results:
+            reply += f"**Brand**: {item['brand']}\n" \
+                     f"**Name**: {item['name']}\n" \
+                     f"**Model**: {item['model']}\n\n"
+    else:
+        reply = f"Couldn't find info about `{codename}!`\n"
+    await event.reply(reply)
+
+
+@register(pattern=r"^/codename(?: |)([\S]*)(?: |)([\s\S]*)")
+async def codename_info(event):
+    textx = await event.get_reply_message()
+    brand = event.pattern_match.group(1).lower()
+    device = event.pattern_match.group(2).lower()
+
+    if brand and device:
+        pass
+    elif textx:
+        brand = textx.text.split(' ')[0]
+        device = ' '.join(textx.text.split(' ')[1:])
+    else:
+        await event.reply("Usage: `/codename <brand> <device>`")
+        return
+
+    data = json.loads(
+        get("https://raw.githubusercontent.com/androidtrackers/"
+            "certified-android-devices/master/by_brand.json").text)
+    devices_lower = {k.lower(): v
+                     for k, v in data.items()}  # Lower brand names in JSON
+    devices = devices_lower.get(brand)
+    results = [
+        i for i in devices if i["name"].lower() == device.lower()
+        or i["model"].lower() == device.lower()
+        or i["model"].lower() == device.lower()
+    ]
+    if results:
+        reply = f"**Search results for {brand} {device}**:\n\n"
+        if len(results) > 8:
+            results = results[:8]
+        for item in results:
+            reply += f"**Device**: {item['device']}\n" \
+                     f"**Name**: {item['name']}\n" \
+                     f"**Model**: {item['model']}\n\n"
+    else:
+        reply = f"Couldn't find `{device}` codename!\n"
+    await event.reply(reply)
+
 
 __help__ = True
-
-TWRP_HANDLER = CommandHandler("twrp", twrp, pass_args=True)
-GETFW_HANDLER = CommandHandler("getfw", getfw, pass_args=True)
-CHECKFW_HANDLER = CommandHandler("checkfw", checkfw, pass_args=True)
-MAGISK_HANDLER = CommandHandler("magisk", magisk)
-MIUI_HANDLER = DisableAbleCommandHandler("miui", miui, admin_ok=True)
-DESCENDANT_HANDLER = DisableAbleCommandHandler("descendant",
-                                               descendant,
-                                               pass_args=True,
-                                               admin_ok=True)
-ODIN_HANDLER = CommandHandler("odin", odin, pass_args=True)
-DEVICE_HANDLER = CommandHandler("device", device, pass_args=True)
-PHH_HANDLER = DisableAbleCommandHandler("phh",
-                                        phh,
-                                        pass_args=True,
-                                        admin_ok=True)
-
-dispatcher.add_handler(MIUI_HANDLER)
-dispatcher.add_handler(DESCENDANT_HANDLER)
-# dispatcher.add_handler(PHH_HANDLER)
-dispatcher.add_handler(MAGISK_HANDLER)
-dispatcher.add_handler(GETFW_HANDLER)
-dispatcher.add_handler(CHECKFW_HANDLER)
-dispatcher.add_handler(TWRP_HANDLER)
-dispatcher.add_handler(DEVICE_HANDLER)
-dispatcher.add_handler(ODIN_HANDLER)
