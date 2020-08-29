@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, String
 
-from haruka.modules.sql import BASE, SESSION
+from smudge.modules.sql import BASE, SESSION
 
 
 class LastFMUsers(BASE):

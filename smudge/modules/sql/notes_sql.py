@@ -4,8 +4,8 @@ from typing import Union
 
 from sqlalchemy import Column, String, Boolean, UnicodeText, Integer, func, distinct
 
-from haruka.modules.helper_funcs.msg_types import Types
-from haruka.modules.sql import SESSION, BASE
+from smudge.modules.helper_funcs.msg_types import Types
+from smudge.modules.sql import SESSION, BASE
 
 
 class Notes(BASE):

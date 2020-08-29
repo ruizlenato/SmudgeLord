@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, UnicodeText, Integer, String, Boolean
 
-from haruka.modules.sql import BASE, SESSION
+from smudge.modules.sql import BASE, SESSION
 
 
 class GloballyBannedUsers(BASE):

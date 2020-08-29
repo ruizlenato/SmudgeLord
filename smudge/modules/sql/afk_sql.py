@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, UnicodeText, Boolean, Integer
 
-from haruka.modules.sql import BASE, SESSION
+from smudge.modules.sql import BASE, SESSION
 
 
 class AFK(BASE):

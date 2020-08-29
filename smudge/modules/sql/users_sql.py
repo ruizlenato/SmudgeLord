@@ -2,8 +2,8 @@ import threading
 
 from sqlalchemy import Column, Integer, UnicodeText, String, ForeignKey, UniqueConstraint, func
 
-from haruka import dispatcher
-from haruka.modules.sql import BASE, SESSION
+from smudge import dispatcher
+from smudge.modules.sql import BASE, SESSION
 
 
 class Users(BASE):

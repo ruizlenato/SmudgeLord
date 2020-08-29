@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import func, distinct, Column, String, UnicodeText
 
-from haruka.modules.sql import SESSION, BASE
+from smudge.modules.sql import SESSION, BASE
 
 
 class BlackListFilters(BASE):

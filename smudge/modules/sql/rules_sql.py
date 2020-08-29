@@ -2,7 +2,7 @@ import threading
 
 from sqlalchemy import Column, String, UnicodeText, func, distinct
 
-from haruka.modules.sql import SESSION, BASE
+from smudge.modules.sql import SESSION, BASE
 
 
 class Rules(BASE):

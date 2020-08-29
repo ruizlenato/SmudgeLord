@@ -3,8 +3,8 @@ import os
 import yaml
 from codecs import encode, decode
 
-from haruka import LOGGER
-from haruka.modules.sql.translation import prev_locale
+from smudge import LOGGER
+from smudge.modules.sql.translation import prev_locale
 
 LANGUAGES = ['en', 'pt-br']
 
