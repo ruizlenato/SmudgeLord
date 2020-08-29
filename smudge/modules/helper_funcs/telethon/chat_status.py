@@ -1,4 +1,4 @@
-from haruka import tbot, SUDO_USERS, WHITELIST_USERS
+from smudge import tbot, SUDO_USERS, WHITELIST_USERS
 from telethon.tl.types import ChannelParticipantsAdmins
 
 
@@ -38,12 +38,12 @@ async def is_user_admin(user_id: int, chat_id):
     return status
 
 
-async def haruka_is_admin(chat_id: int):
+async def smudge_is_admin(chat_id: int):
     status = False
-    haruka = await tbot.get_me()
+    smudge = await tbot.get_me()
     async for user in tbot.iter_participants(chat_id,
                                              filter=ChannelParticipantsAdmins):
-        if haruka.id == user.id:
+        if smudge.id == user.id:
             status = True
             break
     return status
