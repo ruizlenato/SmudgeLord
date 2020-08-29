@@ -13,10 +13,10 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
-from haruka.modules import ALL_MODULES
-from haruka import dispatcher, updater, LOGGER, ALLOW_EXCL, TOKEN, tbot
-from haruka.modules.helper_funcs.misc import paginate_modules
-from haruka.modules.translations.strings import tld
+from smudge.modules import ALL_MODULES
+from smudge import dispatcher, updater, LOGGER, ALLOW_EXCL, TOKEN, tbot
+from smudge.modules.helper_funcs.misc import paginate_modules
+from smudge.modules.translations.strings import tld
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -29,7 +29,7 @@ DATA_EXPORT = []
 GDPR = []
 
 for module_name in ALL_MODULES:
-    imported_module = importlib.import_module("haruka.modules." + module_name)
+    imported_module = importlib.import_module("smudge.modules." + module_name)
     modname = imported_module.__name__.split('.')[2]
 
     if not modname.lower() in IMPORTED:
