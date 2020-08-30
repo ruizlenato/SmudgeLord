@@ -1,6 +1,7 @@
 # Last.fm module by @TheRealPhoenix - https://github.com/rsktg
 
 import requests
+import urllib.request
 
 from telegram import Bot, Update, ParseMode
 from telegram.ext import run_async, CommandHandler
@@ -87,14 +88,18 @@ def last_fm(bot: Bot, update: Update):
 @run_async
 def collage(bot: Bot, update: Update):
     user_id = update.effective_user.id
+    user = update.effective_user.first_name
     username = sql.get_user(user_id)
     chat = update.effective_chat
+    filename = "smudge/modules/test.png"
+    image_url = f"https://www.tapmusic.net/collage.php?user={username}&type=7day&size=4x4&caption=true&playcount=true"
     if not username:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
         return
      
     else:
-        bot.send_photo(chat_id=chat.id, photo=f"https://www.tapmusic.net/collage.php?user={username}&type=7day&size=3x3&caption=true&playcount=true")
+        urllib.request.urlretrieve(image_url, filename)
+        bot.send_photo(chat_id=chat.id,  photo=open('/home/renatohprojects/Beta/smudge/modules/test.png', 'rb'), caption= tld(chat.id, "lastfm_collage").format(user))
 
 
 @run_async
