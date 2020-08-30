@@ -91,7 +91,7 @@ def collage(bot: Bot, update: Update):
     user = update.effective_user.first_name
     username = sql.get_user(user_id)
     chat = update.effective_chat
-    filename = "smudge/modules/test.png"
+    filename = "test.png"
     image_url = f"https://www.tapmusic.net/collage.php?user={username}&type=7day&size=4x4&caption=true&playcount=true"
     if not username:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
@@ -99,7 +99,7 @@ def collage(bot: Bot, update: Update):
      
     else:
         urllib.request.urlretrieve(image_url, filename)
-        bot.send_photo(chat_id=chat.id,  photo=open('/home/renatohprojects/Beta/smudge/modules/test.png', 'rb'), caption= tld(chat.id, "lastfm_collage").format(user))
+        bot.send_photo(chat_id=chat.id,  photo=open('test.png', 'rb'), caption= tld(chat.id, "lastfm_collage").format(user))
 
 
 @run_async
