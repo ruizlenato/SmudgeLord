@@ -87,7 +87,6 @@ def last_fm(bot: Bot, update: Update):
 @run_async
 def collage(bot: Bot, update: Update):
     user_id = update.effective_user.id
-    user = update.effective_user.first_name
     username = sql.get_user(user_id)
     chat = update.effective_chat
     if not username:
@@ -95,8 +94,7 @@ def collage(bot: Bot, update: Update):
         return
      
     else:
-        base_url = "https://www.tapmusic.net/collage.php"
-        bot.send_photo(chat_id=chat.id, photo=f"?user={username}&type=7day&size=3x3&caption=true&playcount=true", caption=tld(chat.id, "lastfm_collage").format(user))
+        bot.send_photo(chat_id=chat.id, photo=f"https://www.tapmusic.net/collage.php?user={username}&type=7day&size=3x3&caption=true&playcount=true")
 
 
 @run_async
