@@ -3,19 +3,16 @@ send-help: |
     Ola! Me chamo *{}*. Sou um bot de gerenciamento de grupo modular com alguns extras divertidos! Dê uma olhada no seguinte para ter uma idéia de algumas das coisas em que posso ajudá-lo. \n
     Main commands available:
     - /start: Comando Legal pra ver se eu estou Vivo ou Não:3
-    - /help: PM's you this message.
-    - /help <nome do modulo>: PM's you info about that module.
-    - /donate: information about how to donate!
+    - /help: envia esta mensagem de ajuda
     - /lang: Troca o idioma do Bot
     - /settings:
-    - in PM: enviará suas configurações para todos os módulos suportados.
-    - in a group: will redirect you to pm, with all that chat's settings.{}
+    Todos os comandos podem ser usados com os seguintes caracteres: / !
 cmd_multitrigger: \nTodos os comandos podem ser usados ​​com `/` or `!`.
-here_is_help: Aqui está a ajuda para o *{}* module:\n\n{}
-help_not_found: Help string for <code>{}</code> not found!
+here_is_help: Aqui está a ajuda para o modulo *{}*:\n\n{}
+help_not_found: String de ajuda para <code>{}</code> não encontradas!
 help_pm_only: Entre em contato comigo no PM para obter a lista de possíveis comandos.
-btn_help: ❔ Help
-btn_go_back: ⬅️ Back
+btn_help: ❔ Ajuda
+btn_go_back: ⬅️ Voltar
 
 main_start_group: Oi Gatinha estou vivo, me chama no PV :3
 main_start_pm: |
@@ -134,7 +131,7 @@ antiflood_help: |
     Antiflood permite que você execute ações em usuários que enviam mais de **x** mensagens seguidas.\n
     Os comandos disponíveis são:
     - /flood: obtém as configurações antiflood atuais.
-    - /setflood <number/off>: sets the number of messages at which to take action on a user.
+    - /setflood <numero/off>: sets the number of messages at which to take action on a user.
 
 
 #Antispam
@@ -195,17 +192,17 @@ backups_file_contains_multiple_chats: Há mais de um grupo nesse arquivo e o cha
 backups_from_another_chat: Backup comes from another chat, I can't return another chat to {}
 backups_err_unknown: Há um problema ao importar os dados! Por favor, pergunte no @Renatoh sobre por que isso aconteceu.
 backups_from_another_bot: A restauração de um backup de outro bot não é sugerida e pode causar problemas. Documentos, fotos, vídeos, áudios e registros podem não ser restaurados como deveriam. No entanto, você ainda pode solicitar um recurso sobre isso com o @Renatoh!
-backups_restore_err: An error occurred while recovering the data. The process failed. If you experience a problem with this, please ask in @Renatoh.
+backups_restore_err: Ocorreu um erro ao recuperar os dados. O processo falhou. Se você tiver algum problema com isso, pergunte com o @Renatoh.
 backups_fully_restored: Backup totalmente restaurado{}.
-backups_err_timelimit: You can only backup once a day!\nYou can backup again in about `{}`
+backups_err_timelimit: Você só pode fazer backup uma vez por dia!\nVocê pode fazer backup novamente em cerca de `{}`
 backups_success: "Backed up successfully!\nChat: `{}`\nChat ID: `{}`\nOn: `{}`"
 backups_help: |
     *Somente para administrador de bate-papo:*
     - /import: responda ao arquivo de backup feito por SmudgeLord ou outros BOTs, como o Group Butler ou Emilia, para importar o máximo possível, facilitando a transferência! \
-    Note that files / photos cannot be imported due to telegram restrictions.\n
-    - /export: export group data. Exported data will include rules, notes (documents, images, music, video, audio, voice, text, text buttons), \
-    blacklists, disabled commands and locks. More will come gradually!\n
-    This module is still in beta! Report bugs in @Renatoh !
+    Observe que arquivos/fotos não podem ser importados devido a restrições de telegrama. \n
+
+    - /export: exporta dados do grupo. Os dados exportados incluirão regras, notas (documentos, imagens, música, vídeo, áudio, voz, texto, botões de texto), \    blacklists, disabled commands and locks. More will come gradually!\n
+    Esse modulo está em beta, reporte os bugs com o @Renatoh !
 
 
 # Bans
@@ -349,7 +346,7 @@ cust_filters_help: |
 
 
 # Disable
-modname_disable: Desativação de comando
+modname_disable: Desativar
 disable_success: O uso do comando `{}` foi desativado.
 disable_err_undisableable: O uso deste comando não pode ser desativado.
 disable_err_no_cmd: Por favor, diga o comando a ser desativado.
@@ -365,8 +362,8 @@ disable_help: |
     Isso também permitirá que você os modifique automaticamente, impedindo as pessoas de usarem o texto azul.\n
     - /cmds: verifique o status atual dos comandos desabilitados\n
     *Apenas administrador:*
-    - /enable <cmd name>: Habilitar um comando
-    - /disable <cmd name>: Desabilitar um comando
+    - /enable <comando>: Habilitar um comando
+    - /disable <comando>: Desabilitar um comando
     - /listcmds: Listar todos os comandos alternáveis
 
 # Language
@@ -454,55 +451,55 @@ modname_memes: Memes
 memes_no_message: Eu preciso de uma mensagem para meme.
 memes_not_doing_that: Eu não estou fazendo isso!
 memes_runs_list:
-    - "Where do you think you're going?"
-    - "Huh? what? did they get away?"
-    - "ZZzzZZzz... Huh? what? oh, just them again, nevermind."
-    - "Get back here!"
-    - "Not so fast..."
-    - "Look out for the wall!"
-    - "Don't leave me alone with them!!"
-    - "You run, you die."
-    - "Jokes on you, I'm everywhere"
-    - "You're gonna regret that..."
-    - "You could also try /kickme, I hear that's fun."
-    - "Go bother someone else, no-one here cares."
-    - "You can run, but you can't hide."
-    - "Is that all you've got?"
-    - "I'm behind you..."
-    - "You've got company!"
-    - "We can do this the easy way, or the hard way."
-    - "You just don't get it, do you?"
-    - "Yeah, you better run!"
-    - "Please, remind me how much I care?"
-    - "I'd run faster if I were you."
-    - "That's definitely the droid we're looking for."
-    - "May the odds be ever in your favour."
-    - "Famous last words."
-    - "And they disappeared forever, never to be seen again."
-    - "'Oh, look at me! I'm so cool, I can run from a bot!' - this person"
-    - "Yeah yeah, just tap /kickme already."
-    - "Here, take this ring and head to Mordor while you're at it."
-    - "Legend has it, they're still running..."
-    - "Unlike Harry Potter, your parents can't protect you from me."
-    - "Fear leads to anger. Anger leads to hate. Hate leads to suffering. If you keep running in fear, you might "
-    - "be the next Vader."
-    - "Multiple calculations later, I have decided my interest in your shenanigans is exactly 0."
-    - "Legend has it, they're still running."
-    - "Keep it up, not sure we want you here anyway."
-    - "Você é uma bruxa ... Oh. Esperar. Você não é Harry, continue andando."
-    - "NÃO EXECUTAR NOS CORREDORES!"
-    - "Até mais querida."
-    - "Quem deixou os cães sair?"
-    - "É engraçado, porque ninguém se importa."
-    - "Ah, que desperdício. Gostei daquele."
+    - "Aonde você pensa que está indo?"
+    - "Hein? O quê? Eles foram embora?"
+    - "ZZZZzz ... Hein? O quê? Ah, só eles de novo!"
+    - "Volte aqui!"
+    - "Não tão rápido..."
+    - "Olhe para a parede!"
+    - "Não me deixe sozinho com eles !!"
+    - "Corra, ou você morre."
+    - "Piadas sobre você, eu estou em todo lugar"
+    - "Você está prestes a se arrepender ..."
+    - "Você também pode tentar /kickme, eu ouvi dizer que é divertido."
+    - "Vá incomodar alguém, ninguém se importa aqui."
+    - "Você pode correr, mas não pode se esconder."
+    - "É tudo o que você tem?"
+    - "Estou atrás de você..."
+    - "Você tem companhia!"
+    - "Podemos fazer isso da maneira mais fácil ou mais difícil."
+    - "Você não entende, não é?"
+    - "Sim, é melhor correr!"
+    - "Por favor, lembre-me o quanto eu me importo?"
+    - "Eu correria mais rápido se fosse você."
+    - "Esse é definitivamente o bot que estamos procurando."
+    - "Que as probabilidades estejam sempre a seu favor."
+    - "Últimas palavras conhecidas."
+    - "E eles desapareceram para sempre, para nunca mais vê-los."
+    - "'Oh, olhe para mim! Eu sou tão legal e posso fugir de um bot!' - esta pessoa"
+    - "Sim, sim, basta tocar /kick já."
+    - "Aqui, pegue este anel e vá até Mordor enquanto estiver nele."
+    - "Diz a lenda, eles continuam correndo ..."
+    - "Ao contrário de Harry Potter, seus pais não podem protegê-lo de mim."
+    - "O medo leva à raiva. A raiva leva ao ódio. O ódio leva ao sofrimento. Se você continuar correndo com medo, pode"
+    - "seja o próximo Vader."
+    - "Vários cálculos depois, decidi que meu interesse em suas travessuras é exatamente 0."
+    - "Diz a lenda, eles continuam correndo."
+    - "Mantenha, você não tem certeza de que queremos aqui de qualquer maneira."
+    - "Você é um mágico- Oh. Espere. Você não é Harry, continue andando."
+    - "Não há corredores nos corredores!"
+    - "Até a vista, bebe."
+    - "Quem deixou os cachorros?"
+    - "É divertido, porque ninguém se importa."
+    - "Ah, que desperdício. Gostei disso."
     - "Francamente, minha querida, eu não dou a mínima."
-    - "Meu batido leva todos os garotos ao quintal ... Então corra mais rápido!"
-    - "Você não pode lidar com a verdade!"
-    - "Há muito tempo, em uma galáxia muito distante ... Alguém teria se importado com isso. Não mais embora."
-    - "Ei, olhe para eles! Eles estão fugindo do banhammer inevitável ... Bonito."
-    - "Han atirou primeiro. Então eu vou."
-    - "O que você está correndo atrás, um coelho branco?"
-    - "Como o médico diria ... EXECUTAR!"
+    - "Meu smoothie traz todos os caras para o parquinho ... Então corra mais rápido!"
+    - "Você não pode ABRIR a verdade!"
+    - "Há muito tempo, em uma galáxia distante ... Alguém teria se importado com isso. Não mais."
+    - "Ei, olhe para eles! Eles estão fugindo do inevitável martelo de bannillo ... fofo."
+    - "Eles atiraram primeiro. Então eu fiz."
+    - "O que você está concorrendo, um coelho branco?"
+    - "Como o médico diria ... CORRA!"
 memes_insults_list:
     - "Por que você é tão idiota assim?"
     - "Infelizmente sua mãe não conseguiu abortar você a tempo."
@@ -622,20 +619,19 @@ memes_hit_list:
 memes_help: |
     Alguns comandos de meme, descubra tudo sozinho!
 
-    - /owo: OWO de text
-    - /stretch: STRETCH de text
-    - /vapor: owo vapor dis
-    - /mock: Cite uma mensagem e digite este comando para criar uma legenda para spongemock
+    - /owo: Deixa o texto em formato de loli(*^*)
+    - /stretch: estica o texto
+    - /vapor: v a p o r w a v e
     - /shout: Escreva o que você quiser
-    - /zalgofy: responda a uma mensagem para esclarecê-la!
-    - /runs: responda uma sequência aleatória de uma matriz de respostas.
-    - /insults: responda uma sequência aleatória de uma matriz de respostas.
-    - /slap: dar um tapa em um usuário ou dar um tapa se não for uma resposta.
+    - /zalgofy: responda a uma mensagem para deixar tornar-la bugada!
+    - /runs: responda uma sequência aleatória de minhas strings.
+    - /insults: inslta alguem com um insulto aleatório de minhas strings
+    - /slap: dar um tapa em um usuário ou você apanha do bot se não responder ninguém.
 
 
 # Misc
-modname_misc: Diversos
-misc_get_id_1: The original sender, {}, has an ID of `{}`.\nThe forwarder, {}, has an ID of `{}`.
+modname_misc: Outros
+misc_get_id_1: O rementente original {}, possui o ID `{}`.\n{}, que encaminhou a mensagem, tem o ID `{}`.
 misc_get_id_2: "{}'s id is `{}`."
 misc_id_1: Seu id é `{}`.
 misc_id_2: O ID deste grupo é `{}`.
@@ -653,30 +649,30 @@ misc_info_is_whitelisted: "\nEssa pessoa é um usuário da lista de permissões,
 misc_gdpr: Excluindo dados identificáveis ​​...
 misc_info_swban1: "\n\n<b>Essa pessoa foi banida na SpamWatch!</b>"
 misc_info_swban2: "\nMotivo: <pre>{}</pre>"
-misc_info_swban3: "\n Peça ajuda em @SpamWatchSupport"
+misc_info_swban3: "\nPeça ajuda em @SpamWatchSupport"
 misc_md_list: |
-    Markdown is a very powerful formatting tool supported by telegram. Haruka Aya has some enhancements, to make sure that \
-    saved messages are correctly parsed, and to allow you to create buttons.
-    - <code>_italic_</code>: wrapping text with '_' will produce italic text
-    - <code>*bold*</code>: wrapping text with '*' will produce bold text
-    - <code>`code`</code>: wrapping text with '`' will produce monospaced text, also known as 'code'
-    - <code>[sometext](someURL)</code>: this will create a link - the message will just show <code>sometext</code>, \
-    and tapping on it will open the page at <code>someURL</code>.
-    EG: <code>[test](example.com)</code>
-    - <code>[buttontext](buttonurl:someURL)</code>: this is a special enhancement to allow users to have telegram \
-    buttons in their markdown. <code>buttontext</code> will be what is displayed on the button, and <code>someurl</code> \
-    will be the url which is opened.
-    EG: <code>[This is a button](buttonurl:example.com)</code>
-    If you want multiple buttons on the same line, use :same, as such:
-    <code>[one](buttonurl://example.com)
+    O Markdown é uma ferramenta de formatação muito poderosa suportada pelo Telegram. O Smudge tem algumas melhorias, para garantir que \
+    as mensagens salvas serão analisadas corretamente e permitem criar botões.
+    - <code>_italic_</code>: quebra automática de texto com '_' produzirá texto em itálico
+    - <code>*negrita*</code>: quebra automática de texto com '*' produzirá texto em negrito
+    - <code>`code`</code>: quebra automática de texto com '`' produzirá texto monoespaçado, também conhecido como 'código'
+    - <code>[algumtexto](algumaURL)</code>: isso criará um link - a mensagem exibirá apenas <code>algumtexto</code>, \
+    e tocá-lo abrirá a página em <code>algumaURL</code>.
+    EX: <code>[test](exemplo. om)</code>
+    - <code>[buttontext](buttonurl:someURL)</code>: este é um aprimoramento especial para permitir que os usuários tenham botões \
+    do Telegram no seu Markdown. <code>botão</code> será o que será mostrado no botão, e <code>someurl</code> \
+    será o URL que o botão vai abrir.
+    EX: <code>[Este é um botão](buttonurl:exemplo. om)</code>
+    Se você quiser vários botões na mesma linha, use :same, como por exemplo:
+    <code>[one](buttonurl://exemplo. om)
     [two](buttonurl://google.com:same)</code>
-    This will create two buttons on a single line, instead of one button per line.
-misc_md_try: Try forwarding the following message to me, and you'll see!
-misc_md_help: "/save test This is a markdown test. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl:github.com) [button2](buttonurl://google.com:same)"
-misc_paste_invalid: What am I supposed to do with this?!
-misc_paste_404: Failed to reach dogbin
-misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
-misc_get_pasted_invalid: Forneça um URL de dogbin!
+    Isso criará dois botões em uma única linha, em vez de um botão por linha.
+misc_md_try: Tente encaminhar a seguinte mensagem para mim e você verá!
+misc_md_help: "/save test Este é um teste de Markdown. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl://github.com) [button2](buttonurl://google.com:same)"
+misc_paste_invalid: 'O que eu devo fazer com isso?'
+misc_paste_404: Erro ao chegar ao dogbin
+misc_paste_success: "URL encurtada: {}/{}\nVocê pode ver as estatísticas, etc. [Aqui]({}/v/{})"
+misc_get_pasted_invalid: 'Por favor, digite uma URL do dogbin'
 misc_get_pasted_unknown: Ocorreu um erro desconhecido
 misc_covid_error: Ocorreu um erro!, Tem certeza de que o nome do país está correto?
 misc_covid_total_tests: "*Testes Totais*: {}"
@@ -713,10 +709,10 @@ misc_help: |
 modname_msg_deleting: Purges
 purge_msg_cant_del_too_old: Não é possível excluir todas as mensagens. As mensagens podem ser muito antigas, talvez eu não tenha direitos de exclusão ou isso pode não ser um supergrupo.
 purge_msg_success: Purge completo.
-purge_invalid: Reply to a message to select where to start purging from.
-purge_invalid2: What you want to delete?
+purge_invalid: Responda a uma mensagem para selecionar por onde iniciar a limpeza.
+purge_invalid2: 'O que você deseja remover?'
 msg_deleting_help: |
-    Deleting messages made easy with this command. Bot purges messages all together or individually.
+    Exclua mensagens facilmente com esse comando. O bot apaga mensagens em conjunto ou individualmente.
 
     *Apenas administrador:*
      - /del: exclui a mensagem para a qual você respondeu
@@ -746,14 +742,14 @@ mute_cant_mute: "Droga, eu não posso silenciar esse usuário."
 restrict_invalid: "Você precisará me fornecer um nome de usuário para restringir ou responder a alguém para restringir."
 restrict_is_bot: "Eu não vou me restringir!"
 restrict_is_admin: "Não posso restringir administradores!"
-restrict_success: "{} is restricted from sending media in {}!"
-restrict_already_restricted: "This user is already restricted in {}!"
+restrict_success: "{} está restrito para enviar midias em {}"
+restrict_already_restricted: "Este usuário já está restrito em {}!"
 unrestrict_invalid: "Você precisará me fornecer um nome de usuário para ser irrestrito ou responder a alguém para ser irrestrito."
 unrestrict_not_restricted: "Este usuário já tem o direito de enviar qualquer coisa {}."
 unrestrict_success: "Yep, {} can send media again in {}!"
 unrestrict_not_in_chat: "Esse usuário não está nem no bate-papo, não restringi-lo, não fará com que ele envie nada além do que já!"
 nomedia_need_time: "Você não especificou um horário para restringir este usuário!"
-nomedia_success: "Restricted from sending media for {} in {}!"
+nomedia_success: "Restrito de enviar midias por {} em {}!"
 restrict_cant_restrict: "Não consigo restringir esse usuário."
 muteme_muted: "Sem problemas, Mutado!"
 
@@ -793,16 +789,15 @@ notes_help: |
     - /clearall: Limpe todas as notas em seu grupo, use apenas se você souber o que está fazendo
 
 
-    An example of how to save a note would be via:
-    /save data This is some data!
-    Now, anyone using "/get data", or "#data" will be replied to with "This is some data!".
-    If you want to save an image, gif, or sticker, or any other data, do the following:
-    /save word while replying to a sticker or whatever data you'd like. Now, the note at "#word" contains a sticker which will be sent as a reply.
-
-    Tip: to retrieve a note without the formatting, use /get <notename> noformat
-    This will retrieve the note and send it without formatting it; getting you the raw markdown, allowing you to make easy edits
-
-    Note: Note names are case-insensitive, and they are automatically converted to lowercase before getting saved.
+    Um exemplo de como salvar uma nota seria:
+    /save dados Aqui estão alguns dados
+    Agora, qualquer um que use "/get dados", ou "#dados" será respondido com "Aqui estão alguns dados".
+    Se você deseja salvar uma imagem, gif, sticker ou qualquer outro dado, faça o seguinte:
+    Responda a uma midia com `/save palavra` e esta palavra será respondida com essa midia.
+ 
+    Dica: para recuperar uma anotação sem a formatação, use /get <notename> noformat
+    Isso recuperará a nota e a enviará sem formatá-la; obtendo a markdown bruta, permitindo que você faça edições fáceis.
+    Nota: Os nomes das notas não diferenciam letras maiúsculas de minúsculas e são automaticamente convertidos em letras minúsculas antes de serem salvos.
 
 
 # Reporting
@@ -817,14 +812,14 @@ reports_success: "{} denunciou a mensagem aos administradores."
 reports_pm_enable: "Relatórios ativados no seu PV!"
 reports_pm_disable: "Relatórios desativados no seu PV!"
 reporting_help: |
-    " - /report <rasão>: responda a uma mensagem para denunciá-la aos administradores.
-     - @admin: responda a uma mensagem para denunciá-la aos administradores.
+    - /report <rasão>: responda a uma mensagem para denunciá-la aos administradores.
+    - @admin: responda a uma mensagem para denunciá-la aos administradores.
     NOTE: nenhum deles será acionado se usado pelos administradores
 
     *Apenas administradores:*
-     - /reports <on/off>: alterar a configuração das Denuncias ou exibir o status atual.
-       - Se feito em pm, alterna seu status.
-       - Se estiver no bate-papo, alterna o status desse bate-papo. "
+    - /reports <on/off>: alterar a configuração das Denuncias ou exibir o status atual.
+    - Se feito em pm, alterna seu status.
+    - Se estiver no bate-papo, alterna o status desse bate-papo.
 
 
 # Rules
@@ -881,9 +876,9 @@ urlblacklist_help: |
 # Greetings
 modname_welcome: Boas Vindas
 welcome_added_to_grp: Obrigado por me adicionar ao seu grupo!
-welcome_mute_btn_unmuted: Agora você pode digitar!
+welcome_mute_btn_unmuted: Desmutado, Agora você pode escrever!
 welcome_mute_btn_old_user: Você não é um novo usuário!
-welcome_bot_owner_left: Bem, meu material saiu, a festa agora terminou!
+welcome_bot_owner_left: Bem, meu mestre se foi, a festa acabou!
 welcome_mute_bot_cant_mute: Não posso limitar as pessoas aqui! Certifique-se de que eu sou um administrador para que eu possa silenciar alguém!
 welcome_mute_enabled: O Welcomemute foi ativado! Os novos membros serão silenciados até clicarem no botão!
 welcome_mute_disabled: O Welcomemute foi desativado! Novos membros não serão mais silenciados!
@@ -899,13 +894,13 @@ welcome_mute_btn_text_reset: "O texto do botão de segurança foi redefinido par
 welcome_clean_service_off: Vou deixar mensagens de serviço.
 welcome_clean_service_on: Vou limpar as mensagens de serviço.
 welcome_mute_time_short_none: (Silenciado para sempre até o usuário clicar no botão)
-welcome_mute_time_short: (Muting user for {})
+welcome_mute_time_short: (Silenciando usuário por {})
 welcome_greet_set_on: Os novos membros serão agora recebidos com uma calorosa mensagem de boas-vindas!
 welcome_greet_set_off: Novos membros não serão mais recebidos com uma mensagem de boas-vindas!
 welcome_goodbye_set_on: Os membros que deixarão receberão uma mensagem de despedida!
 welcome_goodbye_set_off: Os membros não receberá mais uma mensagem de despedida!
-welcome_set_welcome_no_text: You must provide the welcome message! Type `/help greetings` in my PM for some help for the Greetings module!
-welcome_set_welcome_no_datatype: Couldn't find the welcome message's data type.
+welcome_set_welcome_no_text: 'Você deve fornecer a mensagem de boas-vindas! Digite `/help greetings` no meu PM para obter ajuda para o módulo Boas Vindas!'
+welcome_set_welcome_no_datatype: Não foi possível encontrar o tipo de dados da mensagem de boas-vindas.
 welcome_set_welcome_success: Mensagens de boas-vindas foram definidas com sucesso!
 welcome_reset_welcome_success: mensagem de boas-vindas redefinidas para o padrão com sucesso!
 welcome_set_goodbye_success: Defina a mensagem de despedidas personalizada com sucesso!
@@ -919,14 +914,14 @@ welcome_chat_settings_pref: |
     As configurações de despedidas estão definidas como `{}`.
 welcome_goodbye_settings: |
     Este bate-papo tem sua configuração de despedida definida como: `{}`.
-    *The goodbye message (not filling the {{}}) is:*
+    *A mensagem de adeus (não preencha o {{}}) é:*
 welcome_settings: |
     Este bate-papo tem sua configuração de boas-vindas definida como: `{}`
     Exclusão de mensagem de boas-vindas antiga: `{}`
     Excluindo mensagem de serviço: `{}`
     Silenciando usuarios quando eles entram: `{}`
     Texto do botão de Silencio: `{}`
-    \n*A mensagem de boas-vindas (not filling the {{}}) é:*
+    \n*A mensagem de boas-vindas (não preencha {{}}) é:*
 welcome_help: |
     Dê a seus membros uma recepção calorosa com o módulo de cumprimentos! Ou um triste adeus ... Depende!
 
@@ -1055,7 +1050,7 @@ warns_list_warns_no_reason: Este usuário tem {}/{} advertencias, mas não há r
 warns_list_warns_none: Este usuário não tem nenhuma advertencia!
 warns_handler_add_success: Warn handler added for '{}'!
 warns_filters_list_empty: Nenhum filtro de aviso está ativo aqui!
-warns_filters_remove_success: Yep, I'll stop warning people for that.
+warns_filters_remove_success: Sim, eu vou parar de advertir as pessoas sobre isso.
 warns_filter_doesnt_exist: Esse não é um filtro de advertencia - use o /warnlist para ver todos os filtros de aviso ativos.
 warns_filters_list: <b>Filtros de aviso atuais neste bate-papo:</b>\n
 warns_warnlimit_min_1: O limite mínimo de advertencias é 1!
@@ -1068,19 +1063,19 @@ warns_strength_invalid_arg: 'Argumento inválido. os argumentos aceitos são on/
 warns_strength_off: Os warns estão configurados para *kickar* os usuários quando eles ultrapassam os limites.
 warns_strength_on: No momento, os avisos estão definidos para *banir* usuários quando excederem os limites.
 warns_help: |
-    - /warns <userhandle>: verifique quantos advertencias um usuário possui (e veja os motivos, se houver).
+    - /warns <username>: verifique quantos advertencias um usuário possui (e veja os motivos, se houver).
     - /warnlist: lista de todos os filtros de advertencias atuais
 
     *Apenas administrador:*
-    - /warn <userhandle>: Adverte um usuário. Após 3 advertencias, o usuário será banido do grupo. Também pode ser usado como resposta.
-    - /resetwarn <userhandle>: reset the warnings for a user. Can also be used as a reply.
+    - /warn <username>: Adverte um usuário. Após 3 advertencias, o usuário será banido do grupo. Também pode ser usado como resposta.
+    - /resetwarn <username>: reset the warnings for a user. Can also be used as a reply.
     - /addwarn <keyword> <reply message>: defina um filtro de advertencia para uma determinada palavra-chave. Se você deseja que sua palavra-chave \
-    be a sentence, encompass it with quotes, as such: `/addwarn "very angry" This is an angry user`.
+    seja uma frase, compartilhe-a com aspas, como tal: `/addwarn "sopa de macaco" UMA DELICIA`.
     - /nowarn <keyword>: parar um filtro de advertencia
     - /warnlimit <num>: defina o limite de advertencias
     - /strongwarn <on/yes/off/no>: Se ativado, exceder o limite de advertencias resultará em um banimento. Senão, apenas kick.
-    - /rmwarn <userhandle>: remove a advertencia mais recente para um usuário. Também pode ser usado como resposta.
-    - /unwarn <userhandle>: o mesmo que /rmwarn
+    - /rmwarn <username>: remove a advertencia mais recente para um usuário. Também pode ser usado como resposta.
+    - /unwarn <username>: o mesmo que /rmwarn
 
 
 ### Helper functions
@@ -1123,7 +1118,7 @@ last_fm_help: |
  - /lastfm: mostra o que você está scrobbling(escutando) no last.fm.
  - /top: mostra as musicas que você mais escutou.
  - /chart: mostra as musicas que você mais escutou em uma semana.
- - /collage: faz uma colagem em 3x3 dos álbuns que você mais ouviu na semana.
+ - /collage: faz uma colagem em 4x4 dos álbuns que você mais ouviu na semana.
 
  Exemplos:
  Configurando seu Username:
