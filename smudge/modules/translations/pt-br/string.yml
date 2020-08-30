@@ -137,43 +137,56 @@ antiflood_help: |
     - /setflood <number/off>: sets the number of messages at which to take action on a user.
 
 
-# Antispam
-modname_antispam: Antispam
-antispam_err_usr_sudo: Eu espio com meus olhinhos... uma briga de usuários sudo!
-antispam_err_usr_support: OOOH, Alguem está tentando banir um de meus sudos *barulho da pipoca*
-antispam_err_usr_bot: -_- Tão engraçado, let me gban myself, porque eu não? Boa tentativa.
-antispam_err_not_usr: Isso não é um usuário!
-antispam_err_user_deleted: Essa é uma conta excluída! Por que se incomodar em banhá-los?
-antispam_err_no_new_reason: Este usuário já está em uso livre; Eu mudaria o motivo, mas você não me deu um ...
+#Antispam
+modname_antispam: AntiSpam
+antispam_err_usr_sudo: 'Eu espio com meus olhinhos... uma guerra de usuário sudo! *Vou pegar a pipoca e assistir a treta* '
+antispam_err_usr_support: 'Alguém está tentando banir um usuário de suporte! *briga* *pegando pipoca*'
+antispam_err_usr_bot: Tão engraçado, tentando me banir global, Boa tentativa.
+antispam_err_not_usr: 'Isso não é um usuário!'
+antispam_err_usr_deleted: 'Essa é uma conta excluída! Por que incomodá-la?'
+antispam_err_no_new_reason: Este usuário já foi banido; Eu mudaria o motivo, mas você não me deu um...
 antispam_logger_update_gban: |
-    <b>Novo motivo do banimento global</b>\n
-    <b>Sudo Admin:</b> {}\n
-    <b>User:</b> {}\n
-    <b>ID:</b> <code>{}</code>\n
-    <b>Antigo motivo:</b> {}\n
-    <b>Novo motivo:</b> {}
-antispam_reason_updated: "Este usuário já foi banido. Eu atualizei o motivo.\nMotivo anterior: <code>{}</code>\nMotivo Novo: <code>{}</code>"
-antispam_new_gban: Banimento Global {} \nID do Usuario Banido <code>{}</code>...
-antispam_logger_new_gban: "{} baniu globalmente o usuario {}\n ID do Usuario Banido: <code>{}</code> com o seguinte motivo: <code>{}</code>."
-antispam_no_reason: Nenhuma razão dada
-antispam_user_not_gbanned: Este usuário não está banido globalmente!
-antispam_ungbanned: Eu vou dar para {} uma segunda chance, globalmente.
-antispam_logger_ungban: "{} removeu o banimento global de {}."
-antispam_err_ungban: "Não foi possível desbanir globalmente devido: {} "
-antispam_ungban_success: Desbanido Globalmente com Sucesso!
-antispam_checkban_user_removed: "*Este usuário recebeu um banimento global e foi removido.*\nRazão: `{}`"
+  <b>Novo motivo do Banimento Global(Gban)</b>
+  <b>Admin sudo:</b> {}
+  <b>Usuário:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Motivo anterior:</b> {}
+  <b>Novo motivo:</b>{}
+antispam_reason_updated: "Este usuário já foi banido. Atualizei o motivo.\nMotivo anterior: <code> {} </code>\nNovo motivo: <code> {} </code>"
+antispam_new_gban: |
+  <b>Banido Globalmente(Gban)</b>
+  <b>Usuário:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Motivo:</b>{}
+antispam_logger_new_gban: |
+  <b>Ban Global(Gban)</b>
+  <b>Admin sudo:</b> {}
+  <b>Usuario:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Motivo:</b>{}
+antispam_no_reason: Não há motivo dado
+antispam_user_not_gbanned: 'Este usuário não está banido globalmente'
+antispam_ungbanned: Certo, Darei uma segunda chance.
+antispam_logger_ungban: |
+  <b>Ban Global Removido</b>
+  <b>Admin Sudo:</b> {}
+  <b>Usuário:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Motivo:</b>{}
+antispam_err_ungban: "Não foi possível desbanir globalmente devido a: {} "
+antispam_checkban_user_removed: "*Este usuário foi banido globalmente e foi removido.*\nMotivo: `{}`"
 antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers.
 antispam_off: Desativei a segurança antispam neste grupo. GBans não afetarão mais seus usuários.
-antispam_err_wrong_arg: "Dê-me alguns argumentos para escolher uma configuração! on/off, yes/no!\n\nSua configuração atual é: {}\nQuando Verdadeiro, quaisquer gbans que acontecerem também acontecerão no seu grupo. Quando Falso, eles não vão, deixando você à mercê de possíveis spammers."
-antispam_userinfo_gbanned: "Banido Globalmente: <b>{}</b>"
-antispam_userinfo_gban_reason: "\nReason: {}"
-antispam_chatsettings_gban: "Este bate-papo está reforçando *gbans*: `{}`."
+antispam_err_wrong_arg: "Dê-me alguns argumentos para escolher um ajuste! true/false, yes/no!\n\nSua configuração atual é: {}\nSe for true, quaisquer gbans que ocorrerem também acontecerão no seu grupo. Quando false, você ficará a mercê de spammers."
+antispam_userinfo_gbanned: "Banido globalmente: <b>{}</b>"
+antispam_userinfo_gban_reason: "\nMotivo: {}"
+antispam_chatsettings_gban: "Este grupo está banindo usuarios que estão banidos globalmente *gbans*: `{}`."
 anitspam_appeal: \n<b>Fale com:</b> @Renatoh
+antispam_spamwatch_banned: "<b>Este usuário foi detectado como um spambot pela SpamWatch e foi removido!</b>\n\n<b>Motivo</b>: {}"
 antispam_help: |
-    O anti-spam é usado pelos proprietários dos bots para proibir spammers em todos os grupos. Isso ajuda a proteger você e seus grupos removendo os flooders de spam o mais rápido possível. Isso está ativado por padrão, mas você pode alterar isso usando o comando.\n
-    *Apenas administrador:*
-    - /antispam <on/off/yes/no>: Altere as configurações de segurança antispam no grupo ou retorne as configurações atuais (quando nenhum argumento).
-
+   Os proprietários dos robôs usam o antispam para banir spammers de todos os grupos. Isso ajuda a proteger você e seus grupos, eliminando os fluxos de spam o mais rápido possível. Isso está ativado por padrão, mas você pode alterar isso usando o comando.\n
+   *Apenas administradores:*
+   - /antispam <on/off/yes/no>: altera a configuração de segurança antispam no grupo ou retorna sua configuração atual (sem argumentos).
 
 # Backups
 modname_backups: Backups
@@ -632,12 +645,15 @@ misc_info_first: "\nPrimeiro nome: {}"
 misc_info_name: "\nÚltimo nome: {}"
 misc_info_username: "\nUsername: @{}"
 misc_info_user_link: "\nUser link: {}\n"
-misc_info_is_owner: "\n\nThis guy is my owner, I can't do anything against him!"
+misc_info_is_owner: "\n\nEsse cara é meu dono, não posso fazer nada contra ele!"
 misc_info_is_original_owner: "\nThis person is my original creator, though he abandoned my sister Marie already :("
 misc_info_is_sudo: "\nEssa pessoa é um dos meus usuários do sudo! Ele o ajudará se você precisar de suporte sobre bot."
 misc_info_is_support: "\nEssa pessoa é um dos meus usuários de suporte! Ele pode banir aqueles spammers."
 misc_info_is_whitelisted: "\nEssa pessoa é um usuário da lista de permissões, raramente é possível obter esse papel, você não pode bani-lo ou chutá-lo."
 misc_gdpr: Excluindo dados identificáveis ​​...
+misc_info_swban1: "\n\n<b>Essa pessoa foi banida na SpamWatch!</b>"
+misc_info_swban2: "\nMotivo: <pre>{}</pre>"
+misc_info_swban3: "\n Peça ajuda em @SpamWatchSupport"
 misc_md_list: |
     Markdown is a very powerful formatting tool supported by telegram. Haruka Aya has some enhancements, to make sure that \
     saved messages are correctly parsed, and to allow you to create buttons.
@@ -1100,7 +1116,7 @@ lastfm_scr: \n(<code>{}</code> scrobbles até agora)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"
 lastfm_chart: "Chart semanal do {}\n\n"
-lastfm_collage: "Collage Semanal 3x3 dos albuns mais ouvidos pelo {}"
+lastfm_collage: "Collage Semanal dos albuns mais ouvidos pelo {}"
 last_fm_help: |
  - /setuser <username>: Configure seu Username(nome de usuário)  do LastFM.
  - /clearuser: remove seu nome de usuário last.fm do banco de dados do bot.

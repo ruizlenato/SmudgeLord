@@ -1,22 +1,22 @@
 import html
 import time
 from io import BytesIO
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Update, Bot, User, Chat, ParseMode
-from telegram.error import BadRequest, TelegramError
+from telegram import Update, Bot, ParseMode
+from telegram.error import BadRequest  #,  TelegramError
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import smudge.modules.sql.antispam_sql as sql
-from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, MESSAGE_DUMP, STRICT_ANTISPAM
+from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, GBAN_DUMP, STRICT_ANTISPAM, sw
 from smudge.modules.helper_funcs.chat_status import user_admin, is_user_admin
-from smudge.modules.helper_funcs.extraction import extract_user, extract_user_and_text
+from smudge.modules.helper_funcs.extraction import extract_user_and_text
 from smudge.modules.helper_funcs.filters import CustomFilters
 #from smudge.modules.helper_funcs.misc import send_to_list
-from smudge.modules.sql.users_sql import get_all_chats
+# from smudge.modules.sql.users_sql import get_all_chats
 
-from smudge.modules.translations.strings import tld
+from smudge.modules.tr_engine.strings import tld
 
 GBAN_ENFORCE_GROUP = 6
 
@@ -44,9 +44,9 @@ UNGBAN_ERRORS = {
 
 @run_async
 def gban(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
-    banner = update.effective_user  # type: Optional[User]
+    message = update.effective_message
+    chat = update.effective_chat
+    banner = update.effective_user
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
@@ -76,33 +76,31 @@ def gban(bot: Bot, update: Update, args: List[str]):
         return
 
     if user_chat.first_name == '':
-        message.reply_text(tld(chat.id, "antispam_err_user_deleted"))
+        message.reply_text(tld(chat.id, "antispam_err_usr_deleted"))
         return
 
-    full_reason = f"{reason} // GBanned by {banner.first_name} id {banner.id}"
+    if not reason:
+        message.reply_text("Global Ban must have a reason!")
+        return
+
+    full_reason = html.escape(
+        f"{reason} // GBanned by {banner.first_name} id {banner.id}")
 
     if sql.is_user_gbanned(user_id):
-        if not reason:
-            message.reply_text(tld(chat.id, "antispam_err_no_new_reason"))
-            return
-
         old_reason = sql.update_gban_reason(
             user_id, user_chat.username or user_chat.first_name,
             full_reason) or "None"
 
-        if int(banner.id) in [172811422, 214416808]:
-            return
-
         try:
             bot.send_message(
-                MESSAGE_DUMP,
+                GBAN_DUMP,
                 tld(chat.id, "antispam_logger_update_gban").format(
                     mention_html(banner.id, banner.first_name),
                     mention_html(user_chat.id, user_chat.first_name
                                  or "Deleted Account"), user_chat.id,
                     old_reason, full_reason),
                 parse_mode=ParseMode.HTML)
-        except:
+        except Exception:
             pass
 
         message.reply_text(tld(chat.id, "antispam_reason_updated").format(
@@ -113,63 +111,39 @@ def gban(bot: Bot, update: Update, args: List[str]):
 
     starting = tld(chat.id, "antispam_new_gban").format(
         mention_html(user_chat.id, user_chat.first_name or "Deleted Account"),
-        user_chat.id)
+        user_chat.id, reason)
     message.reply_text(starting, parse_mode=ParseMode.HTML)
 
     try:
-        bot.send_message(MESSAGE_DUMP,
+        bot.send_message(GBAN_DUMP,
                          tld(chat.id, "antispam_logger_new_gban").format(
                              mention_html(banner.id, banner.first_name),
                              mention_html(user_chat.id, user_chat.first_name),
                              user_chat.id, full_reason
                              or tld(chat.id, "antispam_no_reason")),
                          parse_mode=ParseMode.HTML)
-    except:
+    except Exception:
         print("nut")
+
+    try:
+        bot.kick_chat_member(chat.id, user_chat.id)
+    except BadRequest as excp:
+        if excp.message in GBAN_ERRORS:
+            pass
 
     sql.gban_user(user_id, user_chat.username or user_chat.first_name,
                   full_reason)
 
-    try:
-        if int(banner.id) in [172811422, 214416808]:
-            return
-        chat.kick_member(user_chat.id)
-    except:
-        print("Meh")
-
-    #chats = get_all_chats()
-    #for chat in chats:
-    #    chat_id = chat.chat_id
-
-    #Check if this group has disabled gbans
-    #if not sql.does_chat_gban(chat_id):
-    #    continue
-
-    #try:
-    #    bot.kick_chat_member(chat_id, user_id)
-    #except BadRequest as excp:
-    #    if excp.message in GBAN_ERRORS:
-    #        pass
-    #    else:
-    #        message.reply_text("Could not gban due to: {}".format(excp.message))
-    #        bot.send_message(MESSAGE_DUMP, "Could not gban due to: {}".format(excp.message))
-    #        sql.ungban_user(user_id)
-    #        os.environ['GPROCESS'] = '0'
-    #        return
-    #except TelegramError:
-    #    pass
-
-    #bot.send_message(MESSAGE_DUMP,
-    #               "{} has been successfully gbanned!".format(mention_html(user_chat.id, user_chat.first_name)),
-    #               parse_mode=ParseMode.HTML)
-
 
 @run_async
 def ungban(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
+    message = update.effective_message
+    chat = update.effective_chat
 
-    user_id = extract_user(message, args)
+    user_id, reason = extract_user_and_text(message, args)
+
+    reason = html.escape(reason)
+
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
         return
@@ -183,51 +157,61 @@ def ungban(bot: Bot, update: Update, args: List[str]):
         message.reply_text(tld(chat.id, "antispam_user_not_gbanned"))
         return
 
-    banner = update.effective_user  # type: Optional[User]
+    if not reason:
+        message.reply_text(
+            "Removal of Global Ban requires a reason to do so, why not send me one?"
+        )
+        return
 
-    message.reply_text("I'll give {} a second chance, globally.".format(
-        user_chat.first_name))
+    banner = update.effective_user
+
+    message.reply_text(
+        "<b>Initializing Global Ban Removal</b>\n<b>Sudo Admin:</b> {}\n<b>User:</b> {}\n<b>ID:</b> <code>{}</code>\n<b>Reason:</b> {}"
+        .format(mention_html(banner.id, banner.first_name),
+                mention_html(user_chat.id, user_chat.first_name), user_chat.id,
+                reason),
+        parse_mode=ParseMode.HTML)
 
     try:
-        bot.send_message(MESSAGE_DUMP,
+        bot.send_message(GBAN_DUMP,
                          tld(chat.id, "antispam_logger_ungban").format(
                              mention_html(banner.id, banner.first_name),
-                             mention_html(user_chat.id, user_chat.first_name)),
+                             mention_html(user_chat.id, user_chat.first_name),
+                             user_chat.id, reason),
                          parse_mode=ParseMode.HTML)
-    except:
+    except Exception:
         pass
 
-    chats = get_all_chats()
-    for chat in chats:
-        chat_id = chat.chat_id
+    # chats = get_all_chats()
+    # for chat in chats:
+    #     chat_id = chat.chat_id
 
-        # Check if this group has disabled gbans
-        if not sql.does_chat_gban(chat_id):
-            continue
+    #     # Check if this group has disabled gbans
+    #     if not sql.does_chat_gban(chat_id):
+    #         continue
 
-        try:
-            member = bot.get_chat_member(chat_id, user_id)
-            if member.status == 'kicked':
-                bot.unban_chat_member(chat_id, user_id)
+    #     try:
+    #         member = bot.get_chat_member(chat_id, user_id)
+    #         if member.status == 'kicked':
+    #             bot.unban_chat_member(chat_id, user_id)
 
-        except BadRequest as excp:
-            if excp.message in UNGBAN_ERRORS:
-                pass
-            else:
-                message.reply_text(
-                    tld(chat.id, "antispam_err_ungban").format(excp.message))
-                bot.send_message(
-                    OWNER_ID,
-                    tld(chat.id, "antispam_err_ungban").format(excp.message))
-                return
-        except TelegramError:
-            pass
+    #     except BadRequest as excp:
+    #         if excp.message in UNGBAN_ERRORS:
+    #             pass
+    #         else:
+    #             message.reply_text(
+    #                 tld(chat.id, "antispam_err_ungban").format(excp.message))
+    #             bot.send_message(
+    #                 OWNER_ID,
+    #                 tld(chat.id, "antispam_err_ungban").format(excp.message))
+    #             return
+    #     except TelegramError:
+    #         pass
 
     sql.ungban_user(user_id)
 
-    bot.send_message(MESSAGE_DUMP, tld(chat.id, "antispam_ungban_success"))
-
-    message.reply_text(tld(chat.id, "antispam_ungban_success"))
+    message.reply_text("This user have been ungbanned succesfully, they might have to ask 'admins' of chats they were banned to unban manually due to global ban." \
+                       "\n\nPlease forward this message to them or let them know about this.")
 
 
 @run_async
@@ -252,38 +236,50 @@ def gbanlist(bot: Bot, update: Update):
             filename="gbanlist.txt",
             caption="Here is the list of currently gbanned users.")
 
+
 @run_async
 def ungban_quicc(bot: Bot, update: Update, args: List[str]):
+    message = update.effective_message
     try:
         user_id = int(args[0])
-    except:
+    except Exception:
         return
     sql.ungban_user(user_id)
-    message.reply_text(f"Yeety mighty your mom is gay, {user_id} have been ungbanned.")
+    message.reply_text(
+        f"Yeety mighty your mom is gay, {user_id} have been ungbanned.")
 
 
 def check_and_ban(update, user_id, should_message=True):
-    chat = update.effective_chat  # type: Optional[Chat]
-    #sw_ban = sw.get_ban(int(user_id))
-    #if sw_ban:
-    #    update.effective_chat.kick_member(user_id)
-    #    if should_message:
-    #        update.effective_message.reply_markdown("**This user is detected as spam bot by SpamWatch and have been removed!**\n\nPlease visit @SpamWatchSupport to appeal!")
-    #        return
-    #    else:
-    #        return
+    chat = update.effective_chat
+    message = update.effective_message
+    try:
+        if sw != None:
+            sw_ban = sw.get_ban(user_id)
+            if sw_ban:
+                spamwatch_reason = sw_ban.reason
+                chat.kick_member(user_id)
+                if should_message:
+                    message.reply_text(tld(
+                        chat.id,
+                        "antispam_spamwatch_banned").format(spamwatch_reason),
+                                       parse_mode=ParseMode.HTML)
+                    return
+                else:
+                    return
+    except Exception:
+        pass
 
     if sql.is_user_gbanned(user_id):
-        update.effective_chat.kick_member(user_id)
+        chat.kick_member(user_id)
         if should_message:
             userr = sql.get_gbanned_user(user_id)
             usrreason = userr.reason
             if not usrreason:
                 usrreason = tld(chat.id, "antispam_no_reason")
 
-            update.effective_message.reply_text(tld(
+            message.reply_text(tld(
                 chat.id, "antispam_checkban_user_removed").format(usrreason),
-                                                parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
             return
 
 
@@ -294,9 +290,9 @@ def enforce_gban(bot: Bot, update: Update):
         if sql.does_chat_gban(
                 update.effective_chat.id) and update.effective_chat.get_member(
                     bot.id).can_restrict_members:
-            user = update.effective_user  # type: Optional[User]
-            chat = update.effective_chat  # type: Optional[Chat]
-            msg = update.effective_message  # type: Optional[Message]
+            user = update.effective_user
+            chat = update.effective_chat
+            msg = update.effective_message
 
             if user and not is_user_admin(chat, user.id):
                 check_and_ban(update, user.id)
@@ -309,18 +305,18 @@ def enforce_gban(bot: Bot, update: Update):
                     return
 
             if msg.reply_to_message:
-                user = msg.reply_to_message.from_user  # type: Optional[User]
+                user = msg.reply_to_message.from_user
                 if user and not is_user_admin(chat, user.id):
                     check_and_ban(update, user.id, should_message=False)
                     return
-    except:
-        print("Nut")
+    except Exception as f:
+        print(f"Nut {f}")
 
 
 @run_async
 @user_admin
 def antispam(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     if len(args) > 0:
         if args[0].lower() in ["on", "yes"]:
             sql.enable_antispam(chat.id)
@@ -360,7 +356,6 @@ def __stats__():
 
 def __user_info__(user_id, chat_id):
     is_gbanned = sql.is_user_gbanned(user_id)
-    is_gmuted = sql.is_user_gmuted(user_id)
 
     if not user_id in SUDO_USERS:
 
@@ -391,7 +386,7 @@ ANTISPAM_STATUS = CommandHandler("antispam",
                                  pass_args=True,
                                  filters=Filters.group)
 
-GBAN_HANDLER = CommandHandler(["gban", "fban"],
+GBAN_HANDLER = CommandHandler("gban",
                               gban,
                               pass_args=True,
                               filters=CustomFilters.sudo_filter
@@ -403,15 +398,15 @@ UNGBAN_HANDLER = CommandHandler("ungban",
                                 | CustomFilters.support_filter)
 
 UNGBANQ_HANDLER = CommandHandler("ungban_quicc",
-                                ungban_quicc,
-                                pass_args=True,
-                                filters=CustomFilters.sudo_filter
-                                | CustomFilters.support_filter)
+                                 ungban_quicc,
+                                 pass_args=True,
+                                 filters=CustomFilters.sudo_filter
+                                 | CustomFilters.support_filter)
 
 GBAN_LIST = CommandHandler("gbanlist",
                            gbanlist,
-                           filters=CustomFilters.sudo_filter
-                           | CustomFilters.support_filter)
+                           filters=Filters.user(OWNER_ID))
+
 GBAN_ENFORCER = MessageHandler(Filters.all & Filters.group, enforce_gban)
 CLEAN_DELACC_HANDLER = CommandHandler("cleandelacc",
                                       clear_gbans,
@@ -423,7 +418,7 @@ dispatcher.add_handler(GBAN_HANDLER)
 dispatcher.add_handler(UNGBAN_HANDLER)
 dispatcher.add_handler(CLEAN_DELACC_HANDLER)
 dispatcher.add_handler(UNGBANQ_HANDLER)
-#dispatcher.add_handler(GBAN_LIST)
+dispatcher.add_handler(GBAN_LIST)
 
 if STRICT_ANTISPAM:  # enforce GBANS if this is set
     dispatcher.add_handler(GBAN_ENFORCER, GBAN_ENFORCE_GROUP)

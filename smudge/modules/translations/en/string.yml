@@ -136,31 +136,43 @@ antiflood_help: |
     - /flood: gets the current antiflood settings.
     - /setflood <number/off>: sets the number of messages at which to take action on a user.
 
-
-# Antispam
+#Antispam
 modname_antispam: Antispam
 antispam_err_usr_sudo: I spy with my little eyes... a sudo user war! Why are you guys turning on each other?
 antispam_err_usr_support: OOOH, someone's trying to gban a support user! *grabs popcorn*
-antispam_err_usr_bot: -_- So funny, let me gban myself, why don't I? Nice try.
+antispam_err_usr_bot: '-_- So funny, let me gban myself, why don''t I? Nice try.'
 antispam_err_not_usr: That's not a user!
-antispam_err_user_deleted: That's a deleted account! Why even bother gbanning them?
+antispam_err_usr_deleted: That's a deleted account! Why even bother gbanning them?
 antispam_err_no_new_reason: This user is already gbanned; I'd change the reason, but you haven't given me one...
 antispam_logger_update_gban: |
-    <b>New Reason of Global Ban</b>\n
-    <b>Sudo Admin:</b> {}\n
-    <b>User:</b> {}\n
-    <b>ID:</b> <code>{}</code>\n
-    <b>Previous Reason:</b> {}\n
-    <b>New Reason:</b> {}
+  <b>New Reason of Global Ban</b>
+  <b>Sudo Admin:</b> {}
+  <b>User:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Previous Reason:</b> {}
+  <b>New Reason:</b> {}
 antispam_reason_updated: "This user has already been gbanned. I have updated the reason.\nPrevious reason: <code>{}</code>\nNew reason: <code>{}</code>"
-antispam_new_gban: Global Banning {} with the id <code>{}</code>...
-antispam_logger_new_gban: "{} is gbanning user {} with the id <code>{}</code> with the following reason: <code>{}</code>."
+antispam_new_gban: |
+  <b>Initializing Global Ban</b>
+  <b>User:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Reason:</b> {}
+antispam_logger_new_gban: |
+  <b>Global Ban</b>
+  <b>Sudo Admin:</b> {}
+  <b>User:</b> {} 
+  <b>ID:</b> <code>{}</code>
+  <b>Reason:</b> {}
 antispam_no_reason: No reason given
 antispam_user_not_gbanned: This user is not gbanned!
 antispam_ungbanned: I'll give {} a second chance, globally.
-antispam_logger_ungban: "{} has ungbanned user {}."
+antispam_logger_ungban: |
+  <b>Global Ban Removal</b>
+  <b>Sudo Admin:</b> {}
+  <b>User:</b> {}
+  <b>ID:</b> <code>{}</code>
+  <b>Reason:</b> {}
 antispam_err_ungban: "Could not ungban due to: {}"
-antispam_ungban_success: Ungbanned successfully!
 antispam_checkban_user_removed: "*This user is gbanned and has been removed.*\nReason: `{}`"
 antispam_on: I've enabled antispam security in this group. This will help to protect you from spammers, unsavoury characters, and the biggest trolls.
 antispam_off: I've disabled antispam security in this group. GBans won't affect your users anymore. You'll be less protected from any trolls and spammers though!
@@ -168,12 +180,12 @@ antispam_err_wrong_arg: "Give me some arguments to choose a setting! on/off, yes
 antispam_userinfo_gbanned: "Globally banned: <b>{}</b>"
 antispam_userinfo_gban_reason: "\nReason: {}"
 antispam_chatsettings_gban: "This chat is enforcing *gbans*: `{}`."
-anitspam_appeal: \n<b>Appeal at:</b> @Renatoh
+anitspam_appeal: \n<b>Appeal at:</b> @HarukaAyaGroup
+antispam_spamwatch_banned: "<b>This user is detected as a spambot by SpamWatch and has been removed!</b>\n\n<b>Reason</b>: {}"
 antispam_help: |
-    Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
-    *Admin only:*
-    - /antispam <on/off/yes/no>: Change antispam security settings in the group, or return your current settings(when no arguments).
-
+  Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
+  *Admin only:*
+  - /antispam <on/off/yes/no>: Change antispam security settings in the group, or return your current settings(when no arguments).
 
 # Backups
 modname_backups: Backups
@@ -646,6 +658,9 @@ misc_info_is_sudo: "\nThis person is one of my sudo users! He'll be helping you 
 misc_info_is_support: "\nThis person is one of my support users! He can gban those spammers and bad guys."
 misc_info_is_whitelisted: "\nThis person is whitelisted users, one rarely get this role, you can't ban or kick him."
 misc_gdpr: Deleting identifiable data...
+misc_info_swban1: "\n\n<b>This person is banned in SpamWatch!</b>"
+misc_info_swban2: "\nReason: <pre>{}</pre>"
+misc_info_swban3: "\nAppeal at @SpamWatchSupport"
 misc_md_list: |
     Markdown is a very powerful formatting tool supported by telegram. SmudgeLord has some enhancements, to make sure that \
     saved messages are correctly parsed, and to allow you to create buttons.
@@ -1093,7 +1108,7 @@ lastfm_scr: \n(<code>{}</code> scrobbles so far)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"
 lastfm_chart: "{} weekly chart\n\n"
-lastfm_collage: "Weekly Collage 3x3 of the most listened albums by {}"
+lastfm_collage: "Weekly Collage of the most listened albums by {}"
 last_fm_help: |
  - /setuser <username>: sets your last.fm username.
  - /clearuser: removes your last.fm username from the bot's database.

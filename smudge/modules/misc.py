@@ -88,6 +88,17 @@ def info(bot: Bot, update: Update, args: List[str]):
 
     text += tld(chat.id, "misc_info_user_link").format(mention_html(user.id, "link"))
 
+    try:
+        spamwatch = sw.get_ban(int(user.id))
+        if spamwatch:
+            text += tld(chat.id, "misc_info_swban1")
+            text += tld(chat.id, "misc_info_swban2").format(spamwatch.reason)
+            text += tld(chat.id, "misc_info_swban3")
+        else:
+            pass
+    except:
+        pass # avoids crash if api is down
+        
     if user.id == OWNER_ID:
         text += tld(chat.id, "misc_info_is_owner")
     else:
