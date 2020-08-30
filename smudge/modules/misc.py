@@ -12,7 +12,7 @@ from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 from telegram.error import BadRequest
 
-from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS
+from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, sw
 from smudge.__main__ import GDPR
 from smudge.__main__ import STATS, USER_INFO
 from smudge.modules.disable import DisableAbleCommandHandler
