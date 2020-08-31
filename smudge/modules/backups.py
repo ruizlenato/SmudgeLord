@@ -1,9 +1,8 @@
 import json, time, os
 from io import BytesIO
-from typing import Optional
 
 from telegram import ParseMode
-from telegram import Message, Chat, Update, Bot
+from telegram import Update, Bot
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, run_async
 
@@ -14,7 +13,6 @@ from smudge.modules.helper_funcs.chat_status import user_admin
 import smudge.modules.sql.rules_sql as rulessql
 import smudge.modules.sql.blacklist_sql as blacklistsql
 from smudge.modules.sql import disable_sql as disabledsql
-import smudge.modules.sql.welcome_sql as welcsql
 import smudge.modules.sql.locks_sql as locksql
 from smudge.modules.connection import connected
 from smudge.modules.translations.strings import tld
@@ -23,16 +21,15 @@ from smudge.modules.translations.strings import tld
 @run_async
 @user_admin
 def import_data(bot: Bot, update):
-    msg = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+    msg = update.effective_message
+    chat = update.effective_chat
+    user = update.effective_user
     # TODO: allow uploading doc with command, not just as reply
     # only work with a doc
 
     conn = connected(bot, update, chat, user.id, need_admin=True)
     if conn:
         chat = dispatcher.bot.getChat(conn)
-        chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
     else:
         if update.effective_message.chat.type == "private":
@@ -41,7 +38,6 @@ def import_data(bot: Bot, update):
             return ""
 
         chat = update.effective_chat
-        chat_id = update.effective_chat.id
         chat_name = update.effective_message.chat.title
 
     if msg.reply_to_message and msg.reply_to_message.document:
@@ -72,13 +68,13 @@ def import_data(bot: Bot, update):
                     text = tld(chat.id,
                                "backups_from_another_chat").format("this chat")
                 return msg.reply_text(text, parse_mode="markdown")
-        except:
+        except Exception:
             return msg.reply_text(tld(chat.id, "backups_err_unknown"))
         # Check if backup is from self
         try:
             if str(bot.id) != str(data[str(chat.id)]['bot']):
                 return msg.reply_text(tld(chat.id, "backups_from_another_bot"))
-        except:
+        except Exception:
             pass
         # Select data source
         if str(chat.id) in data:
@@ -109,8 +105,8 @@ def import_data(bot: Bot, update):
 @run_async
 @user_admin
 def export_data(bot: Bot, update: Update, chat_data):
-    msg = update.effective_message  # type: Optional[Message]
-    user = update.effective_user  # type: Optional[User]
+    msg = update.effective_message
+    user = update.effective_user
 
     chat_id = update.effective_chat.id
     chat = update.effective_chat
@@ -120,7 +116,6 @@ def export_data(bot: Bot, update: Update, chat_data):
     if conn:
         chat = dispatcher.bot.getChat(conn)
         chat_id = conn
-        chat_name = dispatcher.bot.getChat(conn).title
     else:
         if update.effective_message.chat.type == "private":
             update.effective_message.reply_text(
@@ -128,7 +123,6 @@ def export_data(bot: Bot, update: Update, chat_data):
             return ""
         chat = update.effective_chat
         chat_id = update.effective_chat.id
-        chat_name = update.effective_message.chat.title
 
     jam = time.time()
     new_jam = jam + 10800
@@ -151,7 +145,6 @@ def export_data(bot: Bot, update: Update, chat_data):
     note_list = sql.get_all_chat_notes(chat_id)
     backup = {}
     notes = {}
-    button = ""
     buttonlist = []
     namacat = ""
     isicat = ""
@@ -161,11 +154,9 @@ def export_data(bot: Bot, update: Update, chat_data):
     # Notes
     for note in note_list:
         count += 1
-        getnote = sql.get_note(chat_id, note.name)
         namacat += '{}<###splitter###>'.format(note.name)
         if note.msgtype == 1:
             tombol = sql.get_buttons(chat_id, note.name)
-            keyb = []
             for btn in tombol:
                 countbtn += 1
                 if btn.same_line:
@@ -209,42 +200,7 @@ def export_data(bot: Bot, update: Update, chat_data):
     bl = list(blacklistsql.get_chat_blacklist(chat_id))
     # Disabled command
     disabledcmd = list(disabledsql.get_all_disabled(chat_id))
-    # TODO: Filters
-    """
-	all_filters = list(filtersql.get_chat_triggers(chat_id))
-	export_filters = {}
-	for filters in all_filters:
-		filt = filtersql.get_filter(chat_id, filters)
-		# print(vars(filt))
-		if filt.is_sticker:
-			tipefilt = "sticker"
-		elif filt.is_document:
-			tipefilt = "doc"
-		elif filt.is_image:
-			tipefilt = "img"
-		elif filt.is_audio:
-			tipefilt = "audio"
-		elif filt.is_voice:
-			tipefilt = "voice"
-		elif filt.is_video:
-			tipefilt = "video"
-		elif filt.has_buttons:
-			tipefilt = "button"
-			buttons = filtersql.get_buttons(chat.id, filt.keyword)
-			print(vars(buttons))
-		elif filt.has_markdown:
-			tipefilt = "text"
-		if tipefilt == "button":
-			content = "{}#=#{}|btn|{}".format(tipefilt, filt.reply, buttons)
-		else:
-			content = "{}#=#{}".format(tipefilt, filt.reply)
-		print(content)
-		export_filters[filters] = content
-	print(export_filters)
-	"""
-    # TODO: Greetings
-    # welc = welcsql.get_welc_pref(chat_id)
-    # Locked
+    # Locks
     locks = locksql.get_locks(chat_id)
     locked = []
     if locks:
@@ -325,7 +281,7 @@ def export_data(bot: Bot, update: Update, chat_data):
 # Temporary data
 def put_chat(chat_id, value, chat_data):
     # print(chat_data)
-    if value is False:
+    if value == False:
         status = False
     else:
         status = True
