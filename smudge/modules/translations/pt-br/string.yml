@@ -205,49 +205,49 @@ backups_help: |
     Esse modulo está em beta, reporte os bugs com o @Renatoh !
 
 
-# Bans
-modname_bans: Banimentos
+#Bans
+modname_bans: Bans
 bans_err_usr_not_found: Não consigo encontrar esse usuário.
 bans_err_usr_is_bot: Eu não vou me banir, você está louco?
 bans_err_usr_is_admin: Por que eu baniria um administrador? Parece uma ideia bem idiota.
 bans_logger: |
-    <b>{}:</b>
-    #BANNED
-    <b>Admin:</b> {}
-    <b>User:</b> {} (<code>{}</code>)
+  <b>{}:</b>
+  #BAN
+  <b>Administrador:</b> {}
+  <b>Usuário:</b> {} (<code>{}</code>)
 bans_banned_success: Admin {} baniu com suceeso o(a) {} no grupo <b>{}</b>!
-bans_logger_reason: \n<b>Motivo:</b> {}
+bans_logger_reason: \n<b>Motivo:</b>{}
 bans_err_unknown: "error 404: {} falhou."
-bans_err_tban_no_arg: Você não especificou um horário para banir este usuário!
-bans_tban_logger: <b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)\n<b>Time:</b> {}
+bans_err_tban_no_arg: Você não especificou o tempo para banir este usuário!
+bans_tban_logger: "<b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>Usuario:</b> {} (<code>{}</code>)\n<b>Hora:</b>{}"
 bans_tbanned_success: Admin {} baniu com sucesso {} no grupo <b>{}</b> por {}!
-bans_kick_is_bot: Eu não vou me kikar!
-bans_kick_is_admin: Por que eu chutaria um administrador? Parece uma ideia bem idiota.
-bans_kick_success: Admin {} kikou {} em <b>{}</b>!
-bans_kick_logger: <b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)
+bans_kick_is_bot: 'Por que vou me remover?'
+bans_kick_is_admin: 'Porque eu removeria um administrador?'
+bans_kick_success: Admin {} removeu o usuário {} em <b>{}</b>!
+bans_kick_logger: "<b>{}:</b>\n#KICKED\n<b>Administrador:</b> {}\n<b>Usuario:</b> {} (<code>{}</code>)"
 bans_kickme_success: Sem Problemas.
-bans_kickme_failed:
-bans_unban_user_in_chat: Por que você está tentando desbanir alguém que já está no grupo?
-bans_unban_success: Sim, este usuário pode participar!
-bans_unban_logger: <b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)
-bans_sban_logger: <b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)
+bans_kickme_failed: Não posso te remover, você tem sorte.
+bans_unban_user_in_chat: Porque está tentando desbanir alguém que já está na conversa?
+bans_unban_success: Este usuário pode entrar novamente no grupo.
+bans_unban_logger: "<b>{}:</b>\n#UNBAN\n<b>Administrador:</b> {}\n<b>Usuario:</b> {} (<code>{}</code>)"
+bans_sban_logger: "<b>{}:</b>\n#UNBAN\n<b>Administrador:</b> {}\n<b>Usuario:</b> {} (<code>{}</code>)"
 bans_help: |
-    Algumas pessoas precisam ser publicamente banidas; spammers, aborrecimentos ou apenas trolls.\n
-    Este módulo permite que você faça isso facilmente, expondo algumas ações comuns, para que todos vejam!\n
-    Os comandos disponíveis são:
-    - /ban: Bane um usuário no chat.
-    - /banme: Bane você mesmo.
-    - /tban: Bane temporariamente um usuário no bate-papo, defina o tempo usando int<d/h/m> (Dias, Horas or Minutos)
-    - /unban: Unbans a user in the chat.
-    - /sban: Proíbe silenciosamente um usuário no bate-papo.
-    - /mute: Mute a user in the chat.
-    - /tmute: Muta temporariamente um usuário no bate-papo. definir tempo usando int<d/h/m> (Dias, Horas or Minutos)
-    - /unmute: Desmuta um usuário no chat.
-    - /kick: Remove um usuário do chat.
-    - /kickme: Remove você mesmo.\n
-    Todos os comandos funcionam por meio de manipulação ou resposta, exceto banme e kickme (que não requerem argumentos).\n
-    Um exemplo de mute temporariamente alguém:
-    /tmute @username 2h; isso muta um usuário por 2 horas.
+  Algumas pessoas precisam ser banidas publicamente, como spammers, aborrecimentos ou simplesmente trolls.\n
+  Este módulo permite que você faça isso facilmente, expondo as ações deles ao público!\n
+  Os comandos disponíveis são:
+  - /ban: Bane um usuário do chat.
+  - /banme: Bane a si mesmo do chat.
+  - /tban: Bane temporariamente um usuário do chat, você estabelece o tempo com int<d/h/m> (dias, horas ou minutos)
+  - /unban: Desbane um usuário do chat.
+  - /sban: Bane silenciosamente um usuário do chat.
+  - /mute: Silencia um usuário do chat.
+  - /tmute: Silencia temporariamente um usuario do chat. você estabelece o tempo usando int<d/h/m> (dias, horas ou minutos)
+  - /unmute: Dessilencia um usuário do chat.
+  - /kick: Expulsa um usuário do chat.
+  - /kickme: Se expulsa do chat.\n
+  Todos os comandos precisam que seja marcado um usuário ou que uma mensagem dele seja respondida, exceto banme e kickme(os quais não requerem argumentos).\n
+  Um exemplo de como silenciar temporariamente um usuário:
+  /tmute @nomedousuario 2h; este comando silencia um usuário por 2 horas.
 
 # Blacklist
 modname_blacklist: Listas negras
@@ -368,12 +368,12 @@ disable_help: |
 
 # Language
 language_switch_success: Alterado para {} com sucesso!
-language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - ``en`` \nPortugues🇧🇷 - ``pt-BR``"
-language_code_not_valid: Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - ``en`` \nPortugues🇧🇷 - ``pt-BR``
+language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - en \nPortugues🇧🇷 - pt-BR"
+language_code_not_valid: Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - en \nPortugues🇧🇷 - pt-BR
 language_current_locale: "A localidade atual deste Grupo é: *{}*"
 language_select_language: "*Selecione o idioma* \n"
 language_user_language: "Idioma do usuário: `{}`"
-language_chat_language: "\nConnected chat language: `{}`"
+language_chat_language: "\nIdioma de chat conectado: `{}`"
 language_sel_user_lang: "*\n\nSelecione um novo idioma de usuário:*"
 
 

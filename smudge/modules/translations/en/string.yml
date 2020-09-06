@@ -207,49 +207,50 @@ backups_help: |
     This module is still in beta! Report bugs in @Renatoh !
 
 
-# Bans
+#Bans
 modname_bans: Bans
 bans_err_usr_not_found: I can't seem to find this user.
 bans_err_usr_is_bot: I'm not gonna BAN myself, are you crazy?
 bans_err_usr_is_admin: Why would I ban an admin? That sounds like a pretty dumb idea.
 bans_logger: |
-    <b>{}:</b>
-    #BANNED
-    <b>Admin:</b> {}
-    <b>User:</b> {} (<code>{}</code>)
+  <b>{}:</b>
+  #BANNED
+  <b>Admin:</b> {}
+  <b>User:</b> {} (<code>{}</code>)
 bans_banned_success: Admin {} has successfully banned {} in <b>{}</b>!
 bans_logger_reason: \n<b>Reason:</b> {}
 bans_err_unknown: "Unknown error: {} failed."
 bans_err_tban_no_arg: You haven't specified a time to ban this user for!
-bans_tban_logger: <b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)\n<b>Time:</b> {}
+bans_tban_logger: '<b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)\n<b>Time:</b> {}'
 bans_tbanned_success: Admin {} has successfully banned {} in <b>{}</b> for {}!
 bans_kick_is_bot: I'm not kicking myself!
 bans_kick_is_admin: Why would I kick an admin? That sounds like a pretty dumb idea.
 bans_kick_success: Admin {} has successfully kicked {} in <b>{}</b>!
-bans_kick_logger: <b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)
+bans_kick_logger: '<b>{}:</b>\n#KICKED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)'
 bans_kickme_success: No problem.
-bans_kickme_failed:
+bans_kickme_failed: I cannot kick you! You're lucky today.
 bans_unban_user_in_chat: Why are you trying to unban someone that's already in the chat?
 bans_unban_success: Yep, this user can join!
-bans_unban_logger: <b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)
-bans_sban_logger: <b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)
+bans_unban_logger: '<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)'
+bans_sban_logger: '<b>{}:</b>\n#UNBANNED\n<b>Admin:</b> {}\n<b>User:</b> {} (<code>{}</code>)'
 bans_help: |
-    Some people need to be publicly banned; spammers, annoyances, or just trolls.\n
-    This module allows you to do that easily, by exposing some common actions, so everyone will see!\n
-    Available commands are:
-    - /ban: Bans a user in the chat.
-    - /banme: Ban yourself.
-    - /tban: Temporarily bans a user in the chat, set time using int<d/h/m> (days, hours or minutes)
-    - /unban: Unbans a user in the chat.
-    - /sban: Silently bans a user in the chat.
-    - /mute: Mute a user in the chat.
-    - /tmute: Temporarily mute a user in the chat. set time using int<d/h/m> (days, hours or minutes)
-    - /unmute: Unmutes a user in the chat.
-    - /kick: Kicks a user from the chat.
-    - /kickme: Kick yourself.\n
-    All commands work via handle or reply, except banme and kickme(which require no arguments).\n
-    An example of temporarily muting someone:
-    /tmute @username 2h; this mutes a user for 2 hours.
+  Some people need to be publicly banned; spammers, annoyances, or just trolls.\n
+  This module allows you to do that easily, by exposing some common actions, so everyone will see!\n
+  Available commands are:
+  - /ban: Bans a user in the chat.
+  - /banme: Ban yourself.
+  - /tban: Temporarily bans a user in the chat, set time using int<d/h/m> (days, hours or minutes)
+  - /unban: Unbans a user in the chat.
+  - /sban: Silently bans a user in the chat.
+  - /mute: Mute a user in the chat.
+  - /tmute: Temporarily mute a user in the chat. set time using int<d/h/m> (days, hours or minutes)
+  - /unmute: Unmutes a user in the chat.
+  - /kick: Kicks a user from the chat.
+  - /kickme: Kick yourself.\n
+  All commands work via handle or reply, except banme and kickme(which require no arguments).\n
+  An example of temporarily muting someone:
+  /tmute @username 2h; this mutes a user for 2 hours.
+
 
 # Blacklist
 modname_blacklist: Blacklists
