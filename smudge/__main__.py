@@ -1,12 +1,12 @@
 import datetime
-import importlib
 from sys import argv
+import importlib
 import re
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Chat, Update, Bot
+from telegram import Update, Bot
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.error import (Unauthorized, BadRequest, TimedOut, NetworkError, 
+from telegram.error import (Unauthorized, BadRequest, TimedOut, NetworkError,
                             ChatMigrated, TelegramError)
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
 from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
@@ -14,7 +14,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from smudge.modules import ALL_MODULES
-from smudge import dispatcher, updater, LOGGER, ALLOW_EXCL, TOKEN, tbot
+from smudge import dispatcher, updater, LOGGER, TOKEN, tbot
 from smudge.modules.helper_funcs.misc import paginate_modules
 from smudge.modules.translations.strings import tld
 
@@ -64,12 +64,14 @@ for module_name in ALL_MODULES:
 # Do NOT async this!
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
-        keyboard = InlineKeyboardMarkup(paginate_modules(chat_id, 0, HELPABLE, "help"))
+        keyboard = InlineKeyboardMarkup(
+            paginate_modules(chat_id, 0, HELPABLE, "help"))
 
     dispatcher.bot.send_message(chat_id=chat_id,
                                 text=text,
                                 parse_mode=ParseMode.MARKDOWN,
-                                reply_markup=keyboard)
+                                reply_markup=keyboard,
+                                disable_web_page_preview=True)
 
 
 @run_async
@@ -82,16 +84,16 @@ def test(bot: Bot, update: Update):
 
 @run_async
 def start(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     # query = update.callback_query #Unused variable
     if update.effective_chat.type == "private":
         if len(args) >= 1:
             if args[0].lower() == "help":
                 send_help(
                     update.effective_chat.id,
-                    tld(chat.id, "send-help").format(
-                        dispatcher.bot.first_name, "" if not ALLOW_EXCL else
-                        tld(chat.id, "cmd_multitrigger")))
+                    tld(chat.id,
+                        "send-help").format(dispatcher.bot.first_name,
+                                            tld(chat.id, "cmd_multitrigger")))
 
             elif args[0][1:].isdigit() and "rules" in IMPORTED:
                 IMPORTED["rules"].send_rules(update, args[0], from_pm=True)
@@ -100,8 +102,9 @@ def start(bot: Bot, update: Update, args: List[str]):
             send_start(bot, update)
     else:
         try:
-            update.effective_message.reply_text(tld(chat.id, 'main_start_group'))
-        except:
+            update.effective_message.reply_text(
+                tld(chat.id, 'main_start_group'))
+        except Exception:
             print("Nut")
 
 
@@ -161,11 +164,9 @@ def error_callback(bot, update, error):
 @run_async
 def help_button(bot: Bot, update: Update):
     query = update.callback_query
-    chat = update.effective_chat  # type: Optional[Chat]
-    mod_match = re.match(r"help_module\((.+?)\)", query.data)
-    prev_match = re.match(r"help_prev\((.+?)\)", query.data)
-    next_match = re.match(r"help_next\((.+?)\)", query.data)
+    chat = update.effective_chat
     back_match = re.match(r"help_back", query.data)
+    mod_match = re.match(r"help_module\((.+?)\)", query.data)
     try:
         if mod_match:
             module = mod_match.group(1)
@@ -178,62 +179,41 @@ def help_button(bot: Bot, update: Update):
                 LOGGER.exception(f"Help string for {module} not found!")
 
             text = tld(chat.id, "here_is_help").format(mod_name, help_txt)
-            query.message.reply_text(text=text,
-                                     parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup([[
-                                         InlineKeyboardButton(
-                                             text=tld(chat.id, "btn_go_back"),
-                                             callback_data="help_back")
-                                     ]]))
 
-        elif prev_match:
-            curr_page = int(prev_match.group(1))
-            query.message.reply_text(tld(chat.id, "send-help").format(
-                dispatcher.bot.first_name,
-                "" if not ALLOW_EXCL else tld(chat.id, "cmd_multitrigger")),
-                                     parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup(
-                                         paginate_modules(
-                                             chat.id, curr_page - 1, HELPABLE,
-                                             "help")))
-
-        elif next_match:
-            next_page = int(next_match.group(1))
-            query.message.reply_text(tld(chat.id, "send-help").format(
-                dispatcher.bot.first_name,
-                "" if not ALLOW_EXCL else tld(chat.id, "cmd_multitrigger")),
-                                     parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup(
-                                         paginate_modules(
-                                             chat.id, next_page + 1, HELPABLE,
-                                             "help")))
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=text,
+                                  parse_mode=ParseMode.MARKDOWN,
+                                  reply_markup=InlineKeyboardMarkup([[
+                                      InlineKeyboardButton(
+                                          text=tld(chat.id, "btn_go_back"),
+                                          callback_data="help_back")
+                                  ]]),
+                                  disable_web_page_preview=True)
 
         elif back_match:
-            query.message.reply_text(text=tld(chat.id, "send-help").format(
-                dispatcher.bot.first_name,
-                "" if not ALLOW_EXCL else tld(chat.id, "cmd_multitrigger")),
-                                     parse_mode=ParseMode.MARKDOWN,
-                                     reply_markup=InlineKeyboardMarkup(
-                                         paginate_modules(
-                                             chat.id, 0, HELPABLE, "help")))
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=tld(chat.id, "send-help").format(
+                                      dispatcher.bot.first_name,
+                                      tld(chat.id, "cmd_multitrigger")),
+                                  parse_mode=ParseMode.MARKDOWN,
+                                  reply_markup=InlineKeyboardMarkup(
+                                      paginate_modules(chat.id, 0, HELPABLE,
+                                                       "help")),
+                                  disable_web_page_preview=True)
 
         # ensure no spinny white circle
         bot.answer_callback_query(query.id)
-        query.message.delete()
-    except BadRequest as excp:
-        if excp.message == "Message is not modified":
-            pass
-        elif excp.message == "Query_id_invalid":
-            pass
-        elif excp.message == "Message can't be deleted":
-            pass
-        else:
-            LOGGER.exception("Exception in help buttons. %s", str(query.data))
+        # query.message.delete()
+
+    except BadRequest:
+        pass
 
 
 @run_async
 def get_help(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
 
     # ONLY send help in PM
@@ -278,13 +258,12 @@ def get_help(bot: Bot, update: Update):
 
     send_help(
         chat.id,
-        tld(chat.id, "send-help").format(
-            dispatcher.bot.first_name,
-            "" if not ALLOW_EXCL else tld(chat.id, "cmd_multitrigger")))
+        tld(chat.id, "send-help").format(dispatcher.bot.first_name,
+                                         tld(chat.id, "cmd_multitrigger")))
 
 
 def migrate_chats(bot: Bot, update: Update):
-    msg = update.effective_message  # type: Optional[Message]
+    msg = update.effective_message
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
         new_chat = msg.migrate_to_chat_id
@@ -331,7 +310,7 @@ def main():
                           clean=True,
                           bootstrap_retries=-1,
                           read_latency=3.0)
-    LOGGER.info("\n.....................................................................\n.....................................................................\n....... MMMM..............................................MMMM.......\n........ MMWMMM........................................MMWMMM .......\n........  MMMMMMM..................................MMWMMMMWN ........\n.......... MNWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNXNWMMMMMMMWNN .........\n........... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNN ..........\n............ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNN ...........\n............ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ............\n..........  MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNM .............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMWMMMMMMMMMMMMMMMMMM ..............\n.......... MMMk....MMMMMMMMMM......MMMMMMMMMMMMMMMMMM ...............\n......... OMMMM....MMMMMMMMMM.....MMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMM..MWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMM..MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMWWMMMM  dNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMN....MMM:..MMMMMMMMWMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMM.....MMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.....................................................................")
+
     LOGGER.info("Successfully loaded")
     if len(argv) not in (1, 3, 4):
         tbot.disconnect()
