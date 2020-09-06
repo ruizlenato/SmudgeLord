@@ -1,122 +1,176 @@
-import html
-from typing import List
+import threading
 
-from telegram import Update, Bot
-from telegram.error import BadRequest
-from telegram.ext import Filters, MessageHandler, CommandHandler, run_async
-from telegram.utils.helpers import mention_html
+from sqlalchemy import Column, UnicodeText, Integer, String, Boolean
 
-from smudge import dispatcher
-from smudge.modules.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
-from smudge.modules.log_channel import loggable
-from smudge.modules.sql import antiflood_sql as sql
-
-from smudge.modules.translations.strings import tld
-
-FLOOD_GROUP = 3
+from smudge.modules.sql import BASE, SESSION
 
 
-@run_async
-@loggable
-def check_flood(bot: Bot, update: Update) -> str:
-    user = update.effective_user
-    chat = update.effective_chat
-    msg = update.effective_message
+class GloballyBannedUsers(BASE):
+    __tablename__ = "gbans"
+    user_id = Column(Integer, primary_key=True)
+    name = Column(UnicodeText, nullable=False)
+    reason = Column(UnicodeText)
 
-    if not user:  # ignore channels
-        return ""
+    def __init__(self, user_id, name, reason=None):
+        self.user_id = user_id
+        self.name = name
+        self.reason = reason
 
-    # ignore admins
-    if is_user_admin(chat, user.id):
-        sql.update_flood(chat.id, None)
-        return ""
+    def __repr__(self):
+        return "<GBanned User {} ({})>".format(self.name, self.user_id)
 
-    should_ban = sql.update_flood(chat.id, user.id)
-    if not should_ban:
-        return ""
-
-    try:
-        bot.restrict_chat_member(chat.id, user.id, can_send_messages=False)
-        msg.reply_text(tld(chat.id, "flood_mute"))
-
-        return tld(chat.id, "flood_logger_success").format(
-            html.escape(chat.title), mention_html(user.id, user.first_name))
-
-    except BadRequest:
-        msg.reply_text(tld(chat.id, "flood_err_no_perm"))
-        sql.set_flood(chat.id, 0)
-        return tld(chat.id, "flood_logger_fail").format(chat.title)
+    def to_dict(self):
+        return {
+            "user_id": self.user_id,
+            "name": self.name,
+            "reason": self.reason
+        }
 
 
-@run_async
-@user_admin
-@can_restrict
-@loggable
-def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat
-    user = update.effective_user
-    message = update.effective_message
+class AntispamSettings(BASE):
+    __tablename__ = "antispam_settings"
+    chat_id = Column(String(14), primary_key=True)
+    setting = Column(Boolean, default=True, nullable=False)
 
-    if len(args) >= 1:
-        val = args[0].lower()
-        if val in ("off", "no", "0"):
-            sql.set_flood(chat.id, 0)
-            message.reply_text(tld(chat.id, "flood_set_off"))
+    def __init__(self, chat_id, enabled):
+        self.chat_id = str(chat_id)
+        self.setting = enabled
 
-        elif val.isdigit():
-            amount = int(val)
-            if amount <= 0:
-                sql.set_flood(chat.id, 0)
-                message.reply_text(tld(chat.id, "flood_set_off"))
-                return tld(chat.id, "flood_logger_set_off").format(
-                    html.escape(chat.title),
-                    mention_html(user.id, user.first_name))
+    def __repr__(self):
+        return "<Gban setting {} ({})>".format(self.chat_id, self.setting)
 
-            elif amount < 3:
-                message.reply_text(tld(chat.id, "flood_err_num"))
-                return ""
 
-            else:
-                sql.set_flood(chat.id, amount)
-                message.reply_text(tld(chat.id, "flood_set").format(amount))
-                return tld(chat.id, "flood_logger_set_on").format(
-                    html.escape(chat.title),
-                    mention_html(user.id, user.first_name), amount)
+GloballyBannedUsers.__table__.create(checkfirst=True)
+AntispamSettings.__table__.create(checkfirst=True)
 
+GBANNED_USERS_LOCK = threading.RLock()
+ASPAM_SETTING_LOCK = threading.RLock()
+GBANNED_LIST = set()
+GBANSTAT_LIST = set()
+ANTISPAMSETTING = set()
+
+
+def gban_user(user_id, name, reason=None):
+    with GBANNED_USERS_LOCK:
+        user = SESSION.query(GloballyBannedUsers).get(user_id)
+        if not user:
+            user = GloballyBannedUsers(user_id, name, reason)
         else:
-            message.reply_text(tld(chat.id, "flood_err_args"))
+            user.name = name
+            user.reason = reason
 
-    return ""
-
-
-@run_async
-def flood(bot: Bot, update: Update):
-    chat = update.effective_chat
-
-    limit = sql.get_flood_limit(chat.id)
-    if limit == 0:
-        update.effective_message.reply_text(tld(chat.id, "flood_status_off"))
-    else:
-        update.effective_message.reply_text(
-            tld(chat.id, "flood_status_on").format(limit))
+        SESSION.merge(user)
+        SESSION.commit()
+        __load_gbanned_userid_list()
 
 
-def __migrate__(old_chat_id, new_chat_id):
-    sql.migrate_chat(old_chat_id, new_chat_id)
+def update_gban_reason(user_id, name, reason=None):
+    with GBANNED_USERS_LOCK:
+        user = SESSION.query(GloballyBannedUsers).get(user_id)
+        if not user:
+            return None
+        old_reason = user.reason
+        user.name = name
+        user.reason = reason
+
+        SESSION.merge(user)
+        SESSION.commit()
+        return old_reason
 
 
-__help__ = True
+def ungban_user(user_id):
+    with GBANNED_USERS_LOCK:
+        user = SESSION.query(GloballyBannedUsers).get(user_id)
+        if user:
+            SESSION.delete(user)
 
-# TODO: Add actions: ban/kick/mute/tban/tmute
+        SESSION.commit()
+        __load_gbanned_userid_list()
 
-FLOOD_BAN_HANDLER = MessageHandler(
-    Filters.all & ~Filters.status_update & Filters.group, check_flood)
-SET_FLOOD_HANDLER = CommandHandler("setflood",
-                                   set_flood,
-                                   pass_args=True,
-                                   filters=Filters.group)
-FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.group)
 
-dispatcher.add_handler(FLOOD_BAN_HANDLER, FLOOD_GROUP)
-dispatcher.add_handler(SET_FLOOD_HANDLER)
-dispatcher.add_handler(FLOOD_HANDLER)
+def is_user_gbanned(user_id):
+    return user_id in GBANNED_LIST
+
+
+def get_gbanned_user(user_id):
+    try:
+        return SESSION.query(GloballyBannedUsers).get(user_id)
+    finally:
+        SESSION.close()
+
+
+def get_gban_list():
+    try:
+        return [x.to_dict() for x in SESSION.query(GloballyBannedUsers).all()]
+    finally:
+        SESSION.close()
+
+
+def enable_antispam(chat_id):
+    with ASPAM_SETTING_LOCK:
+        chat = SESSION.query(AntispamSettings).get(str(chat_id))
+        if not chat:
+            chat = AntispamSettings(chat_id, True)
+
+        chat.setting = True
+        SESSION.add(chat)
+        SESSION.commit()
+        if str(chat_id) in GBANSTAT_LIST:
+            GBANSTAT_LIST.remove(str(chat_id))
+
+
+def disable_antispam(chat_id):
+    with ASPAM_SETTING_LOCK:
+        chat = SESSION.query(AntispamSettings).get(str(chat_id))
+        if not chat:
+            chat = AntispamSettings(chat_id, False)
+
+        chat.setting = False
+        SESSION.add(chat)
+        SESSION.commit()
+        GBANSTAT_LIST.add(str(chat_id))
+
+
+def does_chat_gban(chat_id):
+    return str(chat_id) not in GBANSTAT_LIST
+
+
+def num_gbanned_users():
+    return len(GBANNED_LIST)
+
+
+def __load_gbanned_userid_list():
+    global GBANNED_LIST
+    try:
+        GBANNED_LIST = {
+            x.user_id
+            for x in SESSION.query(GloballyBannedUsers).all()
+        }
+    finally:
+        SESSION.close()
+
+
+def __load_gban_stat_list():
+    global GBANSTAT_LIST
+    try:
+        GBANSTAT_LIST = {
+            x.chat_id
+            for x in SESSION.query(AntispamSettings).all() if not x.setting
+        }
+    finally:
+        SESSION.close()
+
+
+def migrate_chat(old_chat_id, new_chat_id):
+    with ASPAM_SETTING_LOCK:
+        gban = SESSION.query(AntispamSettings).get(str(old_chat_id))
+        if gban:
+            gban.chat_id = new_chat_id
+            SESSION.add(gban)
+
+        SESSION.commit()
+
+
+# Create in memory userid to avoid disk access
+__load_gbanned_userid_list()
+__load_gban_stat_list()

@@ -1,176 +1,97 @@
 import threading
 
-from sqlalchemy import Column, UnicodeText, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String
 
 from smudge.modules.sql import BASE, SESSION
 
-
-class GloballyBannedUsers(BASE):
-    __tablename__ = "gbans"
-    user_id = Column(Integer, primary_key=True)
-    name = Column(UnicodeText, nullable=False)
-    reason = Column(UnicodeText)
-
-    def __init__(self, user_id, name, reason=None):
-        self.user_id = user_id
-        self.name = name
-        self.reason = reason
-
-    def __repr__(self):
-        return "<GBanned User {} ({})>".format(self.name, self.user_id)
-
-    def to_dict(self):
-        return {
-            "user_id": self.user_id,
-            "name": self.name,
-            "reason": self.reason
-        }
+DEF_COUNT = 0
+DEF_LIMIT = 0
+DEF_OBJ = (None, DEF_COUNT, DEF_LIMIT)
 
 
-class AntispamSettings(BASE):
-    __tablename__ = "antispam_settings"
+class FloodControl(BASE):
+    __tablename__ = "antiflood"
     chat_id = Column(String(14), primary_key=True)
-    setting = Column(Boolean, default=True, nullable=False)
+    user_id = Column(Integer)
+    count = Column(Integer, default=DEF_COUNT)
+    limit = Column(Integer, default=DEF_LIMIT)
 
-    def __init__(self, chat_id, enabled):
-        self.chat_id = str(chat_id)
-        self.setting = enabled
+    def __init__(self, chat_id):
+        self.chat_id = str(chat_id)  # ensure string
 
     def __repr__(self):
-        return "<Gban setting {} ({})>".format(self.chat_id, self.setting)
+        return "<flood control for %s>" % self.chat_id
 
 
-GloballyBannedUsers.__table__.create(checkfirst=True)
-AntispamSettings.__table__.create(checkfirst=True)
+FloodControl.__table__.create(checkfirst=True)
 
-GBANNED_USERS_LOCK = threading.RLock()
-ASPAM_SETTING_LOCK = threading.RLock()
-GBANNED_LIST = set()
-GBANSTAT_LIST = set()
-ANTISPAMSETTING = set()
+INSERTION_LOCK = threading.RLock()
+
+CHAT_FLOOD = {}
 
 
-def gban_user(user_id, name, reason=None):
-    with GBANNED_USERS_LOCK:
-        user = SESSION.query(GloballyBannedUsers).get(user_id)
-        if not user:
-            user = GloballyBannedUsers(user_id, name, reason)
-        else:
-            user.name = name
-            user.reason = reason
+def set_flood(chat_id, amount):
+    with INSERTION_LOCK:
+        flood = SESSION.query(FloodControl).get(str(chat_id))
+        if not flood:
+            flood = FloodControl(str(chat_id))
 
-        SESSION.merge(user)
+        flood.user_id = None
+        flood.limit = amount
+
+        CHAT_FLOOD[str(chat_id)] = (None, DEF_COUNT, amount)
+
+        SESSION.add(flood)
         SESSION.commit()
-        __load_gbanned_userid_list()
 
 
-def update_gban_reason(user_id, name, reason=None):
-    with GBANNED_USERS_LOCK:
-        user = SESSION.query(GloballyBannedUsers).get(user_id)
-        if not user:
-            return None
-        old_reason = user.reason
-        user.name = name
-        user.reason = reason
+def update_flood(chat_id: str, user_id) -> bool:
+    if str(chat_id) in CHAT_FLOOD:
+        curr_user_id, count, limit = CHAT_FLOOD.get(str(chat_id), DEF_OBJ)
 
-        SESSION.merge(user)
-        SESSION.commit()
-        return old_reason
+        if limit == 0:  # no antiflood
+            return False
 
+        if user_id != curr_user_id or user_id is None:  # other user
+            CHAT_FLOOD[str(chat_id)] = (user_id, DEF_COUNT + 1, limit)
+            return False
 
-def ungban_user(user_id):
-    with GBANNED_USERS_LOCK:
-        user = SESSION.query(GloballyBannedUsers).get(user_id)
-        if user:
-            SESSION.delete(user)
+        count += 1
+        if count > limit:  # too many msgs, kick
+            CHAT_FLOOD[str(chat_id)] = (None, DEF_COUNT, limit)
+            return True
 
-        SESSION.commit()
-        __load_gbanned_userid_list()
+        # default -> update
+        CHAT_FLOOD[str(chat_id)] = (user_id, count, limit)
+        return False
 
 
-def is_user_gbanned(user_id):
-    return user_id in GBANNED_LIST
-
-
-def get_gbanned_user(user_id):
-    try:
-        return SESSION.query(GloballyBannedUsers).get(user_id)
-    finally:
-        SESSION.close()
-
-
-def get_gban_list():
-    try:
-        return [x.to_dict() for x in SESSION.query(GloballyBannedUsers).all()]
-    finally:
-        SESSION.close()
-
-
-def enable_antispam(chat_id):
-    with ASPAM_SETTING_LOCK:
-        chat = SESSION.query(AntispamSettings).get(str(chat_id))
-        if not chat:
-            chat = AntispamSettings(chat_id, True)
-
-        chat.setting = True
-        SESSION.add(chat)
-        SESSION.commit()
-        if str(chat_id) in GBANSTAT_LIST:
-            GBANSTAT_LIST.remove(str(chat_id))
-
-
-def disable_antispam(chat_id):
-    with ASPAM_SETTING_LOCK:
-        chat = SESSION.query(AntispamSettings).get(str(chat_id))
-        if not chat:
-            chat = AntispamSettings(chat_id, False)
-
-        chat.setting = False
-        SESSION.add(chat)
-        SESSION.commit()
-        GBANSTAT_LIST.add(str(chat_id))
-
-
-def does_chat_gban(chat_id):
-    return str(chat_id) not in GBANSTAT_LIST
-
-
-def num_gbanned_users():
-    return len(GBANNED_LIST)
-
-
-def __load_gbanned_userid_list():
-    global GBANNED_LIST
-    try:
-        GBANNED_LIST = {
-            x.user_id
-            for x in SESSION.query(GloballyBannedUsers).all()
-        }
-    finally:
-        SESSION.close()
-
-
-def __load_gban_stat_list():
-    global GBANSTAT_LIST
-    try:
-        GBANSTAT_LIST = {
-            x.chat_id
-            for x in SESSION.query(AntispamSettings).all() if not x.setting
-        }
-    finally:
-        SESSION.close()
+def get_flood_limit(chat_id):
+    return CHAT_FLOOD.get(str(chat_id), DEF_OBJ)[2]
 
 
 def migrate_chat(old_chat_id, new_chat_id):
-    with ASPAM_SETTING_LOCK:
-        gban = SESSION.query(AntispamSettings).get(str(old_chat_id))
-        if gban:
-            gban.chat_id = new_chat_id
-            SESSION.add(gban)
+    with INSERTION_LOCK:
+        flood = SESSION.query(FloodControl).get(str(old_chat_id))
+        if flood:
+            CHAT_FLOOD[str(new_chat_id)] = CHAT_FLOOD.get(
+                str(old_chat_id), DEF_OBJ)
+            flood.chat_id = str(new_chat_id)
+            SESSION.commit()
 
-        SESSION.commit()
+        SESSION.close()
 
 
-# Create in memory userid to avoid disk access
-__load_gbanned_userid_list()
-__load_gban_stat_list()
+def __load_flood_settings():
+    global CHAT_FLOOD
+    try:
+        all_chats = SESSION.query(FloodControl).all()
+        CHAT_FLOOD = {
+            chat.chat_id: (None, DEF_COUNT, chat.limit)
+            for chat in all_chats
+        }
+    finally:
+        SESSION.close()
+
+
+__load_flood_settings()
