@@ -881,15 +881,15 @@ welcome_mute_enabled: O Welcomemute foi ativado! Os novos membros serão silenci
 welcome_mute_disabled: O Welcomemute foi desativado! Novos membros não serão mais silenciados!
 welcome_mute_curr_settings: "As configurações atuais são:\n\nBem-vindo segurança: `{}`\nO membro será silenciado por: `{}`\nTexto personalizado para ativar o botão: `{}`"
 welcome_mute_time_none: Cada novo membro será silenciado até pressionar o botão de boas-vindas!
-welcome_mute_time: Cada novo membro será silenciado por {} ou até que eles pressionem o botão de boas-vindas!
+welcome_mute_time: 'Cada novo membro será silenciado por {} ou até pressionar o botão de boas-vindas!'
 welcome_mute_time_settings_none: Atualmente, cada novo membro será silenciado até pressionar o botão de boas-vindas.
 welcome_mute_time_settings: Atualmente, todos os novos membros serão silenciados por {} ou até que eles pressionem o botão de boas-vindas.
 welcome_mute_btn_text_changed: "O texto do botão de segurança foi alterado para: `{}`"
 welcome_mute_btn_curr_text: "O texto atual do botão de segurança é: `{}`"
 welcome_mute_btn_default_text: Clique aqui para provar que você é humano!
-welcome_mute_btn_text_reset: "O texto do botão de segurança foi redefinido para: `{}`"
-welcome_clean_service_off: Vou deixar mensagens de serviço.
-welcome_clean_service_on: Vou limpar as mensagens de serviço.
+welcome_mute_btn_text_reset: "O botão de texto de segurança foi redefinido para: `{}`"
+welcome_clean_service_off: Vou deixar mensagens do serviço.
+welcome_clean_service_on: Vou limpar as mensagens do serviço.
 welcome_mute_time_short_none: (Silenciado para sempre até o usuário clicar no botão)
 welcome_mute_time_short: (Silenciando usuário por {})
 welcome_greet_set_on: Os novos membros serão agora recebidos com uma calorosa mensagem de boas-vindas!
@@ -898,68 +898,60 @@ welcome_goodbye_set_on: Os membros que deixarão receberão uma mensagem de desp
 welcome_goodbye_set_off: Os membros não receberá mais uma mensagem de despedida!
 welcome_set_welcome_no_text: 'Você deve fornecer a mensagem de boas-vindas! Digite `/help greetings` no meu PM para obter ajuda para o módulo Boas Vindas!'
 welcome_set_welcome_no_datatype: Não foi possível encontrar o tipo de dados da mensagem de boas-vindas.
-welcome_set_welcome_success: Mensagens de boas-vindas foram definidas com sucesso!
-welcome_reset_welcome_success: mensagem de boas-vindas redefinidas para o padrão com sucesso!
-welcome_set_goodbye_success: Defina a mensagem de despedidas personalizada com sucesso!
-welcome_reset_goodbye_success: Redefinir a mensagem de despedidas para o padrão com sucesso!
-welcome_clean_curr_on: Atualmente, excluo mensagens de boas-vindas com até 2 dias!
-welcome_clean_curr_off: No momento, não excluo mensagens de boas-vindas antigas!
-welcome_clean_set_on: A partir de agora, apagarei as mensagens de boas-vindas antigas (até 2 dias)!
-welcome_clean_set_off: Não vou mais excluir mensagens antigas de boas-vindas!
+welcome_set_welcome_success: 'Mensagem de boas-vindas personalizada com sucesso!'
+welcome_reset_welcome_success: 'Redefinida a mensagem de boas-vindas padrão com sucesso!'
+welcome_set_goodbye_success: 'Mensagem de despedida definida com sucesso.'
+welcome_reset_goodbye_success: 'Redefinida a mensagem de adeus para o padrão com sucesso!'
+welcome_clean_curr_on: 'No momento, excluo mensagens de boas-vindas com até 2 dias de idade!'
+welcome_clean_curr_off: 'No momento, não estou excluindo antigas mensagens de boas-vindas!'
+welcome_clean_set_on: 'A partir de agora, excluirei as mensagens de boas-vindas com antecedência (até 2 dias)!'
+welcome_clean_set_off: 'Não vou mais excluir antigas mensagens de boas-vindas!'
 welcome_chat_settings_pref: |
     Este bate-papo tem suas configurações de boas-vindas definidas como `{}`.
-    As configurações de despedidas estão definidas como `{}`.
+    As configurações de adeus estão definidas para `{}`.
 welcome_goodbye_settings: |
-    Este bate-papo tem sua configuração de despedida definida como: `{}`.
+    Este bate-papo tem suas configurações de adeus definidas para: `{}`.
     *A mensagem de adeus (não preencha o {{}}) é:*
 welcome_settings: |
-    Este bate-papo tem sua configuração de boas-vindas definida como: `{}`
-    Exclusão de mensagem de boas-vindas antiga: `{}`
-    Excluindo mensagem de serviço: `{}`
-    Silenciando usuarios quando eles entram: `{}`
-    Texto do botão de Silencio: `{}`
+    Este bate-papo tem suas configurações de boas-vindas definidas como: `{}`
+    Removendo a antiga mensagem de boas-vindas: `{}`
+    Excluindo a mensagem de serviço: `{}`
+    Silenciando usuários quando eles ingressam: `{}`
+    Texto do botão de mute : `{}`
     \n*A mensagem de boas-vindas (não preencha {{}}) é:*
 welcome_help: |
-    Dê a seus membros uma recepção calorosa com o módulo de cumprimentos! Ou um triste adeus ... Depende!
-
-    Os comandos disponíveis são:
-    - /welcome <on/off/yes/no>: ativa/desativa as mensagens de boas-vindas. Se nenhuma opção for fornecida, retornará a mensagem de boas-vindas e as configurações atuais.
-    - /goodbye <on/off/yes/no>: ativa/desativa as mensagens de despedida. Se nenhuma opção for fornecida, retorna a mensagem e as configurações atuais de adeus.
-    - /setwelcome <message>: define sua nova mensagem de boas-vindas! Markdown e botões são suportados, e os Extras tambem.
-    - /resetwelcome: redefine sua mensagem de boas-vindas para o padrão; excluindo as alterações que você fez.
-    - /setgoodbye <message>: define sua nova mensagem de adeus! Markdown e botões são suportados, e os Extras tambem.
-    - /resetgoodbye: resets your goodbye message to default; deleting any changes you've made.
-    - /cleanservice <on/off/yes/no>: exclui todas as mensagens de serviço; o "Jão entrou no grupo" que você vê quando as pessoas entram.
-    - /cleanwelcome <on/off/yes/no>: exclui antigas mensagens de boas-vindas; quando uma nova pessoa entra, a mensagem antiga é excluída.
-    - /welcomemute <on/off/yes/no>: todos os usuários que ingressam são silenciados; um botão é adicionado à mensagem de boas-vindas para que eles se desliguem. Isso prova que eles não são um bot!
-    - /welcomemutetime <Xw/d/h/m>: se um usuário não pressionar o botão "clique aqui para provar que você é humano" na mensagem de boas-vindas após um certo período de tempo, ele ficará silenciado automaticamente após esse período de tempo.
-    Nota: se você não quiser um tempo (mude o usuário até que ele pressione o botão), use /welcomemutetime 0m.
-    - /setmutetext <new text>: Personalize o botão "clique aqui para provar que você é humano" obtido da ativação de boas-vindas.
-    - /resetmutetext: redefine o botão mute para o texto padrão.
-
-    Leia /markdownhelp para aprender como formatar seu texto e mencionar novos usuários quando a associação!
-
-    Extras:
-    Como mencionado, você pode usar determinadas tags para preencher sua mensagem de boas-vindas com informações de usuário ou bate-papo; tem:
-    {first}: O primeiro nome do usuário.
-    {last}: O sobrenome do usuário.
+    Dê boas-vindas calorosamente a seus membros com o módulo de Boas vindas! Ou um triste adeus ... Depende!
+    os comandos de boas vindas são:
+    - /welcome <on/off/yes/no>: ativa/desativa mensagens de boas-vindas. Se nenhuma opção for oferecida, ela retornará a mensagem de boas-vindas e as configurações atuais.
+    - /goodbye <on/off/yes/no>: ativa/desativa mensagens de despedida. Se nenhuma opção for dada, ela retornará a mensagem de despedida atual e as configurações.
+    - /setwelcome <message>: define sua nova mensagem de boas-vindas! Markdown e botões são suportados, bem como preenchimentos.
+    - /resetwelcome: redefine sua mensagem de boas-vindas para o padrão; excluindo as alterações feitas.
+    - /setgoodbye <message>: Define sua nova mensagem de adeus! Markdown e botões são suportados, bem como preenchimentos.
+    - /resetgoodbye: redefine sua mensagem de despedida para o padrão; excluindo as alterações feitas.
+    - /cleanservice <on/off/yes/no>: exclui todas as mensagens de serviço; o "x ingressou no grupo" que você vê quando as pessoas entram.
+    - /cleanwelcome <on/off/yes/no>: exclui antigas mensagens de boas-vindas; quando uma nova pessoa ingressa, a mensagem antiga é excluída.
+    - /welcomemute <on/off/yes/no>: todos os usuários que ingressam são silenciados; um botão é adicionado à mensagem de boas-vindas para desativar o mute. Isso prova que eles não são um bot!
+    - /welcomemutetime <Xw/d/h/m>: Se um usuário não pressionar o botão "silenciar" na mensagem de boas-vindas após um certo tempo, ele será silenciado automaticamente após esse período.
+    Nota: se você não quiser um tempo de silêncio (silencie o usuário até que ele pressione o botão), use /welcomemutetime 0m.
+    - /setmutetext <new text>: Personalize o botão "clique aqui para provar que é humano", obtido através da ativação dos modos de boas-vindas.
+    - /resetmutetext: redefina o botão mute para o texto padrão.
+    Leia /markdownhelp para aprender a formatar seu texto e mencionar novos usuários quando você ingressar!
+    Preenchimentos: 
+    Como mencionado, você pode usar determinadas tags para concluir sua mensagem de boas-vindas com informações de usuário ou bate-papo; como: 
+    {first}: O nome do usuário.
+    {last}: O sobrenome do usuário. 
     {fullname}: O nome completo do usuário.
-    {username}: O nome de usuário do usuário; se nenhum estiver disponível, menciona o usuário.
-    {mention}: Menciona o usuário, usando seu primeiro nome.
-    {id}: O ID do usuário.
+    {username}:O username do usuário; se não houver nenhum disponível, mencione o usuário.
+    {mention}: Mencione o usuário, usando seu nome. 
+    {id}: O ID do usuário. 
     {chatname}: O nome do chat.
-
-    Um exemplo de como usar extras seria definir suas boas-vindas:
-    /setwelcome Olá {first}! Bem-vindo ao {chatname}.
-
-    Você pode ativar/desativar as mensagens de boas-vindas como tal:
+    Um exemplo de como usar os preenchimentos seria definir suas boas-vindas em: /setwelcome Hello! {first}! Bem-vindo ao {chatname}.
+    Você pode ativar/desativar as mensagens de boas-vindas da seguinte forma:
     /welcome off
-
-    Se você deseja salvar uma imagem, gif ou adesivo ou qualquer outro dado, faça o seguinte:
-    /setwelcome enquanto responde a um adesivo ou a qualquer dado que você desejar. Esses dados agora serão enviados para receber novos usuários.
-
-    Dica: use "/welcome noformat" para recuperar a mensagem de boas-vindas não formatada.
-    Isso recuperará a mensagem de boas-vindas e a enviará sem formatação; obtendo a remarcação bruta, permitindo que você faça edições fáceis.
+    Se você deseja salvar uma imagem, um gif, um stickear ou qualquer outro dado, faça o seguinte:
+    Responda a uma midia com `/setwelcome palavra` e a mensagem de boas vindas será essa midia.
+    Dica: use /welcome noformat para recuperar a mensagem sem formatação de boas-vindas.
+    Isso recuperará a mensagem de boas-vindas e a enviará bruta, obtendo o Markdown sem formatação, permitindo que você faça edições fáceis.
     Isso também funciona com /goodbye.
 
 

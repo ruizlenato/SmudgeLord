@@ -145,33 +145,33 @@ antispam_err_not_usr: That's not a user!
 antispam_err_usr_deleted: That's a deleted account! Why even bother gbanning them?
 antispam_err_no_new_reason: This user is already gbanned; I'd change the reason, but you haven't given me one...
 antispam_logger_update_gban: |
-  <b>New Reason of Global Ban</b>
-  <b>Sudo Admin:</b> {}
-  <b>User:</b> {}
-  <b>ID:</b> <code>{}</code>
-  <b>Previous Reason:</b> {}
-  <b>New Reason:</b> {}
+    <b>New Reason of Global Ban</b>
+    <b>Sudo Admin:</b> {}
+    <b>User:</b> {}
+    <b>ID:</b> <code>{}</code>
+    <b>Previous Reason:</b> {}
+    <b>New Reason:</b> {}
 antispam_reason_updated: "This user has already been gbanned. I have updated the reason.\nPrevious reason: <code>{}</code>\nNew reason: <code>{}</code>"
 antispam_new_gban: |
-  <b>Initializing Global Ban</b>
-  <b>User:</b> {}
-  <b>ID:</b> <code>{}</code>
-  <b>Reason:</b> {}
+    <b>Initializing Global Ban</b>
+    <b>User:</b> {}
+    <b>ID:</b> <code>{}</code>
+    <b>Reason:</b> {}
 antispam_logger_new_gban: |
-  <b>Global Ban</b>
-  <b>Sudo Admin:</b> {}
-  <b>User:</b> {} 
-  <b>ID:</b> <code>{}</code>
-  <b>Reason:</b> {}
+    <b>Global Ban</b>
+    <b>Sudo Admin:</b> {}
+    <b>User:</b> {} 
+    <b>ID:</b> <code>{}</code>
+    <b>Reason:</b> {}
 antispam_no_reason: No reason given
 antispam_user_not_gbanned: This user is not gbanned!
 antispam_ungbanned: I'll give {} a second chance, globally.
 antispam_logger_ungban: |
-  <b>Global Ban Removal</b>
-  <b>Sudo Admin:</b> {}
-  <b>User:</b> {}
-  <b>ID:</b> <code>{}</code>
-  <b>Reason:</b> {}
+    <b>Global Ban Removal</b>
+    <b>Sudo Admin:</b> {}
+    <b>User:</b> {}
+    <b>ID:</b> <code>{}</code>
+    <b>Reason:</b> {}
 antispam_err_ungban: "Could not ungban due to: {}"
 antispam_checkban_user_removed: "*This user is gbanned and has been removed.*\nReason: `{}`"
 antispam_on: I've enabled antispam security in this group. This will help to protect you from spammers, unsavoury characters, and the biggest trolls.
@@ -183,9 +183,9 @@ antispam_chatsettings_gban: "This chat is enforcing *gbans*: `{}`."
 anitspam_appeal: \n<b>Appeal at:</b> @HarukaAyaGroup
 antispam_spamwatch_banned: "<b>This user is detected as a spambot by SpamWatch and has been removed!</b>\n\n<b>Reason</b>: {}"
 antispam_help: |
-  Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
-  *Admin only:*
-  - /antispam <on/off/yes/no>: Change antispam security settings in the group, or return your current settings(when no arguments).
+    Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
+    *Admin only:*
+    - /antispam <on/off/yes/no>: Change antispam security settings in the group, or return your current settings(when no arguments).
 
 # Backups
 modname_backups: Backups
@@ -868,14 +868,14 @@ url_blacklist_remove_invalid_3: "Tell me which domains you would like to remove 
 url_blacklist_current: "Current <b>blacklisted</b> domains:\n"
 url_blacklist_no_existed: "There are no blacklisted domains here!"
 
-# Greetings
+#Greetings
 modname_welcome: Greetings
-welcome_added_to_grp: "Thanks for adding me into your group!\n 🇺🇸 use /setlang to change your language\n 🇧🇷 use /setlang para trocar o seu idioma!"
+welcome_added_to_grp: Thanks for adding me into your group! Don't forget to checkout our news channel!
 welcome_mute_btn_unmuted: Unmuted! You may now type!
 welcome_mute_btn_old_user: You're not a new user!
-welcome_bot_owner_left: Well, My mater have left, The party now ended!
+welcome_bot_owner_left: Well, My master has left, The party is over!
 welcome_mute_bot_cant_mute: I can't limit people here! Make sure I'm an admin so I can mute someone!
-welcome_mute_enabled: Welcomemute have been enabled! New members will be muted until they clicked the button!
+welcome_mute_enabled: Welcomemute have been enabled! New members will be muted until they've clicked the button!
 welcome_mute_disabled: Welcomemute have been disabled! New members will not be muted anymore!
 welcome_mute_curr_settings: "Current settings are:\n\nWelcome security: `{}`\nMember will be muted for: `{}`\nCustom text for unmute button: `{}`"
 welcome_mute_time_none: Every new member will be muted until they press the welcome button!

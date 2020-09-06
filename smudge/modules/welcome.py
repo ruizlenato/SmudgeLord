@@ -16,7 +16,7 @@ from smudge.modules.helper_funcs.msg_types import get_welcome_type
 from smudge.modules.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets, extract_time, markdown_to_html
 from smudge.modules.log_channel import loggable
-from smudge.modules.translations.strings import tld
+from smudge.modules.tr_engine.strings import tld
 
 VALID_WELCOME_FORMATTERS = [
     'first', 'last', 'fullname', 'username', 'id', 'count', 'chatname',
