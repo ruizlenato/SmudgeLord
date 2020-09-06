@@ -1,10 +1,11 @@
+from functools import wraps
 from typing import List, Dict
 
-from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode
+from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode, Update
 from telegram.error import TelegramError
 
-from smudge import LOAD, NO_LOAD
-from smudge.modules.translations.strings import tld
+from smudge import LOAD, NO_LOAD, OWNER_ID
+from smudge.modules.translations.strings import tld	
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):
@@ -32,8 +33,9 @@ def split_message(msg: str) -> List[str]:
             else:
                 result.append(small_msg)
                 small_msg = line
-        # Else statement at the end of the for loop, so append the leftover string.
-        result.append(small_msg)
+        else:
+            # Else statement at the end of the for loop, so append the leftover string.
+            result.append(small_msg)
 
         return result
 
@@ -82,6 +84,7 @@ def paginate_modules(chat_id,
     #     ]]
 
     return pairs
+
 
 def send_to_list(bot: Bot,
                  send_to: list,
