@@ -8,7 +8,7 @@ import emoji
 from telegram import MessageEntity
 from telegram.utils.helpers import escape_markdown
 
-from smudge.modules.translations.strings import tld	
+from smudge.modules.tr_engine.strings import tld
 
 # NOTE: the url \ escape may cause double escapes
 # match * (bold) (don't escape if in url)

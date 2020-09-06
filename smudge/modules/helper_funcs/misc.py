@@ -5,7 +5,7 @@ from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode, U
 from telegram.error import TelegramError
 
 from smudge import LOAD, NO_LOAD, OWNER_ID
-from smudge.modules.translations.strings import tld	
+from smudge.modules.tr_engine.strings import tld
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):
