@@ -94,7 +94,7 @@ def reverse(bot: Bot, update: Update, args: List[str]):
 
         if response != 400:
             xx = bot.send_message(chat_id, "Image was successfully uploaded to Google."
-                                  "\nParsing it, please wait."reply_to_message_id=rtmid)
+                                  "\nParsing it, please wait.", reply_to_message_id=rtmid)
         else:
             xx = bot.send_message(chat_id, "Google told me to go away.", reply_to_message_id=rtmid)
             return
