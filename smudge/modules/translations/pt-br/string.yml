@@ -136,14 +136,14 @@ antiflood_help: |
 
 #Antispam
 modname_antispam: AntiSpam
-antispam_err_usr_sudo: 'Eu espio com meus olhinhos... uma guerra de usuário sudo! *Vou pegar a pipoca e assistir a treta* '
-antispam_err_usr_support: 'Alguém está tentando banir um usuário de suporte! *briga* *pegando pipoca*'
-antispam_err_usr_bot: Tão engraçado, tentando me banir global, Boa tentativa.
+antispam_err_usr_sudo: 'Eu espio com meus olhinhos... uma guerra de usuário sudo! Por que eles estão brigando?'
+antispam_err_usr_support: '¡OOOOH, alguém está tentando banir um usuário de suporte! *pegando pipoca*'
+antispam_err_usr_bot: '-_- Tão divertido, deixe-me banir globalmente eu mesmo, por que não? Boa tentativa.'
 antispam_err_not_usr: 'Isso não é um usuário!'
 antispam_err_usr_deleted: 'Essa é uma conta excluída! Por que incomodá-la?'
-antispam_err_no_new_reason: Este usuário já foi banido; Eu mudaria o motivo, mas você não me deu um...
+antispam_err_no_new_reason: Este usuário já foi banido; Eu mudaria o motivo, mas você não me deu uma...
 antispam_logger_update_gban: |
-  <b>Novo motivo do Banimento Global(Gban)</b>
+  <b>Novo motivo da Ban Global</b>
   <b>Admin sudo:</b> {}
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
@@ -151,19 +151,19 @@ antispam_logger_update_gban: |
   <b>Novo motivo:</b>{}
 antispam_reason_updated: "Este usuário já foi banido. Atualizei o motivo.\nMotivo anterior: <code> {} </code>\nNovo motivo: <code> {} </code>"
 antispam_new_gban: |
-  <b>Banido Globalmente(Gban)</b>
+  <b>Iniciando Ban Global</b>
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
   <b>Motivo:</b>{}
 antispam_logger_new_gban: |
-  <b>Ban Global(Gban)</b>
+  <b>Ban Global</b>
   <b>Admin sudo:</b> {}
   <b>Usuario:</b> {}
   <b>ID:</b> <code>{}</code>
   <b>Motivo:</b>{}
 antispam_no_reason: Não há motivo dado
 antispam_user_not_gbanned: 'Este usuário não está banido globalmente'
-antispam_ungbanned: Certo, Darei uma segunda chance.
+antispam_ungbanned: Darei uma segunda chance, globalmente.
 antispam_logger_ungban: |
   <b>Ban Global Removido</b>
   <b>Admin Sudo:</b> {}
@@ -172,18 +172,18 @@ antispam_logger_ungban: |
   <b>Motivo:</b>{}
 antispam_err_ungban: "Não foi possível desbanir globalmente devido a: {} "
 antispam_checkban_user_removed: "*Este usuário foi banido globalmente e foi removido.*\nMotivo: `{}`"
-antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers.
-antispam_off: Desativei a segurança antispam neste grupo. GBans não afetarão mais seus usuários.
+antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers, personagens desagradáveis ​​e os maiores trolls.
+antispam_off: Desativei a segurança antispam neste grupo. Global Bans não afetarão mais seus usuários. Você estará menos protegido contra trolls e spammers!
 antispam_err_wrong_arg: "Dê-me alguns argumentos para escolher um ajuste! true/false, yes/no!\n\nSua configuração atual é: {}\nSe for true, quaisquer gbans que ocorrerem também acontecerão no seu grupo. Quando false, você ficará a mercê de spammers."
 antispam_userinfo_gbanned: "Banido globalmente: <b>{}</b>"
 antispam_userinfo_gban_reason: "\nMotivo: {}"
-antispam_chatsettings_gban: "Este grupo está banindo usuarios que estão banidos globalmente *gbans*: `{}`."
-anitspam_appeal: \n<b>Fale com:</b> @Renatoh
+antispam_chatsettings_gban: "Este grupo está cumprindo *gbans*: `{}`."
+anitspam_appeal: \n<b>Fale com</b> @Hitalo
 antispam_spamwatch_banned: "<b>Este usuário foi detectado como um spambot pela SpamWatch e foi removido!</b>\n\n<b>Motivo</b>: {}"
 antispam_help: |
    Os proprietários dos robôs usam o antispam para banir spammers de todos os grupos. Isso ajuda a proteger você e seus grupos, eliminando os fluxos de spam o mais rápido possível. Isso está ativado por padrão, mas você pode alterar isso usando o comando.\n
-   *Apenas administradores:*
-   - /antispam <on/off/yes/no>: altera a configuração de segurança antispam no grupo ou retorna sua configuração atual (sem argumentos).
+   *Apenas administrador:*
+   - / antispam <on/off/yes/no>: altera a configuração de segurança antispam no grupo ou retorna sua configuração atual (sem argumentos).
 
 # Backups
 modname_backups: Backups
