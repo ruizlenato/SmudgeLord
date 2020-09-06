@@ -1,5 +1,4 @@
 import logging
-import os
 import sys
 import yaml
 import spamwatch
@@ -14,12 +13,12 @@ logging.basicConfig(
 
 LOGGER = logging.getLogger(__name__)
 
-LOGGER.info("Starting Smudge...")
+LOGGER.info("Starting smudge...")
 
 # If Python version is < 3.6, stops the bot.
-if sys.version_info[0] < 3 or sys.version_info[1] < 6:
+if sys.version_info[0] < 3 or sys.version_info[1] < 8:
     LOGGER.error(
-        "You MUST have a python version of at least 3.6! Multiple features depend on this. Bot quitting."
+        "You MUST have a python version of at least 3.8! Multiple features depend on this. Bot quitting."
     )
     sys.exit(1)
 
@@ -58,20 +57,23 @@ try:
 except ValueError:
     raise Exception("Your 'gban_dump' must be set.")
 
-OWNER_USERNAME = CONFIG['owner_username']
+try:
+    OWNER_USERNAME = CONFIG['owner_username']
+except ValueError:
+    raise Exception("Your 'owner_username' must be set.")
 
 try:
-    SUDO_USERS = {int(x) for x in CONFIG['sudo_users'] or []}
+    SUDO_USERS = set(int(x) for x in CONFIG['sudo_users'] or [])
 except ValueError:
     raise Exception("Your sudo users list does not contain valid integers.")
 
 try:
-    SUPPORT_USERS = {int(x) for x in CONFIG['support_users'] or []}
+    SUPPORT_USERS = set(int(x) for x in CONFIG['support_users'] or [])
 except ValueError:
     raise Exception("Your support users list does not contain valid integers.")
 
 try:
-    WHITELIST_USERS = {int(x) for x in CONFIG['whitelist_users'] or []}
+    WHITELIST_USERS = set(int(x) for x in CONFIG['whitelist_users'] or [])
 except ValueError:
     raise Exception(
         "Your whitelisted users list does not contain valid integers.")
@@ -82,9 +84,8 @@ NO_LOAD = CONFIG['no_load']
 DEL_CMDS = CONFIG['del_cmds']
 STRICT_ANTISPAM = CONFIG['strict_antispam']
 WORKERS = CONFIG['workers']
-ALLOW_EXCL = CONFIG['allow_excl']
 DEEPFRY_TOKEN = CONFIG['deepfry_token']
-LASTFM_API_KEY = CONFIG['LASTFM_API_KEY']
+LASTFM_API_KEY = CONFIG['lastfm_api_key']
 
 SUDO_USERS.add(OWNER_ID)
 
@@ -118,5 +119,4 @@ from smudge.modules.helper_funcs.handlers import CustomCommandHandler, CustomReg
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
 
-if ALLOW_EXCL:
-    tg.CommandHandler = CustomCommandHandler
+tg.CommandHandler = CustomCommandHandler
