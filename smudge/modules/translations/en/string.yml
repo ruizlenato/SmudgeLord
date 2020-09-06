@@ -974,8 +974,6 @@ searchimage_coundt_anything: "Couldn't find anything."
 searchimage: "[{}]({})\n[Visually similar images]({})"
 searchimage_noimage: "[{}]({})\n[Visually similar images]({})"\nCouldn't fetch any images."
 serachimage_upload_google: "Image was successfully uploaded to Google.\nParsing it, please wait."
-searchimage_help: |
-    - /reverse: Does a reverse image search of the media which it was replied to.
 
 
 # Stickers
