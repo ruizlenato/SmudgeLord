@@ -8,7 +8,7 @@ import emoji
 from telegram import MessageEntity
 from telegram.utils.helpers import escape_markdown
 
-from smudge.modules.translations.strings import tld
+from smudge.modules.tr_engine.strings import tld
 
 # NOTE: the url \ escape may cause double escapes
 # match * (bold) (don't escape if in url)
@@ -154,8 +154,8 @@ def button_markdown_parser(txt: str,
         else:
             note_data += markdown_note[prev:to_check]
             prev = match.start(1) - 1
-        
-    note_data += markdown_note[prev:]
+    else:
+        note_data += markdown_note[prev:]
 
     return note_data, buttons
 
@@ -254,11 +254,12 @@ def escape_chars(text: str, to_escape: List[str]) -> str:
 
 def extract_time(message, time_val):
     if any(time_val.endswith(unit) for unit in ('m', 'h', 'd')):
-        chat = message.chat # type: Optional[Chat]
+        chat = message.chat
         unit = time_val[-1]
         time_num = time_val[:-1]  # type: str
         if not time_num.isdigit():
-            message.reply_text(tld(chat.id, 'helpers_string_handling_invalid_time_amount'))
+            message.reply_text(
+                tld(chat.id, 'helpers_string_handling_invalid_time_amount'))
             return ""
 
         if unit == 'm':
@@ -272,7 +273,9 @@ def extract_time(message, time_val):
             return ""
         return bantime
     else:
-        message.reply_text(tld(chat.id, 'helpers_string_handling_invalid_time_type').format(time_val[-1]))
+        message.reply_text(
+            tld(chat.id, 'helpers_string_handling_invalid_time_type').format(
+                time_val[-1]))
         return ""
 
 
@@ -283,3 +286,8 @@ def markdown_to_html(text):
     return bleach.clean(_html,
                         tags=['strong', 'em', 'a', 'code', 'pre'],
                         strip=True)[:-1]
+
+
+def remove_emoji(inputString):
+    """ Remove emojis and other non-safe characters from string """
+    return emoji.get_emoji_regexp().sub(u'', inputString)

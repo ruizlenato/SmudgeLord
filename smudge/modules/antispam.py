@@ -4,7 +4,7 @@ from io import BytesIO
 from typing import List
 
 from telegram import Update, Bot, ParseMode
-from telegram.error import BadRequest  #,  TelegramError
+from telegram.error import BadRequest
 from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
@@ -13,7 +13,7 @@ from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, GBAN_DUMP, S
 from smudge.modules.helper_funcs.chat_status import user_admin, is_user_admin
 from smudge.modules.helper_funcs.extraction import extract_user_and_text
 from smudge.modules.helper_funcs.filters import CustomFilters
-#from smudge.modules.helper_funcs.misc import send_to_list
+# from smudge.modules.helper_funcs.misc import send_to_list
 # from smudge.modules.sql.users_sql import get_all_chats
 
 from smudge.modules.translations.strings import tld	
@@ -84,7 +84,7 @@ def gban(bot: Bot, update: Update, args: List[str]):
         return
 
     full_reason = html.escape(
-        f"{reason} // GBanned by {banner.first_name} id {banner.id}")
+        f"{reason}")
 
     if sql.is_user_gbanned(user_id):
         old_reason = sql.update_gban_reason(
@@ -253,7 +253,7 @@ def check_and_ban(update, user_id, should_message=True):
     chat = update.effective_chat
     message = update.effective_message
     try:
-        if sw != None:
+        if sw is not None:
             sw_ban = sw.get_ban(user_id)
             if sw_ban:
                 spamwatch_reason = sw_ban.reason

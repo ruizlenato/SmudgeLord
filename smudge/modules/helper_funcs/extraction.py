@@ -5,7 +5,7 @@ from telegram.error import BadRequest
 
 from smudge import LOGGER
 from smudge.modules.users import get_user_id
-from smudge.modules.translations.strings import tld
+from smudge.modules.tr_engine.strings import tld
 
 
 def id_from_reply(message):
@@ -25,7 +25,7 @@ def extract_user(message: Message, args: List[str]) -> Optional[int]:
 
 def extract_user_and_text(message: Message,
                           args: List[str]) -> (Optional[int], Optional[str]):
-    chat = message.chat  # type: Optional[Chat]
+    chat = message.chat
     prev_message = message.reply_to_message
     split_text = message.text.split(None, 1)
 
