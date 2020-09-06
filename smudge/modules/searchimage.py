@@ -108,7 +108,7 @@ def reverse(bot: Bot, update: Update, args: List[str]):
             imgspage = match['similar_images']
 
         if guess and imgspage:
-            xx.edit_text(f"[{guess}]({fetchUrl})\nProcessing...", parse_mode='Markdown', disable_web_page_preview=True)
+            xx.edit_text(tld(chat.id, "searchimage_processing").format(guess, fetchUrl), parse_mode='Markdown', disable_web_page_preview=True)
         else:
             xx.edit_text(tld(chat.id, "searchimage_coundt_anything"))
             return

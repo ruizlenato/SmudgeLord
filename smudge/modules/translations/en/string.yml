@@ -973,6 +973,7 @@ searchimage_noargs: "Please reply to a sticker, or an image to search it!\nDo yo
 searchimage_coundt_anything: "Couldn't find anything."
 searchimage: "[{}]({})\n[Visually similar images]({})"
 searchimage_noimage: "[{}]({})\n[Visually similar images]({})\nCouldn't fetch any images."
+searchimage_processing: "[{}]({})\nProcessing..."
 searchimage_help: |
     - /reverse: Does a reverse image search of the media which it was replied to.
 
