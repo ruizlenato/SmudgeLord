@@ -20,15 +20,13 @@ class GloballyBannedUsers(BASE):
         return "<GBanned User {} ({})>".format(self.name, self.user_id)
 
     def to_dict(self):
-        return {
-            "user_id": self.user_id,
-            "name": self.name,
-            "reason": self.reason
-        }
+        return {"user_id": self.user_id,
+                "name": self.name,
+                "reason": self.reason}
 
 
-class AntispamSettings(BASE):
-    __tablename__ = "antispam_settings"
+class GbanSettings(BASE):
+    __tablename__ = "gban_settings"
     chat_id = Column(String(14), primary_key=True)
     setting = Column(Boolean, default=True, nullable=False)
 
@@ -41,13 +39,12 @@ class AntispamSettings(BASE):
 
 
 GloballyBannedUsers.__table__.create(checkfirst=True)
-AntispamSettings.__table__.create(checkfirst=True)
+GbanSettings.__table__.create(checkfirst=True)
 
 GBANNED_USERS_LOCK = threading.RLock()
-ASPAM_SETTING_LOCK = threading.RLock()
+GBAN_SETTING_LOCK = threading.RLock()
 GBANNED_LIST = set()
 GBANSTAT_LIST = set()
-ANTISPAMSETTING = set()
 
 
 def gban_user(user_id, name, reason=None):
@@ -106,11 +103,11 @@ def get_gban_list():
         SESSION.close()
 
 
-def enable_antispam(chat_id):
-    with ASPAM_SETTING_LOCK:
-        chat = SESSION.query(AntispamSettings).get(str(chat_id))
+def enable_gbans(chat_id):
+    with GBAN_SETTING_LOCK:
+        chat = SESSION.query(GbanSettings).get(str(chat_id))
         if not chat:
-            chat = AntispamSettings(chat_id, True)
+            chat = GbanSettings(chat_id, True)
 
         chat.setting = True
         SESSION.add(chat)
@@ -119,11 +116,11 @@ def enable_antispam(chat_id):
             GBANSTAT_LIST.remove(str(chat_id))
 
 
-def disable_antispam(chat_id):
-    with ASPAM_SETTING_LOCK:
-        chat = SESSION.query(AntispamSettings).get(str(chat_id))
+def disable_gbans(chat_id):
+    with GBAN_SETTING_LOCK:
+        chat = SESSION.query(GbanSettings).get(str(chat_id))
         if not chat:
-            chat = AntispamSettings(chat_id, False)
+            chat = GbanSettings(chat_id, False)
 
         chat.setting = False
         SESSION.add(chat)
@@ -142,10 +139,7 @@ def num_gbanned_users():
 def __load_gbanned_userid_list():
     global GBANNED_LIST
     try:
-        GBANNED_LIST = {
-            x.user_id
-            for x in SESSION.query(GloballyBannedUsers).all()
-        }
+        GBANNED_LIST = {x.user_id for x in SESSION.query(GloballyBannedUsers).all()}
     finally:
         SESSION.close()
 
@@ -153,20 +147,17 @@ def __load_gbanned_userid_list():
 def __load_gban_stat_list():
     global GBANSTAT_LIST
     try:
-        GBANSTAT_LIST = {
-            x.chat_id
-            for x in SESSION.query(AntispamSettings).all() if not x.setting
-        }
+        GBANSTAT_LIST = {x.chat_id for x in SESSION.query(GbanSettings).all() if not x.setting}
     finally:
         SESSION.close()
 
 
 def migrate_chat(old_chat_id, new_chat_id):
-    with ASPAM_SETTING_LOCK:
-        gban = SESSION.query(AntispamSettings).get(str(old_chat_id))
-        if gban:
-            gban.chat_id = new_chat_id
-            SESSION.add(gban)
+    with GBAN_SETTING_LOCK:
+        chat = SESSION.query(GbanSettings).get(str(old_chat_id))
+        if chat:
+            chat.chat_id = new_chat_id
+            SESSION.add(chat)
 
         SESSION.commit()
 
