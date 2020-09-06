@@ -971,6 +971,7 @@ users_seen: "Eu os vi em <code>{}</code> bate-papos no total."
 users_seen_is_bot: "Eu os vi em ... Uau. Eles estão me perseguindo? Eles estão nos mesmos lugares que eu estou ... oh. Sou eu."
 
 # Search
+modname_stickers: Searchimage
 searchimage_noargs: "Responda a um sticker(adesivo) ou imagem para pesquisar!\nVocê sabia que também pode pesquisar uma imagem com um link? \nExemplo: /reverse [linkdaimagem] <quantidae>."
 searchimage_coundt_anything: Não foi possível encontrar nada.
 searchimage: "[{}]({})\n[Imagens visualmente semelhantes]({})"

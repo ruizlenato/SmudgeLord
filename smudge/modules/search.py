@@ -185,7 +185,7 @@ __help__ = """
 - /reverse: Does a reverse image search of the media which it was replied to.
 """
 
-__mod_name__ = "searchimage"
+__mod_name__ = "Searchimage"
 
 REVERSE_HANDLER = DisableAbleCommandHandler("reverse", reverse, pass_args=True, admin_ok=True)
 

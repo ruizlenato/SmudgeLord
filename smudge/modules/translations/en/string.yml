@@ -968,6 +968,7 @@ users_seen: "I've seen them in <code>{}</code> chats in total."
 users_seen_is_bot: "I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."
 
 # Search
+modname_stickers: Searchimage
 searchimage_noargs: "Please reply to a sticker, or an image to search it!\nDo you know that you can search an image with a link too?\n /reverse [picturelink] <amount>."
 searchimage_coundt_anything: "Couldn't find anything."
 searchimage: "[{}]({})\n[Visually similar images]({})"
