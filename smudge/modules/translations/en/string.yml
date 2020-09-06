@@ -180,7 +180,7 @@ antispam_err_wrong_arg: "Give me some arguments to choose a setting! on/off, yes
 antispam_userinfo_gbanned: "Globally banned: <b>{}</b>"
 antispam_userinfo_gban_reason: "\nReason: {}"
 antispam_chatsettings_gban: "This chat is enforcing *gbans*: `{}`."
-anitspam_appeal: \n<b>Appeal at:</b> @HarukaAyaGroup
+anitspam_appeal: \n<b>Appeal at:</b> @Renatoh
 antispam_spamwatch_banned: "<b>This user is detected as a spambot by SpamWatch and has been removed!</b>\n\n<b>Reason</b>: {}"
 antispam_help: |
     Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
@@ -769,7 +769,7 @@ note_msg_del: "Looks like the original sender of this note has deleted their mes
 note_url_invalid: "The URL of the button is invalid! Please update this note!"
 note_mention_invalid: "Looks like you tried to mention someone I've never seen before. Forward one of their messages to me and I'll be able to tag them!"
 note_incorrect_import: "This note was an incorrectly imported file from another bot - I can't use it. Save it manually if needed. I'll remove it from your notes list."
-note_cannot_send: "This note could not be sent, as it is incorrectly formatted, Please ask in @HarukaAyaGroup if you can't figure out why!"
+note_cannot_send: "This note could not be sent, as it is incorrectly formatted, Please ask in @Renatoh if you can't figure out why!"
 get_invalid: "Note name missing! Write the name of the note you want to get."
 note_is_local: "local notes"
 save_invalid: "There's nothing to save!"
@@ -870,7 +870,8 @@ url_blacklist_no_existed: "There are no blacklisted domains here!"
 
 #Greetings
 modname_welcome: Greetings
-welcome_added_to_grp: Thanks for adding me into your group! Don't forget to checkout our news channel!
+welcome_added_to_grp: "Thanks for adding me into your group! don't forget to check how not languages\n
+use /setlang to see the available languages"
 welcome_mute_btn_unmuted: Unmuted! You may now type!
 welcome_mute_btn_old_user: You're not a new user!
 welcome_bot_owner_left: Well, My master has left, The party is over!
