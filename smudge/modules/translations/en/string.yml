@@ -1078,25 +1078,6 @@ warns_help: |
     - /rmwarn <userhandle>: removes latest warn for a user. It also can be used as reply.
     - /unwarn <userhandle>: same as /rmwarn
 
-
-### Helper functions
-# chat_status
-helpers_bot_cant_delete: I can't delete messages here! Make sure I'm admin and can delete other user's messages.
-helpers_bot_cant_pin: I can't pin messages here! Make sure I'm admin and can pin messages.
-helpers_bot_cant_pro_demote: I can't promote/demote people here! Make sure I'm admin and can appoint new admins.
-helpers_bot_cant_restrict: I can't restrict people here! Make sure I'm admin and can appoint new admins.
-helpers_bot_not_admin: I'm not an admin!
-helpers_user_not_admin: Who dis non-admin telling me what to do?
-
-# extraction
-helpers_user_not_in_db: |
-    I don't have that user in my user database.
-    You'll be able to interact with them if you reply to that person's message instead, or forward one of their messages (this will only work if the user doesn't have their account hidden).
-
-# string_handling
-helpers_string_handling_invalid_time_amount: Invalid time amount specified.
-helpers_string_handling_invalid_time_type: "Invalid time type specified. Expected m, h, d, got: {}."
-
 #LastFM
 modname_last_fm: LastFM
 setuser_lastfm_error: That's not how this works...\nRun /setuser followed by your username!
@@ -1142,3 +1123,18 @@ fox_release_maintained_1: Maintained
 fox_release_maintained_3: ⚠️ Not maintained
 fox_release_date: "**📆 Release date:** {}\n"
 fox_release_md5: "**✅ MD5:** `{}`\n"
+### Helper functions
+#chat_status
+helpers_bot_cant_delete: I can't delete messages here! Make sure I'm admin and can delete other user's messages.
+helpers_bot_cant_pin: I can't pin messages here! Make sure I'm admin and can pin messages.
+helpers_bot_cant_pro_demote: I can't promote/demote people here! Make sure I'm admin and can appoint new admins.
+helpers_bot_cant_restrict: I can't restrict people here! Make sure I'm admin and can appoint new admins.
+helpers_bot_not_admin: I'm not an admin!
+helpers_user_not_admin: You must be this chat administrator to perform this action!
+#extraction
+helpers_user_not_in_db: |
+  I don't have that user in my user database.
+  You'll be able to interact with them if you reply to that person's message instead, or forward one of their messages (this will only work if the user doesn't have their account hidden).
+#string_handling
+helpers_string_handling_invalid_time_amount: Invalid time amount specified.
+helpers_string_handling_invalid_time_type: "Invalid time type specified. Expected m, h, d, got: {}."

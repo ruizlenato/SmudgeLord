@@ -16,7 +16,7 @@ from smudge.modules.helper_funcs.filters import CustomFilters
 # from smudge.modules.helper_funcs.misc import send_to_list
 # from smudge.modules.sql.users_sql import get_all_chats
 
-from smudge.modules.tr_engine.strings import tld
+from smudge.modules.translations.strings import tld
 
 GBAN_ENFORCE_GROUP = 6
 

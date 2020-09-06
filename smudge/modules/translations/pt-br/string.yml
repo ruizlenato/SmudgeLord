@@ -1072,25 +1072,6 @@ warns_help: |
     - /rmwarn <username>: remove a advertencia mais recente para um usuário. Também pode ser usado como resposta.
     - /unwarn <username>: o mesmo que /rmwarn
 
-
-### Helper functions
-# chat_status
-helpers_bot_cant_delete: Não consigo excluir mensagens aqui! Certifique-se de que sou administrador e possa excluir as mensagens de outros usuários.
-helpers_bot_cant_pin: Não consigo fixar mensagens aqui! Certifique-se de que sou administrador e possa fixar mensagens.
-helpers_bot_cant_pro_demote: Não posso promover/rebaixar pessoas aqui! Verifique se eu sou administrador e posso nomear novos administradores.
-helpers_bot_cant_restrict: Não posso restringir as pessoas aqui! Verifique se eu sou administrador e posso nomear novos administradores.
-helpers_bot_not_admin: Eu não sou um administrador!
-helpers_user_not_admin: Quem não é administrador me dizendo o que fazer?
-
-# extraction
-helpers_user_not_in_db: |
-    Eu não tenho esse usuário no meu banco de dados de usuários.
-    Você poderá interagir com eles se responder à mensagem dessa pessoa ou encaminhar uma delas (isso só funcionará se o usuário não tiver sua conta oculta).
-
-# string_handling
-helpers_string_handling_invalid_time_amount: Quantidade de tempo inválida especificada.
-helpers_string_handling_invalid_time_type: "Tipo de hora inválido especificado. Esperado m, h, d, obteve: {}."
-
 #LastFM
 modname_last_fm: LastFM
 setuser_lastfm_error: Não é assim que isso funciona...\nEscreva /setuser seguido do seu nome de usuário!
@@ -1142,3 +1123,19 @@ fox_release_maintained_1: Mantido
 fox_release_maintained_3: Dropado(Não mantido)
 fox_release_date: "**📆 Data de lançamento:** {}\n"
 fox_release_md5: "**✅ MD5 do arquivo :** `{}`\n"
+
+### Helper functions
+#chat_status
+helpers_bot_cant_delete: 'Não consigo excluir mensagens aqui! Verifique se eu sou um administrador e posso excluir mensagens de outros usuários.'
+helpers_bot_cant_pin: 'Não consigo fixar mensagens aqui! Verifique se sou administrador e posso fixar mensagens.'
+helpers_bot_cant_pro_demote: 'Não posso promover/rebaixar pessoas aqui! Verifique se eu sou um administrador e posso nomear novos administradores.'
+helpers_bot_cant_restrict: 'Não posso restringir as pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.'
+helpers_bot_not_admin: 'Eu não sou um administrador!'
+helpers_user_not_admin: 'Você deve ser o administrador do chat para executar esta ação!'
+#extraction
+helpers_user_not_in_db: |
+  Eu não tenho esse usuário no meu banco de dados de usuários.
+  Você é capaz de interagir com ele se responder à mensagem dessa pessoa? ou encaminhar uma de suas mensagens (isso só funcionará se o usuário não tiver sua conta oculta).
+#string_handling
+helpers_string_handling_invalid_time_amount: Tempo especificado inválido.
+helpers_string_handling_invalid_time_type: "Tipo de tempo especificado inválido. Era esperado: h, d. Tempo especificado: {}."
