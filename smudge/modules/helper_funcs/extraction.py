@@ -5,7 +5,7 @@ from telegram.error import BadRequest
 
 from smudge import LOGGER
 from smudge.modules.users import get_user_id
-from smudge.modules.tr_engine.strings import tld
+from smudge.modules.translations.strings import tld	
 
 
 def id_from_reply(message):
