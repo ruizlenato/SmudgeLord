@@ -969,7 +969,7 @@ users_seen_is_bot: "I've seen them in... Wow. Are they stalking me? They're in a
 
 # Search
 searchimage_noargs: "Please reply to a sticker, or an image to search it!\nDo you know that you can search an image with a link too?\n /reverse [picturelink] <amount>."
-searchimage_coundt_anything: Couldn't find anything.
+searchimage_coundt_anything: "Couldn't find anything."
 searchimage: "[{}]({})\n[Visually similar images]({})"
 searchimage_noimage: "[{}]({})\n[Visually similar images]({})"\nCouldn't fetch any images."
 serachimage_upload_google: "Image was successfully uploaded to Google.\nParsing it, please wait."
