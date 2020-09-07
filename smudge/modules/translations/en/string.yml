@@ -186,7 +186,6 @@ antispam_help: |
     Antispam is used by the bot owners to ban spammers across all groups. This helps protect you and your groups by removing spam flooders as quickly as possible. This is enabled by default, but you can change this by using the command.\n
     *Admin only:*
     - /antispam <on/off/yes/no>: Change antispam security settings in the group, or return your current settings(when no arguments).
-
 # Backups
 modname_backups: Backups
 backups_file_corrupted: Try downloading and uploading the file yourself again, this one seems to be corrupted!

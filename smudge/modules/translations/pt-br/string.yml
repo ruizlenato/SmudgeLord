@@ -990,7 +990,7 @@ stickers_help: |
 
 # Warnings
 modname_warns: Advertencias
-warns_warn_admin_no_warn: Não vou adverter um administrador!
+warns_warn_admin_no_warn: Não vou adverter um(a) administrador(a)!
 warns_warn_admin_autofilter: Filtro de advertencias automatizado
 warns_max_warn_kick: "{} Advertencias, {} foi kikado!"
 warns_max_warn_ban: "{} Advertencias, {} foi banido!"
