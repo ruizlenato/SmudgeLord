@@ -151,7 +151,7 @@ antispam_logger_update_gban: |
   <b>Novo motivo:</b>{}
 antispam_reason_updated: "Este usuário já foi banido. Atualizei o motivo.\nMotivo anterior: <code> {} </code>\nNovo motivo: <code> {} </code>"
 antispam_new_gban: |
-  <b>Iniciando Ban Global</b>
+  <b>Banido Globalmente</b>
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
   <b>Motivo:</b>{}
@@ -178,7 +178,7 @@ antispam_err_wrong_arg: "Dê-me alguns argumentos para escolher um ajuste! true/
 antispam_userinfo_gbanned: "Banido globalmente: <b>{}</b>"
 antispam_userinfo_gban_reason: "\nMotivo: {}"
 antispam_chatsettings_gban: "Este grupo está cumprindo *gbans*: `{}`."
-anitspam_appeal: \n<b>Fale com</b> @Hitalo
+anitspam_appeal: \n<b>Fale com</b> @Renatoh
 antispam_spamwatch_banned: "<b>Este usuário foi detectado como um spambot pela SpamWatch e foi removido!</b>\n\n<b>Motivo</b>: {}"
 antispam_help: |
    Os proprietários dos robôs usam o antispam para banir spammers de todos os grupos. Isso ajuda a proteger você e seus grupos, eliminando os fluxos de spam o mais rápido possível. Isso está ativado por padrão, mas você pode alterar isso usando o comando.\n
