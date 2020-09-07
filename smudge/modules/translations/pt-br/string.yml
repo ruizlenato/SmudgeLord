@@ -210,7 +210,7 @@ backups_help: |
 modname_bans: Bans
 bans_err_usr_not_found: Não consigo encontrar esse usuário.
 bans_err_usr_is_bot: Eu não vou me banir, você está louco?
-bans_err_usr_is_admin: Por que eu baniria um administrador? Parece uma ideia bem idiota.
+bans_err_usr_is_admin: Por que eu baniria um(a) administrador(a)? Parece uma ideia bem idiota.
 bans_logger: |
   <b>{}:</b>
   #BAN
@@ -223,7 +223,7 @@ bans_err_tban_no_arg: Você não especificou o tempo para banir este usuário!
 bans_tban_logger: "<b>{}:</b>\n#TEMP_BANNED\n<b>Admin:</b> {}\n<b>Usuario:</b> {} (<code>{}</code>)\n<b>Hora:</b>{}"
 bans_tbanned_success: Admin {} baniu com sucesso {} no grupo <b>{}</b> por {}!
 bans_kick_is_bot: 'Por que vou me remover?'
-bans_kick_is_admin: 'Porque eu removeria um administrador?'
+bans_kick_is_admin: Porque eu removeria um(a) administrador(a)?
 bans_kick_success: Admin {} removeu o usuário {} em <b>{}</b>!
 bans_kick_logger: "<b>{}:</b>\n#KICKED\n<b>Administrador:</b> {}\n<b>Usuario:</b> {} (<code>{}</code>)"
 bans_kickme_success: Sem Problemas.
@@ -295,11 +295,11 @@ connection_err_not_allowed: Conexões a este bate-papo não são permitidas!
 connection_err_no_chatid: Digite o ID do chat para conectar-se
 connection_dis_success: Desconectado do bate-papo com sucesso!
 connection_dis_fail: Falha na desconexão!
-connection_err_no_admin: Você precisa ser um administrador no grupo conectado!
-connection_err_unknown: O grupo mudou os direitos de conexão ou você não é mais um administrador.\nVou desconectá-lo.
+connection_err_no_admin: Você precisa ser um(a) administrador(a) no grupo conectado!
+connection_err_unknown: O grupo mudou os direitos de conexão ou você não é mais um(a) administrador(a).\nVou desconectá-lo.
 connection_help: |
     Às vezes, você só deseja adicionar notas e filtros a um bate-papo em grupo, mas não quer que todos vejam; É aqui que entram as conexões...
-    Isso permite que você se conecte ao banco de dados de um chat e adicione itens a ele sem que os comandos apareçam no chat! Por razões óbvias, você precisa ser um administrador para adicionar coisas; mas qualquer membro do grupo pode visualizar seus dados.\n
+    Isso permite que você se conecte ao banco de dados de um chat e adicione itens a ele sem que os comandos apareçam no chat! Por razões óbvias, você precisa ser um(a) administrador para adicionar coisas; mas qualquer membro do grupo pode visualizar seus dados.\n
     As ações estão disponíveis com grupos conectados:
     • Ver e editar notas
     • Exibir e editar filtros
@@ -381,14 +381,14 @@ language_sel_user_lang: "*\n\nSelecione um novo idioma de usuário:*"
 # Locks
 modname_locks: Bloqueios
 locks_list_title: "Bloqueios: "
-locks_lock_success: 'Mensagem `{}` bloqueada para todos os não-administradores.'
-locks_unlock_success: 'Mensagem `{}` desbloqueada para todos!'
-locks_type_invalid: 'O que você está tentando bloquear? Digite /locktypes ver para a lista de bloqueios. '
-locks_bot_not_admin: Verifique se eu sou um administrador do grupo e tenho permissão para excluir mensagens e tente novamente.
+locks_lock_success: Mensagem `{}` bloqueada para todos os não-administradores.
+locks_unlock_success: Mensagem `{}` desbloqueada para todos!
+locks_type_invalid: O que você está tentando bloquear? Digite /locktypes ver para a lista de bloqueios. 
+locks_bot_not_admin: Verifique se eu sou um(a) administrador(a) do grupo e tenho permissão para excluir mensagens e tente novamente.
 locks_lock_no_type: Você não especificou um item para bloquear.
 lokcs_unlock_no_type: Você não especificou um item para desbloquear.
-locks_lock_bots_no_admin: Eu vejo um bot e eles me disseram para não deixar ele entrar... mas eu não sou um administrador!
-locks_lock_bots_kick: 'Somente administradores podem adicionar bots a este chat, você está expulso!'
+locks_lock_bots_no_admin: Eu vejo um bot e eles me disseram para não deixar ele entrar... mas eu não sou um(a) administrador(a)!
+locks_lock_bots_kick: Somente administradores podem adicionar bots a este chat, você está expulso!
 locks_list_empty: Atualmente não há bloqueios em *{}*.
 locks_list: |
     Estes são os bloqueios *{}*:
@@ -803,7 +803,7 @@ modname_reporting: Denuncias
 reports_pm_on: "Denuncias ativadas! Você será notificado sempre que alguém denunciar algo."
 reports_pm_off: "Desativou as denuncias! Você não receberá nenhum relatório."
 reports_chat_on: "Relatórios ativados! Os administradores que ativaram os relatórios serão notificados quando /report ou @admin forem chamados."
-reports_chat_off: "Relatório desativado! Nenhum administrador será notificado com o /report ou @admin."
+reports_chat_off: "Relatório desativado! Nenhum(a) administrador(a) será notificado com o /report ou @admin."
 reports_pm_pref: "Sua preferência de relatório atual é: `{}`"
 reports_chat_pref: "A configuração atual deste bate-papo é: c"
 reports_success: "{} denunciou a mensagem aos administradores."
@@ -877,7 +877,7 @@ welcome_added_to_grp: Obrigado por me adicionar ao seu grupo!
 welcome_mute_btn_unmuted: Desmutado, Agora você pode escrever!
 welcome_mute_btn_old_user: Você não é um novo usuário!
 welcome_bot_owner_left: Bem, meu mestre se foi, a festa acabou!
-welcome_mute_bot_cant_mute: Não posso limitar as pessoas aqui! Certifique-se de que eu sou um administrador para que eu possa silenciar alguém!
+welcome_mute_bot_cant_mute: Não posso limitar as pessoas aqui! Certifique-se de que eu sou um(a) administrador(a) para que eu possa silenciar alguém!
 welcome_mute_enabled: O Welcomemute foi ativado! Os novos membros serão silenciados até clicarem no botão!
 welcome_mute_disabled: O Welcomemute foi desativado! Novos membros não serão mais silenciados!
 welcome_mute_curr_settings: "As configurações atuais são:\n\nBem-vindo segurança: `{}`\nO membro será silenciado por: `{}`\nTexto personalizado para ativar o botão: `{}`"
@@ -1129,11 +1129,11 @@ fox_release_md5: "**✅ MD5 do arquivo :** `{}`\n"
 
 ### Helper functions
 #chat_status
-helpers_bot_cant_delete: 'Não consigo excluir mensagens aqui! Verifique se eu sou um administrador e posso excluir mensagens de outros usuários.'
+helpers_bot_cant_delete: 'Não consigo excluir mensagens aqui! Verifique se eu sou um(a) administrador(a) e posso excluir mensagens de outros usuários.'
 helpers_bot_cant_pin: 'Não consigo fixar mensagens aqui! Verifique se sou administrador e posso fixar mensagens.'
-helpers_bot_cant_pro_demote: 'Não posso promover/rebaixar pessoas aqui! Verifique se eu sou um administrador e posso nomear novos administradores.'
+helpers_bot_cant_pro_demote: 'Não posso promover/rebaixar pessoas aqui! Verifique se eu sou um(a) administrador(a) e posso nomear novos administradores.'
 helpers_bot_cant_restrict: 'Não posso restringir as pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.'
-helpers_bot_not_admin: 'Eu não sou um administrador!'
+helpers_bot_not_admin: 'Eu não sou um(a) administrador(a)!'
 helpers_user_not_admin: 'Você deve ser o administrador do chat para executar esta ação!'
 #extraction
 helpers_user_not_in_db: |
