@@ -162,8 +162,8 @@ antispam_logger_new_gban: |
   <b>ID:</b> <code>{}</code>
   <b>Motivo:</b>{}
 antispam_no_reason: Não há motivo dado
-antispam_user_not_gbanned: 'Este usuário não está banido globalmente'
-antispam_ungbanned: Darei uma segunda chance, globalmente.
+antispam_user_not_gbanned: Este usuário não está banido globalmente
+antispam_ungbanned: Darei uma segunda chance, pronto, desbanido globalmente.
 antispam_logger_ungban: |
   <b>Ban Global Removido</b>
   <b>Admin Sudo:</b> {}
