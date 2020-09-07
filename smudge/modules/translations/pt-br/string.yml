@@ -1116,8 +1116,8 @@ fox_devices_title: "**OrangeFox Recovery está atualmente disponível para:**"
 fox_get_release: Você pode obter a ultima versão lançada do orangefox com `/orangefox (codinome)`
 fox_device_not_found: Esse device não foi encontrado!
 fox_release_not_found: "Versão não encontrada!"
-fox_stable: "**🧷 Stable:**\n"
-fox_stable: "**🧷 Beta:**\n"
+fox_stable: "**🧷 Stable**\n"
+fox_beta: "**🧷 Beta**\n"
 fox_release_device: "**📱 Device:** {fullname} (`{codename}`)\n"
 fox_release_version: "**🔺 Versão:** `{}`\n"
 fox_release_maintainer: "**👨‍🔬 Mantedor:** {name}, {status}\n"
