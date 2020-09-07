@@ -109,6 +109,7 @@ android_help: |
   - /twrp <codinome>: Obtém o twrp mais recente para um dispositivo Android através do codinome.
   - /ofox: Obtém a lista de dispositivos oficialmente suportados pelo Orange Fox Recovery Project.
   - /ofox <codinome>: Obtém o link de download e as informações básicas do OFRP para o dispositivo especificado.
+  - /ofoxbeta <codinome>: Obtém o link de download e as informações básicas do OFRP para o dispositivo especificado.
   - /codename <fabricante> <dispositivo>: Pesquise o codinome do dispositivo Android.
   - /device <codinome>: Obtenha informações sobre um dispositivo Android.
 
@@ -1116,8 +1117,8 @@ fox_devices_title: "**OrangeFox Recovery está atualmente disponível para:**"
 fox_get_release: Você pode obter a ultima versão lançada do orangefox com `/orangefox (codinome)`
 fox_device_not_found: Esse device não foi encontrado!
 fox_release_not_found: "Versão não encontrada!"
-fox_stable: "**🧷 Stable**\n"
-fox_beta: "**🧷 Beta**\n"
+fox_stable: "**🧷Tipo da build:** Estavel\n"
+fox_beta: "**🧷Tipo da build:** Beta\n"
 fox_release_device: "**📱 Device:** {fullname} (`{codename}`)\n"
 fox_release_version: "**🔺 Versão:** `{}`\n"
 fox_release_maintainer: "**👨‍🔬 Mantedor:** {name}, {status}\n"
