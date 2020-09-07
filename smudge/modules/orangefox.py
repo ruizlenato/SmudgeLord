@@ -50,6 +50,7 @@ async def orangefox(event):
         fullname=device['fullname'],
         codename=device['codename']
     )
+    reply_text += tld(chat_id, "fox_stable")
     reply_text += tld(chat_id, "fox_release_version").format(release['version'])
     reply_text += tld(chat_id, "fox_release_date").format(release['date'])
     reply_text += tld(chat_id, "fox_release_md5").format(release['md5'])
@@ -107,7 +108,7 @@ async def orangefox(event):
         fullname=device['fullname'],
         codename=device['codename']
     )
-    reply_text += "🧷 Beta"
+    reply_text += tld(chat_id, "fox_beta")
     reply_text += tld(chat_id, "fox_release_version").format(release['version'])
     reply_text += tld(chat_id, "fox_release_date").format(release['date'])
     reply_text += tld(chat_id, "fox_release_md5").format(release['md5'])
