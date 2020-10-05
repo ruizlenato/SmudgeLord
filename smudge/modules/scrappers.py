@@ -9,7 +9,7 @@ from smudge.modules.translations.strings import tld
 
 LOGGER.info("YTDownloader: By @Nick80835 (modified by @Renatoh on Telegram)")
 
-@register(pattern=r"^/yt(?: |)([\S]*)(?: |)([\s\S]*)")
+@register(pattern=r"^/video(?: |)([\S]*)(?: |)([\s\S]*)")
 async def youtube_cmd(event):
     youtube_link = event.pattern_match.group(1)
     video = pafy.new(youtube_link)
@@ -20,7 +20,7 @@ async def youtube_cmd(event):
         await event.reply(f"`Download failed: `[URL]({video_stream.url})")
 
 
-@register(pattern=r"^/yta(?: |)([\S]*)(?: |)([\s\S]*)")
+@register(pattern=r"^/audio(?: |)([\S]*)(?: |)([\s\S]*)")
 async def youtube_audio_cmd(event):
     youtube_link = event.pattern_match.group(1)
     video = pafy.new(youtube_link)
