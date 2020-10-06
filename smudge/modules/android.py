@@ -264,7 +264,7 @@ async def magisk(event):
         data = json.loads(fetch.content)
         if variants == "master/stable":
             name = "**Stable**"
-            cc = 1
+            cc = 0
             branch = "master"
         elif variants == "master/beta":
             name = "**Beta**"
