@@ -16,7 +16,12 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
     msg = update.effective_message  # type: Optional[Message]
     lan = " ".join(args)
     try:
-        to_translate_text = msg.reply_to_message.text
+        if msg.reply_to_message:
+            args = update.effective_message.text.split(None, 1)
+        if msg.reply_to_message.text:
+                to_translate_text = msg.reply_to_message.text
+        elif msg.reply_to_message.caption:
+                to_translate_text = msg.reply_to_message.caption
     except:
         return
     translator = Translator()
