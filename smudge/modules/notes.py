@@ -57,10 +57,6 @@ def get(bot, update, notename, show_none=True, no_format=False):
 
     if note:
         pass
-    elif notename[0] == "#":
-        hashnote = sql.get_note(chat_id, notename[1:])
-        if hashnote:
-            note = hashnote
     elif show_none:
         message.reply_text(tld(chat.id, "note_not_existed"))
         return
@@ -274,7 +270,7 @@ def list_notes(bot: Bot, update: Update):
     note_list = sql.get_all_chat_notes(chat_id)
 
     for note in note_list:
-        note_name = " • `#{}`\n".format(note.name.lower())
+        note_name = " • `{}`\n".format(note.name.lower())
         if len(msg) + len(note_name) > MAX_MESSAGE_LENGTH:
             update.effective_message.reply_text(msg,
                                                 parse_mode=ParseMode.MARKDOWN)
