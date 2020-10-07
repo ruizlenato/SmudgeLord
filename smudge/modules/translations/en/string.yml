@@ -870,8 +870,7 @@ url_blacklist_no_existed: "There are no blacklisted domains here!"
 
 #Greetings
 modname_welcome: Greetings
-welcome_added_to_grp: "Thanks for adding me into your group! don't forget to check how not languages\n
-use /setlang to see the available languages"
+welcome_added_to_grp: "Thanks for adding me into your group!.\n Don't forget to change the bot language\n\nSupported languages:\nPortuguês 🇧🇷🇵🇹🇦🇴 - pt\nEnglish 🇺🇸🏴󠁧󠁢󠁥󠁮󠁧󠁿🇬🇧 - en\nTo change the language type /setlang (en or pt)"
 welcome_mute_btn_unmuted: Unmuted! You may now type!
 welcome_mute_btn_old_user: You're not a new user!
 welcome_bot_owner_left: Well, My master has left, The party is over!
