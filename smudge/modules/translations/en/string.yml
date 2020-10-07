@@ -152,12 +152,14 @@ antispam_logger_update_gban: |
     <b>ID:</b> <code>{}</code>
     <b>Previous Reason:</b> {}
     <b>New Reason:</b> {}
+    <b>LOGs:</b>@SmudgeGBANs
 antispam_reason_updated: "This user has already been gbanned. I have updated the reason.\nPrevious reason: <code>{}</code>\nNew reason: <code>{}</code>"
 antispam_new_gban: |
     <b>Initializing Global Ban</b>
     <b>User:</b> {}
     <b>ID:</b> <code>{}</code>
     <b>Reason:</b> {}
+    <b>LOGs:</b>@SmudgeGBANs
 antispam_logger_new_gban: |
     <b>Global Ban</b>
     <b>Sudo Admin:</b> {}

@@ -156,12 +156,14 @@ antispam_new_gban: |
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
   <b>Motivo:</b>{}
+  <b>LOGs:</b>@SmudgeGBANs
 antispam_logger_new_gban: |
   <b>Ban Global</b>
   <b>Admin sudo:</b> {}
   <b>Usuario:</b> {}
   <b>ID:</b> <code>{}</code>
   <b>Motivo:</b>{}
+  <b>LOGs:</b>@SmudgeGBANs
 antispam_no_reason: Não há motivo dado
 antispam_user_not_gbanned: Este usuário não está banido globalmente
 antispam_ungbanned: Darei uma segunda chance, pronto, desbanido globalmente.
