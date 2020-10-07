@@ -1080,6 +1080,17 @@ warns_help: |
     - /rmwarn <userhandle>: removes latest warn for a user. It also can be used as reply.
     - /unwarn <userhandle>: same as /rmwarn
 
+#WhoIS  
+whois_userinfo: "<b>USER INFO:</b>\n\n"
+whois_first: "First Name: {}\n"
+whois_last: "Last Name: {}\n"
+whois_username: "Username: {}\n"
+whois_pics: "Number of Profile Pics: {}\n"
+whois_id: "ID: <code>{}</code>\n"
+whois_bio: "Bio: \n<code>{}</code>\n"
+whois_chats: "Common Chats with this user: {}\n"
+whois_linkchat: "Permanent Link To Profile: "
+
 #LastFM
 modname_last_fm: LastFM
 setuser_lastfm_error: That's not how this works...\nRun /setuser followed by your username!

@@ -1074,6 +1074,16 @@ warns_help: |
     - /strongwarn <on/yes/off/no>: Se ativado, exceder o limite de advertencias resultará em um banimento. Senão, apenas kick.
     - /rmwarn <username>: remove a advertencia mais recente para um usuário. Também pode ser usado como resposta.
     - /unwarn <username>: o mesmo que /rmwarn
+#WhoIS  
+whois_userinfo: "<b>INFORMAÇÃO DO USUÁRIO:</b>\n\n"
+whois_first: "Primeiro nome: {}\n"
+whois_last: "Último nome: {}\n"
+whois_username: "Username: {}\n"
+whois_pics: "Número de fotos do perfil: {}\n"
+whois_id: "ID: <code>{}</code>\n"
+whois_bio: "Bio: <i>\n<code>{}</code>\n</i>"
+whois_chats: "Grupos em comuns com este usuário: {}\n"
+whois_linkchat: "Link permanente para o perfil: "
 
 #LastFM
 modname_last_fm: LastFM
