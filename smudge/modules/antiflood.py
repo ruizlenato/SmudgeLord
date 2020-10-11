@@ -11,9 +11,9 @@ from smudge.modules.helper_funcs.chat_status import is_user_admin, user_admin, c
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import antiflood_sql as sql
 
-from smudge.modules.translations.strings import tld
+from smudge.modules.translations.strings import tld	
 
-FLOOD_GROUP = 7
+FLOOD_GROUP = 5
 
 
 @run_async
