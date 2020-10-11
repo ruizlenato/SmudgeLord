@@ -1,7 +1,7 @@
 import html
-from typing import Optional, List
+from typing import List
 
-from telegram import Message, Chat, Update, Bot, User
+from telegram import Update, Bot
 from telegram.error import BadRequest
 from telegram.ext import Filters, MessageHandler, CommandHandler, run_async
 from telegram.utils.helpers import mention_html
@@ -19,9 +19,9 @@ FLOOD_GROUP = 10
 @run_async
 @loggable
 def check_flood(bot: Bot, update: Update) -> str:
-    user = update.effective_user  # type: Optional[User]
-    chat = update.effective_chat  # type: Optional[Chat]
-    msg = update.effective_message  # type: Optional[Message]
+    user = update.effective_user
+    chat = update.effective_chat
+    msg = update.effective_message
 
     if not user:  # ignore channels
         return ""
@@ -53,9 +53,9 @@ def check_flood(bot: Bot, update: Update) -> str:
 @can_restrict
 @loggable
 def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
+    chat = update.effective_chat
+    user = update.effective_user
+    message = update.effective_message
 
     if len(args) >= 1:
         val = args[0].lower()
@@ -91,7 +91,7 @@ def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
 
 @run_async
 def flood(bot: Bot, update: Update):
-    chat = update.effective_chat  # type: Optional[Chat]
+    chat = update.effective_chat
 
     limit = sql.get_flood_limit(chat.id)
     if limit == 0:
