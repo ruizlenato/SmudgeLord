@@ -241,119 +241,6 @@ def repo(bot: Bot, update: Update, args: List[str]):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
-
-@run_async
-def paste(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat  # type: Optional[Chat]
-    BASE_URL = 'https://del.dog'
-    message = update.effective_message
-    if message.reply_to_message:
-        data = message.reply_to_message.text
-    elif len(args) >= 1:
-        data = message.text.split(None, 1)[1]
-    else:
-        message.reply_text(tld(chat.id, "misc_paste_invalid"))
-        return
-
-    r = requests.post(f'{BASE_URL}/documents', data=data.encode('utf-8'))
-
-    if r.status_code == 404:
-        update.effective_message.reply_text(tld(chat.id, "misc_paste_404"))
-        r.raise_for_status()
-
-    res = r.json()
-
-    if r.status_code != 200:
-        update.effective_message.reply_text(res['message'])
-        r.raise_for_status()
-
-    key = res['key']
-    if res['isUrl']:
-        reply = tld(chat.id, "misc_paste_success").format(BASE_URL, key, BASE_URL, key)
-    else:
-        reply = f'{BASE_URL}/{key}'
-    update.effective_message.reply_text(reply,
-                                        parse_mode=ParseMode.MARKDOWN,
-                                        disable_web_page_preview=True)
-
-
-@run_async
-def get_paste_content(bot: Bot, update: Update, args: List[str]):
-    BASE_URL = 'https://del.dog'
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    if len(args) >= 1:
-        key = args[0]
-    else:
-        message.reply_text(tld(chat.id, "misc_get_paste_invalid"))
-        return
-
-    format_normal = f'{BASE_URL}/'
-    format_view = f'{BASE_URL}/v/'
-
-    if key.startswith(format_view):
-        key = key[len(format_view):]
-    elif key.startswith(format_normal):
-        key = key[len(format_normal):]
-
-    r = requests.get(f'{BASE_URL}/raw/{key}')
-
-    if r.status_code != 200:
-        try:
-            res = r.json()
-            update.effective_message.reply_text(res['message'])
-        except Exception:
-            if r.status_code == 404:
-                update.effective_message.reply_text(tld(chat.id, "misc_paste_404"))
-            else:
-                update.effective_message.reply_text(tld(chat.id, "misc_get_pasted_unknown"))
-        r.raise_for_status()
-
-    update.effective_message.reply_text('```' + escape_markdown(r.text) +
-                                        '```',
-                                        parse_mode=ParseMode.MARKDOWN)
-
-
-@run_async
-def get_paste_stats(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    chat = update.effective_chat  # type: Optional[Chat]
-
-    if len(args) >= 1:
-        key = args[0]
-    else:
-        message.reply_text(tld(chat.id, "misc_get_paste_invalid"))
-        return
-
-    format_normal = f'{BASE_URL}/'
-    format_view = f'{BASE_URL}/v/'
-
-    if key.startswith(format_view):
-        key = key[len(format_view):]
-    elif key.startswith(format_normal):
-        key = key[len(format_normal):]
-
-    r = requests.get(f'{BASE_URL}/documents/{key}')
-
-    if r.status_code != 200:
-        try:
-            res = r.json()
-            update.effective_message.reply_text(res['message'])
-        except Exception:
-            if r.status_code == 404:
-                update.effective_message.reply_text(tld(chat.id, "misc_paste_404"))
-            else:
-                update.effective_message.reply_text(tld(chat.id, "misc_get_pasted_unknown"))
-        r.raise_for_status()
-
-    document = r.json()['document']
-    key = document['_id']
-    views = document['viewCount']
-    reply = f'Stats for **[/{key}]({BASE_URL}/{key})**:\nViews: `{views}`'
-    update.effective_message.reply_text(reply, parse_mode=ParseMode.MARKDOWN)
-
-
 @run_async
 def ud(bot: Bot, update: Update):
     message = update.effective_message
@@ -502,13 +389,6 @@ MD_HELP_HANDLER = CommandHandler("markdownhelp",
 
 STATS_HANDLER = CommandHandler("stats", stats, filters=Filters.user(OWNER_ID))
 GDPR_HANDLER = CommandHandler("gdpr", gdpr, filters=Filters.private)
-PASTE_HANDLER = DisableAbleCommandHandler("paste", paste, pass_args=True)
-GET_PASTE_HANDLER = DisableAbleCommandHandler("getpaste",
-                                              get_paste_content,
-                                              pass_args=True)
-PASTE_STATS_HANDLER = DisableAbleCommandHandler("pastestats",
-                                                get_paste_stats,
-                                                pass_args=True)
 UD_HANDLER = DisableAbleCommandHandler("ud", ud)
 WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki)
 WIKIEN_HANDLER = DisableAbleCommandHandler("wikien", wikien)
@@ -518,9 +398,6 @@ COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True)
 
 
 dispatcher.add_handler(UD_HANDLER)
-dispatcher.add_handler(PASTE_HANDLER)
-dispatcher.add_handler(GET_PASTE_HANDLER)
-dispatcher.add_handler(PASTE_STATS_HANDLER)
 dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(IP_HANDLER)
 dispatcher.add_handler(INFO_HANDLER)

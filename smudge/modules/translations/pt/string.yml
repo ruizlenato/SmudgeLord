@@ -625,7 +625,6 @@ memes_help: |
     - /owo: Deixa o texto em formato de loli(*^*)
     - /stretch: estica o texto
     - /vapor: v a p o r w a v e
-    - /shout: Escreva o que você quiser
     - /zalgofy: responda a uma mensagem para deixar tornar-la bugada!
     - /runs: responda uma sequência aleatória de minhas strings.
     - /insults: inslta alguem com um insulto aleatório de minhas strings
@@ -661,13 +660,13 @@ misc_md_list: |
     - <code>`code`</code>: quebra automática de texto com '`' produzirá texto monoespaçado, também conhecido como 'código'
     - <code>[algumtexto](algumaURL)</code>: isso criará um link - a mensagem exibirá apenas <code>algumtexto</code>, \
     e tocá-lo abrirá a página em <code>algumaURL</code>.
-    EX: <code>[test](exemplo. om)</code>
+    EX: <code>[test](exemplo.com)</code>
     - <code>[buttontext](buttonurl:someURL)</code>: este é um aprimoramento especial para permitir que os usuários tenham botões \
     do Telegram no seu Markdown. <code>botão</code> será o que será mostrado no botão, e <code>someurl</code> \
     será o URL que o botão vai abrir.
     EX: <code>[Este é um botão](buttonurl:exemplo. om)</code>
     Se você quiser vários botões na mesma linha, use :same, como por exemplo:
-    <code>[one](buttonurl://exemplo. om)
+    <code>[one](buttonurl://exemplo.com)
     [two](buttonurl://google.com:same)</code>
     Isso criará dois botões em uma única linha, em vez de um botão por linha.
 misc_md_try: Tente encaminhar a seguinte mensagem para mim e você verá!
@@ -690,19 +689,22 @@ misc_covid: |
   
   Para saber informações sobre o Brasil acesse: covid19brasil.ml
 misc_help: |
-     - /reverse: Faz uma busca reversa de imagens(usando o google) basta responder uma imagem ou sticker com /reverse
+     ───────────────────────────────
+      Informações de Usuário(s)
      - /id: obtenha o ID do grupo atual. Se usado respondendo a uma mensagem, obtém a identificação do usuário.
      - /info: obtenha informações sobre um usuário.
      - /gdpr: exclui suas informações do banco de dados do bot. Apenas bate-papos particulares.
+     ───────────────────────────────
      - /markdownhelp: resumo rápido de como a remarcação funciona em telegrama - só pode ser chamado em chat particulares.
      - /git: Retorna informações sobre um usuário ou organização do GitHub.
      - /repo: Retornar a lista de repositórios de usuários ou organizações do GitHub (Limitado em 40)
-     - /paste: Crie uma pasta ou um URL abreviado usando [dogbin](https://del.dog)
-     - /getpaste: Obtenha o conteúdo de uma pasta ou URL abreviado de [dogbin](https://del.dog)
-     - /pastestats: Obter estatísticas de uma pasta ou URL abreviado de [dogbin](https://del.dog)
+     - /reverse: Faz uma busca reversa de imagens(usando o google) basta responder uma imagem ou sticker com /reverse
      - /ud: Digite a palavra ou expressão que deseja pesquisar. Por exemplo /ud Gay
      - /removebotkeyboard: Tem um teclado bot desagradável preso no seu grupo?
-     - /wiki <keywords>: Obtenha artigos da Wikipedia apenas usando este bot! </wikipt para artigos em portugues>
+     - /wiki<pt ou en> <palavra> Obtenha artigos da Wikipedia!
+     exemplo:
+     /wikipt Renato Russo
+     *Mostrará o resultado em inglês sobre Renato Russo,Se você quiser pesquisar em inglês use /wikien em vez de /wikipt*
 
 
 # Purge

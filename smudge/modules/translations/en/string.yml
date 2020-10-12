@@ -458,7 +458,6 @@ log_channel_help: |
 modname_memes: Memes and etc.
 memes_no_message: I need a message to meme.
 memes_deepfry_nothing: What am I supposed to do with this?!
-memes_shout_notext: Where is text?
 memes_not_doing_that: I'm not doing that!
 memes_runs_list:
     - "Where do you think you're going?"
@@ -632,11 +631,7 @@ memes_help: |
     - /owo: OWO de text
     - /stretch: STRETCH de text
     - /vapor: owo vapor dis
-    - /hitler: Quote a message and type this command to make a caption of hitler
-    - /mock: Does the same as /hitler but spongemock instead
-    - /kim: Does the same as /hitler but with Kim Jong Un instead (O no plox dont bomb my house)
     - /pidor: 4pda memes
-    - /shout: Write anything that u want it to should
     - /zalgofy: reply to a message to gitch it out!
     - /runs: reply a random string from an array of replies.
     - /insults: reply a random string from an array of replies.
@@ -683,11 +678,6 @@ misc_md_list: |
     This will create two buttons on a single line, instead of one button per line.
 misc_md_try: Try forwarding the following message to me, and you'll see!
 misc_md_help: "/save test This is a markdown test. _italics_, *bold*, `code`, [URL](example.com) [button](buttonurl:github.com) [button2](buttonurl://google.com:same)"
-misc_paste_invalid: What am I supposed to do with this?!
-misc_paste_404: Failed to reach dogbin
-misc_paste_success: "Shortened URL: {}/{}\nYou can view stats, etc. [here]({}/v/{})"
-misc_get_pasted_invalid: Please supply a dogbin url!
-misc_get_pasted_unknown: Unknown error occured
 misc_covid_error: An error have occured!, Are you sure the country name is correct?
 misc_covid_total_tests: "*Total Tests*: {}"
 misc_covid: |
@@ -699,19 +689,22 @@ misc_covid: |
   *Recovered*: {}
   *Total tests*: {}
 misc_help: |
-     - /reverse: Does a reverse image search of the media which it was replied to.
+     ───────────────────────────────
+      User(s) Information
      - /id: get the current group id. If used by replying to a message, gets that user's id.
      - /info: get information about a user.
      - /gdpr: deletes your information from the bot's database. Private chats only.
+     ───────────────────────────────
      - /markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.
      - /git: Returns info about a GitHub user or organization.
      - /repo: Return the GitHub user or organization repository list (Limited at 40)
-     - /paste: Create a paste or a shortened url using [dogbin](https://del.dog)
-     - /getpaste: Get the content of a paste or shortened url from [dogbin](https://del.dog)
-     - /pastestats: Get stats of a paste or shortened url from [dogbin](https://del.dog)
      - /ud: Type the word or expression you want to search. For example /ud Gay
+     - /reverse: Does a reverse image search of the media which it was replied to.
      - /removebotkeyboard: Got a nasty bot keyboard stuck in your group?
-     - /wiki <keywords>: Get wikipedia articles just using this bot!
+     - /wiki<pt or en> <word> Get wikipedia articles just using this bot!
+     exemple
+     /wikien Nirvana
+     *Will show the result in English about nirvana, If you want to search in Portuguese use /wikipt instead of /wikien*
 
 
 # Purge
