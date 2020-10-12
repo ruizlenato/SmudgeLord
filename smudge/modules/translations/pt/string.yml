@@ -149,20 +149,20 @@ antispam_logger_update_gban: |
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
   <b>Motivo anterior:</b> {}
-  <b>Novo motivo:</b>{}
+  <b>Novo motivo:</b> {}
 antispam_reason_updated: "Este usuário já foi banido. Atualizei o motivo.\nMotivo anterior: <code> {} </code>\nNovo motivo: <code> {} </code>"
 antispam_new_gban: |
   <b>Banido Globalmente</b>
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b>{}
+  <b>Motivo:</b> {}
   <b>LOGs:</b>@SmudgeGBANs
 antispam_logger_new_gban: |
   <b>Ban Global</b>
   <b>Admin sudo:</b> {}
   <b>Usuario:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b>{}
+  <b>Motivo:</b> {}
   <b>LOGs:</b>@SmudgeGBANs
 antispam_no_reason: Não há motivo dado
 antispam_user_not_gbanned: Este usuário não está banido globalmente
@@ -172,7 +172,7 @@ antispam_logger_ungban: |
   <b>Admin Sudo:</b> {}
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b>{}
+  <b>Motivo:</b> {}
 antispam_err_ungban: "Não foi possível desbanir globalmente devido a: {} "
 antispam_checkban_user_removed: "*Este usuário foi banido globalmente e foi removido.*\nMotivo: `{}`"
 antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers, personagens desagradáveis ​​e os maiores trolls.
@@ -690,11 +690,12 @@ misc_covid: |
   Para saber informações sobre o Brasil acesse: covid19brasil.ml
 misc_help: |
      ───────────────────────────────
-      Informações de Usuário(s)
+      *Informações de Usuário(s)*
      - /id: obtenha o ID do grupo atual. Se usado respondendo a uma mensagem, obtém a identificação do usuário.
      - /info: obtenha informações sobre um usuário.
      - /gdpr: exclui suas informações do banco de dados do bot. Apenas bate-papos particulares.
      ───────────────────────────────
+
      - /markdownhelp: resumo rápido de como a remarcação funciona em telegrama - só pode ser chamado em chat particulares.
      - /git: Retorna informações sobre um usuário ou organização do GitHub.
      - /repo: Retornar a lista de repositórios de usuários ou organizações do GitHub (Limitado em 40)

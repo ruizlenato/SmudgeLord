@@ -158,14 +158,14 @@ antispam_new_gban: |
     <b>Initializing Global Ban</b>
     <b>User:</b> {}
     <b>ID:</b> <code>{}</code>
-    <b>Reason:</b> {}
+    <b>Reason: </b> {}
     <b>LOGs:</b>@SmudgeGBANs
 antispam_logger_new_gban: |
     <b>Global Ban</b>
     <b>Sudo Admin:</b> {}
     <b>User:</b> {} 
     <b>ID:</b> <code>{}</code>
-    <b>Reason:</b> {}
+    <b>Reason: </b> {}
 antispam_no_reason: No reason given
 antispam_user_not_gbanned: This user is not gbanned!
 antispam_ungbanned: I'll give {} a second chance, globally.
@@ -174,7 +174,7 @@ antispam_logger_ungban: |
     <b>Sudo Admin:</b> {}
     <b>User:</b> {}
     <b>ID:</b> <code>{}</code>
-    <b>Reason:</b> {}
+    <b>Reason: </b> {}
 antispam_err_ungban: "Could not ungban due to: {}"
 antispam_checkban_user_removed: "*This user is gbanned and has been removed.*\nReason: `{}`"
 antispam_on: I've enabled antispam security in this group. This will help to protect you from spammers, unsavoury characters, and the biggest trolls.
@@ -690,11 +690,12 @@ misc_covid: |
   *Total tests*: {}
 misc_help: |
      ───────────────────────────────
-      User(s) Information
+      *User(s) Information*
      - /id: get the current group id. If used by replying to a message, gets that user's id.
      - /info: get information about a user.
      - /gdpr: deletes your information from the bot's database. Private chats only.
      ───────────────────────────────
+
      - /markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.
      - /git: Returns info about a GitHub user or organization.
      - /repo: Return the GitHub user or organization repository list (Limited at 40)
