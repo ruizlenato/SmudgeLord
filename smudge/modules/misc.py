@@ -101,7 +101,7 @@ def info(bot: Bot, update: Update, args: List[str]):
         else:
             pass
     except:
-        pass 
+        pass
 
     if user.id == OWNER_ID:
         text += tld(chat.id, "misc_info_is_owner")
