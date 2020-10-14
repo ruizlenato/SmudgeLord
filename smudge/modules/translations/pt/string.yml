@@ -634,7 +634,7 @@ memes_help: |
 # Misc
 modname_misc: Outros
 misc_gdpr: Excluindo dados identificáveis ​​...
-misc_info_extract_error: "Não consigo achar este usuário."
+misc_info_extract_error: "Não consigo encontrar este(a) usuário(a)."
 misc_get_id_1: O rementente original {}, possui o ID `{}`.\n{}, que encaminhou a mensagem, tem o ID `{}`.
 misc_get_id_2: "{}'s id is `{}`."
 misc_id_1: Seu id é `{}`.
