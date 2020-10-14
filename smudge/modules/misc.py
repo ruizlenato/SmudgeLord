@@ -70,7 +70,7 @@ def info(bot: Bot, update: Update, args: List[str]):
         (len(args) >= 1 and not args[0].startswith("@")
          and not args[0].isdigit()
          and not msg.parse_entities([MessageEntity.TEXT_MENTION]))):
-        msg.reply_text(tld(chat.id, "I can't extract a user from this."))
+        msg.reply_text(tld(chat.id, "misc_info_extract_error"))
         return
 
     else:
@@ -78,15 +78,19 @@ def info(bot: Bot, update: Update, args: List[str]):
 
     text = tld(chat.id, "misc_info_1")
     text += tld(chat.id, "misc_info_id").format(user.id)
-    text += tld(chat.id, "misc_info_first").format(html.escape(user.first_name))
+    text += tld(chat.id,
+                "misc_info_first").format(html.escape(user.first_name))
 
     if user.last_name:
-        text += tld(chat.id, "misc_info_name").format(html.escape(user.last_name))
+        text += tld(chat.id,
+                    "misc_info_name").format(html.escape(user.last_name))
 
     if user.username:
-        text += tld(chat.id, "misc_info_username").format(html.escape(user.username))
+        text += tld(chat.id,
+                    "misc_info_username").format(html.escape(user.username))
 
-    text += tld(chat.id, "misc_info_user_link").format(mention_html(user.id, "link"))
+    text += tld(chat.id,
+                "misc_info_user_link").format(mention_html(user.id, "link"))
 
     try:
         spamwatch = sw.get_ban(int(user.id))
@@ -97,8 +101,8 @@ def info(bot: Bot, update: Update, args: List[str]):
         else:
             pass
     except:
-        pass # avoids crash if api is down
-        
+        pass 
+
     if user.id == OWNER_ID:
         text += tld(chat.id, "misc_info_is_owner")
     else:

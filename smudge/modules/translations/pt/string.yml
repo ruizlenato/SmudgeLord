@@ -328,9 +328,9 @@ cust_filters_err_empty: Você não especificou com o que responder!
 cust_filters_add_success: Filtro '{}' adicionado em *{}*!
 cust_filters_list_empty: Não há filtros ativos em {}!
 cust_filters_stop_success: Sim, vou parar de responder a isso em *{}*.
-cust_filters_err_wrong_filter: That's not an active filter - run /filters for all active filters.
-cust_filters_err_protocol: You seem to be trying to use an unsupported url protocol. Telegram doesn't support buttons for some protocols, such as tg://. Please try again, or ask in @Renatoh for help.
-cust_filters_err_badformat: This filter could not be sent, as it is incorrectly formatted. Ask in @Renatoh if you can't figure out why!
+cust_filters_err_wrong_filter: Esse não é um filtro ativo - use o comando /filtros para todos os filtros ativos.
+cust_filters_err_protocol: Parece que você está tentando usar um protocolo de URL incompatível. O Telegram não oferece suporte a botões para alguns protocolos, como tg://. Tente novamente ou peça ajuda em @Renatoh.
+cust_filters_err_badformat: Este filtro não pôde ser enviado porque está formatado incorretamente. Pergunte ao @Renatoh se você não consegue descobrir o porquê!
 cust_filters_chatsettings_stats: There are `{}` custom filters here.
 cust_filters_help: |
     Torne o seu bate-papo mais animado com filtros; O bot responderá a certas palavras!
@@ -633,6 +633,8 @@ memes_help: |
 
 # Misc
 modname_misc: Outros
+misc_gdpr: Excluindo dados identificáveis ​​...
+misc_info_extract_error: "Não consigo achar este usuário."
 misc_get_id_1: O rementente original {}, possui o ID `{}`.\n{}, que encaminhou a mensagem, tem o ID `{}`.
 misc_get_id_2: "{}'s id is `{}`."
 misc_id_1: Seu id é `{}`.
@@ -648,7 +650,6 @@ misc_info_is_original_owner: "\nThis person is my original creator, though he ab
 misc_info_is_sudo: "\nEssa pessoa é um dos meus usuários do sudo! Ele o ajudará se você precisar de suporte sobre bot."
 misc_info_is_support: "\nEssa pessoa é um dos meus usuários de suporte! Ele pode banir aqueles spammers."
 misc_info_is_whitelisted: "\nEssa pessoa é um usuário da lista de permissões, raramente é possível obter esse papel, você não pode bani-lo ou chutá-lo."
-misc_gdpr: Excluindo dados identificáveis ​​...
 misc_info_swban1: "\n\n<b>Essa pessoa foi banida na SpamWatch!</b>"
 misc_info_swban2: "\nMotivo: <pre>{}</pre>"
 misc_info_swban3: "\nPeça ajuda em @SpamWatchSupport"
@@ -687,7 +688,6 @@ misc_covid: |
   *Recuperados*: {}
   *Testes Totais*: {}
   
-  Para saber informações sobre o Brasil acesse: covid19brasil.ml
 misc_help: |
      ───────────────────────────────
       *Informações de Usuário(s)*
