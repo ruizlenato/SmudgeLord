@@ -250,6 +250,7 @@ async def twrp(event):
 
 
 @register(pattern=r"^/magisk$")
+@register(pattern=r"^/magisk@SmudgeLordBOT$")
 async def magisk(event):
     if event.from_id is None:
         return
@@ -294,6 +295,7 @@ async def magisk(event):
 
 @register(pattern=r"^/device(?: |$)(\S*)")
 async def device_info(event):
+    chat_id = event.chat_id
     textx = await event.get_reply_message()
     codename = event.pattern_match.group(1)
     if codename:
@@ -308,11 +310,9 @@ async def device_info(event):
             "certified-android-devices/master/by_device.json").text)
     results = data.get(codename)
     if results:
-        reply = f"**Search results for {codename}**:\n\n"
+        reply = tld(chat_id, "results_device").format(codename)
         for item in results:
-            reply += f"**Brand**: {item['brand']}\n" \
-                     f"**Name**: {item['name']}\n" \
-                     f"**Model**: {item['model']}\n\n"
+            reply += tld(chat_id, "results_device3").format(item['brand'], item['name'], item['model'])
     else:
         reply = f"Couldn't find info about `{codename}!`\n"
     await event.reply(reply)
@@ -320,6 +320,7 @@ async def device_info(event):
 
 @register(pattern=r"^/codename(?: |)([\S]*)(?: |)([\s\S]*)")
 async def codename_info(event):
+    chat_id = event.chat_id
     textx = await event.get_reply_message()
     brand = event.pattern_match.group(1).lower()
     device = event.pattern_match.group(2).lower()
@@ -345,13 +346,12 @@ async def codename_info(event):
         or i["model"].lower() == device.lower()
     ]
     if results:
-        reply = f"**Search results for {brand} {device}**:\n\n"
+        reply = tld(chat_id, "results_device2").format(brand, device)
         if len(results) > 8:
             results = results[:8]
         for item in results:
-            reply += f"**Device**: {item['device']}\n" \
-                     f"**Name**: {item['name']}\n" \
-                     f"**Model**: {item['model']}\n\n"
+            reply += tld(chat_id, "results_device4").format(item['device'], item['name'], item['model'])
+
     else:
         reply = f"Couldn't find `{device}` codename!\n"
     await event.reply(reply)
