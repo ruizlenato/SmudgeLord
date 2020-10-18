@@ -254,10 +254,12 @@ async def magisk(event):
     if event.from_id is None:
         return
 
+    chat_id = event.chat_id
+
     url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
-    releases = '**Latest Magisk Releases:**\n'
+    releases = tld(chat_id, "magisk_releases")
     variant = [
-        'master/stable', 'master/beta', 'canary/debug'
+        'master/stable', 'master/beta', 'canary/canary'
     ]
     for variants in variant:
         fetch = get(url + variants + '.json')
@@ -270,14 +272,17 @@ async def magisk(event):
             name = "**Beta**"
             cc = 0
             branch = "master"
-        elif variants == "canary/debug":
+        elif variants == "canary/canary":
             name = "**Canary**"
             cc = 1
             branch = "canary"
 
-        releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
-                    f'[APK v{data["app"]["version"]}]({data["app"]["link"]}) | '
-
+        if variants == "canary/canary":
+            releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({url}{branch}/{data["magisk"]["link"]}) | ' \
+                        f'[APK v{data["app"]["version"]}]({url}{branch}/{data["app"]["link"]}) | '
+        else:
+            releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
+                        f'[APK v{data["app"]["version"]}]({data["app"]["link"]}) | '
         if cc == 1:
             releases += f'[Uninstaller]({data["uninstaller"]["link"]}) | ' \
                         f'[Changelog]({url}{branch}/notes.md)\n'

@@ -82,6 +82,7 @@ afk_help: |
 
 #Android
 modname_android: Android
+magisk_releases: "**Latest Magisk Releases:**\n"
 download: "**Download:** [{}]({})\n"
 build_size: "**Build Size:** `{}`\n"
 build_date: "**Build Date:** `{}`\n"
