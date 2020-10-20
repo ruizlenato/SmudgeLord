@@ -17,6 +17,7 @@ deepfry_token: None
 del_cmds: False
 sw_api: ''
 LASTFM_API_KEY: 
+SCREENSHOT_API_KEY:
 
 # Database
 database_url: "postgres://username:password@host:5432/database_name"
