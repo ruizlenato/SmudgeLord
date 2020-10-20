@@ -115,7 +115,7 @@ android_help: |
   - /twrp <codename>: Gets latest twrp for the android device using the codename.
   - /ofox: Gets the list of officially supported devices by the Orange Fox Recovery Project.
   - /ofox <device>: Gets the download link and basic OFRP information to the specified device.
-  - /ofoxbeta <codinome>:The same of /ofox but the beta version
+  - /ofoxbeta <codinome>:The same of /ofox but the beta version\n
   *Misc*
   - /magisk: Get latest Magisk releases.
   - /codename <brand> <device>: Search for Android device codename.
@@ -702,7 +702,7 @@ misc_help: |
      - /info: get information about a user.
      - /gdpr: deletes your information from the bot's database. Private chats only.
      ───────────────────────────────
-
+     - /print <URL/LINK>: send a print of the site, for example "/print google.com" will send a print of google
      - /markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.
      - /git: Returns info about a GitHub user or organization.
      - /repo: Return the GitHub user or organization repository list (Limited at 40)

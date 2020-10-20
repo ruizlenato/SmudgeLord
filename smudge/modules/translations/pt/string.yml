@@ -113,7 +113,7 @@ android_help: |
   - /twrp <codename>: Obtém o twrp mais recente para um dispositivo Android através do codename.
   - /ofox: Obtém a lista de dispositivos oficialmente suportados pelo Orange Fox Recovery Project.
   - /ofox <codename>: Obtém o link de download e as informações básicas do OFRP para o dispositivo especificado.
-  - /ofoxbeta <codename>: O mesmo do /ofox só que a versão beta
+  - /ofoxbeta <codename>: O mesmo do /ofox só que a versão beta\n
   *Outros*
   - /magisk: Receba as últimas versões do Magisk.
   - /codename <fabricante> <dispositivo>: Pesquise o codename do dispositivo Android.
@@ -701,7 +701,7 @@ misc_help: |
      - /info: obtenha informações sobre um usuário.
      - /gdpr: exclui suas informações do banco de dados do bot. Apenas bate-papos particulares.
      ───────────────────────────────
-
+     - /print <URL/LINK>: manda um print do site, por exemplo "/print google.com" vai mandar um print do google
      - /markdownhelp: resumo rápido de como a remarcação funciona em telegrama - só pode ser chamado em chat particulares.
      - /git: Retorna informações sobre um usuário ou organização do GitHub.
      - /repo: Retornar a lista de repositórios de usuários ou organizações do GitHub (Limitado em 40)

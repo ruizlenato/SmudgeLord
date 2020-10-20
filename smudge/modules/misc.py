@@ -6,13 +6,14 @@ from typing import Optional, List
 from covid import Covid
 
 import requests
+import urllib.request
 from telegram import Message, Chat, Update, Bot, MessageEntity
 from telegram import ParseMode, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 from telegram.error import BadRequest
 
-from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, sw
+from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS, sw, SCREENSHOT_API_KEY
 from smudge.__main__ import GDPR
 from smudge.__main__ import STATS, USER_INFO
 from smudge.modules.disable import DisableAbleCommandHandler
@@ -23,6 +24,22 @@ from smudge.modules.translations.strings import tld
 from requests import get
 
 cvid = Covid(source="worldometers")
+
+@run_async
+def screenshot(bot: Bot, update: Update, args):
+    chat_id = update.effective_chat.id
+    chat = update.effective_chat
+    txt = " ".join(args)
+    filename = "screencapture.png"
+    
+    image_url = f"https://api.screenshotlayer.com/api/capture?access_key={SCREENSHOT_API_KEY}&url={txt}&fullpage=1&viewport=2560x1440&format=PNG&force=1"
+    if not SCREENSHOT_API_KEY:
+        msg.reply_text(tld(chat.id, "lastfm_usernotset"))
+        return
+     
+    else:
+        urllib.request.urlretrieve(image_url, filename)
+        bot.send_photo(chat_id=chat.id,  photo=open('screencapture.png', 'rb'), caption=txt)
 
 @run_async
 def get_bot_ip(bot: Bot, update: Update):
@@ -398,9 +415,9 @@ WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki)
 WIKIEN_HANDLER = DisableAbleCommandHandler("wikien", wikien)
 WIKIPT_HANDLER = DisableAbleCommandHandler("wikipt", wikipt)
 COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True)
+SCREENSHOT_HANDLER = DisableAbleCommandHandler(["screenshot", "print", "ss", "screencapture"], screenshot, pass_args=True)
 
-
-
+dispatcher.add_handler(SCREENSHOT_HANDLER)
 dispatcher.add_handler(UD_HANDLER)
 dispatcher.add_handler(ID_HANDLER)
 dispatcher.add_handler(IP_HANDLER)
