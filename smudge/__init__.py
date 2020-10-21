@@ -109,6 +109,7 @@ updater = tg.Updater(TOKEN, workers=WORKERS)
 dispatcher = updater.dispatcher
 
 tbot = TelegramClient("smudge", API_KEY, API_HASH)
+trl = Translator()
 
 
 SUDO_USERS = list(SUDO_USERS)
