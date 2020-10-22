@@ -39,7 +39,7 @@ def screenshot(bot: Bot, update: Update, args):
      
     else:
         urllib.request.urlretrieve(image_url, filename)
-        bot.send_photo(chat_id=chat.id,  photo=open('screencapture.png', 'rb'), caption=txt)
+        bot.send_document(chat_id=chat.id,  document=open('screencapture.png', 'rb'), caption=txt)
 
 @run_async
 def get_bot_ip(bot: Bot, update: Update):
