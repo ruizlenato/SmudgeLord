@@ -1099,13 +1099,14 @@ clearuser_lastfm: Last.fm username successfully cleared from my database!
 setuser_lastfm: Username set as {}!
 lastfm_userwrong: Hmm... something went wrong.\nPlease ensure that you've set the correct username!
 lastfm_nonetracks: You don't seem to have scrobbled any songs...
-lastfm_scrb: <code>{} - {}</code>
+lastfm_scrb: "<code>{} - {}</code> ({}th scrobble)"
 lastfm_usernotset: You haven't set your username yet!
 lastfm_listening: "{}is currently listening to:\n\n"
-lastfm_scrb_loved: <code>{} - {}</code> (❤️)
+lastfm_scrb_loved: "<code>{} - {}</code> ❤️ \n({}th scrobble)"
 lastfm_scr: \n(<code>{}</code> scrobbles so far)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"
+lastfm_old_scrb: "{} was listening to:\n"
 lastfm_chart: "{} weekly chart\n\n"
 lastfm_collage: "Weekly Collage of the most listened albums by {}"
 last_fm_help: |

@@ -4,12 +4,10 @@ import urllib.request
 from telegram import Bot, Update, ParseMode
 from telegram.ext import run_async, CommandHandler
 
-from smudge import dispatcher, LASTFM_API_KEY
-from smudge.modules.disable import DisableAbleCommandHandler
-
 import smudge.modules.sql.last_fm_sql as sql
+from smudge import dispatcher, LASTFM_API_KEY
 from smudge.modules.translations.strings import tld
-
+from smudge.modules.disable import DisableAbleCommandHandler
 
 @run_async
 def set_user(bot: Bot, update: Update, args):
@@ -63,17 +61,20 @@ def last_fm(bot: Bot, update: Update):
         artist = first_track.get("artist").get("name")
         song = first_track.get("name")
         loved = int(first_track.get("loved"))
+        last_user = requests.get(
+            f"{base_url}?method=track.getinfo&artist={artist}&track={song}&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("track")
+        scrobbles = last_user.get("userplaycount")
         rep = tld(chat.id, "lastfm_listening").format(user)
         if not loved:
-            rep += tld(chat.id, "lastfm_scrb").format(artist, song)
+            rep += tld(chat.id, "lastfm_scrb").format(artist, song, scrobbles)
         else:
-            rep += tld(chat.id, "lastfm_scrb_loved").format(artist, song)
+            rep += tld(chat.id, "lastfm_scrb_loved").format(artist, song, scrobbles)
         if image:
             rep += f"<a href='{image}'>\u200c</a>"
     else:
         tracks = res.json().get("recenttracks").get("track")
         track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
-        rep = f"{user} was listening to:\n"
+        rep = tld(chat.id, "lastfm_old_scrb").format(user)
         for artist, song in track_dict.items():
             rep += tld(chat.id, "lastfm_scrr").format(artist, song)
         last_user = requests.get(
@@ -119,17 +120,17 @@ def top_tracks(bot: Bot, update: Update):
         
     else:
         tracks = res.json().get("toptracks").get("track")
-        track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(1)}
-        track_dict2 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(2)}
-        track_dict3 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
+        track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name").get("playcount") for i in range(1)}
+        track_dict2 = {tracks[i].get("artist").get("name"): tracks[i].get("name").get("playcount") for i in range(2)}
+        track_dict3 = {tracks[i].get("artist").get("name"): tracks[i].get("name").get("playcount") for i in range(3)}
 
         rep = tld(chat.id, "lastfm_toptrack").format(user)
         for artist, song in track_dict.items():
-            rep += f"🥇  <code>{artist} - {song}</code>\n"
+            rep += f"🥇  <code>{artist} - {song} {playcount}</code>\n"
         for artist, song in track_dict2.items():
-            rep += f"🥈  <code>{artist} - {song}</code>\n"
+            rep += f"🥈  <code>{artist} - {song} {playcount}</code>\n"
         for artist, song in track_dict3.items():
-            rep += f"🥉  <code>{artist} - {song}</code>\n"
+            rep += f"🥉  <code>{artist} - {song} {playcount}</code>\n"
         last_user = requests.get(f"{base_url}?method=user.getinfo&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("user")
         scrobbles = last_user.get("playcount")
         rep += f"\n(<code>{scrobbles}</code> scrobbles so far)"
