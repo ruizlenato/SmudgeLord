@@ -1099,10 +1099,12 @@ clearuser_lastfm: Last.fm username successfully cleared from my database!
 setuser_lastfm: Username set as {}!
 lastfm_userwrong: Hmm... something went wrong.\nPlease ensure that you've set the correct username!
 lastfm_nonetracks: You don't seem to have scrobbled any songs...
-lastfm_scrb: "<code>{} - {}</code> ({}th scrobble)"
+lastfm_scrb: "<strong>{}</strong> - {}"
+lastfm_scrb_album: "🎙 {} \n📀 {}"
 lastfm_usernotset: You haven't set your username yet!
-lastfm_listening: "{}is currently listening to:\n\n"
-lastfm_scrb_loved: "<code>{} - {}</code> ❤️ \n({}th scrobble)"
+lastfm_listening: "<strong>{}</strong> is currently listening  for the <strong>{}th time</strong> to:\n\n"
+lastfm_listening_album:  "<strong>{}</strong> is currently listening  for the <strong>{}th time</strong> to:\n\n"
+lastfm_scrb_loved: "\n<strong>{}</strong> - {} ❤️"
 lastfm_scr: \n(<code>{}</code> scrobbles so far)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"
@@ -1113,9 +1115,9 @@ last_fm_help: |
  - /setuser <username>: sets your last.fm username.
  - /clearuser: removes your last.fm username from the bot's database.
  - /lastfm: returns wh at you're scrobbling on last.fm
- - /returns: the songs you most listened to
- - /chart: shows the songs you listened to the most in a week
+ - /album: shows the album you are scrobbling on last.fm.
  - /collage: makes a collage in 3x3 of the albums that you heard the most in the week.
+ 
 #direct_links
 modname_direct_links: Lirect Links
 direct_links_help: |

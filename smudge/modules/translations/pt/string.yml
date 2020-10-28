@@ -1101,10 +1101,12 @@ clearuser_lastfm: Nome de usuário do Last.fm limpo com sucesso do meu banco de 
 setuser_lastfm: Nome de usuário definido como {}!
 lastfm_userwrong: Hmm ... algo deu errado.\nVerifique se você definiu o nome de usuário correto!
 lastfm_nonetracks: Você não parece ter scrobblado(escutado) nenhuma música...
-lastfm_scrb: "<code>{} - {}</code> \n({}° scrobble)"
+lastfm_scrb: "<strong>{}</strong> - {}"
+lastfm_scrb_album: "🎙 {} \n📀 {}"
 lastfm_usernotset: Você não colocou seu username do lastfm!
-lastfm_listening: "{} está ouvindo:\n"
-lastfm_scrb_loved: "<code>{} - {}</code> ❤️ \n({}° scrobble)"
+lastfm_listening: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</strong>:\n\n"
+lastfm_listening_album: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</strong> o álbum:\n\n"
+lastfm_scrb_loved: "\n<strong>{}</strong> - {} ❤️"
 lastfm_scr: \n(<code>{}</code> scrobbles até agora)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"
@@ -1115,8 +1117,7 @@ last_fm_help: |
  - /setuser <username>: Configure seu Username(nome de usuário)  do LastFM.
  - /clearuser: remove seu nome de usuário last.fm do banco de dados do bot.
  - /lastfm: mostra o que você está scrobbling(escutando) no last.fm.
- - /top: mostra as musicas que você mais escutou.
- - /chart: mostra as musicas que você mais escutou em uma semana.
+ - /album: mostra o album que você estás crobbling(escutando) no last.fm.
  - /collage: faz uma colagem em 4x4 dos álbuns que você mais ouviu na semana.
 
  Exemplos:

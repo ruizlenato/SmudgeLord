@@ -299,8 +299,8 @@ async def device_info(event):
     chat_id = event.chat_id
     textx = await event.get_reply_message()
     codename = event.pattern_match.group(1)
-    for f in re.findall("([A-Z]+)", codename):
-        codename = codename.replace(f, f.lower())
+    for f in re.findall("([0]+)", codename):
+        codename = codename.replace(f, 1)
     if codename:
         pass
     elif textx:

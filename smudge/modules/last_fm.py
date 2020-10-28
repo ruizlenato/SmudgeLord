@@ -1,3 +1,4 @@
+import re
 import requests
 import urllib.request
 
@@ -63,12 +64,66 @@ def last_fm(bot: Bot, update: Update):
         loved = int(first_track.get("loved"))
         last_user = requests.get(
             f"{base_url}?method=track.getinfo&artist={artist}&track={song}&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("track")
-        scrobbles = last_user.get("userplaycount")
-        rep = tld(chat.id, "lastfm_listening").format(user)
+        scrobbles = int(last_user.get("userplaycount"))+1
+        rep = tld(chat.id, "lastfm_listening").format(user, scrobbles)
         if not loved:
-            rep += tld(chat.id, "lastfm_scrb").format(artist, song, scrobbles)
+            rep += tld(chat.id, "lastfm_scrb").format(artist, song)
         else:
-            rep += tld(chat.id, "lastfm_scrb_loved").format(artist, song, scrobbles)
+            rep += tld(chat.id, "lastfm_scrb_loved").format(artist, song)
+        if image:
+            rep += f"<a href='{image}'>\u200c</a>"
+    else:
+        tracks = res.json().get("recenttracks").get("track")
+        track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
+        rep = tld(chat.id, "lastfm_old_scrb").format(user)
+        for artist, song in track_dict.items():
+            rep += tld(chat.id, "lastfm_scrr").format(artist, song)
+        last_user = requests.get(
+            f"{base_url}?method=user.getinfo&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("user")
+        scrobbles = last_user.get("playcount")
+        rep += tld(chat.id, "lastfm_scr").format(scrobbles)
+
+    msg.reply_text(rep, parse_mode=ParseMode.HTML)
+
+@run_async
+def album(bot: Bot, update: Update):
+    msg = update.effective_message
+    user = update.effective_user.first_name
+    user_id = update.effective_user.id
+    username = sql.get_user(user_id)
+    chat = update.effective_chat
+    if not username:
+        msg.reply_text(tld(chat.id, "lastfm_usernotset"))
+        return
+
+    base_url = "http://ws.audioscrobbler.com/2.0"
+    res = requests.get(
+        f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json")
+    if not res.status_code == 200:
+        msg.reply_text(tld(chat.id, "lastfm_userwrong"))
+        return
+
+    try:
+        first_track = res.json().get("recenttracks").get("track")[0]
+    except IndexError:
+        msg.reply_text(tld(chat.id, "lastfm_nonetracks"))
+        return
+    if first_track.get("@attr"):
+        # Ensures the track is now playing
+        artist = first_track.get("artist").get("name")
+        song = first_track.get("name")
+        album = first_track.get("album").get("#text")
+        loved = int(first_track.get("loved"))
+        album_info = requests.get(
+            f"{base_url}?method=album.getinfo&album={album}&artist={artist}&autocorrect=1&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("album")
+        scrobbles1 = album_info.get("userplaycount")
+        scrobbles = re.sub('0', '1', scrobbles1)
+        image = album_info.get("image")[3].get("#text")
+        rep = tld(chat.id, "lastfm_listening_album").format(user, scrobbles)
+        if not loved:
+            rep += tld(chat.id, "lastfm_scrb_album").format(artist, album)
+        else:
+            rep += tld(chat.id, "lastfm_scrb_loved").format(artist, album)
         if image:
             rep += f"<a href='{image}'>\u200c</a>"
     else:
@@ -101,78 +156,7 @@ def collage(bot: Bot, update: Update):
         bot.send_photo(chat_id=chat.id,  photo=open('test.png', 'rb'), caption= tld(chat.id, "lastfm_collage").format(user))
 
 
-@run_async
-def top_tracks(bot: Bot, update: Update):
-    msg = update.effective_message
-    user = update.effective_user.first_name
-    user_id = update.effective_user.id
-    chat = update.effective_chat
-    username = sql.get_user(user_id)
-    if not username:
-        msg.reply_text(tld(chat.id, "lastfm_usernotset"))
-        return
-    
-    base_url = "http://ws.audioscrobbler.com/2.0"
-    res = requests.get(f"{base_url}?method=user.gettoptracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json")
-    if not res.status_code == 200:
-        msg.reply_text(tld(chat.id, "lastfm_userwrong"))
-        return
-        
-    else:
-        tracks = res.json().get("toptracks").get("track")
-        track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name").get("playcount") for i in range(1)}
-        track_dict2 = {tracks[i].get("artist").get("name"): tracks[i].get("name").get("playcount") for i in range(2)}
-        track_dict3 = {tracks[i].get("artist").get("name"): tracks[i].get("name").get("playcount") for i in range(3)}
 
-        rep = tld(chat.id, "lastfm_toptrack").format(user)
-        for artist, song in track_dict.items():
-            rep += f"🥇  <code>{artist} - {song} {playcount}</code>\n"
-        for artist, song in track_dict2.items():
-            rep += f"🥈  <code>{artist} - {song} {playcount}</code>\n"
-        for artist, song in track_dict3.items():
-            rep += f"🥉  <code>{artist} - {song} {playcount}</code>\n"
-        last_user = requests.get(f"{base_url}?method=user.getinfo&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("user")
-        scrobbles = last_user.get("playcount")
-        rep += f"\n(<code>{scrobbles}</code> scrobbles so far)"
-        
-    msg.reply_text(rep, parse_mode=ParseMode.HTML)
-
-@run_async
-def chart(bot: Bot, update: Update):
-    msg = update.effective_message
-    user = update.effective_user.first_name
-    user_id = update.effective_user.id
-    chat = update.effective_chat
-    username = sql.get_user(user_id)
-    if not username:
-        msg.reply_text(tld(chat.id, "lastfm_usernotset"))
-        return
-    
-    base_url = "http://ws.audioscrobbler.com/2.0"
-    res = requests.get(f"{base_url}?method=user.getweeklytrackchart&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json")
-    if not res.status_code == 200:
-        msg.reply_text(tld(chat.id, "lastfm_userwrong"))
-        return
-        
-    else:
-        tracks = res.json().get("weeklytrackchart").get("track")
-        track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(1)}
-        track_dict2 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(2)}
-        track_dict3 = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
-
-        rep = tld(chat.id, "lastfm_chart").format(user)
-        for artist, song in track_dict.items():
-            rep += f"🥇  <code>{artist} - {song}</code>\n"
-        for artist, song in track_dict2.items():
-            rep += f"🥈  <code>{artist} - {song}</code>\n"
-        for artist, song in track_dict3.items():
-            rep += f"🥉  <code>{artist} - {song}</code>\n"
-        last_user = requests.get(f"{base_url}?method=user.getinfo&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("user")
-        scrobbles = last_user.get("playcount")
-        rep += f"\n(<code>{scrobbles}</code> scrobbles so far)"
-        
-    msg.reply_text(rep, parse_mode=ParseMode.HTML)
-    
     
 __help__ = """
 Share what you're what listening to with the help of this module!
@@ -190,13 +174,11 @@ __mod_name__ = "Last.FM"
 SET_USER_HANDLER = CommandHandler("setuser", set_user, pass_args=True)
 CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user)
 LASTFM_HANDLER = DisableAbleCommandHandler(["lastfm", "lt", "last", "l"], last_fm)
-TOPTRACKS_HANDLER = CommandHandler(["lasttop", "top", "lastop", "toplast", "overall","t"], top_tracks)
-CHART_HANDLER = DisableAbleCommandHandler(["chart", "topweek", "tk"], chart)
+ALBUM_HANDLER = DisableAbleCommandHandler(["album", "albuns"], album)
 COLLAGE_HANDLER = CommandHandler("collage", collage)
 
 dispatcher.add_handler(COLLAGE_HANDLER)
-dispatcher.add_handler(CHART_HANDLER)
 dispatcher.add_handler(SET_USER_HANDLER)
 dispatcher.add_handler(CLEAR_USER_HANDLER)
 dispatcher.add_handler(LASTFM_HANDLER)
-dispatcher.add_handler(TOPTRACKS_HANDLER)
+dispatcher.add_handler(ALBUM_HANDLER)
