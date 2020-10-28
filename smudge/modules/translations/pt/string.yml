@@ -1106,7 +1106,7 @@ lastfm_scrb_album: "🎙 {} \n📀 {}"
 lastfm_usernotset: Você não colocou seu username do lastfm!
 lastfm_listening: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</strong>:\n\n"
 lastfm_listening_album: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</strong> o álbum:\n\n"
-lastfm_scrb_loved: "\n<strong>{}</strong> - {} ❤️"
+lastfm_scrb_loved: "<strong>{}</strong> - {} ❤️"
 lastfm_scr: \n(<code>{}</code> scrobbles até agora)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"

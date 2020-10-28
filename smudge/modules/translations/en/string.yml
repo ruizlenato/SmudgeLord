@@ -1104,7 +1104,7 @@ lastfm_scrb_album: "🎙 {} \n📀 {}"
 lastfm_usernotset: You haven't set your username yet!
 lastfm_listening: "<strong>{}</strong> is currently listening  for the <strong>{}th time</strong> to:\n\n"
 lastfm_listening_album:  "<strong>{}</strong> is currently listening  for the <strong>{}th time</strong> to:\n\n"
-lastfm_scrb_loved: "\n<strong>{}</strong> - {} ❤️"
+lastfm_scrb_loved: "<strong>{}</strong> - {} ❤️"
 lastfm_scr: \n(<code>{}</code> scrobbles so far)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"
