@@ -39,7 +39,7 @@ common_invalid_arg: Argumento inválido! Por favor digite `on`/`yes` or `off`/`n
 
 # Admins
 modname_admin: Admin
-admin_err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
+admin_err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso adicionar novos administradores.
 admin_err_user_admin: Como devo promover alguém que já é administrador?
 admin_err_self_promote: Eu não posso me promover
 admin_promote_success: Admin {} promoveu com sucesso {} em <b>{}</b>!
@@ -1103,6 +1103,7 @@ lastfm_userwrong: Hmm ... algo deu errado.\nVerifique se você definiu o nome de
 lastfm_nonetracks: Você não parece ter scrobblado(escutado) nenhuma música...
 lastfm_scrb: "<strong>{}</strong> - {}"
 lastfm_scrb_album: "🎙 {} \n📀 {}"
+lastfm_scrb_artist: "🎙 {}"
 lastfm_usernotset: Você não colocou seu username do lastfm!
 lastfm_listening: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</strong>:\n\n"
 lastfm_listening_album: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</strong> o álbum:\n\n"
@@ -1154,8 +1155,8 @@ fox_release_md5: "**✅ MD5 do arquivo :** `{}`\n"
 #chat_status
 helpers_bot_cant_delete: 'Não consigo excluir mensagens aqui! Verifique se eu sou um(a) administrador(a) e posso excluir mensagens de outros usuários.'
 helpers_bot_cant_pin: 'Não consigo fixar mensagens aqui! Verifique se sou administrador e posso fixar mensagens.'
-helpers_bot_cant_pro_demote: 'Não posso promover/rebaixar pessoas aqui! Verifique se eu sou um(a) administrador(a) e posso nomear novos administradores.'
-helpers_bot_cant_restrict: 'Não posso restringir as pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.'
+helpers_bot_cant_pro_demote: 'Não posso promover/rebaixar pessoas aqui! Verifique se eu sou um(a) administrador(a) e posso adicionar novos administradores.'
+helpers_bot_cant_restrict: 'Não posso restringir as pessoas aqui! Certifique-se de que sou administrador e de que posso adicionar novos administradores.'
 helpers_bot_not_admin: 'Eu não sou um(a) administrador(a)!'
 helpers_user_not_admin: 'Você deve ser o administrador do chat para executar esta ação!'
 #extraction
