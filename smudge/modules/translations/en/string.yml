@@ -1117,6 +1117,7 @@ last_fm_help: |
  - /clearuser: removes your last.fm username from the bot's database.
  - /lastfm: returns wh at you're scrobbling on last.fm
  - /album: shows the album you are scrobbling on last.fm.
+ - /artist: shows the artist you are scrobbling on last.fm.
  - /collage: makes a collage in 3x3 of the albums that you heard the most in the week.
  
 #direct_links

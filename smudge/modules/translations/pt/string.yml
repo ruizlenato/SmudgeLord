@@ -1119,6 +1119,7 @@ last_fm_help: |
  - /clearuser: remove seu nome de usuário last.fm do banco de dados do bot.
  - /lastfm: mostra o que você está scrobbling(escutando) no last.fm.
  - /album: mostra o album que você estás crobbling(escutando) no last.fm.
+ - /artist: mostra o(a) artista que você estás crobbling(escutando) no last.fm.
  - /collage: faz uma colagem em 4x4 dos álbuns que você mais ouviu na semana.
 
  Exemplos:
