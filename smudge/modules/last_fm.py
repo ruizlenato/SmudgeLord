@@ -120,8 +120,7 @@ def album(bot: Bot, update: Update):
         loved = int(first_track.get("loved"))
         album_info = requests.get(
             f"{base_url}?method=album.getinfo&album={album1}&artist={artist1}&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("album")
-        #scrobbles = int(album_info.get("userplaycount"))+1
-        scrobbles = album_info.get("userplaycount")
+        scrobbles = int(album_info.get("userplaycount"))+1
         image = first_track.get("image")[3].get("#text")
         rep = tld(chat.id, "lastfm_listening_album").format(user, scrobbles)
         if not loved:
@@ -166,7 +165,7 @@ def artist(bot: Bot, update: Update):
         loved = int(first_track.get("loved"))
         album_info = requests.get(
             f"{base_url}?method=artist.getinfo&artist={artist}&autocorrect=1&user={username}&api_key={LASTFM_API_KEY}&format=json").json().get("artist").get("stats")
-        scrobbles = album_info.get("userplaycount")
+        scrobbles = int(album_info.get("userplaycount"))+1
         image = first_track.get("image")[3].get("#text")
         rep = tld(chat.id, "lastfm_listening").format(user, scrobbles)
         if not loved:
