@@ -10,7 +10,7 @@ from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import bot_admin, user_admin, can_pin,
+from smudge.modules.helper_funcs.chat_status import bot_admin, user_admin, can_pin
 from smudge.modules.helper_funcs.extraction import extract_user
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import admin_sql as sql
@@ -36,7 +36,7 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
             return
 
     if not chatD.get_member(bot.id).can_promote_members:
-        update.effective_message.reply_text(tld(chat.id, "admin_err_no_perm"))
+        update.effective_message.reply_text(tld(chat.id, "err_no_perm"))
         return
 
     user_id = extract_user(message, args)
