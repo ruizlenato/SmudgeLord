@@ -39,7 +39,7 @@ common_invalid_arg: Argumento inválido! Por favor digite `on`/`yes` or `off`/`n
 
 # Admins
 modname_admin: Admin
-err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
+admin_err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso nomear novos administradores.
 admin_err_user_admin: Como devo promover alguém que já é administrador?
 admin_err_self_promote: Eu não posso me promover
 admin_promote_success: Admin {} promoveu com sucesso {} em <b>{}</b>!
@@ -224,7 +224,7 @@ bans_logger: |
   #BAN
   <b>Administrador:</b> {}
   <b>Usuário:</b> {} (<code>{}</code>)
-bans_banned_success: Admin {} baniu com suceeso o(a) {} no grupo <b>{}</b>!
+bans_banned_success: Admin {} baniu com sucesso o(a) {} no grupo <b>{}</b>!
 bans_logger_reason: \n<b>Motivo:</b>{}
 bans_err_unknown: "error 404: {} falhou."
 bans_err_tban_no_arg: Você não especificou o tempo para banir este usuário!

@@ -42,7 +42,7 @@ common_invalid_arg: Invalid argument! Please type `on`/`yes` or `off`/`no`!
 
 # Admins
 modname_admin: Admin
-err_no_perm: I can't promote/demote people here! Make sure I'm an admin and can appoint new admins.
+admin_err_no_perm: I can't promote/demote people here! Make sure I'm an admin and can appoint new admins.
 admin_err_user_admin: How am I meant to promote someone who's already an admin?
 admin_err_self_promote: I can't promote myself! Get an admin to do it for me.
 admin_promote_success: Admin {} has successfully promoted {} in <b>{}</b>!
