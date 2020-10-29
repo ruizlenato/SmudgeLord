@@ -217,10 +217,9 @@ CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user)
 LASTFM_HANDLER = DisableAbleCommandHandler(["lastfm", "lt", "last", "l"], last_fm)
 ALBUM_HANDLER = DisableAbleCommandHandler(["album", "albuns"], album)
 ARTIST_HANDLER = DisableAbleCommandHandler("artist", artist)
+#COLLAGE_HANDLER = CommandHandler("collage", collage)
 
-COLLAGE_HANDLER = CommandHandler("collage", collage)
-
-dispatcher.add_handler(COLLAGE_HANDLER)
+#dispatcher.add_handler(COLLAGE_HANDLER)
 dispatcher.add_handler(SET_USER_HANDLER)
 dispatcher.add_handler(CLEAR_USER_HANDLER)
 dispatcher.add_handler(LASTFM_HANDLER)

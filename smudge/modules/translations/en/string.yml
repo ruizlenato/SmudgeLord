@@ -1100,8 +1100,8 @@ setuser_lastfm: Username set as {}!
 lastfm_userwrong: Hmm... something went wrong.\nPlease ensure that you've set the correct username!
 lastfm_nonetracks: You don't seem to have scrobbled any songs...
 lastfm_scrb: "<strong>{}</strong> - {}"
-lastfm_scrb_album: "🎙 {} \n📀 {}"
-lastfm_scrb_artist: "🎙 {}"
+lastfm_scrb_album: "🎙 <strong>{}</strong> \n📀 {}"
+lastfm_scrb_artist: "🎙 <strong>{}</strong>"
 lastfm_usernotset: You haven't set your username yet!
 lastfm_listening: "<strong>{}</strong> is currently listening  for the <strong>{}th time</strong> to:\n\n"
 lastfm_listening_album:  "<strong>{}</strong> is currently listening  for the <strong>{}th time</strong> to:\n\n"
