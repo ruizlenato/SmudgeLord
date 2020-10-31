@@ -2,6 +2,7 @@ import re
 import requests
 import urllib.request
 import urllib.parse
+import lyricsgenius
 
 from telegram import Bot, Update, ParseMode
 from telegram.ext import run_async, CommandHandler
