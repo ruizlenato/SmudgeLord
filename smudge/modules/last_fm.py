@@ -8,7 +8,7 @@ from telegram import Bot, Update, ParseMode
 from telegram.ext import run_async, CommandHandler
 
 import smudge.modules.sql.last_fm_sql as sql
-from smudge import dispatcher, LASTFM_API_KEY
+from smudge import dispatcher, LASTFM_API_KEY, GENIUS
 from smudge.modules.translations.strings import tld
 from smudge.modules.disable import DisableAbleCommandHandler
 
