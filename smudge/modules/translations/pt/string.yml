@@ -1112,7 +1112,7 @@ lastfm_scr: \n(<code>{}</code> scrobbles até agora)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"
 lastfm_old_scrb: "{} estava ouvindo:\n"
-lastfm_chart: "Chart semanal do {}\n\n"
+lyrics_not_found: "Sem resultados para a musica {} de {}."
 lastfm_collage: "Collage Semanal dos albuns mais ouvidos pelo {}"
 last_fm_help: |
  - /setuser <username>: Configure seu Username(nome de usuário)  do LastFM.

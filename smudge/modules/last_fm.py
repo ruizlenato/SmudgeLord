@@ -61,7 +61,7 @@ def last_fm(bot: Bot, update: Update):
         # Ensures the track is now playing
         image = first_track.get("image")[3].get("#text")  # Grab URL of 300x300 image
         artist = first_track.get("artist").get("name")
-        artist1 = album = urllib.parse.quote(artist)
+        artist1 = urllib.parse.quote(artist)
         song = first_track.get("name")
         song1 = album = urllib.parse.quote(song)
         loved = int(first_track.get("loved"))
@@ -195,7 +195,49 @@ def collage(bot: Bot, update: Update):
         urllib.request.urlretrieve(image_url, filename)
         bot.send_photo(chat_id=chat.id,  photo=open('test.png', 'rb'), caption= tld(chat.id, "lastfm_collage").format(user))
 
-
+@run_async
+def lyrics(bot: Bot, update: Update, args):
+    msg = update.effective_message
+    user = update.effective_user.first_name
+    user_id = update.effective_user.id
+    username = sql.get_user(user_id)
+    genius = lyricsgenius.Genius(GENIUS)
+    chat = update.effective_chat
+    if args:
+        search = " ".join(args)
+        songs = genius.search_song(search)
+        if songs is None:
+            msg.reply_text("Sem resultados")
+        else:
+            requesturl = requests.get(f"https://api.telegra.ph/createPage?access_token=25678294591bbec8063c7eff5d34ecc23c06bd3da28d9aafaef7196ea27f&title={search}&author_name=SmudgeLord&content=[%7B%22tag%22:%22p%22,%22children%22:[%22{songs.lyrics}%22]%7D]&return_content=true&format=json").json().get("result")
+            lyricsurl = requesturl.get("url")
+            msg.reply_text(lyricsurl, parse_mode=ParseMode.HTML)
+    else:
+        if not username:
+            msg.reply_text(tld(chat.id, "lastfm_usernotset"))
+            return
+        base_url = "http://ws.audioscrobbler.com/2.0"
+        res = requests.get(
+            f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json")
+        if not res.status_code == 200:
+            msg.reply_text(tld(chat.id, "lastfm_userwrong"))
+            return
+        
+        try:
+            first_track = res.json().get("recenttracks").get("track")[0]
+        except IndexError:
+            msg.reply_text(tld(chat.id, "lastfm_nonetracks"))
+            return
+        artist = first_track.get("artist").get("name")
+        song = first_track.get("name")
+        songs = genius.search_song(song, artist)
+        #name_song = tld(chat.id, "song_test").format(artist, song, songs.lyrics)
+        if songs is None:
+            msg.reply_text(tld(chat.id, "lyrics_not_found").format(song, artist))
+        else:
+            requesturl = requests.get(f"https://api.telegra.ph/createPage?access_token=25678294591bbec8063c7eff5d34ecc23c06bd3da28d9aafaef7196ea27f&title={song}&author_name=SmudgeLord&content=[%7B%22tag%22:%22p%22,%22children%22:[%22{songs.lyrics}%22]%7D]&return_content=true&format=json").json().get("result")
+            lyricsurl = requesturl.get("url")
+            msg.reply_text(lyricsurl, parse_mode=ParseMode.HTML)
 
     
 __help__ = """
