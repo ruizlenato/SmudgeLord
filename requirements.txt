@@ -31,3 +31,4 @@ pafy
 youtube-dl
 telegraph
 lxml==4.6.1
+pyrate_limiter
