@@ -1,6 +1,8 @@
 import html
 from typing import Optional, List
+import requests
 
+from requests import get
 from telegram.ext import CommandHandler, run_async, Filters, RegexHandler
 from telegram import Message, Chat, Update, Bot, User, ParseMode, MAX_MESSAGE_LENGTH
 
