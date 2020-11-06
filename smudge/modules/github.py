@@ -57,6 +57,7 @@ def getRepo(bot, update, reponame):
 @run_async
 def getRelease(bot: Bot, update: Update, args: List[str]):
     msg = update.effective_message
+    chat = update.effective_chat
     if len(args) == 0:
         msg.reply_text(tld(chat.id, "github_releases_arguments"))
         return
