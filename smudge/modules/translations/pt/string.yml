@@ -385,10 +385,11 @@ author_github: "<b>Autor:</b> <a href='{}'>{}</a>\n"
 release_name_github: "<b>Nome da versão(release):</b> {}\n\n"
 asset_github: "<b>Arquivo:</b> \n"
 size_github: "Tamanho: {} MB"
-download_count_github: "\nNumero de Downloads: {} \n\n"
+download_count_github: "\nNúmero de Downloads: {} \n\n"
 invalid_repo_github: "Nome do repo inválido"
 github_sortcuts: "<b>Atalhos para respositorios do github disponiveis em {}:</b>\n\n"
 github_help_list: "\nVocê pode conferir estes atalhos utilizando <code>/fetch repo</code>, ou <code>&repo</code>\n"
+github_releases_arguments: "Por favor, use alguns argumentos!\n\nEx: /gitr <user>/<repo>"
 github_help: |
   *Precisa de alguma release de um repositório do GitHub, mas não quer ir para o GitHub e ir para o repositório? Aqui estão alguns comandos que podem facilitar sua vida com o GitHub.*
   *Os comandos disponíveis são:*

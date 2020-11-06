@@ -58,7 +58,7 @@ def getRepo(bot, update, reponame):
 def getRelease(bot: Bot, update: Update, args: List[str]):
     msg = update.effective_message
     if len(args) == 0:
-        msg.reply_text("Please use some arguments!")
+        msg.reply_text(tld(chat.id, "github_releases_arguments"))
         return
     if(len(args) != 1 and not (len(args) == 2 and args[1].isdigit()) and not ("/" in args[0])):
         msg.reply_text("Please specify a valid combination of <user>/<repo>")
@@ -67,7 +67,7 @@ def getRelease(bot: Bot, update: Update, args: List[str]):
     if len(args) == 2:
         index = int(args[1])
     url = args[0]
-    text = getData(url, index)
+    text = getData(bot, update, url, index)
     msg.reply_text(text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
     return
 

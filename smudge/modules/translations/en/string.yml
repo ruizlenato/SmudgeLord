@@ -394,6 +394,8 @@ download_count_github: "\nDownload Count: {} \n\n"
 invalid_repo_github: "Invalid repo name"
 github_sortcuts: "<b>GitHub repo shotcuts in {}:</b>\n"
 github_help_list: "\nYou can retrieve these repos by using <code>/fetch repo</code>, or <code>&repo</code>\n"
+github_releases_arguments: "Please use some arguments!!\n\nEx: /gitr <user>/<repo>"
+
 github_help: |
   *Need some GitHub release but don't want to have to go to GitHub and go to the repository? Here are some commands that can make your life easier with GitHub.*
   *Available commands are:*
