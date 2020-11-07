@@ -29,8 +29,6 @@ DATA_EXPORT = []
 
 GDPR = []
 
-SMUDGE_IMG = "https://telegra.ph/file/cb4a2ba5f488a11c3d0ee.png"
-
 for module_name in ALL_MODULES:
     imported_module = importlib.import_module("smudge.modules." + module_name)
     modname = imported_module.__name__.split('.')[2]
@@ -132,8 +130,7 @@ def send_start(bot, update):
         InlineKeyboardButton(text=tld(chat.id, 'btn_help'), callback_data="help_back")
     ]]
 
-    update.effective_message.reply_photo(
-        SMUDGE_IMG,
+    update.effective_message.reply_text(
         text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN,
