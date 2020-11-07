@@ -4,6 +4,7 @@ import yaml
 import spamwatch
 
 from telethon import TelegramClient
+from pyrogram import Client
 import telegram.ext as tg
 
 #Enable logging
