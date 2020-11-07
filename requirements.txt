@@ -26,3 +26,6 @@ markdown2
 spamwatch
 bs4
 covid
+python-rapidjson
+lyricsgenius
+pafy
