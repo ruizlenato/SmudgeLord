@@ -3,6 +3,7 @@ import requests
 import urllib.request
 import urllib.parse
 import lyricsgenius
+from telegraph import Telegraph
 
 from telegram import Bot, Update, ParseMode
 from telegram.ext import run_async, CommandHandler
@@ -236,10 +237,14 @@ def lyrics(bot: Bot, update: Update, args):
         if songs is None:
             msg.reply_text(tld(chat.id, "lyrics_not_found").format(song, artist))
         else:
-            requesturl = requests.get(f"https://api.telegra.ph/createPage?access_token=25678294591bbec8063c7eff5d34ecc23c06bd3da28d9aafaef7196ea27f&title={song}&author_name=SmudgeLord&content=[%7B%22tag%22:%22p%22,%22children%22:[%22{songs.lyrics}%22]%7D]&return_content=true&format=json").json().get("result")
-            lyricsurl = requesturl.get("url")
+            page_content = songs.lyrics.replace("\n", "<br class='inline'>")
+            response = telegraph.create_page(
+                f'{song} {artist}',
+                author_name="SmudgeLordBot",
+                html_content=(f"<p> {page_content} </p>")
+            )
+            lyricsurl = ('https://telegra.ph/{}'.format(response['path']))
             msg.reply_text(lyricsurl, parse_mode=ParseMode.HTML)
-
     
 __help__ = """
 Share what you're what listening to with the help of this module!

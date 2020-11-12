@@ -29,3 +29,4 @@ covid
 python-rapidjson
 lyricsgenius
 pafy
+telegraph
