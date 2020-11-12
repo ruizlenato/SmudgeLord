@@ -213,8 +213,13 @@ def lyrics(bot: Bot, update: Update, args):
         if songs is None:
             msg.reply_text("Sem resultados")
         else:
-            requesturl = requests.get(f"https://api.telegra.ph/createPage?access_token=25678294591bbec8063c7eff5d34ecc23c06bd3da28d9aafaef7196ea27f&title={search}&author_name=SmudgeLord&content=[%7B%22tag%22:%22p%22,%22children%22:[%22{songs.lyrics}%22]%7D]&return_content=true&format=json").json().get("result")
-            lyricsurl = requesturl.get("url")
+            page_content = songs.lyrics.replace("\n", "<br class='inline'>")
+            response = telegraph.create_page(
+                f'{search}',
+                author_name="SmudgeLordBot",
+                html_content=(f"<p> {page_content} </p>")
+            )
+            lyricsurl = ('https://telegra.ph/{}'.format(response['path']))
             msg.reply_text(lyricsurl, parse_mode=ParseMode.HTML)
     else:
         if not username:
