@@ -241,7 +241,7 @@ def lyrics(bot: Bot, update: Update, args):
         else:
             page_content = songs.lyrics.replace("\n", "<br class='inline'>")
             response = telegraph.create_page(
-                f'{song} {artist}',
+                f'{song} - {artist}',
                 author_name="SmudgeLordBot",
                 html_content=(f"<p> {page_content} </p>")
             )
