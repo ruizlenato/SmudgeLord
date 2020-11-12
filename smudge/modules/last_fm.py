@@ -203,6 +203,8 @@ def lyrics(bot: Bot, update: Update, args):
     user = update.effective_user.first_name
     user_id = update.effective_user.id
     username = sql.get_user(user_id)
+    telegraph = Telegraph()
+    telegraph.create_account(short_name='SmudgeLord', author_name='Renatoh')
     genius = lyricsgenius.Genius(GENIUS)
     chat = update.effective_chat
     if args:
