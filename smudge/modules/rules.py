@@ -10,6 +10,7 @@ import smudge.modules.sql.rules_sql as sql
 from smudge import dispatcher
 from smudge.modules.helper_funcs.chat_status import user_admin
 from smudge.modules.helper_funcs.string_handling import markdown_parser
+from smudge.modules.disable import DisableAbleCommandHandler
 
 from smudge.modules.translations.strings import tld
 
@@ -103,7 +104,7 @@ def __migrate__(old_chat_id, new_chat_id):
 __help__ = True
 
 
-GET_RULES_HANDLER = CommandHandler("rules", get_rules, filters=Filters.group)
+GET_RULES_HANDLER = DisableAbleCommandHandler("rules", get_rules, filters=Filters.group)
 SET_RULES_HANDLER = CommandHandler("setrules",
                                    set_rules,
                                    filters=Filters.group)

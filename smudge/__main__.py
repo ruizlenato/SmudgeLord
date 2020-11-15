@@ -18,6 +18,7 @@ from smudge.modules import ALL_MODULES
 from smudge import dispatcher, updater, LOGGER, TOKEN, tbot, pbot
 from smudge.modules.helper_funcs.misc import paginate_modules
 from smudge.modules.translations.strings import tld
+from smudge.modules.disable import DisableAbleCommandHandler
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -281,9 +282,9 @@ def migrate_chats(bot: Bot, update: Update):
 
 def main():
     # test_handler = CommandHandler("test", test) #Unused variable
-    start_handler = CommandHandler("start", start, pass_args=True)
+    start_handler = DisableAbleCommandHandler("start", start, pass_args=True)
 
-    help_handler = CommandHandler("help", get_help)
+    help_handler = DisableAbleCommandHandler("help", get_help)
     help_callback_handler = CallbackQueryHandler(help_button, pattern=r"help_")
 
     start_callback_handler = CallbackQueryHandler(send_start,
