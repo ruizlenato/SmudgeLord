@@ -75,7 +75,7 @@ def rban(bot: Bot, update: Update, args: List[str]):
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return
-    elif not chat_id:
+    if not chat_id:
         message.reply_text("You don't seem to be referring to a chat.")
         return
 
@@ -87,8 +87,7 @@ def rban(bot: Bot, update: Update, args: List[str]):
                 "Chat not found! Make sure you entered a valid chat ID and I'm part of that chat."
             )
             return
-        else:
-            raise
+        raise
 
     if chat.type == 'private':
         message.reply_text("I'm sorry, but that's a private chat!")
@@ -107,8 +106,7 @@ def rban(bot: Bot, update: Update, args: List[str]):
         if excp.message == "User not found":
             message.reply_text("I can't seem to find this user")
             return
-        else:
-            raise
+        raise
 
     if is_user_ban_protected(chat, user_id, member):
         message.reply_text("I really wish I could ban admins...")
@@ -149,7 +147,7 @@ def runban(bot: Bot, update: Update, args: List[str]):
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return
-    elif not chat_id:
+    if not chat_id:
         message.reply_text("You don't seem to be referring to a chat.")
         return
 
@@ -161,8 +159,7 @@ def runban(bot: Bot, update: Update, args: List[str]):
                 "Chat not found! Make sure you entered a valid chat ID and I'm part of that chat."
             )
             return
-        else:
-            raise
+        raise
 
     if chat.type == 'private':
         message.reply_text("I'm sorry, but that's a private chat!")
@@ -181,8 +178,7 @@ def runban(bot: Bot, update: Update, args: List[str]):
         if excp.message == "User not found":
             message.reply_text("I can't seem to find this user there")
             return
-        else:
-            raise
+        raise
 
     if is_user_in_chat(chat, user_id):
         message.reply_text(
@@ -226,7 +222,7 @@ def rkick(bot: Bot, update: Update, args: List[str]):
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return
-    elif not chat_id:
+    if not chat_id:
         message.reply_text("You don't seem to be referring to a chat.")
         return
 
@@ -238,8 +234,7 @@ def rkick(bot: Bot, update: Update, args: List[str]):
                 "Chat not found! Make sure you entered a valid chat ID and I'm part of that chat."
             )
             return
-        else:
-            raise
+        raise
 
     if chat.type == 'private':
         message.reply_text("I'm sorry, but that's a private chat!")
@@ -258,8 +253,7 @@ def rkick(bot: Bot, update: Update, args: List[str]):
         if excp.message == "User not found":
             message.reply_text("I can't seem to find this user")
             return
-        else:
-            raise
+        raise
 
     if is_user_ban_protected(chat, user_id, member):
         message.reply_text("I really wish I could kick admins...")
@@ -299,7 +293,7 @@ def rmute(bot: Bot, update: Update, args: List[str]):
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return
-    elif not chat_id:
+    if not chat_id:
         message.reply_text("You don't seem to be referring to a chat.")
         return
 
@@ -311,8 +305,7 @@ def rmute(bot: Bot, update: Update, args: List[str]):
                 "Chat not found! Make sure you entered a valid chat ID and I'm part of that chat."
             )
             return
-        else:
-            raise
+        raise
 
     if chat.type == 'private':
         message.reply_text("I'm sorry, but that's a private chat!")
@@ -331,8 +324,7 @@ def rmute(bot: Bot, update: Update, args: List[str]):
         if excp.message == "User not found":
             message.reply_text("I can't seem to find this user")
             return
-        else:
-            raise
+        raise
 
     if is_user_ban_protected(chat, user_id, member):
         message.reply_text("I really wish I could mute admins...")
@@ -373,7 +365,7 @@ def runmute(bot: Bot, update: Update, args: List[str]):
     if not user_id:
         message.reply_text("You don't seem to be referring to a user.")
         return
-    elif not chat_id:
+    if not chat_id:
         message.reply_text("You don't seem to be referring to a chat.")
         return
 
@@ -385,8 +377,7 @@ def runmute(bot: Bot, update: Update, args: List[str]):
                 "Chat not found! Make sure you entered a valid chat ID and I'm part of that chat."
             )
             return
-        else:
-            raise
+        raise
 
     if chat.type == 'private':
         message.reply_text("I'm sorry, but that's a private chat!")
@@ -405,8 +396,7 @@ def runmute(bot: Bot, update: Update, args: List[str]):
         if excp.message == "User not found":
             message.reply_text("I can't seem to find this user there")
             return
-        else:
-            raise
+        raise
 
     if is_user_in_chat(chat, user_id):
         if member.can_send_messages and member.can_send_media_messages \

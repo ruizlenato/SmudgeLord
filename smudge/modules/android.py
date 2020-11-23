@@ -57,9 +57,7 @@ async def los(event):
         keyboard = [custom.Button.url(tld(chat_id, "btn_dl"), f"{url}")]
         await event.reply(reply_text, buttons=keyboard, link_preview=False)
         return
-
-    else:
-        reply_text = tld(chat_id, "err_not_found")
+    reply_text = tld(chat_id, "err_not_found")
     await event.reply(reply_text, link_preview=False)
 
 

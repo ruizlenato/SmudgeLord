@@ -137,9 +137,8 @@ def export_data(bot: Bot, update: Update, chat_data):
                 chat.id, "backups_err_timelimit").format(timeformatt),
                 parse_mode=ParseMode.MARKDOWN)
             return
-        else:
-            if user.id != 654839744:
-                put_chat(chat_id, new_jam, chat_data)
+        if user.id != 654839744:
+            put_chat(chat_id, new_jam, chat_data)
     else:
         if user.id != 654839744:
             put_chat(chat_id, new_jam, chat_data)

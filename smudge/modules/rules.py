@@ -34,8 +34,7 @@ def send_rules(update, chat_id, from_pm=False):
                 user.id,
                 tld(chat.id, "rules_shortcut_not_setup_properly"))
             return
-        else:
-            raise
+        raise
 
     rules = sql.get_rules(chat_id)
     text = tld(chat.id, "rules_display").format(escape_markdown(chat.title),

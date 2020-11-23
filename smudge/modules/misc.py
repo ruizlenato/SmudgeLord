@@ -37,11 +37,9 @@ def screenshot(bot: Bot, update: Update, args):
     if not SCREENSHOT_API_KEY:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
         return
-
-    else:
-        urllib.request.urlretrieve(image_url, filename)
-        bot.send_document(chat_id=chat.id,  document=open(
-            'screencapture.png', 'rb'), caption=txt)
+    urllib.request.urlretrieve(image_url, filename)
+    bot.send_document(chat_id=chat.id,  document=open(
+        'screencapture.png', 'rb'), caption=txt)
 
 
 @run_async
