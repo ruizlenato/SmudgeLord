@@ -6,6 +6,7 @@ from pyrogram.types import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from smudge.modules.translations.strings import tld
 from ujson import loads
 
+
 class GetDevice:
     def __init__(self, device):
         """Get device info by codename or model!"""
@@ -47,6 +48,7 @@ class GetDevice:
             except KeyError:
                 return False
 
+
 async def git(c: Client, update: Update, repo, page):
     db = loads(page.content)
     name = db['name']
@@ -57,7 +59,8 @@ async def git(c: Client, update: Update, repo, page):
     dev, repo = repo.split('/')
     message = "<b>Name:</b> <code>{}</code>\n".format(name)
     message += "<b>Tag:</b> <code>{}</code>\n".format(tag)
-    message += "<b>Released on:</b> <code>{}</code>\n".format(date[:date.rfind("T")])
+    message += "<b>Released on:</b> <code>{}</code>\n".format(
+        date[:date.rfind("T")])
     message += "<b>By:</b> <code>{}@github.com</code>\n".format(dev)
     message += "<b>Changelog:</b>\n<code>{}</code>\n\n".format(changelog)
     keyboard = []
@@ -73,27 +76,30 @@ async def git(c: Client, update: Update, repo, page):
         except IndexError:
             continue
     await c.send_message(
-                chat_id=update.chat.id,
-                text=message,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                disable_web_page_preview=True
-            )
+        chat_id=update.chat.id,
+        text=message,
+        reply_markup=InlineKeyboardMarkup(keyboard),
+        disable_web_page_preview=True
+    )
+
+
 @pbot.on_message(filters.command(["magisk", "root"]))
 async def magisk(c: Client, update: Update):
     url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
-    chat_id=update.chat.id
+    chat_id = update.chat.id
     message = tld(chat_id, "magisk_releases")
-    for magisk_type, path  in {"Stable":"master/stable", "Beta":"master/beta", "Canary":"canary/canary"}.items():
+    for magisk_type, path in {"Stable": "master/stable", "Beta": "master/beta", "Canary": "canary/canary"}.items():
         canary = "https://github.com/topjohnwu/magisk_files/raw/canary/" if magisk_type == "Canary" else ""
         data = get(url + path + '.json').json()
         message += f'<b>• {magisk_type}</b>:\n<a href="{canary + data["magisk"]["link"]}">Magisk - V{data["magisk"]["version"]}</a> |' \
-                    f'<a href="{canary + data["app"]["link"]}"> App - v{data["app"]["version"]}</a> |' \
-                    f'<a href="{canary + data["uninstaller"]["link"]}"> Uninstaller</a> \n'
+            f'<a href="{canary + data["app"]["link"]}"> App - v{data["app"]["version"]}</a> |' \
+            f'<a href="{canary + data["uninstaller"]["link"]}"> Uninstaller</a> \n'
     await c.send_message(
-                chat_id=update.chat.id,
-                text=message,
-                disable_web_page_preview=True
-            )
+        chat_id=update.chat.id,
+        text=message,
+        disable_web_page_preview=True
+    )
+
 
 @pbot.on_message(filters.command("twrp"))
 async def twrp(c: Client, update: Update):
@@ -114,7 +120,7 @@ async def twrp(c: Client, update: Update):
         return
 
     else:
-        chat_id=update.chat.id
+        chat_id = update.chat.id
         m = f'<b>Latest TWRP for {device}</b>\n'
         page = BeautifulSoup(url.content, 'lxml')
         date = page.find("em").text.strip()
@@ -136,16 +142,17 @@ async def twrp(c: Client, update: Update):
             text=m,
             reply_markup=InlineKeyboardMarkup(keyboard))
 
+
 @pbot.on_message(filters.command(["ofox", "ofx", "orangefox", "fox", "ofx_recovery"]))
 async def ofox(c: Client, update: Update):
-    chat_id=update.chat.id
+    chat_id = update.chat.id
     if not len(update.command) == 2:
         message = tld(chat_id, "fox_get_release")
         await c.send_message(
-                chat_id=update.chat.id,
-                text=message,
-                disable_web_page_preview=True
-            )
+            chat_id=update.chat.id,
+            text=message,
+            disable_web_page_preview=True
+        )
         return
     device = update.command[1]
     data = GetDevice(device).get()
@@ -156,15 +163,16 @@ async def ofox(c: Client, update: Update):
     else:
         message = tld(chat_id, "fox_device_not_found")
         await c.send_message(
-                chat_id=update.chat.id,
-                text=message)
+            chat_id=update.chat.id,
+            text=message)
         return
-    page = get(f'https://api.orangefox.download/v2/device/{device}/releases/stable/last')
+    page = get(
+        f'https://api.orangefox.download/v2/device/{device}/releases/stable/last')
     if page.status_code == 404:
         message = f"OrangeFox currently is not avaliable for <code>{device}</code>"
         await c.send_message(
-                chat_id=update.chat.id,
-                text=message)
+            chat_id=update.chat.id,
+            text=message)
         return
     else:
         message = tld(chat_id, "fox_release_title").format(device)
@@ -182,20 +190,21 @@ async def ofox(c: Client, update: Update):
         message += tld(chat_id, "reovery_release_md5").format(md5)
         keyboard = [[InlineKeyboardButton(text="Download", url=dl_link)]]
         await c.send_message(
-                chat_id=update.chat.id,
-                text=message,
-                reply_markup=InlineKeyboardMarkup(keyboard))
+            chat_id=update.chat.id,
+            text=message,
+            reply_markup=InlineKeyboardMarkup(keyboard))
+
 
 @pbot.on_message(filters.command(["ofoxbeta", "ofxbeta", "orangefoxbeta", "foxbeta", "ofx_recoverybeta"]))
 async def ofox(c: Client, update: Update):
-    chat_id=update.chat.id
+    chat_id = update.chat.id
     if not len(update.command) == 2:
         message = tld(chat_id, "fox_get_release")
         await c.send_message(
-                chat_id=update.chat.id,
-                text=message,
-                disable_web_page_preview=True
-            )
+            chat_id=update.chat.id,
+            text=message,
+            disable_web_page_preview=True
+        )
         return
     device = update.command[1]
     data = GetDevice(device).get()
@@ -206,15 +215,16 @@ async def ofox(c: Client, update: Update):
     else:
         message = tld(chat_id, "fox_device_not_found")
         await c.send_message(
-                chat_id=update.chat.id,
-                text=message)
+            chat_id=update.chat.id,
+            text=message)
         return
-    page = get(f'https://api.orangefox.download/v2/device/{device}/releases/beta/last')
+    page = get(
+        f'https://api.orangefox.download/v2/device/{device}/releases/beta/last')
     if page.status_code == 404:
         message = f"OrangeFox currently is not avaliable for <code>{device}</code>"
         await c.send_message(
-                chat_id=update.chat.id,
-                text=message)
+            chat_id=update.chat.id,
+            text=message)
         return
     else:
         message = tld(chat_id, "fox_release_title").format(device)
@@ -232,9 +242,10 @@ async def ofox(c: Client, update: Update):
         message += tld(chat_id, "reovery_release_md5").format(md5)
         keyboard = [[InlineKeyboardButton(text="Download", url=dl_link)]]
         await c.send_message(
-                chat_id=update.chat.id,
-                text=message,
-                reply_markup=InlineKeyboardMarkup(keyboard))
+            chat_id=update.chat.id,
+            text=message,
+            reply_markup=InlineKeyboardMarkup(keyboard))
+
 
 @pbot.on_message(filters.command(["phh", "gsi"]))
 async def phh(c: Client, update: Update):
@@ -242,4 +253,4 @@ async def phh(c: Client, update: Update):
     page = get(f'https://api.github.com/repos/{repo}/releases/latest')
     if not page.status_code == 200:
         return
-    await git(c, update , repo, page)
+    await git(c, update, repo, page)
