@@ -51,7 +51,7 @@ def blacklist(bot: Bot, update: Update, args: List[str]):
     split_text = split_message(filter_list)
     for text in split_text:
         if filter_list == tld(chat.id, "blacklist_active_list").format(
-                chat_name):  #We need to translate
+                chat_name):  # We need to translate
             msg.reply_text(tld(chat.id, "blacklist_no_list").format(chat_name),
                            parse_mode=ParseMode.HTML)
             return
@@ -88,7 +88,7 @@ def add_blacklist(bot: Bot, update: Update):
         if len(to_blacklist) == 1:
             msg.reply_text(tld(chat.id, "blacklist_add").format(
                 html.escape(to_blacklist[0]), chat_name),
-                           parse_mode=ParseMode.HTML)
+                parse_mode=ParseMode.HTML)
 
         else:
             msg.reply_text(tld(chat.id,
@@ -134,7 +134,7 @@ def unblacklist(bot: Bot, update: Update):
             if successful:
                 msg.reply_text(tld(chat.id, "blacklist_del").format(
                     html.escape(to_unblacklist[0]), chat_name),
-                               parse_mode=ParseMode.HTML)
+                    parse_mode=ParseMode.HTML)
             else:
                 msg.reply_text(
                     tld(chat.id, "This isn't a blacklisted trigger!"))
@@ -142,7 +142,7 @@ def unblacklist(bot: Bot, update: Update):
         elif successful == len(to_unblacklist):
             msg.reply_text(tld(chat.id, "blacklist_multi_del").format(
                 successful, chat_name),
-                           parse_mode=ParseMode.HTML)
+                parse_mode=ParseMode.HTML)
 
         elif not successful:
             msg.reply_text(tld(chat.id,
@@ -156,7 +156,7 @@ def unblacklist(bot: Bot, update: Update):
                 chat.id, "blacklist_err_multidel_some_no_trigger").format(
                     successful, chat_name,
                     len(to_unblacklist) - successful),
-                           parse_mode=ParseMode.HTML)
+                parse_mode=ParseMode.HTML)
     else:
         msg.reply_text(tld(chat.id, "blacklist_err_del_no_args"))
 
@@ -202,7 +202,7 @@ def __import_data__(chat_id, data):
 
 __help__ = True
 
-#TODO: Add blacklist alternative modes: warn, ban, kick, or mute.
+# TODO: Add blacklist alternative modes: warn, ban, kick, or mute.
 
 BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist",
                                               blacklist,

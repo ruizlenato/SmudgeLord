@@ -14,7 +14,7 @@ from smudge.modules.helper_funcs.extraction import extract_user_and_text
 from smudge.modules.helper_funcs.string_handling import extract_time
 from smudge.modules.log_channel import loggable
 
-from smudge.modules.translations.strings import tld	
+from smudge.modules.translations.strings import tld
 
 
 @run_async
@@ -157,7 +157,7 @@ def temp_ban(bot: Bot, update: Update, args: List[str]) -> str:
                 mention_html(user.id, user.first_name),
                 mention_html(member.user.id, member.user.first_name),
                 html.escape(chat.title), time_val),
-                               quote=False)
+                quote=False)
             return log
         else:
             LOGGER.warning(update)

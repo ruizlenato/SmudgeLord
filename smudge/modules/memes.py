@@ -1,4 +1,5 @@
-import random, re
+import random
+import re
 from zalgo_text import zalgo
 
 from typing import Optional, List
@@ -15,6 +16,7 @@ WIDE_MAP = {i: i + 0xFEE0 for i in range(0x21, 0x7F)}
 WIDE_MAP[0x20] = 0x3000
 
 # D A N K modules by @deletescape vvv
+
 
 @run_async
 def owo(bot: Bot, update: Update, args: List[str]):
@@ -143,7 +145,8 @@ def insults(bot: Bot, update: Update):
 @run_async
 def runs(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
-    update.effective_message.reply_text(random.choice(tld_list(chat.id, "memes_runs_list")))
+    update.effective_message.reply_text(
+        random.choice(tld_list(chat.id, "memes_runs_list")))
 
 
 @run_async
@@ -199,7 +202,8 @@ def slap(bot: Bot, update: Update, args: List[str]):
 
 __help__ = True
 
-OWO_HANDLER = DisableAbleCommandHandler("owo", owo, admin_ok=True, pass_args=True)
+OWO_HANDLER = DisableAbleCommandHandler(
+    "owo", owo, admin_ok=True, pass_args=True)
 STRETCH_HANDLER = DisableAbleCommandHandler("stretch", stretch, pass_args=True)
 VAPOR_HANDLER = DisableAbleCommandHandler("vapor",
                                           vapor,

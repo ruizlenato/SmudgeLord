@@ -11,7 +11,8 @@ LANGUAGES = ['en', 'pt']
 strings = {}
 
 for i in LANGUAGES:
-    strings[i] = yaml.full_load(open(os.path.dirname(__file__) + f"/{i}/string.yml", "r"))
+    strings[i] = yaml.full_load(
+        open(os.path.dirname(__file__) + f"/{i}/string.yml", "r"))
     print(f"Loaded {i}/string.yml")
 
 

@@ -13,7 +13,7 @@ class CustomCommandHandler(tg.CommandHandler):
 
     def check_update(self, update):
         if (isinstance(update, Update) and
-            (update.message or update.edited_message and self.allow_edited)):
+                (update.message or update.edited_message and self.allow_edited)):
             message = update.message or update.edited_message
 
             if update.effective_user and int(
@@ -53,7 +53,7 @@ class GbanLockHandler(tg.CommandHandler):
 
     def check_update(self, update):
         if (isinstance(update, Update) and
-            (update.message or update.edited_message and self.allow_edited)):
+                (update.message or update.edited_message and self.allow_edited)):
             message = update.message or update.edited_message
             if sql.is_user_gbanned(update.effective_user.id):
                 return False

@@ -35,11 +35,11 @@ def locale(bot, update, args):
             native_lang = list_locales[locale]
             update.message.reply_text(tld(
                 chat.id, "language_current_locale").format(native_lang),
-                                      parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
         else:
             update.message.reply_text(tld(
                 chat.id, "language_current_locale").format("English"),
-                                      parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
 
 
 @user_admin
@@ -84,7 +84,8 @@ def locale_button(bot, update):
         reply_markup=InlineKeyboardMarkup([[
             InlineKeyboardButton("English 🇺🇸", callback_data="set_lang_en")
         ]] + [[
-            InlineKeyboardButton("Portuguese Brazil 🇧🇷", callback_data="set_lang_pt")
+            InlineKeyboardButton("Portuguese Brazil 🇧🇷",
+                                 callback_data="set_lang_pt")
         ]] + [[
             InlineKeyboardButton(f"⬅️ {tld(chat.id, 'btn_go_back')}",
                                  callback_data="bot_start")

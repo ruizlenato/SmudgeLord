@@ -16,7 +16,7 @@ from smudge.modules.helper_funcs.filters import CustomFilters
 # from smudge.modules.helper_funcs.misc import send_to_list
 # from smudge.modules.sql.users_sql import get_all_chats
 
-from smudge.modules.translations.strings import tld	
+from smudge.modules.translations.strings import tld
 
 GBAN_ENFORCE_GROUP = 6
 
@@ -105,7 +105,7 @@ def gban(bot: Bot, update: Update, args: List[str]):
 
         message.reply_text(tld(chat.id, "antispam_reason_updated").format(
             html.escape(old_reason), html.escape(full_reason)),
-                           parse_mode=ParseMode.HTML)
+            parse_mode=ParseMode.HTML)
 
         return
 
@@ -210,7 +210,7 @@ def ungban(bot: Bot, update: Update, args: List[str]):
 
     sql.ungban_user(user_id)
 
-    message.reply_text("This user have been ungbanned succesfully, they might have to ask 'admins' of chats they were banned to unban manually due to global ban." \
+    message.reply_text("This user have been ungbanned succesfully, they might have to ask 'admins' of chats they were banned to unban manually due to global ban."
                        "\n\nPlease forward this message to them or let them know about this.")
 
 
@@ -262,7 +262,7 @@ def check_and_ban(update, user_id, should_message=True):
                     message.reply_text(tld(
                         chat.id,
                         "antispam_spamwatch_banned").format(spamwatch_reason),
-                                       parse_mode=ParseMode.HTML)
+                        parse_mode=ParseMode.HTML)
                     return
                 else:
                     return
@@ -279,7 +279,7 @@ def check_and_ban(update, user_id, should_message=True):
 
             message.reply_text(tld(
                 chat.id, "antispam_checkban_user_removed").format(usrreason),
-                               parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
             return
 
 
@@ -345,8 +345,8 @@ def clear_gbans(bot: Bot, update: Update):
         except BadRequest:
             deleted += 1
             sql.ungban_user(id)
-    update.message.reply_text("Done! {} deleted accounts were removed " \
-    "from the gbanlist.".format(deleted), parse_mode=ParseMode.MARKDOWN)
+    update.message.reply_text("Done! {} deleted accounts were removed "
+                              "from the gbanlist.".format(deleted), parse_mode=ParseMode.MARKDOWN)
 
 
 def __stats__():

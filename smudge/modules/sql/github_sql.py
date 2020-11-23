@@ -4,6 +4,7 @@ from sqlalchemy import Column, String, UnicodeText, Integer, func, distinct
 
 from smudge.modules.sql import SESSION, BASE
 
+
 class GitHub(BASE):
     __tablename__ = "github"
     chat_id = Column(String(14), primary_key=True)

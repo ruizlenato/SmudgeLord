@@ -33,7 +33,7 @@ def report_setting(bot: Bot, update: Update, args: List[str]):
         else:
             msg.reply_text(tld(chat.id, "reports_pm_pref").format(
                 sql.user_should_report(chat.id)),
-                           parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
 
     else:
         if len(args) >= 1:
@@ -47,7 +47,7 @@ def report_setting(bot: Bot, update: Update, args: List[str]):
         else:
             msg.reply_text(tld(chat.id, "reports_chat_pref").format(
                 sql.chat_should_report(chat.id)),
-                           parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
 
 
 @run_async
@@ -59,7 +59,8 @@ def report(bot: Bot, update: Update) -> str:
     user = update.effective_user  # type: Optional[User]
 
     if chat and message.reply_to_message and sql.chat_should_report(chat.id):
-        reported_user = message.reply_to_message.from_user  # type: Optional[User]
+        # type: Optional[User]
+        reported_user = message.reply_to_message.from_user
         chat_name = chat.title or chat.first or chat.username
         admin_list = chat.get_administrators()
 
@@ -78,7 +79,8 @@ def report(bot: Bot, update: Update) -> str:
                                                                                    user.first_name),
                                                                       user.id)
             link = "\n<b>Link:</b> " \
-                   "<a href=\"http://telegram.me/{}/{}\">click here</a>".format(chat.username, message.message_id)
+                   "<a href=\"http://telegram.me/{}/{}\">click here</a>".format(
+                       chat.username, message.message_id)
 
             should_forward = True
             keyboard = [[
@@ -88,25 +90,25 @@ def report(bot: Bot, update: Update) -> str:
                         chat.username,
                         str(message.reply_to_message.message_id)))
             ],
-                        [
-                            InlineKeyboardButton(
-                                u"⚠ Kick",
-                                callback_data="report_{}=kick={}={}".format(
-                                    chat.id, reported_user.id,
-                                    reported_user.first_name)),
-                            InlineKeyboardButton(
-                                u"⛔️ Ban",
-                                callback_data="report_{}=banned={}={}".format(
-                                    chat.id, reported_user.id,
-                                    reported_user.first_name))
-                        ],
-                        [
-                            InlineKeyboardButton(
-                                u"❎ Delete Message",
-                                callback_data="report_{}=delete={}={}".format(
-                                    chat.id, reported_user.id,
-                                    message.reply_to_message.message_id))
-                        ]]
+                [
+                InlineKeyboardButton(
+                    u"⚠ Kick",
+                    callback_data="report_{}=kick={}={}".format(
+                        chat.id, reported_user.id,
+                        reported_user.first_name)),
+                InlineKeyboardButton(
+                    u"⛔️ Ban",
+                    callback_data="report_{}=banned={}={}".format(
+                        chat.id, reported_user.id,
+                        reported_user.first_name))
+            ],
+                [
+                InlineKeyboardButton(
+                    u"❎ Delete Message",
+                    callback_data="report_{}=delete={}={}".format(
+                        chat.id, reported_user.id,
+                        message.reply_to_message.message_id))
+            ]]
             reply_markup = InlineKeyboardMarkup(keyboard)
 
         else:
@@ -166,7 +168,8 @@ def report(bot: Bot, update: Update) -> str:
                 except BadRequest as excp:  # TODO: cleanup exceptions
                     LOGGER.exception("Exception while reporting user")
 
-        message.reply_to_message.reply_text(tld(chat.id, "reports_success").format(mention_html(user.id, user.first_name)), parse_mode=ParseMode.HTML)
+        message.reply_to_message.reply_text(tld(chat.id, "reports_success").format(
+            mention_html(user.id, user.first_name)), parse_mode=ParseMode.HTML)
         return msg
 
     return ""

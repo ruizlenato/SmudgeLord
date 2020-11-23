@@ -127,8 +127,10 @@ def send_start(bot, update):
                              url="https://github.com/SmudgeNetwork/SmudgeLord")
     ]]
     keyboard += [[
-        InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_lang'), callback_data="set_lang_"),
-        InlineKeyboardButton(text=tld(chat.id, 'btn_help'), callback_data="help_back")
+        InlineKeyboardButton(
+            text=tld(chat.id, 'main_start_btn_lang'), callback_data="set_lang_"),
+        InlineKeyboardButton(text=tld(chat.id, 'btn_help'),
+                             callback_data="help_back")
     ]]
 
     update.effective_message.reply_text(
@@ -138,6 +140,8 @@ def send_start(bot, update):
         disable_web_page_preview=True)
 
 # for test purposes
+
+
 def error_callback(bot, update, error):
     try:
         raise error
@@ -254,7 +258,7 @@ def get_help(bot: Bot, update: Update):
 
         update.effective_message.reply_text(tld(
             chat.id, "help_not_found").format(args[1]),
-                                            parse_mode=ParseMode.HTML)
+            parse_mode=ParseMode.HTML)
         return
 
     send_help(

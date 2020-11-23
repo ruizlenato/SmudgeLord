@@ -113,7 +113,8 @@ async def fetch_info(replied_user, event):
         else ("This User has no First Name")
     )
     last_name = (
-        last_name.replace("\u2060", "") if last_name else ("This User has no Last Name")
+        last_name.replace("\u2060", "") if last_name else (
+            "This User has no Last Name")
     )
     username = "@{}".format(username) if username else ("This User has no Username")
     user_bio = "This User has no About" if not user_bio else user_bio
@@ -122,7 +123,8 @@ async def fetch_info(replied_user, event):
     caption += tld(chat_id, "whois_first").format(first_name)
     caption += tld(chat_id, "whois_last").format(last_name)
     caption += tld(chat_id, "whois_username").format(username)
-    caption += tld(chat_id, "whois_pics").format(replied_user_profile_photos_count)
+    caption += tld(chat_id,
+                   "whois_pics").format(replied_user_profile_photos_count)
     caption += tld(chat_id, "whois_id").format(user_id)
     caption += tld(chat_id, "whois_chats").format(common_chat)
     caption += tld(chat_id, "whois_linkchat")

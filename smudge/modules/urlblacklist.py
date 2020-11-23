@@ -79,7 +79,8 @@ def rm_blacklist_url(bot: Bot, update: Update):
                         html.escape(to_unblacklist[0])),
                     parse_mode=ParseMode.HTML)
             else:
-                message.reply_text(tld(chat.id, "url_blacklist_remove_invalid"))
+                message.reply_text(
+                    tld(chat.id, "url_blacklist_remove_invalid"))
         elif unblacklisted == len(to_unblacklist):
             message.reply_text(
                 tld(chat.id, "url_blacklist_remove_success_2").format(

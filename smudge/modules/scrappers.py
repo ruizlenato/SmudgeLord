@@ -9,6 +9,7 @@ from smudge.modules.translations.strings import tld
 
 LOGGER.info("YTDownloader: By @Nick80835 (modified by @Renatoh on Telegram)")
 
+
 @register(pattern=r"^/yt(?: |)([\S]*)(?: |)([\s\S]*)")
 async def youtube_cmd(event):
     youtube_link = event.pattern_match.group(1)

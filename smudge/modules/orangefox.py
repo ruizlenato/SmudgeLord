@@ -51,7 +51,8 @@ async def orangefox(event):
         codename=device['codename']
     )
     reply_text += tld(chat_id, "fox_stable")
-    reply_text += tld(chat_id, "fox_release_version").format(release['version'])
+    reply_text += tld(chat_id,
+                      "fox_release_version").format(release['version'])
     reply_text += tld(chat_id, "fox_release_date").format(release['date'])
     reply_text += tld(chat_id, "fox_release_md5").format(release['md5'])
 
@@ -68,6 +69,7 @@ async def orangefox(event):
     keyboard = [custom.Button.url(tld(chat_id, "btn_dl"), release['url'])]
     await event.reply(reply_text, buttons=keyboard, link_preview=False)
     return
+
 
 @register(pattern=r"^/(orangefoxbeta|ofbeta|foxbeta|ofoxbeta)(?: |$)(\S*)")
 async def orangefox(event):
@@ -109,7 +111,8 @@ async def orangefox(event):
         codename=device['codename']
     )
     reply_text += tld(chat_id, "fox_beta")
-    reply_text += tld(chat_id, "fox_release_version").format(release['version'])
+    reply_text += tld(chat_id,
+                      "fox_release_version").format(release['version'])
     reply_text += tld(chat_id, "fox_release_date").format(release['date'])
     reply_text += tld(chat_id, "fox_release_md5").format(release['md5'])
 
@@ -126,6 +129,7 @@ async def orangefox(event):
     keyboard = [custom.Button.url(tld(chat_id, "btn_dl"), release['url'])]
     await event.reply(reply_text, buttons=keyboard, link_preview=False)
     return
+
 
 def _send_request(endpoint):
     response = get(API_HOST + "/" + endpoint)

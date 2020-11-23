@@ -19,7 +19,8 @@ from smudge.modules.translations.strings import tld
 # This module was inspired by Android Helper Bot by Vachounet.
 # None of the code is taken from the bot itself, to avoid confusion.
 
-LOGGER.info("android: Original Android Modules by @RealAkito on Telegram (modified by @Renatoh on Telegram)")
+LOGGER.info(
+    "android: Original Android Modules by @RealAkito on Telegram (modified by @Renatoh on Telegram)")
 
 
 @register(pattern=r"^/los(?: |$)(\S*)")
@@ -315,7 +316,8 @@ async def device_info(event):
     if results:
         reply = tld(chat_id, "results_device").format(codename)
         for item in results:
-            reply += tld(chat_id, "results_device3").format(item['brand'], item['name'], item['model'])
+            reply += tld(chat_id, "results_device3").format(
+                item['brand'], item['name'], item['model'])
     else:
         reply = f"Couldn't find info about `{codename}!`\n"
     await event.reply(reply)
@@ -353,7 +355,8 @@ async def codename_info(event):
         if len(results) > 8:
             results = results[:8]
         for item in results:
-            reply += tld(chat_id, "results_device4").format(item['device'], item['name'], item['model'])
+            reply += tld(chat_id, "results_device4").format(
+                item['device'], item['name'], item['model'])
 
     else:
         reply = f"Couldn't find `{device}` codename!\n"

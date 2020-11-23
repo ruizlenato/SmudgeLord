@@ -10,6 +10,7 @@ from googletrans import Translator
 
 from smudge.modules.translations.strings import tld
 
+
 @run_async
 def do_translate(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
@@ -19,9 +20,9 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
         if msg.reply_to_message:
             args = update.effective_message.text.split(None, 1)
         if msg.reply_to_message.text:
-                to_translate_text = msg.reply_to_message.text
+            to_translate_text = msg.reply_to_message.text
         elif msg.reply_to_message.caption:
-                to_translate_text = msg.reply_to_message.caption
+            to_translate_text = msg.reply_to_message.caption
     except:
         return
     translator = Translator()
@@ -33,6 +34,7 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
             src_lang, lan, translated_text))
     except Exception as e:
         msg.reply_text(tld(chat.id, 'translator_err').format(e))
+
 
 __help__ = True
 
