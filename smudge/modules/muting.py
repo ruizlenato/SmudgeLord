@@ -501,10 +501,10 @@ def muteme(bot: Bot, update: Update, args: List[str]) -> str:
     if res:
         update.effective_message.reply_text(tld(chat.id, "muteme_muted"))
         log = "<b>{}:</b>" \
-                  "\n#MUTEME" \
-                  "\n<b>User:</b> {}" \
-                  "\n<b>ID:</b> <code>{}</code>".format(html.escape(chat.title),
-                                                    mention_html(user.id, user.first_name), user_id)
+            "\n#MUTEME" \
+            "\n<b>User:</b> {}" \
+            "\n<b>ID:</b> <code>{}</code>".format(html.escape(chat.title),
+                                                  mention_html(user.id, user.first_name), user_id)
         return log
     update.effective_message.reply_text(tld(chat.id, "mute_cant_mute"))
 

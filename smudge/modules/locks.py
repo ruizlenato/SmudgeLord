@@ -148,10 +148,10 @@ def lock(bot: Bot, update: Update, args: List[str]) -> str:
                     parse_mode=ParseMode.MARKDOWN)
 
                 return "<b>{}:</b>" \
-                                   "\n#LOCK" \
-                                   "\n<b>Admin:</b> {}" \
-                                   "\nLocked <code>{}</code>.".format(html.escape(chat.title),
-                                                          mention_html(user.id, user.first_name), args[0])
+                    "\n#LOCK" \
+                    "\n<b>Admin:</b> {}" \
+                    "\nLocked <code>{}</code>.".format(html.escape(chat.title),
+                                                       mention_html(user.id, user.first_name), args[0])
 
             if args[0] in RESTRICTION_TYPES:
                 sql.update_restriction(chat.id, args[0], locked=True)
@@ -168,10 +168,10 @@ def lock(bot: Bot, update: Update, args: List[str]) -> str:
                     tld(chat.id, "locks_lock_success").format(args[0]),
                     parse_mode=ParseMode.MARKDOWN)
                 return "<b>{}:</b>" \
-                                   "\n#LOCK" \
-                                   "\n<b>Admin:</b> {}" \
-                                   "\nLocked <code>{}</code>.".format(html.escape(chat.title),
-                                                          mention_html(user.id, user.first_name), args[0])
+                    "\n#LOCK" \
+                    "\n<b>Admin:</b> {}" \
+                    "\nLocked <code>{}</code>.".format(html.escape(chat.title),
+                                                       mention_html(user.id, user.first_name), args[0])
             message.reply_text(tld(chat.id, "locks_type_invalid"))
         else:
             message.reply_text(tld(chat.id, "locks_lock_no_type"))
@@ -197,10 +197,10 @@ def unlock(bot: Bot, update: Update, args: List[str]) -> str:
                     tld(chat.id, "locks_unlock_success").format(args[0]),
                     parse_mode=ParseMode.MARKDOWN)
                 return "<b>{}:</b>" \
-                                   "\n#UNLOCK" \
-                                   "\n<b>Admin:</b> {}" \
-                                   "\nUnlocked <code>{}</code>.".format(html.escape(chat.title),
-                                                            mention_html(user.id, user.first_name), args[0])
+                    "\n#UNLOCK" \
+                    "\n<b>Admin:</b> {}" \
+                    "\nUnlocked <code>{}</code>.".format(html.escape(chat.title),
+                                                         mention_html(user.id, user.first_name), args[0])
 
             if args[0] in RESTRICTION_TYPES:
                 sql.update_restriction(chat.id, args[0], locked=False)
@@ -226,10 +226,10 @@ def unlock(bot: Bot, update: Update, args: List[str]) -> str:
                     parse_mode=ParseMode.MARKDOWN)
 
                 return "<b>{}:</b>" \
-                                   "\n#UNLOCK" \
-                                   "\n<b>Admin:</b> {}" \
-                                   "\nUnlocked <code>{}</code>.".format(html.escape(chat.title),
-                                                            mention_html(user.id, user.first_name), args[0])
+                    "\n#UNLOCK" \
+                    "\n<b>Admin:</b> {}" \
+                    "\nUnlocked <code>{}</code>.".format(html.escape(chat.title),
+                                                         mention_html(user.id, user.first_name), args[0])
             message.reply_text(tld(chat.id, "locks_type_invalid"))
 
         else:
