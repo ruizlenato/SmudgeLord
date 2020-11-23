@@ -12,12 +12,14 @@ from pyrogram.types import Message
 from smudge import pbot, SUDO_USERS
 from pyrogram import Client, filters
 
+
 @pbot.on_message(filters.command("ping", prefixes="/"))
 async def ping(c: Client, m: Message):
     first = datetime.now()
     sent = await m.reply_text("**Pong!**")
     second = datetime.now()
     await sent.edit_text(f"**Pong!** `{(second - first).microseconds / 1000}`ms")
+
 
 @pbot.on_message(filters.regex(r'^s/(.+)?/(.+)?(/.+)?') & filters.reply)
 async def sed(c: Client, m: Message):
@@ -44,7 +46,8 @@ async def sed(c: Client, m: Message):
         return
 
     try:
-        res = regex.sub(pattern, replace_with, text, count=count, flags=rflags, timeout=1)
+        res = regex.sub(pattern, replace_with, text,
+                        count=count, flags=rflags, timeout=1)
     except TimeoutError:
         await m.reply_text(_("sed.regex_timeout"))
     except regex.error as e:
@@ -52,6 +55,7 @@ async def sed(c: Client, m: Message):
     else:
         await c.send_message(m.chat.id, f'{html.escape(res)}',
                              reply_to_message_id=m.reply_to_message.message_id)
+
 
 @pbot.on_message(filters.user(SUDO_USERS) & filters.command("term"))
 async def terminal(client, message):
@@ -92,7 +96,8 @@ async def terminal(client, message):
             )
         except Exception as err:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            errors = traceback.format_exception(etype=exc_type, value=exc_obj, tb=exc_tb)
+            errors = traceback.format_exception(
+                etype=exc_type, value=exc_obj, tb=exc_tb)
             await message.reply("""**Error:**\n```{}```""".format("".join(errors)))
             return
         output = process.stdout.read()[:-1].decode("utf-8")
@@ -103,12 +108,13 @@ async def terminal(client, message):
             with open("nana/cache/output.txt", "w+") as file:
                 file.write(output)
             await client.send_document(message.chat.id, "nana/cache/output.txt", reply_to_message_id=message.message_id,
-                                    caption="`Output file`")
+                                       caption="`Output file`")
             os.remove("nana/cache/output.txt")
             return
         await message.reply(f"**Output:**\n```{output}```", parse_mode='markdown')
     else:
         await message.reply("**Output:**\n`No Output`")
+
 
 @pbot.on_message(filters.command("json", prefixes="/") & filters.user(SUDO_USERS))
 async def jsonify(client, message):

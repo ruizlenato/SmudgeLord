@@ -19,6 +19,7 @@ from smudge.modules.translations.strings import tld
 
 combot_stickers_url = "https://combot.org/telegram/stickers?q="
 
+
 @run_async
 def stickerid(bot: Bot, update: Update):
     chat = update.effective_chat
@@ -29,7 +30,8 @@ def stickerid(bot: Bot, update: Update):
                 escape_markdown(msg.reply_to_message.sticker.file_id)),
             parse_mode=ParseMode.MARKDOWN)
     else:
-        update.effective_message.reply_text(tld(chat.id, 'stickers_stickerid_no_reply'))
+        update.effective_message.reply_text(
+            tld(chat.id, 'stickers_stickerid_no_reply'))
 
 
 @run_async
@@ -43,7 +45,9 @@ def getsticker(bot: Bot, update: Update):
         bot.send_document(chat_id, document=open('sticker.png', 'rb'))
         os.remove("sticker.png")
     else:
-        update.effective_message.reply_text(tld(chat_id, 'stickers_getsticker_no_reply'))
+        update.effective_message.reply_text(
+            tld(chat_id, 'stickers_getsticker_no_reply'))
+
 
 @run_async
 def cb_sticker(bot: Bot, update: Update):
@@ -132,7 +136,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
                                    png_sticker=open('kangsticker.png', 'rb'),
                                    emojis=sticker_emoji)
             msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
-                parse_mode=ParseMode.MARKDOWN)
+                           parse_mode=ParseMode.MARKDOWN)
         except OSError as e:
             msg.reply_text(tld(chat.id, 'stickers_kang_only_img'))
             print(e)
@@ -149,14 +153,14 @@ def kang(bot: Bot, update: Update, args: List[str]):
                                            'kangsticker.png', 'rb'),
                                        emojis=sticker_emoji)
                 msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
-                    parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
             elif e.message == "Invalid sticker emojis":
                 msg.reply_text(tld(chat.id, 'stickers_kang_invalid_emoji'))
             elif e.message == "Stickers_too_much":
                 msg.reply_text(tld(chat.id, 'stickers_kang_too_much'))
             elif e.message == "Internal Server Error: sticker set not found (500)":
                 msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
-                    parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
             print(e)
     elif args:
         try:
@@ -193,7 +197,7 @@ def kang(bot: Bot, update: Update, args: List[str]):
                                    png_sticker=open('kangsticker.png', 'rb'),
                                    emojis=sticker_emoji)
             msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
-                parse_mode=ParseMode.MARKDOWN)
+                           parse_mode=ParseMode.MARKDOWN)
         except OSError as e:
             msg.reply_text(tld(chat.id, 'stickers_kang_only_img'))
             print(e)
@@ -210,14 +214,14 @@ def kang(bot: Bot, update: Update, args: List[str]):
                                            'kangsticker.png', 'rb'),
                                        emojis=sticker_emoji)
                 msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
-                    parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
             elif e.message == "Invalid sticker emojis":
                 msg.reply_text(tld(chat.id, 'stickers_kang_invalid_emoji'))
             elif e.message == "Stickers_too_much":
                 msg.reply_text(tld(chat.id, 'stickers_kang_too_much'))
             elif e.message == "Internal Server Error: sticker set not found (500)":
                 msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
-                    parse_mode=ParseMode.MARKDOWN)
+                               parse_mode=ParseMode.MARKDOWN)
             print(e)
     else:
         packs = tld(chat.id, 'stickers_kang_no_reply')
@@ -263,12 +267,12 @@ def makepack_internal(msg, user, png_sticker, emoji, bot, packname, packnum):
                            ]]))
         elif e.message == "Internal Server Error: created sticker set not found (500)":
             msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
-                parse_mode=ParseMode.MARKDOWN)
+                           parse_mode=ParseMode.MARKDOWN)
         return
 
     if success:
         msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, emoji),
-            parse_mode=ParseMode.MARKDOWN)
+                       parse_mode=ParseMode.MARKDOWN)
     else:
         msg.reply_text(tld(chat.id, 'stickers_pack_create_error'))
 

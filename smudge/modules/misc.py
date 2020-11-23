@@ -25,21 +25,24 @@ from requests import get
 
 cvid = Covid(source="worldometers")
 
+
 @run_async
 def screenshot(bot: Bot, update: Update, args):
     chat_id = update.effective_chat.id
     chat = update.effective_chat
     txt = " ".join(args)
     filename = "screencapture.png"
-    
+
     image_url = f"https://api.screenshotlayer.com/api/capture?access_key={SCREENSHOT_API_KEY}&url={txt}&fullpage=1&viewport=2560x1440&format=PNG&force=1"
     if not SCREENSHOT_API_KEY:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
         return
-     
+
     else:
         urllib.request.urlretrieve(image_url, filename)
-        bot.send_document(chat_id=chat.id,  document=open('screencapture.png', 'rb'), caption=txt)
+        bot.send_document(chat_id=chat.id,  document=open(
+            'screencapture.png', 'rb'), caption=txt)
+
 
 @run_async
 def get_bot_ip(bot: Bot, update: Update):
@@ -56,18 +59,20 @@ def get_id(bot: Bot, update: Update, args: List[str]):
             user1 = update.effective_message.reply_to_message.from_user
             user2 = update.effective_message.reply_to_message.forward_from
             update.effective_message.reply_markdown(tld(chat.id, "misc_get_id_1").format(escape_markdown(user2.first_name), user2.id,
-                     escape_markdown(user1.first_name), user1.id))
+                                                                                         escape_markdown(user1.first_name), user1.id))
         else:
             user = bot.get_chat(user_id)
             update.effective_message.reply_markdown(tld(chat.id, "misc_get_id_2").format(escape_markdown(user.first_name),
-                                           user.id))
+                                                                                         user.id))
     else:
         chat = update.effective_chat  # type: Optional[Chat]
         if chat.type == "private":
-            update.effective_message.reply_markdown(tld(chat.id, "misc_id_1").format(chat.id))
+            update.effective_message.reply_markdown(
+                tld(chat.id, "misc_id_1").format(chat.id))
 
         else:
-            update.effective_message.reply_markdown(tld(chat.id, "misc_id_2").format(chat.id))
+            update.effective_message.reply_markdown(
+                tld(chat.id, "misc_id_2").format(chat.id))
 
 
 @run_async
@@ -161,7 +166,7 @@ def reply_keyboard_remove(bot: Bot, update: Update):
     reply_markup = ReplyKeyboardRemove(remove_keyboard=True)
     old_message = bot.send_message(
         chat_id=update.message.chat_id,
-        text='trying', # This text will not get translated
+        text='trying',  # This text will not get translated
         reply_markup=reply_markup,
         reply_to_message_id=update.message.message_id)
     bot.delete_message(chat_id=update.message.chat_id,
@@ -262,6 +267,7 @@ def repo(bot: Bot, update: Update, args: List[str]):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
+
 @run_async
 def ud(bot: Bot, update: Update):
     message = update.effective_message
@@ -277,6 +283,7 @@ def wiki(bot: Bot, update: Update):
     msg = update.effective_message
 
     msg.reply_text("🇧🇷Para pesquisar no wikipedia em português use /wikipt e em Ingles use /wikien\n \n🇺🇸To search wikipedia in Portuguese use /wikipt and in English use /wikien")
+
 
 @run_async
 def wikien(bot: Bot, update: Update):
@@ -301,15 +308,18 @@ def wikien(bot: Bot, update: Update):
             update.effective_message.reply_text("⚠ Error: {}".format(et))
         except wikipedia.exceptions.DisambiguationError as eet:
             update.effective_message.reply_text(
-                "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}".format(eet)
+                "⚠ Error\n There are too many query! Express it more!\nPossible query result:\n{}".format(
+                    eet)
             )
+
 
 @run_async
 def wikipt(bot: Bot, update: Update):
     kueri = re.split(pattern="wikipt", string=update.effective_message.text)
     wikipedia.set_lang("pt")
     if len(str(kueri[1])) == 0:
-        update.effective_message.reply_text("Escreva o que você quer procurar no Wikipedia!")
+        update.effective_message.reply_text(
+            "Escreva o que você quer procurar no Wikipedia!")
     else:
         try:
             pertama = update.effective_message.reply_text("🔄 Carregando...")
@@ -327,8 +337,11 @@ def wikipt(bot: Bot, update: Update):
             update.effective_message.reply_text("⚠ Erro: {}".format(et))
         except wikipedia.exceptions.DisambiguationError as eet:
             update.effective_message.reply_text(
-                "⚠ Error\n Há muitas coisa! Expresse melhor para achar o resultado!\nPossíveis resultados da consulta:\n{}".format(eet)
+                "⚠ Error\n Há muitas coisa! Expresse melhor para achar o resultado!\nPossíveis resultados da consulta:\n{}".format(
+                    eet)
             )
+
+
 @run_async
 def covid(bot: Bot, update: Update):
     message = update.effective_message
@@ -392,7 +405,7 @@ ID_HANDLER = DisableAbleCommandHandler("id",
 IP_HANDLER = CommandHandler("ip",
                             get_bot_ip,
                             filters=Filters.chat(OWNER_ID))
-                            
+
 INFO_HANDLER = DisableAbleCommandHandler("info",
                                          info,
                                          pass_args=True,
@@ -415,7 +428,8 @@ WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki)
 WIKIEN_HANDLER = DisableAbleCommandHandler("wikien", wikien)
 WIKIPT_HANDLER = DisableAbleCommandHandler("wikipt", wikipt)
 COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True)
-SCREENSHOT_HANDLER = DisableAbleCommandHandler(["screenshot", "print", "ss", "screencapture"], screenshot, pass_args=True)
+SCREENSHOT_HANDLER = DisableAbleCommandHandler(
+    ["screenshot", "print", "ss", "screencapture"], screenshot, pass_args=True)
 
 dispatcher.add_handler(SCREENSHOT_HANDLER)
 dispatcher.add_handler(UD_HANDLER)

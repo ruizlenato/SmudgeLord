@@ -14,6 +14,7 @@ from smudge.modules.disable import DisableAbleCommandHandler
 
 from smudge.modules.translations.strings import tld
 
+
 @run_async
 def get_rules(bot: Bot, update: Update):
     chat_id = update.effective_chat.id
@@ -38,7 +39,7 @@ def send_rules(update, chat_id, from_pm=False):
 
     rules = sql.get_rules(chat_id)
     text = tld(chat.id, "rules_display").format(escape_markdown(chat.title),
-                                                  rules)
+                                                rules)
 
     if from_pm and rules:
         bot.send_message(user.id, text, parse_mode=ParseMode.MARKDOWN)
@@ -104,7 +105,8 @@ def __migrate__(old_chat_id, new_chat_id):
 __help__ = True
 
 
-GET_RULES_HANDLER = DisableAbleCommandHandler("rules", get_rules, filters=Filters.group)
+GET_RULES_HANDLER = DisableAbleCommandHandler(
+    "rules", get_rules, filters=Filters.group)
 SET_RULES_HANDLER = CommandHandler("setrules",
                                    set_rules,
                                    filters=Filters.group)

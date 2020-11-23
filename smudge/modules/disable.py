@@ -103,7 +103,7 @@ if is_module_loaded(FILENAME):
             if sql.enable_command(chat.id, enable_cmd):
                 update.effective_message.reply_text(
                     tld(chat.id, "disable_enable_success").format(enable_cmd),
-                        parse_mode=ParseMode.MARKDOWN)
+                    parse_mode=ParseMode.MARKDOWN)
             else:
                 update.effective_message.reply_text(
                     tld(chat.id, "disable_already_enabled"))

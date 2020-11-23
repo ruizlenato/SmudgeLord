@@ -58,7 +58,7 @@ def connect_chat(bot, update, args):
                     and bot.get_chat_member(
                         connect_chat,
                         update.effective_message.from_user.id).status in
-                ('member')) or (user.id in SUDO_USERS):
+                    ('member')) or (user.id in SUDO_USERS):
 
                 connection_status = sql.connect(
                     update.effective_message.from_user.id, connect_chat)
@@ -70,10 +70,10 @@ def connect_chat(bot, update, args):
                         tld(chat.id, "connection_success").format(chat_name),
                         parse_mode=ParseMode.MARKDOWN)
 
-                    #Add chat to connection history
+                    # Add chat to connection history
                     history = sql.get_history(user.id)
                     if history:
-                        #Vars
+                        # Vars
                         if history.chat_id1:
                             history1 = int(history.chat_id1)
                         if history.chat_id2:
@@ -154,7 +154,7 @@ def disconnect_chat(bot, update):
         if disconnection_status:
             sql.disconnected_chat = update.effective_message.reply_text(
                 tld(chat.id, "connection_dis_success"))
-            #Rebuild user's keyboard
+            # Rebuild user's keyboard
             keyboard(bot, update)
         else:
             update.effective_message.reply_text("connection_dis_fail")
@@ -182,7 +182,7 @@ def connected(bot, update, chat, user_id, need_admin=True):
             (sql.allow_connect_to_chat(connect_chat) is True)
                 and bot.get_chat_member(
                     user_id, update.effective_message.from_user.id).status in
-            ('member')) or (user_id in SUDO_USERS):
+                ('member')) or (user_id in SUDO_USERS):
             if need_admin:
                 if bot.get_chat_member(
                         conn_id,

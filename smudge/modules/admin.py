@@ -63,7 +63,7 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
         can_post_messages=bot_member.can_post_messages,
         can_edit_messages=bot_member.can_edit_messages,
         can_delete_messages=bot_member.can_delete_messages,
-        #can_invite_users=bot_member.can_invite_users,
+        # can_invite_users=bot_member.can_invite_users,
         can_restrict_members=bot_member.can_restrict_members,
         can_pin_messages=bot_member.can_pin_messages,
         can_promote_members=bot_member.can_promote_members)
@@ -72,9 +72,9 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
         mention_html(user.id, user.first_name),
         mention_html(user_member.user.id, user_member.user.first_name),
         html.escape(chatD.title)),
-                       parse_mode=ParseMode.HTML)
+        parse_mode=ParseMode.HTML)
     return f"<b>{html.escape(chatD.title)}:</b>" \
-            "\n#PROMOTED" \
+        "\n#PROMOTED" \
            f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}" \
            f"\n<b>User:</b> {mention_html(user_member.user.id, user_member.user.first_name)}"
 
@@ -132,9 +132,9 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
             mention_html(user.id, user.first_name),
             mention_html(user_member.user.id, user_member.user.first_name),
             html.escape(chatD.title)),
-                           parse_mode=ParseMode.HTML)
+            parse_mode=ParseMode.HTML)
         return f"<b>{html.escape(chatD.title)}:</b>" \
-                "\n#DEMOTED" \
+            "\n#DEMOTED" \
                f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}" \
                f"\n<b>User:</b> {mention_html(user_member.user.id, user_member.user.first_name)}"
 
@@ -173,7 +173,7 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
             else:
                 raise
         return f"<b>{html.escape(chat.title)}:</b>" \
-                "\n#PINNED" \
+            "\n#PINNED" \
                f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}"
 
     return ""
@@ -221,7 +221,7 @@ def invite(bot: Bot, update: Update):
         bot_member = chatP.get_member(bot.id)
         if bot_member.can_invite_users:
             invitelink = chatP.invite_link
-            #print(invitelink)
+            # print(invitelink)
             if not invitelink:
                 invitelink = bot.exportChatInviteLink(chatP.id)
 
@@ -288,7 +288,7 @@ def reaction(bot: Bot, update: Update, args: List[str]) -> str:
         update.effective_message.reply_text(tld(
             chat.id, "admin_reaction_status").format('enabled' if status is
                                                      True else 'disabled'),
-                                            parse_mode=ParseMode.MARKDOWN)
+            parse_mode=ParseMode.MARKDOWN)
 
 
 __help__ = True

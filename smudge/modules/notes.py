@@ -243,7 +243,7 @@ def clear(bot: Bot, update: Update, args: List[str]):
         if sql.rm_note(chat_id, notename):
             update.effective_message.reply_text(tld(
                 chat.id, "clear_success").format(chat_name),
-                                                parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "note_not_existed"))
@@ -280,7 +280,7 @@ def list_notes(bot: Bot, update: Update):
     if not note_list:
         update.effective_message.reply_text(tld(
             chat.id, "note_none_in_chat").format(chat_name),
-                                            parse_mode=ParseMode.MARKDOWN)
+            parse_mode=ParseMode.MARKDOWN)
 
     elif len(msg) != 0:
         msg += tld(chat.id, "note_get")

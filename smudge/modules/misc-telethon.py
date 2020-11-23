@@ -5,7 +5,7 @@ from smudge.events import register
 from smudge.modules.translations.strings import tld
 
 
-#@register(group_only=True, pattern="^/delusers(?: |$)(.*)")
+# @register(group_only=True, pattern="^/delusers(?: |$)(.*)")
 async def rm_deletedacc(event):
     chat_id = event.chat_id
     con = event.pattern_match.group(1)

@@ -13,7 +13,7 @@ from telegram.utils.helpers import escape_markdown
 from smudge.modules.helper_funcs.filters import CustomFilters
 from smudge.modules.helper_funcs.chat_status import bot_admin
 
-from smudge.modules.translations.strings import tld	
+from smudge.modules.translations.strings import tld
 
 USERS_GROUP = 4
 CHAT_GROUP = 10

@@ -13,6 +13,7 @@ from smudge import dispatcher, LASTFM_API_KEY, GENIUS
 from smudge.modules.translations.strings import tld
 from smudge.modules.disable import DisableAbleCommandHandler
 
+
 @run_async
 def set_user(bot: Bot, update: Update, args):
     msg = update.effective_message
@@ -61,7 +62,8 @@ def last_fm(bot: Bot, update: Update):
         return
     if first_track.get("@attr"):
         # Ensures the track is now playing
-        image = first_track.get("image")[3].get("#text")  # Grab URL of 300x300 image
+        image = first_track.get("image")[3].get(
+            "#text")  # Grab URL of 300x300 image
         artist = first_track.get("artist").get("name")
         artist1 = urllib.parse.quote(artist)
         song = first_track.get("name")
@@ -79,7 +81,8 @@ def last_fm(bot: Bot, update: Update):
             rep += f"<a href='{image}'>\u200c</a>"
     else:
         tracks = res.json().get("recenttracks").get("track")
-        track_dict = {tracks[i].get("artist").get("name"): tracks[i].get("name") for i in range(3)}
+        track_dict = {tracks[i].get("artist").get(
+            "name"): tracks[i].get("name") for i in range(3)}
         rep = tld(chat.id, "lastfm_old_scrb").format(user)
         for artist, song in track_dict.items():
             rep += tld(chat.id, "lastfm_scrr").format(artist, song)
@@ -89,6 +92,7 @@ def last_fm(bot: Bot, update: Update):
         rep += tld(chat.id, "lastfm_scr").format(scrobbles)
 
     msg.reply_text(rep, parse_mode=ParseMode.HTML)
+
 
 @run_async
 def album(bot: Bot, update: Update):
@@ -136,6 +140,7 @@ def album(bot: Bot, update: Update):
 
     msg.reply_text(rep, parse_mode=ParseMode.HTML)
 
+
 @run_async
 def artist(bot: Bot, update: Update):
     msg = update.effective_message
@@ -180,7 +185,8 @@ def artist(bot: Bot, update: Update):
         msg.reply_text(tld(chat.id, "lastfm_nonetracks_now"))
 
     msg.reply_text(rep, parse_mode=ParseMode.HTML)
-    
+
+
 @run_async
 def collage(bot: Bot, update: Update):
     user_id = update.effective_user.id
@@ -192,10 +198,12 @@ def collage(bot: Bot, update: Update):
     if not username:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
         return
-     
+
     else:
         urllib.request.urlretrieve(image_url, filename)
-        bot.send_photo(chat_id=chat.id,  photo=open('test.png', 'rb'), caption= tld(chat.id, "lastfm_collage").format(user))
+        bot.send_photo(chat_id=chat.id,  photo=open('test.png', 'rb'),
+                       caption=tld(chat.id, "lastfm_collage").format(user))
+
 
 @run_async
 def lyrics(bot: Bot, update: Update, args):
@@ -231,7 +239,7 @@ def lyrics(bot: Bot, update: Update, args):
         if not res.status_code == 200:
             msg.reply_text(tld(chat.id, "lastfm_userwrong"))
             return
-        
+
         try:
             first_track = res.json().get("recenttracks").get("track")[0]
         except IndexError:
@@ -242,7 +250,8 @@ def lyrics(bot: Bot, update: Update, args):
         songs = genius.search_song(song, artist)
         #name_song = tld(chat.id, "song_test").format(artist, song, songs.lyrics)
         if songs is None:
-            msg.reply_text(tld(chat.id, "lyrics_not_found").format(song, artist))
+            msg.reply_text(
+                tld(chat.id, "lyrics_not_found").format(song, artist))
         else:
             page_content = songs.lyrics.replace("\n", "<br class='inline'>")
             response = telegraph.create_page(
@@ -252,7 +261,8 @@ def lyrics(bot: Bot, update: Update, args):
             )
             lyricsurl = ('https://telegra.ph/{}'.format(response['path']))
             msg.reply_text(lyricsurl, parse_mode=ParseMode.HTML)
-    
+
+
 __help__ = """
 Share what you're what listening to with the help of this module!
 
@@ -264,17 +274,18 @@ Share what you're what listening to with the help of this module!
 """
 
 __mod_name__ = "Last.FM"
-    
+
 
 SET_USER_HANDLER = CommandHandler("setuser", set_user, pass_args=True)
 CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user)
-LASTFM_HANDLER = DisableAbleCommandHandler(["lastfm", "lt", "last", "l"], last_fm)
+LASTFM_HANDLER = DisableAbleCommandHandler(
+    ["lastfm", "lt", "last", "l"], last_fm)
 LYRICS_HANDLER = CommandHandler("lyrics", lyrics, pass_args=True)
 ALBUM_HANDLER = DisableAbleCommandHandler(["album", "albuns"], album)
 ARTIST_HANDLER = DisableAbleCommandHandler("artist", artist)
 #COLLAGE_HANDLER = CommandHandler("collage", collage)
 
-#dispatcher.add_handler(COLLAGE_HANDLER)
+# dispatcher.add_handler(COLLAGE_HANDLER)
 dispatcher.add_handler(SET_USER_HANDLER)
 dispatcher.add_handler(CLEAR_USER_HANDLER)
 dispatcher.add_handler(LASTFM_HANDLER)
