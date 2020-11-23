@@ -869,24 +869,23 @@ def clean_welcome(bot: Bot, update: Update, args: List[str]) -> str:
         update.effective_message.reply_text(
             tld(chat.id, 'welcome_clean_set_on'))
         return "<b>{}:</b>" \
-               "\n#CLEAN_WELCOME" \
-               "\n<b>Admin:</b> {}" \
-               "\nHas toggled clean welcomes to <code>ON</code>.".format(escape(chat.title),
-                                                                         mention_html(user.id, user.first_name))
-    elif args[0].lower() in ("off", "no"):
+            "\n#CLEAN_WELCOME" \
+            "\n<b>Admin:</b> {}" \
+            "\nHas toggled clean welcomes to <code>ON</code>.".format(escape(chat.title),
+                                                                      mention_html(user.id, user.first_name))
+    if args[0].lower() in ("off", "no"):
         sql.set_clean_welcome(str(chat.id), False)
         update.effective_message.reply_text(
             tld(chat.id, 'welcome_clean_set_off'))
         return "<b>{}:</b>" \
-               "\n#CLEAN_WELCOME" \
-               "\n<b>Admin:</b> {}" \
-               "\nHas toggled clean welcomes to <code>OFF</code>.".format(escape(chat.title),
-                                                                          mention_html(user.id, user.first_name))
-    else:
-        # idek what you're writing, say yes or no
-        update.effective_message.reply_text(
-            "I understand 'on/yes' or 'off/no' only!")
-        return ""
+            "\n#CLEAN_WELCOME" \
+            "\n<b>Admin:</b> {}" \
+            "\nHas toggled clean welcomes to <code>OFF</code>.".format(escape(chat.title),
+                                                                       mention_html(user.id, user.first_name))
+    # idek what you're writing, say yes or no
+    update.effective_message.reply_text(
+        "I understand 'on/yes' or 'off/no' only!")
+    return ""
 
 
 def __migrate__(old_chat_id, new_chat_id):

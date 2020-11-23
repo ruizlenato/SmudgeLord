@@ -51,9 +51,8 @@ def rm_repo(chat_id, name):
             SESSION.delete(repo)
             SESSION.commit()
             return True
-        else:
-            SESSION.close()
-            return False
+        SESSION.close()
+        return False
 
 
 def get_all_repos(chat_id):

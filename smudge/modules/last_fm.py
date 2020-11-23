@@ -198,11 +198,9 @@ def collage(bot: Bot, update: Update):
     if not username:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
         return
-
-    else:
-        urllib.request.urlretrieve(image_url, filename)
-        bot.send_photo(chat_id=chat.id,  photo=open('test.png', 'rb'),
-                       caption=tld(chat.id, "lastfm_collage").format(user))
+    urllib.request.urlretrieve(image_url, filename)
+    bot.send_photo(chat_id=chat.id,  photo=open('test.png', 'rb'),
+                   caption=tld(chat.id, "lastfm_collage").format(user))
 
 
 @run_async

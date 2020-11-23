@@ -190,10 +190,9 @@ def connected(bot, update, chat, user_id, need_admin=True):
                             'administrator',
                             'creator') or user_id in SUDO_USERS:
                     return conn_id
-                else:
-                    update.effective_message.reply_text(
-                        tld(chat.id, "connection_err_no_admin"))
-                    return
+                update.effective_message.reply_text(
+                    tld(chat.id, "connection_err_no_admin"))
+                return
             else:
                 return conn_id
         else:

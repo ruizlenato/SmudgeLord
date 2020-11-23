@@ -75,16 +75,14 @@ def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
                     html.escape(chat.title),
                     mention_html(user.id, user.first_name))
 
-            elif amount < 3:
+            if amount < 3:
                 message.reply_text(tld(chat.id, "flood_err_num"))
                 return ""
-
-            else:
-                sql.set_flood(chat.id, amount)
-                message.reply_text(tld(chat.id, "flood_set").format(amount))
-                return tld(chat.id, "flood_logger_set_on").format(
-                    html.escape(chat.title),
-                    mention_html(user.id, user.first_name), amount)
+            sql.set_flood(chat.id, amount)
+            message.reply_text(tld(chat.id, "flood_set").format(amount))
+            return tld(chat.id, "flood_logger_set_on").format(
+                html.escape(chat.title),
+                mention_html(user.id, user.first_name), amount)
 
         else:
             message.reply_text(tld(chat.id, "flood_err_args"))

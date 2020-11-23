@@ -169,8 +169,7 @@ def welcome_security(chat_id):
         security = SESSION.query(WelcomeSecurity).get(str(chat_id))
         if security:
             return security.security, security.mute_time, security.custom_text
-        else:
-            return False, "0", "Click here to prove you're human"
+        return False, "0", "Click here to prove you're human"
     finally:
         SESSION.close()
 
@@ -218,9 +217,8 @@ def get_welc_pref(chat_id):
     SESSION.close()
     if welc:
         return welc.should_welcome, welc.custom_welcome, welc.custom_content, welc.welcome_type
-    else:
-        # Welcome by default.
-        return True, DEFAULT_WELCOME, None, Types.TEXT
+    # Welcome by default.
+    return True, DEFAULT_WELCOME, None, Types.TEXT
 
 
 def get_gdbye_pref(chat_id):
@@ -228,9 +226,8 @@ def get_gdbye_pref(chat_id):
     SESSION.close()
     if welc:
         return welc.should_goodbye, welc.custom_leave, welc.custom_content_leave, welc.leave_type
-    else:
-        # Welcome by default.
-        return True, DEFAULT_GOODBYE, None, Types.TEXT
+    # Welcome by default.
+    return True, DEFAULT_GOODBYE, None, Types.TEXT
 
 
 def set_clean_welcome(chat_id, clean_welcome):

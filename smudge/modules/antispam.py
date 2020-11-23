@@ -264,8 +264,7 @@ def check_and_ban(update, user_id, should_message=True):
                         "antispam_spamwatch_banned").format(spamwatch_reason),
                         parse_mode=ParseMode.HTML)
                     return
-                else:
-                    return
+                return
     except Exception:
         pass
 
@@ -371,8 +370,7 @@ def __user_info__(user_id, chat_id):
             text = text.format(tld(chat_id, "common_no"))
 
         return text
-    else:
-        return ""
+    return ""
 
 
 def __migrate__(old_chat_id, new_chat_id):
