@@ -10,8 +10,8 @@ from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher, SUDO_USERS
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import bot_admin, user_admin, can_pin, can_promote
-from smudge.modules.helper_funcs.extraction import extract_user
+from smudge.helper_funcs.chat_status import bot_admin, user_admin, can_pin, can_promote
+from smudge.helper_funcs.extraction import extract_user
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import admin_sql as sql
 from smudge.modules.translations.strings import tld
