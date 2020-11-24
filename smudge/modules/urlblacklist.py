@@ -7,7 +7,7 @@ from telegram.ext import CommandHandler, Filters, MessageHandler, run_async
 import tldextract
 from smudge import LOGGER, dispatcher
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import user_admin, user_not_admin
+from smudge.helper_funcs.chat_status import user_admin, user_not_admin
 from smudge.modules.sql import urlblacklist_sql as sql
 from smudge.modules.translations.strings import tld
 

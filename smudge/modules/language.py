@@ -4,7 +4,7 @@ from telegram.ext import CommandHandler
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from smudge import dispatcher
 from smudge.modules.translations.list_locale import list_locales
-from smudge.modules.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.chat_status import user_admin
 from telegram.ext import CallbackQueryHandler
 import re
 

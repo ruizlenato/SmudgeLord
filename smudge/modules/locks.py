@@ -12,7 +12,7 @@ from telegram.utils.helpers import mention_html
 import smudge.modules.sql.locks_sql as sql
 from smudge import dispatcher, SUDO_USERS, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
+from smudge.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
     bot_can_delete, is_bot_admin
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import users_sql

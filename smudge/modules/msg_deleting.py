@@ -1,67 +1,80 @@
-from smudge.events import register
-from smudge.modules.helper_funcs.telethon.chat_status import user_is_admin, can_delete_messages
+from smudge import pbot
+import asyncio
+from pyrogram import Client, filters, errors
+from pyrogram.types import Update
 from smudge.modules.translations.strings import tld
 
+async def admin_check(c: Client, update: Update) -> bool:
+    chat_id = update.chat.id
+    user_id = update.from_user.id
 
-@register(pattern="^/purge")
-async def purge(event):
-    if event.from_id == None:
+    user = await c.get_chat_member(chat_id=chat_id, user_id=user_id)
+    admin_strings = ["creator", "administrator"]
+
+    if user.status not in admin_strings:
+        await update.reply_text(
+            "This is an Admin Restricted command and you're not allowed to use it."
+        )
+        return False
+
+    return True
+
+@pbot.on_message(filters.command("purge"))
+async def purge(c: Client, update: Update):
+
+    chat_id=update.chat.id
+    res = await admin_check(c, update)
+    if not res:
         return
 
-    chat = event.chat_id
+    if update.chat.type != "supergroup":
+        await update.reply_text("purge_gruop")
+        return
+    purge_msg = await update.reply_text(tld(chat_id, "purge_msg_deleting"))
+    message_ids = []
 
-    if not await user_is_admin(user_id=event.from_id, message=event):
-        await event.reply(tld(chat, "helpers_user_not_admin"))
+    if update.reply_to_message:
+        for a_msg in range(update.reply_to_message.message_id, update.message_id):
+            message_ids.append(a_msg)
+
+    if (
+        not update.reply_to_message
+        and len(update.text.split()) == 2
+        and isinstance(update.text.split()[1], int)
+    ):
+        c_msg_id = update.message_id
+        first_msg = (update.message_id) - (update.text.split()[1])
+        for a_msg in range(first_msg, c_msg_id):
+            message_ids.append(a_msg)
+
+    try:
+        await c.delete_messages(chat_id=update.chat.id, message_ids=message_ids, revoke=True)
+    except errors.MessageDeleteForbidden:
+        await update.edit_text(tld(chat_id, "purge_old_fail"))
         return
 
-    if not await can_delete_messages(message=event):
-        await event.reply(tld(chat, "helpers_bot_cant_delete"))
+    count_del_msg = len(message_ids)
+
+    await purge_msg.edit_text(tld(chat_id, "purge_msg_success"))
+    await asyncio.sleep(3)
+    await purge_msg.delete()
+    return
+
+
+@pbot.on_message(filters.command("del"))
+async def del_msg(c: Client, update: Update):
+
+    res = await admin_check(c, update)
+    if not res:
         return
 
-    msg = await event.get_reply_message()
-    if not msg:
-        await event.reply(tld(chat, "purge_invalid"))
-        return
-    msgs = []
-    msg_id = msg.id
-    delete_to = event.message.id - 1
-    await event.client.delete_messages(chat, event.message.id)
-
-    msgs.append(event.reply_to_msg_id)
-    for m_id in range(delete_to, msg_id - 1, -1):
-        msgs.append(m_id)
-        if len(msgs) == 100:
-            await event.client.delete_messages(chat, msgs)
-            msgs = []
-
-    await event.client.delete_messages(chat, msgs)
-    text = tld(chat, "purge_msg_success")
-    await event.respond(text, parse_mode='md')
-
-
-@register(pattern="^/del$")
-async def delet(event):
-    if event.from_id == None:
-        return
-
-    chat = event.chat_id
-
-    if not await user_is_admin(user_id=event.from_id, message=event):
-        await event.reply(tld(chat, "helpers_user_not_admin"))
-        return
-
-    if not await can_delete_messages(message=event):
-        await event.reply(tld(chat, "helpers_bot_cant_delete"))
-        return
-
-    msg = await event.get_reply_message()
-    if not msg:
-        await event.reply(tld(chat, "purge_invalid"))
-        return
-    currentmsg = event.message
-    chat = await event.get_input_chat()
-    delall = [msg, currentmsg]
-    await event.client.delete_messages(chat, delall)
-
-
-__help__ = True
+        await c.delete_messages(
+            chat_id=update.chat.id, message_ids=update.reply_to_message.message_id
+        )
+        await asyncio.sleep(0.4)
+        await update.delete()
+    else:
+        delm = await update.reply_text("Finish")
+        delm
+        await delm.delete()
+    return

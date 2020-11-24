@@ -6,8 +6,8 @@ from telegram.ext import CommandHandler, RegexHandler, Filters
 from telegram.utils.helpers import escape_markdown
 
 from smudge import dispatcher
-from smudge.modules.helper_funcs.handlers import CMD_STARTERS
-from smudge.modules.helper_funcs.misc import is_module_loaded
+from smudge.helper_funcs.handlers import CMD_STARTERS
+from smudge.helper_funcs.misc import is_module_loaded
 
 from smudge.modules.translations.strings import tld
 
@@ -16,7 +16,7 @@ FILENAME = __name__.rsplit(".", 1)[-1]
 
 # If module is due to be loaded, then setup all the magical handlers
 if is_module_loaded(FILENAME):
-    from smudge.modules.helper_funcs.chat_status import user_admin, is_user_admin
+    from smudge.helper_funcs.chat_status import user_admin, is_user_admin
     from telegram.ext.dispatcher import run_async
 
     from smudge.modules.sql import disable_sql as sql

@@ -8,8 +8,8 @@ from telegram.utils.helpers import escape_markdown
 
 import smudge.modules.sql.rules_sql as sql
 from smudge import dispatcher
-from smudge.modules.helper_funcs.chat_status import user_admin
-from smudge.modules.helper_funcs.string_handling import markdown_parser
+from smudge.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.string_handling import markdown_parser
 from smudge.modules.disable import DisableAbleCommandHandler
 
 from smudge.modules.translations.strings import tld

@@ -7,7 +7,7 @@ from telegram.ext import Filters, MessageHandler, CommandHandler, run_async
 from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher
-from smudge.modules.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
+from smudge.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import antiflood_sql as sql
 

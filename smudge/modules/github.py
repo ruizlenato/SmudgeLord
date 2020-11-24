@@ -6,11 +6,11 @@ from requests import get
 from telegram.ext import CommandHandler, run_async, Filters, RegexHandler
 from telegram import Message, Chat, Update, Bot, User, ParseMode, MAX_MESSAGE_LENGTH
 
-import smudge.modules.helper_funcs.git_api as api
+import smudge.helper_funcs.git_api as api
 import smudge.modules.sql.github_sql as sql
 
 from smudge import dispatcher
-from smudge.modules.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.chat_status import user_admin
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.modules.translations.strings import tld
 

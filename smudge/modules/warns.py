@@ -11,12 +11,12 @@ from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin, \
+from smudge.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin, \
     can_restrict
-from smudge.modules.helper_funcs.extraction import extract_text, extract_user_and_text, extract_user
-from smudge.modules.helper_funcs.filters import CustomFilters
-from smudge.modules.helper_funcs.misc import split_message
-from smudge.modules.helper_funcs.string_handling import split_quotes
+from smudge.helper_funcs.extraction import extract_text, extract_user_and_text, extract_user
+from smudge.helper_funcs.filters import CustomFilters
+from smudge.helper_funcs.misc import split_message
+from smudge.helper_funcs.string_handling import split_quotes
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import warns_sql as sql
 import smudge.modules.sql.rules_sql as rules_sql

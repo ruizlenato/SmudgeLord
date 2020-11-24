@@ -9,9 +9,9 @@ from telegram.ext import CommandHandler, MessageHandler, Filters, run_async
 import smudge.modules.sql.blacklist_sql as sql
 from smudge import dispatcher, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import user_admin, user_not_admin
-from smudge.modules.helper_funcs.extraction import extract_text
-from smudge.modules.helper_funcs.misc import split_message
+from smudge.helper_funcs.chat_status import user_admin, user_not_admin
+from smudge.helper_funcs.extraction import extract_text
+from smudge.helper_funcs.misc import split_message
 
 from smudge.modules.connection import connected
 

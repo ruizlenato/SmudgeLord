@@ -17,7 +17,7 @@ from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, WHITELIST_US
 from smudge.__main__ import GDPR
 from smudge.__main__ import STATS, USER_INFO
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.extraction import extract_user
+from smudge.helper_funcs.extraction import extract_user
 
 from smudge.modules.translations.strings import tld
 
