@@ -17,10 +17,11 @@ btn_go_back: ⬅️ Voltar
 main_start_group: Oi Gatinha estou vivo, me chama no PV :3
 main_start_pm: |
     Ola! Meu nome é SmudgeLord - Estou aqui para ajudá-lo a gerenciar seus grupos!
-    Visite o Site do meu criador [Renatoh's WebSite](https://Renatoh.ml).
+    Visite o Site do meu criador [Renatoh's WebSite](https://Renatoh.tech).
+    Meu [Código-fonte](https://Github.com/SmudgeNetwork/SmudgeLord)
 
     Caso tenha problemas, fale diretamente com meu criador [Renatoh](https://t.me/Renatoh)\n\nQuer me adicionar em um grupo? [Clique aqui!](t.me/SmudgeLordBOT?startgroup=true)
-main_start_btn_source: 📦Código fonte(Source)
+main_start_btn_news: 📭SmudgeLord's News
 main_start_btn_ctrlpnl: 🛠 Control panel
 main_start_btn_lang: 🇧🇷 Idioma
 
