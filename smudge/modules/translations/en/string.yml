@@ -86,43 +86,36 @@ afk_help: |
 
 #Android
 modname_android: Android
+samsung_releases: "**\nLatest Avaliable Firmware:**\n"
+samsung_releases_details: "**\nMODEL:** `{}`\n**CSC:** `{}`\n"
+samsung_test_firmware: "**Latest Test Firmware**"
+download_below: "Download from below\n"
+device_result: "Nome: **{} {}**\nCodename: `{}`\nNúmero do Modelo: `{}`"
 magisk_releases: "**Latest Magisk Releases:**\n"
-results_device: "Search results for **{}**:\n\n"
-results_device2: "Search results for **{} {}:**\n\n"
-results_device3: "**Brand:** {}\n**Model:** {}\n**Model number:** {}\n\n"
-results_device4: "**Device:** {}\n**Model:** {}\n**Model number:** {}\n\n"
-download: "**Download:** [{}]({})\n"
-build_size: "**Build Size:** `{}`\n"
-build_date: "**Build Date:** `{}`\n"
-version: "**Version:** `{}`\n"
-android_version: "**Android Version:** `{}`\n"
-rom_type: "**ROM Type:** `{}`\n"
-maintainer: "**Maintainer:** {}\n"
-xda_thread: "**XDA Thread:** [Here]({})\n"
-changelog: "**Device Changelog:** `{}`\n"
-weekly: "**Weekly**\n"
+results_device4: "**Name:** {}\n**Model:** {}\n\n"
 phh_releases: "**Phh's latest GSI release(s)**\n"
 err_not_found: Couldn't find any results matching your query.
-err_api: Couldn't reach the API.
-err_example_device: Why are you trying to get the example device?
-err_json: Tell the rom maintainer to fix their OTA json. I'm sure this won't work with OTA and it won't work with this bot too :P
-btn_dl: Click here to Download
 cmd_example: Please type your device **codename**!\nFor example, `/{} tissot`
+fox_get_release: "You can get latest release by using\n `/orangefox (codename)`"
+fox_device_not_found: Device is not found!
+fox_stable: "**🧷 Build Type:** Stable\n"
+fox_beta: "**🧷 Build Type:** Beta\n"
+fox_release_title: "**Latest OrangeFox Recovery For {}**\n"
+fox_release_version: "**🔺 Version:** `{}`\n"
+recovery_release_size: "**📥Size:** {}\n"
+recovery_file: "**📦File:** {}\n"
+recovery_release_date: "**📆 Release date:** {}\n"
+reovery_release_md5: "**✅ MD5:** `{}`\n"
 android_help: |
-  *Device Specific ROM for a device*
-  - /evo <device>: Get the latest Evolution X ROM for a device
-  - /los <device>: Get the latest LineageOS ROM for a device
-  - /bootleggers <device>: Get the latest Bootleggers ROM for a device\n
   *GSI*
   - /phh: Get the latest PHH AOSP GSIs!\n
   *Recovery*
   - /twrp <codename>: Gets latest twrp for the android device using the codename.
-  - /ofox: Gets the list of officially supported devices by the Orange Fox Recovery Project.
   - /ofox <device>: Gets the download link and basic OFRP information to the specified device.
   - /ofoxbeta <codinome>:The same of /ofox but the beta version\n
   *Misc*
   - /magisk: Get latest Magisk releases.
-  - /codename <brand> <device>: Search for Android device codename.
+  - /variants <codename>: get phone variants.
   - /device <codename>: Get info about an Android device.
 
 
@@ -674,8 +667,8 @@ memes_help: |
 
 # Misc
 modname_misc: Misc
-misc_get_id_1: The original sender, {}, has an ID of `{}`.\nThe forwarder, {}, has an ID of `{}`.
-misc_get_id_2: "{}'s id is `{}`."
+misc_get_id_1: The original sender, {}, has an ID of `{}`\nThe forwarder, {}, has an ID of `{}`
+misc_get_id_2: "{}'s id is `{}`"
 misc_id_1: Your id is `{}`.
 misc_id_2: This group's id is `{}`.
 misc_info_extract_error: "I can't extract a user from this."
@@ -1157,19 +1150,7 @@ direct_links_help: |
 
  List of supported sites (URLs):
  Google Drive - MediaFire - SourceForge
- 
-#OrangeFox
-fox_devices_title: "**OrangeFox Recovery is currently avaible for:**"
-fox_get_release: "You can get latest release by using\n `/orangefox (codename)`"
-fox_device_not_found: Device is not found!
-fox_stable: "**🧷 Build Type:** Stable\n"
-fox_beta: "**🧷 Build Type:** Beta\n"
-fox_release_title: "**Latest OrangeFox Recovery For {}**\n"
-fox_release_version: "**🔺 Version:** `{}`\n"
-recovery_release_size: "**📥Size:** {}\n"
-recovery_file: "**📦File:** {}\n"
-recovery_release_date: "**📆 Release date:** {}\n"
-reovery_release_md5: "**✅ MD5:** `{}`\n"
+
 ### Helper functions
 #chat_status
 helpers_bot_cant_delete: I can't delete messages here! Make sure I'm admin and can delete other user's messages.

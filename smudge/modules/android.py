@@ -251,6 +251,7 @@ async def phh(c: Client, update: Update):
 
 @pbot.on_message(filters.command(["checkfw", "check", "fw", "getfw"]))
 async def check(c: Client, update: Update):
+    chat_id=update.chat.id
     if not len(update.command) == 3:
         message = "Please type your device <b>MODEL</b> and <b>CSC</b> into it!\ni.e <code>/fw SM-G975F XSG!</code>"
         await c.send_message(
@@ -273,27 +274,27 @@ async def check(c: Client, update: Update):
     os2 = page2.find("latest").get("o")
     if page1.find("latest").text.strip():
         pda1,csc1,phone1=page1.find("latest").text.strip().split('/')
-        message = f'<b>\nMODEL:</b> <code>{model.upper()}</code>\n<b>CSC:</b> <code>{csc.upper()}</code>\n'
-        message += '<b>Latest Avaliable Firmware:</b>\n'
-        message += f'• PDA: <code>{pda1}</code>\n• CSC: <code>{csc1}</code>\n'
+        message = tld(chat_id, "samsung_releases_details").format(model.upper(), csc.upper())
+        message += tld(chat_id, "samsung_releases")
+        message += f'-PDA: <code>{pda1}</code>\n-CSC: <code>{csc1}</code>\n'
         if phone1:
-            message += f'• Phone: <code>{phone1}</code>\n'
+            message += f'-Phone: <code>{phone1}</code>\n'
         if os1:
-            message += f'• Android: <code>{os1}</code>\n'
+            message += f'-Android: <code>{os1}</code>\n'
         message += '\n'
     else:
         message = f'<b>No public release found for {model.upper()} and {csc.upper()}.</b>\n\n'
-    message += '<b>Latest Test Firmware:</b>\n'
+    message += tld(chat_id, "samsung_test_firmware")
     if len(page2.find("latest").text.strip().split('/')) == 3:
         pda2,csc2,phone2=page2.find("latest").text.strip().split('/')
-        message += f'• PDA: <code>{pda2}</code>\n• CSC: <code>{csc2}</code>\n'
+        message += f'-PDA: <code>{pda2}</code>\n-CSC: <code>{csc2}</code>\n'
         if phone2:
             message += f'• Phone: <code>{phone2}</code>\n'
         if os2:
             message += f'• Android: <code>{os2}</code>\n'
     else:
         md5=page2.find("latest").text.strip()
-        message += f'• Hash: <code>{md5}</code>\n• Android: <code>{os2}</code>\n\n'
+        message += f'\n-Hash: <code>{md5}</code>\n-Android: <code>{os2}</code>\n\n'
     cmd.split()
     if cmd in ("checkfw", "check"):
         await c.send_message(
@@ -301,10 +302,74 @@ async def check(c: Client, update: Update):
                 text=message)
     elif cmd in ("getfw", "fw"):
         keyboard = []
-        message += "Download from below\n"
+        message += tld(chat_id, "download_below")
         for site_name, fw_link  in fw_links:
             keyboard += [[InlineKeyboardButton(site_name, url=fw_link.format(model.upper(), csc.upper()))]]
         await c.send_message(
                 chat_id=update.chat.id,
                 text=message,
                 reply_markup=InlineKeyboardMarkup(keyboard))
+            
+@pbot.on_message(filters.command(["whatis", "device", "codename"]))
+async def models(c: Client, update: Update):
+    chat_id=update.chat.id
+    if not len(update.command) == 2:
+        message = tld(chat_id, "cmd_example").format("device")
+        await c.send_message(
+                chat_id=update.chat.id,
+                text=message,
+                disable_web_page_preview=True
+            )
+        return
+    device = update.command[1]
+    data = GetDevice(device).get()
+    if data:
+        name = data['name']
+        device = data['device']
+        brand = data['brand']
+        model = data['model']
+    else:
+        message = tld(chat_id, "err_not_found")
+        await c.send_message(
+                chat_id=update.chat.id,
+                text=message)
+        return
+    message = tld(chat_id, "device_result").format(brand, name, device, model.upper())
+    await c.send_message(
+                chat_id=update.chat.id,
+                text=message,
+                disable_web_page_preview=True
+            )
+
+@pbot.on_message(filters.command(["variants", "models"]))
+async def variants(c: Client, update: Update):
+    chat_id=update.chat.id
+    if not len(update.command) == 2:
+        message = tld(chat_id, "cmd_example").format("variants")
+        await c.send_message(
+                chat_id=update.chat.id,
+                text=message)
+        return
+    device = update.command[1]
+    data = GetDevice(device).get()
+    if data:
+        name = data['name']
+        device = data['device']
+    else:
+        message = tld(chat_id, "err_not_found")
+        await c.send_message(
+                chat_id=update.chat.id,
+                text=message)
+        return
+    data = get('https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json').content
+    db = loads(data)
+    device=db[device]
+    message = f'<b>{name}</b> variants:\n\n'
+    for i in device:
+        name =  i['name']
+        model = i['model']
+        message += tld(chat_id, "results_device4").format(name, model)
+
+    await c.send_message(
+        chat_id=update.chat.id,
+        text=message)
