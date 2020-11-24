@@ -3,7 +3,6 @@ from sys import argv
 import importlib
 import re
 from typing import List
-from pyrogram import idle
 
 from telegram import Update, Bot
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
