@@ -83,7 +83,7 @@ async def git(c: Client, update: Update, repo, page):
                 reply_markup=InlineKeyboardMarkup(keyboard),
                 disable_web_page_preview=True
             )
-@pbot.on_message(filters.command(["magisk", "root"]))
+@pbot.on_message(filters.command(["magisk", "root", "magisk@SmudgeLordBOT"]))
 async def magisk(c: Client, update: Update):
     url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
     chat_id=update.chat.id
