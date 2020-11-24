@@ -106,8 +106,8 @@ def start(bot: Bot, update: Update, args: List[str]):
             send_start(bot, update)
     else:
         try:
-            update.effective_message.reply_photo(photo=photo_url, 
-                caption=tld(chat.id, 'main_start_group'))
+            update.effective_message.reply_photo(photo=photo_url,
+                                                 caption=tld(chat.id, 'main_start_group'))
         except Exception:
             print("Nut")
 
@@ -136,10 +136,11 @@ def send_start(bot, update):
     ]]
 
     update.effective_message.reply_photo(photo=photo_url,
-        caption=text,
-        reply_markup=InlineKeyboardMarkup(keyboard),
-        parse_mode=ParseMode.MARKDOWN,
-        disable_web_page_preview=True)
+                                         caption=text,
+                                         reply_markup=InlineKeyboardMarkup(
+                                             keyboard),
+                                         parse_mode=ParseMode.MARKDOWN,
+                                         disable_web_page_preview=True)
 
 # for test purposes
 
@@ -189,25 +190,25 @@ def help_button(bot: Bot, update: Update):
             text = tld(chat.id, "here_is_help").format(mod_name, help_txt)
 
             query.message.edit_caption(
-                                  caption=text,
-                                  parse_mode=ParseMode.MARKDOWN,
-                                  reply_markup=InlineKeyboardMarkup([[
-                                      InlineKeyboardButton(
-                                          text=tld(chat.id, "btn_go_back"),
-                                          callback_data="help_back")
-                                  ]]),
-                                  disable_web_page_preview=True)
+                caption=text,
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton(
+                        text=tld(chat.id, "btn_go_back"),
+                        callback_data="help_back")
+                ]]),
+                disable_web_page_preview=True)
 
         elif back_match:
             query.message.edit_caption(
-                                  caption=tld(chat.id, "send-help").format(
-                                      dispatcher.bot.first_name,
-                                      tld(chat.id, "cmd_multitrigger")),
-                                  parse_mode=ParseMode.MARKDOWN,
-                                  reply_markup=InlineKeyboardMarkup(
-                                      paginate_modules(chat.id, 0, HELPABLE,
-                                                       "help")),
-                                  disable_web_page_preview=True)
+                caption=tld(chat.id, "send-help").format(
+                    dispatcher.bot.first_name,
+                    tld(chat.id, "cmd_multitrigger")),
+                parse_mode=ParseMode.MARKDOWN,
+                reply_markup=InlineKeyboardMarkup(
+                    paginate_modules(chat.id, 0, HELPABLE,
+                                     "help")),
+                disable_web_page_preview=True)
 
         # ensure no spinny white circle
         bot.answer_callback_query(query.id)
