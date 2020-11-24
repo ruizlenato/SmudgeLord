@@ -21,9 +21,9 @@ from smudge.modules.connection import connected
 
 @run_async
 @bot_admin
+@can_promote
 @user_admin
 @loggable
-@can_promote
 def promote(bot: Bot, update: Update, args: List[str]) -> str:
     chat_id = update.effective_chat.id
     message = update.effective_message  # type: Optional[Message]
@@ -36,53 +36,42 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
         message.reply_text("You don't have the necessary rights to do that!")
         return ""
 
-    if not chatD.get_member(bot.id).can_promote_members:
-        update.effective_message.reply_text(tld(chat.id, "admin_err_no_perm"))
-        return
-
-    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text("You don't have the necessary rights to do that!")
-        return ""
-
     user_id = extract_user(message, args)
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
-        return
+        return ""
 
-    user_member = chatD.get_member(user_id)
+    user_member = chat.get_member(user_id)
     if user_member.status == 'administrator' or user_member.status == 'creator':
         message.reply_text(tld(chat.id, "admin_err_user_admin"))
-        return
+        return ""
 
     if user_id == bot.id:
         message.reply_text(tld(chat.id, "admin_err_self_promote"))
-        return
+        return ""
 
     # set same perms as bot - bot can't assign higher perms than itself!
-    bot_member = chatD.get_member(bot.id)
+    bot_member = chat.get_member(bot.id)
 
-    bot.promoteChatMember(
-        chatD.id,
-        user_id,
-        can_change_info=bot_member.can_change_info,
-        can_post_messages=bot_member.can_post_messages,
-        can_edit_messages=bot_member.can_edit_messages,
-        can_delete_messages=bot_member.can_delete_messages,
-        # can_invite_users=bot_member.can_invite_users,
-        can_restrict_members=bot_member.can_restrict_members,
-        can_pin_messages=bot_member.can_pin_messages,
-        can_promote_members=bot_member.can_promote_members)
+    bot.promoteChatMember(chat_id, user_id,
+                          can_change_info=bot_member.can_change_info,
+                          can_post_messages=bot_member.can_post_messages,
+                          can_edit_messages=bot_member.can_edit_messages,
+                          can_delete_messages=bot_member.can_delete_messages,
+                          can_invite_users=bot_member.can_invite_users,
+                          can_restrict_members=bot_member.can_restrict_members,
+                          can_pin_messages=bot_member.can_pin_messages,
+                          can_promote_members=bot_member.can_promote_members)
 
     message.reply_text(tld(chat.id, "admin_promote_success").format(
-        mention_html(user.id, user.first_name),
-        mention_html(user_member.user.id, user_member.user.first_name),
-        html.escape(chatD.title)),
+        mention_html(user_member.user.id, user_member.user.first_name)),
         parse_mode=ParseMode.HTML)
-    return f"<b>{html.escape(chatD.title)}:</b>" \
-        "\n#PROMOTED" \
-           f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}" \
-           f"\n<b>User:</b> {mention_html(user_member.user.id, user_member.user.first_name)}"
-
+    return "<b>{}:</b>" \
+           "\n#PROMOTED" \
+           "\n<b>Admin:</b> {}" \
+           "\n<b>User:</b> {}".format(html.escape(chat.title),
+                                      mention_html(user.id, user.first_name),
+                                      mention_html(user_member.user.id, user_member.user.first_name))
 
 @run_async
 @bot_admin

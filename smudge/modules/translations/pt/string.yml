@@ -42,7 +42,8 @@ modname_admin: Admin
 admin_err_no_perm: Não posso promover/rebaixar pessoas aqui! Certifique-se de que sou administrador e de que posso adicionar novos administradores.
 admin_err_user_admin: Como devo promover alguém que já é administrador?
 admin_err_self_promote: Eu não posso me promover
-admin_promote_success: Admin {} promoveu com sucesso {} em <b>{}</b>!
+admin_promote_success: "{} Foi promovido com sucesso!"
+admin_no_perms_user: "You don't have the necessary rights to do that!"
 admin_err_demote_creator: Essa pessoa é o CRIADOR do bate-papo, como eu a rebaixaria?
 admin_err_demote_noadmin: Não é possível rebaixar aqueles que não foram promovidos!
 admin_err_self_demote: Eu não posso me rebaixar!

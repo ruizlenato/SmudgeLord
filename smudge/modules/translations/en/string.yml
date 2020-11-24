@@ -45,7 +45,7 @@ modname_admin: Admin
 admin_err_no_perm: I can't promote/demote people here! Make sure I'm an admin and can appoint new admins.
 admin_err_user_admin: How am I meant to promote someone who's already an admin?
 admin_err_self_promote: I can't promote myself! Get an admin to do it for me.
-admin_promote_success: Admin {} has successfully promoted {} in <b>{}</b>!
+admin_promote_success: "{} was successfully promoted!"
 admin_err_demote_creator: This person is the CREATOR of the chat, how would I demote them?
 admin_err_demote_noadmin: Can't demote those who weren't promoted!
 admin_err_self_demote: I can't demote myself!
