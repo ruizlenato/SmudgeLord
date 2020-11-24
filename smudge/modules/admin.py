@@ -77,18 +77,21 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
 @bot_admin
 @user_admin
 @loggable
-@can_promote
 def demote(bot: Bot, update: Update, args: List[str]) -> str:
-    chat_id = update.effective_chat.id
-    message = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    
-    promoter = chat.get_member(user.id)
-    
-    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text("You don't have the necessary rights to do that!")
-        return ""
+    chat = update.effective_chat
+    message = update.effective_message
+    user = update.effective_user
+    conn = connected(bot, update, chat, user.id)
+    if conn:
+        chatD = dispatcher.bot.getChat(conn)
+    else:
+        chatD = update.effective_chat
+        if chat.type == "private":
+            return
+
+    if not chatD.get_member(bot.id).can_promote_members:
+        update.effective_message.reply_text(tld(chat.id, "admin_err_no_perm"))
+        return
 
     user_id = extract_user(message, args)
     if not user_id:
@@ -123,16 +126,15 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
             mention_html(user.id, user.first_name),
             mention_html(user_member.user.id, user_member.user.first_name),
             html.escape(chatD.title)),
-            parse_mode=ParseMode.HTML)
+                           parse_mode=ParseMode.HTML)
         return f"<b>{html.escape(chatD.title)}:</b>" \
-            "\n#DEMOTED" \
+                "\n#DEMOTED" \
                f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}" \
                f"\n<b>User:</b> {mention_html(user_member.user.id, user_member.user.first_name)}"
 
     except BadRequest:
         message.reply_text(tld(chat.id, "admin_err_cant_demote"))
         return ""
-
 
 @run_async
 @bot_admin
