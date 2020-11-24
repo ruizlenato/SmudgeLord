@@ -1,8 +1,11 @@
-import html
-import wikipedia
 import re
+import html
+import pafy
+import wikipedia
 from datetime import datetime
+import urllib.parse as urlparse
 from typing import Optional, List
+import urllib.parse as urlparse
 from covid import Covid
 
 import requests
@@ -252,20 +255,6 @@ def github(bot: Bot, update: Update):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
-
-@run_async
-def repo(bot: Bot, update: Update, args: List[str]):
-    message = update.effective_message
-    text = message.text[len('/repo '):]
-    usr = get(f'https://api.github.com/users/{text}/repos?per_page=40').json()
-    reply_text = "*Repo*\n"
-    for i in range(len(usr)):
-        reply_text += f"[{usr[i]['name']}]({usr[i]['html_url']})\n"
-    message.reply_text(reply_text,
-                       parse_mode=ParseMode.MARKDOWN,
-                       disable_web_page_preview=True)
-
-
 @run_async
 def ud(bot: Bot, update: Update):
     message = update.effective_message
@@ -278,13 +267,15 @@ def ud(bot: Bot, update: Update):
 
 @run_async
 def wiki(bot: Bot, update: Update):
+    chat_id = update.effective_chat.id
     msg = update.effective_message
 
-    msg.reply_text("🇧🇷Para pesquisar no wikipedia em português use /wikipt e em Ingles use /wikien\n \n🇺🇸To search wikipedia in Portuguese use /wikipt and in English use /wikien")
+    msg.reply_text(tld(chat_id, "wiki_lang"), parse_mode=ParseMode.HTML)
 
 
 @run_async
 def wikien(bot: Bot, update: Update):
+    chat_id = update.effective_chat.id
     kueri = re.split(pattern="wikien", string=update.effective_message.text)
     wikipedia.set_lang("en")
     if len(str(kueri[1])) == 0:
@@ -296,10 +287,12 @@ def wikien(bot: Bot, update: Update):
                 InlineKeyboardButton(text="🔧 More Info...",
                                      url=wikipedia.page(kueri).url)
             ]])
+            textresult = tld(chat_id, "wiki_result").format(wikipedia.summary(kueri, sentences=2))
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
-                                text=wikipedia.summary(kueri, sentences=3),
-                                reply_markup=keyboard)
+                                text=textresult,
+                                reply_markup=keyboard,
+                                parse_mode=ParseMode.HTML)
         except wikipedia.PageError as e:
             update.effective_message.reply_text("⚠ Error: {}".format(e))
         except BadRequest as et:
@@ -313,6 +306,7 @@ def wikien(bot: Bot, update: Update):
 
 @run_async
 def wikipt(bot: Bot, update: Update):
+    chat_id = update.effective_chat.id
     kueri = re.split(pattern="wikipt", string=update.effective_message.text)
     wikipedia.set_lang("pt")
     if len(str(kueri[1])) == 0:
@@ -325,10 +319,12 @@ def wikipt(bot: Bot, update: Update):
                 InlineKeyboardButton(text="🔧 Mais Informações...",
                                      url=wikipedia.page(kueri).url)
             ]])
+            textresult = tld(chat_id, "wiki_result").format(wikipedia.summary(kueri, sentences=2))
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
-                                text=wikipedia.summary(kueri, sentences=3),
-                                reply_markup=keyboard)
+                                text=textresult,
+                                reply_markup=keyboard,
+                                parse_mode=ParseMode.HTML)
         except wikipedia.PageError as e:
             update.effective_message.reply_text("⚠ Erro: {}".format(e))
         except BadRequest as et:
@@ -339,6 +335,54 @@ def wikipt(bot: Bot, update: Update):
                     eet)
             )
 
+@run_async
+def github(bot: Bot, update: Update):
+    message = update.effective_message
+    text = message.text[len('/git '):]
+    usr = get(f'https://api.github.com/users/{text}').json()
+    if usr.get('login'):
+        text = f"*Username:* [{usr['login']}](https://github.com/{usr['login']})"
+
+        whitelist = [
+            'name', 'id', 'type', 'location', 'blog', 'bio', 'followers',
+            'following', 'hireable', 'public_gists', 'public_repos', 'email',
+            'company', 'updated_at', 'created_at'
+        ]
+
+        difnames = {
+            'id': 'Account ID',
+            'type': 'Account type',
+            'created_at': 'Account created at',
+            'updated_at': 'Last updated',
+            'public_repos': 'Public Repos',
+            'public_gists': 'Public Gists'
+        }
+
+        goaway = [None, 0, 'null', '']
+
+        for x, y in usr.items():
+            if x in whitelist:
+                if x in difnames:
+                    x = difnames[x]
+                else:
+                    x = x.title()
+
+                if x == 'Account created at' or x == 'Last updated':
+                    y = datetime.strptime(y, "%Y-%m-%dT%H:%M:%SZ")
+
+                if y not in goaway:
+                    if x == 'Blog':
+                        x = "Website"
+                        y = f"[Here!]({y})"
+                        text += ("\n*{}:* {}".format(x, y))
+                    else:
+                        text += ("\n*{}:* `{}`".format(x, y))
+        reply_text = text
+    else:
+        reply_text = "User not found. Make sure you entered valid username!"
+    message.reply_text(reply_text,
+                       parse_mode=ParseMode.MARKDOWN,
+                       disable_web_page_preview=True)
 
 @run_async
 def covid(bot: Bot, update: Update):
@@ -373,6 +417,20 @@ def covid(bot: Bot, update: Update):
                                      total_tests)
     message.reply_markdown(reply)
 
+@run_async
+def outline(bot: Bot, update: Update, args: List[str]):
+    message = update.effective_message
+    chat = update.effective_chat
+    if args:
+        link = " ".join(args)
+    else:
+        message.reply_text(tld(chat.id, "misc_paste_invalid"))
+        return
+    if urlparse.urlparse(link).scheme:
+        update.message.reply_text("https://outline.com/" + link)
+    else:
+        update.message.reply_text(tld(chat.id, "misc_url_invalid"))
+        return
 
 def format_integer(number, thousand_separator=','):
     def reverse(string):
@@ -393,9 +451,31 @@ def format_integer(number, thousand_separator=','):
             result = char + result
     return result
 
+@run_async
+def yt(bot: Bot, update: Update, args):
+    msg = update.effective_message
+    chat = update.effective_chat
+    if args:
+        user = update.effective_user.id
+        youtube_link = " ".join(args)
+    else:
+        message.reply_text(tld(chat.id, "misc_paste_invalid"))
+        return
+    video = pafy.new(youtube_link)
+    video_stream = video.getbest()
+    try:
+        update.effective_message.reply_video(video=video_stream.url)
+    except:
+        update.message.reply_text(f"`Download failed: `[URL]({video_stream.url})", parse_mode=ParseMode.MARKDOWN)
+
 
 __help__ = True
 
+YT_HANDLER = CommandHandler("yt", yt, pass_args=True)
+OUTLINE_HANDLER = DisableAbleCommandHandler("outline",
+                                       outline,
+                                       pass_args=True,
+                                       admin_ok=True)
 ID_HANDLER = DisableAbleCommandHandler("id",
                                        get_id,
                                        pass_args=True,
@@ -409,11 +489,6 @@ INFO_HANDLER = DisableAbleCommandHandler("info",
                                          pass_args=True,
                                          admin_ok=True)
 GITHUB_HANDLER = DisableAbleCommandHandler("git", github, admin_ok=True)
-REPO_HANDLER = DisableAbleCommandHandler("repo",
-                                         repo,
-                                         pass_args=True,
-                                         admin_ok=True)
-
 ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID))
 MD_HELP_HANDLER = CommandHandler("markdownhelp",
                                  markdown_help,
@@ -429,6 +504,8 @@ COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True)
 SCREENSHOT_HANDLER = DisableAbleCommandHandler(
     ["screenshot", "print", "ss", "screencapture"], screenshot, pass_args=True)
 
+dispatcher.add_handler(YT_HANDLER)
+dispatcher.add_handler(OUTLINE_HANDLER)
 dispatcher.add_handler(SCREENSHOT_HANDLER)
 dispatcher.add_handler(UD_HANDLER)
 dispatcher.add_handler(ID_HANDLER)
@@ -439,7 +516,6 @@ dispatcher.add_handler(MD_HELP_HANDLER)
 dispatcher.add_handler(STATS_HANDLER)
 dispatcher.add_handler(GDPR_HANDLER)
 dispatcher.add_handler(GITHUB_HANDLER)
-dispatcher.add_handler(REPO_HANDLER)
 dispatcher.add_handler(
     DisableAbleCommandHandler("removebotkeyboard", reply_keyboard_remove))
 dispatcher.add_handler(WIKI_HANDLER)
