@@ -11,7 +11,7 @@ from telegram.ext import CommandHandler, run_async
 import smudge.modules.sql.notes_sql as sql
 from smudge import dispatcher, LOGGER, MESSAGE_DUMP
 from smudge.__main__ import DATA_IMPORT
-from smudge.modules.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.chat_status import user_admin
 import smudge.modules.sql.rules_sql as rulessql
 import smudge.modules.sql.blacklist_sql as blacklistsql
 from smudge.modules.sql import disable_sql as disabledsql

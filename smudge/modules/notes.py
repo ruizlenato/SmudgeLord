@@ -10,9 +10,9 @@ from telegram.ext.dispatcher import run_async
 import smudge.modules.sql.notes_sql as sql
 from smudge import dispatcher, MESSAGE_DUMP, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import user_admin
-from smudge.modules.helper_funcs.misc import build_keyboard, revert_buttons
-from smudge.modules.helper_funcs.msg_types import get_note_type
+from smudge.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.misc import build_keyboard, revert_buttons
+from smudge.helper_funcs.msg_types import get_note_type
 
 from smudge.modules.translations.strings import tld
 from smudge.modules.connection import connected

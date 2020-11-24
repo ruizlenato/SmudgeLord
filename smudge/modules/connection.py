@@ -7,7 +7,7 @@ from telegram.ext.dispatcher import run_async
 
 import smudge.modules.sql.connection_sql as sql
 from smudge import dispatcher, SUDO_USERS
-from smudge.modules.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.chat_status import user_admin
 
 from smudge.modules.translations.strings import tld
 

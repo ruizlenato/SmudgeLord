@@ -10,8 +10,8 @@ from telegram.ext.dispatcher import run_async
 import smudge.modules.sql.users_sql as sql
 from smudge import dispatcher, OWNER_ID, LOGGER, SUDO_USERS, SUPPORT_USERS
 from telegram.utils.helpers import escape_markdown
-from smudge.modules.helper_funcs.filters import CustomFilters
-from smudge.modules.helper_funcs.chat_status import bot_admin
+from smudge.helper_funcs.filters import CustomFilters
+from smudge.helper_funcs.chat_status import bot_admin
 
 from smudge.modules.translations.strings import tld
 

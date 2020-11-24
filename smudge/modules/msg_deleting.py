@@ -1,5 +1,5 @@
 from smudge.events import register
-from smudge.modules.helper_funcs.telethon.chat_status import user_is_admin, can_delete_messages
+from smudge.helper_funcs.telethon.chat_status import user_is_admin, can_delete_messages
 from smudge.modules.translations.strings import tld
 
 

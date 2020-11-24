@@ -5,9 +5,9 @@ from telegram.error import BadRequest
 from telegram.ext import run_async, CommandHandler
 
 from smudge import dispatcher
-from smudge.modules.helper_funcs.chat_status import bot_admin, is_user_ban_protected, is_user_in_chat, is_bot_admin
-from smudge.modules.helper_funcs.extraction import extract_user_and_text
-from smudge.modules.helper_funcs.filters import CustomFilters
+from smudge.helper_funcs.chat_status import bot_admin, is_user_ban_protected, is_user_in_chat, is_bot_admin
+from smudge.helper_funcs.extraction import extract_user_and_text
+from smudge.helper_funcs.filters import CustomFilters
 
 RBAN_ERRORS = {
     "User is an administrator of the chat", "Chat not found",

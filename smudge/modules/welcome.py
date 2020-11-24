@@ -10,10 +10,10 @@ from telegram.utils.helpers import mention_html
 import smudge.modules.sql.welcome_sql as sql
 from smudge.modules.sql.antispam_sql import is_user_gbanned
 from smudge import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP, sw
-from smudge.modules.helper_funcs.chat_status import user_admin, is_user_ban_protected
-from smudge.modules.helper_funcs.misc import build_keyboard, revert_buttons
-from smudge.modules.helper_funcs.msg_types import get_welcome_type
-from smudge.modules.helper_funcs.string_handling import markdown_parser, \
+from smudge.helper_funcs.chat_status import user_admin, is_user_ban_protected
+from smudge.helper_funcs.misc import build_keyboard, revert_buttons
+from smudge.helper_funcs.msg_types import get_welcome_type
+from smudge.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets, extract_time, markdown_to_html
 from smudge.modules.log_channel import loggable
 from smudge.modules.translations.strings import tld

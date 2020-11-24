@@ -2,7 +2,7 @@ from functools import wraps
 from typing import Optional
 
 from smudge import dispatcher, LOGGER
-from smudge.modules.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.chat_status import user_admin
 from smudge.modules.sql import log_channel_sql as sql
 from smudge.modules.translations.strings import tld
 

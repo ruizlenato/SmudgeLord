@@ -10,10 +10,10 @@ from telegram.utils.helpers import mention_html
 
 import smudge.modules.sql.antispam_sql as sql
 from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, GBAN_DUMP, STRICT_ANTISPAM, sw
-from smudge.modules.helper_funcs.chat_status import user_admin, is_user_admin
-from smudge.modules.helper_funcs.extraction import extract_user_and_text
-from smudge.modules.helper_funcs.filters import CustomFilters
-# from smudge.modules.helper_funcs.misc import send_to_list
+from smudge.helper_funcs.chat_status import user_admin, is_user_admin
+from smudge.helper_funcs.extraction import extract_user_and_text
+from smudge.helper_funcs.filters import CustomFilters
+# from smudge.helper_funcs.misc import send_to_list
 # from smudge.modules.sql.users_sql import get_all_chats
 
 from smudge.modules.translations.strings import tld

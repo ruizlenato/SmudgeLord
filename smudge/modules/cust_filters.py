@@ -10,11 +10,11 @@ from telegram.utils.helpers import escape_markdown
 
 from smudge import dispatcher, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import user_admin
-from smudge.modules.helper_funcs.extraction import extract_text
-from smudge.modules.helper_funcs.filters import CustomFilters
-from smudge.modules.helper_funcs.misc import build_keyboard
-from smudge.modules.helper_funcs.string_handling import split_quotes, button_markdown_parser
+from smudge.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.extraction import extract_text
+from smudge.helper_funcs.filters import CustomFilters
+from smudge.helper_funcs.misc import build_keyboard
+from smudge.helper_funcs.string_handling import split_quotes, button_markdown_parser
 from smudge.modules.sql import cust_filters_sql as sql
 
 from smudge.modules.translations.strings import tld

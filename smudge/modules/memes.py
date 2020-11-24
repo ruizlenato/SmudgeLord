@@ -9,7 +9,7 @@ from telegram.ext import run_async
 from smudge import dispatcher
 from smudge.modules.disable import DisableAbleCommandHandler
 from telegram.utils.helpers import escape_markdown
-from smudge.modules.helper_funcs.extraction import extract_user
+from smudge.helper_funcs.extraction import extract_user
 from smudge.modules.translations.strings import tld, tld_list
 
 WIDE_MAP = {i: i + 0xFEE0 for i in range(0x21, 0x7F)}

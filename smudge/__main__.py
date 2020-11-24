@@ -3,6 +3,7 @@ from sys import argv
 import importlib
 import re
 from typing import List
+from pyrogram import idle
 
 from telegram import Update, Bot
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
@@ -14,10 +15,12 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from smudge.modules import ALL_MODULES
-from smudge import dispatcher, updater, LOGGER, TOKEN, pbot
+from smudge import dispatcher, updater, LOGGER, TOKEN, tbot
 from smudge.modules.helper_funcs.misc import paginate_modules
 from smudge.modules.translations.strings import tld
 from smudge.modules.disable import DisableAbleCommandHandler
+
+photo_url = "https://telegra.ph/file/cb4a2ba5f488a11c3d0ee.png"
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -122,8 +125,8 @@ def send_start(bot, update):
     text = tld(chat.id, 'main_start_pm')
 
     keyboard = [[
-        InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_source'),
-                             url="https://github.com/SmudgeNetwork/SmudgeLord")
+        InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_news'),
+                             url="https://t.me/SmudgeNews")
     ]]
     keyboard += [[
         InlineKeyboardButton(
@@ -132,8 +135,8 @@ def send_start(bot, update):
                              callback_data="help_back")
     ]]
 
-    update.effective_message.reply_text(
-        text,
+    update.effective_message.reply_photo(photo=photo_url,
+        caption=text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN,
         disable_web_page_preview=True)
@@ -168,6 +171,7 @@ def error_callback(bot, update, error):
 @run_async
 def help_button(bot: Bot, update: Update):
     query = update.callback_query
+    query.answer()
     chat = update.effective_chat
     back_match = re.match(r"help_back", query.data)
     mod_match = re.match(r"help_module\((.+?)\)", query.data)
@@ -184,9 +188,8 @@ def help_button(bot: Bot, update: Update):
 
             text = tld(chat.id, "here_is_help").format(mod_name, help_txt)
 
-            bot.edit_message_text(chat_id=query.message.chat_id,
-                                  message_id=query.message.message_id,
-                                  text=text,
+            query.message.edit_caption(
+                                  caption=text,
                                   parse_mode=ParseMode.MARKDOWN,
                                   reply_markup=InlineKeyboardMarkup([[
                                       InlineKeyboardButton(
@@ -196,9 +199,8 @@ def help_button(bot: Bot, update: Update):
                                   disable_web_page_preview=True)
 
         elif back_match:
-            bot.edit_message_text(chat_id=query.message.chat_id,
-                                  message_id=query.message.message_id,
-                                  text=tld(chat.id, "send-help").format(
+            query.message.edit_caption(
+                                  caption=tld(chat.id, "send-help").format(
                                       dispatcher.bot.first_name,
                                       tld(chat.id, "cmd_multitrigger")),
                                   parse_mode=ParseMode.MARKDOWN,
@@ -249,8 +251,8 @@ def get_help(bot: Bot, update: Update):
             send_help(
                 chat.id, text,
                 InlineKeyboardMarkup([[
-                    InlineKeyboardButton(text=tld(chat.id, "btn_go_back"),
-                                         callback_data="help_back")
+                    InlineKeyboardButton(text=tld(chat.id, 'main_start_btn_news'),
+                                         url="https://t.me/SmudgeNews")
                 ]]))
 
             return

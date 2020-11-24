@@ -8,10 +8,10 @@ from telegram.ext import CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html
 
-from smudge import dispatcher
+from smudge import dispatcher, SUDO_USERS
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.helper_funcs.chat_status import bot_admin, user_admin, can_pin
-from smudge.modules.helper_funcs.extraction import extract_user
+from smudge.helper_funcs.chat_status import bot_admin, user_admin, can_pin, can_promote
+from smudge.helper_funcs.extraction import extract_user
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import admin_sql as sql
 from smudge.modules.translations.strings import tld
@@ -23,21 +23,20 @@ from smudge.modules.connection import connected
 @bot_admin
 @user_admin
 @loggable
+@can_promote
 def promote(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
-    conn = connected(bot, update, chat, user.id)
-    if conn:
-        chatD = dispatcher.bot.getChat(conn)
-    else:
-        chatD = update.effective_chat
-        if chat.type == "private":
-            return
+    promoter = chat.get_member(user.id)
 
     if not chatD.get_member(bot.id).can_promote_members:
         update.effective_message.reply_text(tld(chat.id, "admin_err_no_perm"))
         return
+
+    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text("You don't have the necessary rights to do that!")
+        return ""
 
     user_id = extract_user(message, args)
     if not user_id:
@@ -83,17 +82,16 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
 @bot_admin
 @user_admin
 @loggable
+@can_promote
 def demote(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
-    conn = connected(bot, update, chat, user.id)
-    if conn:
-        chatD = dispatcher.bot.getChat(conn)
-    else:
-        chatD = update.effective_chat
-        if chat.type == "private":
-            return
+    promoter = chat.get_member(user.id)
+    
+    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text("You don't have the necessary rights to do that!")
+        return
 
     if not chatD.get_member(bot.id).can_promote_members:
         update.effective_message.reply_text(tld(chat.id, "admin_err_no_perm"))
