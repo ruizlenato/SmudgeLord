@@ -4,6 +4,7 @@ from pyrogram import Client, filters, errors
 from pyrogram.types import Update
 from smudge.modules.translations.strings import tld
 
+
 async def admin_check(c: Client, update: Update) -> bool:
     chat_id = update.chat.id
     user_id = update.from_user.id
@@ -19,10 +20,11 @@ async def admin_check(c: Client, update: Update) -> bool:
 
     return True
 
+
 @pbot.on_message(filters.command("purge"))
 async def purge(c: Client, update: Update):
 
-    chat_id=update.chat.id
+    chat_id = update.chat.id
     res = await admin_check(c, update)
     if not res:
         return
