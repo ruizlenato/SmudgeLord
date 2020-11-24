@@ -255,6 +255,7 @@ def github(bot: Bot, update: Update):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
+
 @run_async
 def ud(bot: Bot, update: Update):
     message = update.effective_message
@@ -287,7 +288,8 @@ def wikien(bot: Bot, update: Update):
                 InlineKeyboardButton(text="🔧 More Info...",
                                      url=wikipedia.page(kueri).url)
             ]])
-            textresult = tld(chat_id, "wiki_result").format(wikipedia.summary(kueri, sentences=2))
+            textresult = tld(chat_id, "wiki_result").format(
+                wikipedia.summary(kueri, sentences=2))
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
                                 text=textresult,
@@ -319,7 +321,8 @@ def wikipt(bot: Bot, update: Update):
                 InlineKeyboardButton(text="🔧 Mais Informações...",
                                      url=wikipedia.page(kueri).url)
             ]])
-            textresult = tld(chat_id, "wiki_result").format(wikipedia.summary(kueri, sentences=2))
+            textresult = tld(chat_id, "wiki_result").format(
+                wikipedia.summary(kueri, sentences=2))
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
                                 text=textresult,
@@ -334,6 +337,7 @@ def wikipt(bot: Bot, update: Update):
                 "⚠ Error\n Há muitas coisa! Expresse melhor para achar o resultado!\nPossíveis resultados da consulta:\n{}".format(
                     eet)
             )
+
 
 @run_async
 def github(bot: Bot, update: Update):
@@ -384,6 +388,7 @@ def github(bot: Bot, update: Update):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
+
 @run_async
 def covid(bot: Bot, update: Update):
     message = update.effective_message
@@ -417,6 +422,7 @@ def covid(bot: Bot, update: Update):
                                      total_tests)
     message.reply_markdown(reply)
 
+
 @run_async
 def outline(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
@@ -431,6 +437,7 @@ def outline(bot: Bot, update: Update, args: List[str]):
     else:
         update.message.reply_text(tld(chat.id, "misc_url_invalid"))
         return
+
 
 def format_integer(number, thousand_separator=','):
     def reverse(string):
@@ -451,6 +458,7 @@ def format_integer(number, thousand_separator=','):
             result = char + result
     return result
 
+
 @run_async
 def yt(bot: Bot, update: Update, args):
     msg = update.effective_message
@@ -466,16 +474,17 @@ def yt(bot: Bot, update: Update, args):
     try:
         update.effective_message.reply_video(video=video_stream.url)
     except:
-        update.message.reply_text(f"`Download failed: `[URL]({video_stream.url})", parse_mode=ParseMode.MARKDOWN)
+        update.message.reply_text(
+            f"`Download failed: `[URL]({video_stream.url})", parse_mode=ParseMode.MARKDOWN)
 
 
 __help__ = True
 
 YT_HANDLER = CommandHandler("yt", yt, pass_args=True)
 OUTLINE_HANDLER = DisableAbleCommandHandler("outline",
-                                       outline,
-                                       pass_args=True,
-                                       admin_ok=True)
+                                            outline,
+                                            pass_args=True,
+                                            admin_ok=True)
 ID_HANDLER = DisableAbleCommandHandler("id",
                                        get_id,
                                        pass_args=True,
