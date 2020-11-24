@@ -3,7 +3,6 @@ import sys
 import yaml
 import spamwatch
 
-from telethon import TelegramClient
 from pyrogram import Client
 import telegram.ext as tg
 
@@ -109,7 +108,6 @@ updater = tg.Updater(TOKEN, workers=WORKERS)
 
 dispatcher = updater.dispatcher
 
-tbot = TelegramClient("smudge", API_KEY, API_HASH)
 pbot = Client("SmudgeLordPyrogram", api_id=API_KEY, api_hash=API_HASH, bot_token=TOKEN)
 
 SUDO_USERS = list(SUDO_USERS)
