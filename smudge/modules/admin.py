@@ -29,9 +29,9 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
-    
+
     promoter = chat.get_member(user.id)
-    
+
     if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
         message.reply_text("You don't have the necessary rights to do that!")
         return ""
@@ -94,9 +94,9 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
-    
+
     promoter = chat.get_member(user.id)
-    
+
     if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
         message.reply_text("You don't have the necessary rights to do that!")
         return ""
