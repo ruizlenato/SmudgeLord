@@ -47,7 +47,7 @@ admin_no_perms_user: "You don't have the necessary rights to do that!"
 admin_err_demote_creator: Essa pessoa é o CRIADOR do bate-papo, como eu a rebaixaria?
 admin_err_demote_noadmin: Não é possível rebaixar aqueles que não foram promovidos!
 admin_err_self_demote: Eu não posso me rebaixar!
-admin_demote_success: Admin {} rebaixou com sucesso {} em <b>{}</b>!
+admin_demote_success: "{} Foi rebaixado com sucesso!"
 admin_err_cant_demote: Não foi possível rebaixar. Talvez eu não seja administrador ou o status de administrador tenha sido indicado por outro usuário, portanto não posso agir de acordo com eles!
 admin_list: "Administradores em *{}*:"
 admin_list_creator:  (Criador)
@@ -57,9 +57,6 @@ admin_disable_reaction: Resposta desativada para comandos de administração usa
 admin_disable_reaction: Resposta desativada para comandos de administração usados por membros.
 admin_err_wrong_arg: Por favor, insira True ou False!
 admin_reaction_status: 'A resposta para comandos de administração usados por membros é atualmente *{}*!'
-zombies_admin_noperm: Eu não sou admin aqui então eu não posso remover essas contas excluídas.
-zombies_searching_accounts: 'Procurando por contas excluídas...'
-zombies_cleaning: Removendo contas excluídas...
 zombies_result_accounts: Foram encontradas **{}** contas excluídas neste grupo\nRemova elas usando `/delusers clean`
 admin_help: |
     /adminlist | /admins: Lista os administradores no chat\n

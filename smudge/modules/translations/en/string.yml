@@ -49,7 +49,7 @@ admin_promote_success: "{} was successfully promoted!"
 admin_err_demote_creator: This person is the CREATOR of the chat, how would I demote them?
 admin_err_demote_noadmin: Can't demote those who weren't promoted!
 admin_err_self_demote: I can't demote myself!
-admin_demote_success: Admin {} has successfully demoted {} in <b>{}</b>!
+admin_demote_success: "{} was successfully demoted!"
 admin_err_cant_demote: Could not demote. I might not be admin, or the admin status was appointed by another user, so I can't act upon them!
 admin_list: "Admins in *{}*:"
 admin_list_creator:  (Creator)
