@@ -1,3 +1,4 @@
+from smudge.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
 import logging
 import sys
 import yaml
@@ -6,7 +7,7 @@ import spamwatch
 from pyrogram import Client
 import telegram.ext as tg
 
-#Enable logging
+# Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO)
@@ -108,14 +109,14 @@ updater = tg.Updater(TOKEN, workers=WORKERS)
 
 dispatcher = updater.dispatcher
 
-pbot = Client("SmudgeLordPyrogram", api_id=API_KEY, api_hash=API_HASH, bot_token=TOKEN)
+pbot = Client("SmudgeLordPyrogram", api_id=API_KEY,
+              api_hash=API_HASH, bot_token=TOKEN)
 
 SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
 SUPPORT_USERS = list(SUPPORT_USERS)
 
 # Load at end to ensure all prev variables have been set
-from smudge.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
 
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
