@@ -1,7 +1,6 @@
 ##########
 telethon
 python-telegram-bot==11.1.0
-pyrogram
 ##########
 future
 emoji

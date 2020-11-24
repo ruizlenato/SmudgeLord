@@ -3,7 +3,6 @@ from sys import argv
 import importlib
 import re
 from typing import List
-from pyrogram import idle
 
 from telegram import Update, Bot
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
@@ -15,7 +14,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from smudge.modules import ALL_MODULES
-from smudge import dispatcher, updater, LOGGER, TOKEN, tbot, pbot
+from smudge import dispatcher, updater, LOGGER, TOKEN, pbot
 from smudge.modules.helper_funcs.misc import paginate_modules
 from smudge.modules.translations.strings import tld
 from smudge.modules.disable import DisableAbleCommandHandler
@@ -396,6 +395,4 @@ def process_update(self, update):
 if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
     tbot.start(bot_token=TOKEN)
-    pbot.start()
     main()
-    idle()
