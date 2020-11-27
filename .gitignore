@@ -1,0 +1,15 @@
+config.yml
+*.pyc
+.idea/
+logfile
+backups/
+.project
+.pydevproject
+.directory
+.vscode
+images/kangsticker.png
+images/sticker.png
+log.err
+log.log
+*.backup
+smudge.session
