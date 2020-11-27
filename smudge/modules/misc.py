@@ -261,9 +261,12 @@ def ud(bot: Bot, update: Update):
     text = message.text[len('/ud '):]
     results = get(
         f'http://api.urbandictionary.com/v0/define?term={text}').json()
-    reply_text = f'Word: {text}\nDefinition: {results["list"][0]["definition"]}'
-    message.reply_text(reply_text)
-
+    definition = f'{results["list"][0]["definition"]}'
+    definition1 = definition.replace("[", "").replace("]", "")
+    exemple = f'{results["list"][0]["example"]}'
+    exemple1 = exemple.replace("[", "").replace("]", "")
+    reply_text = f'<strong>{text}</strong>\n<strong>Definition:</strong> {definition1}\n\n<strong>Exemple: </strong>{exemple1}'
+    message.reply_text(reply_text, parse_mode=ParseMode.HTML)
 
 @run_async
 def wiki(bot: Bot, update: Update):
@@ -468,9 +471,23 @@ def yt(bot: Bot, update: Update, args):
     except:
         update.message.reply_text(f"`Download failed: `[URL]({video_stream.url})", parse_mode=ParseMode.MARKDOWN)
 
+@run_async
+def restart(bot: Bot, update: Update):
+    user = update.effective_user
+    chat_id = update.effective_chat.id
+
+    if not user.id in SUDO_USERS:
+        update.message.reply_text(tld(chat_id, "helpers_user_not_admin"))
+        return
+
+    update.message.reply_text("Restarting...")
+    args = [sys.executable, "-m", "smudge"]
+    os.execl(sys.executable, *args)
+
 
 __help__ = True
 
+RESTART_HANDLER = CommandHandler("restart", restart)
 YT_HANDLER = CommandHandler("yt", yt, pass_args=True)
 OUTLINE_HANDLER = DisableAbleCommandHandler("outline",
                                        outline,
@@ -504,6 +521,7 @@ COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True)
 SCREENSHOT_HANDLER = DisableAbleCommandHandler(
     ["screenshot", "print", "ss", "screencapture"], screenshot, pass_args=True)
 
+dispatcher.add_handler(RESTART_HANDLER)
 dispatcher.add_handler(YT_HANDLER)
 dispatcher.add_handler(OUTLINE_HANDLER)
 dispatcher.add_handler(SCREENSHOT_HANDLER)
