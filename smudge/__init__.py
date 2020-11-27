@@ -5,6 +5,7 @@ import yaml
 import spamwatch
 
 from telethon import TelegramClient
+from googletrans import Translator
 import telegram.ext as tg
 
 # Enable logging
