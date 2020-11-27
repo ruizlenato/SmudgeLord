@@ -99,7 +99,8 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
                 detection = trl.detect(text)
                 tekstr = trl.translate(text, dest=source_lang)
                 return message.reply_text(
-                    "Translated from `{}` to `{}`:\n`{}`".format(detection.lang, source_lang, tekstr.text),
+                    "Translated from `{}` to `{}`:\n`{}`".format(
+                        detection.lang, source_lang, tekstr.text),
                     parse_mode=ParseMode.MARKDOWN)
             else:
                 tekstr = trl.translate(text, dest=dest_lang, src=source_lang)
@@ -109,7 +110,8 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
     except IndexError:
         pass
     except ValueError:
-        update.effective_message.reply_text("The intended language is not found!")
+        update.effective_message.reply_text(
+            "The intended language is not found!")
     else:
         return
 
