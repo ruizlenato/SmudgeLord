@@ -105,6 +105,12 @@ def update_user(user_id, username, chat_id=None, chat_name=None):
 
         SESSION.commit()
 
+def get_all_users():
+    try:
+        return SESSION.query(Users).all()
+    finally:
+        SESSION.close()
+
 
 def get_userid_by_name(username):
     try:

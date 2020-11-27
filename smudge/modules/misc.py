@@ -472,7 +472,7 @@ def restart(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
 
     if not user.id in SUDO_USERS:
-        update.message.reply_text(tld(chat_id, "helpers_user_not_admin"))
+        update.message.reply_text( "User Not Sudo, Error.")
         return
 
     update.message.reply_text("Restarting...")
