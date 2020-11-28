@@ -4,7 +4,7 @@ from time import sleep
 from typing import List
 from telegram import TelegramError, Update, Bot, ParseMode
 from telegram.error import BadRequest
-from telegram.ext import MessageHandler, Filters, CommandHandler
+from telegram.ext import CommandHandler, CallbackContext, MessageHandler, Filters
 from telegram.ext.dispatcher import run_async
 
 import smudge.modules.sql.users_sql as sql
@@ -20,6 +20,7 @@ CHAT_GROUP = 10
 
 
 def get_user_id(username):
+    bot = context.bot
     # ensure valid userid
     if len(username) <= 5:
         return None
@@ -49,8 +50,8 @@ def get_user_id(username):
     return None
 
 
-@run_async
-def broadcast(bot: Bot, update: Update):
+def broadcast(update: Update, context: CallbackContext):
+    bot = context.bot
     to_send = update.effective_message.text.split(None, 1)
     if len(to_send) >= 2:
         chats = sql.get_all_chats() or []
@@ -69,8 +70,8 @@ def broadcast(bot: Bot, update: Update):
             "due to being kicked.".format(failed))
 
 
-@run_async
-def log_user(bot: Bot, update: Update):
+def log_user(update: Update, context: CallbackContext):
+    bot = context.bot
     chat = update.effective_chat
     msg = update.effective_message
 
@@ -86,8 +87,8 @@ def log_user(bot: Bot, update: Update):
         sql.update_user(msg.forward_from.id, msg.forward_from.username)
 
 
-@run_async
-def chats(bot: Bot, update: Update):
+def chats(update: Update, context: CallbackContext):
+    bot = context.bot
     all_chats = sql.get_all_chats() or []
     chatfile = 'List of chats.\n0. Chat name | Chat ID | Members count | Invitelink\n'
     P = 1
@@ -114,8 +115,9 @@ def chats(bot: Bot, update: Update):
             caption="Here is the list of chats in my database.")
 
 
-@run_async
-def snipe(bot: Bot, update: Update, args: List[str]):
+def snipe(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     try:
         chat_id = str(args[0])
         del args[0]
@@ -133,9 +135,10 @@ def snipe(bot: Bot, update: Update, args: List[str]):
             )
 
 
-@run_async
 @bot_admin
-def getlink(bot: Bot, update: Update, args: List[int]):
+def getlink(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     message = update.effective_message
     if args:
         pattern = re.compile(r'-\d+')
@@ -162,7 +165,9 @@ def getlink(bot: Bot, update: Update, args: List[int]):
 
 
 @bot_admin
-def leavechat(bot: Bot, update: Update, args: List[int]):
+def leavechat(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     if args:
         chat_id = int(args[0])
     else:
@@ -205,9 +210,8 @@ def leavechat(bot: Bot, update: Update, args: List[int]):
         else:
             return
 
-
-@run_async
-def slist(bot: Bot, update: Update):
+def slist(update: Update, context: CallbackContext):
+    bot = context.bot
     message = update.effective_message
     text1 = "My sudo users are:"
     text2 = "My support users are:"
@@ -238,8 +242,8 @@ def slist(bot: Bot, update: Update):
     #message.reply_text(text2 + "\n", parse_mode=ParseMode.MARKDOWN)
 
 
-@run_async
-def chat_checker(bot: Bot, update: Update):
+def chat_checker(update: Update, context: CallbackContext):
+    bot = context.bot
     if update.effective_message.chat.get_member(
             bot.id).can_send_messages is False:
         bot.leaveChat(update.effective_message.chat.id)
@@ -267,29 +271,29 @@ def __migrate__(old_chat_id, new_chat_id):
 
 BROADCAST_HANDLER = CommandHandler("broadcasts",
                                    broadcast,
-                                   filters=Filters.user(OWNER_ID))
+                                   filters=Filters.user(OWNER_ID), run_async=True)
 USER_HANDLER = MessageHandler(Filters.all & Filters.group, log_user)
 SNIPE_HANDLER = CommandHandler("snipe",
                                snipe,
                                pass_args=True,
-                               filters=Filters.user(OWNER_ID))
+                               filters=Filters.user(OWNER_ID), run_async=True)
 GETLINK_HANDLER = CommandHandler("getlink",
                                  getlink,
                                  pass_args=True,
-                                 filters=Filters.user(OWNER_ID))
+                                 filters=Filters.user(OWNER_ID), run_async=True)
 CHATLIST_HANDLER = CommandHandler("chatlist",
                                   chats,
-                                  filters=Filters.user(OWNER_ID))
+                                  filters=Filters.user(OWNER_ID), run_async=True)
 LEAVECHAT_HANDLER = CommandHandler("leavechat",
                                    leavechat,
                                    pass_args=True,
-                                   filters=Filters.user(OWNER_ID))
+                                   filters=Filters.user(OWNER_ID), run_async=True)
 SLIST_HANDLER = CommandHandler("slist",
                                slist,
                                filters=CustomFilters.sudo_filter
-                               | CustomFilters.support_filter)
+                               | CustomFilters.support_filter, run_async=True)
 CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.group,
-                                      chat_checker)
+                                      chat_checker, run_async=True)
 
 dispatcher.add_handler(SNIPE_HANDLER)
 dispatcher.add_handler(GETLINK_HANDLER)

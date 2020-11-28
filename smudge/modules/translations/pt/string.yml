@@ -295,7 +295,7 @@ blacklist_help: |
     - /addurl <urls>: Adicione um domínio à lista negra. O bot analisará automaticamente o URL.
     - /delurl <urls>: Remova os URLs da lista negra
 
-# Conexões
+#Connections
 modname_connection: Conexões
 connection_enable: Conexões ativadas para este chat.
 connection_disable: Conexões desativadas para este chat.
@@ -309,23 +309,23 @@ connection_dis_fail: Falha na desconexão!
 connection_err_no_admin: Você precisa ser um(a) administrador(a) no grupo conectado!
 connection_err_unknown: O grupo mudou os direitos de conexão ou você não é mais um(a) administrador(a).\nVou desconectá-lo.
 connection_help: |
-    Às vezes, você só deseja adicionar notas e filtros a um bate-papo em grupo, mas não quer que todos vejam; É aqui que entram as conexões...
-    Isso permite que você se conecte ao banco de dados de um chat e adicione itens a ele sem que os comandos apareçam no chat! Por razões óbvias, você precisa ser um(a) administrador para adicionar coisas; mas qualquer membro do grupo pode visualizar seus dados.\n
-    As ações estão disponíveis com grupos conectados:
-    • Ver e editar notas
-    • Exibir e editar filtros
-    • Ver e editar listas negras
-    • Promover/rebaixar usuários
-    • Consulte lista de administradores, consulte link de convite
-    • Desativar/ativar comandos no bate-papo
-    • Mutar/desmutar usuários no bate-papo
-    • Restringir/tirar restrições usuários no bate-papo
-    • Mais no futuro!\n
-    - Digite /connect ou /connection no grupo ao qual você deseja se conectar.
-    - /connection ou /connect <chatid>: conecta ao chat remotamente
-    - /disconnect: Desconectar do chat
-    - /allowconnect on/yes/off/no: Permitir conectar usuários ao grupo\n
-    Você pode pegar(copia e etc) o ID do Grupo usando o comando /id no seu Grupo. Não se surpreenda se o ID for negativo; todos os super grupos têm IDs negativos.
+  Às vezes, você só deseja adicionar notas e filtros a um bate-papo em grupo, mas não quer que todos vejam; É aqui que entram as conexões...
+  Isso permite que você se conecte ao banco de dados de um chat e adicione itens a ele sem que os comandos apareçam no chat! Por razões óbvias, você precisa ser um(a) administrador para adicionar coisas; mas qualquer membro do grupo pode visualizar seus dados.\n
+  As ações estão disponíveis com grupos conectados:
+  • Ver e editar notas
+  • Ver e editar filtros
+  • Ver e editar listas negras
+  • Promover/rebaixar usuarios
+  • Ver lista de administradores, ver o link de convite
+  • Desativar/ativar comandos no chat
+  • Silenciar/dessilenciar usuários no chat
+  • Restringir/desrestringir usuários en el chat
+  • Mais funções no futuro!\n
+  - Digite /connect ou /connection no grupo ao qual você deseja se conectar.
+  - /connection ou /connect <chatid>: conecta ao chat remotamente
+  - /disconnect: Desconectar do chat
+  - /allowconnect on/yes/off/no: Permitir conectar usuários ao grupo\n
+  Você pode pegar(copia e etc) o ID do Grupo usando o comando /id no seu Grupo. Não se surpreenda se o ID for negativo; todos os super grupos têm IDs negativos.
 
 
 # Filters

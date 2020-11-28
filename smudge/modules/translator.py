@@ -1,30 +1,26 @@
-from typing import Optional, List
 from emoji import UNICODE_EMOJI
 from googletrans import LANGUAGES, Translator
-
-from telegram import Message, Update, Bot, ParseMode, Chat
-from telegram.ext import run_async
-
+from telegram import Bot, Update, ParseMode
+from telegram.ext import CallbackContext, run_async, CommandHandler
 from smudge import dispatcher, trl
-from smudge.modules.disable import DisableAbleCommandHandler
-
 from smudge.modules.translations.strings import tld
 
 
-@run_async
-def do_translate(bot: Bot, update: Update, args: List[str]):
+def do_translate(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
-    lan = " ".join(args)
 
     try:
-        if msg.reply_to_message and msg.reply_to_message.text:
-
+        if msg.reply_to_message:
             args = update.effective_message.text.split(None, 1)
-            text = msg.reply_to_message.text
+            if msg.reply_to_message.text:
+                text = msg.reply_to_message.text
+            elif msg.reply_to_message.caption:
+                text = msg.reply_to_message.caption
+
             message = update.effective_message
             dest_lang = None
-
+            
             try:
                 source_lang = args[1].split(None, 1)[0]
             except:
@@ -119,4 +115,4 @@ def do_translate(bot: Bot, update: Update, args: List[str]):
 __help__ = True
 
 dispatcher.add_handler(
-    DisableAbleCommandHandler("tr", do_translate, pass_args=True))
+    CommandHandler("tr", do_translate, pass_args=True))

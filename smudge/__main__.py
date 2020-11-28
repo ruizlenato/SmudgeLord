@@ -1,25 +1,22 @@
-import datetime
 from sys import argv
 import importlib
 import re
 from typing import List
 
-from telegram import Update, Bot
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import (Unauthorized, BadRequest, TimedOut, NetworkError,
                             ChatMigrated, TelegramError)
-from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
-from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
+from telegram.ext import CallbackContext, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
+from telegram.ext.dispatcher import DispatcherHandlerStop
 
 # Needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from smudge.modules import ALL_MODULES
-from smudge import dispatcher, updater, LOGGER, TOKEN, tbot
+from smudge import dispatcher, updater, LOGGER, TOKEN, tbot, ALLOW_EXCL
 from smudge.helper_funcs.misc import paginate_modules
 from smudge.modules.translations.strings import tld
-from smudge.modules.disable import DisableAbleCommandHandler
 
-photo_url = "https://telegra.ph/file/cb4a2ba5f488a11c3d0ee.png"
+SMUDGEPHOTO = "https://telegra.ph/file/cb4a2ba5f488a11c3d0ee.png"
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -77,32 +74,30 @@ def send_help(chat_id, text, keyboard=None):
                                 disable_web_page_preview=True)
 
 
-@run_async
-def test(bot: Bot, update: Update):
+def test(update: Update, context: CallbackContext):
+    args = context.args
     # pprint(eval(str(update)))
     # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
     update.effective_message.reply_text("This person edited a message")
     print(update.effective_message)
 
 
-@run_async
-def start(bot: Bot, update: Update, args: List[str]):
-    chat = update.effective_chat
-    # query = update.callback_query #Unused variable
+def start(update: Update, context: CallbackContext):
+    args = context.args
     if update.effective_chat.type == "private":
         if len(args) >= 1:
             if args[0].lower() == "help":
                 send_help(
                     update.effective_chat.id,
                     tld(chat.id,
-                        "send-help").format(dispatcher.bot.first_name,
+                        "send-help").format(context.bot.first_name,
                                             tld(chat.id, "cmd_multitrigger")))
 
             elif args[0][1:].isdigit() and "rules" in IMPORTED:
                 IMPORTED["rules"].send_rules(update, args[0], from_pm=True)
 
         else:
-            send_start(bot, update)
+            send_start(update, context)
     else:
         try:
             update.effective_message.reply_text(
@@ -111,7 +106,7 @@ def start(bot: Bot, update: Update, args: List[str]):
             print("Nut")
 
 
-def send_start(bot, update):
+def send_start(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     # Try to remove old message
     try:
@@ -134,12 +129,11 @@ def send_start(bot, update):
                              callback_data="help_back")
     ]]
 
-    update.effective_message.reply_photo(photo=photo_url,
-        caption=text,
+    update.effective_message.reply_text(
+        text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN,
         disable_web_page_preview=True)
-
 # for test purposes
 
 
@@ -167,10 +161,9 @@ def error_callback(bot, update, error):
         # handle all other telegram related errors
 
 
-@run_async
-def help_button(bot: Bot, update: Update):
+def help_button(update, context):
+    bot = context.bot
     query = update.callback_query
-    query.answer()
     chat = update.effective_chat
     back_match = re.match(r"help_back", query.data)
     mod_match = re.match(r"help_module\((.+?)\)", query.data)
@@ -187,8 +180,9 @@ def help_button(bot: Bot, update: Update):
 
             text = tld(chat.id, "here_is_help").format(mod_name, help_txt)
 
-            query.message.edit_caption(
-                                  caption=text,
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=text,
                                   parse_mode=ParseMode.MARKDOWN,
                                   reply_markup=InlineKeyboardMarkup([[
                                       InlineKeyboardButton(
@@ -198,8 +192,9 @@ def help_button(bot: Bot, update: Update):
                                   disable_web_page_preview=True)
 
         elif back_match:
-            query.message.edit_caption(
-                                  caption=tld(chat.id, "send-help").format(
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=tld(chat.id, "send-help").format(
                                       dispatcher.bot.first_name,
                                       tld(chat.id, "cmd_multitrigger")),
                                   parse_mode=ParseMode.MARKDOWN,
@@ -208,16 +203,12 @@ def help_button(bot: Bot, update: Update):
                                                        "help")),
                                   disable_web_page_preview=True)
 
-        # ensure no spinny white circle
-        bot.answer_callback_query(query.id)
-        # query.message.delete()
-
     except BadRequest:
         pass
 
 
-@run_async
-def get_help(bot: Bot, update: Update):
+
+def get_help(update: Update, context: CallbackContext):
     chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
 
@@ -267,7 +258,7 @@ def get_help(bot: Bot, update: Update):
                                          tld(chat.id, "cmd_multitrigger")))
 
 
-def migrate_chats(bot: Bot, update: Update):
+def migrate_chats(update: Update, context: CallbackContext):
     msg = update.effective_message
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
@@ -286,16 +277,16 @@ def migrate_chats(bot: Bot, update: Update):
 
 def main():
     # test_handler = CommandHandler("test", test) #Unused variable
-    start_handler = DisableAbleCommandHandler("start", start, pass_args=True)
+    start_handler = CommandHandler("start", start, pass_args=True, run_async=True)
 
-    help_handler = DisableAbleCommandHandler("help", get_help)
-    help_callback_handler = CallbackQueryHandler(help_button, pattern=r"help_")
+    help_handler = CommandHandler("help", get_help, run_async=True)
+    help_callback_handler = CallbackQueryHandler(help_button, pattern=r"help_", run_async=True)
 
     start_callback_handler = CallbackQueryHandler(send_start,
-                                                  pattern=r"bot_start")
+                                                  pattern=r"bot_start", run_async=True)
 
     migrate_handler = MessageHandler(Filters.status_update.migrate,
-                                     migrate_chats)
+                                     migrate_chats, run_async=True)
 
     # dispatcher.add_handler(test_handler)
     dispatcher.add_handler(start_handler)
@@ -304,9 +295,6 @@ def main():
     dispatcher.add_handler(help_callback_handler)
     dispatcher.add_handler(migrate_handler)
     # dispatcher.add_error_handler(error_callback)
-
-    # add antiflood processor
-    Dispatcher.process_update = process_update
 
     LOGGER.info("Using long polling.")
     # updater.start_polling(timeout=15, read_latency=4, clean=True)
@@ -327,71 +315,6 @@ def main():
 
 CHATS_CNT = {}
 CHATS_TIME = {}
-
-
-def process_update(self, update):
-    # An error happened while polling
-    if isinstance(update, TelegramError):
-        try:
-            self.dispatch_error(None, update)
-        except Exception:
-            self.logger.exception(
-                'An uncaught error was raised while handling the error')
-        return
-
-    if update.effective_chat:  # Checks if update contains chat object
-        now = datetime.datetime.utcnow()
-    try:
-        cnt = CHATS_CNT.get(update.effective_chat.id, 0)
-    except AttributeError:
-        self.logger.exception(
-            'An uncaught error was raised while updating process')
-        return
-
-    t = CHATS_TIME.get(update.effective_chat.id, datetime.datetime(1970, 1, 1))
-    if t and now > t + datetime.timedelta(0, 1):
-        CHATS_TIME[update.effective_chat.id] = now
-        cnt = 0
-    else:
-        cnt += 1
-
-    if cnt > 10:
-        return
-
-    CHATS_CNT[update.effective_chat.id] = cnt
-
-    for group in self.groups:
-        try:
-            for handler in (x for x in self.handlers[group]
-                            if x.check_update(update)):
-                handler.handle_update(update, self)
-                break
-
-        # Stop processing with any other handler.
-        except DispatcherHandlerStop:
-            self.logger.debug(
-                'Stopping further handlers due to DispatcherHandlerStop')
-            break
-
-        # Dispatch any error.
-        except TelegramError as te:
-            self.logger.warning(
-                'A TelegramError was raised while processing the Update')
-
-            try:
-                self.dispatch_error(update, te)
-            except DispatcherHandlerStop:
-                self.logger.debug('Error handler stopped further handlers')
-                break
-            except Exception:
-                self.logger.exception(
-                    'An uncaught error was raised while handling the error')
-
-        # Errors should not stop the thread.
-        except Exception:
-            self.logger.exception(
-                'An uncaught error was raised while processing the update')
-
 
 if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))

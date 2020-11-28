@@ -1,11 +1,11 @@
 from telegram import Message
-from telegram.ext import BaseFilter
+from telegram.ext import MessageFilter
 
 from smudge import SUPPORT_USERS, SUDO_USERS
 
 
 class CustomFilters(object):
-    class _Supporters(BaseFilter):
+    class _Supporters(MessageFilter):
         @staticmethod
         def filter(message: Message):
             return bool(message.from_user
@@ -13,7 +13,7 @@ class CustomFilters(object):
 
     support_filter = _Supporters()
 
-    class _Sudoers(BaseFilter):
+    class _Sudoers(MessageFilter):
         @staticmethod
         def filter(message: Message):
             return bool(message.from_user
@@ -21,7 +21,7 @@ class CustomFilters(object):
 
     sudo_filter = _Sudoers()
 
-    class _MimeType(BaseFilter):
+    class _MimeType(MessageFilter):
         def __init__(self, mimetype):
             self.mime_type = mimetype
             self.name = "CustomFilters.mime_type({})".format(self.mime_type)
@@ -32,7 +32,7 @@ class CustomFilters(object):
 
     mime_type = _MimeType
 
-    class _HasText(BaseFilter):
+    class _HasText(MessageFilter):
         @staticmethod
         def filter(message: Message):
             return bool(message.text or message.sticker or message.photo

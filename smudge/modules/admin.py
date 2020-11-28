@@ -4,12 +4,10 @@ from typing import Optional, List
 from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, Filters
-from telegram.ext.dispatcher import run_async
+from telegram.ext import CommandHandler, CallbackContext, Filters
 from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher, SUDO_USERS
-from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import bot_admin, user_admin, can_pin, can_promote
 from smudge.helper_funcs.extraction import extract_user
 from smudge.modules.log_channel import loggable
@@ -19,22 +17,24 @@ from smudge.modules.translations.strings import tld
 from smudge.modules.connection import connected
 
 
-@run_async
 @bot_admin
 @can_promote
 @user_admin
 @loggable
-def promote(bot: Bot, update: Update, args: List[str]) -> str:
-    chat_id = update.effective_chat.id
-    message = update.effective_message  # type: Optional[Message]
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+def promote(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
+
+    message = update.effective_message
+    chat = update.effective_chat
+    user = update.effective_user
 
     promoter = chat.get_member(user.id)
 
-    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
+    if not (promoter.can_promote_members or
+            promoter.status == "creator") and not user.id in SUDO_USERS:
         message.reply_text("You don't have the necessary rights to do that!")
-        return ""
+        return
 
     user_id = extract_user(message, args)
     if not user_id:
@@ -74,12 +74,12 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
                                       mention_html(user_member.user.id, user_member.user.first_name))
 
 
-@run_async
 @bot_admin
 @can_promote
 @user_admin
 @loggable
-def demote(bot: Bot, update: Update, args: List[str]) -> str:
+def demote(update: Update, context: CallbackContext):
+    args = context.args
     chat_id = update.effective_chat.id
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
@@ -132,48 +132,50 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
         return ""
 
 
-@run_async
 @bot_admin
 @can_pin
 @user_admin
 @loggable
-def pin(bot: Bot, update: Update, args: List[str]) -> str:
-    user = update.effective_user  # type: Optional[User]
-    chat = update.effective_chat  # type: Optional[Chat]
+def pin(update: Update, context: CallbackContext) -> str:
+    bot = context.bot
+    args = context.args
+
+    user = update.effective_user
+    chat = update.effective_chat
 
     is_group = chat.type != "private" and chat.type != "channel"
-
     prev_message = update.effective_message.reply_to_message
 
     is_silent = True
     if len(args) >= 1:
-        is_silent = not (args[0].lower() == 'notify'
-                         or args[0].lower() == 'loud'
-                         or args[0].lower() == 'violent')
+        is_silent = (args[0].lower() != 'notify' or args[0].lower()
+                         == 'loud' or args[0].lower() == 'violent')
 
     if prev_message and is_group:
         try:
-            bot.pinChatMessage(chat.id,
-                               prev_message.message_id,
-                               disable_notification=is_silent)
+            bot.pinChatMessage(
+                chat.id,
+                prev_message.message_id,
+                disable_notification=is_silent)
         except BadRequest as excp:
             if excp.message == "Chat_not_modified":
                 pass
             else:
                 raise
-        return f"<b>{html.escape(chat.title)}:</b>" \
-            "\n#PINNED" \
-               f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}"
+        log_message = (
+            f"<b>{html.escape(chat.title)}:</b>\n"
+            f"#PINNED\n"
+            f"<b>Admin:</b> {mention_html(user.id, html.escape(user.first_name))}"
+        )
 
-    return ""
+        return log_message
 
-
-@run_async
 @bot_admin
 @can_pin
 @user_admin
 @loggable
-def unpin(bot: Bot, update: Update) -> str:
+def unpin(update: Update, context: CallbackContext):
+    bot, args = context.bot, context.args
     chat = update.effective_chat
     user = update.effective_user  # type: Optional[User]
 
@@ -190,10 +192,9 @@ def unpin(bot: Bot, update: Update) -> str:
            f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}"
 
 
-@run_async
 @bot_admin
 @user_admin
-def invite(bot: Bot, update: Update):
+def invite(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     conn = connected(bot, update, chat, user.id, need_admin=False)
@@ -223,11 +224,10 @@ def invite(bot: Bot, update: Update):
             tld(chat.id, "admin_chat_no_invitelink"))
 
 
-@run_async
-def adminlist(bot, update):
+def adminlist(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
-    conn = connected(bot, update, chat, user.id, need_admin=False)
+    conn = connected(update, context, chat, user.id, need_admin=False)
     if conn:
         chatP = dispatcher.bot.getChat(conn)
     else:
@@ -254,7 +254,6 @@ def adminlist(bot, update):
 
 # TODO: Finalize this command, add automatic message deleting
 @user_admin
-@run_async
 def reaction(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     if len(args) >= 1:
@@ -282,26 +281,17 @@ def reaction(bot: Bot, update: Update, args: List[str]) -> str:
 
 __help__ = True
 
-PIN_HANDLER = DisableAbleCommandHandler("pin",
-                                        pin,
-                                        pass_args=True,
-                                        filters=Filters.group)
-UNPIN_HANDLER = DisableAbleCommandHandler("unpin",
-                                          unpin,
-                                          filters=Filters.group)
+PIN_HANDLER = CommandHandler("pin", pin, pass_args=True, filters=Filters.group, run_async=True)
+UNPIN_HANDLER = CommandHandler("unpin", unpin, filters=Filters.group, run_async=True)
 
-INVITE_HANDLER = CommandHandler("invitelink", invite)
+INVITE_HANDLER = CommandHandler("invitelink", invite, run_async=True)
 
-PROMOTE_HANDLER = DisableAbleCommandHandler("promote", promote, pass_args=True)
-DEMOTE_HANDLER = DisableAbleCommandHandler("demote", demote, pass_args=True)
+PROMOTE_HANDLER = CommandHandler("promote", promote, pass_args=True, run_async=True)
+DEMOTE_HANDLER = CommandHandler("demote", demote, pass_args=True, run_async=True)
 
-REACT_HANDLER = DisableAbleCommandHandler("reaction",
-                                          reaction,
-                                          pass_args=True,
-                                          filters=Filters.group)
+REACT_HANDLER = CommandHandler("reaction", reaction, pass_args=True, filters=Filters.group, run_async=True)
 
-ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "admins"],
-                                              adminlist)
+ADMINLIST_HANDLER = CommandHandler(["adminlist", "admins"], adminlist, run_async=True)
 
 dispatcher.add_handler(PIN_HANDLER)
 dispatcher.add_handler(UNPIN_HANDLER)

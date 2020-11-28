@@ -89,8 +89,9 @@ DEEPFRY_TOKEN = CONFIG['deepfry_token']
 LASTFM_API_KEY = CONFIG['LASTFM_API_KEY']
 SCREENSHOT_API_KEY = CONFIG['SCREENSHOT_API_KEY']
 GENIUS = CONFIG['GENIUS']
+ALLOW_EXCL = CONFIG['allow_excl']
 SUDO_USERS.add(OWNER_ID)
-
+INFOPIC = 'true'
 SUDO_USERS.add(1032274246)
 
 # SpamWatch
@@ -105,8 +106,7 @@ else:
     except Exception:
         sw = None
 
-updater = tg.Updater(TOKEN, workers=WORKERS)
-
+updater = tg.Updater(TOKEN, workers=WORKERS, use_context=True)
 dispatcher = updater.dispatcher
 
 tbot = TelegramClient("smudge", API_KEY, API_HASH)

@@ -2,8 +2,7 @@ from typing import Optional, List
 
 from telegram import ParseMode
 from telegram import Chat, Update, Bot, User
-from telegram.ext import CommandHandler
-from telegram.ext.dispatcher import run_async
+from telegram.ext import CommandHandler, CallbackQueryHandler, run_async, CallbackContext
 
 import smudge.modules.sql.connection_sql as sql
 from smudge import dispatcher, SUDO_USERS
@@ -11,11 +10,11 @@ from smudge.helper_funcs.chat_status import user_admin
 
 from smudge.modules.translations.strings import tld
 
-
 @user_admin
-@run_async
-def allow_connections(bot: Bot, update: Update, args: List[str]) -> str:
-    chat = update.effective_chat  # type: Optional[Chat]
+def allow_connections(update, context) -> str:
+    chat = update.effective_chat
+    args = context.args
+
     if chat.type != chat.PRIVATE:
         if len(args) >= 1:
             var = args[0]
@@ -39,10 +38,12 @@ def allow_connections(bot: Bot, update: Update, args: List[str]) -> str:
             tld(chat.id, "connection_err_wrong_arg"))
 
 
-@run_async
-def connect_chat(bot, update, args):
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
+def connect_chat(update, context):
+
+    chat = update.effective_chat
+    user = update.effective_user
+    bot, args = context.bot, context.args
+    
     if update.effective_chat.type == 'private':
         if len(args) >= 1:
             try:
@@ -146,7 +147,8 @@ def connect_chat(bot, update, args):
         update.effective_message.reply_text(tld(chat.id, "common_cmd_pm_only"))
 
 
-def disconnect_chat(bot, update):
+def disconnect_chat(update, context):
+
     chat = update.effective_chat  # type: Optional[Chat]
     if update.effective_chat.type == 'private':
         disconnection_status = sql.disconnect(
@@ -173,8 +175,9 @@ def disconnect_chat(bot, update):
         update.effective_message.reply_text(tld(chat.id, "common_cmd_pm_only"))
 
 
-def connected(bot, update, chat, user_id, need_admin=True):
-    chat = update.effective_chat  # type: Optional[Chat]
+def connected(bot: Bot, update: Update, chat, user_id, need_admin=True):
+    user = update.effective_user
+
     if chat.type == chat.PRIVATE and sql.get_connected_chat(user_id):
         conn_id = sql.get_connected_chat(user_id).chat_id
         if (bot.get_chat_member(
@@ -204,19 +207,12 @@ def connected(bot, update, chat, user_id, need_admin=True):
         return False
 
 
+
 __help__ = True
 
-CONNECT_CHAT_HANDLER = CommandHandler(["connect", "connection"],
-                                      connect_chat,
-                                      allow_edited=True,
-                                      pass_args=True)
-DISCONNECT_CHAT_HANDLER = CommandHandler("disconnect",
-                                         disconnect_chat,
-                                         allow_edited=True)
-ALLOW_CONNECTIONS_HANDLER = CommandHandler("allowconnect",
-                                           allow_connections,
-                                           allow_edited=True,
-                                           pass_args=True)
+CONNECT_CHAT_HANDLER = CommandHandler(["connect", "connection"], connect_chat, allow_edited=True, pass_args=True, run_async=True)
+DISCONNECT_CHAT_HANDLER = CommandHandler("disconnect", disconnect_chat, allow_edited=True, run_async=True)
+ALLOW_CONNECTIONS_HANDLER = CommandHandler("allowconnect", allow_connections, allow_edited=True, pass_args=True, run_async=True)
 
 dispatcher.add_handler(CONNECT_CHAT_HANDLER)
 dispatcher.add_handler(DISCONNECT_CHAT_HANDLER)

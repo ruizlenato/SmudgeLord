@@ -2,7 +2,7 @@ from telethon import events
 from smudge import tbot
 
 
-def register(**args):
+def smudgetbot(**args):
     """ Registers a new message. """
     pattern = args.get('pattern', None)
     group_only = args.get('group_only', False)

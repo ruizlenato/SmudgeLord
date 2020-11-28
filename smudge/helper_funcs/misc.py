@@ -1,14 +1,13 @@
-from functools import wraps
-from typing import List, Dict
+from typing import Dict, List
 
-from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode, Update
+from smudge import NO_LOAD
+from telegram import MAX_MESSAGE_LENGTH, Bot, InlineKeyboardButton, ParseMode
 from telegram.error import TelegramError
-
-from smudge import LOAD, NO_LOAD, OWNER_ID
 from smudge.modules.translations.strings import tld
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):
+
     def __eq__(self, other):
         return self.text == other.text
 
@@ -22,19 +21,22 @@ class EqInlineKeyboardButton(InlineKeyboardButton):
 def split_message(msg: str) -> List[str]:
     if len(msg) < MAX_MESSAGE_LENGTH:
         return [msg]
-    lines = msg.splitlines(True)
-    small_msg = ""
-    result = []
-    for line in lines:
-        if len(small_msg) + len(line) < MAX_MESSAGE_LENGTH:
-            small_msg += line
-        else:
-            result.append(small_msg)
-            small_msg = line
-            # Else statement at the end of the for loop, so append the leftover string.
-    result.append(small_msg)
 
-    return result
+    else:
+        lines = msg.splitlines(True)
+        small_msg = ""
+        result = []
+        for line in lines:
+            if len(small_msg) + len(line) < MAX_MESSAGE_LENGTH:
+                small_msg += line
+            else:
+                result.append(small_msg)
+                small_msg = line
+        else:
+            # Else statement at the end of the for loop, so append the leftover string.
+            result.append(small_msg)
+
+        return result
 
 
 def paginate_modules(chat_id,
@@ -93,9 +95,8 @@ def send_to_list(bot: Bot,
     for user_id in set(send_to):
         try:
             if markdown:
-                bot.send_message(user_id,
-                                 message,
-                                 parse_mode=ParseMode.MARKDOWN)
+                bot.send_message(
+                    user_id, message, parse_mode=ParseMode.MARKDOWN)
             elif html:
                 bot.send_message(user_id, message, parse_mode=ParseMode.HTML)
             else:
@@ -126,17 +127,18 @@ def revert_buttons(buttons):
     return res
 
 
-def is_module_loaded(name):
-    return (not LOAD or name in LOAD) and name not in NO_LOAD
-
-
-def user_bot_owner(func):
-    @wraps(func)
-    def is_user_bot_owner(bot: Bot, update: Update, *args, **kwargs):
-        user = update.effective_user
-        if user and user.id == OWNER_ID:
-            return func(bot, update, *args, **kwargs)
+def build_keyboard_parser(bot, chat_id, buttons):
+    keyb = []
+    for btn in buttons:
+        if btn.url == "{rules}":
+            btn.url = "http://t.me/{}?start={}".format(bot.username, chat_id)
+        if btn.same_line and keyb:
+            keyb[-1].append(InlineKeyboardButton(btn.name, url=btn.url))
         else:
-            pass
+            keyb.append([InlineKeyboardButton(btn.name, url=btn.url)])
 
-    return is_user_bot_owner
+    return keyb
+
+
+def is_module_loaded(name):
+    return name not in NO_LOAD

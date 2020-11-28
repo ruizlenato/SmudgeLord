@@ -1,14 +1,13 @@
 import re
 import time
 from typing import Dict, List
+
 import bleach
 import markdown2
-
 import emoji
+
 from telegram import MessageEntity
 from telegram.utils.helpers import escape_markdown
-
-from smudge.modules.translations.strings import tld
 
 # NOTE: the url \ escape may cause double escapes
 # match * (bold) (don't escape if in url)
@@ -103,13 +102,12 @@ def markdown_parser(txt: str,
                 # else, check the escapes between the prev and last and forcefully escape the url to avoid mangling
                 else:
                     # TODO: investigate possible offset bug when lots of emoji are present
-                    res += _selective_escape(txt[prev:start]
-                                             or "") + escape_markdown(ent_text)
+                    res += _selective_escape(txt[prev:start] or
+                                             "") + escape_markdown(ent_text)
 
             # code handling
             elif ent.type == "code":
-                res += _selective_escape(
-                    txt[prev:start]) + '`' + ent_text + '`'
+                res += _selective_escape(txt[prev:start]) + '`' + ent_text + '`'
 
             # handle markdown/html links
             elif ent.type == "text_link":
@@ -143,7 +141,6 @@ def button_markdown_parser(txt: str,
             n_escapes += 1
             to_check -= 1
 
-        # if even, not escaped -> create button
         if n_escapes % 2 == 0:
             # create a thruple with button label, url, and newline status
             buttons.append(
@@ -154,8 +151,8 @@ def button_markdown_parser(txt: str,
         else:
             note_data += markdown_note[prev:to_check]
             prev = match.start(1) - 1
-
-    note_data += markdown_note[prev:]
+    else:
+        note_data += markdown_note[prev:]
 
     return note_data, buttons
 
@@ -215,14 +212,14 @@ def split_quotes(text: str) -> List:
         else:
             return text.split(None, 1)
 
-        # 1 to avoid starting quote, and counter is exclusive so avoids ending
         key = remove_escapes(text[1:counter].strip())
         # index will be in range, or `else` would have been executed and returned
         rest = text[counter + 1:].strip()
         if not key:
             key = text[0] + text[0]
         return list(filter(None, [key, rest]))
-    return text.split(None, 1)
+    else:
+        return text.split(None, 1)
 
 
 def remove_escapes(text: str) -> str:
@@ -253,12 +250,10 @@ def escape_chars(text: str, to_escape: List[str]) -> str:
 
 def extract_time(message, time_val):
     if any(time_val.endswith(unit) for unit in ('m', 'h', 'd')):
-        chat = message.chat
         unit = time_val[-1]
         time_num = time_val[:-1]  # type: str
         if not time_num.isdigit():
-            message.reply_text(
-                tld(chat.id, 'helpers_string_handling_invalid_time_amount'))
+            message.reply_text("Invalid time amount specified.")
             return ""
 
         if unit == 'm':
@@ -271,21 +266,19 @@ def extract_time(message, time_val):
             # how even...?
             return ""
         return bantime
-    message.reply_text(
-        tld(chat.id, 'helpers_string_handling_invalid_time_type').format(
-            time_val[-1]))
-    return ""
+    else:
+        message.reply_text(
+            "Invalid time type specified. Expected m,h, or d, got: {}".format(
+                time_val[-1]))
+        return ""
 
 
 def markdown_to_html(text):
     text = text.replace("*", "**")
     text = text.replace("`", "```")
-    _html = markdown2.markdown(text)
-    return bleach.clean(_html,
-                        tags=['strong', 'em', 'a', 'code', 'pre'],
-                        strip=True)[:-1]
-
-
-def remove_emoji(inputString):
-    """ Remove emojis and other non-safe characters from string """
-    return emoji.get_emoji_regexp().sub(u'', inputString)
+    text = text.replace("~", "~~")
+    _html = markdown2.markdown(text, extras=["strike", "underline"])
+    return bleach.clean(
+        _html,
+        tags=["strong", "em", "a", "code", "pre", "strike", "u"],
+        strip=True)[:-1]

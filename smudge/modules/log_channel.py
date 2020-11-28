@@ -58,7 +58,6 @@ def send_log(bot: Bot, log_chat_id: str, orig_chat_id: str, result: str):
                 "\n\nFormatting has been disabled due to an unexpected error.")
 
 
-@run_async
 @user_admin
 def logging(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
@@ -79,7 +78,6 @@ def logging(bot: Bot, update: Update):
         message.reply_text(tld(chat.id, "log_channel_none"))
 
 
-@run_async
 @user_admin
 def setlog(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
@@ -118,8 +116,6 @@ def setlog(bot: Bot, update: Update):
         message.reply_text(tld(chat.id, "log_channel_invalid_message"),
                            ParseMode.MARKDOWN)
 
-
-@run_async
 @user_admin
 def unsetlog(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
@@ -148,9 +144,9 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-LOG_HANDLER = CommandHandler("logchannel", logging)
-SET_LOG_HANDLER = CommandHandler("setlog", setlog)
-UNSET_LOG_HANDLER = CommandHandler("unsetlog", unsetlog)
+LOG_HANDLER = CommandHandler("logchannel", logging, run_async=True)
+SET_LOG_HANDLER = CommandHandler("setlog", setlog, run_async=True)
+UNSET_LOG_HANDLER = CommandHandler("unsetlog", unsetlog, run_async=True)
 
 dispatcher.add_handler(LOG_HANDLER)
 dispatcher.add_handler(SET_LOG_HANDLER)
