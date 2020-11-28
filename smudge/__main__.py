@@ -19,8 +19,6 @@ from smudge.helper_funcs.misc import paginate_modules
 from smudge.modules.translations.strings import tld
 from smudge.modules.disable import DisableAbleCommandHandler
 
-photo_url = "https://telegra.ph/file/cb4a2ba5f488a11c3d0ee.png"
-
 IMPORTED = {}
 MIGRATEABLE = []
 HELPABLE = {}
@@ -134,8 +132,8 @@ def send_start(bot, update):
                              callback_data="help_back")
     ]]
 
-    update.effective_message.reply_photo(photo=photo_url,
-        caption=text,
+    update.effective_message.reply_text(
+        text,
         reply_markup=InlineKeyboardMarkup(keyboard),
         parse_mode=ParseMode.MARKDOWN,
         disable_web_page_preview=True)
@@ -187,8 +185,9 @@ def help_button(bot: Bot, update: Update):
 
             text = tld(chat.id, "here_is_help").format(mod_name, help_txt)
 
-            query.message.edit_caption(
-                                  caption=text,
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=text,
                                   parse_mode=ParseMode.MARKDOWN,
                                   reply_markup=InlineKeyboardMarkup([[
                                       InlineKeyboardButton(
@@ -198,8 +197,9 @@ def help_button(bot: Bot, update: Update):
                                   disable_web_page_preview=True)
 
         elif back_match:
-            query.message.edit_caption(
-                                  caption=tld(chat.id, "send-help").format(
+            bot.edit_message_text(chat_id=query.message.chat_id,
+                                  message_id=query.message.message_id,
+                                  text=tld(chat.id, "send-help").format(
                                       dispatcher.bot.first_name,
                                       tld(chat.id, "cmd_multitrigger")),
                                   parse_mode=ParseMode.MARKDOWN,
