@@ -27,7 +27,8 @@ def locale(bot, update, args):
                     tld(chat.id,
                         "language_not_supported").format(list_locales[locale]), parse_mode=ParseMode.HTML)
         else:
-            update.message.reply_text(tld(chat.id, "language_code_not_valid"), parse_mode=ParseMode.HTML)
+            update.message.reply_text(
+                tld(chat.id, "language_code_not_valid"), parse_mode=ParseMode.HTML)
     else:
         LANGUAGE = prev_locale(chat.id)
         if LANGUAGE:
