@@ -197,6 +197,21 @@ def user_can_kick(func):
 
     return user_perm_kick
 
+def user_can_warn(func):
+    @wraps(func)
+    def user_perm_warn(bot: Bot, update: Update, *args, **kwargs):
+        user = update.effective_user.id
+        chat = update.effective_chat
+        member = update.effective_chat.get_member(user)
+
+        if not (member.can_restrict_members or
+                member.status == "creator") and not user in SUDO_USERS:
+            update.effective_message.reply_text(tld(chat.id, "admin_warn_perm_false"))
+            return ""    
+        return func(bot, update, *args, **kwargs)
+
+    return user_perm_warn
+
 def user_can_promote(func):
     @wraps(func)
     def user_perm_promote(bot: Bot, update: Update, *args, **kwargs):

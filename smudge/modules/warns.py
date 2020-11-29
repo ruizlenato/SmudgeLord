@@ -12,7 +12,7 @@ from telegram.utils.helpers import mention_html
 from smudge import dispatcher
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin, \
-    can_restrict
+    can_restrict, user_can_warn, user_can_changeinfo
 from smudge.helper_funcs.extraction import extract_text, extract_user_and_text, extract_user
 from smudge.helper_funcs.filters import CustomFilters
 from smudge.helper_funcs.misc import split_message
@@ -161,6 +161,7 @@ def sendrules_handler(bot: Bot, update: Update) -> str:
 @user_admin
 @bot_admin
 @loggable
+@user_can_warn
 def remove_warns(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
@@ -186,6 +187,7 @@ def remove_warns(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @can_restrict
 @loggable
+@user_can_warn
 def warn_user(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
@@ -208,6 +210,7 @@ def warn_user(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @bot_admin
 @loggable
+@user_can_warn
 def reset_warns(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
@@ -262,6 +265,7 @@ def warns(bot: Bot, update: Update, args: List[str]):
 
 # Dispatcher handler stop - do not async
 @user_admin
+@user_can_changeinfo
 def add_warn_filter(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
@@ -296,6 +300,7 @@ def add_warn_filter(bot: Bot, update: Update):
 
 
 @user_admin
+@user_can_changeinfo
 def remove_warn_filter(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
@@ -377,6 +382,7 @@ def reply_filter(bot: Bot, update: Update) -> str:
 @run_async
 @user_admin
 @loggable
+@user_can_changeinfo
 def set_warn_limit(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]

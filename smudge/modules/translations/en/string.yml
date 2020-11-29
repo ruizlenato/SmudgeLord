@@ -5,11 +5,7 @@ send-help: |
     - /start: Cool command to check if the bot is alive or not
     - /help: PM's you this message.
     - /help <module name>: PM's you info about that module.
-    - /donate: information about how to donate!
     - /lang: Change bot language
-    - /settings:
-    - in PM: will send you your settings for all supported modules.
-    - in a group: will redirect you to pm, with all that chat's settings.{}
 cmd_multitrigger: \nAll commands can either be used with `/` or `!`.
 here_is_help: Here is the help for the *{}* module:\n\n{}
 help_not_found: Help string for <code>{}</code> not found!
@@ -1192,6 +1188,7 @@ admin_pin_perm_false: You don't have enough rights to pin/unpin messages!
 admin_changeinfo_perm_false: You don't have enough rights to change chat info!
 admin_ban_perm_false: You don't have enough rights to ban/unban users!
 admin_kick_perm_false: You don't have enough rights to kick users!
+admin_warn_perm_false: You don't have enough rights to warn/unwarn users!
 #extraction
 helpers_user_not_in_db: |
   I don't have that user in my user database.

@@ -10,7 +10,7 @@ from telegram.utils.helpers import mention_html
 import smudge.modules.sql.welcome_sql as sql
 from smudge.modules.sql.antispam_sql import is_user_gbanned
 from smudge import dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP, sw
-from smudge.helper_funcs.chat_status import user_admin, is_user_ban_protected
+from smudge.helper_funcs.chat_status import user_admin, is_user_ban_protected, user_can_changeinfo
 from smudge.helper_funcs.misc import build_keyboard, revert_buttons
 from smudge.helper_funcs.msg_types import get_welcome_type
 from smudge.helper_funcs.string_handling import markdown_parser, \
@@ -520,6 +520,7 @@ def security(bot: Bot, update: Update, args: List[str]) -> str:
 
 @run_async
 @user_admin
+@user_can_changeinfo
 def security_mute(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
@@ -548,6 +549,7 @@ def security_mute(bot: Bot, update: Update, args: List[str]) -> str:
 
 @run_async
 @user_admin
+@user_can_changeinfo
 def security_text(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     getcur, cur_value, cust_text = sql.welcome_security(chat.id)
@@ -564,6 +566,7 @@ def security_text(bot: Bot, update: Update, args: List[str]) -> str:
 
 @run_async
 @user_admin
+@user_can_changeinfo
 def security_text_reset(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     getcur, cur_value, cust_text = sql.welcome_security(chat.id)
@@ -577,6 +580,7 @@ def security_text_reset(bot: Bot, update: Update):
 
 @run_async
 @user_admin
+@user_can_changeinfo
 def cleanservice(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     if chat.type != chat.PRIVATE:
@@ -759,6 +763,7 @@ def goodbye(bot: Bot, update: Update, args: List[str]):
 @run_async
 @user_admin
 @loggable
+@user_can_changeinfo
 def set_welcome(bot: Bot, update: Update) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -790,6 +795,7 @@ def set_welcome(bot: Bot, update: Update) -> str:
 @run_async
 @user_admin
 @loggable
+@user_can_changeinfo
 def reset_welcome(bot: Bot, update: Update) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -806,6 +812,7 @@ def reset_welcome(bot: Bot, update: Update) -> str:
 @run_async
 @user_admin
 @loggable
+@user_can_changeinfo
 def set_goodbye(bot: Bot, update: Update) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -835,6 +842,7 @@ def set_goodbye(bot: Bot, update: Update) -> str:
 @run_async
 @user_admin
 @loggable
+@user_can_changeinfo
 def reset_goodbye(bot: Bot, update: Update) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -851,6 +859,7 @@ def reset_goodbye(bot: Bot, update: Update) -> str:
 @run_async
 @user_admin
 @loggable
+@user_can_changeinfo
 def clean_welcome(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]

@@ -5,7 +5,6 @@ send-help: |
     - /start: Comando Legal pra ver se eu estou Vivo ou Não:3
     - /help: envia esta mensagem de ajuda
     - /lang: Troca o idioma do Bot
-    - /settings:
     Todos os comandos podem ser usados com os seguintes caracteres: / !
 cmd_multitrigger: \nTodos os comandos podem ser usados ​​com `/` or `!`.
 here_is_help: Aqui está a ajuda para o modulo *{}*:\n\n{}
@@ -1196,6 +1195,7 @@ admin_ban_perm_false: "Você não tem direitos administrativos suficientes para 
 admin_pin_perm_false: "Você não tem direitos administrativos suficientes para fazer fixar/desafixar mensagens!"
 admin_kick_perm_false: "Você não tem direitos administrativos suficientes para remover usuários!"
 admin_changeinfo_perm_false: "Você não tem direitos administrativos suficientes para alterar as informações deste grupo!"
+admin_warn_perm_false: Você não tem direitos suficientes para advertir e remover advertencias dos usuários!
 #extraction
 helpers_user_not_in_db: |
   Eu não tenho esse usuário no meu banco de dados de usuários.
