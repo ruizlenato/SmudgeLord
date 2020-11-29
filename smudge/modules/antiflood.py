@@ -8,7 +8,6 @@ from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher
 from smudge.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
-from smudge.helper_funcs.user_perm import user_can_changeinfo
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import antiflood_sql as sql
 
@@ -60,8 +59,9 @@ def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat
     user = update.effective_user
     message = update.effective_message
+    perm = chat.get_member(user.id)
 
-    if user_can_changeinfo(chat, user, bot.id) is False:
+    if not (perm.can_change_info or perm.status == "creator") and not user.id in SUDO_USERS:
         message.reply_text(tld(chat.id, "admin_changeinfo_perm_false"))
         return ""
 

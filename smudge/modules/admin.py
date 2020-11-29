@@ -11,12 +11,6 @@ from telegram.utils.helpers import mention_html
 from smudge import dispatcher, SUDO_USERS
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import bot_admin, user_admin, can_pin, can_promote
-from smudge.helper_funcs.user_perm import (
-    user_can_pin,
-    user_can_promote,
-    user_can_changeinfo,
-)
-from smudge.helper_funcs.extraction import extract_user
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import admin_sql as sql
 from smudge.modules.translations.strings import tld
@@ -35,9 +29,9 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
 
-    promoter = chat.get_member(user.id)
+    perm = chat.get_member(user.id)
 
-    if user_can_promote(chat, user, bot.id) is False:
+    if not (perm.can_promote_members or perm.status == "creator") and not user.id in SUDO_USERS:
         message.reply_text(tld(chat.id, "admin_promote_perm_false"))
         return ""
 
@@ -149,7 +143,9 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
 
     prev_message = update.effective_message.reply_to_message
 
-    if user_can_pin(chat, user, bot.id) is False:
+    perm = chat.get_member(user.id)
+
+    if not (perm.can_pin_messages or perm.status == "creator") and not user.id in SUDO_USERS:
         message.reply_text(tld(chat.id, "admin_pin_perm_false"))
         return ""
 
@@ -185,7 +181,9 @@ def unpin(bot: Bot, update: Update) -> str:
     user = update.effective_user
     message = update.effective_message
 
-    if user_can_pin(chat, user, bot.id) is False:
+    perm = chat.get_member(user.id)
+
+    if not (perm.can_pin_messages or perm.status == "creator") and not user.id in SUDO_USERS:
         message.reply_text(tld(chat.id, "admin_pin_perm_false"))
         return ""
 
@@ -269,9 +267,10 @@ def adminlist(bot, update):
 @run_async
 def reaction(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
+    perm = chat.get_member(user.id)
     if len(args) >= 1:
         var = args[0]
-        if user_can_changeinfo(chat, user, bot.id) is False:
+        if not (perm.can_change_info or perm.status == "creator") and not user.id in SUDO_USERS:
             message.reply_text(tld(chat.id, "admin_changeinfo_perm_false"))
         print(var)
         if var == "False":
