@@ -63,8 +63,7 @@ def mute(bot: Bot, update: Update, args: List[str]) -> str:
                                      can_send_messages=False)
             keyboard = []
             reply = tld(chat.id, "mute_success").format(
-                mention_html(member.user.id, member.user.first_name),
-                chatD.title)
+                mention_html(member.user.id, member.user.first_name))
             message.reply_text(reply,
                                reply_markup=keyboard,
                                parse_mode=ParseMode.HTML)

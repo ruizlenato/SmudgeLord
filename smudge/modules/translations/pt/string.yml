@@ -400,9 +400,14 @@ github_help: |
    - &<palavra>: igual a /fetch palavra
    - /changelog <palavras>: obtém o changelog de um atalho de repositório salvo
 
+   
+  *Apenas Admin:*
+   - /saverepo <palavra> <usuário>/<repo> [opcional: <número>]: Salve os lançamentos do repo no atalho chamado "palavra".
+   - /delrepo <palavra>: exclui o atalho do repo chamado "palavra"
+
 # Language
 language_switch_success: Alterado para {} com sucesso!
-language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles 🇺🇸 - en \nPortugues 🇧🇷 - pt"
+language_not_supported: "{} ainda não é suportado!\n\n<strong>Idiomas atualmente disponíveis:</strong>\n<strong>🇧🇷Português</strong> - pt\n<strong>🇺🇸Inglês</strong> - en\n\n<strong>Para trocar o idioma use:</strong>\n/setlang (en <strong>ou</strong> pt)"
 language_code_not_valid: Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - en \nPortugues🇧🇷 - pt-BR
 language_current_locale: "A localidade atual deste Grupo é: *{}*"
 language_select_language: "*Selecione o idioma* \n"
@@ -760,7 +765,7 @@ mute_invalid: "Você precisará me dar um nome de usuário para silenciar ou res
 mute_not_myself: "Eu não vou mutar!"
 mute_not_sudo: "Não! Isso seria uma ideia bem idiota, não posso silenciar o meu sudo."
 mute_not_m_admin: "Não! Não posso silenciar o(a) administrador(a) do chat! Isso seria uma ideia bem idiota."
-mute_success: "{} está silenciado(mutado) em {}!"
+mute_success: "Você fala muito, agora fique calado.\n {} <strong>foi mutado(sileciado)!</strong>"
 mute_already_mute: "Este usuário já silenciado(mutado) em {}!"
 mute_not_in_chat: "Este usuário não está no {}!"
 unmute_invalid: "Você precisará me fornecer um nome de usuário para ."
