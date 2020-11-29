@@ -10,7 +10,7 @@ from telegram.utils.helpers import mention_html
 
 import smudge.modules.sql.antispam_sql as sql
 from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, GBAN_DUMP, STRICT_ANTISPAM, sw
-from smudge.helper_funcs.chat_status import user_admin, is_user_admin
+from smudge.helper_funcs.chat_status import user_admin, is_user_admin, user_can_changeinfo
 from smudge.helper_funcs.extraction import extract_user_and_text
 from smudge.helper_funcs.filters import CustomFilters
 # from smudge.helper_funcs.misc import send_to_list
@@ -314,6 +314,7 @@ def enforce_gban(bot: Bot, update: Update):
 
 @run_async
 @user_admin
+@user_can_changeinfo
 def antispam(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat
     if len(args) > 0:

@@ -7,14 +7,13 @@ from telegram.ext import Filters, MessageHandler, CommandHandler, run_async
 from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher
-from smudge.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict
+from smudge.helper_funcs.chat_status import is_user_admin, user_admin, can_restrict, user_can_changeinfo
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import antiflood_sql as sql
 
 from smudge.modules.translations.strings import tld
 
 FLOOD_GROUP = 5
-
 
 @run_async
 @loggable
@@ -55,15 +54,11 @@ def check_flood(bot: Bot, update: Update) -> str:
 @user_admin
 @can_restrict
 @loggable
+@user_can_changeinfo
 def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat
     user = update.effective_user
     message = update.effective_message
-    perm = chat.get_member(user.id)
-
-    if not (perm.can_change_info or perm.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text(tld(chat.id, "admin_changeinfo_perm_false"))
-        return ""
 
     if len(args) >= 1:
         val = args[0].lower()
@@ -80,14 +75,16 @@ def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
                     html.escape(chat.title),
                     mention_html(user.id, user.first_name))
 
-            if amount < 3:
+            elif amount < 3:
                 message.reply_text(tld(chat.id, "flood_err_num"))
                 return ""
-            sql.set_flood(chat.id, amount)
-            message.reply_text(tld(chat.id, "flood_set").format(amount))
-            return tld(chat.id, "flood_logger_set_on").format(
-                html.escape(chat.title),
-                mention_html(user.id, user.first_name), amount)
+
+            else:
+                sql.set_flood(chat.id, amount)
+                message.reply_text(tld(chat.id, "flood_set").format(amount))
+                return tld(chat.id, "flood_logger_set_on").format(
+                    html.escape(chat.title),
+                    mention_html(user.id, user.first_name), amount)
 
         else:
             message.reply_text(tld(chat.id, "flood_err_args"))

@@ -8,7 +8,7 @@ from telegram.utils.helpers import escape_markdown
 
 import smudge.modules.sql.rules_sql as sql
 from smudge import dispatcher
-from smudge.helper_funcs.chat_status import user_admin
+from smudge.helper_funcs.chat_status import user_admin, user_can_changeinfo
 from smudge.helper_funcs.string_handling import markdown_parser
 from smudge.modules.disable import DisableAbleCommandHandler
 
@@ -61,6 +61,7 @@ def send_rules(update, chat_id, from_pm=False):
 
 @run_async
 @user_admin
+@user_can_changeinfo
 def set_rules(bot: Bot, update: Update):
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
@@ -81,6 +82,7 @@ def set_rules(bot: Bot, update: Update):
 
 @run_async
 @user_admin
+@user_can_changeinfo
 def clear_rules(bot: Bot, update: Update):
     chat_id = update.effective_chat.id
     sql.set_rules(chat_id, "")
