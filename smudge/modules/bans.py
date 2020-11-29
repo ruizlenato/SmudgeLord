@@ -23,16 +23,17 @@ from smudge.modules.translations.strings import tld
 @user_admin
 @loggable
 def ban(bot: Bot, update: Update, args: List[str]) -> str:
+    chat_id = update.effective_chat.id
+    message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
-    message = update.effective_message  # type: Optional[Message]
 
     user_id, reason = extract_user_and_text(message, args)
 
-    perm = chat.get_member(user.id)
+    permisson = chat.get_member(user.id)
 
-    if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
+    if not (permisson.can_restrict_members or permisson.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
         return ""
 
     if not user_id:
@@ -102,7 +103,7 @@ def temp_ban(bot: Bot, update: Update, args: List[str]) -> str:
     perm = chat.get_member(user.id)
 
     if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
         return ""
 
     if not user_id:
@@ -192,7 +193,7 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
     perm = chat.get_member(user.id)
 
     if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
         return ""
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
@@ -294,7 +295,7 @@ def unban(bot: Bot, update: Update, args: List[str]) -> str:
     perm = chat.get_member(user.id)
 
     if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
         return ""
 
     if not user_id:
@@ -333,18 +334,16 @@ def sban(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
-
+    perm = chat.get_member(user.id)
     update.effective_message.delete()
 
     user_id, reason = extract_user_and_text(message, args)
 
-    perm = chat.get_member(user.id)
-
-    if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
+    if not user_id:
         return ""
 
-    if not user_id:
+    if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
         return ""
 
     try:
