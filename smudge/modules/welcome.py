@@ -139,7 +139,8 @@ def new_member(bot: Bot, update: Update):
                     "I have been added to {} with ID: <pre>{}</pre>".format(
                         chat.title, chat.id),
                     parse_mode=ParseMode.HTML)
-                bot.send_message(chat.id, tld(chat.id, 'welcome_added_to_grp'), parse_mode=ParseMode.HTML)
+                bot.send_message(chat.id, tld(
+                    chat.id, 'welcome_added_to_grp'), parse_mode=ParseMode.HTML)
 
             else:
                 if is_user_gbanned(new_mem.id):
