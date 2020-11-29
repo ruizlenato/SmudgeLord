@@ -29,8 +29,10 @@ def ban(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if user_can_ban(chat, user, bot.id) is False:
-        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
+    perm = chat.get_member(user.id)
+
+    if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
         return ""
 
     if not user_id:
@@ -97,8 +99,10 @@ def temp_ban(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if user_can_ban(chat, user, bot.id) is False:
-        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
+    perm = chat.get_member(user.id)
+
+    if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
         return ""
 
     if not user_id:
@@ -185,10 +189,11 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if user_can_ban(chat, user, bot.id) is False:
-        message.reply_text(tld(chat.id, "admin_kick_perm_false"))
-        return ""
+    perm = chat.get_member(user.id)
 
+    if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
+        return ""
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
         return ""
@@ -286,8 +291,10 @@ def unban(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if user_can_ban(chat, user, bot.id) is False:
-        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
+    perm = chat.get_member(user.id)
+
+    if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
         return ""
 
     if not user_id:
@@ -331,8 +338,10 @@ def sban(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id, reason = extract_user_and_text(message, args)
 
-    if user_can_ban(chat, user, bot.id) is False:
-        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
+    perm = chat.get_member(user.id)
+
+    if not (perm.can_restrict_members or perm.status == "creator") and not user.id in SUDO_USERS:
+        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
         return ""
 
     if not user_id:
