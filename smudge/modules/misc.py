@@ -1,6 +1,8 @@
 import re
 import html
 import pafy
+import sys
+import os
 import wikipedia
 from datetime import datetime
 import urllib.parse as urlparse
