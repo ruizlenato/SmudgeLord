@@ -9,7 +9,8 @@ from telegram.utils.helpers import mention_html
 from smudge import dispatcher, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, \
-    is_user_admin, is_user_in_chat, user_can_ban
+    is_user_admin, is_user_in_chat
+from smudge.helper_funcs.user_perm import user_can_ban
 from smudge.helper_funcs.extraction import extract_user_and_text
 from smudge.helper_funcs.string_handling import extract_time
 from smudge.modules.log_channel import loggable
