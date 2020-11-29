@@ -196,6 +196,7 @@ def unpin(bot: Bot, update: Update) -> str:
            "\n#UNPINNED" \
            f"\n<b>• Admin:</b> {mention_html(user.id, user.first_name)}"
 
+
 @run_async
 @bot_admin
 @user_admin
