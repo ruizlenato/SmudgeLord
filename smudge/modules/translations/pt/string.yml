@@ -1186,6 +1186,11 @@ helpers_bot_cant_pro_demote: 'Não posso promover/rebaixar pessoas aqui! Verifiq
 helpers_bot_cant_restrict: 'Não posso restringir as pessoas aqui! Certifique-se de que sou administrador e de que posso adicionar novos administradores.'
 helpers_bot_not_admin: 'Eu não sou um(a) administrador(a)!'
 helpers_user_not_admin: 'Você deve ser o administrador do chat para executar esta ação!'
+admin_promote_perm_false: "Você não tem direitos administrativos suficientes para promover/rebaixar alguém!"
+admin_ban_perm_false: "Você não tem direitos administrativos suficientes para banir/desbanir usuários!"
+admin_pin_perm_false: "Você não tem direitos administrativos suficientes para fazer fixar/desafixar mensagens!"
+admin_kick_perm_false: "Você não tem direitos administrativos suficientes para remover usuários!"
+admin_changeinfo_perm_false: "Você não tem direitos administrativos suficientes para alterar as informações deste grupo!"
 #extraction
 helpers_user_not_in_db: |
   Eu não tenho esse usuário no meu banco de dados de usuários.

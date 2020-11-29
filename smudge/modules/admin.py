@@ -10,7 +10,7 @@ from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher, SUDO_USERS
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.helper_funcs.chat_status import bot_admin, user_admin, can_pin, can_promote
+from smudge.helper_funcs.chat_status import bot_admin, user_admin, can_pin, can_promote, user_can_promote, user_can_pin
 from smudge.helper_funcs.extraction import extract_user
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import admin_sql as sql
@@ -32,8 +32,8 @@ def promote(bot: Bot, update: Update, args: List[str]) -> str:
 
     promoter = chat.get_member(user.id)
 
-    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text("You don't have the necessary rights to do that!")
+    if user_can_promote(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
         return ""
 
     user_id = extract_user(message, args)
@@ -85,10 +85,8 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
 
-    promoter = chat.get_member(user.id)
-
-    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text("You don't have the necessary rights to do that!")
+    if user_can_promote(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_promote_perm_false"))
         return ""
 
     user_id = extract_user(message, args)
@@ -138,18 +136,22 @@ def demote(bot: Bot, update: Update, args: List[str]) -> str:
 @user_admin
 @loggable
 def pin(bot: Bot, update: Update, args: List[str]) -> str:
-    user = update.effective_user  # type: Optional[User]
-    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user
+    chat = update.effective_chat
+    message = update.effective_message
 
     is_group = chat.type != "private" and chat.type != "channel"
 
     prev_message = update.effective_message.reply_to_message
 
+    if user_can_pin(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_pin_perm_false"))
+        return ""
+
     is_silent = True
     if len(args) >= 1:
-        is_silent = not (args[0].lower() == 'notify'
-                         or args[0].lower() == 'loud'
-                         or args[0].lower() == 'violent')
+        is_silent = not (args[0].lower() == 'notify' or args[0].lower()
+                         == 'loud' or args[0].lower() == 'violent')
 
     if prev_message and is_group:
         try:
@@ -163,7 +165,7 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
                 raise
         return f"<b>{html.escape(chat.title)}:</b>" \
             "\n#PINNED" \
-               f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}"
+               f"\n<b>• Admin:</b> {mention_html(user.id, user.first_name)}"
 
     return ""
 
@@ -175,7 +177,12 @@ def pin(bot: Bot, update: Update, args: List[str]) -> str:
 @loggable
 def unpin(bot: Bot, update: Update) -> str:
     chat = update.effective_chat
-    user = update.effective_user  # type: Optional[User]
+    user = update.effective_user
+    message = update.effective_message
+
+    if user_can_pin(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_pin_perm_false"))
+        return ""
 
     try:
         bot.unpinChatMessage(chat.id)
@@ -187,8 +194,7 @@ def unpin(bot: Bot, update: Update) -> str:
 
     return f"<b>{html.escape(chat.title)}:</b>" \
            "\n#UNPINNED" \
-           f"\n<b>Admin:</b> {mention_html(user.id, user.first_name)}"
-
+           f"\n<b>• Admin:</b> {mention_html(user.id, user.first_name)}"
 
 @run_async
 @bot_admin
@@ -259,6 +265,8 @@ def reaction(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     if len(args) >= 1:
         var = args[0]
+        if user_can_changeinfo(chat, user, bot.id) is False:
+            message.reply_text(tld(chat.id, "admin_changeinfo_perm_false"))
         print(var)
         if var == "False":
             sql.set_command_reaction(chat.id, False)

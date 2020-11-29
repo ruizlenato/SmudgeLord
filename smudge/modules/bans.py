@@ -9,7 +9,7 @@ from telegram.utils.helpers import mention_html
 from smudge import dispatcher, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, \
-    is_user_admin, is_user_in_chat
+    is_user_admin, is_user_in_chat, user_can_ban
 from smudge.helper_funcs.extraction import extract_user_and_text
 from smudge.helper_funcs.string_handling import extract_time
 from smudge.modules.log_channel import loggable
@@ -28,6 +28,10 @@ def ban(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
 
     user_id, reason = extract_user_and_text(message, args)
+
+    if user_can_ban(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
+        return ""
 
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
@@ -92,6 +96,10 @@ def temp_ban(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
 
     user_id, reason = extract_user_and_text(message, args)
+
+    if user_can_ban(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
+        return ""
 
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
@@ -176,6 +184,10 @@ def kick(bot: Bot, update: Update, args: List[str]) -> str:
     message = update.effective_message  # type: Optional[Message]
 
     user_id, reason = extract_user_and_text(message, args)
+
+    if user_can_ban(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_kick_perm_false"))
+        return ""
 
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
@@ -274,6 +286,10 @@ def unban(bot: Bot, update: Update, args: List[str]) -> str:
 
     user_id, reason = extract_user_and_text(message, args)
 
+    if user_can_ban(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
+        return ""
+
     if not user_id:
         return ""
 
@@ -314,6 +330,10 @@ def sban(bot: Bot, update: Update, args: List[str]) -> str:
     update.effective_message.delete()
 
     user_id, reason = extract_user_and_text(message, args)
+
+    if user_can_ban(chat, user, bot.id) is False:
+        message.reply_text(tld(chat.id, "admin_ban_perm_false"))
+        return ""
 
     if not user_id:
         return ""

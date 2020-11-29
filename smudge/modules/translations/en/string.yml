@@ -1177,12 +1177,18 @@ fox_release_date: "**📆 Release date:** {}\n"
 fox_release_md5: "**✅ MD5:** `{}`\n"
 ### Helper functions
 #chat_status
+#chat_status
 helpers_bot_cant_delete: I can't delete messages here! Make sure I'm admin and can delete other user's messages.
 helpers_bot_cant_pin: I can't pin messages here! Make sure I'm admin and can pin messages.
 helpers_bot_cant_pro_demote: I can't promote/demote people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_cant_restrict: I can't restrict people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_not_admin: I'm not an admin!
 helpers_user_not_admin: You must be this chat administrator to perform this action!
+admin_promote_perm_false: You don't have enough rights to promote/demote someone!
+admin_pin_perm_false: You don't have enough rights to pin/unpin messages!
+admin_changeinfo_perm_false: You don't have enough rights to change chat info!
+admin_ban_perm_false: You don't have enough rights to ban/unban users!
+admin_kick_perm_false: You don't have enough rights to kick users!
 #extraction
 helpers_user_not_in_db: |
   I don't have that user in my user database.
