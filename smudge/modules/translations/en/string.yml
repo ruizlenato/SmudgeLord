@@ -416,7 +416,7 @@ github_help: |
 # Language
 language_switch_success: Switched to {} successfully!
 language_not_supported: "{} is not supported yet!\n\n<strong>Currently available languages:</strong>\n<strong>🇧🇷Português</strong> - pt\n<strong>🇺🇸English</strong> - en\n\n<strong>To change the language type</strong>\n/setlang (en or pt)"
-language_code_not_valid: "That's not a valid lanuage code. Use an internationally accepted ISO code!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 - en \nPortuguese🇧🇷 - pt-BR"
+language_code_not_valid: "That's not a valid lanuage code. Use an internationally accepted ISO code!\n\n<strong>Currently available languages:</strong>\n<strong>🇧🇷Português</strong> - pt\n<strong>🇺🇸English</strong> - en\n\n<strong>To change the language type</strong>\n/setlang (en or pt)"
 language_current_locale: "Current locale for this chat is: *{}*"
 language_select_language: "*Select language* \n"
 language_user_language: "User language: `{}`"
