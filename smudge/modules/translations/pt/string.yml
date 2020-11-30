@@ -154,7 +154,7 @@ antispam_err_not_usr: 'Isso não é um usuário!'
 antispam_err_usr_deleted: 'Essa é uma conta excluída! Por que incomodá-la?'
 antispam_err_no_new_reason: Este usuário já foi banido; Eu mudaria o motivo, mas você não me deu uma...
 antispam_logger_update_gban: |
-  <b>Novo motivo da Ban Global</b>
+  <b>New Reason of Global Ban</b>
   <b>Admin sudo:</b> {}
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
@@ -163,26 +163,26 @@ antispam_logger_update_gban: |
 antispam_reason_updated: "Este usuário já foi banido. Atualizei o motivo.\nMotivo anterior: <code> {} </code>\nNovo motivo: <code> {} </code>"
 antispam_new_gban: |
   <b>Banido Globalmente</b>
-  <b>Usuário:</b> {}
+  <b>User:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b> {}
+  <b>Reason:</b> {}
   <b>LOGs:</b>@SmudgeGBANs
 antispam_logger_new_gban: |
   <b>Ban Global</b>
   <b>Admin sudo:</b> {}
-  <b>Usuario:</b> {}
+  <b>User:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b> {}
+  <b>Reason:</b> {}
   <b>LOGs:</b>@SmudgeGBANs
 antispam_no_reason: Não há motivo dado
 antispam_user_not_gbanned: Este usuário não está banido globalmente
 antispam_ungbanned: Darei uma segunda chance, pronto, desbanido globalmente.
 antispam_logger_ungban: |
-  <b>Ban Global Removido</b>
+  <b>Global Ban Removal</b>
   <b>Admin Sudo:</b> {}
-  <b>Usuário:</b> {}
+  <b>User:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b> {}
+  <b>Reason:</b> {}
 antispam_err_ungban: "Não foi possível desbanir globalmente devido a: {} "
 antispam_checkban_user_removed: "*Este usuário foi banido globalmente e foi removido.*\nMotivo: `{}`"
 antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers, personagens desagradáveis ​​e os maiores trolls.
