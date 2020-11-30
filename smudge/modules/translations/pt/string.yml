@@ -56,8 +56,10 @@ admin_err_chat_no_invitelink: Desculpe, mas só posso dar links de convite para 
 admin_disable_reaction: Resposta desativada para comandos de administração usados por membros.
 admin_disable_reaction: Resposta desativada para comandos de administração usados por membros.
 admin_err_wrong_arg: Por favor, insira True ou False!
-admin_reaction_status: 'A resposta para comandos de administração usados por membros é atualmente *{}*!'
+zombies_searching_accounts: 'Procurando por contas excluídas...'
 zombies_result_accounts: Foram encontradas **{}** contas excluídas neste grupo\nRemova elas usando `/delusers clean`
+zombies_cleaning: Removendo as contas excluídas...
+deleted_acc_false: Nenhuma conta excluída encontrada, o grupo está limpo.
 admin_help: |
     /adminlist | /admins: Lista os administradores no chat\n
     *Apenas administradores:*
