@@ -1,22 +1,22 @@
 from functools import wraps
 from typing import Optional
 
-from smudge import dispatcher, LOGGER
+from smudge import dispatcher, CallbackContext, LOGGER
 from smudge.helper_funcs.chat_status import user_admin
 from smudge.modules.sql import log_channel_sql as sql
 from smudge.modules.translations.strings import tld
 
 from telegram import Bot, Update, ParseMode, Message, Chat
 from telegram.error import BadRequest, Unauthorized
-from telegram.ext import CommandHandler, run_async
+from telegram.ext import CommandHandler, run_async, Filters
 from telegram.utils.helpers import escape_markdown
 
 
 def loggable(func):
     @wraps(func)
-    def log_action(bot: Bot, update: Update, *args, **kwargs):
+    def log_action(update: Update, context: CallbackContext, *args, **kwargs):
         try:
-            result = func(bot, update, *args, **kwargs)
+            result = func(update, context, *args, **kwargs)
         except:
             return
         chat = update.effective_chat  # type: Optional[Chat]
@@ -59,7 +59,8 @@ def send_log(bot: Bot, log_chat_id: str, orig_chat_id: str, result: str):
 
 
 @user_admin
-def logging(bot: Bot, update: Update):
+def logging(update: Update, context: CallbackContext):
+    bot = context.bot
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -79,7 +80,8 @@ def logging(bot: Bot, update: Update):
 
 
 @user_admin
-def setlog(bot: Bot, update: Update):
+def setlog(update: Update, context: CallbackContext):
+    bot = context.bot
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     if chat.type == chat.CHANNEL:
@@ -117,7 +119,8 @@ def setlog(bot: Bot, update: Update):
                            ParseMode.MARKDOWN)
 
 @user_admin
-def unsetlog(bot: Bot, update: Update):
+def unsetlog(update: Update, context: CallbackContext):
+    bot = context.bot
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
 

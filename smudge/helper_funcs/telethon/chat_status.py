@@ -1,16 +1,14 @@
+from smudge import tbot, SUDO_USERS, WHITELIST_USERS
 from telethon.tl.types import ChannelParticipantsAdmins
-from smudge import SUPPORT_USERS, WHITELIST_USERS
-from smudge.helper_funcs.tbot import HIGHER_AUTH, tbot
 
 
 async def user_is_ban_protected(user_id: int, message):
     status = False
-    if message.is_private or user_id in (HIGHER_AUTH + SUPPORT_USERS + WHITELIST_USERS):
+    if message.is_private or user_id in (WHITELIST_USERS + SUDO_USERS):
         return True
 
-    async for user in tbot.iter_participants(
-        message.chat_id, filter=ChannelParticipantsAdmins
-    ):
+    async for user in tbot.iter_participants(message.chat_id,
+                                             filter=ChannelParticipantsAdmins):
         if user_id == user.id:
             status = True
             break
@@ -22,10 +20,9 @@ async def user_is_admin(user_id: int, message):
     if message.is_private:
         return True
 
-    async for user in tbot.iter_participants(
-        message.chat_id, filter=ChannelParticipantsAdmins
-    ):
-        if user_id == user.id or user_id in HIGHER_AUTH:
+    async for user in tbot.iter_participants(message.chat_id,
+                                             filter=ChannelParticipantsAdmins):
+        if user_id == user.id or user_id in SUDO_USERS:
             status = True
             break
     return status
@@ -33,10 +30,9 @@ async def user_is_admin(user_id: int, message):
 
 async def is_user_admin(user_id: int, chat_id):
     status = False
-    async for user in tbot.iter_participants(
-        chat_id, filter=ChannelParticipantsAdmins
-    ):
-        if user_id == user.id or user_id in HIGHER_AUTH:
+    async for user in tbot.iter_participants(chat_id,
+                                             filter=ChannelParticipantsAdmins):
+        if user_id == user.id or user_id in SUDO_USERS:
             status = True
             break
     return status
@@ -45,9 +41,8 @@ async def is_user_admin(user_id: int, chat_id):
 async def smudge_is_admin(chat_id: int):
     status = False
     smudge = await tbot.get_me()
-    async for user in tbot.iter_participants(
-        chat_id, filter=ChannelParticipantsAdmins
-    ):
+    async for user in tbot.iter_participants(chat_id,
+                                             filter=ChannelParticipantsAdmins):
         if smudge.id == user.id:
             status = True
             break
@@ -60,6 +55,13 @@ async def is_user_in_chat(chat_id: int, user_id: int):
         if user_id == user.id:
             status = True
             break
+    return status
+
+
+async def can_delete_messages(message):
+    status = False
+    if message.chat.admin_rights:
+        status = message.chat.admin_rights.delete_messages
     return status
 
 
@@ -77,13 +79,6 @@ async def can_ban_users(message):
     return status
 
 
-async def can_pin_messages(message):
-    status = False
-    if message.chat.admin_rights:
-        status = message.chat.admin_rights.pin_messages
-    return status
-
-
 async def can_invite_users(message):
     status = False
     if message.chat.admin_rights:
@@ -98,8 +93,8 @@ async def can_add_admins(message):
     return status
 
 
-async def can_delete_messages(message):
+async def can_pin_messages(message):
     status = False
     if message.chat.admin_rights:
-        status = message.chat.admin_rights.delete_messages
+        status = message.chat.admin_rights.pin_messages
     return status

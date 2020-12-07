@@ -5,7 +5,6 @@ send-help: |
     - /start: Comando Legal pra ver se eu estou Vivo ou Não:3
     - /help: envia esta mensagem de ajuda
     - /lang: Troca o idioma do Bot
-    - /settings:
     Todos os comandos podem ser usados com os seguintes caracteres: / !
 cmd_multitrigger: \nTodos os comandos podem ser usados ​​com `/` or `!`.
 here_is_help: Aqui está a ajuda para o modulo *{}*:\n\n{}
@@ -16,8 +15,8 @@ btn_go_back: ⬅️ Voltar
 
 main_start_group: Oi Gatinha estou vivo, me chama no PV :3
 main_start_pm: |
-    Ola! Meu nome é SmudgeLord - Estou aqui para ajudá-lo a gerenciar seus grupos!
-    Visite o Site do meu criador [Renatoh's WebSite](https://Renatoh.ml).
+    Ola! Meu nome é SmudgeLord
+    Estou aqui para ajudá-lo a gerenciar seus grupos!
     Meu [código-fonte](https://github.com/SmudgeNetwork/SmudgeLord)
 
     Caso tenha problemas, fale diretamente com meu criador [Renatoh](https://t.me/Renatoh)\n\nQuer me adicionar em um grupo? [Clique aqui!](t.me/SmudgeLordBOT?startgroup=true)
@@ -57,8 +56,10 @@ admin_err_chat_no_invitelink: Desculpe, mas só posso dar links de convite para 
 admin_disable_reaction: Resposta desativada para comandos de administração usados por membros.
 admin_disable_reaction: Resposta desativada para comandos de administração usados por membros.
 admin_err_wrong_arg: Por favor, insira True ou False!
-admin_reaction_status: 'A resposta para comandos de administração usados por membros é atualmente *{}*!'
+zombies_searching_accounts: 'Procurando por contas excluídas...'
 zombies_result_accounts: Foram encontradas **{}** contas excluídas neste grupo\nRemova elas usando `/delusers clean`
+zombies_cleaning: Removendo as contas excluídas...
+deleted_acc_false: Nenhuma conta excluída encontrada, o grupo está limpo.
 admin_help: |
     /adminlist | /admins: Lista os administradores no chat\n
     *Apenas administradores:*
@@ -153,7 +154,7 @@ antispam_err_not_usr: 'Isso não é um usuário!'
 antispam_err_usr_deleted: 'Essa é uma conta excluída! Por que incomodá-la?'
 antispam_err_no_new_reason: Este usuário já foi banido; Eu mudaria o motivo, mas você não me deu uma...
 antispam_logger_update_gban: |
-  <b>Novo motivo da Ban Global</b>
+  <b>New Reason of Global Ban</b>
   <b>Admin sudo:</b> {}
   <b>Usuário:</b> {}
   <b>ID:</b> <code>{}</code>
@@ -162,26 +163,26 @@ antispam_logger_update_gban: |
 antispam_reason_updated: "Este usuário já foi banido. Atualizei o motivo.\nMotivo anterior: <code> {} </code>\nNovo motivo: <code> {} </code>"
 antispam_new_gban: |
   <b>Banido Globalmente</b>
-  <b>Usuário:</b> {}
+  <b>User:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b> {}
+  <b>Reason:</b> {}
   <b>LOGs:</b>@SmudgeGBANs
 antispam_logger_new_gban: |
   <b>Ban Global</b>
   <b>Admin sudo:</b> {}
-  <b>Usuario:</b> {}
+  <b>User:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b> {}
+  <b>Reason:</b> {}
   <b>LOGs:</b>@SmudgeGBANs
 antispam_no_reason: Não há motivo dado
 antispam_user_not_gbanned: Este usuário não está banido globalmente
 antispam_ungbanned: Darei uma segunda chance, pronto, desbanido globalmente.
 antispam_logger_ungban: |
-  <b>Ban Global Removido</b>
+  <b>Global Ban Removal</b>
   <b>Admin Sudo:</b> {}
-  <b>Usuário:</b> {}
+  <b>User:</b> {}
   <b>ID:</b> <code>{}</code>
-  <b>Motivo:</b> {}
+  <b>Reason:</b> {}
 antispam_err_ungban: "Não foi possível desbanir globalmente devido a: {} "
 antispam_checkban_user_removed: "*Este usuário foi banido globalmente e foi removido.*\nMotivo: `{}`"
 antispam_on: Eu ativei a segurança antispam neste grupo. Isso ajudará a protegê-lo contra spammers, personagens desagradáveis ​​e os maiores trolls.
@@ -295,7 +296,7 @@ blacklist_help: |
     - /addurl <urls>: Adicione um domínio à lista negra. O bot analisará automaticamente o URL.
     - /delurl <urls>: Remova os URLs da lista negra
 
-#Connections
+# Conexões
 modname_connection: Conexões
 connection_enable: Conexões ativadas para este chat.
 connection_disable: Conexões desativadas para este chat.
@@ -309,23 +310,23 @@ connection_dis_fail: Falha na desconexão!
 connection_err_no_admin: Você precisa ser um(a) administrador(a) no grupo conectado!
 connection_err_unknown: O grupo mudou os direitos de conexão ou você não é mais um(a) administrador(a).\nVou desconectá-lo.
 connection_help: |
-  Às vezes, você só deseja adicionar notas e filtros a um bate-papo em grupo, mas não quer que todos vejam; É aqui que entram as conexões...
-  Isso permite que você se conecte ao banco de dados de um chat e adicione itens a ele sem que os comandos apareçam no chat! Por razões óbvias, você precisa ser um(a) administrador para adicionar coisas; mas qualquer membro do grupo pode visualizar seus dados.\n
-  As ações estão disponíveis com grupos conectados:
-  • Ver e editar notas
-  • Ver e editar filtros
-  • Ver e editar listas negras
-  • Promover/rebaixar usuarios
-  • Ver lista de administradores, ver o link de convite
-  • Desativar/ativar comandos no chat
-  • Silenciar/dessilenciar usuários no chat
-  • Restringir/desrestringir usuários en el chat
-  • Mais funções no futuro!\n
-  - Digite /connect ou /connection no grupo ao qual você deseja se conectar.
-  - /connection ou /connect <chatid>: conecta ao chat remotamente
-  - /disconnect: Desconectar do chat
-  - /allowconnect on/yes/off/no: Permitir conectar usuários ao grupo\n
-  Você pode pegar(copia e etc) o ID do Grupo usando o comando /id no seu Grupo. Não se surpreenda se o ID for negativo; todos os super grupos têm IDs negativos.
+    Às vezes, você só deseja adicionar notas e filtros a um bate-papo em grupo, mas não quer que todos vejam; É aqui que entram as conexões...
+    Isso permite que você se conecte ao banco de dados de um chat e adicione itens a ele sem que os comandos apareçam no chat! Por razões óbvias, você precisa ser um(a) administrador para adicionar coisas; mas qualquer membro do grupo pode visualizar seus dados.\n
+    As ações estão disponíveis com grupos conectados:
+    • Ver e editar notas
+    • Exibir e editar filtros
+    • Ver e editar listas negras
+    • Promover/rebaixar usuários
+    • Consulte lista de administradores, consulte link de convite
+    • Desativar/ativar comandos no bate-papo
+    • Mutar/desmutar usuários no bate-papo
+    • Restringir/tirar restrições usuários no bate-papo
+    • Mais no futuro!\n
+    - Digite /connect ou /connection no grupo ao qual você deseja se conectar.
+    - /connection ou /connect <chatid>: conecta ao chat remotamente
+    - /disconnect: Desconectar do chat
+    - /allowconnect on/yes/off/no: Permitir conectar usuários ao grupo\n
+    Você pode pegar(copia e etc) o ID do Grupo usando o comando /id no seu Grupo. Não se surpreenda se o ID for negativo; todos os super grupos têm IDs negativos.
 
 
 # Filters
@@ -400,10 +401,15 @@ github_help: |
    - &<palavra>: igual a /fetch palavra
    - /changelog <palavras>: obtém o changelog de um atalho de repositório salvo
 
+   
+  *Apenas Admin:*
+   - /saverepo <palavra> <usuário>/<repo> [opcional: <número>]: Salve os lançamentos do repo no atalho chamado "palavra".
+   - /delrepo <palavra>: exclui o atalho do repo chamado "palavra"
+
 # Language
 language_switch_success: Alterado para {} com sucesso!
-language_not_supported: "{} ainda não é suportado!\n\nIdiomas atualmente disponíveis:\n\nIngles 🇺🇸 - en \nPortugues 🇧🇷 - pt"
-language_code_not_valid: Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\nIdiomas atualmente disponíveis:\n\nIngles🇺🇲 🇬🇧 - en \nPortugues🇧🇷 - pt-BR
+language_not_supported: "{} ainda não é suportado!\n\n<strong>Idiomas atualmente disponíveis:</strong>\n<strong>🇧🇷Português</strong> - pt\n<strong>🇺🇸Inglês</strong> - en\n\n<strong>Para trocar o idioma use:</strong>\n/setlang (en <strong>ou</strong> pt)"
+language_code_not_valid: "Esse não é um código de idioma válido. Use um código ISO aceito internacionalmente!\n\n<strong>Idiomas atualmente disponíveis:</strong>\n<strong>🇧🇷Português</strong> - pt\n<strong>🇺🇸Inglês</strong> - en\n\n<strong>Para trocar o idioma use:</strong>\n/setlang (en <strong>ou</strong> pt)"
 language_current_locale: "A localidade atual deste Grupo é: *{}*"
 language_select_language: "*Selecione o idioma* \n"
 language_user_language: "Idioma do usuário: `{}`"
@@ -760,7 +766,7 @@ mute_invalid: "Você precisará me dar um nome de usuário para silenciar ou res
 mute_not_myself: "Eu não vou mutar!"
 mute_not_sudo: "Não! Isso seria uma ideia bem idiota, não posso silenciar o meu sudo."
 mute_not_m_admin: "Não! Não posso silenciar o(a) administrador(a) do chat! Isso seria uma ideia bem idiota."
-mute_success: "{} está silenciado(mutado) em {}!"
+mute_success: "Você fala muito, agora fique calado.\n {} <strong>foi mutado(sileciado)!</strong>"
 mute_already_mute: "Este usuário já silenciado(mutado) em {}!"
 mute_not_in_chat: "Este usuário não está no {}!"
 unmute_invalid: "Você precisará me fornecer um nome de usuário para ."
@@ -1186,6 +1192,12 @@ helpers_bot_cant_pro_demote: 'Não posso promover/rebaixar pessoas aqui! Verifiq
 helpers_bot_cant_restrict: 'Não posso restringir as pessoas aqui! Certifique-se de que sou administrador e de que posso adicionar novos administradores.'
 helpers_bot_not_admin: 'Eu não sou um(a) administrador(a)!'
 helpers_user_not_admin: 'Você deve ser o administrador do chat para executar esta ação!'
+admin_promote_perm_false: "Você não tem direitos administrativos suficientes para promover/rebaixar alguém!"
+admin_ban_perm_false: "Você não tem direitos administrativos suficientes para banir/desbanir usuários!"
+admin_pin_perm_false: "Você não tem direitos administrativos suficientes para fazer fixar/desafixar mensagens!"
+admin_kick_perm_false: "Você não tem direitos administrativos suficientes para remover usuários!"
+admin_changeinfo_perm_false: "Você não tem direitos administrativos suficientes para alterar as informações deste grupo!"
+admin_warn_perm_false: Você não tem direitos suficientes para advertir e remover advertencias dos usuários!
 #extraction
 helpers_user_not_in_db: |
   Eu não tenho esse usuário no meu banco de dados de usuários.

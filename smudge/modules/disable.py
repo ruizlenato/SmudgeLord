@@ -41,6 +41,7 @@ if is_module_loaded(FILENAME):
         def check_update(self, update):
             chat = update.effective_chat  # type: Optional[Chat]
             user = update.effective_user  # type: Optional[User]
+            message = update.effective_message
             if super().check_update(update):
                 # Should be safe since check_update passed.
                 command = update.effective_message.text_html.split(
@@ -48,11 +49,20 @@ if is_module_loaded(FILENAME):
 
                 # disabled, admincmd, user admin
                 if sql.is_command_disabled(chat.id, command):
-                    return command in ADMIN_CMDS and is_user_admin(
-                        chat, user.id)
-                return True
+                    if command in ADMIN_CMDS and is_user_admin(chat, user.id):
+                        pass
+                    else:
+                        return None
 
-            return False
+                args = message.text.split()[1:]
+                filter_result = self.filters(update)
+                if filter_result:
+                    return args, filter_result
+                else:
+                    return False
+
+            return None
+
 
     class DisableAbleRegexHandler(RegexHandler):
         def __init__(self, pattern, callback, friendly="", **kwargs):
@@ -155,10 +165,10 @@ if is_module_loaded(FILENAME):
 
     __help__ = True
 
-    DISABLE_HANDLER = CommandHandler("disable", disable, pass_args=True, filters=Filters.group, run_async=True)
-    ENABLE_HANDLER = CommandHandler("enable", enable, pass_args=True, filters=Filters.group, run_async=True)
-    COMMANDS_HANDLER = CommandHandler(["cmds", "disabled"], commands, filters=Filters.group, run_async=True)
-    TOGGLE_HANDLER = CommandHandler("listcmds", list_cmds, filters=Filters.group, run_async=True)
+    DISABLE_HANDLER = CommandHandler("disable", disable, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+    ENABLE_HANDLER = CommandHandler("enable", enable, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+    COMMANDS_HANDLER = CommandHandler(["cmds", "disabled"], commands, filters=Filters.chat_type.groups, run_async=True)
+    TOGGLE_HANDLER = CommandHandler("listcmds", list_cmds, filters=Filters.chat_type.groups, run_async=True)
 
     dispatcher.add_handler(DISABLE_HANDLER)
     dispatcher.add_handler(ENABLE_HANDLER)

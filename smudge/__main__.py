@@ -16,8 +16,6 @@ from smudge import dispatcher, updater, LOGGER, TOKEN, tbot, ALLOW_EXCL
 from smudge.helper_funcs.misc import paginate_modules
 from smudge.modules.translations.strings import tld
 
-SMUDGEPHOTO = "https://telegra.ph/file/cb4a2ba5f488a11c3d0ee.png"
-
 IMPORTED = {}
 MIGRATEABLE = []
 HELPABLE = {}
@@ -65,14 +63,11 @@ for module_name in ALL_MODULES:
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
         keyboard = InlineKeyboardMarkup(
-            paginate_modules(chat_id, 0, HELPABLE, "help"))
-
+            paginate_modules(chat_id, 0, HELPABLE, "help"))        
     dispatcher.bot.send_message(chat_id=chat_id,
                                 text=text,
                                 parse_mode=ParseMode.MARKDOWN,
-                                reply_markup=keyboard,
-                                disable_web_page_preview=True)
-
+                                reply_markup=keyboard)
 
 def test(update: Update, context: CallbackContext):
     args = context.args
@@ -83,6 +78,7 @@ def test(update: Update, context: CallbackContext):
 
 
 def start(update: Update, context: CallbackContext):
+    chat = update.effective_chat
     args = context.args
     if update.effective_chat.type == "private":
         if len(args) >= 1:
@@ -100,8 +96,7 @@ def start(update: Update, context: CallbackContext):
             send_start(update, context)
     else:
         try:
-            update.effective_message.reply_text(
-                tld(chat.id, 'main_start_group'))
+            update.effective_message.reply_text(tld(chat.id, 'main_start_group'))
         except Exception:
             print("Nut")
 
@@ -137,7 +132,7 @@ def send_start(update: Update, context: CallbackContext):
 # for test purposes
 
 
-def error_callback(bot, update, error):
+def error_callback(update: Update, context: CallbackContext):
     try:
         raise error
     except Unauthorized:
@@ -211,6 +206,7 @@ def help_button(update, context):
 def get_help(update: Update, context: CallbackContext):
     chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
+    bot = context.bot
 
     # ONLY send help in PM
     if chat.type != chat.PRIVATE:

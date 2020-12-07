@@ -5,11 +5,7 @@ send-help: |
     - /start: Cool command to check if the bot is alive or not
     - /help: PM's you this message.
     - /help <module name>: PM's you info about that module.
-    - /donate: information about how to donate!
     - /lang: Change bot language
-    - /settings:
-    - in PM: will send you your settings for all supported modules.
-    - in a group: will redirect you to pm, with all that chat's settings.{}
 cmd_multitrigger: \nAll commands can either be used with `/` or `!`.
 here_is_help: Here is the help for the *{}* module:\n\n{}
 help_not_found: Help string for <code>{}</code> not found!
@@ -19,10 +15,9 @@ btn_go_back: ⬅️ Back
 
 main_start_group: Hey there! I'm alive :3
 main_start_pm: |
-    Hey there! My name is SmudgeLord - I'm here to help you manage your groups!
-    Click Help button to find out more about how to use me to my full potential.
-    Look at my creator's website [Renatoh's WebSite](https://Renatoh.ml).
-    My [source-code](https://github.com/SmudgeNetwork/SmudgeLord)
+    Hey there! My name is SmudgeLord
+    I'm here to help you manage your groups!
+    My [source-code](https://github.com/SmudgeNetwork/SmudgeLord).
 
 
     Go to my PM [Renatoh](https://t.me/Renatoh) If you have a problem!\n\nWant to add me to your group? [Click here!](t.me/SmudgeLordbot?startgroup=true)
@@ -61,10 +56,10 @@ admin_disable_reaction: Disabled response to user-triggered admin commands.
 admin_enable_reaction: Enabled response to user-triggered admin commands.
 admin_err_wrong_arg: Please enter True or False!
 admin_reaction_status: Response for user-triggered admin commands is currently *{}*!
-zombies_admin_noperm: I am not an admin here so I cannot remove these deleted accounts.
 zombies_searching_accounts: 'Searching for zombie accounts...'
 zombies_cleaning: Cleaning deleted accounts..
 zombies_result_accounts: found **{}** deleted account(s) in this group\nclean them by using `/delusers` clean
+deleted_acc_false: No deleted accounts found, Group is cleaned.
 admin_help: |
     /adminlist | /admins: Lists the admins in the chat\n
     *Admin only:*
@@ -408,12 +403,16 @@ github_help: |
    - &<word>: same as /fetch word
    - /changelog <word>: gets the changelog of a saved repo shortcut
    - /listrepo: List all repo shortcuts in the current chat
+  *Admin only:*
+   - /saverepo <word> <user>/<repo> [optional: <number>]: Save that repo releases to the shortcut called "word".
+   - /delrepo <word>: delete the repo shortcut called "word"
+
 
 
 # Language
 language_switch_success: Switched to {} successfully!
-language_not_supported: "{} is not supported yet!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 - en \nPortuguese🇧🇷 - pt-BR"
-language_code_not_valid: "That's not a valid lanuage code. Use an internationally accepted ISO code!\n\nCurrently available languages:\n\nEnglish🇺🇲 🇬🇧 - en \nPortuguese🇧🇷 - pt-BR"
+language_not_supported: "{} is not supported yet!\n\n<strong>Currently available languages:</strong>\n<strong>🇧🇷Português</strong> - pt\n<strong>🇺🇸English</strong> - en\n\n<strong>To change the language type</strong>\n/setlang (en or pt)"
+language_code_not_valid: "That's not a valid lanuage code. Use an internationally accepted ISO code!\n\n<strong>Currently available languages:</strong>\n<strong>🇧🇷Português</strong> - pt\n<strong>🇺🇸English</strong> - en\n\n<strong>To change the language type</strong>\n/setlang (en or pt)"
 language_current_locale: "Current locale for this chat is: *{}*"
 language_select_language: "*Select language* \n"
 language_user_language: "User language: `{}`"
@@ -766,7 +765,7 @@ mute_invalid: "You'll need to either give me a username to mute, or reply to som
 mute_not_myself: "I'm not muting myself!"
 mute_not_sudo: "No! I'm not muting bot sudoers! That would be a pretty dumb idea."
 mute_not_m_admin: "No! I'm not muting chat administrator! That would be a pretty dumb idea."
-mute_success: "{} is muted in {}!"
+mute_success: "You talk a lot, now keep quiet.\n {} <strong>is muted!</strong>"
 mute_already_mute: "This user is already muted in {}!"
 mute_not_in_chat: "This user isn't in the {}!"
 unmute_invalid: "You'll need to either give me a username to unmute, or reply to someone to be unmuted."
@@ -904,7 +903,7 @@ url_blacklist_no_existed: "There are no blacklisted domains here!"
 
 #Greetings
 modname_welcome: Greetings
-welcome_added_to_grp: "Thanks for adding me into your group!.\nDon't forget to change the bot language\n\nSupported languages:\nPortuguês 🇧🇷 - pt\nEnglish 🇺🇸 - en\nTo change the language type /setlang (en or pt)"
+welcome_added_to_grp: "<strong>Thanks for adding me into your group!.</strong>\nDon't forget to change the bot language\n\nSupported languages:\n<strong>🇧🇷Portuguese</strong> - pt\n<strong>🇺🇸English</strong> - en\n\n<strong>To change the language type</strong>\n/setlang (en or pt)"
 welcome_mute_btn_unmuted: Unmuted! You may now type!
 welcome_mute_btn_old_user: You're not a new user!
 welcome_bot_owner_left: Well, My master has left, The party is over!
@@ -1177,12 +1176,19 @@ fox_release_date: "**📆 Release date:** {}\n"
 fox_release_md5: "**✅ MD5:** `{}`\n"
 ### Helper functions
 #chat_status
+#chat_status
 helpers_bot_cant_delete: I can't delete messages here! Make sure I'm admin and can delete other user's messages.
 helpers_bot_cant_pin: I can't pin messages here! Make sure I'm admin and can pin messages.
 helpers_bot_cant_pro_demote: I can't promote/demote people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_cant_restrict: I can't restrict people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_not_admin: I'm not an admin!
 helpers_user_not_admin: You must be this chat administrator to perform this action!
+admin_promote_perm_false: You don't have enough rights to promote/demote someone!
+admin_pin_perm_false: You don't have enough rights to pin/unpin messages!
+admin_changeinfo_perm_false: You don't have enough rights to change chat info!
+admin_ban_perm_false: You don't have enough rights to ban/unban users!
+admin_kick_perm_false: You don't have enough rights to kick users!
+admin_warn_perm_false: You don't have enough rights to warn/unwarn users!
 #extraction
 helpers_user_not_in_db: |
   I don't have that user in my user database.

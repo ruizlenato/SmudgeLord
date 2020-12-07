@@ -106,12 +106,13 @@ else:
     except Exception:
         sw = None
 
-updater = tg.Updater(TOKEN, workers=WORKERS, use_context=True)
+updater = tg.Updater(TOKEN, workers=WORKERS)
+
 dispatcher = updater.dispatcher
 
+CallbackContext = tg.CallbackContext
 tbot = TelegramClient("smudge", API_KEY, API_HASH)
 trl = Translator()
-
 
 SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
@@ -123,4 +124,5 @@ from smudge.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandle
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
 
-tg.CommandHandler = CustomCommandHandler
+if ALLOW_EXCL:
+    tg.CommandHandler = CustomCommandHandler

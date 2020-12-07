@@ -1,11 +1,9 @@
 import re
 import time
-from typing import Dict, List
-
+import emoji
 import bleach
 import markdown2
-import emoji
-
+from typing import Dict, List
 from telegram import MessageEntity
 from telegram.utils.helpers import escape_markdown
 
@@ -102,12 +100,13 @@ def markdown_parser(txt: str,
                 # else, check the escapes between the prev and last and forcefully escape the url to avoid mangling
                 else:
                     # TODO: investigate possible offset bug when lots of emoji are present
-                    res += _selective_escape(txt[prev:start] or
-                                             "") + escape_markdown(ent_text)
+                    res += _selective_escape(txt[prev:start]
+                                             or "") + escape_markdown(ent_text)
 
             # code handling
             elif ent.type == "code":
-                res += _selective_escape(txt[prev:start]) + '`' + ent_text + '`'
+                res += _selective_escape(
+                    txt[prev:start]) + '`' + ent_text + '`'
 
             # handle markdown/html links
             elif ent.type == "text_link":
@@ -141,6 +140,7 @@ def button_markdown_parser(txt: str,
             n_escapes += 1
             to_check -= 1
 
+        # if even, not escaped -> create button
         if n_escapes % 2 == 0:
             # create a thruple with button label, url, and newline status
             buttons.append(
@@ -212,6 +212,7 @@ def split_quotes(text: str) -> List:
         else:
             return text.split(None, 1)
 
+        # 1 to avoid starting quote, and counter is exclusive so avoids ending
         key = remove_escapes(text[1:counter].strip())
         # index will be in range, or `else` would have been executed and returned
         rest = text[counter + 1:].strip()
@@ -272,13 +273,10 @@ def extract_time(message, time_val):
                 time_val[-1]))
         return ""
 
-
 def markdown_to_html(text):
     text = text.replace("*", "**")
     text = text.replace("`", "```")
-    text = text.replace("~", "~~")
-    _html = markdown2.markdown(text, extras=["strike", "underline"])
-    return bleach.clean(
-        _html,
-        tags=["strong", "em", "a", "code", "pre", "strike", "u"],
-        strip=True)[:-1]
+    _html = markdown2.markdown(text)
+    return bleach.clean(_html,
+                        tags=['strong', 'em', 'a', 'code', 'pre'],
+                        strip=True)[:-1]

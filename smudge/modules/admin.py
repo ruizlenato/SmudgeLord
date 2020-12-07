@@ -29,13 +29,6 @@ def promote(update: Update, context: CallbackContext):
     chat = update.effective_chat
     user = update.effective_user
 
-    promoter = chat.get_member(user.id)
-
-    if not (promoter.can_promote_members or
-            promoter.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text("You don't have the necessary rights to do that!")
-        return
-
     user_id = extract_user(message, args)
     if not user_id:
         message.reply_text(tld(chat.id, "common_err_no_user"))
@@ -84,12 +77,6 @@ def demote(update: Update, context: CallbackContext):
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
-
-    promoter = chat.get_member(user.id)
-
-    if not (promoter.can_promote_members or promoter.status == "creator") and not user.id in SUDO_USERS:
-        message.reply_text("You don't have the necessary rights to do that!")
-        return ""
 
     user_id = extract_user(message, args)
     if not user_id:
@@ -197,7 +184,7 @@ def unpin(update: Update, context: CallbackContext):
 def invite(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
-    conn = connected(bot, update, chat, user.id, need_admin=False)
+    conn = connected(update, context, chat, user.id, need_admin=False)
     if conn:
         chatP = dispatcher.bot.getChat(conn)
     else:
@@ -281,15 +268,15 @@ def reaction(bot: Bot, update: Update, args: List[str]) -> str:
 
 __help__ = True
 
-PIN_HANDLER = CommandHandler("pin", pin, pass_args=True, filters=Filters.group, run_async=True)
-UNPIN_HANDLER = CommandHandler("unpin", unpin, filters=Filters.group, run_async=True)
+PIN_HANDLER = CommandHandler("pin", pin, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+UNPIN_HANDLER = CommandHandler("unpin", unpin, filters=Filters.chat_type.groups, run_async=True)
 
 INVITE_HANDLER = CommandHandler("invitelink", invite, run_async=True)
 
 PROMOTE_HANDLER = CommandHandler("promote", promote, pass_args=True, run_async=True)
 DEMOTE_HANDLER = CommandHandler("demote", demote, pass_args=True, run_async=True)
 
-REACT_HANDLER = CommandHandler("reaction", reaction, pass_args=True, filters=Filters.group, run_async=True)
+REACT_HANDLER = CommandHandler("reaction", reaction, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
 
 ADMINLIST_HANDLER = CommandHandler(["adminlist", "admins"], adminlist, run_async=True)
 

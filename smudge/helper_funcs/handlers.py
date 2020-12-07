@@ -1,25 +1,16 @@
+import telegram.ext as tg
+from telegram import Update
 import smudge.modules.sql.antispam_sql as sql
-from smudge import ALLOW_EXCL
-from smudge import (SUDO_USERS, SUPPORT_USERS, WHITELIST_USERS)
-from telegram.ext.handler import Handler
-from telegram import MessageEntity, Update
-from telegram.ext import CommandHandler, MessageHandler, RegexHandler, Filters
-from time import sleep
-from pyrate_limiter import (BucketFullException, Duration, RequestRate, Limiter,
-                            MemoryListBucket)
-
-if ALLOW_EXCL:
-    CMD_STARTERS = ('/', '!')
-else:
-    CMD_STARTERS = ('/',)
+from smudge import OWNER_ID, SUDO_USERS,ALLOW_EXCL
+from pyrate_limiter import (BucketFullException, Duration, RequestRate, Limiter, MemoryListBucket)
+CMD_STARTERS = ('/', '!')
 
 
 class AntiSpam:
 
     def __init__(self):
-        self.whitelist = (SUDO_USERS or []) + (
-            WHITELIST_USERS or []) + (SUPPORT_USERS or [])
-        #Values are HIGHLY experimental, its recommended you pay attention to our commits as we will be adjusting the values over time with what suits best.
+        # Values are HIGHLY experimental, its recommended you pay attention to our
+        # commits as we will be adjusting the values over time with what suits best.
         Duration.CUSTOM = 15  # Custom duration, 15 seconds
         self.sec_limit = RequestRate(6, Duration.CUSTOM)  # 6 / Per 15 Seconds
         self.min_limit = RequestRate(20, Duration.MINUTE)  # 20 / Per minute
@@ -46,39 +37,18 @@ class AntiSpam:
 
 
 SpamChecker = AntiSpam()
-
-class CustomHandler(Handler):
-    def __init__(
-        self,
-        callback,
-        pass_update_queue: bool = False,
-        pass_job_queue: bool = False,
-        pass_user_data: bool = False,
-        pass_chat_data: bool = False,
-        run_async: bool = True,
-    ):
-
-        super().__init__(
-            callback,
-            pass_update_queue=pass_update_queue,
-            pass_job_queue=pass_job_queue,
-            pass_user_data=pass_user_data,
-            pass_chat_data=pass_chat_data,
-            run_async = True,
-        )
+MessageHandlerChecker = AntiSpam()
 
 
-
-class CustomCommandHandler(CommandHandler):
+class CustomCommandHandler(tg.CommandHandler):
 
     def __init__(self,
                  command,
                  callback,
                  admin_ok=False,
-                 run_async=True,
                  allow_edit=False,
                  **kwargs):
-        super().__init__(command, callback, run_async=run_async, **kwargs)
+        super().__init__(command, callback, **kwargs)
 
         if allow_edit is False:
             self.filters &= ~(
@@ -95,7 +65,7 @@ class CustomCommandHandler(CommandHandler):
                 user_id = None
 
             if user_id:
-                if sql.is_user_gbanned(user_id):
+                if sql.is_user_blacklisted(user_id):
                     return False
 
             if message.text and len(message.text) > 1:
@@ -106,7 +76,8 @@ class CustomCommandHandler(CommandHandler):
                     args = message.text.split()[1:]
                     command = fst_word[1:].split("@")
                     command.append(message.bot.username)
-
+                    if user_id == 1087968824:
+                        user_id = update.effective_chat.id
                     if not (command[0].lower() in self.command and
                             command[1].lower() == message.bot.username.lower()):
                         return None
@@ -118,47 +89,20 @@ class CustomCommandHandler(CommandHandler):
                     else:
                         return False
 
-    def handle_update(self, update, dispatcher, check_result, context=None):
-        if context:
-            self.collect_additional_context(context, update, dispatcher,
-                                            check_result)
-            return self.callback(update, context)
-        else:
-            optional_args = self.collect_optional_args(dispatcher, update,
-                                                       check_result)
-            return self.callback(dispatcher.bot, update, **optional_args)
 
-    def collect_additional_context(self, context, update, dispatcher,
-                                   check_result):
-        if isinstance(check_result, bool):
-            context.args = update.effective_message.text.split()[1:]
-        else:
-            context.args = check_result[0]
-            if isinstance(check_result[1], dict):
-                context.update(check_result[1])
-
-
-class CustomRegexHandler(RegexHandler):
-
+class CustomRegexHandler(tg.MessageHandler):
     def __init__(self, pattern, callback, friendly="", **kwargs):
-        super().__init__(pattern, callback, **kwargs)
+        super().__init__(tg.Filters.regex(pattern), callback, **kwargs)
 
+class CustomMessageHandler(tg.MessageHandler):
 
-class CustomMessageHandler(MessageHandler):
-
-    def __init__(self,
-                 filters,
-                 callback,
-                 friendly="",
-                 run_async=True,
-                 allow_edit=False,
-                 **kwargs):
-        super().__init__(filters, callback, run_async=run_async, **kwargs)
-        if allow_edit is False:
-            self.filters &= ~(
-                Filters.update.edited_message
-                | Filters.update.edited_channel_post)
+    def __init__(self, filters, callback, friendly="", **kwargs):
+        super().__init__(filters, callback, **kwargs)
 
         def check_update(self, update):
             if isinstance(update, Update) and update.effective_message:
-                return self.filters(update)
+                if self.filters(update):
+                    if SpamChecker.check_user(update.effective_user.id):
+                        return None
+                    return True
+                return False

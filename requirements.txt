@@ -1,6 +1,6 @@
 ##########
 telethon
-python-telegram-bot==11.1.0
+python-telegram-bot==13.1
 ##########
 future
 emoji
@@ -15,7 +15,7 @@ nltk
 aiohttp>=2.2.5
 Pillow>=4.2.0
 hurry.filesize
-googletrans
+googletrans>=3.1.0a0
 tldextract
 PyYAML
 pyowm
@@ -28,4 +28,6 @@ covid
 python-rapidjson
 lyricsgenius
 pafy
+youtube-dl
 telegraph
+pyrate_limiter

@@ -13,8 +13,6 @@ from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, GBAN_DUMP, S
 from smudge.helper_funcs.chat_status import user_admin, is_user_admin
 from smudge.helper_funcs.extraction import extract_user_and_text
 from smudge.helper_funcs.filters import CustomFilters
-# from smudge.helper_funcs.misc import send_to_list
-# from smudge.modules.sql.users_sql import get_all_chats
 
 from smudge.modules.translations.strings import tld
 
@@ -173,7 +171,7 @@ def ungban(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML)
 
     try:
-        bot.send_message(GBAN_DUMP,
+        dispatcher.bot.send_message(GBAN_DUMP,
                          tld(chat.id, "antispam_logger_ungban").format(
                              mention_html(banner.id, banner.first_name),
                              mention_html(user_chat.id, user_chat.first_name),
@@ -382,7 +380,7 @@ __help__ = True
 ANTISPAM_STATUS = CommandHandler("antispam",
                                  antispam,
                                  pass_args=True,
-                                 filters=Filters.group, run_async=True)
+                                 filters=Filters.chat_type.groups, run_async=True)
 
 GBAN_HANDLER = CommandHandler("gban",
                               gban,
@@ -405,7 +403,7 @@ GBAN_LIST = CommandHandler("gbanlist",
                            gbanlist,
                            filters=Filters.user(OWNER_ID), run_async=True)
 
-GBAN_ENFORCER = MessageHandler(Filters.all & Filters.group, enforce_gban)
+GBAN_ENFORCER = MessageHandler(Filters.all & Filters.chat_type.groups, enforce_gban)
 CLEAN_DELACC_HANDLER = CommandHandler("cleandelacc",
                                       clear_gbans,
                                       filters=Filters.user(OWNER_ID), run_async=True)

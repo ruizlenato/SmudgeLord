@@ -37,10 +37,11 @@ ENUM_FUNC_MAP = {
 
 
 # Do not async
-def get(bot, update, notename, show_none=True, no_format=False):
+def get(update: Update, context: CallbackContext, notename, show_none=True, no_format=False):
+    bot, args = context.bot, context.args
     chat = update.effective_chat
     user = update.effective_user
-    conn = connected(bot, update, chat, user.id, need_admin=False)
+    conn = connected(update, context, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         send_id = user.id
@@ -171,7 +172,7 @@ def hash_get(update: Update, context: CallbackContext):
 def save(update: Update, context: CallbackContext):
     chat = update.effective_chat
     user = update.effective_user
-    conn = connected(bot, update, chat, user.id)
+    conn = connected(update, context, chat, user.id)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -218,7 +219,9 @@ def save(update: Update, context: CallbackContext):
 @user_admin
 def clear(update: Update, context: CallbackContext):
     args = context.args
-    conn = connected(bot, update, chat, user.id)
+    user = update.effective_user
+    chat = update.effective_chat
+    conn = connected(update, context, chat, user.id)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -244,7 +247,7 @@ def clear(update: Update, context: CallbackContext):
 def list_notes(update: Update, context: CallbackContext):
     chat = update.effective_chat
     user = update.effective_user
-    conn = connected(bot, update, chat, user.id, need_admin=False)
+    conn = connected(update, context, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title

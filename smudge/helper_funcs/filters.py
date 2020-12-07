@@ -6,16 +6,14 @@ from smudge import SUPPORT_USERS, SUDO_USERS
 
 class CustomFilters(object):
     class _Supporters(MessageFilter):
-        @staticmethod
-        def filter(message: Message):
+        def filter(self, message: Message):
             return bool(message.from_user
                         and message.from_user.id in SUPPORT_USERS)
 
     support_filter = _Supporters()
 
     class _Sudoers(MessageFilter):
-        @staticmethod
-        def filter(message: Message):
+        def filter(self, message: Message):
             return bool(message.from_user
                         and message.from_user.id in SUDO_USERS)
 
@@ -33,9 +31,9 @@ class CustomFilters(object):
     mime_type = _MimeType
 
     class _HasText(MessageFilter):
-        @staticmethod
-        def filter(message: Message):
+        def filter(self, message: Message):
             return bool(message.text or message.sticker or message.photo
                         or message.document or message.video)
 
     has_text = _HasText()
+

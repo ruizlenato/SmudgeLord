@@ -20,7 +20,6 @@ CHAT_GROUP = 10
 
 
 def get_user_id(username):
-    bot = context.bot
     # ensure valid userid
     if len(username) <= 5:
         return None
@@ -33,22 +32,23 @@ def get_user_id(username):
     if not users:
         return None
 
-    if len(users) == 1:
+    elif len(users) == 1:
         return users[0].user_id
-    for user_obj in users:
-        try:
-            userdat = dispatcher.bot.get_chat(user_obj.user_id)
-            if userdat.username == username:
-                return userdat.id
 
-        except BadRequest as excp:
-            if excp.message == 'Chat not found':
-                pass
-            else:
-                LOGGER.exception("Error extracting user ID")
+    else:
+        for user_obj in users:
+            try:
+                userdat = dispatcher.bot.get_chat(user_obj.user_id)
+                if userdat.username == username:
+                    return userdat.id
+
+            except BadRequest as excp:
+                if excp.message == 'Chat not found':
+                    pass
+                else:
+                    LOGGER.exception("Error extracting user ID")
 
     return None
-
 
 def broadcast(update: Update, context: CallbackContext):
     bot = context.bot
@@ -272,7 +272,7 @@ def __migrate__(old_chat_id, new_chat_id):
 BROADCAST_HANDLER = CommandHandler("broadcasts",
                                    broadcast,
                                    filters=Filters.user(OWNER_ID), run_async=True)
-USER_HANDLER = MessageHandler(Filters.all & Filters.group, log_user)
+USER_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, log_user)
 SNIPE_HANDLER = CommandHandler("snipe",
                                snipe,
                                pass_args=True,
@@ -292,7 +292,7 @@ SLIST_HANDLER = CommandHandler("slist",
                                slist,
                                filters=CustomFilters.sudo_filter
                                | CustomFilters.support_filter, run_async=True)
-CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.group,
+CHAT_CHECKER_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups,
                                       chat_checker, run_async=True)
 
 dispatcher.add_handler(SNIPE_HANDLER)

@@ -1,13 +1,14 @@
-from typing import Dict, List
+from math import ceil
+from typing import List, Dict
 
-from smudge import NO_LOAD
-from telegram import MAX_MESSAGE_LENGTH, Bot, InlineKeyboardButton, ParseMode
+from telegram import MAX_MESSAGE_LENGTH, InlineKeyboardButton, Bot, ParseMode
 from telegram.error import TelegramError
+
+from smudge import LOAD, NO_LOAD
 from smudge.modules.translations.strings import tld
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):
-
     def __eq__(self, other):
         return self.text == other.text
 
@@ -95,8 +96,9 @@ def send_to_list(bot: Bot,
     for user_id in set(send_to):
         try:
             if markdown:
-                bot.send_message(
-                    user_id, message, parse_mode=ParseMode.MARKDOWN)
+                bot.send_message(user_id,
+                                 message,
+                                 parse_mode=ParseMode.MARKDOWN)
             elif html:
                 bot.send_message(user_id, message, parse_mode=ParseMode.HTML)
             else:
@@ -127,18 +129,5 @@ def revert_buttons(buttons):
     return res
 
 
-def build_keyboard_parser(bot, chat_id, buttons):
-    keyb = []
-    for btn in buttons:
-        if btn.url == "{rules}":
-            btn.url = "http://t.me/{}?start={}".format(bot.username, chat_id)
-        if btn.same_line and keyb:
-            keyb[-1].append(InlineKeyboardButton(btn.name, url=btn.url))
-        else:
-            keyb.append([InlineKeyboardButton(btn.name, url=btn.url)])
-
-    return keyb
-
-
 def is_module_loaded(name):
-    return name not in NO_LOAD
+    return (not LOAD or name in LOAD) and name not in NO_LOAD

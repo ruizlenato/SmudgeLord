@@ -68,7 +68,7 @@ def locale_button(update: Update, context: CallbackContext):
     text = tld(chat.id, "language_select_language")
     text += tld(chat.id, "language_user_language").format(curr_lang)
 
-    conn = connected(bot, update, chat, user.id, need_admin=False)
+    conn = connected(update, context, chat, user.id, need_admin=False)
 
     if conn:
         try:
