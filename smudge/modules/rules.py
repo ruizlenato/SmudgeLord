@@ -60,38 +60,46 @@ def send_rules(update, chat_id, from_pm=False):
 
 @user_admin
 @user_can_changeinfo
-<<<<<<< HEAD
+<< << << < HEAD
 def set_rules(bot: Bot, update: Update):
-=======
-def set_rules(update: Update, context: CallbackContext):
->>>>>>> PTB-13
-    chat_id = update.effective_chat.id
-    msg = update.effective_message  # type: Optional[Message]
-    raw_text = msg.text
-    args = raw_text.split(None,
-                          1)  # use python's maxsplit to separate cmd and args
-    if len(args) == 2:
-        txt = args[1]
-        offset = len(txt) - len(
-            raw_text)  # set correct offset relative to command
-        markdown_rules = markdown_parser(txt,
-                                         entities=msg.parse_entities(),
-                                         offset=offset)
 
-        sql.set_rules(chat_id, markdown_rules)
-        update.effective_message.reply_text(tld(chat_id, "rules_success"))
+
+== == == =
+def set_rules(update: Update, context: CallbackContext):
+
+
+>>>>>> > PTB-13
+chat_id = update.effective_chat.id
+msg = update.effective_message  # type: Optional[Message]
+raw_text = msg.text
+args = raw_text.split(None,
+                      1)  # use python's maxsplit to separate cmd and args
+if len(args) == 2:
+    txt = args[1]
+    offset = len(txt) - len(
+        raw_text)  # set correct offset relative to command
+    markdown_rules = markdown_parser(txt,
+                                     entities=msg.parse_entities(),
+                                     offset=offset)
+
+    sql.set_rules(chat_id, markdown_rules)
+    update.effective_message.reply_text(tld(chat_id, "rules_success"))
 
 
 @user_admin
 @user_can_changeinfo
-<<<<<<< HEAD
+<< << << < HEAD
 def clear_rules(bot: Bot, update: Update):
-=======
+
+
+== == == =
 def clear_rules(update: Update, context: CallbackContext):
->>>>>>> PTB-13
-    chat_id = update.effective_chat.id
-    sql.set_rules(chat_id, "")
-    update.effective_message.reply_text("Successfully cleared rules!")
+
+
+>>>>>> > PTB-13
+chat_id = update.effective_chat.id
+sql.set_rules(chat_id, "")
+update.effective_message.reply_text("Successfully cleared rules!")
 
 
 def __stats__():

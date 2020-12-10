@@ -53,13 +53,15 @@ def mute(update: Update, context: CallbackContext) -> str:
 
             reply = tld(chat.id, "mute_success").format(
                 mention_html(member.user.id, member.user.first_name))
-<<<<<<< HEAD
+
+
+<< << << < HEAD
             message.reply_text(reply,
                                reply_markup=keyboard,
                                parse_mode=ParseMode.HTML)
-=======
+== == == =
             message.reply_text(reply, parse_mode=ParseMode.HTML)
->>>>>>> PTB-13
+>>>>>> > PTB-13
             return "<b>{}:</b>" \
                    "\n#MUTE" \
                    "\n<b>Admin:</b> {}" \
