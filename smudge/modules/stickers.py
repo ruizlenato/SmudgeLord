@@ -1,9 +1,11 @@
 import os
-from telegram import Message, Chat, Update
+import math
+from telegram import Message, Chat, Update, TelegramError
 from telegram import ParseMode
 from telegram.ext import run_async
 from telegram.utils.helpers import escape_markdown
 
+from PIL import Image
 from smudge import dispatcher, CallbackContext
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.filters import CustomFilters
@@ -21,7 +23,7 @@ def stickerid(update: Update, context: CallbackContext):
             parse_mode=ParseMode.MARKDOWN)
     else:
         update.effective_message.reply_text(
-            "Please reply to a sticker to get its ID.")
+            tld(chat.id, 'stickers_stickerid_no_reply'))
 
 
 def getsticker(update: Update, context: CallbackContext):
@@ -37,7 +39,7 @@ def getsticker(update: Update, context: CallbackContext):
 
     else:
         update.effective_message.reply_text(
-            "Please reply to a sticker for me to upload its PNG.")
+            tld(chat_id, 'stickers_getsticker_no_reply'))
 
 
 def cb_sticker(update: Update, context: CallbackContext):
