@@ -38,6 +38,7 @@ class CustomCommandHandler(tg.CommandHandler):
                     else:
                         return False
 
+
 class CustomRegexHandler(tg.MessageHandler):
     def __init__(self, pattern, callback, friendly="", **kwargs):
         super().__init__(tg.Filters.regex(pattern), callback, **kwargs)
