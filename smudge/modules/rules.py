@@ -60,11 +60,7 @@ def send_rules(update, chat_id, from_pm=False):
 
 @user_admin
 @user_can_changeinfo
-<<<<<<< HEAD
-def set_rules(bot: Bot, update: Update):
-=======
 def set_rules(update: Update, context: CallbackContext):
->>>>>>> PTB-13
     chat_id = update.effective_chat.id
     msg = update.effective_message  # type: Optional[Message]
     raw_text = msg.text
@@ -84,11 +80,7 @@ def set_rules(update: Update, context: CallbackContext):
 
 @user_admin
 @user_can_changeinfo
-<<<<<<< HEAD
-def clear_rules(bot: Bot, update: Update):
-=======
 def clear_rules(update: Update, context: CallbackContext):
->>>>>>> PTB-13
     chat_id = update.effective_chat.id
     sql.set_rules(chat_id, "")
     update.effective_message.reply_text("Successfully cleared rules!")
