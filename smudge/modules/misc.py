@@ -149,9 +149,14 @@ def info(update: Update, context: CallbackContext):
                 text += tld(chat.id, "misc_info_is_whitelisted")
 
     for mod in USER_INFO:
-        mod_info = mod.__user_info__(user.id).strip()
+        
+        try:
+            mod_info = mod.__user_info__(user.id)
+        except TypeError:
+            mod_info = mod.__user_info__(user.id, chat.id)
         if mod_info:
-            text += "\n\n" + mod_info
+            text += "\n" + mod_info
+
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
 

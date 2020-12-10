@@ -51,6 +51,7 @@ def get_user_id(username):
 
 def broadcast(update: Update, context: CallbackContext):
     user = update.effective_user
+    chat = update.effective_chat
     if not user.id in SUDO_USERS:
         update.message.reply_text("User Not Sudo, Error.")
         return
@@ -131,7 +132,7 @@ def chats(update: Update, context: CallbackContext):
             caption="Here is the list of chats in my database.")
 
 
-def __user_info__(user_id):
+def __user_info__(user_id, chat_id):
     if user_id == dispatcher.bot.id:
         return tld(chat_id, "users_seen_is_bot")
     num_chats = sql.get_user_num_chats(user_id)
