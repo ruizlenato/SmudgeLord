@@ -15,6 +15,7 @@ from smudge.modules.translations.strings import tld
 
 FLOOD_GROUP = 5
 
+
 @run_async
 @loggable
 def check_flood(bot: Bot, update: Update) -> str:
