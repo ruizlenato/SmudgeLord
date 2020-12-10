@@ -1087,7 +1087,7 @@ warns_filters_list_empty: No warning filters are active here!
 warns_filters_remove_success: Yep, I'll stop warning people for that.
 warns_filter_doesnt_exist: That's not a current warning filter - run /warnlist for all active warning filters.
 warns_filters_list: <b>Current warning filters in this chat:</b>\n
-warns_warnlimit_min_1: The minimum warn limit is 1!
+warns_warnlimit_min_3: The minimum warn limit is 3!
 warns_warnlimit_updated_success: Updated the warn limit to {}.
 warns_warnlimit_invalid_arg: Invalid argument! The argument should be a number, not less than 1.
 warns_warnlimit_current: The current warn limit is {}.

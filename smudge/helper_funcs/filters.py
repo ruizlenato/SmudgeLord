@@ -1,5 +1,6 @@
 from telegram import Message
 from telegram.ext import MessageFilter
+from emoji import UNICODE_EMOJI
 
 from smudge import SUPPORT_USERS, SUDO_USERS
 
@@ -37,3 +38,26 @@ class CustomFilters(object):
 
     has_text = _HasText()
 
+    class _HasEmoji(MessageFilter):
+        def filter(self, message: Message):
+            text = ""
+            if (message.text):
+                text = message.text
+            for emoji in UNICODE_EMOJI:
+                for letter in text:
+                    if (letter == emoji):
+                        return True
+            return False
+
+    has_emoji = _HasEmoji()
+
+    class _IsEmoji(MessageFilter):
+        def filter(self, message: Message):
+            if (message.text and len(message.text) == 1):
+                for emoji in UNICODE_EMOJI:
+                    for letter in message.text:
+                        if (letter == emoji):
+                            return True
+            return False
+
+    is_emoji = _IsEmoji()

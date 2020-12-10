@@ -67,7 +67,7 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
     if note and note.is_reply:
         if MESSAGE_DUMP:
             try:
-                bot.forward_message(chat_id=chat_id,
+                context.bot.forward_message(chat_id=chat_id,
                                     from_chat_id=MESSAGE_DUMP,
                                     message_id=note.value)
             except BadRequest as excp:
@@ -78,7 +78,7 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
                     raise
         else:
             try:
-                bot.forward_message(chat_id=chat_id,
+                context.bot.forward_message(chat_id=chat_id,
                                     from_chat_id=chat_id,
                                     message_id=note.value)
 
@@ -110,7 +110,7 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
             if note and note.msgtype in (sql.Types.BUTTON_TEXT,
                                          sql.Types.TEXT):
                 try:
-                    bot.send_message(send_id,
+                    context.bot.send_message(send_id,
                                      text,
                                      reply_to_message_id=reply_id,
                                      parse_mode=parseMode,
@@ -328,7 +328,7 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-GET_HANDLER = CommandHandler("get", cmd_get, pass_args=True, run_async=True)
+GET_HANDLER = DisableAbleCommandHandler("get", cmd_get, pass_args=True, run_async=True)
 HASH_GET_HANDLER = MessageHandler(Filters.regex(r"^#[^\s]+"), hash_get, run_async=True)
 SAVE_HANDLER = CommandHandler("save", save, run_async=True)
 REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall", remove_all_notes)

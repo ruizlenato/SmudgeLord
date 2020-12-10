@@ -1,37 +1,26 @@
 import os
-import math
-import re
-import requests
-import urllib.request as urllib
-from PIL import Image
-from bs4 import BeautifulSoup as bs
-
-from typing import Optional, List
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram import TelegramError
-from telegram import Update, Bot
+from telegram import Message, Chat, Update
+from telegram import ParseMode
 from telegram.ext import run_async
 from telegram.utils.helpers import escape_markdown
 
 from smudge import dispatcher, CallbackContext
 from smudge.modules.disable import DisableAbleCommandHandler
+from smudge.helper_funcs.filters import CustomFilters
 from smudge.modules.translations.strings import tld
 
 combot_stickers_url = "https://combot.org/telegram/stickers?q="
 
-
 def stickerid(update: Update, context: CallbackContext):
     bot = context.bot
-    chat = update.effective_chat
     msg = update.effective_message
     if msg.reply_to_message and msg.reply_to_message.sticker:
         update.effective_message.reply_text(
-            tld(chat.id, 'stickers_stickerid').format(
-                escape_markdown(msg.reply_to_message.sticker.file_id)),
+            "Sticker ID:\n```" + msg.reply_to_message.sticker.file_id + "```",
             parse_mode=ParseMode.MARKDOWN)
     else:
         update.effective_message.reply_text(
-            tld(chat.id, 'stickers_stickerid_no_reply'))
+            "Please reply to a sticker to get its ID.")
 
 
 def getsticker(update: Update, context: CallbackContext):
@@ -42,12 +31,12 @@ def getsticker(update: Update, context: CallbackContext):
         file_id = msg.reply_to_message.sticker.file_id
         newFile = bot.get_file(file_id)
         newFile.download('sticker.png')
-        bot.send_document(chat_id, document=open('sticker.png', 'rb'))
+        bot.sendDocument(chat_id, document=open('sticker.png', 'rb'))
         os.remove("sticker.png")
+
     else:
         update.effective_message.reply_text(
-            tld(chat_id, 'stickers_getsticker_no_reply'))
-
+            "Please reply to a sticker for me to upload its PNG.")
 
 def cb_sticker(update: Update, context: CallbackContext):
     bot = context.bot
@@ -269,11 +258,10 @@ def makepack_internal(update, context, msg, user, emoji, packname, packnum, png_
     else:
         msg.reply_text(tld(chat.id, 'stickers_pack_create_error'))
 
-
 __help__ = True
 
-STICKERID_HANDLER = DisableAbleCommandHandler("stickerid", stickerid, run_async=True)
-GETSTICKER_HANDLER = DisableAbleCommandHandler("getsticker", getsticker, run_async=True)
+STICKERID_HANDLER = DisableAbleCommandHandler("stickerid", stickerid,run_async=True)
+GETSTICKER_HANDLER = DisableAbleCommandHandler("getsticker", getsticker, filters=CustomFilters.sudo_filter, run_async=True)
 KANG_HANDLER = DisableAbleCommandHandler("kang", kang, admin_ok=True, run_async=True)
 STICKERS_HANDLER = DisableAbleCommandHandler("stickers", cb_sticker, run_async=True)
 

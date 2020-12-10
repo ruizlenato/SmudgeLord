@@ -3,8 +3,7 @@ from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
-from smudge import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
-from telegram.ext import CallbackContext
+from smudge import CallbackContext, DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:

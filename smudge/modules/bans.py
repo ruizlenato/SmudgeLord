@@ -8,15 +8,14 @@ from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, \
-    is_user_admin, is_user_in_chat
+from smudge.helper_funcs.chat_status import bot_admin, user_admin, is_user_ban_protected, can_restrict, is_user_admin, is_user_in_chat, user_can_ban, user_can_kick
 from smudge.helper_funcs.extraction import extract_user_and_text
 from smudge.helper_funcs.string_handling import extract_time
 from smudge.modules.log_channel import loggable
 
 from smudge.modules.translations.strings import tld
 
-
+@user_can_ban
 @bot_admin
 @can_restrict
 @user_admin
@@ -79,7 +78,7 @@ def ban(update: Update, context: CallbackContext) -> str:
 
     return ""
 
-
+@user_can_ban
 @bot_admin
 @can_restrict
 @user_admin
@@ -162,7 +161,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
 
     return ""
 
-
+@user_can_kick
 @bot_admin
 @can_restrict
 @user_admin
@@ -236,7 +235,6 @@ def kickme(update: Update, context: CallbackContext):
     else:
         update.effective_message.reply_text(tld(chat.id, "bans_kickme_failed"))
 
-
 @bot_admin
 @can_restrict
 @loggable
@@ -256,7 +254,7 @@ def banme(bot: Bot, update: Update):
     else:
         update.effective_message.reply_text(tld(chat.id, "bans_kickme_failed"))
 
-
+@user_can_ban
 @bot_admin
 @can_restrict
 @user_admin
@@ -296,7 +294,7 @@ def unban(update: Update, context: CallbackContext) -> str:
 
     return log
 
-
+@user_can_ban
 @bot_admin
 @can_restrict
 @user_admin

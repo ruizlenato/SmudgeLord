@@ -1,20 +1,23 @@
-from sys import argv
+import datetime
 import importlib
+from sys import argv
 import re
-from typing import List
+from typing import Optional, List
 
-from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.error import (Unauthorized, BadRequest, TimedOut, NetworkError,
-                            ChatMigrated, TelegramError)
-from telegram.ext import CallbackContext, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
-from telegram.ext.dispatcher import DispatcherHandlerStop
+from telegram import Message, Chat, Update, Bot, User
+from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.error import Unauthorized, BadRequest, TimedOut, NetworkError, ChatMigrated, TelegramError
+from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
+from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
+from telegram.utils.helpers import escape_markdown
+from smudge.modules.translations.strings import tld
 
-# Needed to dynamically load modules
+from smudge import dispatcher, updater, CallbackContext, TOKEN, OWNER_ID, LOGGER, ALLOW_EXCL, tbot
+# needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from smudge.modules import ALL_MODULES
-from smudge import dispatcher, updater, LOGGER, TOKEN, tbot, ALLOW_EXCL
+from smudge.helper_funcs.chat_status import is_user_admin
 from smudge.helper_funcs.misc import paginate_modules
-from smudge.modules.translations.strings import tld
 
 IMPORTED = {}
 MIGRATEABLE = []
@@ -59,7 +62,7 @@ for module_name in ALL_MODULES:
         DATA_EXPORT.append(imported_module)
 
 
-# Do NOT async this!
+# do not async
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
         keyboard = InlineKeyboardMarkup(
@@ -69,12 +72,6 @@ def send_help(chat_id, text, keyboard=None):
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply_markup=keyboard)
 
-def test(update: Update, context: CallbackContext):
-    args = context.args
-    # pprint(eval(str(update)))
-    # update.effective_message.reply_text("Hola tester! _I_ *have* `markdown`", parse_mode=ParseMode.MARKDOWN)
-    update.effective_message.reply_text("This person edited a message")
-    print(update.effective_message)
 
 
 def start(update: Update, context: CallbackContext):
@@ -132,27 +129,35 @@ def send_start(update: Update, context: CallbackContext):
 # for test purposes
 
 
-def error_callback(update: Update, context: CallbackContext):
+
+# for test purposes
+def error_callback(update, context):
+    bot = context.bot
+    error = context.error
     try:
         raise error
     except Unauthorized:
-        LOGGER.warning(error)
+        print("no nono1")
+        print(error)
         # remove update.message.chat_id from conversation list
     except BadRequest:
-        LOGGER.warning(error)
+        print("no nono2")
+        print("BadRequest caught")
+        print(error)
 
         # handle malformed requests - read more below!
     except TimedOut:
-        LOGGER.warning("NO NONO3")
+        print("no nono3")
         # handle slow connection problems
     except NetworkError:
-        LOGGER.warning("NO NONO4")
+        print("no nono4")
         # handle other connection problems
     except ChatMigrated as err:
-        LOGGER.warning(err)
+        print("no nono5")
+        print(err)
         # the chat_id of a group has changed, use e.new_chat_id instead
     except TelegramError:
-        LOGGER.warning(error)
+        print(error)
         # handle all other telegram related errors
 
 
@@ -253,9 +258,9 @@ def get_help(update: Update, context: CallbackContext):
         tld(chat.id, "send-help").format(dispatcher.bot.first_name,
                                          tld(chat.id, "cmd_multitrigger")))
 
-
 def migrate_chats(update: Update, context: CallbackContext):
-    msg = update.effective_message
+    bot = context.bot
+    msg = update.effective_message  # type: Optional[Message]
     if msg.migrate_to_chat_id:
         old_chat = update.effective_chat.id
         new_chat = msg.migrate_to_chat_id
@@ -265,9 +270,11 @@ def migrate_chats(update: Update, context: CallbackContext):
     else:
         return
 
+    LOGGER.info("Migrating from %s, to %s", str(old_chat), str(new_chat))
     for mod in MIGRATEABLE:
         mod.__migrate__(old_chat, new_chat)
 
+    LOGGER.info("Successfully migrated!")
     raise DispatcherHandlerStop
 
 
@@ -316,3 +323,4 @@ if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
     tbot.start(bot_token=TOKEN)
     main()
+

@@ -1,11 +1,11 @@
 import re
 import time
-import emoji
-import bleach
-import markdown2
 from typing import Dict, List
+
+import emoji
 from telegram import MessageEntity
 from telegram.utils.helpers import escape_markdown
+from smudge.modules.translations.strings import tld
 
 # NOTE: the url \ escape may cause double escapes
 # match * (bold) (don't escape if in url)
@@ -254,7 +254,8 @@ def extract_time(message, time_val):
         unit = time_val[-1]
         time_num = time_val[:-1]  # type: str
         if not time_num.isdigit():
-            message.reply_text("Invalid time amount specified.")
+            message.reply_text(
+                tld(chat.id, 'helpers_string_handling_invalid_time_amount'))
             return ""
 
         if unit == 'm':
@@ -268,9 +269,7 @@ def extract_time(message, time_val):
             return ""
         return bantime
     else:
-        message.reply_text(
-            "Invalid time type specified. Expected m,h, or d, got: {}".format(
-                time_val[-1]))
+        message.reply_text(tld(chat.id, 'helpers_string_handling_invalid_time_type').format(time_val[-1]))
         return ""
 
 def markdown_to_html(text):

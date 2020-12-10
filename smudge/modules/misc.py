@@ -148,7 +148,7 @@ def info(update: Update, context: CallbackContext):
                 text += tld(chat.id, "misc_info_is_whitelisted")
 
     for mod in USER_INFO:
-        mod_info = mod.__user_info__(user.id, chat.id).strip()
+        mod_info = mod.__user_info__(user.id).strip()
         if mod_info:
             text += "\n\n" + mod_info
 
@@ -416,7 +416,8 @@ def covid(update: Update, context: CallbackContext):
                                      total_tests)
     message.reply_markdown(reply)
 
-def outline(bot: Bot, update: Update, args: List[str]):
+def outline(update: Update, context: CallbackContext):
+    args = context.args
     message = update.effective_message
     chat = update.effective_chat
     if args:

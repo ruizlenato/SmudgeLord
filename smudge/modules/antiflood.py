@@ -112,10 +112,7 @@ __help__ = True
 # TODO: Add actions: ban/kick/mute/tban/tmute
 
 FLOOD_BAN_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, check_flood, run_async=True)
-SET_FLOOD_HANDLER = CommandHandler("setflood",
-                                   set_flood,
-                                   pass_args=True,
-                                   filters=Filters.chat_type.groups, run_async=True)
+SET_FLOOD_HANDLER = CommandHandler("setflood", set_flood, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
 FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.chat_type.groups, run_async=True)
 
 dispatcher.add_handler(FLOOD_BAN_HANDLER, FLOOD_GROUP)
