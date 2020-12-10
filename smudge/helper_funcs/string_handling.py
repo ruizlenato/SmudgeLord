@@ -1,9 +1,10 @@
 import re
 import time
-from typing import Dict, List
+import emoji
+import bleach
 import markdown2
 
-import emoji
+from typing import Dict, List
 from telegram import MessageEntity
 from telegram.utils.helpers import escape_markdown
 from smudge.modules.translations.strings import tld
