@@ -68,8 +68,8 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
         if MESSAGE_DUMP:
             try:
                 context.bot.forward_message(chat_id=chat_id,
-                                    from_chat_id=MESSAGE_DUMP,
-                                    message_id=note.value)
+                                            from_chat_id=MESSAGE_DUMP,
+                                            message_id=note.value)
             except BadRequest as excp:
                 if excp.message == "Message to forward not found":
                     message.reply_text(tld(chat.id, "note_lost"))
@@ -79,8 +79,8 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
         else:
             try:
                 context.bot.forward_message(chat_id=chat_id,
-                                    from_chat_id=chat_id,
-                                    message_id=note.value)
+                                            from_chat_id=chat_id,
+                                            message_id=note.value)
 
             except BadRequest as excp:
                 if excp.message == "Message to forward not found":
@@ -111,11 +111,11 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
                                          sql.Types.TEXT):
                 try:
                     context.bot.send_message(send_id,
-                                     text,
-                                     reply_to_message_id=reply_id,
-                                     parse_mode=parseMode,
-                                     disable_web_page_preview=True,
-                                     reply_markup=keyboard)
+                                             text,
+                                             reply_to_message_id=reply_id,
+                                             parse_mode=parseMode,
+                                             disable_web_page_preview=True,
+                                             reply_markup=keyboard)
                 except BadRequest as excp:
                     if excp.message == "Wrong http url":
                         failtext = tld(chat.id, "note_url_invalid")
@@ -328,8 +328,10 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-GET_HANDLER = DisableAbleCommandHandler("get", cmd_get, pass_args=True, run_async=True)
-HASH_GET_HANDLER = MessageHandler(Filters.regex(r"^#[^\s]+"), hash_get, run_async=True)
+GET_HANDLER = DisableAbleCommandHandler(
+    "get", cmd_get, pass_args=True, run_async=True)
+HASH_GET_HANDLER = MessageHandler(
+    Filters.regex(r"^#[^\s]+"), hash_get, run_async=True)
 SAVE_HANDLER = CommandHandler("save", save, run_async=True)
 REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall", remove_all_notes)
 DELETE_HANDLER = CommandHandler("clear", clear, pass_args=True, run_async=True)

@@ -15,10 +15,11 @@ from smudge.modules.translations.strings import tld
 
 FLOOD_GROUP = 5
 
+
 @loggable
 def check_flood(update, context) -> str:
-    user = update.effective_user 
-    chat = update.effective_chat 
+    user = update.effective_user
+    chat = update.effective_chat
     msg = update.effective_message
 
     if not user:  # ignore channels
@@ -37,8 +38,10 @@ def check_flood(update, context) -> str:
         return ""
 
     try:
-        context.bot.restrict_chat_member(chat.id, user.id, permissions=ChatPermissions(can_send_messages=False))
-        msg.reply_text(tld(chat.id, "flood_mute"), parse_mode=ParseMode.MARKDOWN)
+        context.bot.restrict_chat_member(
+            chat.id, user.id, permissions=ChatPermissions(can_send_messages=False))
+        msg.reply_text(tld(chat.id, "flood_mute"),
+                       parse_mode=ParseMode.MARKDOWN)
         return tld(chat.id, "flood_logger_success").format(
             html.escape(chat.title), mention_html(user.id, user.first_name))
 
@@ -111,9 +114,12 @@ __help__ = True
 
 # TODO: Add actions: ban/kick/mute/tban/tmute
 
-FLOOD_BAN_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, check_flood, run_async=True)
-SET_FLOOD_HANDLER = CommandHandler("setflood", set_flood, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
-FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.chat_type.groups, run_async=True)
+FLOOD_BAN_HANDLER = MessageHandler(
+    Filters.all & Filters.chat_type.groups, check_flood, run_async=True)
+SET_FLOOD_HANDLER = CommandHandler(
+    "setflood", set_flood, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+FLOOD_HANDLER = CommandHandler(
+    "flood", flood, filters=Filters.chat_type.groups, run_async=True)
 
 dispatcher.add_handler(FLOOD_BAN_HANDLER, FLOOD_GROUP)
 dispatcher.add_handler(SET_FLOOD_HANDLER)

@@ -37,7 +37,7 @@ def report_setting(update: Update, context: CallbackContext):
         else:
             msg.reply_text("Your current report preference is: `{}`".format(
                 sql.user_should_report(chat.id)),
-                           parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
 
     else:
         if len(args) >= 1:
@@ -55,7 +55,7 @@ def report_setting(update: Update, context: CallbackContext):
         else:
             msg.reply_text("This chat's current setting is: `{}`".format(
                 sql.chat_should_report(chat.id)),
-                           parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
 
 
 @user_not_admin
@@ -68,7 +68,8 @@ def report(update: Update, context: CallbackContext) -> str:
     ping_list = ""
 
     if chat and message.reply_to_message and sql.chat_should_report(chat.id):
-        reported_user = message.reply_to_message.from_user  # type: Optional[User]
+        # type: Optional[User]
+        reported_user = message.reply_to_message.from_user
         if reported_user.id == bot.id:
             message.reply_text("Haha nope, not gonna report myself.")
             return ""

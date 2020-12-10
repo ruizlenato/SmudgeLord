@@ -84,12 +84,15 @@ if is_module_loaded(FILENAME):
 
             if disable_cmd in set(DISABLE_CMDS + DISABLE_OTHER):
                 sql.disable_command(chat.id, disable_cmd)
-                update.effective_message.reply_text(tld(chat.id, "disable_success").format(disable_cmd), parse_mode=ParseMode.MARKDOWN)
+                update.effective_message.reply_text(tld(chat.id, "disable_success").format(
+                    disable_cmd), parse_mode=ParseMode.MARKDOWN)
             else:
-                update.effective_message.reply_text(tld(chat.id, "disable_err_undisableable"))
+                update.effective_message.reply_text(
+                    tld(chat.id, "disable_err_undisableable"))
 
         else:
-            update.effective_message.reply_text(tld(chat.id, "disable_err_no_cmd"))
+            update.effective_message.reply_text(
+                tld(chat.id, "disable_err_no_cmd"))
 
     @user_admin
     def enable(update: Update, context: CallbackContext):
@@ -106,11 +109,13 @@ if is_module_loaded(FILENAME):
                     tld(chat.id, "disable_enable_success").format(enable_cmd),
                     parse_mode=ParseMode.MARKDOWN)
             else:
-                update.effective_message.reply_text(tld(chat.id, "disable_already_enabled"))
+                update.effective_message.reply_text(
+                    tld(chat.id, "disable_already_enabled"))
 
         else:
-            update.effective_message.reply_text(tld(chat.id, "disable_err_no_cmd"))
-            
+            update.effective_message.reply_text(
+                tld(chat.id, "disable_err_no_cmd"))
+
     @user_admin
     def list_cmds(update: Update, context: CallbackContext):
         bot = context.bot
@@ -118,7 +123,8 @@ if is_module_loaded(FILENAME):
             result = ""
             for cmd in set(DISABLE_CMDS + DISABLE_OTHER):
                 result += " - `{}`\n".format(escape_markdown(cmd))
-            update.effective_message.reply_text(tld(chat.id, "disable_able_commands").format(result),parse_mode=ParseMode.MARKDOWN)
+            update.effective_message.reply_text(tld(chat.id, "disable_able_commands").format(
+                result), parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text("No commands can be disabled.")
 
@@ -151,10 +157,14 @@ if is_module_loaded(FILENAME):
 
     __help__ = True
 
-    DISABLE_HANDLER = CommandHandler("disable", disable, filters=Filters.chat_type.groups, run_async=True)
-    ENABLE_HANDLER = CommandHandler("enable", enable, filters=Filters.chat_type.groups, run_async=True)
-    COMMANDS_HANDLER = CommandHandler(["cmds", "disabled"], commands, filters=Filters.chat_type.groups, run_async=True)
-    TOGGLE_HANDLER = CommandHandler("listcmds", list_cmds, filters=Filters.chat_type.groups, run_async=True)
+    DISABLE_HANDLER = CommandHandler(
+        "disable", disable, filters=Filters.chat_type.groups, run_async=True)
+    ENABLE_HANDLER = CommandHandler(
+        "enable", enable, filters=Filters.chat_type.groups, run_async=True)
+    COMMANDS_HANDLER = CommandHandler(
+        ["cmds", "disabled"], commands, filters=Filters.chat_type.groups, run_async=True)
+    TOGGLE_HANDLER = CommandHandler(
+        "listcmds", list_cmds, filters=Filters.chat_type.groups, run_async=True)
 
     dispatcher.add_handler(DISABLE_HANDLER)
     dispatcher.add_handler(ENABLE_HANDLER)

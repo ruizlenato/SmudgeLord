@@ -42,6 +42,7 @@ def direct_link_generator(update: Update, context: CallbackContext):
 
     message.reply_html("\n".join(reply))
 
+
 def mediafire(url: str) -> str:
     try:
         link = re.findall(r'\bhttps?://.*mediafire\.com\S+', url)[0]

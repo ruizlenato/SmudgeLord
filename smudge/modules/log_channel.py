@@ -118,6 +118,7 @@ def setlog(update: Update, context: CallbackContext):
         message.reply_text(tld(chat.id, "log_channel_invalid_message"),
                            ParseMode.MARKDOWN)
 
+
 @user_admin
 def unsetlog(update: Update, context: CallbackContext):
     bot = context.bot

@@ -202,9 +202,12 @@ __help__ = True
 
 # TODO: Add blacklist alternative modes: warn, ban, kick, or mute.
 
-BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist", blacklist, pass_args=True, admin_ok=True, run_async=True)
-ADD_BLACKLIST_HANDLER = CommandHandler("addblacklist", add_blacklist, filters=Filters.chat_type.groups, run_async=True)
-UNBLACKLIST_HANDLER = CommandHandler(["unblacklist", "rmblacklist"], unblacklist)
+BLACKLIST_HANDLER = DisableAbleCommandHandler(
+    "blacklist", blacklist, pass_args=True, admin_ok=True, run_async=True)
+ADD_BLACKLIST_HANDLER = CommandHandler(
+    "addblacklist", add_blacklist, filters=Filters.chat_type.groups, run_async=True)
+UNBLACKLIST_HANDLER = CommandHandler(
+    ["unblacklist", "rmblacklist"], unblacklist)
 BLACKLIST_DEL_HANDLER = MessageHandler(
     (Filters.text | Filters.command | Filters.sticker | Filters.photo)
     & Filters.chat_type.groups,

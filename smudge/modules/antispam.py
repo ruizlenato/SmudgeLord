@@ -172,11 +172,13 @@ def ungban(update: Update, context: CallbackContext):
 
     try:
         dispatcher.bot.send_message(GBAN_DUMP,
-                         tld(chat.id, "antispam_logger_ungban").format(
-                             mention_html(banner.id, banner.first_name),
-                             mention_html(user_chat.id, user_chat.first_name),
-                             user_chat.id, reason),
-                         parse_mode=ParseMode.HTML)
+                                    tld(chat.id, "antispam_logger_ungban").format(
+                                        mention_html(
+                                            banner.id, banner.first_name),
+                                        mention_html(
+                                            user_chat.id, user_chat.first_name),
+                                        user_chat.id, reason),
+                                    parse_mode=ParseMode.HTML)
     except Exception:
         pass
 
@@ -403,7 +405,8 @@ GBAN_LIST = CommandHandler("gbanlist",
                            gbanlist,
                            filters=Filters.user(OWNER_ID), run_async=True)
 
-GBAN_ENFORCER = MessageHandler(Filters.all & Filters.chat_type.groups, enforce_gban)
+GBAN_ENFORCER = MessageHandler(
+    Filters.all & Filters.chat_type.groups, enforce_gban)
 CLEAN_DELACC_HANDLER = CommandHandler("cleandelacc",
                                       clear_gbans,
                                       filters=Filters.user(OWNER_ID), run_async=True)

@@ -10,6 +10,7 @@ from smudge.helper_funcs.chat_status import user_admin
 
 from smudge.modules.translations.strings import tld
 
+
 @user_admin
 def allow_connections(update, context) -> str:
     chat = update.effective_chat
@@ -43,7 +44,7 @@ def connect_chat(update: Update, context: CallbackContext):
     chat = update.effective_chat
     user = update.effective_user  # type: Optional[User]
     bot, args = context.bot, context.args
-    
+
     if update.effective_chat.type == 'private':
         if len(args) >= 1:
             try:
@@ -208,12 +209,14 @@ def connected(update: Update, context: CallbackContext, chat, user_id, need_admi
         return False
 
 
-
 __help__ = True
 
-CONNECT_CHAT_HANDLER = CommandHandler(["connect", "connection"], connect_chat, pass_args=True, run_async=True)
-DISCONNECT_CHAT_HANDLER = CommandHandler("disconnect", disconnect_chat, run_async=True)
-ALLOW_CONNECTIONS_HANDLER = CommandHandler("allowconnect", allow_connections, pass_args=True, run_async=True)
+CONNECT_CHAT_HANDLER = CommandHandler(
+    ["connect", "connection"], connect_chat, pass_args=True, run_async=True)
+DISCONNECT_CHAT_HANDLER = CommandHandler(
+    "disconnect", disconnect_chat, run_async=True)
+ALLOW_CONNECTIONS_HANDLER = CommandHandler(
+    "allowconnect", allow_connections, pass_args=True, run_async=True)
 
 dispatcher.add_handler(CONNECT_CHAT_HANDLER)
 dispatcher.add_handler(DISCONNECT_CHAT_HANDLER)

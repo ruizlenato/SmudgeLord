@@ -10,7 +10,7 @@ class GitHub(BASE):
     __tablename__ = "github"
     chat_id = Column(
         String(14), primary_key=True
-    )  #string because int is too large to be stored in a PSQL database.
+    )  # string because int is too large to be stored in a PSQL database.
     name = Column(UnicodeText, primary_key=True)
     value = Column(UnicodeText, nullable=False)
     backoffset = Column(Integer, nullable=False, default=0)

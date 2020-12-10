@@ -71,7 +71,8 @@ def filters(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
-    args = msg.text.split(None, 1)  # use python's maxsplit to separate Cmd, keyword, and reply_text
+    # use python's maxsplit to separate Cmd, keyword, and reply_text
+    args = msg.text.split(None, 1)
     conn = connected(update, context, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
@@ -285,8 +286,10 @@ __help__ = True
 
 FILTER_HANDLER = DisableAbleCommandHandler("filter", filters)
 STOP_HANDLER = DisableAbleCommandHandler("stop", stop_filter)
-LIST_HANDLER = DisableAbleCommandHandler("filters", list_handlers, admin_ok=True, run_async=True)
-CUST_FILTER_HANDLER = MessageHandler(CustomFilters.has_text, reply_filter, run_async=True)
+LIST_HANDLER = DisableAbleCommandHandler(
+    "filters", list_handlers, admin_ok=True, run_async=True)
+CUST_FILTER_HANDLER = MessageHandler(
+    CustomFilters.has_text, reply_filter, run_async=True)
 
 dispatcher.add_handler(FILTER_HANDLER)
 dispatcher.add_handler(STOP_HANDLER)

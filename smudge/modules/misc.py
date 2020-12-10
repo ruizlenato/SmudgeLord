@@ -45,7 +45,8 @@ def screenshot(update: Update, context: CallbackContext):
             msg.reply_text(tld(chat.id, "lastfm_usernotset"))
             return
         urllib.request.urlretrieve(image_url, filename)
-        dispatcher.bot.send_document(chat_id=chat.id,  document=open('screencapture.png', 'rb'), caption=txt)
+        dispatcher.bot.send_document(chat_id=chat.id,  document=open(
+            'screencapture.png', 'rb'), caption=txt)
     else:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
 
@@ -255,6 +256,7 @@ def github(update: Update, context: CallbackContext):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
+
 def ud(update: Update, context: CallbackContext):
     message = update.effective_message
     text = message.text[len('/ud '):]
@@ -266,6 +268,7 @@ def ud(update: Update, context: CallbackContext):
     exemple1 = exemple.replace("[", "").replace("]", "")
     reply_text = f'<strong>{text}</strong>\n<strong>Definition:</strong> {definition1}\n\n<strong>Exemple: </strong>{exemple1}'
     message.reply_text(reply_text, parse_mode=ParseMode.HTML)
+
 
 def wiki(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
@@ -288,7 +291,8 @@ def wikien(update: Update, context: CallbackContext):
                 InlineKeyboardButton(text="🔧 More Info...",
                                      url=wikipedia.page(kueri).url)
             ]])
-            textresult = tld(chat_id, "wiki_result").format(wikipedia.summary(kueri, sentences=3))
+            textresult = tld(chat_id, "wiki_result").format(
+                wikipedia.summary(kueri, sentences=3))
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
                                 text=textresult,
@@ -320,7 +324,8 @@ def wikipt(update: Update, context: CallbackContext):
                 InlineKeyboardButton(text="🔧 Mais Informações...",
                                      url=wikipedia.page(kueri).url)
             ]])
-            textresult = tld(chat_id, "wiki_result").format(wikipedia.summary(kueri, sentences=2))
+            textresult = tld(chat_id, "wiki_result").format(
+                wikipedia.summary(kueri, sentences=2))
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
                                 text=textresult,
@@ -335,6 +340,7 @@ def wikipt(update: Update, context: CallbackContext):
                 "⚠ Error\n Há muitas coisa! Expresse melhor para achar o resultado!\nPossíveis resultados da consulta:\n{}".format(
                     eet)
             )
+
 
 def github(update: Update, context: CallbackContext):
     message = update.effective_message
@@ -384,6 +390,7 @@ def github(update: Update, context: CallbackContext):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
+
 def covid(update: Update, context: CallbackContext):
     message = update.effective_message
     chat = update.effective_chat
@@ -416,6 +423,7 @@ def covid(update: Update, context: CallbackContext):
                                      total_tests)
     message.reply_markdown(reply)
 
+
 def outline(update: Update, context: CallbackContext):
     args = context.args
     message = update.effective_message
@@ -430,6 +438,7 @@ def outline(update: Update, context: CallbackContext):
     else:
         update.message.reply_text(tld(chat.id, "misc_url_invalid"))
         return
+
 
 def format_integer(number, thousand_separator=','):
     def reverse(string):
@@ -450,6 +459,7 @@ def format_integer(number, thousand_separator=','):
             result = char + result
     return result
 
+
 def yt(update: Update, context: CallbackContext):
     args = context.args
     msg = update.effective_message
@@ -465,14 +475,16 @@ def yt(update: Update, context: CallbackContext):
     try:
         update.effective_message.reply_video(video=video_stream.url)
     except:
-        update.message.reply_text(f"`Download failed: `[URL]({video_stream.url})", parse_mode=ParseMode.MARKDOWN)
+        update.message.reply_text(
+            f"`Download failed: `[URL]({video_stream.url})", parse_mode=ParseMode.MARKDOWN)
+
 
 def restart(update: Update, context: CallbackContext):
     user = update.effective_user
     chat_id = update.effective_chat.id
 
     if not user.id in SUDO_USERS:
-        update.message.reply_text( "User Not Sudo, Error.")
+        update.message.reply_text("User Not Sudo, Error.")
         return
 
     update.message.reply_text("Restarting...")
@@ -484,23 +496,34 @@ __help__ = True
 
 RESTART_HANDLER = CommandHandler("restart", restart, run_async=True)
 YT_HANDLER = CommandHandler("yt", yt, pass_args=True, run_async=True)
-OUTLINE_HANDLER = DisableAbleCommandHandler("outline", outline, pass_args=True, admin_ok=True, run_async=True)
-ID_HANDLER = DisableAbleCommandHandler("id", get_id, pass_args=True, admin_ok=True, run_async=True)
-IP_HANDLER = CommandHandler("ip", get_bot_ip, filters=Filters.chat(OWNER_ID), run_async=True)
+OUTLINE_HANDLER = DisableAbleCommandHandler(
+    "outline", outline, pass_args=True, admin_ok=True, run_async=True)
+ID_HANDLER = DisableAbleCommandHandler(
+    "id", get_id, pass_args=True, admin_ok=True, run_async=True)
+IP_HANDLER = CommandHandler(
+    "ip", get_bot_ip, filters=Filters.chat(OWNER_ID), run_async=True)
 
-INFO_HANDLER = DisableAbleCommandHandler("info", info, pass_args=True, admin_ok=True, run_async=True)
-GITHUB_HANDLER = DisableAbleCommandHandler("git", github, admin_ok=True, run_async=True)
-ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID), run_async=True)
-MD_HELP_HANDLER = CommandHandler("markdownhelp", markdown_help, filters=Filters.private, run_async=True)
+INFO_HANDLER = DisableAbleCommandHandler(
+    "info", info, pass_args=True, admin_ok=True, run_async=True)
+GITHUB_HANDLER = DisableAbleCommandHandler(
+    "git", github, admin_ok=True, run_async=True)
+ECHO_HANDLER = CommandHandler(
+    "echo", echo, filters=Filters.user(OWNER_ID), run_async=True)
+MD_HELP_HANDLER = CommandHandler(
+    "markdownhelp", markdown_help, filters=Filters.private, run_async=True)
 
-STATS_HANDLER = CommandHandler("stats", stats, filters=Filters.user(OWNER_ID), run_async=True)
-GDPR_HANDLER = CommandHandler("gdpr", gdpr, filters=Filters.private, run_async=True)
+STATS_HANDLER = CommandHandler(
+    "stats", stats, filters=Filters.user(OWNER_ID), run_async=True)
+GDPR_HANDLER = CommandHandler(
+    "gdpr", gdpr, filters=Filters.private, run_async=True)
 UD_HANDLER = DisableAbleCommandHandler("ud", ud, run_async=True)
 WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki, run_async=True)
 WIKIEN_HANDLER = DisableAbleCommandHandler("wikien", wikien, run_async=True)
 WIKIPT_HANDLER = DisableAbleCommandHandler("wikipt", wikipt, run_async=True)
-COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True, run_async=True)
-SCREENSHOT_HANDLER = CommandHandler(["screenshot", "print", "ss", "screencapture"], screenshot, pass_args=True)
+COVID_HANDLER = DisableAbleCommandHandler(
+    "covid", covid, admin_ok=True, run_async=True)
+SCREENSHOT_HANDLER = CommandHandler(
+    ["screenshot", "print", "ss", "screencapture"], screenshot, pass_args=True)
 
 dispatcher.add_handler(RESTART_HANDLER)
 dispatcher.add_handler(YT_HANDLER)

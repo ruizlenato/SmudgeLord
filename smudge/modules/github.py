@@ -13,7 +13,9 @@ from smudge.helper_funcs.chat_status import user_admin
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.modules.translations.strings import tld
 
-#do not async
+# do not async
+
+
 def getData(update, url, index):
     chat = update.effective_chat
     if not api.getData(url):
@@ -38,11 +40,12 @@ def getData(update, url, index):
         downloadCount = api.getDownloadCount(asset)
         message += assetFile + "\n"
         message += (tld(chat.id, "size_github")).format(size)
-        message += (tld(chat.id, "download_count_github")).format(downloadCount)
+        message += (tld(chat.id, "download_count_github")
+                    ).format(downloadCount)
     return message
 
 
-#likewise, aux function, not async
+# likewise, aux function, not async
 def getRepo(bot, update, reponame):
     chat = update.effective_chat
     repo = sql.get_repo(str(chat.id), reponame)
@@ -75,7 +78,7 @@ def getRelease(update: Update, context: CallbackContext):
 
 
 def hashFetch(update: Update, context: CallbackContext):
-    bot = context.bot  #kanged from notes
+    bot = context.bot  # kanged from notes
     message = update.effective_message.text
     msg = update.effective_message
     fst_word = message.split()[0]
@@ -198,13 +201,18 @@ def getVer(update: Update, context: CallbackContext):
 
 __help__ = True
 
-RELEASE_HANDLER = DisableAbleCommandHandler("git", getRelease, run_async=True, admin_ok=True)
-FETCH_HANDLER = DisableAbleCommandHandler("fetch", cmdFetch, run_async=True, admin_ok=True)
+RELEASE_HANDLER = DisableAbleCommandHandler(
+    "git", getRelease, run_async=True, admin_ok=True)
+FETCH_HANDLER = DisableAbleCommandHandler(
+    "fetch", cmdFetch, run_async=True, admin_ok=True)
 SAVEREPO_HANDLER = CommandHandler("saverepo", saveRepo, run_async=True)
 DELREPO_HANDLER = CommandHandler("delrepo", delRepo, run_async=True)
-LISTREPO_HANDLER = DisableAbleCommandHandler("listrepo", listRepo, admin_ok=True, run_async=True)
-VERCHECKER_HANDLER = DisableAbleCommandHandler("gitver", getVer, admin_ok=True, run_async=True)
-CHANGELOG_HANDLER = DisableAbleCommandHandler("changelog", changelog, run_async=True, admin_ok=True)
+LISTREPO_HANDLER = DisableAbleCommandHandler(
+    "listrepo", listRepo, admin_ok=True, run_async=True)
+VERCHECKER_HANDLER = DisableAbleCommandHandler(
+    "gitver", getVer, admin_ok=True, run_async=True)
+CHANGELOG_HANDLER = DisableAbleCommandHandler(
+    "changelog", changelog, run_async=True, admin_ok=True)
 RELEASE_HANDLER = DisableAbleCommandHandler("gitr", getRelease, admin_ok=True)
 
 HASHFETCH_HANDLER = RegexHandler(r"^&[^\s]+", hashFetch)

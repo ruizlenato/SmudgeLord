@@ -10,7 +10,7 @@ def vercheck() -> str:
     return str(VERSION)
 
 
-#Repo-wise stuff
+# Repo-wise stuff
 
 
 def getData(repoURL):
@@ -29,7 +29,7 @@ def getReleaseData(repoData, index):
         return None
 
 
-#Release-wise stuff
+# Release-wise stuff
 
 
 def getAuthor(releaseData):
@@ -68,13 +68,13 @@ def getAssets(releaseData):
     return releaseData['assets']
 
 
-def getBody(releaseData):  #changelog stuff
+def getBody(releaseData):  # changelog stuff
     if releaseData is None:
         return None
     return releaseData['body']
 
 
-#Asset-wise stuff
+# Asset-wise stuff
 
 
 def getReleaseFileName(asset):

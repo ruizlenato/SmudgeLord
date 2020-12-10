@@ -202,7 +202,7 @@ def new_member(update: Update, context: CallbackContext):
                                             chat.id,
                                             new_mem.id,
                                             permissions=ChatPermissions(
-                                            can_send_messages=False))
+                                                can_send_messages=False))
                                         canrest = True
                                     except BadRequest:
                                         canrest = False
@@ -219,7 +219,7 @@ def new_member(update: Update, context: CallbackContext):
                                             chat.id,
                                             new_mem.id,
                                             permissions=ChatPermissions(
-                                            can_send_messages=False),
+                                                can_send_messages=False),
                                             until_date=mutetime)
                                         canrest = True
                                     except BadRequest:
@@ -295,7 +295,7 @@ def new_member(update: Update, context: CallbackContext):
                                         chat.id,
                                         new_mem.id,
                                         permissions=ChatPermissions(
-                                        can_send_messages=False))
+                                            can_send_messages=False))
                                     canrest = True
                                 except BadRequest:
                                     canrest = False
@@ -312,7 +312,7 @@ def new_member(update: Update, context: CallbackContext):
                                         chat.id,
                                         new_mem.id,
                                         permissions=ChatPermissions(
-                                        can_send_messages=False),
+                                            can_send_messages=False),
                                         until_date=mutetime)
                                     canrest = True
                                 except BadRequest:
@@ -357,10 +357,10 @@ def check_bot_button(update: Update, context: CallbackContext):
         bot.restrict_chat_member(chat.id,
                                  user.id,
                                  permissions=ChatPermissions(
-                                 can_send_messages=True,
-                                 can_send_media_messages=True,
-                                 can_send_other_messages=True,
-                                 can_add_web_page_previews=True))
+                                     can_send_messages=True,
+                                     can_send_media_messages=True,
+                                     can_send_other_messages=True,
+                                     can_add_web_page_previews=True))
         sql.rm_from_userlist(chat.id, user.id)
     else:
         try:
@@ -916,22 +916,37 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-NEW_MEM_HANDLER = MessageHandler(Filters.status_update.new_chat_members, new_member, run_async=True)
-LEFT_MEM_HANDLER = MessageHandler(Filters.status_update.left_chat_member, left_member, run_async=True)
-WELC_PREF_HANDLER = CommandHandler("welcome", welcome, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-GOODBYE_PREF_HANDLER = CommandHandler("goodbye", goodbye,  run_async=True, pass_args=True, filters=Filters.chat_type.groups)
-SET_WELCOME = CommandHandler("setwelcome", set_welcome,  run_async=True, filters=Filters.chat_type.groups)
-SET_GOODBYE = CommandHandler("setgoodbye", set_goodbye,  run_async=True, filters=Filters.chat_type.groups)
-RESET_WELCOME = CommandHandler("resetwelcome", reset_welcome, run_async=True, filters=Filters.chat_type.groups)
-RESET_GOODBYE = CommandHandler("resetgoodbye", reset_goodbye, run_async=True, filters=Filters.chat_type.groups)
-CLEAN_WELCOME = CommandHandler("cleanwelcome", clean_welcome, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-SECURITY_HANDLER = CommandHandler("welcomemute", security, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-SECURITY_MUTE_HANDLER = CommandHandler("welcomemutetime", security_mute, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-SECURITY_BUTTONTXT_HANDLER = CommandHandler("setmutetext", security_text, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-SECURITY_BUTTONRESET_HANDLER = CommandHandler("resetmutetext", security_text_reset, run_async=True, filters=Filters.chat_type.groups)
-CLEAN_SERVICE_HANDLER = CommandHandler("cleanservice", cleanservice, pass_args=True, run_async=True, filters=Filters.chat_type.group)
+NEW_MEM_HANDLER = MessageHandler(
+    Filters.status_update.new_chat_members, new_member, run_async=True)
+LEFT_MEM_HANDLER = MessageHandler(
+    Filters.status_update.left_chat_member, left_member, run_async=True)
+WELC_PREF_HANDLER = CommandHandler(
+    "welcome", welcome, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
+GOODBYE_PREF_HANDLER = CommandHandler(
+    "goodbye", goodbye,  run_async=True, pass_args=True, filters=Filters.chat_type.groups)
+SET_WELCOME = CommandHandler(
+    "setwelcome", set_welcome,  run_async=True, filters=Filters.chat_type.groups)
+SET_GOODBYE = CommandHandler(
+    "setgoodbye", set_goodbye,  run_async=True, filters=Filters.chat_type.groups)
+RESET_WELCOME = CommandHandler(
+    "resetwelcome", reset_welcome, run_async=True, filters=Filters.chat_type.groups)
+RESET_GOODBYE = CommandHandler(
+    "resetgoodbye", reset_goodbye, run_async=True, filters=Filters.chat_type.groups)
+CLEAN_WELCOME = CommandHandler("cleanwelcome", clean_welcome,
+                               pass_args=True, run_async=True, filters=Filters.chat_type.groups)
+SECURITY_HANDLER = CommandHandler(
+    "welcomemute", security, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
+SECURITY_MUTE_HANDLER = CommandHandler(
+    "welcomemutetime", security_mute, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
+SECURITY_BUTTONTXT_HANDLER = CommandHandler(
+    "setmutetext", security_text, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
+SECURITY_BUTTONRESET_HANDLER = CommandHandler(
+    "resetmutetext", security_text_reset, run_async=True, filters=Filters.chat_type.groups)
+CLEAN_SERVICE_HANDLER = CommandHandler(
+    "cleanservice", cleanservice, pass_args=True, run_async=True, filters=Filters.chat_type.group)
 
-help_callback_handler = CallbackQueryHandler(check_bot_button, pattern=r"check_bot_")
+help_callback_handler = CallbackQueryHandler(
+    check_bot_button, pattern=r"check_bot_")
 
 dispatcher.add_handler(NEW_MEM_HANDLER)
 dispatcher.add_handler(LEFT_MEM_HANDLER)

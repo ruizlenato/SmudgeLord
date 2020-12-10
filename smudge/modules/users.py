@@ -48,10 +48,11 @@ def get_user_id(username):
 
     return None
 
+
 def broadcast(update: Update, context: CallbackContext):
     user = update.effective_user
     if not user.id in SUDO_USERS:
-        update.message.reply_text( "User Not Sudo, Error.")
+        update.message.reply_text("User Not Sudo, Error.")
         return
 
     to_send = update.effective_message.text.split(None, 1)
@@ -137,10 +138,10 @@ def __user_info__(user_id):
     return tld(chat_id, "users_seen").format(num_chats)
 
 
-
 def __stats__():
     return "• `{}` users, across `{}` chats".format(sql.num_users(),
                                                     sql.num_chats())
+
 
 def __gdpr__(user_id):
     sql.del_user(user_id)
@@ -154,9 +155,12 @@ __help__ = ""  # no help string
 
 __mod_name__ = "Users"
 
-BROADCAST_HANDLER = CommandHandler(["broadcastall", "broadcastusers", "broadcastgroups"], broadcast, run_async=True)
-USER_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, log_user, run_async=True)
-CHATLIST_HANDLER = CommandHandler("chatlist", chats, filters=CustomFilters.sudo_filter, run_async=True)
+BROADCAST_HANDLER = CommandHandler(
+    ["broadcastall", "broadcastusers", "broadcastgroups"], broadcast, run_async=True)
+USER_HANDLER = MessageHandler(
+    Filters.all & Filters.chat_type.groups, log_user, run_async=True)
+CHATLIST_HANDLER = CommandHandler(
+    "chatlist", chats, filters=CustomFilters.sudo_filter, run_async=True)
 
 dispatcher.add_handler(USER_HANDLER, USERS_GROUP)
 dispatcher.add_handler(BROADCAST_HANDLER)

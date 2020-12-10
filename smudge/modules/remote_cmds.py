@@ -465,7 +465,7 @@ def runmute(update: Update, context: CallbackContext):
             message.reply_text("Well damn, I can't unmute that user.")
 
 
-#based of @1maverick1's snipe command
+# based of @1maverick1's snipe command
 @bot_admin
 def recho(update: Update, context: CallbackContext):
     bot = context.bot

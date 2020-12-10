@@ -15,6 +15,7 @@ from smudge.helper_funcs.extraction import extract_user_and_text, extract_user
 from smudge.modules.log_channel import loggable
 from smudge.modules.translations.strings import tld
 
+
 @user_can_promote
 @bot_admin
 @can_promote
@@ -59,7 +60,8 @@ def promote(update: Update, context: CallbackContext) -> str:
 
     text = ""
     if title:
-        context.bot.set_chat_administrator_custom_title(chat_id, user_id, title[:16])
+        context.bot.set_chat_administrator_custom_title(
+            chat_id, user_id, title[:16])
         text = " with title <code>{}</code>".format(title[:16])
 
     message.reply_text(tld(chat.id, "admin_promote_success").format(
@@ -71,6 +73,8 @@ def promote(update: Update, context: CallbackContext) -> str:
            "\n<b>User:</b> {}".format(html.escape(chat.title),
                                       mention_html(user.id, user.first_name),
                                       mention_html(user_member.user.id, user_member.user.first_name))
+
+
 @user_can_promote
 @bot_admin
 @can_promote
@@ -103,23 +107,23 @@ def demote(update: Update, context: CallbackContext) -> str:
 
     try:
         context.bot.restrict_chat_member(chat.id,
-                                 int(user_id),
-                                 permissions=ChatPermissions(
-                                     can_send_messages=True,
-                                     can_send_media_messages=True,
-                                     can_send_other_messages=True,
-                                     can_add_web_page_previews=True)
-                                 )  #restrict incase you're demoting a bot
+                                         int(user_id),
+                                         permissions=ChatPermissions(
+                                             can_send_messages=True,
+                                             can_send_media_messages=True,
+                                             can_send_other_messages=True,
+                                             can_add_web_page_previews=True)
+                                         )  # restrict incase you're demoting a bot
         context.bot.promoteChatMember(int(chat.id),
-                              int(user_id),
-                              can_change_info=False,
-                              can_post_messages=False,
-                              can_edit_messages=False,
-                              can_delete_messages=False,
-                              can_invite_users=False,
-                              can_restrict_members=False,
-                              can_pin_messages=False,
-                              can_promote_members=False)
+                                      int(user_id),
+                                      can_change_info=False,
+                                      can_post_messages=False,
+                                      can_edit_messages=False,
+                                      can_delete_messages=False,
+                                      can_invite_users=False,
+                                      can_restrict_members=False,
+                                      can_pin_messages=False,
+                                      can_promote_members=False)
 
         message.reply_text(tld(chat.id, "admin_demote_success").format(
             mention_html(user_member.user.id, user_member.user.first_name)),
@@ -132,6 +136,7 @@ def demote(update: Update, context: CallbackContext) -> str:
     except BadRequest:
         message.reply_text(tld(chat.id, "admin_err_cant_demote"))
         return ""
+
 
 @user_can_pin
 @bot_admin
@@ -165,9 +170,11 @@ def pin(update: Update, context: CallbackContext) -> str:
                 raise
         return "<b>{}:</b>" \
                "\n#PINNED" \
-               "\n<b>Admin:</b> {}".format(html.escape(chat.title), mention_html(user.id, user.first_name))
+               "\n<b>Admin:</b> {}".format(html.escape(chat.title),
+                                           mention_html(user.id, user.first_name))
 
     return ""
+
 
 @user_can_pin
 @bot_admin
@@ -268,15 +275,22 @@ def adminlist(update: Update, context: CallbackContext):
 
 __help__ = True
 
-PIN_HANDLER = CommandHandler("pin", pin, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
-UNPIN_HANDLER = CommandHandler("unpin", unpin, filters=Filters.chat_type.groups, run_async=True)
-UNPINALL_HANDLER = CommandHandler("unpinall", unpinall, filters=Filters.chat_type.groups, run_async=True)
-INVITE_HANDLER = CommandHandler(["invitelink", "link"], invite, filters=Filters.chat_type.groups, run_async=True)
+PIN_HANDLER = CommandHandler(
+    "pin", pin, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+UNPIN_HANDLER = CommandHandler(
+    "unpin", unpin, filters=Filters.chat_type.groups, run_async=True)
+UNPINALL_HANDLER = CommandHandler(
+    "unpinall", unpinall, filters=Filters.chat_type.groups, run_async=True)
+INVITE_HANDLER = CommandHandler(
+    ["invitelink", "link"], invite, filters=Filters.chat_type.groups, run_async=True)
 
-PROMOTE_HANDLER = CommandHandler("promote", promote, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
-DEMOTE_HANDLER = CommandHandler("demote", demote, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+PROMOTE_HANDLER = CommandHandler(
+    "promote", promote, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+DEMOTE_HANDLER = CommandHandler(
+    "demote", demote, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
 
-ADMINLIST_HANDLER = DisableAbleCommandHandler(["adminlist", "admins"], adminlist, filters=Filters.chat_type.groups, run_async=True)
+ADMINLIST_HANDLER = DisableAbleCommandHandler(
+    ["adminlist", "admins"], adminlist, filters=Filters.chat_type.groups, run_async=True)
 
 dispatcher.add_handler(PIN_HANDLER)
 dispatcher.add_handler(UNPIN_HANDLER)

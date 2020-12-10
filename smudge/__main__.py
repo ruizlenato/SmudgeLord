@@ -66,12 +66,11 @@ for module_name in ALL_MODULES:
 def send_help(chat_id, text, keyboard=None):
     if not keyboard:
         keyboard = InlineKeyboardMarkup(
-            paginate_modules(chat_id, 0, HELPABLE, "help"))        
+            paginate_modules(chat_id, 0, HELPABLE, "help"))
     dispatcher.bot.send_message(chat_id=chat_id,
                                 text=text,
                                 parse_mode=ParseMode.MARKDOWN,
                                 reply_markup=keyboard)
-
 
 
 def start(update: Update, context: CallbackContext):
@@ -93,7 +92,8 @@ def start(update: Update, context: CallbackContext):
             send_start(update, context)
     else:
         try:
-            update.effective_message.reply_text(tld(chat.id, 'main_start_group'))
+            update.effective_message.reply_text(
+                tld(chat.id, 'main_start_group'))
         except Exception:
             print("Nut")
 
@@ -127,7 +127,6 @@ def send_start(update: Update, context: CallbackContext):
         parse_mode=ParseMode.MARKDOWN,
         disable_web_page_preview=True)
 # for test purposes
-
 
 
 # for test purposes
@@ -207,7 +206,6 @@ def help_button(update, context):
         pass
 
 
-
 def get_help(update: Update, context: CallbackContext):
     chat = update.effective_chat
     args = update.effective_message.text.split(None, 1)
@@ -258,6 +256,7 @@ def get_help(update: Update, context: CallbackContext):
         tld(chat.id, "send-help").format(dispatcher.bot.first_name,
                                          tld(chat.id, "cmd_multitrigger")))
 
+
 def migrate_chats(update: Update, context: CallbackContext):
     bot = context.bot
     msg = update.effective_message  # type: Optional[Message]
@@ -280,10 +279,12 @@ def migrate_chats(update: Update, context: CallbackContext):
 
 def main():
     # test_handler = CommandHandler("test", test) #Unused variable
-    start_handler = CommandHandler("start", start, pass_args=True, run_async=True)
+    start_handler = CommandHandler(
+        "start", start, pass_args=True, run_async=True)
 
     help_handler = CommandHandler("help", get_help, run_async=True)
-    help_callback_handler = CallbackQueryHandler(help_button, pattern=r"help_", run_async=True)
+    help_callback_handler = CallbackQueryHandler(
+        help_button, pattern=r"help_", run_async=True)
 
     start_callback_handler = CallbackQueryHandler(send_start,
                                                   pattern=r"bot_start", run_async=True)
@@ -323,4 +324,3 @@ if __name__ == '__main__':
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
     tbot.start(bot_token=TOKEN)
     main()
-

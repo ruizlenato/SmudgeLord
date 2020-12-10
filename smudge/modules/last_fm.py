@@ -90,6 +90,7 @@ def last_fm(update: Update, context: CallbackContext):
 
     msg.reply_text(rep, parse_mode=ParseMode.HTML)
 
+
 def album(update: Update, context: CallbackContext):
     msg = update.effective_message
     user = update.effective_user.first_name
@@ -271,7 +272,8 @@ SET_USER_HANDLER = CommandHandler("setuser", set_user, pass_args=True)
 CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user, run_async=True)
 LASTFM_HANDLER = CommandHandler(
     ["lastfm", "lt", "last", "l"], last_fm, run_async=True)
-LYRICS_HANDLER = CommandHandler("lyrics", lyrics, pass_args=True, run_async=True)
+LYRICS_HANDLER = CommandHandler(
+    "lyrics", lyrics, pass_args=True, run_async=True)
 ALBUM_HANDLER = CommandHandler(["album", "albuns"], album, run_async=True)
 ARTIST_HANDLER = CommandHandler("artist", artist, run_async=True)
 #COLLAGE_HANDLER = CommandHandler("collage", collage)

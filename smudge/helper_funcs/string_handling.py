@@ -269,8 +269,10 @@ def extract_time(message, time_val):
             return ""
         return bantime
     else:
-        message.reply_text(tld(chat.id, 'helpers_string_handling_invalid_time_type').format(time_val[-1]))
+        message.reply_text(
+            tld(chat.id, 'helpers_string_handling_invalid_time_type').format(time_val[-1]))
         return ""
+
 
 def markdown_to_html(text):
     text = text.replace("*", "**")

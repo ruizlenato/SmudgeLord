@@ -15,6 +15,7 @@ from smudge.modules.log_channel import loggable
 
 from smudge.modules.translations.strings import tld
 
+
 @user_can_ban
 @bot_admin
 @can_restrict
@@ -77,6 +78,7 @@ def ban(update: Update, context: CallbackContext) -> str:
             tld(chat.id, "bans_err_unknown").format("banning"))
 
     return ""
+
 
 @user_can_ban
 @bot_admin
@@ -161,6 +163,7 @@ def temp_ban(update: Update, context: CallbackContext) -> str:
 
     return ""
 
+
 @user_can_kick
 @bot_admin
 @can_restrict
@@ -235,6 +238,7 @@ def kickme(update: Update, context: CallbackContext):
     else:
         update.effective_message.reply_text(tld(chat.id, "bans_kickme_failed"))
 
+
 @bot_admin
 @can_restrict
 @loggable
@@ -254,6 +258,7 @@ def banme(bot: Bot, update: Update):
     else:
         update.effective_message.reply_text(tld(chat.id, "bans_kickme_failed"))
 
+
 @user_can_ban
 @bot_admin
 @can_restrict
@@ -266,7 +271,6 @@ def unban(update: Update, context: CallbackContext) -> str:
 
     bot, args = context.bot, context.args
     user_id, reason = extract_user_and_text(message, args)
-
 
     if not user_id:
         return ""
@@ -294,6 +298,7 @@ def unban(update: Update, context: CallbackContext) -> str:
 
     return log
 
+
 @user_can_ban
 @bot_admin
 @can_restrict
@@ -303,7 +308,7 @@ def sban(context: CallbackContext, update: Update) -> str:
     message = update.effective_message
     user = update.effective_user
     bot, args = context.bot, context.args
-    
+
     update.effective_message.delete()
 
     user_id, reason = extract_user_and_text(message, args)
@@ -345,13 +350,20 @@ def sban(context: CallbackContext, update: Update) -> str:
 
 __help__ = True
 
-BAN_HANDLER = DisableAbleCommandHandler("ban", ban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
-TEMPBAN_HANDLER = DisableAbleCommandHandler(["tban", "tempban"], temp_ban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
-KICK_HANDLER = DisableAbleCommandHandler("kick", kick, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
-UNBAN_HANDLER = DisableAbleCommandHandler("unban", unban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
-KICKME_HANDLER = DisableAbleCommandHandler("kickme", kickme, filters=Filters.chat_type.groups, run_async=True)
-SBAN_HANDLER = DisableAbleCommandHandler("sban", sban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
-BANME_HANDLER = DisableAbleCommandHandler("banme", banme, filters=Filters.chat_type.groups, run_async=True)
+BAN_HANDLER = DisableAbleCommandHandler(
+    "ban", ban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+TEMPBAN_HANDLER = DisableAbleCommandHandler(
+    ["tban", "tempban"], temp_ban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+KICK_HANDLER = DisableAbleCommandHandler(
+    "kick", kick, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+UNBAN_HANDLER = DisableAbleCommandHandler(
+    "unban", unban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+KICKME_HANDLER = DisableAbleCommandHandler(
+    "kickme", kickme, filters=Filters.chat_type.groups, run_async=True)
+SBAN_HANDLER = DisableAbleCommandHandler(
+    "sban", sban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+BANME_HANDLER = DisableAbleCommandHandler(
+    "banme", banme, filters=Filters.chat_type.groups, run_async=True)
 
 dispatcher.add_handler(BAN_HANDLER)
 dispatcher.add_handler(TEMPBAN_HANDLER)

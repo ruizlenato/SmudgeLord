@@ -282,8 +282,8 @@ def rest_handler(update: Update, context: CallbackContext):
     user = update.effective_user
     if (user.id == 777000) or (
             user.id == 1087968824
-    ):  #777000 is the telegram notification service bot ID.
-        return  #Group channel notifications are sent via this bot. This adds exception to this userid
+    ):  # 777000 is the telegram notification service bot ID.
+        return  # Group channel notifications are sent via this bot. This adds exception to this userid
 
     for restriction, filter in RESTRICTION_TYPES.items():
         if filter(update) and sql.is_restr_locked(
@@ -296,6 +296,7 @@ def rest_handler(update: Update, context: CallbackContext):
                 else:
                     LOGGER.exception("ERROR in restrictions")
             break
+
 
 def build_lock_message(chat, chatP, user, chatname):
     locks = sql.get_locks(chat.id)
@@ -346,10 +347,13 @@ def __import_data__(chat_id, data):
 
 __help__ = True
 
-LOCKTYPES_HANDLER = DisableAbleCommandHandler("locktypes", locktypes, run_async=True)
+LOCKTYPES_HANDLER = DisableAbleCommandHandler(
+    "locktypes", locktypes, run_async=True)
 LOCK_HANDLER = CommandHandler("lock", lock, filters=Filters.chat_type.groups)
-UNLOCK_HANDLER = CommandHandler("unlock", unlock, pass_args=True, filters=Filters.chat_type.groups)
-LOCKED_HANDLER = CommandHandler("locks", list_locks, filters=Filters.chat_type.groups)
+UNLOCK_HANDLER = CommandHandler(
+    "unlock", unlock, pass_args=True, filters=Filters.chat_type.groups)
+LOCKED_HANDLER = CommandHandler(
+    "locks", list_locks, filters=Filters.chat_type.groups)
 
 dispatcher.add_handler(LOCK_HANDLER)
 dispatcher.add_handler(UNLOCK_HANDLER)

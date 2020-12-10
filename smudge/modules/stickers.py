@@ -11,6 +11,7 @@ from smudge.modules.translations.strings import tld
 
 combot_stickers_url = "https://combot.org/telegram/stickers?q="
 
+
 def stickerid(update: Update, context: CallbackContext):
     bot = context.bot
     msg = update.effective_message
@@ -37,6 +38,7 @@ def getsticker(update: Update, context: CallbackContext):
     else:
         update.effective_message.reply_text(
             "Please reply to a sticker for me to upload its PNG.")
+
 
 def cb_sticker(update: Update, context: CallbackContext):
     bot = context.bot
@@ -121,9 +123,10 @@ def kang(update: Update, context: CallbackContext):
             if not msg.reply_to_message.sticker:
                 im.save(kangsticker, "PNG")
             context.bot.add_sticker_to_set(user_id=user.id,
-                                   name=packname,
-                                   png_sticker=open('kangsticker.png', 'rb'),
-                                   emojis=sticker_emoji)
+                                           name=packname,
+                                           png_sticker=open(
+                                               'kangsticker.png', 'rb'),
+                                           emojis=sticker_emoji)
             msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
                            parse_mode=ParseMode.MARKDOWN)
         except OSError as e:
@@ -132,14 +135,15 @@ def kang(update: Update, context: CallbackContext):
             return
         except TelegramError as e:
             if e.message == "Stickerset_invalid":
-                makepack_internal(update, context, msg, user, sticker_emoji,packname, packnum, png_sticker=open("kangsticker.png", "rb"),)
+                makepack_internal(update, context, msg, user, sticker_emoji,
+                                  packname, packnum, png_sticker=open("kangsticker.png", "rb"),)
             elif e.message == "Sticker_png_dimensions":
                 im.save(kangsticker, "PNG")
                 context.bot.add_sticker_to_set(user_id=user.id,
-                                       name=packname,
-                                       png_sticker=open(
-                                           'kangsticker.png', 'rb'),
-                                       emojis=sticker_emoji)
+                                               name=packname,
+                                               png_sticker=open(
+                                                   'kangsticker.png', 'rb'),
+                                               emojis=sticker_emoji)
                 msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
                                parse_mode=ParseMode.MARKDOWN)
             elif e.message == "Invalid sticker emojis":
@@ -150,7 +154,7 @@ def kang(update: Update, context: CallbackContext):
                 msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
                                parse_mode=ParseMode.MARKDOWN)
             print(e)
-            
+
     elif args:
         try:
             try:
@@ -181,7 +185,8 @@ def kang(update: Update, context: CallbackContext):
                 im.thumbnail(maxsize)
             im.save(kangsticker, "PNG")
             msg.reply_photo(photo=open('kangsticker.png', 'rb'))
-            context.bot.add_sticker_to_set(user_id=user.id, name=packname, png_sticker=open("kangsticker.png", "rb"), emojis=sticker_emoji,)
+            context.bot.add_sticker_to_set(user_id=user.id, name=packname, png_sticker=open(
+                "kangsticker.png", "rb"), emojis=sticker_emoji,)
             msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
                            parse_mode=ParseMode.MARKDOWN)
         except OSError as e:
@@ -195,10 +200,10 @@ def kang(update: Update, context: CallbackContext):
             elif e.message == "Sticker_png_dimensions":
                 im.save(kangsticker, "PNG")
                 context.bot.add_sticker_to_set(user_id=user.id,
-                                       name=packname,
-                                       png_sticker=open(
-                                           'kangsticker.png', 'rb'),
-                                       emojis=sticker_emoji)
+                                               name=packname,
+                                               png_sticker=open(
+                                                   'kangsticker.png', 'rb'),
+                                               emojis=sticker_emoji)
                 msg.reply_text(tld(chat.id, 'stickers_kang_success').format(packname, sticker_emoji),
                                parse_mode=ParseMode.MARKDOWN)
             elif e.message == "Invalid sticker emojis":
@@ -234,7 +239,8 @@ def makepack_internal(update, context, msg, user, emoji, packname, packnum, png_
         extra_version = ""
         if packnum > 0:
             extra_version = " " + str(packnum)
-        success = success = context.bot.create_new_sticker_set(user.id, packname, f"{name}'s kang pack" + extra_version, png_sticker=png_sticker, emojis=emoji)
+        success = success = context.bot.create_new_sticker_set(
+            user.id, packname, f"{name}'s kang pack" + extra_version, png_sticker=png_sticker, emojis=emoji)
     except TelegramError as e:
         print(e)
         if e.message == "Sticker set name is already occupied":
@@ -258,12 +264,17 @@ def makepack_internal(update, context, msg, user, emoji, packname, packnum, png_
     else:
         msg.reply_text(tld(chat.id, 'stickers_pack_create_error'))
 
+
 __help__ = True
 
-STICKERID_HANDLER = DisableAbleCommandHandler("stickerid", stickerid,run_async=True)
-GETSTICKER_HANDLER = DisableAbleCommandHandler("getsticker", getsticker, filters=CustomFilters.sudo_filter, run_async=True)
-KANG_HANDLER = DisableAbleCommandHandler("kang", kang, admin_ok=True, run_async=True)
-STICKERS_HANDLER = DisableAbleCommandHandler("stickers", cb_sticker, run_async=True)
+STICKERID_HANDLER = DisableAbleCommandHandler(
+    "stickerid", stickerid, run_async=True)
+GETSTICKER_HANDLER = DisableAbleCommandHandler(
+    "getsticker", getsticker, filters=CustomFilters.sudo_filter, run_async=True)
+KANG_HANDLER = DisableAbleCommandHandler(
+    "kang", kang, admin_ok=True, run_async=True)
+STICKERS_HANDLER = DisableAbleCommandHandler(
+    "stickers", cb_sticker, run_async=True)
 
 dispatcher.add_handler(STICKERID_HANDLER)
 dispatcher.add_handler(GETSTICKER_HANDLER)
