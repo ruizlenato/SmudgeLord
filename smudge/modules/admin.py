@@ -42,7 +42,6 @@ def promote(update: Update, context: CallbackContext) -> str:
         message.reply_text(tld(chat.id, "admin_err_self_promote"))
         return ""
 
-    # set same perms as bot - bot can't assign higher perms than itself!
     bot_member = chat.get_member(context.bot.id)
 
     context.bot.promoteChatMember(

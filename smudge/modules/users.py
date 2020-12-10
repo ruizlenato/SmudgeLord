@@ -11,6 +11,7 @@ from telegram.ext.dispatcher import run_async
 import smudge.modules.sql.users_sql as sql
 from smudge import dispatcher, CallbackContext, OWNER_ID, LOGGER
 from smudge.helper_funcs.filters import CustomFilters
+from smudge.modules.translations.strings import tld
 
 USERS_GROUP = 4
 
@@ -101,16 +102,15 @@ def chats(update: Update, context: CallbackContext):
 
 def __user_info__(user_id):
     if user_id == dispatcher.bot.id:
-        return """I've seen them in... Wow. Are they stalking me? They're in all the same places I am... oh. It's me."""
+        return tld(chat_id, "users_seen_is_bot")
     num_chats = sql.get_user_num_chats(user_id)
-    return """I've seen them in <code>{}</code> chats in total.""".format(
-        num_chats)
+    return tld(chat_id, "users_seen").format(num_chats)
+
 
 
 def __stats__():
-    return "{} users, across {} chats.".format(sql.num_users(),
-                                               sql.num_chats())
-
+    return "• `{}` users, across `{}` chats".format(sql.num_users(),
+                                                    sql.num_chats())
 
 def __gdpr__(user_id):
     sql.del_user(user_id)
