@@ -119,7 +119,6 @@ SUPPORT_USERS = list(SUPPORT_USERS)
 
 # Load at end to ensure all prev variables have been set
 from smudge.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
-
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
 
