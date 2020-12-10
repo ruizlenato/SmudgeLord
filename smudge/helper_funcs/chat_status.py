@@ -181,7 +181,7 @@ def user_can_ban(func):
             update.effective_message.reply_text(
                 tld(chat.id, "admin_ban_perm_false"))
             return ""
-        return func(Update, context * args, **kwargs)
+        return func(Update, context, * args, **kwargs)
 
     return user_perm_ban
 
