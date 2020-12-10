@@ -1,22 +1,22 @@
 from functools import wraps
 from typing import Optional
 
-from smudge import dispatcher, CallbackContext, LOGGER
+from smudge import dispatcher, LOGGER
 from smudge.helper_funcs.chat_status import user_admin
 from smudge.modules.sql import log_channel_sql as sql
 from smudge.modules.translations.strings import tld
 
 from telegram import Bot, Update, ParseMode, Message, Chat
 from telegram.error import BadRequest, Unauthorized
-from telegram.ext import CommandHandler, run_async, Filters
+from telegram.ext import CommandHandler, run_async
 from telegram.utils.helpers import escape_markdown
 
 
 def loggable(func):
     @wraps(func)
-    def log_action(update: Update, context: CallbackContext, *args, **kwargs):
+    def log_action(bot: Bot, update: Update, *args, **kwargs):
         try:
-            result = func(update, context, *args, **kwargs)
+            result = func(bot, update, *args, **kwargs)
         except:
             return
         chat = update.effective_chat  # type: Optional[Chat]
@@ -58,9 +58,9 @@ def send_log(bot: Bot, log_chat_id: str, orig_chat_id: str, result: str):
                 "\n\nFormatting has been disabled due to an unexpected error.")
 
 
+@run_async
 @user_admin
-def logging(update: Update, context: CallbackContext):
-    bot = context.bot
+def logging(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -79,9 +79,9 @@ def logging(update: Update, context: CallbackContext):
         message.reply_text(tld(chat.id, "log_channel_none"))
 
 
+@run_async
 @user_admin
-def setlog(update: Update, context: CallbackContext):
-    bot = context.bot
+def setlog(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     if chat.type == chat.CHANNEL:
@@ -119,9 +119,9 @@ def setlog(update: Update, context: CallbackContext):
                            ParseMode.MARKDOWN)
 
 
+@run_async
 @user_admin
-def unsetlog(update: Update, context: CallbackContext):
-    bot = context.bot
+def unsetlog(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
 
@@ -148,9 +148,9 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-LOG_HANDLER = CommandHandler("logchannel", logging, run_async=True)
-SET_LOG_HANDLER = CommandHandler("setlog", setlog, run_async=True)
-UNSET_LOG_HANDLER = CommandHandler("unsetlog", unsetlog, run_async=True)
+LOG_HANDLER = CommandHandler("logchannel", logging)
+SET_LOG_HANDLER = CommandHandler("setlog", setlog)
+UNSET_LOG_HANDLER = CommandHandler("unsetlog", unsetlog)
 
 dispatcher.add_handler(LOG_HANDLER)
 dispatcher.add_handler(SET_LOG_HANDLER)

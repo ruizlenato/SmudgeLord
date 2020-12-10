@@ -10,7 +10,7 @@ from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html
 
 import smudge.modules.sql.locks_sql as sql
-from smudge import dispatcher, SUDO_USERS, LOGGER, CallbackContext
+from smudge import dispatcher, SUDO_USERS, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import can_delete, is_user_admin, user_not_admin, user_admin, \
     bot_can_delete, is_bot_admin
@@ -124,7 +124,8 @@ def unrestr_members(bot,
             pass
 
 
-def locktypes(update: Update, context: CallbackContext):
+@run_async
+def locktypes(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     update.effective_message.reply_text("\n - ".join(
         tld(chat.id, "locks_list_title") + list(LOCK_TYPES) +
@@ -134,9 +135,7 @@ def locktypes(update: Update, context: CallbackContext):
 @user_admin
 @bot_can_delete
 @loggable
-def lock(update: Update, context: CallbackContext) -> str:
-    bot = context.bot
-    args = context.args
+def lock(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
@@ -183,11 +182,10 @@ def lock(update: Update, context: CallbackContext) -> str:
     return ""
 
 
+@run_async
 @user_admin
 @loggable
-def unlock(update: Update, context: CallbackContext) -> str:
-    bot = context.bot
-    args = context.args
+def unlock(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
@@ -240,16 +238,14 @@ def unlock(update: Update, context: CallbackContext) -> str:
     return ""
 
 
+@run_async
 @user_not_admin
-def del_lockables(update: Update, context: CallbackContext):
-    bot = context.bot
+def del_lockables(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
-    user = update.effective_user
-    if int(user.id) == 777000 or int(user.id) == 1087968824:
-        return
+
     for lockable, filter in LOCK_TYPES.items():
-        if filter(update) and sql.is_locked(chat.id, lockable) and can_delete(
+        if filter(message) and sql.is_locked(chat.id, lockable) and can_delete(
                 chat, bot.id):
             if lockable == "bots":
                 new_members = update.effective_message.new_chat_members
@@ -275,19 +271,14 @@ def del_lockables(update: Update, context: CallbackContext):
             break
 
 
+@run_async
 @user_not_admin
-def rest_handler(update: Update, context: CallbackContext):
+def rest_handler(bot: Bot, update: Update):
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user
-    if (user.id == 777000) or (
-            user.id == 1087968824
-    ):  # 777000 is the telegram notification service bot ID.
-        return  # Group channel notifications are sent via this bot. This adds exception to this userid
-
     for restriction, filter in RESTRICTION_TYPES.items():
-        if filter(update) and sql.is_restr_locked(
-                chat.id, restriction) and can_delete(chat, context.bot.id):
+        if filter(msg) and sql.is_restr_locked(
+                chat.id, restriction) and can_delete(chat, bot.id):
             try:
                 msg.delete()
             except BadRequest as excp:
@@ -318,8 +309,9 @@ def build_lock_message(chat, chatP, user, chatname):
     return res
 
 
+@run_async
 @user_admin
-def list_locks(update: Update, context: CallbackContext):
+def list_locks(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
 
@@ -347,13 +339,16 @@ def __import_data__(chat_id, data):
 
 __help__ = True
 
-LOCKTYPES_HANDLER = DisableAbleCommandHandler(
-    "locktypes", locktypes, run_async=True)
-LOCK_HANDLER = CommandHandler("lock", lock, filters=Filters.chat_type.groups)
-UNLOCK_HANDLER = CommandHandler(
-    "unlock", unlock, pass_args=True, filters=Filters.chat_type.groups)
-LOCKED_HANDLER = CommandHandler(
-    "locks", list_locks, filters=Filters.chat_type.groups)
+LOCKTYPES_HANDLER = DisableAbleCommandHandler("locktypes", locktypes)
+LOCK_HANDLER = CommandHandler("lock",
+                              lock,
+                              pass_args=True,
+                              filters=Filters.group)
+UNLOCK_HANDLER = CommandHandler("unlock",
+                                unlock,
+                                pass_args=True,
+                                filters=Filters.group)
+LOCKED_HANDLER = CommandHandler("locks", list_locks, filters=Filters.group)
 
 dispatcher.add_handler(LOCK_HANDLER)
 dispatcher.add_handler(UNLOCK_HANDLER)
@@ -361,6 +356,6 @@ dispatcher.add_handler(LOCKTYPES_HANDLER)
 dispatcher.add_handler(LOCKED_HANDLER)
 
 dispatcher.add_handler(
-    MessageHandler(Filters.all & Filters.chat_type.groups, del_lockables), PERM_GROUP)
+    MessageHandler(Filters.all & Filters.group, del_lockables), PERM_GROUP)
 dispatcher.add_handler(
-    MessageHandler(Filters.all & Filters.chat_type.groups, rest_handler), REST_GROUP)
+    MessageHandler(Filters.all & Filters.group, rest_handler), REST_GROUP)

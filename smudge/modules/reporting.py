@@ -5,18 +5,19 @@ from telegram.error import BadRequest, Unauthorized
 from telegram.ext import CommandHandler, RegexHandler, run_async, Filters, CallbackQueryHandler
 from telegram.utils.helpers import mention_html
 
-from smudge import dispatcher, LOGGER, CallbackContext
+from smudge import dispatcher, LOGGER
 from smudge.helper_funcs.chat_status import user_not_admin, user_admin
 from smudge.modules.log_channel import loggable
 from smudge.modules.sql import reporting_sql as sql
 from smudge.modules.translations.strings import tld
 
+
 REPORT_GROUP = 5
 
+
+@run_async
 @user_admin
-def report_setting(update: Update, context: CallbackContext):
-    bot = context.bot
-    args = context.args
+def report_setting(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat  # type: Optional[Chat]
     msg = update.effective_message  # type: Optional[Message]
 
@@ -49,10 +50,10 @@ def report_setting(update: Update, context: CallbackContext):
                 parse_mode=ParseMode.MARKDOWN)
 
 
+@run_async
 @user_not_admin
 @loggable
-def report(update: Update, context: CallbackContext) -> str:
-    bot = context.bot
+def report(bot: Bot, update: Update) -> str:
     message = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -178,8 +179,7 @@ def __migrate__(old_chat_id, new_chat_id):
     sql.migrate_chat(old_chat_id, new_chat_id)
 
 
-def buttons(update: Update, context: CallbackContext):
-    bot = context.bot
+def buttons(bot: Bot, update):
     query = update.callback_query
     splitter = query.data.replace("report_", "").split("=")
     chat = update.effective_chat
@@ -218,7 +218,7 @@ def buttons(update: Update, context: CallbackContext):
 
 __help__ = True
 
-REPORT_HANDLER = CommandHandler("report", report, filters=Filters.group, run_async=True)
+REPORT_HANDLER = CommandHandler("report", report, filters=Filters.group)
 SETTING_HANDLER = CommandHandler("reports", report_setting, pass_args=True)
 ADMIN_REPORT_HANDLER = RegexHandler("(?i)@admin(s)?", report)
 

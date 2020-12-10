@@ -1,11 +1,11 @@
 from typing import Optional
 
-from telegram import Message, Update, User
+from telegram import Message, Update, Bot, User
 from telegram import MessageEntity
 from telegram.error import BadRequest
 from telegram.ext import Filters, MessageHandler, run_async
 
-from smudge import dispatcher, CallbackContext
+from smudge import dispatcher
 from smudge.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHandler
 from smudge.modules.sql import afk_sql as sql
 from smudge.modules.users import get_user_id
@@ -16,9 +16,10 @@ AFK_GROUP = 7
 AFK_REPLY_GROUP = 8
 
 
-def afk(update: Update, context: CallbackContext):
-    args = update.effective_message.text.split(None, 1)
+@run_async
+def afk(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
+    args = update.effective_message.text.split(None, 1)
     if len(args) >= 2:
         reason = args[1]
     else:
@@ -30,7 +31,8 @@ def afk(update: Update, context: CallbackContext):
         tld(chat.id, "user_now_afk").format(fname))
 
 
-def no_longer_afk(update: Update, context: CallbackContext):
+@run_async
+def no_longer_afk(bot: Bot, update: Update):
     user = update.effective_user  # type: Optional[User]
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
@@ -50,8 +52,8 @@ def no_longer_afk(update: Update, context: CallbackContext):
             return
 
 
-def reply_afk(update: Update, context: CallbackContext):
-    bot = context.bot
+@run_async
+def reply_afk(bot: Bot, update: Update):
     message = update.effective_message  # type: Optional[Message]
     userc = update.effective_user  # type: Optional[User]
     userc_id = userc.id
@@ -92,15 +94,15 @@ def reply_afk(update: Update, context: CallbackContext):
             else:
                 return
 
-            check_afk(update, context, user_id, fst_name, userc_id)
+            check_afk(bot, update, user_id, fst_name, userc_id)
 
     elif message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         fst_name = message.reply_to_message.from_user.first_name
-        check_afk(update, context, user_id, fst_name, userc_id)
+        check_afk(bot, update, user_id, fst_name, userc_id)
 
 
-def check_afk(update, context, user_id, fst_name, userc_id):
+def check_afk(bot, update, user_id, fst_name, userc_id):
     chat = update.effective_chat  # type: Optional[Chat]
     if sql.is_afk(user_id):
         user = sql.check_afk_status(user_id)
@@ -119,13 +121,10 @@ def check_afk(update, context, user_id, fst_name, userc_id):
 
 __help__ = True
 
-AFK_HANDLER = DisableAbleCommandHandler("afk", afk, run_async=True)
-AFK_REGEX_HANDLER = DisableAbleRegexHandler(
-    "(?i)brb", afk, friendly="afk", run_async=True)
-NO_AFK_HANDLER = MessageHandler(
-    Filters.all & Filters.chat_type.groups, no_longer_afk, run_async=True)
-AFK_REPLY_HANDLER = MessageHandler(
-    Filters.all & Filters.chat_type.groups, reply_afk, run_async=True)
+AFK_HANDLER = DisableAbleCommandHandler("afk", afk)
+AFK_REGEX_HANDLER = DisableAbleRegexHandler("(?i)brb", afk, friendly="afk")
+NO_AFK_HANDLER = MessageHandler(Filters.all & Filters.group, no_longer_afk)
+AFK_REPLY_HANDLER = MessageHandler(Filters.all & Filters.group, reply_afk)
 
 dispatcher.add_handler(AFK_HANDLER, AFK_GROUP)
 dispatcher.add_handler(AFK_REGEX_HANDLER, AFK_GROUP)

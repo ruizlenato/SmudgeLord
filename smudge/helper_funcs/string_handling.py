@@ -1,12 +1,13 @@
 import re
 import time
-import emoji
+from typing import Dict, List
 import bleach
 import markdown2
 
-from typing import Dict, List
+import emoji
 from telegram import MessageEntity
 from telegram.utils.helpers import escape_markdown
+
 from smudge.modules.translations.strings import tld
 
 # NOTE: the url \ escape may cause double escapes
@@ -153,8 +154,8 @@ def button_markdown_parser(txt: str,
         else:
             note_data += markdown_note[prev:to_check]
             prev = match.start(1) - 1
-    else:
-        note_data += markdown_note[prev:]
+
+    note_data += markdown_note[prev:]
 
     return note_data, buttons
 
@@ -221,8 +222,7 @@ def split_quotes(text: str) -> List:
         if not key:
             key = text[0] + text[0]
         return list(filter(None, [key, rest]))
-    else:
-        return text.split(None, 1)
+    return text.split(None, 1)
 
 
 def remove_escapes(text: str) -> str:
@@ -253,6 +253,7 @@ def escape_chars(text: str, to_escape: List[str]) -> str:
 
 def extract_time(message, time_val):
     if any(time_val.endswith(unit) for unit in ('m', 'h', 'd')):
+        chat = message.chat
         unit = time_val[-1]
         time_num = time_val[:-1]  # type: str
         if not time_num.isdigit():
@@ -270,10 +271,10 @@ def extract_time(message, time_val):
             # how even...?
             return ""
         return bantime
-    else:
-        message.reply_text(
-            tld(chat.id, 'helpers_string_handling_invalid_time_type').format(time_val[-1]))
-        return ""
+    message.reply_text(
+        tld(chat.id, 'helpers_string_handling_invalid_time_type').format(
+            time_val[-1]))
+    return ""
 
 
 def markdown_to_html(text):
@@ -283,3 +284,8 @@ def markdown_to_html(text):
     return bleach.clean(_html,
                         tags=['strong', 'em', 'a', 'code', 'pre'],
                         strip=True)[:-1]
+
+
+def remove_emoji(inputString):
+    """ Remove emojis and other non-safe characters from string """
+    return emoji.get_emoji_regexp().sub(u'', inputString)

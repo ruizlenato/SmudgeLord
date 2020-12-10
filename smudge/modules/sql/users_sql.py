@@ -106,13 +106,6 @@ def update_user(user_id, username, chat_id=None, chat_name=None):
         SESSION.commit()
 
 
-def get_all_users():
-    try:
-        return SESSION.query(Users).all()
-    finally:
-        SESSION.close()
-
-
 def get_userid_by_name(username):
     try:
         return SESSION.query(Users).filter(
@@ -124,14 +117,6 @@ def get_userid_by_name(username):
 def get_name_by_userid(user_id):
     try:
         return SESSION.query(Users).get(Users.user_id == int(user_id)).first()
-    finally:
-        SESSION.close()
-
-
-def get_chat_members(chat_id):
-    try:
-        return SESSION.query(ChatMembers).filter(
-            ChatMembers.chat == str(chat_id)).all()
     finally:
         SESSION.close()
 
@@ -161,13 +146,6 @@ def num_chats():
 def num_users():
     try:
         return SESSION.query(Users).count()
-    finally:
-        SESSION.close()
-
-
-def get_chat_name(chat_id):
-    try:
-        return SESSION.query(Chats).get(str(chat_id)).chat_name
     finally:
         SESSION.close()
 

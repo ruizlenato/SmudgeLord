@@ -5,14 +5,16 @@ from typing import List
 
 from telegram import Update, Bot, ParseMode
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Filters
+from telegram.ext import run_async, CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import mention_html
 
 import smudge.modules.sql.antispam_sql as sql
 from smudge import dispatcher, OWNER_ID, SUDO_USERS, SUPPORT_USERS, GBAN_DUMP, STRICT_ANTISPAM, sw
-from smudge.helper_funcs.chat_status import user_admin, is_user_admin
+from smudge.helper_funcs.chat_status import user_admin, is_user_admin, user_can_changeinfo
 from smudge.helper_funcs.extraction import extract_user_and_text
 from smudge.helper_funcs.filters import CustomFilters
+# from smudge.helper_funcs.misc import send_to_list
+# from smudge.modules.sql.users_sql import get_all_chats
 
 from smudge.modules.translations.strings import tld
 
@@ -40,8 +42,8 @@ UNGBAN_ERRORS = {
 }
 
 
-def gban(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+@run_async
+def gban(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat
     banner = update.effective_user
@@ -133,8 +135,8 @@ def gban(update: Update, context: CallbackContext):
                   full_reason)
 
 
-def ungban(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+@run_async
+def ungban(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     chat = update.effective_chat
 
@@ -171,14 +173,12 @@ def ungban(update: Update, context: CallbackContext):
         parse_mode=ParseMode.HTML)
 
     try:
-        dispatcher.bot.send_message(GBAN_DUMP,
-                                    tld(chat.id, "antispam_logger_ungban").format(
-                                        mention_html(
-                                            banner.id, banner.first_name),
-                                        mention_html(
-                                            user_chat.id, user_chat.first_name),
-                                        user_chat.id, reason),
-                                    parse_mode=ParseMode.HTML)
+        bot.send_message(GBAN_DUMP,
+                         tld(chat.id, "antispam_logger_ungban").format(
+                             mention_html(banner.id, banner.first_name),
+                             mention_html(user_chat.id, user_chat.first_name),
+                             user_chat.id, reason),
+                         parse_mode=ParseMode.HTML)
     except Exception:
         pass
 
@@ -214,8 +214,8 @@ def ungban(update: Update, context: CallbackContext):
                        "\n\nPlease forward this message to them or let them know about this.")
 
 
-def gbanlist(update: Update, context: CallbackContext):
-    bot = context.bot
+@run_async
+def gbanlist(bot: Bot, update: Update):
     banned_users = sql.get_gban_list()
 
     if not banned_users:
@@ -237,8 +237,8 @@ def gbanlist(update: Update, context: CallbackContext):
             caption="Here is the list of currently gbanned users.")
 
 
-def ungban_quicc(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+@run_async
+def ungban_quicc(bot: Bot, update: Update, args: List[str]):
     message = update.effective_message
     try:
         user_id = int(args[0])
@@ -282,8 +282,8 @@ def check_and_ban(update, user_id, should_message=True):
             return
 
 
-def enforce_gban(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+@run_async
+def enforce_gban(bot: Bot, update: Update):
     # Not using @restrict handler to avoid spamming - just ignore if cant gban.
     try:
         if sql.does_chat_gban(
@@ -312,9 +312,10 @@ def enforce_gban(update: Update, context: CallbackContext):
         print(f"Nut {f}")
 
 
+@run_async
 @user_admin
-def antispam(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+@user_can_changeinfo
+def antispam(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat
     if len(args) > 0:
         if args[0].lower() in ["on", "yes"]:
@@ -329,8 +330,8 @@ def antispam(update: Update, context: CallbackContext):
                 "antispam_err_wrong_arg").format(sql.does_chat_gban(chat.id)))
 
 
-def clear_gbans(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+@run_async
+def clear_gbans(bot: Bot, update: Update):
     banned = sql.get_gban_list()
     deleted = 0
     update.message.reply_text(
@@ -382,34 +383,33 @@ __help__ = True
 ANTISPAM_STATUS = CommandHandler("antispam",
                                  antispam,
                                  pass_args=True,
-                                 filters=Filters.chat_type.groups, run_async=True)
+                                 filters=Filters.group)
 
 GBAN_HANDLER = CommandHandler("gban",
                               gban,
                               pass_args=True,
                               filters=CustomFilters.sudo_filter
-                              | CustomFilters.support_filter, run_async=True)
+                              | CustomFilters.support_filter)
 UNGBAN_HANDLER = CommandHandler("ungban",
                                 ungban,
                                 pass_args=True,
                                 filters=CustomFilters.sudo_filter
-                                | CustomFilters.support_filter, run_async=True)
+                                | CustomFilters.support_filter)
 
 UNGBANQ_HANDLER = CommandHandler("ungban_quicc",
                                  ungban_quicc,
                                  pass_args=True,
                                  filters=CustomFilters.sudo_filter
-                                 | CustomFilters.support_filter, run_async=True)
+                                 | CustomFilters.support_filter)
 
 GBAN_LIST = CommandHandler("gbanlist",
                            gbanlist,
-                           filters=Filters.user(OWNER_ID), run_async=True)
+                           filters=Filters.user(OWNER_ID))
 
-GBAN_ENFORCER = MessageHandler(
-    Filters.all & Filters.chat_type.groups, enforce_gban)
+GBAN_ENFORCER = MessageHandler(Filters.all & Filters.group, enforce_gban)
 CLEAN_DELACC_HANDLER = CommandHandler("cleandelacc",
                                       clear_gbans,
-                                      filters=Filters.user(OWNER_ID), run_async=True)
+                                      filters=Filters.user(OWNER_ID))
 
 dispatcher.add_handler(ANTISPAM_STATUS)
 

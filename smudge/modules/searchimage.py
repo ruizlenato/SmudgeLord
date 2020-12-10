@@ -7,10 +7,10 @@ from urllib.error import URLError, HTTPError
 from bs4 import BeautifulSoup
 
 from typing import List
-from telegram import ParseMode, InputMediaPhoto, Update, TelegramError
+from telegram import ParseMode, InputMediaPhoto, Update, Bot, TelegramError
 from telegram.ext import run_async
 
-from smudge import dispatcher, CallbackContext
+from smudge import dispatcher
 
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.modules.translations.strings import tld
@@ -21,8 +21,8 @@ useragent = 'Mozilla/5.0 (Linux; Android 6.0.1; SM-G920V Build/MMB29K) AppleWebK
 opener.addheaders = [('User-agent', useragent)]
 
 
-def reverse(update: Update, context: CallbackContext):
-    args = context.args
+@run_async
+def reverse(bot: Bot, update: Update, args: List[str]):
     if os.path.isfile("okgoogle.png"):
         os.remove("okgoogle.png")
 
@@ -43,7 +43,7 @@ def reverse(update: Update, context: CallbackContext):
         else:
             msg.reply_text("Reply to an image or sticker to lookup.")
             return
-        image_file = context.bot.get_file(file_id)
+        image_file = bot.get_file(file_id)
         image_file.download(imagename)
         if args:
             txt = args[0]
@@ -97,10 +97,10 @@ def reverse(update: Update, context: CallbackContext):
         fetchUrl = response.headers['Location']
 
         if response != 400:
-            xx = context.bot.send_message(chat_id, "Image was successfully uploaded to Google."
+            xx = bot.send_message(chat_id, "Image was successfully uploaded to Google."
                                   "\nParsing it, please wait.", reply_to_message_id=rtmid)
         else:
-            xx = context.bot.send_message(
+            xx = bot.send_message(
                 chat_id, "Google told me to go away.", reply_to_message_id=rtmid)
             return
 
@@ -130,7 +130,7 @@ def reverse(update: Update, context: CallbackContext):
             lmao = InputMediaPhoto(media=str(link))
             imglinks.append(lmao)
 
-        context.bot.send_media_group(chat_id=chat_id, media=imglinks,
+        bot.send_media_group(chat_id=chat_id, media=imglinks,
                              reply_to_message_id=rtmid)
         xx.edit_text(tld(chat.id, "searchimage").format(
             guess, fetchUrl, imgspage), parse_mode='Markdown', disable_web_page_preview=True)
@@ -193,6 +193,7 @@ def scam(imgspage, lim):
     return imglinks
 
 
-REVERSE_HANDLER = DisableAbleCommandHandler("reverse", reverse, pass_args=True, admin_ok=True, run_async=True)
+REVERSE_HANDLER = DisableAbleCommandHandler(
+    "reverse", reverse, pass_args=True, admin_ok=True)
 
 dispatcher.add_handler(REVERSE_HANDLER)

@@ -1,19 +1,20 @@
 import html
 
-from telegram import ParseMode, Update
+from telegram import Bot, ParseMode, Update
 from telegram.error import BadRequest
 from telegram.ext import CommandHandler, Filters, MessageHandler, run_async
 
 import tldextract
-from smudge import dispatcher, LOGGER, CallbackContext
+from smudge import LOGGER, dispatcher
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import user_admin, user_not_admin
 from smudge.modules.sql import urlblacklist_sql as sql
 from smudge.modules.translations.strings import tld
 
 
+@run_async
 @user_admin
-def add_blacklist_url(update: Update, context: CallbackContext):
+def add_blacklist_url(bot: Bot, update: Update):
     chat = update.effective_chat
     message = update.effective_message
     urls = message.text.split(None, 1)
@@ -52,8 +53,9 @@ def add_blacklist_url(update: Update, context: CallbackContext):
             tld(chat.id, "url_blacklist_invalid_2"))
 
 
+@run_async
 @user_admin
-def rm_blacklist_url(update: Update, context: CallbackContext):
+def rm_blacklist_url(bot: Bot, update: Update):
     chat = update.effective_chat
     message = update.effective_message
     urls = message.text.split(None, 1)
@@ -97,8 +99,9 @@ def rm_blacklist_url(update: Update, context: CallbackContext):
         )
 
 
+@run_async
 @user_not_admin
-def del_blacklist_url(update: Update, context: CallbackContext):
+def del_blacklist_url(bot: Bot, update: Update):
     chat = update.effective_chat
     message = update.effective_message
     parsed_entities = message.parse_entities(types=["url"])
@@ -118,7 +121,8 @@ def del_blacklist_url(update: Update, context: CallbackContext):
             break
 
 
-def get_blacklisted_urls(update: Update, context: CallbackContext):
+@run_async
+def get_blacklisted_urls(bot: Bot, update: Update):
     chat = update.effective_chat
     message = update.effective_message
 
@@ -134,14 +138,26 @@ def get_blacklisted_urls(update: Update, context: CallbackContext):
     message.reply_text(base_string, parse_mode=ParseMode.HTML)
 
 
-URL_BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist", add_blacklist_url, filters=Filters.group, pass_args=True, admin_ok=True, run_async=True)
-ADD_URL_BLACKLIST_HANDLER = CommandHandler("addurl", add_blacklist_url, filters=Filters.chat_type.groups, run_async=True)
+URL_BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist",
+                                                  add_blacklist_url,
+                                                  filters=Filters.group,
+                                                  pass_args=True,
+                                                  admin_ok=True)
+ADD_URL_BLACKLIST_HANDLER = CommandHandler("addurl",
+                                           add_blacklist_url,
+                                           filters=Filters.group)
 
-RM_BLACKLIST_URL_HANDLER = CommandHandler("delurl", rm_blacklist_url, filters=Filters.chat_type.groups, run_async=True)
+RM_BLACKLIST_URL_HANDLER = CommandHandler("delurl",
+                                          rm_blacklist_url,
+                                          filters=Filters.group)
 
-GET_BLACKLISTED_URLS = CommandHandler("geturl", get_blacklisted_urls, filters=Filters.chat_type.groups, run_async=True)
+GET_BLACKLISTED_URLS = CommandHandler("geturl",
+                                      get_blacklisted_urls,
+                                      filters=Filters.group)
 
-URL_DELETE_HANDLER = MessageHandler(Filters.entity("url"), del_blacklist_url, edited_updates=True)
+URL_DELETE_HANDLER = MessageHandler(Filters.entity("url"),
+                                    del_blacklist_url,
+                                    edited_updates=True)
 
 
 __help__ = False

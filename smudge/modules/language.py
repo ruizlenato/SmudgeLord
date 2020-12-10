@@ -1,7 +1,7 @@
 from smudge.modules.sql.translation import switch_to_locale, prev_locale
 from smudge.modules.translations.strings import tld
-from telegram.ext import CommandHandler, CallbackContext
-from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.ext import CommandHandler
+from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from smudge import dispatcher
 from smudge.modules.translations.list_locale import list_locales
 from smudge.helper_funcs.chat_status import user_admin
@@ -12,8 +12,7 @@ from smudge.modules.connection import connected
 
 
 @user_admin
-def locale(update: Update, context: CallbackContext):
-    args = context.args
+def locale(bot, update, args):
     chat = update.effective_chat
     if len(args) > 0:
         locale = args[0].lower()
@@ -26,9 +25,9 @@ def locale(update: Update, context: CallbackContext):
             else:
                 update.message.reply_text(
                     tld(chat.id,
-                        "language_not_supported").format(list_locales[locale]))
+                        "language_not_supported").format(list_locales[locale]), parse_mode=ParseMode.HTML)
         else:
-            update.message.reply_text(tld(chat.id, "language_code_not_valid"))
+            update.message.reply_text(tld(chat.id, "language_code_not_valid"), parse_mode=ParseMode.HTML)
     else:
         LANGUAGE = prev_locale(chat.id)
         if LANGUAGE:
@@ -44,10 +43,9 @@ def locale(update: Update, context: CallbackContext):
 
 
 @user_admin
-def locale_button(update: Update, context: CallbackContext):
-    bot = context.bot
+def locale_button(bot, update):
     chat = update.effective_chat
-    user = update.effective_user
+    user = update.effective_user  # type: Optional[User]
     query = update.callback_query
     lang_match = re.findall(r"en|pt", query.data)
     if lang_match:
@@ -68,7 +66,7 @@ def locale_button(update: Update, context: CallbackContext):
     text = tld(chat.id, "language_select_language")
     text += tld(chat.id, "language_user_language").format(curr_lang)
 
-    conn = connected(update, context, chat, user.id, need_admin=False)
+    conn = connected(bot, update, chat, user.id, need_admin=False)
 
     if conn:
         try:

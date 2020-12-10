@@ -1,136 +1,171 @@
 import html
 from typing import Optional, List
 
-from telegram import Message, Chat, Update, User, ChatPermissions, ParseMode
-
+from telegram import Message, Chat, Update, Bot, User
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, Filters
+from telegram.ext import Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html
+from telegram import ParseMode
 
-from smudge import dispatcher, CallbackContext, LOGGER, SUDO_USERS
+from smudge import dispatcher, LOGGER, SUDO_USERS
 from smudge.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict
 from smudge.helper_funcs.extraction import extract_user, extract_user_and_text
 from smudge.helper_funcs.string_handling import extract_time
 from smudge.modules.log_channel import loggable
+
 from smudge.modules.translations.strings import tld
+from smudge.modules.connection import connected
 from smudge.modules.disable import DisableAbleCommandHandler
 
 
+@run_async
 @bot_admin
 @user_admin
 @loggable
-def mute(update: Update, context: CallbackContext) -> str:
-    args = context.args
+def mute(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+
+    conn = connected(bot, update, chat, user.id)
+    if conn:
+        chatD = dispatcher.bot.getChat(conn)
+    else:
+        if chat.type == "private":
+            return
+        chatD = chat
 
     user_id = extract_user(message, args)
     if not user_id:
         message.reply_text(tld(chat.id, "mute_invalid"))
         return ""
 
-    if user_id == context.bot.id:
+    if user_id == bot.id:
         message.reply_text(tld(chat.id, "mute_not_myself"))
         return ""
 
-    member = chat.get_member(int(user_id))
+    member = chatD.get_member(int(user_id))
 
     if member:
 
         if user_id in SUDO_USERS:
-            message.reply_text(tld(chat.id, "mute_not_sudo"))
+            message.reply_text(
+                tld(chat.id, "mute_not_sudo"))
 
-        elif is_user_admin(chat, user_id, member=member):
-            message.reply_text(tld(chat.id, "mute_not_m_admin"))
+        elif is_user_admin(chatD, user_id, member=member):
+            message.reply_text(
+                tld(chat.id, "mute_not_m_admin"))
 
         elif member.can_send_messages is None or member.can_send_messages:
-            context.bot.restrict_chat_member(
-                chat.id,
-                user_id,
-                permissions=ChatPermissions(can_send_messages=False))
-
+            bot.restrict_chat_member(chatD.id,
+                                     user_id,
+                                     can_send_messages=False)
+            keyboard = []
             reply = tld(chat.id, "mute_success").format(
                 mention_html(member.user.id, member.user.first_name))
-            message.reply_text(reply, parse_mode=ParseMode.HTML)
+            message.reply_text(reply,
+                               reply_markup=keyboard,
+                               parse_mode=ParseMode.HTML)
             return "<b>{}:</b>" \
                    "\n#MUTE" \
                    "\n<b>Admin:</b> {}" \
-                   "\n<b>User:</b> {}".format(html.escape(chat.title),
+                   "\n<b>User:</b> {}".format(html.escape(chatD.title),
                                               mention_html(
                                                   user.id, user.first_name),
                                               mention_html(member.user.id, member.user.first_name))
 
         else:
             message.reply_text(
-                tld(chat.id, "mute_already_mute").format(chat.title))
+                tld(chat.id, "mute_already_mute").format(chatD.title))
     else:
-        message.reply_text(tld(chat.id, "mute_not_in_chat").format(chat.title))
+        message.reply_text(
+            tld(chat.id, "mute_not_in_chat").format(chatD.title))
 
     return ""
 
 
+@run_async
 @bot_admin
 @user_admin
 @loggable
-def unmute(update: Update, context: CallbackContext) -> str:
-    args = context.args
+def unmute(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
+
+    conn = connected(bot, update, chat, user.id)
+    if conn:
+        chatD = dispatcher.bot.getChat(conn)
+    else:
+        if chat.type == "private":
+            return
+        chatD = chat
 
     user_id = extract_user(message, args)
     if not user_id:
         message.reply_text(tld(chat.id, "unmute_invalid"))
         return ""
 
-    member = chat.get_member(int(user_id))
+    member = chatD.get_member(int(user_id))
 
-    if member:
-        if member.status != 'kicked' and member.status != 'left':
-            if member.can_send_messages and member.can_send_media_messages \
-                    and member.can_send_other_messages and member.can_add_web_page_previews:
-                message.reply_text(
-                    tld(chat.id, "unmute_not_muted").format(chat.title))
-                return ""
-            else:
-                context.bot.restrict_chat_member(chat.id,
-                                                 int(user_id),
-                                                 permissions=ChatPermissions(
-                                                     can_send_messages=True,
-                                                     can_send_media_messages=True,
-                                                     can_send_other_messages=True,
-                                                     can_add_web_page_previews=True))
-            reply = tld(chat.id, "unmute_success").format(
-                mention_html(member.user.id, member.user.first_name), chat.title)
-            message.reply_text(reply, parse_mode=ParseMode.HTML)
+    if member.status != 'kicked' and member.status != 'left':
+        if member.can_send_messages and member.can_send_media_messages \
+                and member.can_send_other_messages and member.can_add_web_page_previews:
+            message.reply_text(
+                tld(chat.id, "unmute_not_muted").format(chatD.title))
+        else:
+            bot.restrict_chat_member(chatD.id,
+                                     int(user_id),
+                                     can_send_messages=True,
+                                     can_send_media_messages=True,
+                                     can_send_other_messages=True,
+                                     can_add_web_page_previews=True)
+            keyboard = []
+            reply = tld(chat.id,
+                        "unmute_success").format(
+                            mention_html(member.user.id,
+                                         member.user.first_name), chatD.title)
+            message.reply_text(reply,
+                               reply_markup=keyboard,
+                               parse_mode=ParseMode.HTML)
             return "<b>{}:</b>" \
                    "\n#UNMUTE" \
                    "\n<b>• Admin:</b> {}" \
                    "\n<b>• User:</b> {}" \
-                   "\n<b>• ID:</b> <code>{}</code>".format(html.escape(chat.title), mention_html(
-                       user.id, user.first_name), mention_html(member.user.id, member.user.first_name), user_id)
+                   "\n<b>• ID:</b> <code>{}</code>".format(html.escape(chatD.title),
+                                                           mention_html(
+                                                               user.id, user.first_name),
+                                                           mention_html(member.user.id, member.user.first_name), user_id)
     else:
         message.reply_text(tld(chat.id, "unmute_not_in_chat"))
 
     return ""
 
 
+@run_async
 @bot_admin
 @can_restrict
 @user_admin
 @loggable
-def temp_mute(update: Update, context: CallbackContext) -> str:
-    args = context.args
+def temp_mute(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
 
+    conn = connected(bot, update, chat, user.id)
+    if conn:
+        chatD = dispatcher.bot.getChat(conn)
+    else:
+        if chat.type == "private":
+            return
+        chatD = chat
+
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
-        message.reply_text(tld(chat.id, "mute_not_refer"))
+        message.reply_text(
+            tld(chat.id, "mute_not_refer"))
         return ""
 
     try:
@@ -139,19 +174,21 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
         if excp.message == "User not found":
             message.reply_text(tld(chat.id, "mute_not_existed"))
             return ""
-        else:
-            raise
+        raise
 
     if is_user_admin(chat, user_id, member):
         message.reply_text(tld(chat.id, "mute_is_admin"))
         return ""
 
     if user_id == bot.id:
-        message.reply_text(tld(chat.id, "mute_is_bot"))
+        message.reply_text(
+            tld(chat.id, "mute_is_bot"))
         return ""
 
     if not reason:
-        message.reply_text(tld(chat.id, "tmute_no_time"))
+        message.reply_text(
+            tld(chat.id,
+                "tmute_no_time"))
         return ""
 
     split_reason = reason.split(None, 1)
@@ -171,74 +208,340 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
           "\n#TEMP MUTED" \
           "\n<b>Admin:</b> {}" \
           "\n<b>User:</b> {}" \
-          "\n<b>Time:</b> {}".format(html.escape(chat.title), mention_html(
-              user.id, user.first_name), mention_html(member.user.id, member.user.first_name), time_val)
+          "\n<b>Time:</b> {}".format(html.escape(chat.title), mention_html(user.id, user.first_name),
+                                     mention_html(member.user.id, member.user.first_name), time_val)
     if reason:
         log += "\n<b>Reason:</b> {}".format(reason)
 
     try:
         if member.can_send_messages is None or member.can_send_messages:
-            context.bot.restrict_chat_member(
-                chat.id,
-                user_id,
-                until_date=mutetime,
-                permissions=ChatPermissions(can_send_messages=False))
-
+            bot.restrict_chat_member(chat.id,
+                                     user_id,
+                                     until_date=mutetime,
+                                     can_send_messages=False)
             message.reply_text(
-                tld(chat.id, "tmute_success").format(time_val, chat.title))
+                tld(chat.id,
+                    "tmute_success").format(time_val, chatD.title))
             return log
-        else:
-            message.reply_text(
-                tld(chat.id, "mute_already_mute").format(chat.title))
+        message.reply_text(
+            tld(chat.id,
+                "mute_already_mute").format(chatD.title))
 
     except BadRequest as excp:
         if excp.message == "Reply message not found":
             # Do not reply
             message.reply_text(tld(chat.id, "tmute_success").format(
-                time_val, chat.title), quote=False)
+                time_val, chatD.title),
+                quote=False)
             return log
-        else:
-            LOGGER.warning(update)
-            LOGGER.exception("ERROR muting user %s in chat %s (%s) due to %s",
-                             user_id, chat.title, chat.id, excp.message)
-            message.reply_text(tld(chat.id, "mute_cant_mute"))
+        LOGGER.warning(update)
+        LOGGER.exception("ERROR muting user %s in chat %s (%s) due to %s",
+                         user_id, chat.title, chat.id, excp.message)
+        message.reply_text(
+            tld(chat.id, "mute_cant_mute"))
 
     return ""
 
 
+@run_async
+@bot_admin
+@user_admin
+@loggable
+def nomedia(bot: Bot, update: Update, args: List[str]) -> str:
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
+
+    conn = connected(bot, update, chat, user.id)
+    if conn:
+        chatD = dispatcher.bot.getChat(conn)
+    else:
+        if chat.type == "private":
+            return
+        chatD = chat
+
+    user_id = extract_user(message, args)
+    if not user_id:
+        message.reply_text(
+            tld(
+                chat.id,
+                "restrict_invalid"
+            ))
+        return ""
+
+    if user_id == bot.id:
+        message.reply_text(tld(chat.id, "restrict_is_bot"))
+        return ""
+
+    member = chatD.get_member(int(user_id))
+
+    if member:
+        if is_user_admin(chatD, user_id, member=member):
+            message.reply_text(tld(chat.id, "restrict_is_admin"))
+
+        elif member.can_send_messages is None or member.can_send_messages:
+            bot.restrict_chat_member(chatD.id,
+                                     user_id,
+                                     can_send_messages=True,
+                                     can_send_media_messages=False,
+                                     can_send_other_messages=False,
+                                     can_add_web_page_previews=False)
+            keyboard = []
+            reply = tld(chat.id,
+                        "restrict_success").format(
+                            mention_html(member.user.id,
+                                         member.user.first_name), chatD.title)
+            message.reply_text(reply,
+                               reply_markup=keyboard,
+                               parse_mode=ParseMode.HTML)
+            return "<b>{}:</b>" \
+                   "\n#RESTRICTED" \
+                   "\n<b>• Admin:</b> {}" \
+                   "\n<b>• User:</b> {}" \
+                   "\n<b>• ID:</b> <code>{}</code>".format(html.escape(chatD.title),
+                                                           mention_html(
+                                                               user.id, user.first_name),
+                                                           mention_html(member.user.id, member.user.first_name), user_id)
+
+        else:
+            message.reply_text(
+                tld(chat.id, "restrict_already_restricted"))
+    else:
+        message.reply_text(
+            tld(chat.id, "mute_not_in_chat").format(chatD.title))
+
+    return ""
+
+
+@run_async
+@bot_admin
+@user_admin
+@loggable
+def media(bot: Bot, update: Update, args: List[str]) -> str:
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
+
+    conn = connected(bot, update, chat, user.id)
+    if conn:
+        chatD = dispatcher.bot.getChat(conn)
+    else:
+        if chat.type == "private":
+            return
+        chatD = chat
+
+    user_id = extract_user(message, args)
+    if not user_id:
+        message.reply_text(
+            tld(
+                chat.id,
+                "unrestrict_invalid"
+            ))
+        return ""
+
+    member = chatD.get_member(int(user_id))
+
+    if member.status != 'kicked' and member.status != 'left':
+        if member.can_send_messages and member.can_send_media_messages \
+                and member.can_send_other_messages and member.can_add_web_page_previews:
+            message.reply_text(
+                tld(
+                    chat.id,
+                    "unrestrict_not_restricted"
+                ).format(chatD.title))
+        else:
+            bot.restrict_chat_member(chatD.id,
+                                     int(user_id),
+                                     can_send_messages=True,
+                                     can_send_media_messages=True,
+                                     can_send_other_messages=True,
+                                     can_add_web_page_previews=True)
+            keyboard = []
+            reply = tld(chat.id, "unrestrict_success").format(
+                mention_html(member.user.id, member.user.first_name),
+                chatD.title)
+            message.reply_text(reply,
+                               reply_markup=keyboard,
+                               parse_mode=ParseMode.HTML)
+            return "<b>{}:</b>" \
+                   "\n#UNRESTRICTED" \
+                   "\n<b>• Admin:</b> {}" \
+                   "\n<b>• User:</b> {}" \
+                   "\n<b>• ID:</b> <code>{}</code>".format(html.escape(chatD.title),
+                                                           mention_html(
+                                                               user.id, user.first_name),
+                                                           mention_html(member.user.id, member.user.first_name), user_id)
+    else:
+        message.reply_text(
+            tld(
+                chat.id,
+                "unrestrict_not_in_chat"))
+
+    return ""
+
+
+@run_async
 @bot_admin
 @can_restrict
-def muteme(update: Update, context: CallbackContext) -> str:
-    user = update.effective_message.from_user
+@user_admin
+@loggable
+def temp_nomedia(bot: Bot, update: Update, args: List[str]) -> str:
+    chat = update.effective_chat  # type: Optional[Chat]
+    user = update.effective_user  # type: Optional[User]
+    message = update.effective_message  # type: Optional[Message]
+
+    conn = connected(bot, update, chat, user.id)
+    if conn:
+        chatD = dispatcher.bot.getChat(conn)
+    else:
+        if chat.type == "private":
+            return
+        chatD = chat
+
+    user_id, reason = extract_user_and_text(message, args)
+
+    if not user_id:
+        message.reply_text(
+            tld(chat.id, "mute_not_refer"))
+        return ""
+
+    try:
+        member = chat.get_member(user_id)
+    except BadRequest as excp:
+        if excp.message == "User not found":
+            message.reply_text(tld(chat.id, "mute_not_existed"))
+            return ""
+        raise
+
+    if is_user_admin(chat, user_id, member):
+        message.reply_text(
+            tld(chat.id, "restrict_is_admin"))
+        return ""
+
+    if user_id == bot.id:
+        message.reply_text(
+            tld(chat.id, "restrict_is_bot"))
+        return ""
+
+    if not reason:
+        message.reply_text(
+            tld(chat.id,
+                "nomedia_need_time"))
+        return ""
+
+    split_reason = reason.split(None, 1)
+
+    time_val = split_reason[0].lower()
+    if len(split_reason) > 1:
+        reason = split_reason[1]
+    else:
+        reason = ""
+
+    mutetime = extract_time(message, time_val)
+
+    if not mutetime:
+        return ""
+
+    log = "<b>{}:</b>" \
+          "\n#TEMP RESTRICTED" \
+          "\n<b>• Admin:</b> {}" \
+          "\n<b>• User:</b> {}" \
+          "\n<b>• ID:</b> <code>{}</code>" \
+          "\n<b>• Time:</b> {}".format(html.escape(chat.title), mention_html(user.id, user.first_name),
+                                       mention_html(member.user.id, member.user.first_name), user_id, time_val)
+    if reason:
+        log += "\n<b>• Reason:</b> {}".format(reason)
+
+    try:
+        if member.can_send_messages is None or member.can_send_messages:
+            bot.restrict_chat_member(chat.id,
+                                     user_id,
+                                     until_date=mutetime,
+                                     can_send_messages=True,
+                                     can_send_media_messages=False,
+                                     can_send_other_messages=False,
+                                     can_add_web_page_previews=False)
+            message.reply_text(
+                tld(chat.id,
+                    "nomedia_success").format(
+                        time_val, chatD.title))
+            return log
+        message.reply_text(
+            tld(chat.id, "restrict_already_restricted").format(
+                chatD.title))
+
+    except BadRequest as excp:
+        if excp.message == "Reply message not found":
+            # Do not reply
+            message.reply_text(tld(chat.id, "nomedia_success").format(
+                time_val, chatD.title),
+                quote=False)
+            return log
+        LOGGER.warning(update)
+        LOGGER.exception("ERROR muting user %s in chat %s (%s) due to %s",
+                         user_id, chat.title, chat.id, excp.message)
+        message.reply_text(tld(chat.id, "restrict_cant_restricted"))
+
+    return ""
+
+
+@run_async
+@bot_admin
+@can_restrict
+def muteme(bot: Bot, update: Update, args: List[str]) -> str:
+    user_id = update.effective_message.from_user.id
     chat = update.effective_chat
     user = update.effective_user
-    if is_user_admin(update.effective_chat, user.id):
+    if is_user_admin(update.effective_chat, user_id):
         update.effective_message.reply_text(tld(chat.id, "mute_is_admin"))
         return
 
-    res = context.bot.restrict_chat_member(
-        chat.id, user.id, permissions=ChatPermissions(can_send_messages=False))
+    res = bot.restrict_chat_member(chat.id, user_id, can_send_messages=False)
     if res:
         update.effective_message.reply_text(tld(chat.id, "muteme_muted"))
         log = "<b>{}:</b>" \
             "\n#MUTEME" \
             "\n<b>User:</b> {}" \
             "\n<b>ID:</b> <code>{}</code>".format(html.escape(chat.title),
-                                                  mention_html(user.id, user.first_name), user.id)
+                                                  mention_html(user.id, user.first_name), user_id)
         return log
     update.effective_message.reply_text(tld(chat.id, "mute_cant_mute"))
 
 
-MUTE_HANDLER = CommandHandler(
-    "mute", mute, run_async=True, filters=Filters.chat_type.groups)
-UNMUTE_HANDLER = CommandHandler(
-    "unmute", unmute, run_async=True, filters=Filters.chat_type.groups)
-TEMPMUTE_HANDLER = CommandHandler(
-    ["tmute", "tempmute"], temp_mute, run_async=True, filters=Filters.chat_type.groups)
-MUTEME_HANDLER = DisableAbleCommandHandler(
-    "muteme", muteme, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True)
+MUTE_HANDLER = DisableAbleCommandHandler("mute",
+                                         mute,
+                                         pass_args=True,
+                                         admin_ok=True)
+UNMUTE_HANDLER = DisableAbleCommandHandler("unmute",
+                                           unmute,
+                                           pass_args=True,
+                                           admin_ok=True)
+TEMPMUTE_HANDLER = DisableAbleCommandHandler(["tmute", "tempmute"],
+                                             temp_mute,
+                                             pass_args=True,
+                                             admin_ok=True)
+TEMP_NOMEDIA_HANDLER = DisableAbleCommandHandler(["trestrict", "temprestrict"],
+                                                 temp_nomedia,
+                                                 pass_args=True,
+                                                 admin_ok=True)
+NOMEDIA_HANDLER = DisableAbleCommandHandler(["restrict", "nomedia"],
+                                            nomedia,
+                                            pass_args=True,
+                                            admin_ok=True)
+MEDIA_HANDLER = DisableAbleCommandHandler("unrestrict",
+                                          media,
+                                          pass_args=True,
+                                          admin_ok=True)
+MUTEME_HANDLER = DisableAbleCommandHandler("muteme",
+                                           muteme,
+                                           pass_args=True,
+                                           filters=Filters.group,
+                                           admin_ok=True)
 
 dispatcher.add_handler(MUTE_HANDLER)
 dispatcher.add_handler(UNMUTE_HANDLER)
 dispatcher.add_handler(TEMPMUTE_HANDLER)
+dispatcher.add_handler(TEMP_NOMEDIA_HANDLER)
+dispatcher.add_handler(NOMEDIA_HANDLER)
+dispatcher.add_handler(MEDIA_HANDLER)
 dispatcher.add_handler(MUTEME_HANDLER)

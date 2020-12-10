@@ -1,10 +1,12 @@
 import re
+from typing import List
 
 from telegram import MAX_MESSAGE_LENGTH, ParseMode, InlineKeyboardMarkup
 from telegram import Bot, Update
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, CommandHandler, CallbackQueryHandler, Filters, MessageHandler
+from telegram.ext import CommandHandler, RegexHandler
 from telegram.ext.dispatcher import run_async
+
 import smudge.modules.sql.notes_sql as sql
 from smudge import dispatcher, MESSAGE_DUMP, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
@@ -23,6 +25,7 @@ MYPHOTO_MATCHER = re.compile(r"^###photo(!photo)?###:")
 MYAUDIO_MATCHER = re.compile(r"^###audio(!photo)?###:")
 MYVOICE_MATCHER = re.compile(r"^###voice(!photo)?###:")
 MYVIDEO_MATCHER = re.compile(r"^###video(!photo)?###:")
+MYVIDEONOTE_MATCHER = re.compile(r"^###video_note(!photo)?###:")
 
 ENUM_FUNC_MAP = {
     sql.Types.TEXT.value: dispatcher.bot.send_message,
@@ -33,15 +36,15 @@ ENUM_FUNC_MAP = {
     sql.Types.AUDIO.value: dispatcher.bot.send_audio,
     sql.Types.VOICE.value: dispatcher.bot.send_voice,
     sql.Types.VIDEO.value: dispatcher.bot.send_video,
+    sql.Types.VIDEO_NOTE.value: dispatcher.bot.send_video_note
 }
 
 
 # Do not async
-def get(update: Update, context: CallbackContext, notename, show_none=True, no_format=False):
-    bot, args = context.bot, context.args
+def get(bot, update, notename, show_none=True, no_format=False):
     chat = update.effective_chat
     user = update.effective_user
-    conn = connected(update, context, chat, user.id, need_admin=False)
+    conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         send_id = user.id
@@ -67,9 +70,9 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
     if note and note.is_reply:
         if MESSAGE_DUMP:
             try:
-                context.bot.forward_message(chat_id=chat_id,
-                                            from_chat_id=MESSAGE_DUMP,
-                                            message_id=note.value)
+                bot.forward_message(chat_id=chat_id,
+                                    from_chat_id=MESSAGE_DUMP,
+                                    message_id=note.value)
             except BadRequest as excp:
                 if excp.message == "Message to forward not found":
                     message.reply_text(tld(chat.id, "note_lost"))
@@ -78,9 +81,9 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
                     raise
         else:
             try:
-                context.bot.forward_message(chat_id=chat_id,
-                                            from_chat_id=chat_id,
-                                            message_id=note.value)
+                bot.forward_message(chat_id=chat_id,
+                                    from_chat_id=chat_id,
+                                    message_id=note.value)
 
             except BadRequest as excp:
                 if excp.message == "Message to forward not found":
@@ -110,12 +113,12 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
             if note and note.msgtype in (sql.Types.BUTTON_TEXT,
                                          sql.Types.TEXT):
                 try:
-                    context.bot.send_message(send_id,
-                                             text,
-                                             reply_to_message_id=reply_id,
-                                             parse_mode=parseMode,
-                                             disable_web_page_preview=True,
-                                             reply_markup=keyboard)
+                    bot.send_message(send_id,
+                                     text,
+                                     reply_to_message_id=reply_id,
+                                     parse_mode=parseMode,
+                                     disable_web_page_preview=True,
+                                     reply_markup=keyboard)
                 except BadRequest as excp:
                     if excp.message == "Wrong http url":
                         failtext = tld(chat.id, "note_url_invalid")
@@ -149,30 +152,32 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
     return
 
 
-def cmd_get(update: Update, context: CallbackContext):
-    bot, args = context.bot, context.args
+@run_async
+def cmd_get(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat
     if len(args) >= 2 and args[1].lower() == "noformat":
-        get(update, context, args[0].lower(), show_none=True, no_format=True)
+        get(bot, update, args[0].lower(), show_none=True, no_format=True)
     elif len(args) >= 1:
-        get(update, context, args[0].lower(), show_none=True)
+        get(bot, update, args[0].lower(), show_none=True)
     else:
         update.effective_message.reply_text(tld(chat.id, "get_invalid"))
 
 
-def hash_get(update: Update, context: CallbackContext):
+@run_async
+def hash_get(bot: Bot, update: Update):
     message = update.effective_message.text
     fst_word = message.split()[0]
     no_hash = fst_word[1:].lower()
-    get(update, context, no_hash, show_none=False)
+    get(bot, update, no_hash, show_none=False)
 
 
 # TODO: FIX THIS
+@run_async
 @user_admin
-def save(update: Update, context: CallbackContext):
+def save(bot: Bot, update: Update):
     chat = update.effective_chat
     user = update.effective_user
-    conn = connected(update, context, chat, user.id)
+    conn = connected(bot, update, chat, user.id)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -216,12 +221,12 @@ def save(update: Update, context: CallbackContext):
                        parse_mode=ParseMode.MARKDOWN)
 
 
+@run_async
 @user_admin
-def clear(update: Update, context: CallbackContext):
-    args = context.args
-    user = update.effective_user
+def clear(bot: Bot, update: Update, args: List[str]):
     chat = update.effective_chat
-    conn = connected(update, context, chat, user.id)
+    user = update.effective_user
+    conn = connected(bot, update, chat, user.id)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -244,10 +249,11 @@ def clear(update: Update, context: CallbackContext):
                 tld(chat.id, "note_not_existed"))
 
 
-def list_notes(update: Update, context: CallbackContext):
+@run_async
+def list_notes(bot: Bot, update: Update):
     chat = update.effective_chat
     user = update.effective_user
-    conn = connected(update, context, chat, user.id, need_admin=False)
+    conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -282,8 +288,9 @@ def list_notes(update: Update, context: CallbackContext):
                                             parse_mode=ParseMode.MARKDOWN)
 
 
+@run_async
 @user_admin
-def remove_all_notes(update: Update, context: CallbackContext):
+def remove_all_notes(bot: Bot, update: Update):
     chat = update.effective_chat
     user = update.effective_user
     message = update.effective_message
@@ -328,17 +335,16 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-GET_HANDLER = DisableAbleCommandHandler(
-    "get", cmd_get, pass_args=True, run_async=True)
-HASH_GET_HANDLER = MessageHandler(
-    Filters.regex(r"^#[^\s]+"), hash_get, run_async=True)
-SAVE_HANDLER = CommandHandler("save", save, run_async=True)
+GET_HANDLER = CommandHandler("get", cmd_get, pass_args=True)
+HASH_GET_HANDLER = RegexHandler(r"^#[^\s]+", hash_get)
+
+SAVE_HANDLER = CommandHandler("save", save)
 REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall", remove_all_notes)
-DELETE_HANDLER = CommandHandler("clear", clear, pass_args=True, run_async=True)
+DELETE_HANDLER = CommandHandler("clear", clear, pass_args=True)
 
 LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"],
                                          list_notes,
-                                         admin_ok=True, run_async=True)
+                                         admin_ok=True)
 
 dispatcher.add_handler(GET_HANDLER)
 dispatcher.add_handler(SAVE_HANDLER)

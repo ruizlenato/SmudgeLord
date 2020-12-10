@@ -1,6 +1,5 @@
 import urllib.request as url
 import json
-import datetime
 
 VERSION = "1.0.2"
 APIURL = "http://api.github.com/repos/"
@@ -10,26 +9,20 @@ def vercheck() -> str:
     return str(VERSION)
 
 
-# Repo-wise stuff
-
-
 def getData(repoURL):
     try:
         with url.urlopen(APIURL + repoURL + "/releases") as data_raw:
-            repoData = json.loads(data_raw.read().decode())
-            return repoData
-    except:
+            return json.loads(data_raw.read().decode())
+    except Exception:
         return None
+
+# Release-wise stuff
 
 
 def getReleaseData(repoData, index):
     if index < len(repoData):
         return repoData[index]
-    else:
-        return None
-
-
-# Release-wise stuff
+    return None
 
 
 def getAuthor(releaseData):
@@ -72,7 +65,6 @@ def getBody(releaseData):  # changelog stuff
     if releaseData is None:
         return None
     return releaseData['body']
-
 
 # Asset-wise stuff
 

@@ -5,10 +5,10 @@ import telegram
 from telegram import ParseMode, InlineKeyboardMarkup, Message, Chat
 from telegram import Update, Bot
 from telegram.error import BadRequest
-from telegram.ext import CommandHandler, MessageHandler, DispatcherHandlerStop, run_async, Filters
+from telegram.ext import MessageHandler, DispatcherHandlerStop, run_async
 from telegram.utils.helpers import escape_markdown
 
-from smudge import dispatcher, LOGGER, CallbackContext
+from smudge import dispatcher, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import user_admin
 from smudge.helper_funcs.extraction import extract_text
@@ -24,12 +24,12 @@ from smudge.modules.connection import connected
 HANDLER_GROUP = 15
 
 
-def list_handlers(update: Update, context: CallbackContext):
-    bot = context.bot
+@run_async
+def list_handlers(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
 
-    conn = connected(update, context, chat, user.id)
+    conn = connected(bot, update, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -66,14 +66,15 @@ def list_handlers(update: Update, context: CallbackContext):
 
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
-def filters(update: Update, context: CallbackContext):
-    bot = context.bot
+def filters(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
-    msg = update.effective_message  # type: Optional[Message]
     user = update.effective_user  # type: Optional[User]
-    # use python's maxsplit to separate Cmd, keyword, and reply_text
-    args = msg.text.split(None, 1)
-    conn = connected(update, context, chat, user.id, need_admin=False)
+    msg = update.effective_message  # type: Optional[Message]
+    args = msg.text.split(
+        None,
+        1)  # use python's maxsplit to separate Cmd, keyword, and reply_text
+
+    conn = connected(bot, update, chat, user.id)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -158,13 +159,12 @@ def filters(update: Update, context: CallbackContext):
 
 # NOT ASYNC BECAUSE DISPATCHER HANDLER RAISED
 @user_admin
-def stop_filter(update: Update, context: CallbackContext):
-    bot = context.bot
+def stop_filter(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     args = update.effective_message.text.split(None, 1)
 
-    conn = connected(update, context, chat, user.id)
+    conn = connected(bot, update, chat, user.id)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -197,8 +197,8 @@ def stop_filter(update: Update, context: CallbackContext):
         tld(chat.id, "cust_filters_err_wrong_filter"))
 
 
-def reply_filter(update: Update, context: CallbackContext):
-    bot = context.bot
+@run_async
+def reply_filter(bot: Bot, update: Update):
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
     to_match = extract_text(message)
@@ -286,10 +286,10 @@ __help__ = True
 
 FILTER_HANDLER = DisableAbleCommandHandler("filter", filters)
 STOP_HANDLER = DisableAbleCommandHandler("stop", stop_filter)
-LIST_HANDLER = DisableAbleCommandHandler(
-    "filters", list_handlers, admin_ok=True, run_async=True)
-CUST_FILTER_HANDLER = MessageHandler(
-    CustomFilters.has_text, reply_filter, run_async=True)
+LIST_HANDLER = DisableAbleCommandHandler("filters",
+                                         list_handlers,
+                                         admin_ok=True)
+CUST_FILTER_HANDLER = MessageHandler(CustomFilters.has_text, reply_filter)
 
 dispatcher.add_handler(FILTER_HANDLER)
 dispatcher.add_handler(STOP_HANDLER)

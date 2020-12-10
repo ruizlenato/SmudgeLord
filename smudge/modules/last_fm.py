@@ -6,15 +6,16 @@ import lyricsgenius
 from telegraph import Telegraph
 
 from telegram import Bot, Update, ParseMode
-from telegram.ext import CommandHandler, CallbackContext
+from telegram.ext import run_async, CommandHandler
 
 import smudge.modules.sql.last_fm_sql as sql
 from smudge import dispatcher, LASTFM_API_KEY, GENIUS
 from smudge.modules.translations.strings import tld
+from smudge.modules.disable import DisableAbleCommandHandler
 
 
-def set_user(update: Update, context: CallbackContext):
-    args = context.args
+@run_async
+def set_user(bot: Bot, update: Update, args):
     msg = update.effective_message
     chat = update.effective_chat
     if args:
@@ -27,7 +28,8 @@ def set_user(update: Update, context: CallbackContext):
             tld(chat.id, "setuser_lastfm_error"))
 
 
-def clear_user(update: Update, context: CallbackContext):
+@run_async
+def clear_user(bot: Bot, update: Update):
     user = update.effective_user.id
     chat = update.effective_chat
     sql.set_user(user, "")
@@ -35,7 +37,8 @@ def clear_user(update: Update, context: CallbackContext):
         tld(chat.id, "learuser_lastfm"))
 
 
-def last_fm(update: Update, context: CallbackContext):
+@run_async
+def last_fm(bot: Bot, update: Update):
     msg = update.effective_message
     user = update.effective_user.first_name
     user_id = update.effective_user.id
@@ -91,7 +94,8 @@ def last_fm(update: Update, context: CallbackContext):
     msg.reply_text(rep, parse_mode=ParseMode.HTML)
 
 
-def album(update: Update, context: CallbackContext):
+@run_async
+def album(bot: Bot, update: Update):
     msg = update.effective_message
     user = update.effective_user.first_name
     user_id = update.effective_user.id
@@ -137,7 +141,8 @@ def album(update: Update, context: CallbackContext):
     msg.reply_text(rep, parse_mode=ParseMode.HTML)
 
 
-def artist(update: Update, context: CallbackContext):
+@run_async
+def artist(bot: Bot, update: Update):
     msg = update.effective_message
     user = update.effective_user.first_name
     user_id = update.effective_user.id
@@ -182,7 +187,8 @@ def artist(update: Update, context: CallbackContext):
     msg.reply_text(rep, parse_mode=ParseMode.HTML)
 
 
-def collage(update: Update, context: CallbackContext):
+@run_async
+def collage(bot: Bot, update: Update):
     user_id = update.effective_user.id
     user = update.effective_user.first_name
     username = sql.get_user(user_id)
@@ -197,9 +203,9 @@ def collage(update: Update, context: CallbackContext):
                    caption=tld(chat.id, "lastfm_collage").format(user))
 
 
-def lyrics(update: Update, context: CallbackContext):
+@run_async
+def lyrics(bot: Bot, update: Update, args):
     msg = update.effective_message
-    args = context.args
     user = update.effective_user.first_name
     user_id = update.effective_user.id
     username = sql.get_user(user_id)
@@ -269,13 +275,12 @@ __mod_name__ = "Last.FM"
 
 
 SET_USER_HANDLER = CommandHandler("setuser", set_user, pass_args=True)
-CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user, run_async=True)
-LASTFM_HANDLER = CommandHandler(
-    ["lastfm", "lt", "last", "l"], last_fm, run_async=True)
-LYRICS_HANDLER = CommandHandler(
-    "lyrics", lyrics, pass_args=True, run_async=True)
-ALBUM_HANDLER = CommandHandler(["album", "albuns"], album, run_async=True)
-ARTIST_HANDLER = CommandHandler("artist", artist, run_async=True)
+CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user)
+LASTFM_HANDLER = DisableAbleCommandHandler(
+    ["lastfm", "lt", "last", "l"], last_fm)
+LYRICS_HANDLER = CommandHandler("lyrics", lyrics, pass_args=True)
+ALBUM_HANDLER = DisableAbleCommandHandler(["album", "albuns"], album)
+ARTIST_HANDLER = DisableAbleCommandHandler("artist", artist)
 #COLLAGE_HANDLER = CommandHandler("collage", collage)
 
 # dispatcher.add_handler(COLLAGE_HANDLER)

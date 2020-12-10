@@ -1,9 +1,9 @@
 import html
 from typing import List
 
-from telegram import Update, ChatPermissions, ParseMode
+from telegram import Update, Bot
 from telegram.error import BadRequest
-from telegram.ext import Filters, MessageHandler, CommandHandler, run_async, CallbackContext
+from telegram.ext import Filters, MessageHandler, CommandHandler, run_async
 from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher
@@ -15,9 +15,9 @@ from smudge.modules.translations.strings import tld
 
 FLOOD_GROUP = 5
 
-
+@run_async
 @loggable
-def check_flood(update, context) -> str:
+def check_flood(bot: Bot, update: Update) -> str:
     user = update.effective_user
     chat = update.effective_chat
     msg = update.effective_message
@@ -38,10 +38,9 @@ def check_flood(update, context) -> str:
         return ""
 
     try:
-        context.bot.restrict_chat_member(
-            chat.id, user.id, permissions=ChatPermissions(can_send_messages=False))
-        msg.reply_text(tld(chat.id, "flood_mute"),
-                       parse_mode=ParseMode.MARKDOWN)
+        bot.restrict_chat_member(chat.id, user.id, can_send_messages=False)
+        msg.reply_text(tld(chat.id, "flood_mute"))
+
         return tld(chat.id, "flood_logger_success").format(
             html.escape(chat.title), mention_html(user.id, user.first_name))
 
@@ -51,13 +50,12 @@ def check_flood(update, context) -> str:
         return tld(chat.id, "flood_logger_fail").format(chat.title)
 
 
+@run_async
 @user_admin
 @can_restrict
 @loggable
 @user_can_changeinfo
-def set_flood(update: Update, context: CallbackContext) -> str:
-    bot = context.bot
-    args = context.args
+def set_flood(bot: Bot, update: Update, args: List[str]) -> str:
     chat = update.effective_chat
     user = update.effective_user
     message = update.effective_message
@@ -94,8 +92,8 @@ def set_flood(update: Update, context: CallbackContext) -> str:
     return ""
 
 
-def flood(update: Update, context: CallbackContext):
-    bot = context.bot
+@run_async
+def flood(bot: Bot, update: Update):
     chat = update.effective_chat
 
     limit = sql.get_flood_limit(chat.id)
@@ -114,9 +112,13 @@ __help__ = True
 
 # TODO: Add actions: ban/kick/mute/tban/tmute
 
-FLOOD_BAN_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, check_flood, run_async=True)
-SET_FLOOD_HANDLER = CommandHandler("setflood", set_flood, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
-FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.chat_type.groups, run_async=True)
+FLOOD_BAN_HANDLER = MessageHandler(
+    Filters.all & ~Filters.status_update & Filters.group, check_flood)
+SET_FLOOD_HANDLER = CommandHandler("setflood",
+                                   set_flood,
+                                   pass_args=True,
+                                   filters=Filters.group)
+FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.group)
 
 dispatcher.add_handler(FLOOD_BAN_HANDLER, FLOOD_GROUP)
 dispatcher.add_handler(SET_FLOOD_HANDLER)
