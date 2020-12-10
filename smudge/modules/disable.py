@@ -8,6 +8,8 @@ from telegram.utils.helpers import escape_markdown
 from smudge import dispatcher, CallbackContext
 from smudge.helper_funcs.handlers import CMD_STARTERS
 from smudge.helper_funcs.misc import is_module_loaded
+from smudge.helper_funcs.chat_status import user_can_changeinfo
+from smudge.modules.translations.strings import tld
 
 FILENAME = __name__.rsplit(".", 1)[-1]
 
@@ -73,6 +75,7 @@ if is_module_loaded(FILENAME):
                     chat.id, self.friendly)
 
     @user_admin
+    @user_can_changeinfo
     def disable(update: Update, context: CallbackContext):
         bot = context.bot
         args = context.args
@@ -95,6 +98,7 @@ if is_module_loaded(FILENAME):
                 tld(chat.id, "disable_err_no_cmd"))
 
     @user_admin
+    @user_can_changeinfo
     def enable(update: Update, context: CallbackContext):
         bot = context.bot
         args = context.args
