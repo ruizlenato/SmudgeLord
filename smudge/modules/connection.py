@@ -66,7 +66,7 @@ def connect_chat(update: Update, context: CallbackContext):
                     update.effective_message.from_user.id, connect_chat)
                 if connection_status:
                     chat_name = dispatcher.bot.getChat(
-                        connected(bot, update, chat, user.id,
+                        connected(context.bot, update, chat, user.id,
                                   need_admin=False)).title
                     update.effective_message.reply_text(
                         tld(chat.id, "connection_success").format(chat_name),

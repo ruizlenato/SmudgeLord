@@ -379,6 +379,48 @@ disable_help: |
     - /disable <comando>: Desabilitar um comando
     - /listcmds: Listar todos os comandos alternáveis
 
+#Feds
+modname_feds: Federações
+feds_notfadmin: "Apenas admistradores da federação podem fazer isso!"
+feds_welcome_ban: "Este usuário foi banido da federação atual, Vou removê-lo."
+feds_info: |
+  <b>Informações da federação:</b>
+  FedID: <code>{}</code>
+  Nome: {}
+  Criador: {}
+  Administradores: <code>{}</code>
+  Número de usuários banidos: <code>{}</code>
+  Número de grupos nesta federação: <code>{}</code>
+feds_admins: |
+  <b>Administradores da federação '{}':</b>
+feds_help: |
+  Ah, gerenciamento de grupo. É tudo diversão e jogos, até você começar a receber spammers e precisar bani-los. Então você precisa começar a banir mais e mais, e isso se torna doloroso.
+  Mas você tem vários grupos e não quer esses spammers em nenhum de seus grupos - como você pode lidar com isso? Você precisa bani-los manualmente, em todos os seus grupos?
+
+  Não mais! Com as federações, você pode fazer com que o banimento de um chat se sobreponha a todos os seus outros chats.
+  Você pode até nomear administradores de federação, para que seus administradores mais confiáveis ​​possam banir todos os chats que você deseja proteger.
+  
+  *Comandos disponíveis:*
+
+  - /newfed <fedname>: Cria uma nova Federação com o nome dado. Os usuários podem ter apenas uma federação. Este método também pode ser usado para renomear a Federação. (máximo de 64 caracteres)
+  - /delfed: Exclui sua Federação e qualquer informação relacionada a ela.
+  - /fedinfo <FedID>: Traz informações sobre a Federação especificada.
+  - /joinfed <FedID>: Une o grupo atual com uma Federação. Somente os donos do grupo podem fazer isso. Cada grupo pode estar apenas em uma federação.
+  - /leavefed <FedID>: Deixa a federação atual. Somente os donos do grupo podem fazer isso.
+  - /fpromote <user>: Promove usuários a administradores da federação, somente o dono da federação pode fazer isso.
+  - /fdemote <user>: Rebaixa um administrador da federação a um usuario normal, somente o dono da federação pode fazer isso.
+  - /fban <user>: Bane o usuário de todos os chats que fazem parte da federação a qual este grupo faz parte.
+  - /unfban <user>: Desbane o usuário de todos os chats que fazem parte da federação a qual esse grupo faz parte.
+  - /setfrules: Seta as regras da federação.
+  - /frules: Mostra as regras da federação.
+  - /chatfed: Ver em que federação está o chat atual.
+  - /fedadmins: Lista os administradores da Federação.
+  - /fbanlist json ou csv: Retorna a lista dos usuários banidos na federação em csv ou json.
+  - /fednotif <on/off>: Quando ativado(on) envia notificações no Chat privado sobre banimentos e desbanimentos da federação.
+  - /fedchats: Lista todos os chats que estão na federação atual.
+  - /importfbans: Responda a uma lista de usuários banidos para importar para a atual federação.
+
+
 #github
 repo_saved: Atalho do repositório salvo com sucesso!
 author_github: "<b>Autor:</b> <a href='{}'>{}</a>\n"
