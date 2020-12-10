@@ -44,16 +44,16 @@ if is_module_loaded(FILENAME):
                 if message.text and len(message.text) > 1:
                     fst_word = message.text.split(None, 1)[0]
                     if len(fst_word) > 1 and any(
-                        fst_word.startswith(start) for start in CMD_STARTERS):
+                            fst_word.startswith(start) for start in CMD_STARTERS):
 
                         args = message.text.split()[1:]
                         command = fst_word[1:].split("@")
                         command.append(message.bot.username)
 
                         if not (
-                            command[0].lower() in self.command
-                            and command[1].lower()
-                            == message.bot.username.lower()):
+                                command[0].lower() in self.command
+                                and command[1].lower()
+                                == message.bot.username.lower()):
                             return None
 
                         filter_result = self.filters(update)
@@ -62,7 +62,7 @@ if is_module_loaded(FILENAME):
                             user = update.effective_user
                             # disabled, admincmd, user admin
                             if sql.is_command_disabled(
-                                chat.id, command[0].lower()):
+                                    chat.id, command[0].lower()):
                                 is_disabled = command[
                                     0
                                 ] in ADMIN_CMDS and is_user_admin(

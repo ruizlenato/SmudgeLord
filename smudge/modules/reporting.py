@@ -13,6 +13,7 @@ from smudge.modules.translations.strings import tld
 
 REPORT_GROUP = 5
 
+
 @user_admin
 def report_setting(update: Update, context: CallbackContext):
     bot = context.bot
@@ -218,7 +219,8 @@ def buttons(update: Update, context: CallbackContext):
 
 __help__ = True
 
-REPORT_HANDLER = CommandHandler("report", report, filters=Filters.group, run_async=True)
+REPORT_HANDLER = CommandHandler(
+    "report", report, filters=Filters.group, run_async=True)
 SETTING_HANDLER = CommandHandler("reports", report_setting, pass_args=True)
 ADMIN_REPORT_HANDLER = RegexHandler("(?i)@admin(s)?", report)
 
