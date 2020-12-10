@@ -1,4 +1,3 @@
-import sys
 from smudge import LOAD, NO_LOAD, LOGGER
 
 
@@ -18,8 +17,8 @@ def __list_all_modules():
             if not all(
                     any(mod == module_name for module_name in all_modules)
                     for mod in to_load):
-                LOGGER.error("Invalid load order names. Quitting.")
-                sys.exit(1)
+                LOGGER.error("Invalid loadorder names. Quitting.")
+                quit(1)
 
         else:
             to_load = all_modules
@@ -35,4 +34,4 @@ def __list_all_modules():
 
 ALL_MODULES = sorted(__list_all_modules())
 LOGGER.info("Modules to load: %s", str(ALL_MODULES))
-__all__ = ALL_MODULES + ["ALL_MODULES"]
+__all__ = ALL_MODULES

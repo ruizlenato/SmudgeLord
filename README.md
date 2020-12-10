@@ -1,5 +1,7 @@
 # SmudgeLord - A modular Telegram Python bot
 
+## PTB v13 - Smudge Beta Version
+
 ![Banner](https://pbs.twimg.com/media/EYzqzoRWkAEsjIe?format=jpg&name=small)
 
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/b97fcc04647642459c1e14469548e98e)](https://www.codacy.com/manual/RenatohRibeiro/SmudgeLord?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RenatohRibeiro/SmudgeLord&amp;utm_campaign=Badge_Grade)

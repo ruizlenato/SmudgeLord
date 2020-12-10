@@ -1,7 +1,7 @@
 from smudge.modules.sql.translation import switch_to_locale, prev_locale
 from smudge.modules.translations.strings import tld
-from telegram.ext import CommandHandler
-from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.ext import CommandHandler, CallbackContext
+from telegram import Update, ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from smudge import dispatcher
 from smudge.modules.translations.list_locale import list_locales
 from smudge.helper_funcs.chat_status import user_admin
@@ -12,7 +12,8 @@ from smudge.modules.connection import connected
 
 
 @user_admin
-def locale(bot, update, args):
+def locale(update: Update, context: CallbackContext):
+    args = context.args
     chat = update.effective_chat
     if len(args) > 0:
         locale = args[0].lower()
@@ -25,9 +26,9 @@ def locale(bot, update, args):
             else:
                 update.message.reply_text(
                     tld(chat.id,
-                        "language_not_supported").format(list_locales[locale]), parse_mode=ParseMode.HTML)
+                        "language_not_supported").format(list_locales[locale]))
         else:
-            update.message.reply_text(tld(chat.id, "language_code_not_valid"), parse_mode=ParseMode.HTML)
+            update.message.reply_text(tld(chat.id, "language_code_not_valid"))
     else:
         LANGUAGE = prev_locale(chat.id)
         if LANGUAGE:
@@ -43,9 +44,10 @@ def locale(bot, update, args):
 
 
 @user_admin
-def locale_button(bot, update):
+def locale_button(update: Update, context: CallbackContext):
+    bot = context.bot
     chat = update.effective_chat
-    user = update.effective_user  # type: Optional[User]
+    user = update.effective_user
     query = update.callback_query
     lang_match = re.findall(r"en|pt", query.data)
     if lang_match:
@@ -66,7 +68,7 @@ def locale_button(bot, update):
     text = tld(chat.id, "language_select_language")
     text += tld(chat.id, "language_user_language").format(curr_lang)
 
-    conn = connected(bot, update, chat, user.id, need_admin=False)
+    conn = connected(update, context, chat, user.id, need_admin=False)
 
     if conn:
         try:

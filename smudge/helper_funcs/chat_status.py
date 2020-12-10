@@ -1,10 +1,9 @@
 from functools import wraps
+from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
-from smudge import DEL_CMDS, SUDO_USERS, WHITELIST_USERS
-import smudge.modules.sql.admin_sql as admin_sql
-from smudge.modules.translations.strings import tld
+from smudge import CallbackContext, DEL_CMDS, SUDO_USERS, WHITELIST_USERS
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:
@@ -28,7 +27,6 @@ def is_user_ban_protected(chat: Chat,
 def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
     if chat.type == 'private' \
             or user_id in SUDO_USERS \
-            or user_id == int(777000) \
             or chat.all_members_are_administrators:
         return True
 
@@ -56,79 +54,99 @@ def is_user_in_chat(chat: Chat, user_id: int) -> bool:
 
 def bot_can_delete(func):
     @wraps(func)
-    def delete_rights(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat
-
+    def delete_rights(update: Update, context: CallbackContext, *args,
+                      **kwargs):
+        bot = context.bot
         if can_delete(update.effective_chat, bot.id):
-            return func(bot, update, *args, **kwargs)
-        update.effective_message.reply_text(
-            tld(chat.id, 'helpers_bot_cant_delete'))
+            return func(update, context, *args, **kwargs)
+        else:
+            update.effective_message.reply_text(
+                "I can't delete messages here! "
+                "Make sure I'm admin and can delete other user's messages.")
 
     return delete_rights
 
 
 def can_pin(func):
     @wraps(func)
-    def pin_rights(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat
-
+    def pin_rights(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
         if update.effective_chat.get_member(bot.id).can_pin_messages:
-            return func(bot, update, *args, **kwargs)
-        update.effective_message.reply_text(
-            tld(chat.id, 'helpers_bot_cant_pin'))
+            return func(update, context, *args, **kwargs)
+        else:
+            update.effective_message.reply_text(
+                "I can't pin messages here! "
+                "Make sure I'm admin and can pin messages.")
 
     return pin_rights
 
 
 def can_promote(func):
     @wraps(func)
-    def promote_rights(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat
-
+    def promote_rights(update: Update, context: CallbackContext, *args,
+                       **kwargs):
+        bot = context.bot
         if update.effective_chat.get_member(bot.id).can_promote_members:
-            return func(bot, update, *args, **kwargs)
-        update.effective_message.reply_text(
-            tld(chat.id, 'helpers_bot_cant_pro_demote'))
+            return func(update, context, *args, **kwargs)
+        else:
+            update.effective_message.reply_text(
+                "I can't promote/demote people here! "
+                "Make sure I'm admin and can appoint new admins.")
 
     return promote_rights
 
 
 def can_restrict(func):
     @wraps(func)
-    def promote_rights(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat
-
+    def promote_rights(update: Update, context: CallbackContext, *args,
+                       **kwargs):
+        bot = context.bot
         if update.effective_chat.get_member(bot.id).can_restrict_members:
-            return func(bot, update, *args, **kwargs)
-        update.effective_message.reply_text(
-            tld(chat.id, 'helpers_bot_cant_restrict'))
+            return func(update, context, *args, **kwargs)
+        else:
+            update.effective_message.reply_text(
+                "I can't restrict people here! "
+                "Make sure I'm admin and can appoint new admins.")
 
     return promote_rights
 
 
 def bot_admin(func):
     @wraps(func)
-    def is_admin(bot: Bot, update: Update, *args, **kwargs):
-        chat = update.effective_chat
-
+    def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
         if is_bot_admin(update.effective_chat, bot.id):
-            return func(bot, update, *args, **kwargs)
-        update.effective_message.reply_text(
-            tld(chat.id, 'helpers_bot_not_admin'))
+            return func(update, context, *args, **kwargs)
+        else:
+            update.effective_message.reply_text("I'm not admin!")
 
     return is_admin
 
 
 def user_admin(func):
     @wraps(func)
-    def is_admin(bot: Bot, update: Update, *args, **kwargs):
-        user = update.effective_user
-        chat = update.effective_chat
+    def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
+        user = update.effective_user  # type: Optional[User]
         if user and is_user_admin(update.effective_chat, user.id):
-            try:
-                return func(bot, update, *args, **kwargs)
-            except Exception:
-                return
+            return func(update, context, *args, **kwargs)
+
+        elif not user:
+            pass
+
+        else:
+            update.effective_message.delete()
+
+    return is_admin
+
+
+def user_admin_no_reply(func):
+    @wraps(func)
+    def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
+        bot = context.bot
+        user = update.effective_user  # type: Optional[User]
+        if user and is_user_admin(update.effective_chat, user.id):
+            return func(update, context, *args, **kwargs)
 
         elif not user:
             pass
@@ -136,124 +154,117 @@ def user_admin(func):
         elif DEL_CMDS and " " not in update.effective_message.text:
             update.effective_message.delete()
 
-        elif (admin_sql.command_reaction(chat.id) is True):
-            update.effective_message.reply_text(
-                tld(chat.id, 'helpers_user_not_admin'))
-
     return is_admin
 
-
-def user_admin_no_reply(func):
-    @wraps(func)
-    def is_admin(bot: Bot, update: Update, *args, **kwargs):
-        user = update.effective_user
-        if user and is_user_admin(update.effective_chat, user.id):
-            return func(bot, update, *args, **kwargs)
-
-        if not user:
-            pass
-
-        elif DEL_CMDS and " " not in update.effective_message.text:
-            update.effective_message.delete()
-
-    return is_admin
 
 def user_not_admin(func):
     @wraps(func)
-    def is_not_admin(bot: Bot, update: Update, *args, **kwargs):
-        user = update.effective_user
+    def is_not_admin(update: Update, context: CallbackContext, *args,
+                     **kwargs):
+        bot = context.bot
+        user = update.effective_user  # type: Optional[User]
         if user and not is_user_admin(update.effective_chat, user.id):
-            return func(bot, update, *args, **kwargs)
+            return func(update, context, *args, **kwargs)
 
     return is_not_admin
 
+
 def user_can_ban(func):
     @wraps(func)
-    def user_perm_ban(bot: Bot, update: Update, *args, **kwargs):
+    def user_perm_ban(update: Update, context: CallbackContext, *args, **kwargs):
         user = update.effective_user.id
         chat = update.effective_chat
         member = update.effective_chat.get_member(user)
 
         if not (member.can_restrict_members or
                 member.status == "creator") and not user in SUDO_USERS:
-            update.effective_message.reply_text(tld(chat.id, "admin_ban_perm_false"))
-            return ""    
-        return func(bot, update, *args, **kwargs)
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_ban_perm_false"))
+            return ""
+        return func(Update, context * args, **kwargs)
 
     return user_perm_ban
 
+
 def user_can_kick(func):
     @wraps(func)
-    def user_perm_kick(bot: Bot, update: Update, *args, **kwargs):
+    def user_perm_kick(update: Update, context: CallbackContext, *args, **kwargs):
         user = update.effective_user.id
         chat = update.effective_chat
         member = update.effective_chat.get_member(user)
 
         if not (member.can_restrict_members or
                 member.status == "creator") and not user in SUDO_USERS:
-            update.effective_message.reply_text(tld(chat.id, "admin_kick_perm_false"))
-            return ""    
-        return func(bot, update, *args, **kwargs)
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_kick_perm_false"))
+            return ""
+        return func(update, context, *args, **kwargs)
 
     return user_perm_kick
 
+
 def user_can_warn(func):
     @wraps(func)
-    def user_perm_warn(bot: Bot, update: Update, *args, **kwargs):
+    def user_perm_warn(update: Update, context: CallbackContext, *args, **kwargs):
         user = update.effective_user.id
         chat = update.effective_chat
         member = update.effective_chat.get_member(user)
 
         if not (member.can_restrict_members or
                 member.status == "creator") and not user in SUDO_USERS:
-            update.effective_message.reply_text(tld(chat.id, "admin_warn_perm_false"))
-            return ""    
-        return func(bot, update, *args, **kwargs)
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_warn_perm_false"))
+            return ""
+        return func(update, context, *args, **kwargs)
 
     return user_perm_warn
 
+
 def user_can_promote(func):
     @wraps(func)
-    def user_perm_promote(bot: Bot, update: Update, *args, **kwargs):
+    def user_perm_promote(update: Update, context: CallbackContext, *args, **kwargs):
         user = update.effective_user.id
         chat = update.effective_chat
         member = update.effective_chat.get_member(user)
 
         if not (member.can_promote_members or
                 member.status == "creator") and not user in SUDO_USERS:
-            update.effective_message.reply_text(tld(chat.id, "admin_promote_perm_false"))
-            return ""    
-        return func(bot, update, *args, **kwargs)
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_promote_perm_false"))
+            return ""
+        return func(update, context, *args, **kwargs)
 
     return user_perm_promote
 
 
 def user_can_pin(func):
     @wraps(func)
-    def user_perm_pin(bot: Bot, update: Update, *args, **kwargs):
+    def user_perm_pin(update: Update, context: CallbackContext, *args, **kwargs):
         user = update.effective_user.id
         chat = update.effective_chat
         member = update.effective_chat.get_member(user)
 
         if not (member.can_pin_messages or
                 member.status == "creator") and not user in SUDO_USERS:
-            update.effective_message.reply_text(tld(chat.id, "admin_pin_perm_false"))
-            return ""    
-        return func(bot, update, *args, **kwargs)
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_pin_perm_false"))
+            return ""
+        return func(update, context, *args, **kwargs)
 
     return user_perm_pin
 
 
 def user_can_changeinfo(func):
     @wraps(func)
-    def user_perm_changeinfo_group(bot: Bot, update: Update, *args, **kwargs):
+    def user_perm_changeinfo_group(update: Update, context: CallbackContext, *args, **kwargs):
         user = update.effective_user.id
         chat = update.effective_chat
         member = update.effective_chat.get_member(user)
 
         if not (member.can_change_info or member.status == "creator") and not user in SUDO_USERS:
-            update.effective_message.reply_text(tld(chat.id, "admin_changeinfo_perm_false"))
-            return ""    
-        return func(bot, update, *args, **kwargs)
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_changeinfo_perm_false"))
+            return ""
+        return func(update, context, *args, **kwargs)
 
     return user_perm_changeinfo_group

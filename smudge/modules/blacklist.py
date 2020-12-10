@@ -7,7 +7,7 @@ from telegram.error import BadRequest
 from telegram.ext import CommandHandler, MessageHandler, Filters, run_async
 
 import smudge.modules.sql.blacklist_sql as sql
-from smudge import dispatcher, LOGGER
+from smudge import dispatcher, LOGGER, CallbackContext
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import user_admin, user_not_admin
 from smudge.helper_funcs.extraction import extract_text
@@ -20,13 +20,14 @@ from smudge.modules.translations.strings import tld
 BLACKLIST_GROUP = 11
 
 
-@run_async
-def blacklist(bot: Bot, update: Update, args: List[str]):
+def blacklist(update: Update, context: CallbackContext):
+    bot = context.bot
+    args = context.args
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
 
-    conn = connected(bot, update, chat, user.id, need_admin=False)
+    conn = connected(update, context, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -57,15 +58,15 @@ def blacklist(bot: Bot, update: Update, args: List[str]):
         msg.reply_text(text, parse_mode=ParseMode.HTML)
 
 
-@run_async
 @user_admin
-def add_blacklist(bot: Bot, update: Update):
+def add_blacklist(update: Update, context: CallbackContext):
+    bot = context.bot
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     words = msg.text.split(None, 1)
 
-    conn = connected(bot, update, chat, user.id)
+    conn = connected(update, context, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -98,15 +99,15 @@ def add_blacklist(bot: Bot, update: Update):
         msg.reply_text(tld(chat.id, "blacklist_err_add_no_args"))
 
 
-@run_async
 @user_admin
-def unblacklist(bot: Bot, update: Update):
+def unblacklist(update: Update, context: CallbackContext):
+    bot = context.bot
     msg = update.effective_message  # type: Optional[Message]
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     words = msg.text.split(None, 1)
 
-    conn = connected(bot, update, chat, user.id)
+    conn = connected(update, context, chat, user.id, need_admin=False)
     if conn:
         chat_id = conn
         chat_name = dispatcher.bot.getChat(conn).title
@@ -158,9 +159,9 @@ def unblacklist(bot: Bot, update: Update):
         msg.reply_text(tld(chat.id, "blacklist_err_del_no_args"))
 
 
-@run_async
 @user_not_admin
-def del_blacklist(bot: Bot, update: Update):
+def del_blacklist(update: Update, context: CallbackContext):
+    bot = context.bot
     chat = update.effective_chat  # type: Optional[Chat]
     message = update.effective_message  # type: Optional[Message]
     to_match = extract_text(message)
@@ -201,18 +202,17 @@ __help__ = True
 
 # TODO: Add blacklist alternative modes: warn, ban, kick, or mute.
 
-BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist",
-                                              blacklist,
-                                              pass_args=True,
-                                              admin_ok=True)
-ADD_BLACKLIST_HANDLER = CommandHandler("addblacklist", add_blacklist)
-UNBLACKLIST_HANDLER = CommandHandler(["unblacklist", "rmblacklist"],
-                                     unblacklist)
+BLACKLIST_HANDLER = DisableAbleCommandHandler(
+    "blacklist", blacklist, pass_args=True, admin_ok=True, run_async=True)
+ADD_BLACKLIST_HANDLER = CommandHandler(
+    "addblacklist", add_blacklist, filters=Filters.chat_type.groups, run_async=True)
+UNBLACKLIST_HANDLER = CommandHandler(
+    ["unblacklist", "rmblacklist"], unblacklist)
 BLACKLIST_DEL_HANDLER = MessageHandler(
     (Filters.text | Filters.command | Filters.sticker | Filters.photo)
-    & Filters.group,
+    & Filters.chat_type.groups,
     del_blacklist,
-    edited_updates=True)
+    run_async=True)
 
 dispatcher.add_handler(BLACKLIST_HANDLER)
 dispatcher.add_handler(ADD_BLACKLIST_HANDLER)

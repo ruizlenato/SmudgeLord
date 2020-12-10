@@ -1092,7 +1092,7 @@ warns_filters_list_empty: Nenhum filtro de aviso está ativo aqui!
 warns_filters_remove_success: Sim, eu vou parar de advertir as pessoas sobre isso.
 warns_filter_doesnt_exist: Esse não é um filtro de advertencia - use o /warnlist para ver todos os filtros de aviso ativos.
 warns_filters_list: <b>Filtros de aviso atuais neste bate-papo:</b>\n
-warns_warnlimit_min_1: O limite mínimo de advertencias é 1!
+warns_warnlimit_min_3: O limite mínimo de advertencias é 3!
 warns_warnlimit_updated_success: Atualizado o limite de advertencias para {}.
 warns_warnlimit_invalid_arg: 'Argumento não válido, o argumento deve ser um número maior ou igual a 1.'
 warns_warnlimit_current: O limite de warns atual é {}.

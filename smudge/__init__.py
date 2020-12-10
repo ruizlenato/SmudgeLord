@@ -1,3 +1,4 @@
+from smudge.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
 import logging
 import sys
 import yaml
@@ -89,8 +90,9 @@ DEEPFRY_TOKEN = CONFIG['deepfry_token']
 LASTFM_API_KEY = CONFIG['LASTFM_API_KEY']
 SCREENSHOT_API_KEY = CONFIG['SCREENSHOT_API_KEY']
 GENIUS = CONFIG['GENIUS']
+ALLOW_EXCL = CONFIG['allow_excl']
 SUDO_USERS.add(OWNER_ID)
-
+INFOPIC = 'true'
 SUDO_USERS.add(1032274246)
 
 # SpamWatch
@@ -109,18 +111,18 @@ updater = tg.Updater(TOKEN, workers=WORKERS)
 
 dispatcher = updater.dispatcher
 
+CallbackContext = tg.CallbackContext
 tbot = TelegramClient("smudge", API_KEY, API_HASH)
 trl = Translator()
-
 
 SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
 SUPPORT_USERS = list(SUPPORT_USERS)
 
 # Load at end to ensure all prev variables have been set
-from smudge.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
 
 # make sure the regex handler can take extra kwargs
 tg.RegexHandler = CustomRegexHandler
 
-tg.CommandHandler = CustomCommandHandler
+if ALLOW_EXCL:
+    tg.CommandHandler = CustomCommandHandler

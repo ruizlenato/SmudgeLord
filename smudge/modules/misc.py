@@ -14,7 +14,7 @@ import requests
 import urllib.request
 from telegram import Message, Chat, Update, Bot, MessageEntity
 from telegram import ParseMode, ReplyKeyboardRemove, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import CommandHandler, run_async, Filters
+from telegram.ext import CommandHandler, CallbackContext, run_async, Filters
 from telegram.utils.helpers import escape_markdown, mention_html
 from telegram.error import BadRequest
 
@@ -31,30 +31,34 @@ from requests import get
 cvid = Covid(source="worldometers")
 
 
-@run_async
-def screenshot(bot: Bot, update: Update, args):
-    chat_id = update.effective_chat.id
+def screenshot(update: Update, context: CallbackContext):
+    args = context.args
+    bot = context.bot
+    msg = update.effective_message
     chat = update.effective_chat
-    txt = " ".join(args)
     filename = "screencapture.png"
-
-    image_url = f"https://api.screenshotlayer.com/api/capture?access_key={SCREENSHOT_API_KEY}&url={txt}&fullpage=1&viewport=2560x1440&format=PNG&force=1"
-    if not SCREENSHOT_API_KEY:
+    if args:
+        user = update.effective_user.id
+        txt = " ".join(args)
+        image_url = f"https://api.screenshotlayer.com/api/capture?access_key={SCREENSHOT_API_KEY}&url={args}&fullpage=1&viewport=2560x1440&format=PNG&force=1"
+        if not SCREENSHOT_API_KEY:
+            msg.reply_text(tld(chat.id, "lastfm_usernotset"))
+            return
+        urllib.request.urlretrieve(image_url, filename)
+        dispatcher.bot.send_document(chat_id=chat.id,  document=open(
+            'screencapture.png', 'rb'), caption=txt)
+    else:
         msg.reply_text(tld(chat.id, "lastfm_usernotset"))
-        return
-    urllib.request.urlretrieve(image_url, filename)
-    bot.send_document(chat_id=chat.id,  document=open(
-        'screencapture.png', 'rb'), caption=txt)
 
 
-@run_async
-def get_bot_ip(bot: Bot, update: Update):
+def get_bot_ip(update: Update, context: CallbackContext):
     res = requests.get("http://ipinfo.io/ip")
     update.message.reply_text(res.text)
 
 
-@run_async
-def get_id(bot: Bot, update: Update, args: List[str]):
+def get_id(update: Update, context: CallbackContext):
+    args = context.args
+    bot = context.bot
     user_id = extract_user(update.effective_message, args)
     chat = update.effective_chat  # type: Optional[Chat]
     if user_id:
@@ -78,8 +82,9 @@ def get_id(bot: Bot, update: Update, args: List[str]):
                 tld(chat.id, "misc_id_2").format(chat.id))
 
 
-@run_async
-def info(bot: Bot, update: Update, args: List[str]):
+def info(update: Update, context: CallbackContext):
+    args = context.args
+    bot = context.bot
     msg = update.effective_message  # type: Optional[Message]
     user_id = extract_user(update.effective_message, args)
     chat = update.effective_chat  # type: Optional[Chat]
@@ -144,15 +149,14 @@ def info(bot: Bot, update: Update, args: List[str]):
                 text += tld(chat.id, "misc_info_is_whitelisted")
 
     for mod in USER_INFO:
-        mod_info = mod.__user_info__(user.id, chat.id).strip()
+        mod_info = mod.__user_info__(user.id).strip()
         if mod_info:
             text += "\n\n" + mod_info
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
 
 
-@run_async
-def echo(bot: Bot, update: Update):
+def echo(update: Update, context: CallbackContext):
     message = update.effective_message
     message.delete()
     args = update.effective_message.text.split(None, 1)
@@ -162,8 +166,7 @@ def echo(bot: Bot, update: Update):
         message.reply_text(args[1], quote=False)
 
 
-@run_async
-def reply_keyboard_remove(bot: Bot, update: Update):
+def reply_keyboard_remove(update: Update, context: CallbackContext):
     reply_keyboard = []
     reply_keyboard.append([ReplyKeyboardRemove(remove_keyboard=True)])
     reply_markup = ReplyKeyboardRemove(remove_keyboard=True)
@@ -176,8 +179,7 @@ def reply_keyboard_remove(bot: Bot, update: Update):
                        message_id=old_message.message_id)
 
 
-@run_async
-def gdpr(bot: Bot, update: Update):
+def gdpr(update: Update, context: CallbackContext):
     update.effective_message.reply_text(
         tld(update.effective_chat.id, "misc_gdpr"))
     for mod in GDPR:
@@ -188,8 +190,7 @@ def gdpr(bot: Bot, update: Update):
                                         parse_mode=ParseMode.MARKDOWN)
 
 
-@run_async
-def markdown_help(bot: Bot, update: Update):
+def markdown_help(update: Update, context: CallbackContext):
     chat = update.effective_chat  # type: Optional[Chat]
     update.effective_message.reply_text(tld(chat.id, "misc_md_list"),
                                         parse_mode=ParseMode.HTML)
@@ -200,16 +201,14 @@ def markdown_help(bot: Bot, update: Update):
             chat.id, "misc_md_help"))
 
 
-@run_async
-def stats(bot: Bot, update: Update):
+def stats(update: Update, context: CallbackContext):
     update.effective_message.reply_text(
         # This text doesn't get translated as it is internal message.
         "*Current Stats:*\n" + "\n".join([mod.__stats__() for mod in STATS]),
         parse_mode=ParseMode.MARKDOWN)
 
 
-@run_async
-def github(bot: Bot, update: Update):
+def github(update: Update, context: CallbackContext):
     message = update.effective_message
     text = message.text[len('/git '):]
     usr = get(f'https://api.github.com/users/{text}').json()
@@ -257,8 +256,8 @@ def github(bot: Bot, update: Update):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
-@run_async
-def ud(bot: Bot, update: Update):
+
+def ud(update: Update, context: CallbackContext):
     message = update.effective_message
     text = message.text[len('/ud '):]
     results = get(
@@ -270,16 +269,16 @@ def ud(bot: Bot, update: Update):
     reply_text = f'<strong>{text}</strong>\n<strong>Definition:</strong> {definition1}\n\n<strong>Exemple: </strong>{exemple1}'
     message.reply_text(reply_text, parse_mode=ParseMode.HTML)
 
-@run_async
-def wiki(bot: Bot, update: Update):
+
+def wiki(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
     msg = update.effective_message
 
     msg.reply_text(tld(chat_id, "wiki_lang"), parse_mode=ParseMode.HTML)
 
 
-@run_async
-def wikien(bot: Bot, update: Update):
+def wikien(update: Update, context: CallbackContext):
+    bot = context.bot
     chat_id = update.effective_chat.id
     kueri = re.split(pattern="wikien", string=update.effective_message.text)
     wikipedia.set_lang("en")
@@ -292,7 +291,8 @@ def wikien(bot: Bot, update: Update):
                 InlineKeyboardButton(text="🔧 More Info...",
                                      url=wikipedia.page(kueri).url)
             ]])
-            textresult = tld(chat_id, "wiki_result").format(wikipedia.summary(kueri, sentences=2))
+            textresult = tld(chat_id, "wiki_result").format(
+                wikipedia.summary(kueri, sentences=3))
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
                                 text=textresult,
@@ -309,8 +309,8 @@ def wikien(bot: Bot, update: Update):
             )
 
 
-@run_async
-def wikipt(bot: Bot, update: Update):
+def wikipt(update: Update, context: CallbackContext):
+    bot = context.bot
     chat_id = update.effective_chat.id
     kueri = re.split(pattern="wikipt", string=update.effective_message.text)
     wikipedia.set_lang("pt")
@@ -324,7 +324,8 @@ def wikipt(bot: Bot, update: Update):
                 InlineKeyboardButton(text="🔧 Mais Informações...",
                                      url=wikipedia.page(kueri).url)
             ]])
-            textresult = tld(chat_id, "wiki_result").format(wikipedia.summary(kueri, sentences=2))
+            textresult = tld(chat_id, "wiki_result").format(
+                wikipedia.summary(kueri, sentences=2))
             bot.editMessageText(chat_id=update.effective_chat.id,
                                 message_id=pertama.message_id,
                                 text=textresult,
@@ -340,8 +341,8 @@ def wikipt(bot: Bot, update: Update):
                     eet)
             )
 
-@run_async
-def github(bot: Bot, update: Update):
+
+def github(update: Update, context: CallbackContext):
     message = update.effective_message
     text = message.text[len('/git '):]
     usr = get(f'https://api.github.com/users/{text}').json()
@@ -389,8 +390,8 @@ def github(bot: Bot, update: Update):
                        parse_mode=ParseMode.MARKDOWN,
                        disable_web_page_preview=True)
 
-@run_async
-def covid(bot: Bot, update: Update):
+
+def covid(update: Update, context: CallbackContext):
     message = update.effective_message
     chat = update.effective_chat
     country = str(message.text[len('/covid '):])
@@ -422,8 +423,9 @@ def covid(bot: Bot, update: Update):
                                      total_tests)
     message.reply_markdown(reply)
 
-@run_async
-def outline(bot: Bot, update: Update, args: List[str]):
+
+def outline(update: Update, context: CallbackContext):
+    args = context.args
     message = update.effective_message
     chat = update.effective_chat
     if args:
@@ -436,6 +438,7 @@ def outline(bot: Bot, update: Update, args: List[str]):
     else:
         update.message.reply_text(tld(chat.id, "misc_url_invalid"))
         return
+
 
 def format_integer(number, thousand_separator=','):
     def reverse(string):
@@ -456,8 +459,9 @@ def format_integer(number, thousand_separator=','):
             result = char + result
     return result
 
-@run_async
-def yt(bot: Bot, update: Update, args):
+
+def yt(update: Update, context: CallbackContext):
+    args = context.args
     msg = update.effective_message
     chat = update.effective_chat
     if args:
@@ -471,15 +475,16 @@ def yt(bot: Bot, update: Update, args):
     try:
         update.effective_message.reply_video(video=video_stream.url)
     except:
-        update.message.reply_text(f"`Download failed: `[URL]({video_stream.url})", parse_mode=ParseMode.MARKDOWN)
+        update.message.reply_text(
+            f"`Download failed: `[URL]({video_stream.url})", parse_mode=ParseMode.MARKDOWN)
 
-@run_async
-def restart(bot: Bot, update: Update):
+
+def restart(update: Update, context: CallbackContext):
     user = update.effective_user
     chat_id = update.effective_chat.id
 
     if not user.id in SUDO_USERS:
-        update.message.reply_text(tld(chat_id, "helpers_user_not_admin"))
+        update.message.reply_text("User Not Sudo, Error.")
         return
 
     update.message.reply_text("Restarting...")
@@ -489,38 +494,35 @@ def restart(bot: Bot, update: Update):
 
 __help__ = True
 
-RESTART_HANDLER = CommandHandler("restart", restart)
-YT_HANDLER = CommandHandler("yt", yt, pass_args=True)
-OUTLINE_HANDLER = DisableAbleCommandHandler("outline",
-                                       outline,
-                                       pass_args=True,
-                                       admin_ok=True)
-ID_HANDLER = DisableAbleCommandHandler("id",
-                                       get_id,
-                                       pass_args=True,
-                                       admin_ok=True)
-IP_HANDLER = CommandHandler("ip",
-                            get_bot_ip,
-                            filters=Filters.chat(OWNER_ID))
+RESTART_HANDLER = CommandHandler("restart", restart, run_async=True)
+YT_HANDLER = CommandHandler("yt", yt, pass_args=True, run_async=True)
+OUTLINE_HANDLER = DisableAbleCommandHandler(
+    "outline", outline, pass_args=True, admin_ok=True, run_async=True)
+ID_HANDLER = DisableAbleCommandHandler(
+    "id", get_id, pass_args=True, admin_ok=True, run_async=True)
+IP_HANDLER = CommandHandler(
+    "ip", get_bot_ip, filters=Filters.chat(OWNER_ID), run_async=True)
 
-INFO_HANDLER = DisableAbleCommandHandler("info",
-                                         info,
-                                         pass_args=True,
-                                         admin_ok=True)
-GITHUB_HANDLER = DisableAbleCommandHandler("git", github, admin_ok=True)
-ECHO_HANDLER = CommandHandler("echo", echo, filters=Filters.user(OWNER_ID))
-MD_HELP_HANDLER = CommandHandler("markdownhelp",
-                                 markdown_help,
-                                 filters=Filters.private)
+INFO_HANDLER = DisableAbleCommandHandler(
+    "info", info, pass_args=True, admin_ok=True, run_async=True)
+GITHUB_HANDLER = DisableAbleCommandHandler(
+    "git", github, admin_ok=True, run_async=True)
+ECHO_HANDLER = CommandHandler(
+    "echo", echo, filters=Filters.user(OWNER_ID), run_async=True)
+MD_HELP_HANDLER = CommandHandler(
+    "markdownhelp", markdown_help, filters=Filters.private, run_async=True)
 
-STATS_HANDLER = CommandHandler("stats", stats, filters=Filters.user(OWNER_ID))
-GDPR_HANDLER = CommandHandler("gdpr", gdpr, filters=Filters.private)
-UD_HANDLER = DisableAbleCommandHandler("ud", ud)
-WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki)
-WIKIEN_HANDLER = DisableAbleCommandHandler("wikien", wikien)
-WIKIPT_HANDLER = DisableAbleCommandHandler("wikipt", wikipt)
-COVID_HANDLER = DisableAbleCommandHandler("covid", covid, admin_ok=True)
-SCREENSHOT_HANDLER = DisableAbleCommandHandler(
+STATS_HANDLER = CommandHandler(
+    "stats", stats, filters=Filters.user(OWNER_ID), run_async=True)
+GDPR_HANDLER = CommandHandler(
+    "gdpr", gdpr, filters=Filters.private, run_async=True)
+UD_HANDLER = DisableAbleCommandHandler("ud", ud, run_async=True)
+WIKI_HANDLER = DisableAbleCommandHandler("wiki", wiki, run_async=True)
+WIKIEN_HANDLER = DisableAbleCommandHandler("wikien", wikien, run_async=True)
+WIKIPT_HANDLER = DisableAbleCommandHandler("wikipt", wikipt, run_async=True)
+COVID_HANDLER = DisableAbleCommandHandler(
+    "covid", covid, admin_ok=True, run_async=True)
+SCREENSHOT_HANDLER = CommandHandler(
     ["screenshot", "print", "ss", "screencapture"], screenshot, pass_args=True)
 
 dispatcher.add_handler(RESTART_HANDLER)

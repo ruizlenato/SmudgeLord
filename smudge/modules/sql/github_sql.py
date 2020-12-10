@@ -1,13 +1,16 @@
 import threading
 
-from sqlalchemy import Column, String, UnicodeText, Integer, func, distinct
+from sqlalchemy import Column, String, UnicodeText, func, distinct, Integer
 
+from smudge.helper_funcs.msg_types import Types
 from smudge.modules.sql import SESSION, BASE
 
 
 class GitHub(BASE):
     __tablename__ = "github"
-    chat_id = Column(String(14), primary_key=True)
+    chat_id = Column(
+        String(14), primary_key=True
+    )  # string because int is too large to be stored in a PSQL database.
     name = Column(UnicodeText, primary_key=True)
     value = Column(UnicodeText, nullable=False)
     backoffset = Column(Integer, nullable=False, default=0)
@@ -51,26 +54,14 @@ def rm_repo(chat_id, name):
             SESSION.delete(repo)
             SESSION.commit()
             return True
-        SESSION.close()
-        return False
+        else:
+            SESSION.close()
+            return False
 
 
 def get_all_repos(chat_id):
     try:
-        return SESSION.query(GitHub).filter(GitHub.chat_id == str(chat_id)).order_by(GitHub.name.asc()).all()
-    finally:
-        SESSION.close()
-
-
-def num_repos():
-    try:
-        return SESSION.query(GitHub).count()
-    finally:
-        SESSION.close()
-
-
-def num_chats():
-    try:
-        return SESSION.query(func.count(distinct(GitHub.chat_id))).scalar()
+        return SESSION.query(GitHub).filter(
+            GitHub.chat_id == str(chat_id)).order_by(GitHub.name.asc()).all()
     finally:
         SESSION.close()
