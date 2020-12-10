@@ -38,29 +38,44 @@ if is_module_loaded(FILENAME):
                     ADMIN_CMDS.extend(command)
 
         def check_update(self, update):
-            chat = update.effective_chat  # type: Optional[Chat]
-            user = update.effective_user  # type: Optional[User]
-            message = update.effective_message
-            if super().check_update(update):
-                # Should be safe since check_update passed.
-                command = update.effective_message.text_html.split(
-                    None, 1)[0][1:].split('@')[0]
+            if isinstance(update, Update) and update.effective_message:
+                message = update.effective_message
 
-                # disabled, admincmd, user admin
-                if sql.is_command_disabled(chat.id, command):
-                    if command in ADMIN_CMDS and is_user_admin(chat, user.id):
-                        pass
-                    else:
-                        return None
+                if message.text and len(message.text) > 1:
+                    fst_word = message.text.split(None, 1)[0]
+                    if len(fst_word) > 1 and any(
+                        fst_word.startswith(start) for start in CMD_STARTERS):
 
-                args = message.text.split()[1:]
-                filter_result = self.filters(update)
-                if filter_result:
-                    return args, filter_result
-                else:
-                    return False
+                        args = message.text.split()[1:]
+                        command = fst_word[1:].split("@")
+                        command.append(message.bot.username)
 
-            return None
+                        if not (
+                            command[0].lower() in self.command
+                            and command[1].lower()
+                            == message.bot.username.lower()):
+                            return None
+
+                        filter_result = self.filters(update)
+                        if filter_result:
+                            chat = update.effective_chat
+                            user = update.effective_user
+                            # disabled, admincmd, user admin
+                            if sql.is_command_disabled(
+                                chat.id, command[0].lower()):
+                                is_disabled = command[
+                                    0
+                                ] in ADMIN_CMDS and is_user_admin(
+                                    chat, user.id
+                                )
+                                if not is_disabled:
+                                    return None
+                                else:
+                                    return args, filter_result
+
+                            return args, filter_result
+                        else:
+                            return False
 
     class DisableAbleRegexHandler(MessageHandler):
         def __init__(self, pattern, callback, friendly="", **kwargs):
