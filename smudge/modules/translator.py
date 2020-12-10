@@ -20,7 +20,7 @@ def do_translate(update: Update, context: CallbackContext):
 
             message = update.effective_message
             dest_lang = None
-            
+
             try:
                 source_lang = args[1].split(None, 1)[0]
             except:
