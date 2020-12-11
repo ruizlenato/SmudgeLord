@@ -407,6 +407,69 @@ github_help: |
    - /saverepo <word> <user>/<repo> [optional: <number>]: Save that repo releases to the shortcut called "word".
    - /delrepo <word>: delete the repo shortcut called "word"
 
+#Feds
+modname_feds: Federations
+feds_create_fail: Federation creation failed! Ask in @Renatoh for help.
+feds_create_success: "*You have successfully created a new federation!*\nName: `{}`\nID: `{}`\n\nRun the command below in groups to add them to the federation:\n`/joinfed {}`"
+feds_create_success_logger: "Federation <b>{}</b> has been created with ID: <pre>{}</pre>"
+feds_err_no_args: Please write down the name of the federation.
+feds_delete_not_found: This federation is not found!
+feds_owner_only: Only federation owners can do this!
+feds_fedadmin_only: Only federation admins can do this!
+feds_delete_confirm: Are you sure you want to delete your federation? This action cannot be cancelled, you will lose your entire ban list, and <code>{}</code> federation will be permanently lost!
+feds_group_not_in_fed: This group is not in any federation!
+feds_group_part_of_fed: "This chat is part of the following federation:"
+feds_group_joined_fed: Uh, Are you gonna join two federations at one chat?
+feds_fedid_invalid: Please enter a valid Federation ID.
+feds_join_unknown_err: Failed to join to federation due to an unknown error, ask in @HarukaAyaGroup for help.
+feds_join_success: Chat joined to federation!
+feds_leave_success: "This chat has left the federation: {}!"
+feds_leave_not_joined: How can you leave a federation that you never joined?!
+feds_promote_owner: Why are you trying to promote the federation owner?
+feds_promote_bot: I am already a federation admin in all federations!
+feds_promote_success: Promoted successfully!
+feds_promote_failed: Failed to promote!
+feds_demote_bot: I can't demote myself from a federation!
+feds_demote_target_not_admin: I cannot demote people who are not federation admins!
+feds_demote_success: Get out of here!
+feds_demote_failed: Demoting failed!
+feds_group_no_fed: "This group is not a part of any federation!"
+feds_info: |
+  <b>ℹ️ Federation Information:</b>
+  FedID: <code>{}</code>
+  Name: {}
+  Creator: {}
+  All Admins: <code>{}</code>
+  Total banned users: <code>{}</code>
+  Number of groups in this federation: <code>{}</code>
+feds_admins: |
+  <b>Admins in federation '{}':<b>
+feds_help: |
+  Ah, group management. Everything is fun, until the spammer starts entering your group, and you have to block it. Then you need to start banning more, and more, and it hurts.
+  But then you have many groups, and you don't want this spammer to be in one of your groups - how can you deal with it? Do you have to manually block it, in all your groups?
+
+  No longer! With Federation, you can make a ban in one chat overlap with all other chats.
+  You can even designate admin federations, so your trusted admin can ban all the chats you want to protect.
+
+  Still the experimental stage, creating a Federation can only be done by my maker
+
+  Command:
+  - /newfed <fedname>: create a new Federation with the name given. Users are only allowed to have one Federation. This method can also be used to rename the Federation. (max. 64 characters)
+  - /delfed: delete your Federation, and any information related to it. Will not cancel blocked users.
+  - /fedinfo <FedID>: information about the specified Federation.
+  - /joinfed <FedID>: join the current chat to the Federation. Only chat owners can do this. Every chat can only be in one Federation.
+  - /leavefed <FedID>: leave the Federation given. Only chat owners can do this.
+  - /fpromote <user>: promote Users to give fed admin. Fed owner only.
+  - /fdemote <user>: drops the User from the admin Federation to a normal User. Fed owner only.
+  - /fban <user>: ban users from all federations where this chat takes place, and executors have control over.
+  - /unfban <user>: cancel User from all federations where this chat takes place, and that the executor has control over.
+  - /setfrules: Arrange Federation rules.
+  - /frules: See Federation regulations.
+  - /chatfed: See the Federation in the current chat.
+  - /fedadmins: Show Federation admin.
+  - /fbanlist: Displays all users who are victimized at the Federation at this time.
+  - /fedchats: Get all the chats that are connected in the Federation.
+  - /importfbans: Reply to the Federation backup message file to import the banned list to the Federation now.
 
 
 # Language
@@ -732,6 +795,7 @@ misc_help: |
      - /info: get information about a user.
      - /gdpr: deletes your information from the bot's database. Private chats only.
      ───────────────────────────────
+     - /tr (language code): Get the translation of the replied message.
      - /print <URL/LINK>: send a print of the site, for example "/print google.com" will send a print of google
      - /markdownhelp: quick summary of how markdown works in telegram - can only be called in private chats.
      - /git: Returns info about a GitHub user or organization.
@@ -883,7 +947,6 @@ rules_help: |
 modname_translator: Translator
 translator_translated: Translated from {} to {}.\n{}
 translator_err: Error occured while translating:\n{}
-translator_help: "- /tr (language code): Get the translation of the replied message."
 
 
 # URL Blacklist
