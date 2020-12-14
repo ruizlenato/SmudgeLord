@@ -17,6 +17,7 @@ from smudge.helper_funcs.chat_status import is_user_admin
 from smudge.helper_funcs.extraction import extract_user, extract_unt_fedban, extract_user_fban
 from smudge.helper_funcs.string_handling import markdown_parser
 from smudge.modules.disable import DisableAbleCommandHandler
+from smudge.modules.translations.strings import tld
 
 import smudge.modules.sql.feds_sql as sql
 
@@ -89,7 +90,7 @@ def new_fed(update, context):
         x = sql.new_fed(user.id, fed_name, fed_id)
         if not x:
             update.effective_message.reply_text(
-                "Can't federate! Report in @YorkTownEagleUnion if the problem persists."
+                "Can't federate! Report in @Renatoh if the problem persists."
             )
             return
 
@@ -206,9 +207,7 @@ def join_fed(update, context):
 
     if chat.type == "private":
         send_message(
-            update.effective_message,
-            "This command is specific to the group, not to the PM!",
-        )
+            update.effective_message, (tld(chat.id, "common_cmd_pm_only")))
         return
 
     message = update.effective_message
@@ -225,9 +224,7 @@ def join_fed(update, context):
                 if str(admin.user.id) == str(user.id):
                     pass
                 else:
-                    update.effective_message.reply_text(
-                        "Only group creators can use this command!"
-                    )
+                    update.effective_message.reply_text(tld(chat.id, "common_group_creator_only"))
                     return
     if fed_id:
         message.reply_text("You cannot join two federations from one chat")
@@ -267,9 +264,7 @@ def leave_fed(update, context):
 
     if chat.type == "private":
         send_message(
-            update.effective_message,
-            "This command is specific to the group, not to the PM! ",
-        )
+            update.effective_message, (tld(chat.id, "common_cmd_pm_only")))
         return
 
     fed_id = sql.get_fed_id(chat.id)
@@ -2234,9 +2229,7 @@ def get_myfedsubs(update, context):
 
     if chat.type == "private":
         send_message(
-            update.effective_message,
-            "This command is specific to the group, not to the PM! ",
-        )
+            update.effective_message, (tld(chat.id, "common_cmd_group_only")))
         return
 
     fed_id = sql.get_fed_id(chat.id)
