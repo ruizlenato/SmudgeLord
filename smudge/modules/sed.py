@@ -3,10 +3,10 @@ import sre_constants
 
 import telegram
 from telegram import Update
-from telegram.ext import run_async, CallbackContext
+from telegram.ext import run_async, CallbackContext, Filters
 
 from smudge import dispatcher, LOGGER
-from smudge.modules.disable import DisableAbleRegexHandler
+from smudge.modules.disable import DisableAbleMessageHandler
 
 DELIMITERS = ("/", ":", "|", "_")
 
@@ -121,7 +121,10 @@ def sed(update: Update, context: CallbackContext):
             update.effective_message.reply_to_message.reply_text(text)
 
 
-SED_HANDLER = DisableAbleRegexHandler(
-    r"s([{}]).*?\1.*".format("".join(DELIMITERS)), sed, friendly="sed", run_async=True)
-
+SED_HANDLER = DisableAbleMessageHandler(
+    Filters.regex(r"s([{}]).*?\1.*".format("".join(DELIMITERS))),
+    sed,
+    friendly="sed",
+    run_async=True,
+)
 dispatcher.add_handler(SED_HANDLER)

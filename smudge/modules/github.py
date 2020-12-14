@@ -1,13 +1,13 @@
 import html
 from typing import Optional, List
 
-from telegram.ext import CommandHandler, run_async, Filters, RegexHandler
-from telegram import Message, Chat, Update, Bot, User, ParseMode, InlineKeyboardMarkup, MAX_MESSAGE_LENGTH
+from telegram.ext import CommandHandler, run_async, Filters, MessageHandler
+from telegram import Message, Chat, Update, User, ParseMode, InlineKeyboardMarkup, MAX_MESSAGE_LENGTH
 
 import smudge.helper_funcs.git_api as api
 import smudge.modules.sql.github_sql as sql
 
-from smudge import dispatcher, CallbackContext, OWNER_ID, LOGGER, SUDO_USERS, SUPPORT_USERS
+from smudge import dispatcher, CallbackContext, OWNER_ID, LOGGER, SUDO_USERS
 from smudge.helper_funcs.filters import CustomFilters
 from smudge.helper_funcs.chat_status import user_admin
 from smudge.modules.disable import DisableAbleCommandHandler
@@ -214,8 +214,7 @@ VERCHECKER_HANDLER = DisableAbleCommandHandler(
 CHANGELOG_HANDLER = DisableAbleCommandHandler(
     "changelog", changelog, run_async=True, admin_ok=True)
 RELEASE_HANDLER = DisableAbleCommandHandler("gitr", getRelease, admin_ok=True)
-
-HASHFETCH_HANDLER = RegexHandler(r"^&[^\s]+", hashFetch)
+HASHFETCH_HANDLER = MessageHandler(Filters.regex(r"^&[^\s]+"), hashFetch, run_async=True)
 
 dispatcher.add_handler(RELEASE_HANDLER)
 dispatcher.add_handler(FETCH_HANDLER)

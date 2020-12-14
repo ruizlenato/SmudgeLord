@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 
 from telegram import Message, Update, User
@@ -6,7 +7,7 @@ from telegram.error import BadRequest
 from telegram.ext import Filters, MessageHandler, run_async
 
 from smudge import dispatcher, CallbackContext
-from smudge.modules.disable import DisableAbleCommandHandler, DisableAbleRegexHandler
+from smudge.modules.disable import DisableAbleCommandHandler, DisableAbleMessageHandler
 from smudge.modules.sql import afk_sql as sql
 from smudge.modules.users import get_user_id
 
@@ -120,8 +121,8 @@ def check_afk(update, context, user_id, fst_name, userc_id):
 __help__ = True
 
 AFK_HANDLER = DisableAbleCommandHandler("afk", afk, run_async=True)
-AFK_REGEX_HANDLER = DisableAbleRegexHandler(
-    "(?i)brb", afk, friendly="afk", run_async=True)
+AFK_REGEX_HANDLER = DisableAbleMessageHandler(
+    Filters.regex("(?i)brb"), afk, friendly="afk", run_async=True)
 NO_AFK_HANDLER = MessageHandler(
     Filters.all & Filters.chat_type.groups, no_longer_afk, run_async=True)
 AFK_REPLY_HANDLER = MessageHandler(

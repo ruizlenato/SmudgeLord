@@ -141,7 +141,7 @@ RM_BLACKLIST_URL_HANDLER = CommandHandler("delurl", rm_blacklist_url, filters=Fi
 
 GET_BLACKLISTED_URLS = CommandHandler("geturl", get_blacklisted_urls, filters=Filters.chat_type.groups, run_async=True)
 
-URL_DELETE_HANDLER = MessageHandler(Filters.entity("url"), del_blacklist_url, edited_updates=True)
+URL_DELETE_HANDLER = MessageHandler(Filters.entity("url"), del_blacklist_url)
 
 
 __help__ = False
