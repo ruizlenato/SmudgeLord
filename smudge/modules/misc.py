@@ -142,9 +142,6 @@ def info(update: Update, context: CallbackContext):
         if user.id in SUDO_USERS:
             text += tld(chat.id, "misc_info_is_sudo")
         else:
-            if user.id in SUPPORT_USERS:
-                text += tld(chat.id, "misc_info_is_support")
-
             if user.id in WHITELIST_USERS:
                 text += tld(chat.id, "misc_info_is_whitelisted")
 

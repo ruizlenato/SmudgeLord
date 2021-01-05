@@ -24,5 +24,4 @@ database_url: "postgres://username:password@host:5432/database_name"
 
 # Permission
 sudo_users: []
-support_users: []
 whitelist_users: []

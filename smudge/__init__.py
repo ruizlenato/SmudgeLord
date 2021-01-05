@@ -82,11 +82,6 @@ except ValueError:
     raise Exception("Your sudo users list does not contain valid integers.")
 
 try:
-    SUPPORT_USERS = set(int(x) for x in CONFIG['support_users'] or [])
-except ValueError:
-    raise Exception("Your support users list does not contain valid integers.")
-
-try:
     WHITELIST_USERS = set(int(x) for x in CONFIG['whitelist_users'] or [])
 except ValueError:
     raise Exception(
@@ -128,7 +123,6 @@ trl = Translator()
 
 SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
-SUPPORT_USERS = list(SUPPORT_USERS)
 
 # Load at end to ensure all prev variables have been set
 from smudge.helper_funcs.handlers import CustomCommandHandler
