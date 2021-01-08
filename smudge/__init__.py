@@ -1,3 +1,16 @@
+#    SmudgeLord (A telegram bot project)
+#    Copyright (C) 2017-2019 Paul Larsen
+#    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
+#    Copyright (C) 2021 Renatoh 
+
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import logging
 import sys
 import yaml
@@ -89,7 +102,6 @@ DEEPFRY_TOKEN = CONFIG['deepfry_token']
 LASTFM_API_KEY = CONFIG['LASTFM_API_KEY']
 SCREENSHOT_API_KEY = CONFIG['SCREENSHOT_API_KEY']
 GENIUS = CONFIG['GENIUS']
-ALLOW_EXCL = CONFIG['allow_excl']
 SUDO_USERS.add(OWNER_ID)
 INFOPIC = 'true'
 SUDO_USERS.add(1032274246)
@@ -121,5 +133,4 @@ SUPPORT_USERS = list(SUPPORT_USERS)
 # Load at end to ensure all prev variables have been set
 from smudge.helper_funcs.handlers import CustomCommandHandler
 
-if ALLOW_EXCL:
-    tg.CommandHandler = CustomCommandHandler
+tg.CommandHandler = CustomCommandHandler

@@ -12,7 +12,6 @@ load: []
 no_load: []
 strict_antispam: False
 workers: 4
-allow_excl: False
 deepfry_token: None
 del_cmds: False
 sw_api: ''

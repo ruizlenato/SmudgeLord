@@ -1,42 +1,21 @@
+#    SmudgeLord (A telegram bot project)
+#    Copyright (C) 2017-2019 Paul Larsen
+#    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
+#    Copyright (C) 2021 Renatoh 
+
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import telegram.ext as tg
 from telegram import Update
-from smudge import SUDO_USERS
-from pyrate_limiter import BucketFullException, Duration, RequestRate, Limiter, MemoryListBucket
+import smudge.modules.sql.antispam_sql as sql
 
 CMD_STARTERS = ('/', '!')
-
-
-class AntiSpam:
-
-    def __init__(self):
-        self.whitelist = (SUDO_USERS or []) #Values are HIGHLY experimental, its recommended you pay attention to our commits as we will be adjusting the values over time with what suits best.
-        Duration.CUSTOM = 15  # Custom duration, 15 seconds
-        self.sec_limit = RequestRate(6, Duration.CUSTOM)  # 6 / Per 15 Seconds
-        self.min_limit = RequestRate(20, Duration.MINUTE)  # 20 / Per minute
-        self.hour_limit = RequestRate(100, Duration.HOUR)  # 100 / Per hour
-        self.daily_limit = RequestRate(1000, Duration.DAY)  # 1000 / Per day
-        self.limiter = Limiter(
-            self.sec_limit,
-            self.min_limit,
-            self.hour_limit,
-            self.daily_limit,
-            bucket_class=MemoryListBucket)
-
-    def check_user(self, user):
-        """
-        Return True if user is to be ignored else False
-        """
-        if user in self.whitelist:
-            return False
-        try:
-            self.limiter.try_acquire(user)
-            return False
-        except BucketFullException:
-            return True
-
-
-SpamChecker = AntiSpam()
-MessageHandlerChecker = AntiSpam()
 
 
 class CustomCommandHandler(tg.CommandHandler):
@@ -71,11 +50,39 @@ class CustomCommandHandler(tg.CommandHandler):
                     ):
                         return None
 
-                    if SpamChecker.check_user(user_id):
-                        return None
-
                     filter_result = self.filters(update)
                     if filter_result:
                         return args, filter_result
                     else:
                         return False
+
+class GbanLockHandler(tg.CommandHandler):
+    def __init__(self, command, callback, **kwargs):
+        super().__init__(command, callback, **kwargs)
+
+    def check_update(self, update):
+        if (isinstance(update, Update) and
+            (update.message or update.edited_message and self.allow_edited)):
+            message = update.message or update.edited_message
+            if sql.is_user_gbanned(update.effective_user.id):
+                return False
+            if message.text and message.text.startswith('/') and len(
+                    message.text) > 1:
+                first_word = message.text_html.split(None, 1)[0]
+                if len(first_word) > 1 and first_word.startswith('/'):
+                    command = first_word[1:].split('@')
+                    command.append(
+                        message.bot.username
+                    )  # in case the command was sent without a username
+                    if not (command[0].lower() in self.command
+                            and command[1].lower()
+                            == message.bot.username.lower()):
+                        return False
+                    if self.filters is None:
+                        res = True
+                    elif isinstance(self.filters, list):
+                        res = any(func(message) for func in self.filters)
+                    else:
+                        res = self.filters(message)
+                    return res
+            return False
