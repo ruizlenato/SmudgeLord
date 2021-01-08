@@ -12,7 +12,7 @@ from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
 from telegram.utils.helpers import escape_markdown
 from smudge.modules.translations.strings import tld
 
-from smudge import dispatcher, updater, CallbackContext, TOKEN, OWNER_ID, LOGGER, ALLOW_EXCL, tbot
+from smudge import dispatcher, updater, CallbackContext, TOKEN, OWNER_ID, LOGGE, tbot
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from smudge.modules import ALL_MODULES
