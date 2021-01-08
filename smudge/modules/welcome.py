@@ -8,7 +8,6 @@ from telegram.ext import MessageHandler, Filters, CommandHandler, run_async, Cal
 from telegram.utils.helpers import mention_html
 
 import smudge.modules.sql.welcome_sql as sql
-from smudge.modules.sql.antispam_sql import is_user_gbanned
 from smudge import CallbackContext, dispatcher, OWNER_ID, LOGGER, MESSAGE_DUMP, sw
 from smudge.helper_funcs.chat_status import user_admin, is_user_ban_protected, user_can_changeinfo
 from smudge.helper_funcs.misc import build_keyboard, revert_buttons
@@ -126,9 +125,6 @@ def new_member(update: Update, context: CallbackContext):
         for new_mem in new_members:
             # Give start information when add bot to group
 
-            if is_user_gbanned(new_mem.id):
-                return
-
             if sw is not None:
                 sw_ban = sw.get_ban(new_mem.id)
                 if sw_ban:
@@ -144,8 +140,6 @@ def new_member(update: Update, context: CallbackContext):
                     chat.id, 'welcome_added_to_grp'), parse_mode=ParseMode.HTML)
 
             else:
-                if is_user_gbanned(new_mem.id):
-                    return
                 # If welcome message is media, send with appropriate function
                 if welc_type not in (sql.Types.TEXT, sql.Types.BUTTON_TEXT):
                     reply = update.message.message_id
@@ -379,9 +373,6 @@ def left_member(update: Update, context: CallbackContext):
     if should_goodbye:
         left_mem = update.effective_message.left_chat_member
         if left_mem:
-
-            if is_user_gbanned(left_mem.id):
-                return
 
             if sw is not None:
                 sw_ban = sw.get_ban(left_mem.id)
