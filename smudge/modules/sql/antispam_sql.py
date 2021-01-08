@@ -17,6 +17,8 @@ from sqlalchemy import Column, UnicodeText, Integer, String, Boolean
 
 from smudge.modules.sql import BASE, SESSION
 
+GBANSTAT_LIST = set()
+GBANNED_LIST = set()
 
 class GloballyBannedUsers(BASE):
     __tablename__ = "gbans"
@@ -95,3 +97,6 @@ def migrate_chat(old_chat_id, new_chat_id):
             SESSION.add(gban)
 
         SESSION.commit()
+
+def is_user_gbanned(user_id):
+    return user_id in GBANNED_LIST

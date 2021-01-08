@@ -8,9 +8,9 @@ from telegram import Message, Chat, Update, Bot, User
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.error import Unauthorized, BadRequest, TimedOut, NetworkError, ChatMigrated, TelegramError
 from telegram.ext import CommandHandler, Filters, MessageHandler, CallbackQueryHandler
-from telegram.ext.dispatcher import run_async, DispatcherHandlerStop, Dispatcher
-from telegram.utils.helpers import escape_markdown
-from smudge.modules.translations.strings import tld
+from telegram.ext.dispatcher import DispatcherHandlerStop, Dispatcher
+from telegram.ext.callbackcontext import CallbackContext
+from telegram.utils.helpers import DEFAULT_FALSE
 
 from smudge import dispatcher, updater, CallbackContext, TOKEN, OWNER_ID, LOGGER, tbot
 # needed to dynamically load modules
@@ -18,6 +18,7 @@ from smudge import dispatcher, updater, CallbackContext, TOKEN, OWNER_ID, LOGGER
 from smudge.modules import ALL_MODULES
 from smudge.helper_funcs.chat_status import is_user_admin
 from smudge.helper_funcs.misc import paginate_modules
+from smudge.modules.translations.strings import tld
 
 IMPORTED = {}
 MIGRATEABLE = []

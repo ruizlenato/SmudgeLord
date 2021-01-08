@@ -1,9 +1,23 @@
+#    SmudgeLord (A telegram bot project)
+#    Copyright (C) 2017-2019 Paul Larsen
+#    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
+#    Copyright (C) 2021 Renatoh 
+
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 from functools import wraps
 from typing import Optional
 
 from telegram import User, Chat, ChatMember, Update, Bot
 
 from smudge import CallbackContext, DEL_CMDS, SUDO_USERS, WHITELIST_USERS
+from smudge.modules.translations.strings import tld
 
 
 def can_delete(chat: Chat, bot_id: int) -> bool:

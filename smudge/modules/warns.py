@@ -1,3 +1,16 @@
+#    SmudgeLord (A telegram bot project)
+#    Copyright (C) 2017-2019 Paul Larsen
+#    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
+#    Copyright (C) 2021 Renatoh 
+
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 import html
 import re
 from typing import Optional, List
@@ -11,8 +24,7 @@ from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher, CallbackContext, SUDO_USERS
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin_no_reply, user_admin, \
-    can_restrict
+from smudge.helper_funcs.chat_status import is_user_admin, bot_admin, user_admin_no_reply, user_admin, can_restrict
 from smudge.helper_funcs.extraction import extract_text, extract_user_and_text, extract_user
 from smudge.helper_funcs.filters import CustomFilters
 from smudge.helper_funcs.misc import split_message
