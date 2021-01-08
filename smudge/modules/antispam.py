@@ -21,15 +21,15 @@ from telegram.error import BadRequest  #,  TelegramError
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackContext
 from telegram.utils.helpers import mention_html
 
-import smduge.modules.sql.antispam_sql as sql
-from smduge import dispatcher, OWNER_ID, SUDO_USERS, STRICT_ANTISPAM, sw
-from smduge.helper_funcs.chat_status import user_admin, is_user_admin
-from smduge.helper_funcs.extraction import extract_user_and_text
-from smduge.helper_funcs.filters import CustomFilters
-#from smduge.helper_funcs.misc import send_to_list
-# from smduge.sql.users_sql import get_all_chats
+import smudge.modules.sql.antispam_sql as sql
+from smudge import dispatcher, OWNER_ID, SUDO_USERS, STRICT_ANTISPAM, sw
+from smudge.helper_funcs.chat_status import user_admin, is_user_admin
+from smudge.helper_funcs.extraction import extract_user_and_text
+from smudge.helper_funcs.filters import CustomFilters
+#from smudge.helper_funcs.misc import send_to_list
+# from smudge.sql.users_sql import get_all_chats
 
-from smduge.modules.tr_engine.strings import tld
+from smudge.modules.translations.strings import tld
 
 GBAN_ENFORCE_GROUP = 6
 
