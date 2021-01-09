@@ -35,10 +35,11 @@ from smudge.modules.translations.strings import tld
 @user_admin
 @loggable
 def ban(update: Update, context: CallbackContext) -> str:
+    args = context.args
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
     message = update.effective_message  # type: Optional[Message]
-    args = context.args
+
     user_id, reason = extract_user_and_text(message, args)
 
     if not user_id:
@@ -51,9 +52,10 @@ def ban(update: Update, context: CallbackContext) -> str:
         if excp.message == "User not found.":
             message.reply_text(tld(chat.id, "bans_err_usr_not_found"))
             return ""
-        raise
+        else:
+            raise
 
-    if user_id == bot.id:
+    if user_id == context.bot.id:
         message.reply_text(tld(chat.id, "bans_err_usr_is_bot"))
         return ""
 
@@ -84,11 +86,12 @@ def ban(update: Update, context: CallbackContext) -> str:
             # Do not reply
             message.reply_text(reply, quote=False, parse_mode=ParseMode.HTML)
             return log
-        LOGGER.warning(update)
-        LOGGER.exception("ERROR banning user %s in chat %s (%s) due to %s",
-                         user_id, chat.title, chat.id, excp.message)
-        message.reply_text(
-            tld(chat.id, "bans_err_unknown").format("banning"))
+        else:
+            LOGGER.warning(update)
+            LOGGER.exception("ERROR banning user %s in chat %s (%s) due to %s",
+                             user_id, chat.title, chat.id, excp.message)
+            message.reply_text(
+                tld(chat.id, "bans_err_unknown").format("banning"))
 
     return ""
 

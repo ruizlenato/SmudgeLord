@@ -176,17 +176,17 @@ if is_module_loaded(FILENAME):
     DISABLE_HANDLER = CommandHandler("disable",
                                      disable,
                                      pass_args=True,
-                                     filters=Filters.group)
+                                     filters=Filters.chat_type.groups)
     ENABLE_HANDLER = CommandHandler("enable",
                                     enable,
                                     pass_args=True,
-                                    filters=Filters.group)
+                                    filters=Filters.chat_type.groups)
     COMMANDS_HANDLER = CommandHandler(["cmds", "disabled"],
                                       commands,
-                                      filters=Filters.group)
+                                      filters=Filters.chat_type.groups)
     TOGGLE_HANDLER = CommandHandler("listcmds",
                                     list_cmds,
-                                    filters=Filters.group)
+                                    filters=Filters.chat_type.groups)
 
     dispatcher.add_handler(DISABLE_HANDLER)
     dispatcher.add_handler(ENABLE_HANDLER)

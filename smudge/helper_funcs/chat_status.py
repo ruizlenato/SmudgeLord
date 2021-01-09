@@ -128,14 +128,15 @@ def can_restrict(func):
 def bot_admin(func):
     @wraps(func)
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
-        bot = context.bot
-        if is_bot_admin(update.effective_chat, bot.id):
+        chat = update.effective_chat
+
+        if is_bot_admin(update.effective_chat, context.bot.id):
             return func(update, context, *args, **kwargs)
         else:
-            update.effective_message.reply_text("I'm not admin!")
+            update.effective_message.reply_text(
+                tld(chat.id, 'helpers_bot_not_admin'))
 
     return is_admin
-
 
 def user_admin(func):
     @wraps(func)
@@ -182,7 +183,6 @@ def user_not_admin(func):
 
     return is_not_admin
 
-
 def user_can_ban(func):
     @wraps(func)
     def user_perm_ban(update: Update, context: CallbackContext, *args, **kwargs):
@@ -195,10 +195,9 @@ def user_can_ban(func):
             update.effective_message.reply_text(
                 tld(chat.id, "admin_ban_perm_false"))
             return ""
-        return func(Update, context, * args, **kwargs)
+        return func(update, context, *args, **kwargs)
 
     return user_perm_ban
-
 
 def user_can_kick(func):
     @wraps(func)

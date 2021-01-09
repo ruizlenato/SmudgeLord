@@ -338,7 +338,7 @@ cust_filters_err_empty: Você não especificou com o que responder!
 cust_filters_add_success: Filtro '{}' adicionado em *{}*!
 cust_filters_list_empty: Não há filtros ativos em {}!
 cust_filters_stop_success: Sim, vou parar de responder a isso em *{}*.
-cust_filters_err_wrong_filter: Esse não é um filtro ativo - use o comando /filtros para todos os filtros ativos.
+cust_filters_err_wrong_filter: Esse não é um filtro ativo - use o comando /filters para todos os filtros ativos.
 cust_filters_err_protocol: Parece que você está tentando usar um protocolo de URL incompatível. O Telegram não oferece suporte a botões para alguns protocolos, como tg://. Tente novamente ou peça ajuda em @Renatoh.
 cust_filters_err_badformat: Este filtro não pôde ser enviado porque está formatado incorretamente. Pergunte ao @Renatoh se você não consegue descobrir o porquê!
 cust_filters_chatsettings_stats: There are `{}` custom filters here.
