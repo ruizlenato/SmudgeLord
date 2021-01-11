@@ -15,7 +15,7 @@ nltk
 aiohttp>=2.2.5
 Pillow>=4.2.0
 hurry.filesize
-googletrans==3.1.0a0
+googletrans==4.0.0rc1
 tldextract
 PyYAML
 pyowm
