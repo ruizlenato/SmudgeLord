@@ -1,16 +1,3 @@
-#    SmudgeLord (A telegram bot project)
-#    Copyright (C) 2017-2019 Paul Larsen
-#    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
-
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU Affero General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-
-#    You should have received a copy of the GNU Affero General Public License
-#    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
 import urllib
 import re
 
@@ -18,7 +5,7 @@ import rapidjson as json
 from bs4 import BeautifulSoup
 from hurry.filesize import size as sizee
 from requests import get
-from telethon import custom
+from telethon import custom, Button
 
 from smudge import LOGGER
 from smudge.events import register
@@ -38,7 +25,7 @@ LOGGER.info(
 
 @register(pattern=r"^/los(?: |$)(\S*)")
 async def los(event):
-    if event.from_id is None:
+    if event.sender_id is None:
         return
 
     chat_id = event.chat_id
@@ -76,7 +63,7 @@ async def los(event):
 
 @register(pattern=r"^/evo(?: |$)(\S*)")
 async def evo(event):
-    if event.from_id is None:
+    if event.sender_id is None:
         return
 
     chat_id = event.chat_id
@@ -146,7 +133,7 @@ async def evo(event):
 
 @register(pattern=r"^/phh$")
 async def phh(event):
-    if event.from_id is None:
+    if event.sender_id is None:
         return
 
     chat_id = event.chat_id
@@ -168,7 +155,7 @@ async def phh(event):
 
 @register(pattern=r"^/bootleggers(?: |$)(\S*)")
 async def bootleggers(event):
-    if event.from_id is None:
+    if event.sender_id is None:
         return
 
     chat_id = event.chat_id
@@ -257,53 +244,55 @@ async def twrp(event):
     size = page.find("span", {"class": "filesize"}).text
     date = page.find("em").text.strip()
     reply = f'**Latest TWRP for {device}:**\n' \
-            f'[{dl_file}]({dl_link}) - __{size}__\n' \
-            f'**Updated:** __{date}__\n'
-    await event.reply(reply)
+            f'File: __{dl_file}__ \n' \
+            f'Size: __{size}__\n' \
+            f'Updated: __{date}__\n'
+
+    keyboard = [Button.url("Download", url=dl_link)]
+    await event.reply(reply, buttons=keyboard, link_preview=False)
+    return
 
 
 @register(pattern=r"^/magisk$")
 @register(pattern=r"^/magisk@SmudgeLordBOT$")
 async def magisk(event):
-    if event.from_id is None:
+    if event.sender_id is None:
         return
 
     chat_id = event.chat_id
 
     url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
-    releases = tld(chat_id, "magisk_releases")
-    variant = [
-        'master/stable', 'master/beta', 'canary/canary'
-    ]
+    releases = tld(chat_id, "magisk_releases") 
+    variant = ['master/stable', 'master/beta', 'canary/canary']
     for variants in variant:
         fetch = get(url + variants + '.json')
         data = json.loads(fetch.content)
         if variants == "master/stable":
-            name = "**Stable**"
+            name = "**• Stable**"
             cc = 0
             branch = "master"
         elif variants == "master/beta":
-            name = "**Beta**"
+            name = "**• Beta**"
             cc = 0
             branch = "master"
         elif variants == "canary/canary":
-            name = "**Canary**"
+            name = "**• Canary**"
             cc = 1
             branch = "canary"
 
         if variants == "canary/canary":
-            releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({url}{branch}/{data["magisk"]["link"]}) | ' \
-                        f'[APK v{data["app"]["version"]}]({url}{branch}/{data["app"]["link"]}) | '
+            releases += f'{name}:\n [Magisk - v{data["app"]["version"]}]({url}{branch}/{data["app"]["link"]}) | '
         else:
-            releases += f'{name}: [ZIP v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
-                        f'[APK v{data["app"]["version"]}]({data["app"]["link"]}) | '
+            releases += f'{name}:\n [Magisk v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | '
         if cc == 1:
-            releases += f'[Uninstaller]({data["uninstaller"]["link"]}) | ' \
+            releases += f'[Uninstaller]({url}{branch}/{data["uninstaller"]["link"]}) | ' \
                         f'[Changelog]({url}{branch}/notes.md)\n'
         else:
-            releases += f'[Uninstaller]({data["uninstaller"]["link"]})\n'
+            releases += f'[Uninstaller]({data["uninstaller"]["link"]}) | ' \
+                        f'[Changelog]({data["magisk"]["note"]})\n'
 
     await event.reply(releases, link_preview=False)
+
 
 
 @register(pattern=r"^/device(?: |$)(\S*)")
