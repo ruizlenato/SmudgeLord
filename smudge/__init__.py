@@ -16,7 +16,7 @@ import sys
 import yaml
 import spamwatch
 
-from telethon import TelegramClient
+from pyrogram import Client
 from googletrans import Translator
 import telegram.ext as tg
 
@@ -118,7 +118,7 @@ updater = tg.Updater(TOKEN, workers=WORKERS, use_context=True)
 dispatcher = updater.dispatcher
 
 CallbackContext = tg.CallbackContext
-tbot = TelegramClient("smudge", API_KEY, API_HASH)
+pyrosmudge = Client("PyroSmudge", api_id=API_KEY, api_hash=API_HASH, bot_token=TOKEN)
 trl = Translator()
 
 SUDO_USERS = list(SUDO_USERS)
