@@ -12,4 +12,4 @@ images/sticker.png
 log.err
 log.log
 *.backup
-smudge.session
+PyroSmudge.session*
