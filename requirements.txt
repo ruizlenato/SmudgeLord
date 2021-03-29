@@ -30,5 +30,5 @@ lyricsgenius
 pafy
 youtube-dl
 telegraph
-lxml==4.6.2
+lxml==4.6.3
 pyrate_limiter
