@@ -314,14 +314,7 @@ def main():
                           read_latency=3.0)
 
     LOGGER.info("Successfully loaded")
-    if len(argv) not in (1, 3, 4):
-        tbot.disconnect()
-    else:
-        tbot.run_until_disconnected()
-
-    updater.idle()
-
-
+    
 CHATS_CNT = {}
 CHATS_TIME = {}
 
@@ -404,5 +397,6 @@ def process_update(self, update):
 if __name__ == '__main__':
     LOGGER.info("\n.....................................................................\n.....................................................................\n....... MMMM..............................................MMMM.......\n........ MMWMMM........................................MMWMMM .......\n........  MMMMMMM..................................MMWMMMMWN ........\n.......... MNWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNXNWMMMMMMMWNN .........\n........... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNN ..........\n............ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNN ...........\n............ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ............\n..........  MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNM .............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMWMMMMMMMMMMMMMMMMMM ..............\n.......... MMMk....MMMMMMMMMM......MMMMMMMMMMMMMMMMMM ...............\n......... OMMMM....MMMMMMMMMM.....MMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMM..MWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMM..MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMWWMMMM  dNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMN....MMM:..MMMMMMMMWMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMM.....MMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.....................................................................")
     LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
-    pyrosmudge.start()    
+    pyrosmudge.start()
+    main() 
     idle()
