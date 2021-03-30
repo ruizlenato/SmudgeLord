@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -120,6 +120,7 @@ def extract_text(message) -> str:
     return message.text or message.caption or (message.sticker.emoji
                                                if message.sticker else None)
 
+
 def extract_unt_fedban(
     message: Message, args: List[str]
 ) -> (Optional[int], Optional[str]):
@@ -143,7 +144,7 @@ def extract_unt_fedban(
     if entities and ent and ent.offset == len(message.text) - len(text_to_parse):
         ent = entities[0]
         user_id = ent.user.id
-        text = message.text[ent.offset + ent.length :]
+        text = message.text[ent.offset + ent.length:]
 
     elif len(args) >= 1 and args[0][0] == "@":
         user = args[0]

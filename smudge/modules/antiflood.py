@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -127,9 +127,12 @@ __help__ = True
 
 # TODO: Add actions: ban/kick/mute/tban/tmute
 
-FLOOD_BAN_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, check_flood, run_async=True)
-SET_FLOOD_HANDLER = CommandHandler("setflood", set_flood, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
-FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.chat_type.groups, run_async=True)
+FLOOD_BAN_HANDLER = MessageHandler(
+    Filters.all & Filters.chat_type.groups, check_flood, run_async=True)
+SET_FLOOD_HANDLER = CommandHandler(
+    "setflood", set_flood, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+FLOOD_HANDLER = CommandHandler(
+    "flood", flood, filters=Filters.chat_type.groups, run_async=True)
 
 dispatcher.add_handler(FLOOD_BAN_HANDLER, FLOOD_GROUP)
 dispatcher.add_handler(SET_FLOOD_HANDLER)

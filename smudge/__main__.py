@@ -306,11 +306,14 @@ def main():
 
     LOGGER.info("Using long polling.")
     # updater.start_polling(timeout=15, read_latency=4, clean=True)
-    updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True) 
+    updater.start_polling(timeout=15, read_latency=4,
+                          drop_pending_updates=True)
     LOGGER.info("[Smudge]Successfully loaded")
-    
+
+
 CHATS_CNT = {}
 CHATS_TIME = {}
+
 
 def process_update(self, update):
     # An error happened while polling
@@ -361,7 +364,8 @@ def process_update(self, update):
 
         # Stop processing with any other handler.
         except DispatcherHandlerStop:
-            self.logger.debug('Stopping further handlers due to DispatcherHandlerStop')
+            self.logger.debug(
+                'Stopping further handlers due to DispatcherHandlerStop')
             self.update_persistence(update=update)
             break
 
@@ -374,7 +378,8 @@ def process_update(self, update):
                 break
             # Errors should not stop the thread.
             except Exception:
-                self.logger.exception('An uncaught error was raised while handling the error.')
+                self.logger.exception(
+                    'An uncaught error was raised while handling the error.')
 
     # Update persistence, if handled
     handled_only_async = all(sync_modes)
@@ -385,7 +390,6 @@ def process_update(self, update):
         # If update was only handled by async handlers, we don't need to update here
         if not handled_only_async:
             self.update_persistence(update=update)
-
 
 
 if __name__ == '__main__':

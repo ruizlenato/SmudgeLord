@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -138,6 +138,7 @@ def bot_admin(func):
 
     return is_admin
 
+
 def user_admin(func):
     @wraps(func)
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
@@ -183,6 +184,7 @@ def user_not_admin(func):
 
     return is_not_admin
 
+
 def user_can_ban(func):
     @wraps(func)
     def user_perm_ban(update: Update, context: CallbackContext, *args, **kwargs):
@@ -198,6 +200,7 @@ def user_can_ban(func):
         return func(update, context, *args, **kwargs)
 
     return user_perm_ban
+
 
 def user_can_kick(func):
     @wraps(func)
