@@ -306,13 +306,8 @@ def main():
 
     LOGGER.info("Using long polling.")
     # updater.start_polling(timeout=15, read_latency=4, clean=True)
-    updater.start_polling(poll_interval=0.0,
-                          timeout=10,
-                          clean=True,
-                          bootstrap_retries=-1,
-                          read_latency=3.0)
-
-    LOGGER.info("Successfully loaded")
+    updater.start_polling(timeout=15, read_latency=4, drop_pending_updates=True) 
+    LOGGER.info("[Smudge]Successfully loaded")
     
 CHATS_CNT = {}
 CHATS_TIME = {}

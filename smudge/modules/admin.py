@@ -61,6 +61,7 @@ def promote(update: Update, context: CallbackContext) -> str:
     context.bot.promoteChatMember(
         chat_id,
         user_id,
+        can_manage_voice_chats=bot_member.can_manage_voice_chats,
         can_change_info=bot_member.can_change_info,
         can_post_messages=bot_member.can_post_messages,
         can_edit_messages=bot_member.can_edit_messages,
@@ -136,6 +137,7 @@ def demote(update: Update, context: CallbackContext) -> str:
                                       can_invite_users=False,
                                       can_restrict_members=False,
                                       can_pin_messages=False,
+                                      can_manage_voice_chats=False,
                                       can_promote_members=False)
 
         message.reply_text(tld(chat.id, "admin_demote_success").format(
