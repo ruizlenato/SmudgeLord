@@ -1,4 +1,6 @@
-import re, html, time
+import re
+import html
+import time
 from bs4 import BeautifulSoup
 import rapidjson as json
 from requests import get
@@ -9,9 +11,10 @@ from telegram.utils.helpers import escape_markdown, mention_html
 
 from smudge import dispatcher, updater, CallbackContext
 from smudge.modules.disable import DisableAbleCommandHandler
-from smudge.modules.translations.strings import tld 
+from smudge.modules.translations.strings import tld
 
 DEVICES_DATA = 'https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json'
+
 
 def magisk(update: Update, context: CallbackContext):
     bot = context.bot
@@ -22,37 +25,40 @@ def magisk(update: Update, context: CallbackContext):
     for variants in variant:
         fetch = get(url + variants + '.json')
         data = json.loads(fetch.content)
-        if variants == "master/stable":                           
-           name = "*• Stable*"
-           cc = 0
-           branch = "master"                             
+        if variants == "master/stable":
+            name = "*• Stable*"
+            cc = 0
+            branch = "master"
         elif variants == "master/beta":
-          name = "*• Beta*"
-          cc = 0                                         
-          branch = "master"
+            name = "*• Beta*"
+            cc = 0
+            branch = "master"
         elif variants == "canary/canary":
-          name = "*• Canary*"
-          cc = 1
-          branch = "canary"
-            
+            name = "*• Canary*"
+            cc = 1
+            branch = "canary"
+
         if variants == "canary/canary":
-          releases += f'{name}:\n [Magisk - v{data["app"]["version"]}]({url}{branch}/{data["app"]["link"]}) | '
+            releases += f'{name}:\n [Magisk - v{data["app"]["version"]}]({url}{branch}/{data["app"]["link"]}) | '
         else:
             releases += f'{name}:\n [Magisk v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | '
         if cc == 1:
-          releases += f'[Uninstaller]({url}{branch}/{data["uninstaller"]["link"]}) | ' \
-                      f'[Changelog]({url}{branch}/notes.md)\n'
+            releases += f'[Uninstaller]({url}{branch}/{data["uninstaller"]["link"]}) | ' \
+                        f'[Changelog]({url}{branch}/notes.md)\n'
         else:
             releases += f'[Uninstaller]({data["uninstaller"]["link"]}) | ' \
                         f'[Changelog]({data["magisk"]["note"]})\n'
-    update.message.reply_text(releases, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+    update.message.reply_text(
+        releases, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+
 
 def device(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
-    chat = update.effective_chat 
+    chat = update.effective_chat
     if len(args) == 0:
-        update.effective_message.reply_text(tld(chat.id, "whatis_no_device"),parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
+        update.effective_message.reply_text(tld(
+            chat.id, "whatis_no_device"), parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
         return
     device = " ".join(args)
     db = get(DEVICES_DATA).json()
@@ -73,6 +79,7 @@ def device(update: Update, context: CallbackContext):
     update.message.reply_text("{}".format(reply),
                               parse_mode=ParseMode.MARKDOWN,
                               disable_web_page_preview=True)
+
 
 def twrp(update: Update, context: CallbackContext):
     bot = context.bot
@@ -127,25 +134,24 @@ def twrp(update: Update, context: CallbackContext):
         trs = page.find('table').find_all('tr')
         row = 2 if trs[0].find('a').text.endswith('tar') else 1
         if trs[0].find('a').text.endswith('tar'):
-          for i in range(row):
-            download = trs[i].find('a')
+            for i in range(row):
+                download = trs[i].find('a')
+                dl_link = f"https://eu.dl.twrp.me{download['href']}"
+                dl_file = download.text
+                size = trs[i].find("span", {"class": "filesize"}).text
+                keyboard = [[
+                    InlineKeyboardButton(text=dl_file, url=dl_link),
+                    InlineKeyboardButton(text=dl_file, url=dl_link)
+                ]]
+        else:
+            download = page.find('table').find('tr').find('a')
             dl_link = f"https://eu.dl.twrp.me{download['href']}"
             dl_file = download.text
-            size = trs[i].find("span", {"class": "filesize"}).text
-            keyboard = [[
-              InlineKeyboardButton(text=dl_file, url=dl_link),
-              InlineKeyboardButton(text=dl_file, url=dl_link)
-            ]]
-        else:
-          download = page.find('table').find('tr').find('a')
-          dl_link = f"https://eu.dl.twrp.me{download['href']}"
-          dl_file = download.text
-          size = page.find("span", {"class": "filesize"}).text
-          keyboard = [[InlineKeyboardButton(text=dl_file, url=dl_link)]]
-
+            size = page.find("span", {"class": "filesize"}).text
+            keyboard = [[InlineKeyboardButton(text=dl_file, url=dl_link)]]
 
         update.message.reply_text(tld(chat.id, "twrp_release").format(device, brand, name, date),
-                                  parse_mode=ParseMode.MARKDOWN, 
+                                  parse_mode=ParseMode.MARKDOWN,
                                   reply_markup=InlineKeyboardMarkup(keyboard),
                                   disable_web_page_preview=True)
 
