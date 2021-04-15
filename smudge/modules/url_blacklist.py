@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -147,12 +147,16 @@ def get_blacklisted_urls(update: Update, context: CallbackContext):
     message.reply_text(base_string, parse_mode=ParseMode.HTML)
 
 
-URL_BLACKLIST_HANDLER = DisableAbleCommandHandler("blacklist", add_blacklist_url, filters=Filters.chat_type.groups, pass_args=True, admin_ok=True, run_async=True)
-ADD_URL_BLACKLIST_HANDLER = CommandHandler("addurl", add_blacklist_url, filters=Filters.chat_type.groups, run_async=True)
+URL_BLACKLIST_HANDLER = DisableAbleCommandHandler(
+    "blacklist", add_blacklist_url, filters=Filters.chat_type.groups, pass_args=True, admin_ok=True, run_async=True)
+ADD_URL_BLACKLIST_HANDLER = CommandHandler(
+    "addurl", add_blacklist_url, filters=Filters.chat_type.groups, run_async=True)
 
-RM_BLACKLIST_URL_HANDLER = CommandHandler("delurl", rm_blacklist_url, filters=Filters.chat_type.groups, run_async=True)
+RM_BLACKLIST_URL_HANDLER = CommandHandler(
+    "delurl", rm_blacklist_url, filters=Filters.chat_type.groups, run_async=True)
 
-GET_BLACKLISTED_URLS = CommandHandler("geturl", get_blacklisted_urls, filters=Filters.chat_type.groups, run_async=True)
+GET_BLACKLISTED_URLS = CommandHandler(
+    "geturl", get_blacklisted_urls, filters=Filters.chat_type.groups, run_async=True)
 
 URL_DELETE_HANDLER = MessageHandler(Filters.entity("url"), del_blacklist_url)
 

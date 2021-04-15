@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -141,7 +141,7 @@ if is_module_loaded(FILENAME):
                 result += " - `{}`\n".format(escape_markdown(cmd))
             update.effective_message.reply_text(tld(
                 chat.id, "disable_able_commands").format(result),
-                                                parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_able_commands_none"))

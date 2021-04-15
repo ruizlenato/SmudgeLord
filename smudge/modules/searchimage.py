@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -111,7 +111,7 @@ def reverse(update: Update, context: CallbackContext):
 
         if response != 400:
             xx = context.bot.send_message(chat_id, "Image was successfully uploaded to Google."
-                                  "\nParsing it, please wait.", reply_to_message_id=rtmid)
+                                          "\nParsing it, please wait.", reply_to_message_id=rtmid)
         else:
             xx = context.bot.send_message(
                 chat_id, "Google told me to go away.", reply_to_message_id=rtmid)
@@ -144,7 +144,7 @@ def reverse(update: Update, context: CallbackContext):
             imglinks.append(lmao)
 
         context.bot.send_media_group(chat_id=chat_id, media=imglinks,
-                             reply_to_message_id=rtmid)
+                                     reply_to_message_id=rtmid)
         xx.edit_text(tld(chat.id, "searchimage").format(
             guess, fetchUrl, imgspage), parse_mode='Markdown', disable_web_page_preview=True)
     except TelegramError as e:
@@ -206,6 +206,7 @@ def scam(imgspage, lim):
     return imglinks
 
 
-REVERSE_HANDLER = DisableAbleCommandHandler("reverse", reverse, pass_args=True, admin_ok=True, run_async=True)
+REVERSE_HANDLER = DisableAbleCommandHandler(
+    "reverse", reverse, pass_args=True, admin_ok=True, run_async=True)
 
 dispatcher.add_handler(REVERSE_HANDLER)

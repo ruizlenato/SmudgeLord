@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -237,7 +237,8 @@ def join_fed(update, context):
                 if str(admin.user.id) == str(user.id):
                     pass
                 else:
-                    update.effective_message.reply_text(tld(chat.id, "common_group_creator_only"))
+                    update.effective_message.reply_text(
+                        tld(chat.id, "common_group_creator_only"))
                     return
     if fed_id:
         message.reply_text("You cannot join two federations from one chat")
@@ -724,13 +725,13 @@ def fed_ban(update, context):
             try:
                 # Do not spam all fed chats
                 """
-				context.bot.send_message(chat, "<b>FedBan reason updated</b>" \
-							 "\n<b>Federation:</b> {}" \
-							 "\n<b>Federation Admin:</b> {}" \
-							 "\n<b>User:</b> {}" \
-							 "\n<b>User ID:</b> <code>{}</code>" \
-							 "\n<b>Reason:</b> {}".format(fed_name, mention_html(user.id, user.first_name), user_target, fban_user_id, reason), parse_mode="HTML")
-				"""
+                                context.bot.send_message(chat, "<b>FedBan reason updated</b>" \
+                                                         "\n<b>Federation:</b> {}" \
+                                                         "\n<b>Federation Admin:</b> {}" \
+                                                         "\n<b>User:</b> {}" \
+                                                         "\n<b>User ID:</b> <code>{}</code>" \
+                                                         "\n<b>Reason:</b> {}".format(fed_name, mention_html(user.id, user.first_name), user_target, fban_user_id, reason), parse_mode="HTML")
+                                """
                 context.bot.kick_chat_member(fedschat, fban_user_id)
             except BadRequest as excp:
                 if excp.message in FBAN_ERRORS:
@@ -886,13 +887,13 @@ def fed_ban(update, context):
         try:
             # Do not spamming all fed chats
             """
-			context.bot.send_message(chat, "<b>FedBan reason updated</b>" \
-							"\n<b>Federation:</b> {}" \
-							"\n<b>Federation Admin:</b> {}" \
-							"\n<b>User:</b> {}" \
-							"\n<b>User ID:</b> <code>{}</code>" \
-							"\n<b>Reason:</b> {}".format(fed_name, mention_html(user.id, user.first_name), user_target, fban_user_id, reason), parse_mode="HTML")
-			"""
+                        context.bot.send_message(chat, "<b>FedBan reason updated</b>" \
+                                                        "\n<b>Federation:</b> {}" \
+                                                        "\n<b>Federation Admin:</b> {}" \
+                                                        "\n<b>User:</b> {}" \
+                                                        "\n<b>User ID:</b> <code>{}</code>" \
+                                                        "\n<b>Reason:</b> {}".format(fed_name, mention_html(user.id, user.first_name), user_target, fban_user_id, reason), parse_mode="HTML")
+                        """
             context.bot.kick_chat_member(fedschat, fban_user_id)
         except BadRequest as excp:
             if excp.message in FBAN_ERRORS:

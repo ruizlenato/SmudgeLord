@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -56,13 +56,14 @@ class CustomCommandHandler(tg.CommandHandler):
                     else:
                         return False
 
+
 class GbanLockHandler(tg.CommandHandler):
     def __init__(self, command, callback, **kwargs):
         super().__init__(command, callback, **kwargs)
 
     def check_update(self, update):
         if (isinstance(update, Update) and
-            (update.message or update.edited_message and self.allow_edited)):
+                (update.message or update.edited_message and self.allow_edited)):
             message = update.message or update.edited_message
             if sql.is_user_gbanned(update.effective_user.id):
                 return False
