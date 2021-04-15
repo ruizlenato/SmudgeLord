@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ import smudge.modules.sql.last_fm_sql as sql
 from smudge import dispatcher, LASTFM_API_KEY, GENIUS
 from smudge.modules.translations.strings import tld
 from smudge.modules.disable import DisableAbleCommandHandler
+
 
 def set_user(update: Update, context: CallbackContext):
     args = context.args
@@ -281,13 +282,15 @@ Share what you're what listening to with the help of this module!
 __mod_name__ = "Last.FM"
 
 
-SET_USER_HANDLER = DisableAbleCommandHandler("setuser", set_user, pass_args=True)
+SET_USER_HANDLER = DisableAbleCommandHandler(
+    "setuser", set_user, pass_args=True)
 CLEAR_USER_HANDLER = CommandHandler("clearuser", clear_user, run_async=True)
 LASTFM_HANDLER = DisableAbleCommandHandler(
     ["lastfm", "lt", "last", "l"], last_fm, run_async=True)
 LYRICS_HANDLER = DisableAbleCommandHandler(
     "lyrics", lyrics, pass_args=True, run_async=True)
-ALBUM_HANDLER = DisableAbleCommandHandler(["album", "albuns"], album, run_async=True)
+ALBUM_HANDLER = DisableAbleCommandHandler(
+    ["album", "albuns"], album, run_async=True)
 ARTIST_HANDLER = DisableAbleCommandHandler("artist", artist, run_async=True)
 #COLLAGE_HANDLER = CommandHandler("collage", collage)
 
