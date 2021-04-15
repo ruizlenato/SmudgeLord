@@ -367,19 +367,19 @@ def sban(context: CallbackContext, update: Update) -> str:
 __help__ = True
 
 BAN_HANDLER = DisableAbleCommandHandler(
-    "ban", ban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+    "ban", ban, pass_args=True, filters=Filters.chat_type.groups  & ~Filters.update.edited_message, admin_ok=True, run_async=True)
 TEMPBAN_HANDLER = DisableAbleCommandHandler(
-    ["tban", "tempban"], temp_ban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+    ["tban", "tempban"], temp_ban, pass_args=True, filters=Filters.chat_type.groups & ~Filters.update.edited_message, admin_ok=True, run_async=True)
 KICK_HANDLER = DisableAbleCommandHandler(
-    "kick", kick, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+    "kick", kick, pass_args=True, filters=Filters.chat_type.groups & ~Filters.update.edited_message, admin_ok=True, run_async=True)
 UNBAN_HANDLER = DisableAbleCommandHandler(
     "unban", unban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
 KICKME_HANDLER = DisableAbleCommandHandler(
-    "kickme", kickme, filters=Filters.chat_type.groups, run_async=True)
+    "kickme", kickme, filters=Filters.chat_type.groups & ~Filters.update.edited_message, run_async=True)
 SBAN_HANDLER = DisableAbleCommandHandler(
-    "sban", sban, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True, run_async=True)
+    "sban", sban, pass_args=True, filters=Filters.chat_type.groups & ~Filters.update.edited_message, admin_ok=True, run_async=True)
 BANME_HANDLER = DisableAbleCommandHandler(
-    "banme", banme, filters=Filters.chat_type.groups, run_async=True)
+    "banme", banme, filters=Filters.chat_type.groups & ~Filters.update.edited_message, run_async=True)
 
 dispatcher.add_handler(BAN_HANDLER)
 dispatcher.add_handler(TEMPBAN_HANDLER)

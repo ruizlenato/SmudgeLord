@@ -91,15 +91,7 @@ def twrp(update: Update, context: CallbackContext):
             "{}".format(reply),
             parse_mode=ParseMode.MARKDOWN,
             disable_web_page_preview=True)
-        time.sleep(5)
-        try:
-            del_msg.delete()
-            update.effective_message.delete()
-            return
-        except BadRequest as err:
-            if (err.message == "Message to delete not found") or (
-                    err.message == "Message can't be deleted"):
-                return
+        return
 
     device = " ".join(args)
     url = get(f'https://eu.dl.twrp.me/{device}/')
@@ -139,10 +131,10 @@ def twrp(update: Update, context: CallbackContext):
                 dl_link = f"https://eu.dl.twrp.me{download['href']}"
                 dl_file = download.text
                 size = trs[i].find("span", {"class": "filesize"}).text
-                keyboard = [[
-                    InlineKeyboardButton(text=dl_file, url=dl_link),
-                    InlineKeyboardButton(text=dl_file, url=dl_link)
-                ]]
+                keyboard = [
+                  [InlineKeyboardButton(text=dl_file, url=dl_link)],
+                  [InlineKeyboardButton(text=dl_file, url=dl_link)]]
+
         else:
             download = page.find('table').find('tr').find('a')
             dl_link = f"https://eu.dl.twrp.me{download['href']}"

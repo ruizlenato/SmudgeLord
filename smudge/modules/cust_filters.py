@@ -302,7 +302,7 @@ STOP_HANDLER = DisableAbleCommandHandler("stop", stop_filter)
 LIST_HANDLER = DisableAbleCommandHandler(
     "filters", list_handlers, admin_ok=True, run_async=True)
 CUST_FILTER_HANDLER = MessageHandler(
-    CustomFilters.has_text, reply_filter, run_async=True)
+    CustomFilters.has_text & ~Filters.update.edited_message, reply_filter, run_async=True)
 
 dispatcher.add_handler(FILTER_HANDLER)
 dispatcher.add_handler(STOP_HANDLER)

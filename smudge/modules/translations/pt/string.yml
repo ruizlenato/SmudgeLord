@@ -87,7 +87,7 @@ modname_android: Android
 magisk_releases: "*Últimos lançamentos do magisk: *\n"
 whatis_device: "* {}* é o *{} {}*"
 whatis_no_device: "*Nenhum codenome fornecido,* escreva um codenome para obter informações.\n/device <codename> or <model>"
-twrp_release: "*Último TWRP oficial para {}*\n*{} - {}*\n*Atualizado em: {}*"
+twrp_release: "*Último TWRP oficial para {}*\n*{} - {}*\n*Atualizado em:* {}"
 err_not_found: Não foi possível encontrar nenhum resultado correspondente à sua consulta.
 err_api: Não foi possível acessar a API.
 err_example_device: 'Por que você está tentando obter o dispositivo de exemplo?'

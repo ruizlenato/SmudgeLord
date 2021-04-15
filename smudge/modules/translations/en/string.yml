@@ -87,7 +87,7 @@ magisk_releases: "*Latest Magisk Releases:*\n"
 whatis_device: "*{}* is *{} {}*"
 whatis_no_device: "*No codename provided,* write a codename for fetching informations.\n\nUsage: /device <codename> or <model>"
 err_not_found: Couldn't find any results matching your query.
-twrp_release: "*Latest Official TWRP for {}*\n*{} - {}*\n*Updated: {}*"
+twrp_release: "*Latest Official TWRP for {}*\n*{} - {}*\n*Updated:* {}"
 err_api: Couldn't reach the API.
 err_example_device: Why are you trying to get the example device?
 btn_dl: Click here to Download
