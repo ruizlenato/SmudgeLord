@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@ from telegram import ParseMode, Update, Bot
 from telegram.ext import CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import escape_markdown
 
-from smudge import dispatcher, CallbackContext 
+from smudge import dispatcher, CallbackContext
 from smudge.helper_funcs.handlers import CMD_STARTERS
 from smudge.helper_funcs.misc import is_module_loaded
 
@@ -87,7 +87,7 @@ if is_module_loaded(FILENAME):
             if isinstance(update, Update) and update.effective_message:
                 chat = update.effective_chat
                 return self.filters(update) and not sql.is_command_disabled(chat.id, self.friendly)
- 
+
     @user_admin
     def disable(update: Update, context: CallbackContext):
         args = context.args
@@ -110,7 +110,7 @@ if is_module_loaded(FILENAME):
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_err_no_cmd"))
- 
+
     @user_admin
     def enable(update: Update, context: CallbackContext):
         args = context.args
@@ -132,7 +132,7 @@ if is_module_loaded(FILENAME):
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_err_no_cmd"))
-                 
+
     @user_admin
     def list_cmds(update: Update, context: CallbackContext):
         bot = context.bot
@@ -143,7 +143,7 @@ if is_module_loaded(FILENAME):
                 result += " - `{}`\n".format(escape_markdown(cmd))
             update.effective_message.reply_text(tld(
                 chat.id, "disable_able_commands").format(result),
-                                                parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_able_commands_none"))
