@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +17,7 @@ from io import BytesIO
 from typing import List
 
 from telegram import Update, ParseMode
-from telegram.error import BadRequest  #,  TelegramError
+from telegram.error import BadRequest  # ,  TelegramError
 from telegram.ext import CommandHandler, MessageHandler, Filters, CallbackContext
 from telegram.utils.helpers import mention_html
 
@@ -68,7 +68,7 @@ def check_and_ban(update, user_id, should_message=True):
                     message.reply_text(tld(
                         chat.id,
                         "antispam_spamwatch_banned").format(spamwatch_reason),
-                                       parse_mode=ParseMode.HTML)
+                        parse_mode=ParseMode.HTML)
                     return
                 else:
                     return
@@ -85,7 +85,7 @@ def check_and_ban(update, user_id, should_message=True):
 
             message.reply_text(tld(
                 chat.id, "antispam_checkban_user_removed").format(usrreason),
-                               parse_mode=ParseMode.MARKDOWN)
+                parse_mode=ParseMode.MARKDOWN)
             return
 
 
@@ -142,9 +142,11 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-ANTISPAM_STATUS = CommandHandler("antispam", antispam, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+ANTISPAM_STATUS = CommandHandler(
+    "antispam", antispam, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
 
-GBAN_ENFORCER = MessageHandler(Filters.all & Filters.chat_type.groups, enforce_gban, run_async=True)
+GBAN_ENFORCER = MessageHandler(
+    Filters.all & Filters.chat_type.groups, enforce_gban, run_async=True)
 
 dispatcher.add_handler(ANTISPAM_STATUS)
 
