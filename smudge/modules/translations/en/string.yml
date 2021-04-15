@@ -338,10 +338,10 @@ cust_filters_help: |
 
 # Disable
 modname_disable: Disable
-disable_success: Disabled the use of `{}`
+disable_success: Disabled the use of *{}*
 disable_err_undisableable: That command can't be disabled
 disable_err_no_cmd: Pass a command as an argument.
-disable_enable_success: Enabled the use of `{}`
+disable_enable_success: Enabled the use of *{}*
 disable_already_enabled: That command is already enabled.
 disable_able_commands: The following commands are toggleable:\n{}
 disable_able_commands_none: No commands can be disabled.

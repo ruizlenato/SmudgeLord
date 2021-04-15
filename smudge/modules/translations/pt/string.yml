@@ -338,11 +338,11 @@ cust_filters_help: |
 
 # Disable
 modname_disable: Desativar
-disable_success: O uso do comando `{}` foi desativado.
+disable_success: O uso do comando *{}* foi desativado.
 disable_err_undisableable: O uso deste comando não pode ser desativado.
 disable_err_no_cmd: Por favor, diga o comando a ser desativado.
-disable_enable_success: O uso do comando `{}` foi ativado.
-disable_already_enabled: Esse comando já está ativado.
+disable_enable_success: O uso do comando *{}* foi ativado.
+disable_already_enabled: Esse comando já está ativado. 
 disable_able_commands: Os seguintes comandos são ativáveis:\n{}
 disable_able_commands_none: Nenhum comando pode ser desativado.
 disable_chatsettings_none_disabled: 'Não há nenhum comando desativado!'

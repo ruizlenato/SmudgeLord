@@ -18,7 +18,7 @@ from telegram import ParseMode, Update, Bot
 from telegram.ext import CommandHandler, MessageHandler, Filters
 from telegram.utils.helpers import escape_markdown
 
-from smudge import dispatcher
+from smudge import dispatcher, CallbackContext 
 from smudge.helper_funcs.handlers import CMD_STARTERS
 from smudge.helper_funcs.misc import is_module_loaded
 
@@ -87,10 +87,11 @@ if is_module_loaded(FILENAME):
             if isinstance(update, Update) and update.effective_message:
                 chat = update.effective_chat
                 return self.filters(update) and not sql.is_command_disabled(chat.id, self.friendly)
-
-    @run_async
+ 
     @user_admin
-    def disable(bot: Bot, update: Update, args: List[str]):
+    def disable(update: Update, context: CallbackContext):
+        args = context.args
+        bot = context.bot
         chat = update.effective_chat
         if len(args) >= 1:
             disable_cmd = args[0]
@@ -109,10 +110,11 @@ if is_module_loaded(FILENAME):
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_err_no_cmd"))
-
-    @run_async
+ 
     @user_admin
-    def enable(bot: Bot, update: Update, args: List[str]):
+    def enable(update: Update, context: CallbackContext):
+        args = context.args
+        bot = context.bot
         chat = update.effective_chat
         if len(args) >= 1:
             enable_cmd = args[0]
@@ -130,10 +132,10 @@ if is_module_loaded(FILENAME):
         else:
             update.effective_message.reply_text(
                 tld(chat.id, "disable_err_no_cmd"))
-
-    @run_async
+                 
     @user_admin
-    def list_cmds(bot: Bot, update: Update):
+    def list_cmds(update: Update, context: CallbackContext):
+        bot = context.bot
         chat = update.effective_chat
         if DISABLE_CMDS + DISABLE_OTHER:
             result = ""
@@ -158,8 +160,8 @@ if is_module_loaded(FILENAME):
         return tld(chat_id,
                    "disable_chatsettings_list_disabled").format(result)
 
-    @run_async
-    def commands(bot: Bot, update: Update):
+    def commands(update: Update, context: CallbackContext):
+        bot = context.bot
         chat = update.effective_chat
         update.effective_message.reply_text(build_curr_disabled(chat.id),
                                             parse_mode=ParseMode.MARKDOWN)
@@ -175,18 +177,20 @@ if is_module_loaded(FILENAME):
 
     DISABLE_HANDLER = CommandHandler("disable",
                                      disable,
-                                     pass_args=True,
-                                     filters=Filters.chat_type.groups)
+                                     filters=Filters.chat_type.groups,
+                                     run_async=True)
     ENABLE_HANDLER = CommandHandler("enable",
                                     enable,
-                                    pass_args=True,
-                                    filters=Filters.chat_type.groups)
+                                    filters=Filters.chat_type.groups,
+                                    run_async=True)
     COMMANDS_HANDLER = CommandHandler(["cmds", "disabled"],
                                       commands,
-                                      filters=Filters.chat_type.groups)
+                                      filters=Filters.chat_type.groups,
+                                      run_async=True)
     TOGGLE_HANDLER = CommandHandler("listcmds",
                                     list_cmds,
-                                    filters=Filters.chat_type.groups)
+                                    filters=Filters.chat_type.groups,
+                                    run_async=True)
 
     dispatcher.add_handler(DISABLE_HANDLER)
     dispatcher.add_handler(ENABLE_HANDLER)
