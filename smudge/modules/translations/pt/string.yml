@@ -798,7 +798,7 @@ mute_not_existed: "Não consigo encontrar esse usuário"
 mute_is_admin: "Eu realmente gostaria de poder silenciar administradores..."
 mute_is_bot: "Eu não vou me silenciar, você está louco?"
 tmute_no_time: "Você não especificou um tempo para o silêncio(mute)!"
-tmute_success: "Silenciado por {} no grupo {}!"
+tmute_success: "Silenciado por {}"
 mute_cant_mute: "Droga, eu não posso silenciar esse usuário."
 restrict_invalid: "Você precisará me fornecer um nome de usuário para restringir ou responder a alguém para restringir."
 restrict_is_bot: "Eu não vou me restringir!"
@@ -1164,6 +1164,7 @@ lastfm_scr: \n(<code>{}</code> scrobbles até agora)
 lastfm_scrr: 🎧 <code>{} - {}</code>\n
 lastfm_toptrack: "{} - Top tracks\n\n"
 lastfm_old_scrb: "{} estava ouvindo:\n"
+lastfm_nonetracks_now: "Você não está escutando nenhuma música :3"
 lyrics_not_found: "Sem resultados para a musica {} de {}."
 lastfm_collage: "Collage Semanal dos albuns mais ouvidos pelo {}"
 last_fm_help: |

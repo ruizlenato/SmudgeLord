@@ -21,7 +21,7 @@ from telegram.ext import CommandHandler, Filters
 from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html
 
-from smudge import dispatcher, CallbackContext, LOGGER, SUDO_USERS
+from smudge import dispatcher, CallbackContext, LOGGER
 from smudge.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict
 from smudge.helper_funcs.extraction import extract_user, extract_user_and_text
 from smudge.helper_funcs.string_handling import extract_time
@@ -52,10 +52,7 @@ def mute(update: Update, context: CallbackContext) -> str:
 
     if member:
 
-        if user_id in SUDO_USERS:
-            message.reply_text(tld(chat.id, "mute_not_sudo"))
-
-        elif is_user_admin(chat, user_id, member=member):
+        if is_user_admin(chat, user_id, member=member):
             message.reply_text(tld(chat.id, "mute_not_m_admin"))
 
         elif member.can_send_messages is None or member.can_send_messages:
@@ -88,6 +85,7 @@ def mute(update: Update, context: CallbackContext) -> str:
 @user_admin
 @loggable
 def unmute(update: Update, context: CallbackContext) -> str:
+    bot = context.bot
     args = context.args
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -135,6 +133,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
 @user_admin
 @loggable
 def temp_mute(update: Update, context: CallbackContext) -> str:
+    bot = context.bot
     args = context.args
     chat = update.effective_chat  # type: Optional[Chat]
     user = update.effective_user  # type: Optional[User]
@@ -208,7 +207,7 @@ def temp_mute(update: Update, context: CallbackContext) -> str:
         if excp.message == "Reply message not found":
             # Do not reply
             message.reply_text(tld(chat.id, "tmute_success").format(
-                time_val, chat.title), quote=False)
+                time_val), quote=False)
             return log
         else:
             LOGGER.warning(update)
@@ -246,7 +245,7 @@ MUTE_HANDLER = CommandHandler(
     "mute", mute, run_async=True, filters=Filters.chat_type.groups)
 UNMUTE_HANDLER = CommandHandler(
     "unmute", unmute, run_async=True, filters=Filters.chat_type.groups)
-TEMPMUTE_HANDLER = CommandHandler(
+TEMPMUTE_HANDLER = DisableAbleCommandHandler(
     ["tmute", "tempmute"], temp_mute, run_async=True, filters=Filters.chat_type.groups)
 MUTEME_HANDLER = DisableAbleCommandHandler(
     "muteme", muteme, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True)
@@ -255,3 +254,4 @@ dispatcher.add_handler(MUTE_HANDLER)
 dispatcher.add_handler(UNMUTE_HANDLER)
 dispatcher.add_handler(TEMPMUTE_HANDLER)
 dispatcher.add_handler(MUTEME_HANDLER)
+ 

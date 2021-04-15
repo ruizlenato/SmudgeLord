@@ -117,6 +117,7 @@ def new_member(update: Update, context: CallbackContext):
 
     should_welc, cust_welcome, cust_content, welc_type = sql.get_welc_pref(
         chat.id)
+    cust_welcome = markdown_to_html(cust_welcome)
 
     if should_welc:
         sent = None

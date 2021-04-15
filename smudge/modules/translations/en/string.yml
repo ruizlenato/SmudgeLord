@@ -794,7 +794,7 @@ mute_not_existed: "I can't seem to find this user"
 mute_is_admin: "I really wish I could mute admins..."
 mute_is_bot: "I'm not gonna MUTE myself, are you crazy?"
 tmute_no_time: "You haven't specified a time to mute this user for!"
-tmute_success: "Muted for {} in {}!"
+tmute_success: "Muted for {}!"
 mute_cant_mute: "Well damn, I can't mute that user."
 restrict_invalid: "You'll need to either give me a username to restrict, or reply to someone to be restricted."
 restrict_is_bot: "I'm not restricting myself!"
@@ -1146,6 +1146,7 @@ clearuser_lastfm: Last.fm username successfully cleared from my database!
 setuser_lastfm: Username set as {}!
 lastfm_userwrong: Hmm... something went wrong.\nPlease ensure that you've set the correct username!
 lastfm_nonetracks: You don't seem to have scrobbled any songs...
+lastfm_nonetracks_now: "You are not listening to any music :3"
 lastfm_scrb: "<strong>{}</strong> - {}"
 lastfm_scrb_album: "🎙 <strong>{}</strong> \n📀 {}"
 lastfm_scrb_artist: "🎙 <strong>{}</strong>"
