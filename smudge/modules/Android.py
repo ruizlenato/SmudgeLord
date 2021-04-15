@@ -132,8 +132,8 @@ def twrp(update: Update, context: CallbackContext):
                 dl_file = download.text
                 size = trs[i].find("span", {"class": "filesize"}).text
                 keyboard = [
-                  [InlineKeyboardButton(text=dl_file, url=dl_link)],
-                  [InlineKeyboardButton(text=dl_file, url=dl_link)]]
+                    [InlineKeyboardButton(text=dl_file, url=dl_link)],
+                    [InlineKeyboardButton(text=dl_file, url=dl_link)]]
 
         else:
             download = page.find('table').find('tr').find('a')

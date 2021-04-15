@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -367,7 +367,7 @@ def sban(context: CallbackContext, update: Update) -> str:
 __help__ = True
 
 BAN_HANDLER = DisableAbleCommandHandler(
-    "ban", ban, pass_args=True, filters=Filters.chat_type.groups  & ~Filters.update.edited_message, admin_ok=True, run_async=True)
+    "ban", ban, pass_args=True, filters=Filters.chat_type.groups & ~Filters.update.edited_message, admin_ok=True, run_async=True)
 TEMPBAN_HANDLER = DisableAbleCommandHandler(
     ["tban", "tempban"], temp_ban, pass_args=True, filters=Filters.chat_type.groups & ~Filters.update.edited_message, admin_ok=True, run_async=True)
 KICK_HANDLER = DisableAbleCommandHandler(
