@@ -28,8 +28,6 @@ def is_user_ban_protected(chat: Chat,
                           user_id: int,
                           member: ChatMember = None) -> bool:
     if chat.type == 'private' \
-            or user_id in SUDO_USERS \
-            or user_id in WHITELIST_USERS \
             or chat.all_members_are_administrators:
         return True
 
@@ -40,7 +38,6 @@ def is_user_ban_protected(chat: Chat,
 
 def is_user_admin(chat: Chat, user_id: int, member: ChatMember = None) -> bool:
     if chat.type == 'private' \
-            or user_id in SUDO_USERS \
             or chat.all_members_are_administrators:
         return True
 
@@ -191,7 +188,7 @@ def user_can_ban(func):
         member = update.effective_chat.get_member(user)
 
         if not (member.can_restrict_members or
-                member.status == "creator") and not user in SUDO_USERS:
+                member.status == "creator"):
             update.effective_message.reply_text(
                 tld(chat.id, "admin_ban_perm_false"))
             return ""
@@ -207,7 +204,7 @@ def user_can_kick(func):
         member = update.effective_chat.get_member(user)
 
         if not (member.can_restrict_members or
-                member.status == "creator") and not user in SUDO_USERS:
+                member.status == "creator"):
             update.effective_message.reply_text(
                 tld(chat.id, "admin_kick_perm_false"))
             return ""
@@ -224,7 +221,7 @@ def user_can_warn(func):
         member = update.effective_chat.get_member(user)
 
         if not (member.can_restrict_members or
-                member.status == "creator") and not user in SUDO_USERS:
+                member.status == "creator"):
             update.effective_message.reply_text(
                 tld(chat.id, "admin_warn_perm_false"))
             return ""
@@ -241,7 +238,7 @@ def user_can_promote(func):
         member = update.effective_chat.get_member(user)
 
         if not (member.can_promote_members or
-                member.status == "creator") and not user in SUDO_USERS:
+                member.status == "creator"):
             update.effective_message.reply_text(
                 tld(chat.id, "admin_promote_perm_false"))
             return ""
@@ -258,7 +255,7 @@ def user_can_pin(func):
         member = update.effective_chat.get_member(user)
 
         if not (member.can_pin_messages or
-                member.status == "creator") and not user in SUDO_USERS:
+                member.status == "creator"):
             update.effective_message.reply_text(
                 tld(chat.id, "admin_pin_perm_false"))
             return ""
@@ -274,7 +271,7 @@ def user_can_changeinfo(func):
         chat = update.effective_chat
         member = update.effective_chat.get_member(user)
 
-        if not (member.can_change_info or member.status == "creator") and not user in SUDO_USERS:
+        if not (member.can_change_info or member.status == "creator"):
             update.effective_message.reply_text(
                 tld(chat.id, "admin_changeinfo_perm_false"))
             return ""
