@@ -14,7 +14,7 @@
 import os
 import math
 from telegram import Message, Chat, Update, TelegramError
-from telegram import ParseMode
+from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import run_async
 from telegram.utils.helpers import escape_markdown
 
