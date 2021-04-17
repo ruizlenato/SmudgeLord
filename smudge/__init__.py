@@ -52,8 +52,6 @@ if not CONFIG['is_example_config_or_not'] == "not_sample_anymore":
     sys.exit(1)
 
 TOKEN = CONFIG['bot_token']
-API_KEY = CONFIG['api_key']
-API_HASH = CONFIG['api_hash']
 
 try:
     OWNER_ID = int(CONFIG['owner_id'])
@@ -112,10 +110,9 @@ else:
     except Exception:
         sw = None
 
-updater = tg.Updater(TOKEN, workers=WORKERS, use_context=True)
+updater = tg.Updater(TOKEN, workers=WORKERS)
 
-dispatcher = updater.dispatcher
-
+dispatcher = updater.dispatcher 
 CallbackContext = tg.CallbackContext
 trl = Translator()
 
@@ -123,6 +120,7 @@ SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
 
 # Load at end to ensure all prev variables have been set
-from smudge.helper_funcs.handlers import CustomCommandHandler
+from smudge.helper_funcs.handlers import CustomCommandHandler, CustomRegexHandler
 
+tg.RegexHandler = CustomRegexHandler
 tg.CommandHandler = CustomCommandHandler

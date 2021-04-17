@@ -3,10 +3,10 @@ import re
 from telegram import MAX_MESSAGE_LENGTH, ParseMode, InlineKeyboardMarkup
 from telegram import Bot, Update
 from telegram.error import BadRequest
-from telegram.ext import CallbackContext, CommandHandler, CallbackQueryHandler, Filters, MessageHandler
+from telegram.ext import  CommandHandler, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
 import smudge.modules.sql.notes_sql as sql
-from smudge import dispatcher, MESSAGE_DUMP, LOGGER
+from smudge import dispatcher, CallbackContext, MESSAGE_DUMP, LOGGER
 from smudge.modules.disable import DisableAbleCommandHandler
 from smudge.helper_funcs.chat_status import user_admin
 from smudge.helper_funcs.misc import build_keyboard, revert_buttons
@@ -216,13 +216,14 @@ def save(update: Update, context: CallbackContext):
 
 @user_admin
 def clear(update: Update, context: CallbackContext):
-    args = context.args
+    bot = context.bot
+    args = context.args 
     user = update.effective_user
     chat = update.effective_chat
     conn = connected(update, context, chat, user.id)
     if conn:
         chat_id = conn
-        chat_name = dispatcher.bot.getChat(conn).title
+        chat_name = dispatcher.bot.getChat(conn)
     else:
         chat_id = update.effective_chat.id
         if chat.type == "private":
@@ -332,7 +333,7 @@ HASH_GET_HANDLER = MessageHandler(
     Filters.regex(r"^#[^\s]+"), hash_get, run_async=True)
 SAVE_HANDLER = CommandHandler("save", save, run_async=True)
 REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall", remove_all_notes)
-DELETE_HANDLER = CommandHandler("clear", clear, pass_args=True, run_async=True)
+DELETE_HANDLER = DisableAbleCommandHandler("clear", clear,  run_async=True)
 
 LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"],
                                          list_notes,
