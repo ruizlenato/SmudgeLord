@@ -3,7 +3,7 @@ import re
 from telegram import MAX_MESSAGE_LENGTH, ParseMode, InlineKeyboardMarkup
 from telegram import Bot, Update
 from telegram.error import BadRequest
-from telegram.ext import  CommandHandler, CallbackQueryHandler, Filters, MessageHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, Filters, MessageHandler
 from telegram.ext.dispatcher import run_async
 import smudge.modules.sql.notes_sql as sql
 from smudge import dispatcher, CallbackContext, MESSAGE_DUMP, LOGGER
@@ -217,7 +217,7 @@ def save(update: Update, context: CallbackContext):
 @user_admin
 def clear(update: Update, context: CallbackContext):
     bot = context.bot
-    args = context.args 
+    args = context.args
     user = update.effective_user
     chat = update.effective_chat
     conn = connected(update, context, chat, user.id)
