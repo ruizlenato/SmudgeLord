@@ -3,7 +3,7 @@ import re
 from telegram import MAX_MESSAGE_LENGTH, ParseMode, InlineKeyboardMarkup
 from telegram import Bot, Update
 from telegram.error import BadRequest
-from telegram.ext import CallbackQueryHandler, Filters, MessageHandler, CommandHandler 
+from telegram.ext import CallbackQueryHandler, Filters, MessageHandler, CommandHandler
 from telegram.ext.dispatcher import run_async
 import smudge.modules.sql.notes_sql as sql
 from smudge import dispatcher, CallbackContext, MESSAGE_DUMP, LOGGER
@@ -217,7 +217,7 @@ def save(update: Update, context: CallbackContext):
 @user_admin
 def clear(update: Update, context: CallbackContext):
     bot = context.bot
-    args = context.args 
+    args = context.args
     user = update.effective_user
     chat = update.effective_chat
     conn = connected(update, context, chat, user.id)
@@ -332,7 +332,7 @@ GET_HANDLER = DisableAbleCommandHandler(
 HASH_GET_HANDLER = MessageHandler(
     Filters.regex(r"^#[^\s]+"), hash_get, run_async=True)
 SAVE_HANDLER = DisableAbleCommandHandler("save", save, run_async=True)
-REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall", remove_all_notes) 
+REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall", remove_all_notes)
 DELETE_HANDLER = DisableAbleCommandHandler("clear", clear, run_async=True)
 
 

@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -102,7 +102,8 @@ def get_welcome_type(msg: Message):
     content = None
     text = ""
     raw_text = msg.text or msg.caption
-    args = raw_text.split(None, 1)  # use python's maxsplit to separate cmd and args
+    # use python's maxsplit to separate cmd and args
+    args = raw_text.split(None, 1)
 
     buttons = []
     # determine what the contents of the filter are - text, image, sticker, etc
