@@ -4,7 +4,7 @@ from typing import Optional, List
 from telegram import Message, Chat, Update, Bot, User, CallbackQuery
 from telegram import ParseMode, InlineKeyboardMarkup, InlineKeyboardButton, ChatPermissions
 from telegram.error import BadRequest
-from telegram.ext import MessageHandler, Filters, CommandHandler, run_async, CallbackQueryHandler
+from telegram.ext import MessageHandler, Filters, run_async, CallbackQueryHandler, CommandHandler
 from telegram.utils.helpers import mention_html
 
 import smudge.modules.sql.welcome_sql as sql
@@ -16,6 +16,7 @@ from smudge.helper_funcs.string_handling import markdown_parser, \
     escape_invalid_curly_brackets, extract_time, markdown_to_html
 from smudge.modules.log_channel import loggable
 from smudge.modules.translations.strings import tld
+from smudge.modules.disable import DisableAbleCommandHandler
 
 VALID_WELCOME_FORMATTERS = [
     'first', 'last', 'fullname', 'username', 'id', 'count', 'chatname',
@@ -766,27 +767,19 @@ def goodbye(update: Update, context: CallbackContext):
 @loggable
 @user_can_changeinfo
 def set_welcome(update: Update, context: CallbackContext) -> str:
-    bot = context.bot
-    chat = update.effective_chat  # type: Optional[Chat]
-    user = update.effective_user  # type: Optional[User]
-    msg = update.effective_message  # type: Optional[Message]
-
-    # If user is not set text and not reply a message
-    if not msg.reply_to_message:
-        if len(msg.text.split()) == 1:
-            msg.reply_text(tld(chat.id, 'welcome_set_welcome_no_text'),
-                           parse_mode="markdown")
-            return ""
-
+    chat = update.effective_chat
+    user = update.effective_user
+    msg = update.effective_message
+    
     text, data_type, content, buttons = get_welcome_type(msg)
-
+    
     if data_type is None:
-        msg.reply_text(tld(chat.id, "welcome_set_welcome_no_datatype"))
+        msg.reply_text("You didn't specify what to reply with!")
         return ""
-
+        
     sql.set_custom_welcome(chat.id, content, text, data_type, buttons)
     msg.reply_text(tld(chat.id, 'welcome_set_welcome_success'))
-
+    
     return "<b>{}:</b>" \
            "\n#SET_WELCOME" \
            "\n<b>Admin:</b> {}" \
@@ -915,7 +908,7 @@ WELC_PREF_HANDLER = CommandHandler(
     "welcome", welcome, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
 GOODBYE_PREF_HANDLER = CommandHandler(
     "goodbye", goodbye,  run_async=True, pass_args=True, filters=Filters.chat_type.groups)
-SET_WELCOME = CommandHandler(
+SET_WELCOME = DisableAbleCommandHandler(
     "setwelcome", set_welcome,  run_async=True, filters=Filters.chat_type.groups)
 SET_GOODBYE = CommandHandler(
     "setgoodbye", set_goodbye,  run_async=True, filters=Filters.chat_type.groups)
