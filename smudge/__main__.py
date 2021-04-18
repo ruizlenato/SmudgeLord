@@ -12,7 +12,7 @@ from telegram.ext.dispatcher import DispatcherHandlerStop, Dispatcher
 from telegram.ext.callbackcontext import CallbackContext
 from telegram.utils.helpers import DEFAULT_FALSE
 
-from smudge import dispatcher, updater, CallbackContext, TOKEN, OWNER_ID, LOGGER
+from smudge import dispatcher, updater, CallbackContext, TOKEN, OWNER_ID, LOGGER, PyroSmudge
 # needed to dynamically load modules
 # NOTE: Module order is not guaranteed, specify that in the config file!
 from smudge.modules import ALL_MODULES
@@ -389,6 +389,6 @@ def process_update(self, update):
 
 
 if __name__ == '__main__':
-    LOGGER.info("\n.....................................................................\n.....................................................................\n....... MMMM..............................................MMMM.......\n........ MMWMMM........................................MMWMMM .......\n........  MMMMMMM..................................MMWMMMMWN ........\n.......... MNWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNXNWMMMMMMMWNN .........\n........... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNN ..........\n............ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMNN ...........\n............ MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ............\n..........  MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMWNM .............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMWMMMMMMMMMMMMMMMMMM ..............\n.......... MMMk....MMMMMMMMMM......MMMMMMMMMMMMMMMMMM ...............\n......... OMMMM....MMMMMMMMMM.....MMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMM..MWMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMM..MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMWWMMMM  dNMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMN....MMM:..MMMMMMMMWMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMM.....MMMMMMMMMMMMMMMMMMMMMMMMM ..............\n......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.......... MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM ..............\n.....................................................................")
-    LOGGER.info("Successfully loaded modules: " + str(ALL_MODULES))
+    LOGGER.info("[Smudge] Successfully loaded modules: " + str(ALL_MODULES))
     main()
+    PyroSmudge.run()
