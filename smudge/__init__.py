@@ -11,6 +11,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+from smudge.helper_funcs.handlers import CustomCommandHandler
 import logging
 import sys
 import yaml
@@ -123,6 +124,5 @@ trl = Translator()
 SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
 
-from smudge.helper_funcs.handlers import CustomCommandHandler
 # Load at end to ensure all prev variables have been set
 tg.CommandHandler = CustomCommandHandler
