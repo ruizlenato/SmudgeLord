@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -16,13 +16,13 @@ from typing import Optional, List
 from telegram import ParseMode
 from telegram import Chat, Update, Bot, User
 from telegram.ext import (
-  CommandHandler,
-  CallbackQueryHandler,
-  run_async,
-  )
+    CommandHandler,
+    CallbackQueryHandler,
+    run_async,
+)
 
 import smudge.modules.sql.connection_sql as sql
-from smudge import CallbackContext, dispatcher, SUDO_USERS 
+from smudge import CallbackContext, dispatcher, SUDO_USERS
 from smudge.helper_funcs.chat_status import user_admin
 
 from smudge.modules.translations.strings import tld

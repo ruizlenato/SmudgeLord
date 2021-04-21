@@ -770,16 +770,16 @@ def set_welcome(update: Update, context: CallbackContext) -> str:
     chat = update.effective_chat
     user = update.effective_user
     msg = update.effective_message
-    
+
     text, data_type, content, buttons = get_welcome_type(msg)
-    
+
     if data_type is None:
         msg.reply_text("You didn't specify what to reply with!")
         return ""
-        
+
     sql.set_custom_welcome(chat.id, content, text, data_type, buttons)
     msg.reply_text(tld(chat.id, 'welcome_set_welcome_success'))
-    
+
     return "<b>{}:</b>" \
            "\n#SET_WELCOME" \
            "\n<b>Admin:</b> {}" \
@@ -917,7 +917,7 @@ RESET_WELCOME = DisableAbleCommandHandler(
 RESET_GOODBYE = DisableAbleCommandHandler(
     "resetgoodbye", reset_goodbye, run_async=True, filters=Filters.chat_type.groups)
 CLEAN_WELCOME = DisableAbleCommandHandler("cleanwelcome", clean_welcome,
-                               pass_args=True, run_async=True, filters=Filters.chat_type.groups)
+                                          pass_args=True, run_async=True, filters=Filters.chat_type.groups)
 SECURITY_HANDLER = DisableAbleCommandHandler(
     "welcomemute", security, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
 SECURITY_MUTE_HANDLER = DisableAbleCommandHandler(

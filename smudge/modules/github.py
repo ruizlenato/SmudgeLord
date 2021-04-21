@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -227,7 +227,8 @@ VERCHECKER_HANDLER = DisableAbleCommandHandler(
 CHANGELOG_HANDLER = DisableAbleCommandHandler(
     "changelog", changelog, run_async=True, admin_ok=True)
 RELEASE_HANDLER = DisableAbleCommandHandler("gitr", getRelease, admin_ok=True)
-HASHFETCH_HANDLER = MessageHandler(Filters.regex(r"^&[^\s]+"), hashFetch, run_async=True)
+HASHFETCH_HANDLER = MessageHandler(
+    Filters.regex(r"^&[^\s]+"), hashFetch, run_async=True)
 
 dispatcher.add_handler(RELEASE_HANDLER)
 dispatcher.add_handler(FETCH_HANDLER)

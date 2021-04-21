@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -50,7 +50,8 @@ def report_setting(update: Update, context: CallbackContext):
                 sql.set_user_setting(chat.id, False)
                 msg.reply_text(tld(chat.id, "reports_pm_off"))
         else:
-            msg.reply_text(tld(chat.id, "reports_pm_pref").format(sql.user_should_report(chat.id)), parse_mode=ParseMode.MARKDOWN)
+            msg.reply_text(tld(chat.id, "reports_pm_pref").format(
+                sql.user_should_report(chat.id)), parse_mode=ParseMode.MARKDOWN)
     else:
         if len(args) >= 1:
             if args[0] in ("yes", "on"):
@@ -62,7 +63,8 @@ def report_setting(update: Update, context: CallbackContext):
                 msg.reply_text(tld(chat.id, "reports_chat_off"))
 
         else:
-            msg.reply_text(tld(chat.id, "reports_chat_pref").format(sql.chat_should_report(chat.id)), parse_mode=ParseMode.MARKDOWN)
+            msg.reply_text(tld(chat.id, "reports_chat_pref").format(
+                sql.chat_should_report(chat.id)), parse_mode=ParseMode.MARKDOWN)
 
 
 @loggable
@@ -100,14 +102,18 @@ def report(update: Update, context: CallbackContext) -> str:
             should_forward = False
             keyboard = [
                 [
-                    InlineKeyboardButton("➡ Message", url=f"https://t.me/{chat.username}/{message.reply_to_message.message_id}",)
+                    InlineKeyboardButton(
+                        "➡ Message", url=f"https://t.me/{chat.username}/{message.reply_to_message.message_id}",)
                 ],
                 [
-                    InlineKeyboardButton("⚠ Kick", callback_data=f"report_{chat.id}=kick={reported_user.id}={reported_user.first_name}",),
-                    InlineKeyboardButton("⛔️ Ban", callback_data=f"report_{chat.id}=banned={reported_user.id}={reported_user.first_name}",),
+                    InlineKeyboardButton(
+                        "⚠ Kick", callback_data=f"report_{chat.id}=kick={reported_user.id}={reported_user.first_name}",),
+                    InlineKeyboardButton(
+                        "⛔️ Ban", callback_data=f"report_{chat.id}=banned={reported_user.id}={reported_user.first_name}",),
                 ],
                 [
-                    InlineKeyboardButton("❎ Delete Message", callback_data=f"report_{chat.id}=delete={reported_user.id}={message.reply_to_message.message_id}",)
+                    InlineKeyboardButton(
+                        "❎ Delete Message", callback_data=f"report_{chat.id}=delete={reported_user.id}={message.reply_to_message.message_id}",)
                 ],
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
@@ -239,8 +245,10 @@ def buttons(update: Update, context: CallbackContext):
             query.answer("🛑 Failed to delete message!")
 
 
-SETTING_HANDLER = DisableAbleCommandHandler("reports", report_setting, run_async=True)
-REPORT_HANDLER = CommandHandler("report", report, filters=Filters.chat_type.groups, run_async=True)
+SETTING_HANDLER = DisableAbleCommandHandler(
+    "reports", report_setting, run_async=True)
+REPORT_HANDLER = CommandHandler(
+    "report", report, filters=Filters.chat_type.groups, run_async=True)
 ADMIN_REPORT_HANDLER = MessageHandler(
     Filters.regex(r"(?i)@admin(s)?"), report, run_async=True
 )

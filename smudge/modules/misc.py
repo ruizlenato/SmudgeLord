@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -159,14 +159,13 @@ def info(update: Update, context: CallbackContext):
                 text += tld(chat.id, "misc_info_is_whitelisted")
 
     for mod in USER_INFO:
-        
+
         try:
             mod_info = mod.__user_info__(user.id)
         except TypeError:
             mod_info = mod.__user_info__(user.id, chat.id)
         if mod_info:
             text += "\n" + mod_info
-
 
     update.effective_message.reply_text(text, parse_mode=ParseMode.HTML)
 
