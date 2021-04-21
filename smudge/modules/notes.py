@@ -69,7 +69,8 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
             try:
                 context.bot.forward_message(chat_id=chat_id,
                                             from_chat_id=MESSAGE_DUMP,
-                                            message_id=note.value)
+                                            message_id=note.value,
+                                            disable_web_page_preview=True)
             except BadRequest as excp:
                 if excp.message == "Message to forward not found":
                     message.reply_text(tld(chat.id, "note_lost"))
@@ -80,7 +81,8 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
             try:
                 context.bot.forward_message(chat_id=chat_id,
                                             from_chat_id=chat_id,
-                                            message_id=note.value)
+                                            message_id=note.value,
+                                            disable_web_page_preview=True)
 
             except BadRequest as excp:
                 if excp.message == "Message to forward not found":
@@ -114,13 +116,15 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
                                              text,
                                              reply_to_message_id=reply_id,
                                              parse_mode=parseMode,
-                                             reply_markup=keyboard)
+                                             reply_markup=keyboard,
+                                             disable_web_page_preview=True,
+                                             )
                 except BadRequest as excp:
                     if excp.message == "Wrong http url":
                         failtext = tld(chat.id, "note_url_invalid")
                         failtext += "\n\n```\n{}```".format(
                             note.value + revert_buttons(buttons))
-                        message.reply_text(failtext, parse_mode="markdown")
+                        message.reply_text(failtext, parse_mode="markdown", disable_web_page_preview=True)
 
             else:
                 if note:
@@ -129,7 +133,8 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
                                                 caption=text,
                                                 reply_to_message_id=reply_id,
                                                 parse_mode=parseMode,
-                                                reply_markup=keyboard)
+                                                reply_markup=keyboard,
+                                                )
 
         except BadRequest as excp:
             if excp.message == "Entity_mention_user_invalid":
@@ -223,7 +228,7 @@ def clear(update: Update, context: CallbackContext):
     conn = connected(update, context, chat, user.id)
     if conn:
         chat_id = conn
-        chat_name = dispatcher.bot.getChat(conn)
+        chat_name = dispatcher.bot.getChat(conn).title
     else:
         chat_id = update.effective_chat.id
         if chat.type == "private":
@@ -327,18 +332,25 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-GET_HANDLER = DisableAbleCommandHandler(
-    "get", cmd_get, pass_args=True, run_async=True)
-HASH_GET_HANDLER = MessageHandler(
-    Filters.regex(r"^#[^\s]+"), hash_get, run_async=True)
-SAVE_HANDLER = DisableAbleCommandHandler("save", save, run_async=True)
-REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall", remove_all_notes) 
-DELETE_HANDLER = DisableAbleCommandHandler("clear", clear, run_async=True)
-
-
+GET_HANDLER = DisableAbleCommandHandler("get",
+                                        cmd_get,
+                                        pass_args=True,
+                                        run_async=True)
+HASH_GET_HANDLER = MessageHandler(Filters.regex(r"^#[^\s]+"),
+                                  hash_get,
+                                  run_async=True)
+SAVE_HANDLER = DisableAbleCommandHandler("save",
+                                          save,
+                                          run_async=True)
+REMOVE_ALL_NOTES_HANDLER = CommandHandler("clearall",
+                                          remove_all_notes) 
+DELETE_HANDLER = DisableAbleCommandHandler("clear",
+                                           clear,
+                                           run_async=True)
 LIST_HANDLER = DisableAbleCommandHandler(["notes", "saved"],
                                          list_notes,
-                                         admin_ok=True, run_async=True)
+                                         admin_ok=True,
+                                         run_async=True)
 
 dispatcher.add_handler(GET_HANDLER)
 dispatcher.add_handler(SAVE_HANDLER)

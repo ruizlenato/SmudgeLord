@@ -2,11 +2,17 @@ import os
 import imghdr
 
 from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid, UserIsBlocked, StickerPngNopng
+from pyrogram.types import (
+  Message,
+  InlineKeyboardButton,
+  InlineKeyboardMarkup,
+  Message,
+  )
 from smudge.modules.translations.strings import tld
 from pyrogram import Client, filters, errors, raw
 from smudge import SUDO_USERS, TOKEN, PyroSmudge
 from pyrogram.file_id import FileId
-from pyrogram.types import Message
+
 from typing import List
 from PIL import Image
 
@@ -33,7 +39,8 @@ async def kang(client, message):
     if not message.reply_to_message:
         await message.reply_text(tld(msssage.chat.id, 'stickers_kang_error'))
         return
-    msg = await message.reply_text("Kanging Sticker...")
+
+    msg = await message.reply_text(tld(message.chat.id, 'stickers_kanging'))
 
     # Find the proper emoji
     args = message.text.split()
@@ -58,6 +65,8 @@ async def kang(client, message):
             return
         try:
             temp_file_path = await resize_file_to_sticker_size(temp_file_path)
+        except PeerIdInvalid:
+            return await msg.edit(tld(message.chat.id, "stickers_pack_contact_pm"))
         except OSError as e:
             await msg.edit_text("Something wrong happened.")
             raise Exception(
@@ -85,9 +94,10 @@ async def kang(client, message):
                     message.from_user.id,
                     f"{message.from_user.first_name[:32]}'s kang pack",
                     packname,
-                    [sticker]
-                )
+                    [sticker],
+                    )
             elif stickerset.set.count >= 120:
+                msg.edit(tld(message.chat.id, 'stickers_kang_too_much'))
                 packnum += 1
                 packname = "f" + str(packnum) + "_" + \
                     str(message.from_user.id) + "_by_"+user.username

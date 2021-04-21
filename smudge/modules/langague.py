@@ -39,7 +39,8 @@ def locale(update: Update, context: CallbackContext):
             else:
                 update.message.reply_text(
                     tld(chat.id,
-                        "language_not_supported").format(list_locales[locale]))
+                        "language_not_supported").format(list_locales[locale]),
+                        parse_mode=ParseMode.HTML)
         else:
             update.message.reply_text(tld(chat.id, "language_code_not_valid"))
     else:

@@ -30,7 +30,7 @@ from smudge.helper_funcs.filters import CustomFilters
 # from smudge.sql.users_sql import get_all_chats
 
 from smudge.modules.translations.strings import tld
-
+from smudge.modules.disable import DisableAbleCommandHandler
 GBAN_ENFORCE_GROUP = 6
 
 GBAN_ERRORS = {
@@ -142,9 +142,15 @@ def __migrate__(old_chat_id, new_chat_id):
 
 __help__ = True
 
-ANTISPAM_STATUS = CommandHandler("antispam", antispam, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
+ANTISPAM_STATUS = DisableAbleCommandHandler("antispam",
+                                            antispam,
+                                            pass_args=True,
+                                            filters=Filters.chat_type.groups,
+                                            run_async=True)
 
-GBAN_ENFORCER = MessageHandler(Filters.all & Filters.chat_type.groups, enforce_gban, run_async=True)
+GBAN_ENFORCER = MessageHandler(Filters.all & Filters.chat_type.groups,
+                               enforce_gban,
+                               run_async=True)
 
 dispatcher.add_handler(ANTISPAM_STATUS)
 

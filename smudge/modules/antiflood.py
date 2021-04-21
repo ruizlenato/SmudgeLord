@@ -25,6 +25,7 @@ from smudge.modules.log_channel import loggable
 from smudge.modules.sql import antiflood_sql as sql
 
 from smudge.modules.translations.strings import tld
+from smudge.modules.connection import connected
 
 FLOOD_GROUP = 5
 
@@ -127,9 +128,18 @@ __help__ = True
 
 # TODO: Add actions: ban/kick/mute/tban/tmute
 
-FLOOD_BAN_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups, check_flood, run_async=True)
-SET_FLOOD_HANDLER = CommandHandler("setflood", set_flood, pass_args=True, filters=Filters.chat_type.groups, run_async=True)
-FLOOD_HANDLER = CommandHandler("flood", flood, filters=Filters.chat_type.groups, run_async=True)
+FLOOD_BAN_HANDLER = MessageHandler(Filters.all & Filters.chat_type.groups,
+                                   check_flood,
+                                   run_async=True)
+SET_FLOOD_HANDLER = CommandHandler("setflood",
+                                   set_flood,
+                                   filters=Filters.chat_type.groups,
+                                   pass_args=True,
+                                   run_async=True)
+FLOOD_HANDLER = CommandHandler("flood",
+                               flood,
+                               filters=Filters.chat_type.groups,
+                               run_async=True)
 
 dispatcher.add_handler(FLOOD_BAN_HANDLER, FLOOD_GROUP)
 dispatcher.add_handler(SET_FLOOD_HANDLER)

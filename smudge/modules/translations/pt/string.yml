@@ -786,7 +786,7 @@ mute_invalid: "Você precisará me dar um nome de usuário para silenciar ou res
 mute_not_myself: "Eu não vou mutar!"
 mute_not_sudo: "Não! Isso seria uma ideia bem idiota, não posso silenciar o meu sudo."
 mute_not_m_admin: "Não! Não posso silenciar o(a) administrador(a) do chat! Isso seria uma ideia bem idiota."
-mute_success: "Você fala muito, agora fique calado.\n {} <strong>foi mutado(sileciado)!</strong>"
+mute_success: "Você fala muito, agora fique calado.\n {} <strong>foi mutado(silenciado)!</strong>"
 mute_already_mute: "Este usuário já silenciado(mutado) em {}!"
 mute_not_in_chat: "Este usuário não está no {}!"
 unmute_invalid: "Você precisará me fornecer um nome de usuário para ."
@@ -1040,8 +1040,9 @@ stickers_kang_success: |
         Sticker kangado com sucesso [pack](t.me/addstickers/{}).
         Emoji: {}
 stickers_kang_only_img: Eu só posso dar kang em imagens!
+stickers_kanging: "Roubando o Sticker..."
 stickers_kang_invalid_emoji: "Erro: emoji(s) invalido."
-stickers_kang_too_much: "Error: Tamanho máximo do pacote atingido. Press F to pay respect."
+stickers_kang_too_much: "Crinado um novo pack por que o antigo atingiu o máximo de stickers, Press F to pay respect."
 stickers_kang_no_reply: Por favor responda uma imagem ou sticker para que eu possa kangar\nOh, a propósito. aqui estão seus pacotes:\n
 stickers_pack_name_exists: Seu pacote pode ser encontrado [aqui](t.me/addstickers/%s)
 stickers_pack_contact_pm: Fale comigo no PV primeiro.

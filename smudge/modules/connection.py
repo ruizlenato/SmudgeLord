@@ -15,10 +15,14 @@ from typing import Optional, List
 
 from telegram import ParseMode
 from telegram import Chat, Update, Bot, User
-from telegram.ext import CommandHandler, CallbackQueryHandler, run_async, CallbackContext
+from telegram.ext import (
+  CommandHandler,
+  CallbackQueryHandler,
+  run_async,
+  )
 
 import smudge.modules.sql.connection_sql as sql
-from smudge import dispatcher, SUDO_USERS
+from smudge import CallbackContext, dispatcher, SUDO_USERS 
 from smudge.helper_funcs.chat_status import user_admin
 
 from smudge.modules.translations.strings import tld
@@ -224,12 +228,17 @@ def connected(update: Update, context: CallbackContext, chat, user_id, need_admi
 
 __help__ = True
 
-CONNECT_CHAT_HANDLER = CommandHandler(
-    ["connect", "connection"], connect_chat, pass_args=True, run_async=True)
-DISCONNECT_CHAT_HANDLER = CommandHandler(
-    "disconnect", disconnect_chat, run_async=True)
-ALLOW_CONNECTIONS_HANDLER = CommandHandler(
-    "allowconnect", allow_connections, pass_args=True, run_async=True)
+CONNECT_CHAT_HANDLER = CommandHandler(["connect", "connection"],
+                                      connect_chat,
+                                      pass_args=True,
+                                      run_async=True)
+DISCONNECT_CHAT_HANDLER = CommandHandler("disconnect",
+                                         disconnect_chat,
+                                         run_async=True)
+ALLOW_CONNECTIONS_HANDLER = CommandHandler("allowconnect",
+                                           allow_connections,
+                                           pass_args=True,
+                                           run_async=True)
 
 dispatcher.add_handler(CONNECT_CHAT_HANDLER)
 dispatcher.add_handler(DISCONNECT_CHAT_HANDLER)
