@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +40,7 @@ def locale(update: Update, context: CallbackContext):
                 update.message.reply_text(
                     tld(chat.id,
                         "language_not_supported").format(list_locales[locale]),
-                        parse_mode=ParseMode.HTML)
+                    parse_mode=ParseMode.HTML)
         else:
             update.message.reply_text(tld(chat.id, "language_code_not_valid"))
     else:

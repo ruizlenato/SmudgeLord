@@ -3,11 +3,11 @@ import imghdr
 
 from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid, UserIsBlocked, StickerPngNopng
 from pyrogram.types import (
-  Message,
-  InlineKeyboardButton,
-  InlineKeyboardMarkup,
-  Message,
-  )
+    Message,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 from smudge.modules.translations.strings import tld
 from pyrogram import Client, filters, errors, raw
 from smudge import SUDO_USERS, TOKEN, PyroSmudge
@@ -95,7 +95,7 @@ async def kang(client, message):
                     f"{message.from_user.first_name[:32]}'s kang pack",
                     packname,
                     [sticker],
-                    )
+                )
             elif stickerset.set.count >= 120:
                 msg.edit(tld(message.chat.id, 'stickers_kang_too_much'))
                 packnum += 1

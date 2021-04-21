@@ -1,7 +1,7 @@
 #    SmudgeLord (A telegram bot project)
 #    Copyright (C) 2017-2019 Paul Larsen
 #    Copyright (C) 2019-2021 A Haruka Aita and Intellivoid Technologies project
-#    Copyright (C) 2021 Renatoh 
+#    Copyright (C) 2021 Renatoh
 
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as published by
@@ -19,6 +19,7 @@ from smudge.modules.sql import BASE, SESSION
 
 GBANSTAT_LIST = set()
 GBANNED_LIST = set()
+
 
 class GloballyBannedUsers(BASE):
     __tablename__ = "gbans"
@@ -97,6 +98,7 @@ def migrate_chat(old_chat_id, new_chat_id):
             SESSION.add(gban)
 
         SESSION.commit()
+
 
 def is_user_gbanned(user_id):
     return user_id in GBANNED_LIST

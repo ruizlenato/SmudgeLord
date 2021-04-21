@@ -5,10 +5,11 @@ from pyrate_limiter import BucketFullException, Duration, RequestRate, Limiter, 
 
 CMD_STARTERS = ('/', '!')
 
+
 class AntiSpam:
     def __init__(self):
         self.whitelist = (
-            (SUDO_USERS  or [])
+            (SUDO_USERS or [])
         )
         # Values are HIGHLY experimental, its recommended you pay attention to our commits as we will be adjusting the values over time with what suits best.
         Duration.CUSTOM = 15  # Custom duration, 15 seconds
@@ -37,7 +38,8 @@ class AntiSpam:
             return True
 
 
-SpamChecker = AntiSpam() 
+SpamChecker = AntiSpam()
+
 
 class CustomCommandHandler(tg.CommandHandler):
     def __init__(self, command, callback, run_async=True, **kwargs):
@@ -74,12 +76,12 @@ class CustomCommandHandler(tg.CommandHandler):
                     if SpamChecker.check_user(user_id):
                         return None
 
-
                     filter_result = self.filters(update)
                     if filter_result:
                         return args, filter_result
                     else:
                         return False
+
 
 class CustomRegexHandler(tg.MessageHandler):
     def __init__(self, pattern, callback, friendly="", **kwargs):

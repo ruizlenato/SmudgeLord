@@ -297,7 +297,7 @@ def __import_data__(chat_id, data):
 
 __help__ = True
 
-FILTER_HANDLER = DisableAbleCommandHandler("filter",filters)
+FILTER_HANDLER = DisableAbleCommandHandler("filter", filters)
 STOP_HANDLER = DisableAbleCommandHandler("stop", stop_filter)
 LIST_HANDLER = DisableAbleCommandHandler("filters",
                                          list_handlers,
