@@ -1169,7 +1169,7 @@ last_fm_help: |
  - /collage: makes a collage in 3x3 of the albums that you heard the most in the week.
  
 #direct_links
-modname_direct_links: Lirect Links
+modname_direct_links: Direct Links
 direct_links_help: |
  This module allows you to generate direct links from various websites.
 

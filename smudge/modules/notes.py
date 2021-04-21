@@ -69,7 +69,8 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
             try:
                 context.bot.forward_message(chat_id=chat_id,
                                             from_chat_id=MESSAGE_DUMP,
-                                            message_id=note.value)
+                                            message_id=note.value,
+                                            disable_web_page_preview=True)
             except BadRequest as excp:
                 if excp.message == "Message to forward not found":
                     message.reply_text(tld(chat.id, "note_lost"))
@@ -80,7 +81,8 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
             try:
                 context.bot.forward_message(chat_id=chat_id,
                                             from_chat_id=chat_id,
-                                            message_id=note.value)
+                                            message_id=note.value,
+                                            disable_web_page_preview=True)
 
             except BadRequest as excp:
                 if excp.message == "Message to forward not found":
@@ -114,13 +116,14 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
                                              text,
                                              reply_to_message_id=reply_id,
                                              parse_mode=parseMode,
-                                             reply_markup=keyboard)
+                                             reply_markup=keyboard,
+                                             disable_web_page_preview=True)
                 except BadRequest as excp:
                     if excp.message == "Wrong http url":
                         failtext = tld(chat.id, "note_url_invalid")
                         failtext += "\n\n```\n{}```".format(
                             note.value + revert_buttons(buttons))
-                        message.reply_text(failtext, parse_mode="markdown")
+                        message.reply_text(failtext, parse_mode="markdown", disable_web_page_preview=True)
 
             else:
                 if note:
@@ -129,7 +132,8 @@ def get(update: Update, context: CallbackContext, notename, show_none=True, no_f
                                                 caption=text,
                                                 reply_to_message_id=reply_id,
                                                 parse_mode=parseMode,
-                                                reply_markup=keyboard)
+                                                reply_markup=keyboard,
+                                                disable_web_page_preview=True)
 
         except BadRequest as excp:
             if excp.message == "Entity_mention_user_invalid":

@@ -904,29 +904,29 @@ NEW_MEM_HANDLER = MessageHandler(
     Filters.status_update.new_chat_members, new_member, run_async=True)
 LEFT_MEM_HANDLER = MessageHandler(
     Filters.status_update.left_chat_member, left_member, run_async=True)
-WELC_PREF_HANDLER = CommandHandler(
+WELC_PREF_HANDLER = DisableAbleCommandHandler(
     "welcome", welcome, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-GOODBYE_PREF_HANDLER = CommandHandler(
+GOODBYE_PREF_HANDLER = DisableAbleCommandHandler(
     "goodbye", goodbye,  run_async=True, pass_args=True, filters=Filters.chat_type.groups)
 SET_WELCOME = DisableAbleCommandHandler(
     "setwelcome", set_welcome,  run_async=True, filters=Filters.chat_type.groups)
-SET_GOODBYE = CommandHandler(
+SET_GOODBYE = DisableAbleCommandHandler(
     "setgoodbye", set_goodbye,  run_async=True, filters=Filters.chat_type.groups)
-RESET_WELCOME = CommandHandler(
+RESET_WELCOME = DisableAbleCommandHandler(
     "resetwelcome", reset_welcome, run_async=True, filters=Filters.chat_type.groups)
-RESET_GOODBYE = CommandHandler(
+RESET_GOODBYE = DisableAbleCommandHandler(
     "resetgoodbye", reset_goodbye, run_async=True, filters=Filters.chat_type.groups)
-CLEAN_WELCOME = CommandHandler("cleanwelcome", clean_welcome,
+CLEAN_WELCOME = DisableAbleCommandHandler("cleanwelcome", clean_welcome,
                                pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-SECURITY_HANDLER = CommandHandler(
+SECURITY_HANDLER = DisableAbleCommandHandler(
     "welcomemute", security, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-SECURITY_MUTE_HANDLER = CommandHandler(
+SECURITY_MUTE_HANDLER = DisableAbleCommandHandler(
     "welcomemutetime", security_mute, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-SECURITY_BUTTONTXT_HANDLER = CommandHandler(
+SECURITY_BUTTONTXT_HANDLER = DisableAbleCommandHandler(
     "setmutetext", security_text, pass_args=True, run_async=True, filters=Filters.chat_type.groups)
-SECURITY_BUTTONRESET_HANDLER = CommandHandler(
+SECURITY_BUTTONRESET_HANDLER = DisableAbleCommandHandler(
     "resetmutetext", security_text_reset, run_async=True, filters=Filters.chat_type.groups)
-CLEAN_SERVICE_HANDLER = CommandHandler(
+CLEAN_SERVICE_HANDLER = DisableAbleCommandHandler(
     "cleanservice", cleanservice, pass_args=True, run_async=True, filters=Filters.chat_type.group)
 
 help_callback_handler = CallbackQueryHandler(

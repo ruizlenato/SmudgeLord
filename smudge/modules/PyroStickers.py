@@ -2,11 +2,12 @@ import os
 import imghdr
 
 from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid, UserIsBlocked, StickerPngNopng
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from smudge.modules.translations.strings import tld
 from pyrogram import Client, filters, errors, raw
 from smudge import SUDO_USERS, TOKEN, PyroSmudge
 from pyrogram.file_id import FileId
-from pyrogram.types import Message
+
 from typing import List
 from PIL import Image
 
@@ -58,6 +59,8 @@ async def kang(client, message):
             return
         try:
             temp_file_path = await resize_file_to_sticker_size(temp_file_path)
+        except PeerIdInvalid:
+            return await msg.edit(tld(message.chat.id, "stickers_pack_contact_pm"))
         except OSError as e:
             await msg.edit_text("Something wrong happened.")
             raise Exception(
