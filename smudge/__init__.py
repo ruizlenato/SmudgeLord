@@ -125,5 +125,6 @@ SUDO_USERS = list(SUDO_USERS)
 WHITELIST_USERS = list(WHITELIST_USERS)
 
 # Load at end to ensure all prev variables have been set
+from smudge.helper_funcs.handlers import CustomCommandHandler
 
 tg.CommandHandler = CustomCommandHandler
