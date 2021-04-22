@@ -22,7 +22,7 @@ from telegram.ext.dispatcher import run_async
 from telegram.utils.helpers import mention_html
 
 from smudge import dispatcher, CallbackContext, LOGGER
-from smudge.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict
+from smudge.helper_funcs.chat_status import bot_admin, user_admin, is_user_admin, can_restrict, user_can_mute
 from smudge.helper_funcs.extraction import extract_user, extract_user_and_text
 from smudge.helper_funcs.string_handling import extract_time
 from smudge.modules.log_channel import loggable
@@ -32,7 +32,9 @@ from smudge.modules.disable import DisableAbleCommandHandler
 
 @bot_admin
 @user_admin
+@can_restrict
 @loggable
+@user_can_mute
 def mute(update: Update, context: CallbackContext) -> str:
     args = context.args
     chat = update.effective_chat  # type: Optional[Chat]
@@ -83,7 +85,9 @@ def mute(update: Update, context: CallbackContext) -> str:
 
 @bot_admin
 @user_admin
+@can_restrict
 @loggable
+@user_can_mute
 def unmute(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -99,7 +103,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
     member = chat.get_member(int(user_id))
 
     if member:
-        if member.status != 'kicked' and member.status != 'left':
+        if member.status != 'kicked' or 'left':
             if member.can_send_messages and member.can_send_media_messages \
                     and member.can_send_other_messages and member.can_add_web_page_previews:
                 message.reply_text(
@@ -132,6 +136,7 @@ def unmute(update: Update, context: CallbackContext) -> str:
 @can_restrict
 @user_admin
 @loggable
+@user_can_mute
 def temp_mute(update: Update, context: CallbackContext) -> str:
     bot = context.bot
     args = context.args
@@ -241,14 +246,23 @@ def muteme(update: Update, context: CallbackContext) -> str:
     update.effective_message.reply_text(tld(chat.id, "mute_cant_mute"))
 
 
-MUTE_HANDLER = CommandHandler(
-    "mute", mute, run_async=True, filters=Filters.chat_type.groups)
-UNMUTE_HANDLER = CommandHandler(
-    "unmute", unmute, run_async=True, filters=Filters.chat_type.groups)
-TEMPMUTE_HANDLER = DisableAbleCommandHandler(
-    ["tmute", "tempmute"], temp_mute, run_async=True, filters=Filters.chat_type.groups)
-MUTEME_HANDLER = DisableAbleCommandHandler(
-    "muteme", muteme, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True)
+MUTE_HANDLER = DisableAbleCommandHandler("mute",
+                                         mute,
+                                         run_async=True,
+                                         filters=Filters.chat_type.groups)
+UNMUTE_HANDLER = DisableAbleCommandHandler("unmute",
+                                           unmute,
+                                           run_async=True,
+                                           filters=Filters.chat_type.groups)
+TEMPMUTE_HANDLER = DisableAbleCommandHandler(["tmute", "tempmute"],
+                                             temp_mute,
+                                             run_async=True,
+                                             filters=Filters.chat_type.groups)
+MUTEME_HANDLER = DisableAbleCommandHandler("muteme",
+                                           muteme,
+                                           pass_args=True,
+                                           filters=Filters.chat_type.groups,
+                                           admin_ok=True)
 
 dispatcher.add_handler(MUTE_HANDLER)
 dispatcher.add_handler(UNMUTE_HANDLER)

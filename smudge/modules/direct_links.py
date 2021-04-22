@@ -92,11 +92,6 @@ def useragent():
     user_agent = choice(useragents)
     return user_agent.text
 
-
-__help__ = "directlinks_help"
-
-__mod_name__ = "Direct Links"
-
 DIRECT_HANDLER = CommandHandler("direct", direct_link_generator)
 
 dispatcher.add_handler(DIRECT_HANDLER)

@@ -281,3 +281,37 @@ def user_can_changeinfo(func):
         return func(update, context, *args, **kwargs)
 
     return user_perm_changeinfo_group
+
+
+def user_can_delete(func):
+    @wraps(func)
+    def user_perm_delete(update: Update, context: CallbackContext, *args, **kwargs):
+        user = update.effective_user.id
+        chat = update.effective_chat
+        member = update.effective_chat.get_member(user)
+
+        if not (member.can_delete_messages or
+                member.status == "creator"):
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_delete_perm_false:"))
+            return ""
+        return func(update, context, *args, **kwargs)
+
+    return user_perm_delete
+
+
+def user_can_mute(func):
+    @wraps(func)
+    def user_perm_mute(update: Update, context: CallbackContext, *args, **kwargs):
+        user = update.effective_user.id
+        chat = update.effective_chat
+        member = update.effective_chat.get_member(user)
+
+        if not (member.can_restrict_members or
+                member.status == "creator"):
+            update.effective_message.reply_text(
+                tld(chat.id, "admin_mute_perm_false"))
+            return ""
+        return func(update, context, *args, **kwargs)
+
+    return user_perm_mute

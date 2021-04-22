@@ -786,12 +786,12 @@ mute_invalid: "Você precisará me dar um nome de usuário para silenciar ou res
 mute_not_myself: "Eu não vou mutar!"
 mute_not_sudo: "Não! Isso seria uma ideia bem idiota, não posso silenciar o meu sudo."
 mute_not_m_admin: "Não! Não posso silenciar o(a) administrador(a) do chat! Isso seria uma ideia bem idiota."
-mute_success: "Você fala muito, agora fique calado.\n {} <strong>foi mutado(silenciado)!</strong>"
+mute_success: "<strong>{}</strong> foi silenciado sem tempo de expiração definido."
 mute_already_mute: "Este usuário já silenciado(mutado) em {}!"
 mute_not_in_chat: "Este usuário não está no {}!"
 unmute_invalid: "Você precisará me fornecer um nome de usuário para ."
 unmute_not_muted: "Este usuário já tem o direito de falar em {}."
-unmute_success: "yep, {} pode começar a falar novamente em {}!"
+unmute_success: "Ok, {} já pode começar a falar novamente em {}!"
 unmute_not_in_chat: "Este usuário não está nem no Grupo."
 mute_not_refer: "Você não parece se referir a um usuário."
 mute_not_existed: "Não consigo encontrar esse usuário"
@@ -892,11 +892,12 @@ rules_button_click: "Clique no botão abaixo para obter as regras deste grupo."
 rules: "Regras"
 rules_success: "Novas regras do grupo foram definidas com sucesso!."
 rules_help: |
-    " - /rules: obtenha as regras para este grupo.
+    *Comandos disponíveis:
+    - /rules: obtenha as regras para este grupo.
 
     *Apenas administradores:*
      - /clearrules: limpe as regras em um grupo.
-     - /setrules <your rules here>: defina as regras em um grupo."
+     - /setrules <your rules here>: defina as regras em um grupo.
 
 
 # Translator
@@ -1219,7 +1220,9 @@ admin_ban_perm_false: "Você não tem direitos administrativos suficientes para 
 admin_pin_perm_false: "Você não tem direitos administrativos suficientes para fazer fixar/desafixar mensagens!"
 admin_kick_perm_false: "Você não tem direitos administrativos suficientes para remover usuários!"
 admin_changeinfo_perm_false: "Você não tem direitos administrativos suficientes para alterar as informações deste grupo!"
-admin_warn_perm_false: Você não tem direitos suficientes para advertir e remover advertencias dos usuários!
+admin_warn_perm_false: "Você não tem direitos suficientes para advertir e remover advertencias dos usuários!"
+admin_delete_perm_false: "Você não tem direitos suficientes para apagar mensagens"
+admin_mute_perm_false: "Você não tem direitos suficientes para silenciar usuários"
 #extraction
 helpers_user_not_in_db: |
   Eu não tenho esse usuário no meu banco de dados de usuários.

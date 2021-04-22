@@ -782,7 +782,7 @@ mute_invalid: "You'll need to either give me a username to mute, or reply to som
 mute_not_myself: "I'm not muting myself!"
 mute_not_sudo: "No! I'm not muting bot sudoers! That would be a pretty dumb idea."
 mute_not_m_admin: "No! I'm not muting chat administrator! That would be a pretty dumb idea."
-mute_success: "You talk a lot, now keep quiet.\n {} <strong>is muted!</strong>"
+mute_success: "<strong>{}</strong> is muted! with no expiration date!"
 mute_already_mute: "This user is already muted in {}!"
 mute_not_in_chat: "This user isn't in the {}!"
 unmute_invalid: "You'll need to either give me a username to unmute, or reply to someone to be unmuted."
@@ -1201,13 +1201,15 @@ helpers_bot_cant_pin: I can't pin messages here! Make sure I'm admin and can pin
 helpers_bot_cant_pro_demote: I can't promote/demote people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_cant_restrict: I can't restrict people here! Make sure I'm admin and can appoint new admins.
 helpers_bot_not_admin: I'm not an admin!
-helpers_user_not_admin: You must be this chat administrator to perform this action!
-admin_promote_perm_false: You don't have enough rights to promote/demote someone!
-admin_pin_perm_false: You don't have enough rights to pin/unpin messages!
-admin_changeinfo_perm_false: You don't have enough rights to change chat info!
-admin_ban_perm_false: You don't have enough rights to ban/unban users!
-admin_kick_perm_false: You don't have enough rights to kick users!
-admin_warn_perm_false: You don't have enough rights to warn/unwarn users!
+helpers_user_not_admin: "You must be this chat administrator to perform this action!"
+admin_promote_perm_false: "You don't have sufficient permissions to promote/demote someone!"
+admin_pin_perm_false: "You don't have sufficient permissions to pin/unpin messages!"
+admin_changeinfo_perm_false: "You don't have sufficient permissions to change chat info!"
+admin_ban_perm_false: "You don't have sufficient permissions to ban/unban users!"
+admin_kick_perm_false: "You don't have sufficient permissions to kick users!"
+admin_warn_perm_false: "You don't have sufficient permissions to warn/unwarn users!"
+admin_delete_perm_false: "You don't have sufficient permissions to delete messages!"
+admin_mute_perm_false: "You don't have sufficient permissions to silence users"
 #extraction
 helpers_user_not_in_db: |
   I don't have that user in my user database.
