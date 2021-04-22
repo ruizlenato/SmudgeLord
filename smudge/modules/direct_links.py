@@ -92,6 +92,7 @@ def useragent():
     user_agent = choice(useragents)
     return user_agent.text
 
+
 DIRECT_HANDLER = CommandHandler("direct", direct_link_generator)
 
 dispatcher.add_handler(DIRECT_HANDLER)

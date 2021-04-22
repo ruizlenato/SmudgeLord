@@ -1,4 +1,5 @@
-import html, time
+import html
+import time
 from typing import Optional, List
 
 from telegram import Message, Chat, Update, Bot, User
@@ -39,7 +40,8 @@ def purge(update: Update, context: CallbackContext) -> str:
                     bot.deleteMessage(chat.id, m_id)
                 except BadRequest as err:
                     if err.message == "Message can't be deleted":
-                        bot.send_message(tld(chat.id, "purge_msg_cant_del_too_old"))
+                        bot.send_message(
+                            tld(chat.id, "purge_msg_cant_del_too_old"))
 
                     elif err.message != "Message to delete not found":
                         LOGGER.exception("Error while purging chat messages.")
@@ -48,7 +50,8 @@ def purge(update: Update, context: CallbackContext) -> str:
                 msg.delete()
             except BadRequest as err:
                 if err.message == "Message can't be deleted":
-                    bot.send_message(tld(chat.id, "purge_msg_cant_del_too_old"))
+                    bot.send_message(
+                        tld(chat.id, "purge_msg_cant_del_too_old"))
 
                 elif err.message != "Message to delete not found":
                     LOGGER.exception("Error while purging chat messages.")
@@ -60,7 +63,8 @@ def purge(update: Update, context: CallbackContext) -> str:
                    "\n#PURGE" \
                    "\n<b>Admin:</b> {}" \
                    "\nPurged <code>{}</code> messages.".format(html.escape(chat.title),
-                                                               mention_html(user.id, user.first_name),
+                                                               mention_html(
+                                                                   user.id, user.first_name),
                                                                delete_to - message_id)
 
     else:
@@ -91,6 +95,7 @@ def del_message(update: Update, context: CallbackContext) -> str:
         update.effective_message.reply_text(tld(chat.id, "purge_invalid2"))
 
     return ""
+
 
 __help__ = True
 
