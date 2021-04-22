@@ -99,8 +99,8 @@ def unmute(update: Update, context: CallbackContext) -> str:
     member = chat.get_member(int(user_id))
 
     if member:
-        if member.status != 'kicked' and member.status != 'left':
-            if member.can_send_messages and member.can_send_media_messages \
+        if member.status !=  'kicked' or 'left':
+            if member.can_send_messages and  member.can_send_media_messages \
                     and member.can_send_other_messages and member.can_add_web_page_previews:
                 message.reply_text(
                     tld(chat.id, "unmute_not_muted").format(chat.title))
@@ -241,14 +241,23 @@ def muteme(update: Update, context: CallbackContext) -> str:
     update.effective_message.reply_text(tld(chat.id, "mute_cant_mute"))
 
 
-MUTE_HANDLER = CommandHandler(
-    "mute", mute, run_async=True, filters=Filters.chat_type.groups)
-UNMUTE_HANDLER = CommandHandler(
-    "unmute", unmute, run_async=True, filters=Filters.chat_type.groups)
-TEMPMUTE_HANDLER = DisableAbleCommandHandler(
-    ["tmute", "tempmute"], temp_mute, run_async=True, filters=Filters.chat_type.groups)
-MUTEME_HANDLER = DisableAbleCommandHandler(
-    "muteme", muteme, pass_args=True, filters=Filters.chat_type.groups, admin_ok=True)
+MUTE_HANDLER = DisableAbleCommandHandler("mute",
+                                         mute,
+                                         run_async=True,
+                                         filters=Filters.chat_type.groups)
+UNMUTE_HANDLER = DisableAbleCommandHandler("unmute",
+                                           unmute,
+                                           run_async=True,
+                                           filters=Filters.chat_type.groups)
+TEMPMUTE_HANDLER = DisableAbleCommandHandler(["tmute", "tempmute"],
+                                             temp_mute,
+                                             run_async=True,
+                                             filters=Filters.chat_type.groups)
+MUTEME_HANDLER = DisableAbleCommandHandler("muteme",
+                                           muteme,
+                                           pass_args=True,
+                                           filters=Filters.chat_type.groups,
+                                           admin_ok=True)
 
 dispatcher.add_handler(MUTE_HANDLER)
 dispatcher.add_handler(UNMUTE_HANDLER)
