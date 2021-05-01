@@ -181,7 +181,7 @@ def echo(update: Update, context: CallbackContext):
 
 
 def reply_keyboard_remove(update: Update, context: CallbackContext):
-  
+
     reply_keyboard = []
     reply_keyboard.append([ReplyKeyboardRemove(remove_keyboard=True)])
     reply_markup = ReplyKeyboardRemove(remove_keyboard=True)
