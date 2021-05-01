@@ -1,5 +1,5 @@
 ##########
-python-telegram-bot==13.4.1
+python-telegram-bot==13.5
 pyrogram
 ##########
 future
