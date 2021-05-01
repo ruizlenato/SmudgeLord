@@ -133,6 +133,7 @@ def zalgotext(update: Update, context: CallbackContext):
     else:
         message.reply_to_message.reply_text(reply_text)
 
+
 def insults(update: Update, context: CallbackContext):
     bot = context.bot
     args = context.args
