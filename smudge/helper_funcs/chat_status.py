@@ -11,7 +11,7 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import time 
+import time
 from functools import wraps
 from typing import Optional
 
@@ -136,16 +136,16 @@ def bot_admin(func):
                 tld(chat.id, 'helpers_bot_not_admin'))
             time.sleep(2)
             try:
-              delete.delete()
-              update.effective_message.delete()
+                delete.delete()
+                update.effective_message.delete()
             except BadRequest as err:
-               if (err.message == "Message to delete not found") or (
+                if (err.message == "Message to delete not found") or (
                         err.message == "Message can't be deleted"):
-                   return
+                    return
 
     return is_admin
 
- 
+
 def user_admin(func):
     @wraps(func)
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
