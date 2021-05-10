@@ -1,4 +1,5 @@
 import os
+import math
 import imghdr
 
 from pyrogram.errors.exceptions.bad_request_400 import PeerIdInvalid, UserIsBlocked, StickerPngNopng

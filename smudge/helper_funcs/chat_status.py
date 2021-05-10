@@ -11,9 +11,11 @@
 #    You should have received a copy of the GNU Affero General Public License
 #    along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+import time 
 from functools import wraps
 from typing import Optional
 
+from telegram.error import BadRequest
 from telegram import User, Chat, ChatMember, Update, Bot
 
 from smudge import CallbackContext, DEL_CMDS, SUDO_USERS, WHITELIST_USERS
@@ -130,12 +132,20 @@ def bot_admin(func):
         if is_bot_admin(update.effective_chat, context.bot.id):
             return func(update, context, *args, **kwargs)
         else:
-            update.effective_message.reply_text(
+            delete = update.effective_message.reply_text(
                 tld(chat.id, 'helpers_bot_not_admin'))
+            time.sleep(2)
+            try:
+              delete.delete()
+              update.effective_message.delete()
+            except BadRequest as err:
+               if (err.message == "Message to delete not found") or (
+                        err.message == "Message can't be deleted"):
+                   return
 
     return is_admin
 
-
+ 
 def user_admin(func):
     @wraps(func)
     def is_admin(update: Update, context: CallbackContext, *args, **kwargs):
