@@ -84,7 +84,7 @@ afk_help: |
 
 #Android
 modname_android: Android
-magisk_releases: "*Últimos lançamentos do magisk: *\n"
+magisk_releases: "*Últimos lançamentos do magisk*\n\n"
 whatis_device: "* {}* é o *{} {}*"
 whatis_no_device: "*Nenhum codenome fornecido,* escreva um codenome para obter informações.\n/device <codename> or <model>"
 twrp_release: "*Último TWRP oficial para {}*\n*{} - {}*\n*Atualizado em:* {}"

@@ -83,7 +83,7 @@ afk_help: |
 
 #Android
 modname_android: Android
-magisk_releases: "*Latest Magisk Releases:*\n"
+magisk_releases: "*Latest Magisk Releases*\n\n"
 whatis_device: "*{}* is *{} {}*"
 whatis_no_device: "*No codename provided,* write a codename for fetching informations.\n\nUsage: /device <codename> or <model>"
 err_not_found: Couldn't find any results matching your query.

@@ -18,36 +18,19 @@ DEVICES_DATA = 'https://raw.githubusercontent.com/androidtrackers/certified-andr
 
 def magisk(update: Update, context: CallbackContext):
     bot = context.bot
+    url = 'https://raw.githubusercontent.com/topjohnwu/magisk-files/master/'
     chat = update.effective_chat
-    url = 'https://raw.githubusercontent.com/topjohnwu/magisk_files/'
     releases = tld(chat.id, "magisk_releases")
-    variant = ['master/stable', 'master/beta', 'canary/canary']
-    for variants in variant:
-        fetch = get(url + variants + '.json')
-        data = json.loads(fetch.content)
-        if variants == "master/stable":
-            name = "*• Stable*"
-            cc = 0
-            branch = "master"
-        elif variants == "master/beta":
-            name = "*• Beta*"
-            cc = 0
-            branch = "master"
-        elif variants == "canary/canary":
-            name = "*• Canary*"
-            cc = 1
-            branch = "canary"
+    for type, branch in {
+            "Stable": "stable",
+            "Beta": "beta",
+            "Canary": "canary"
+    }.items():
+        data = get(url + branch + '.json').json()
 
-        if variants == "canary/canary":
-            releases += f'{name}:\n [Magisk - v{data["app"]["version"]}]({url}{branch}/{data["app"]["link"]}) | '
-        else:
-            releases += f'{name}:\n [Magisk v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | '
-        if cc == 1:
-            releases += f'[Uninstaller]({url}{branch}/{data["uninstaller"]["link"]}) | ' \
-                        f'[Changelog]({url}{branch}/notes.md)\n'
-        else:
-            releases += f'[Uninstaller]({data["uninstaller"]["link"]}) | ' \
-                        f'[Changelog]({data["magisk"]["note"]})\n'
+        releases += f'*{type}:* [Magisk v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
+                    f'[Changelog]({data["magisk"]["note"]})\n'
+                        
     update.message.reply_text(
         releases, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
