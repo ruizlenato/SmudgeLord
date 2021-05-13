@@ -30,7 +30,7 @@ def magisk(update: Update, context: CallbackContext):
 
         releases += f'*{type}:* [Magisk v{data["magisk"]["version"]}]({data["magisk"]["link"]}) | ' \
                     f'[Changelog]({data["magisk"]["note"]})\n'
-                        
+
     update.message.reply_text(
         releases, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
 
