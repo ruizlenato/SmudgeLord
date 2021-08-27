@@ -1,0 +1,14 @@
+# Session Files
+smudge/*.session*
+
+# Config Files
+smudge/config.py
+
+# Python Cache
+__pycache__/
+__pycache__/
+smudge/__pycache__/
+smudge/plugins/__pycache__/
+
+# Database Files
+smudge/database/*database.*
