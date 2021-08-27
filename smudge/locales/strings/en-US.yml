@@ -1,0 +1,24 @@
+# Core
+start_message_private: |
+  Hello <b>{}</b>, my name is <b>SmudgeLord</b>I'm a bot with some fun and useful commands for you :3
+
+  📦 <b>My SourceCode:</b> <a href='https://github.com/RenatohRibeiro/SmudgeLord'>GitHub</a>
+  💬 If you have a problem <b>problem</b> <a href='https://t.me/PaperplaneLab'>click here to talk to my owner in a super cool group</a>
+
+start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
+lang_save: "Language changed successfully"
+main_select_lang: "Select the language you want to use the bot"
+main_btn_back: "↩️ Back"
+main_start_btn_lang: "🇺🇸 Language"
+
+# LastFM
+lastfm_username_save: Done, you can use /lastfm now
+lastfm_username_wrong: "Your username is incorrect\n\n<strong>Use /set user (yout username)</strong> and try again"
+lastfm_scrobble_is: "<strong>{}</strong> is listening for the <strong>{}° time</strong>:\n\n"
+lastfm_scrobble_was: "<strong>{}</strong> was listening for the <strong>{}° time</strong>:\n\n"
+
+# Misc
+tr_error: "<b>Error</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
+tr_translating: "Translating..."
+print_error: "<b>Error</b>\n<b>Command Usage:</b> /print (link).\n\n<i>You can also use this command when replying to a message.</i>"
+print_image_prcoessfailed: "An error occurred while trying to process the image"
