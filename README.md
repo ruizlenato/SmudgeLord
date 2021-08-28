@@ -3,10 +3,8 @@
 
 Can be found as [SmudgeLord](https://t.me/SmudgeLordBOT) on Telegram.
 
-
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/ff826dcfccbf45e28f9244833bcda9a2)](https://www.codacy.com/gh/RenatohRibeiro/SmudgeLord/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=RenatohRibeiro/SmudgeLord&amp;utm_campaign=Badge_Grade)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-
 
 ## How to host locally
 **Install the requirements**
@@ -16,7 +14,6 @@ Can be found as [SmudgeLord](https://t.me/SmudgeLordBOT) on Telegram.
 After all the requirements are installed, open smudge folder, rename example.config.py to config.py and put what is requested in the file (The explanations are all inside).
 
 **To run the bot execute this command:** `python -m smudge`
-
 
 ## License (GPL-3.0)
 ```

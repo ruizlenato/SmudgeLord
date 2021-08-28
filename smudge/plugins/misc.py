@@ -1,7 +1,6 @@
 import html
 
 from gpytranslate import Translator
-from typing import Union
 
 from smudge import SCREENSHOT_API_KEY
 from smudge.locales.strings import tld
