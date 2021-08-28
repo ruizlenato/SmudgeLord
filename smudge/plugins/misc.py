@@ -1,4 +1,5 @@
 import html
+import dicioinformal
 
 from gpytranslate import Translator
 
@@ -100,3 +101,14 @@ async def translate(c: Client, m: Message):
             from_lang=trres.lang, to_lang=to_lang, translation=res
         )
     )
+
+
+@Client.on_message(filters.command("dicio"))
+async def dicio(c: Client, m: Message):
+    txt = m.text.split(" ", 1)[1]
+    a = dicioinformal.definicao(txt)["results"]
+    if a:
+        frase = f'<b>{a[0]["title"]}:</b>\n{a[0]["tit"]}\n\n<i>{a[0]["desc"]}</i>'
+    else:
+        frase = "sem resultado"
+    await m.reply(frase)
