@@ -13,6 +13,8 @@ main_start_btn_lang: "🇺🇸 Language"
 
 # LastFM
 lastfm_username_save: Done, you can use /lastfm now
+lastfm_no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
+lastfm_no_username: "<b>Error</b>\nYou didn't set a username\n\n<b>Use the command:</b> /setuser (username)."
 lastfm_username_wrong: "Your username is incorrect\n\n<strong>Use /set user (yout username)</strong> and try again"
 lastfm_scrobble_is: "<strong>{}</strong> is listening for the <strong>{}° time</strong>:\n\n"
 lastfm_scrobble_was: "<strong>{}</strong> was listening for the <strong>{}° time</strong>:\n\n"

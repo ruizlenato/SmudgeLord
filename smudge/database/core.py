@@ -7,7 +7,7 @@ from tortoise.exceptions import DoesNotExist, IntegrityError
 
 class users(Model):
     user_id = fields.IntField(pk=True)
-    lastfm_username = fields.TextField()
+    lastfm_username = fields.TextField(null=True)
 
 
 class lang(Model):
@@ -34,9 +34,7 @@ async def set_last_user(user_id: int, lastfm_username: str):
 
 async def get_last_user(user_id: int):
     try:
-        return (
-            await users.get_or_create({"lastfm_username": "none"}, user_id=user_id)
-        )[0].lastfm_username
+        return (await users.get(user_id=user_id))[0].lastfm_username
     except DoesNotExist:
         return None
 
