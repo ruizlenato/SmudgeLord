@@ -1,4 +1,3 @@
-import asyncio
 from typing import Union
 
 from smudge.locales.strings import tld

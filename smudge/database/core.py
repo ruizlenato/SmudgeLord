@@ -1,5 +1,3 @@
-import asyncio
-
 from tortoise import Tortoise, fields
 from tortoise.models import Model
 from tortoise.exceptions import DoesNotExist, IntegrityError
@@ -7,7 +5,7 @@ from tortoise.exceptions import DoesNotExist, IntegrityError
 
 class users(Model):
     user_id = fields.IntField(pk=True)
-    lastfm_username = fields.TextField(null=True)
+    lastfm_username = fields.TextField()
 
 
 class lang(Model):
@@ -16,16 +14,11 @@ class lang(Model):
 
 
 async def set_last_user(user_id: int, lastfm_username: str):
-    check_user_exists = await users.exists(
-        user_id=user_id, lastfm_username=lastfm_username
-    )
     try:
-        if check_user_exists:
-            await users.create(user_id=user_id, lastfm_username=lastfm_username)
-            return
-        else:
-            await users.filter(user_id=user_id).update(lastfm_username=lastfm_username)
-            return
+        await users.update_or_create(
+            user_id=user_id, defaults=dict(lastfm_username=lastfm_username)
+        )
+        return
     except IntegrityError:
         await users.filter(user_id=user_id, lastfm_username=lastfm_username).delete()
         await users.create(user_id=user_id, lastfm_username=lastfm_username)
@@ -34,7 +27,7 @@ async def set_last_user(user_id: int, lastfm_username: str):
 
 async def get_last_user(user_id: int):
     try:
-        return (await users.get(user_id=user_id))[0].lastfm_username
+        return (await users.get(user_id=user_id)).lastfm_username
     except DoesNotExist:
         return None
 

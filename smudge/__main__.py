@@ -1,12 +1,9 @@
 import asyncio
 import logging
-import pyrogram
 
 from rich.panel import Panel
 from pyrogram import Client, idle
-from rich.logging import RichHandler
 from rich import box, print as rprint
-from pyrogram.errors import BadRequest
 from smudge.config import *
 from tortoise import run_async
 from smudge.database import connect_database

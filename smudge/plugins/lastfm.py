@@ -3,8 +3,6 @@ import urllib.parse
 import urllib.request
 import rapidjson as json
 
-from typing import Optional, Tuple
-
 from smudge.database import set_last_user, get_last_user
 from smudge.config import LASTFM_API_KEY
 from smudge.locales.strings import tld
@@ -168,7 +166,6 @@ async def artist(c: Client, m: Message):
     image = first_track.get("image")[3].get("#text")
     artist = first_track.get("artist").get("name")
     artist1 = urllib.parse.quote(artist)
-    album = first_track.get("album").get("#text")
     loved = int(first_track.get("loved"))
     fetch = await http.get(
         f"{base_url}?method=artist.getinfo&artist={artist1}&autocorrect=1&user={username}&api_key={LASTFM_API_KEY}&format=json"

@@ -12,7 +12,7 @@ main_btn_back: "↩️ Voltar"
 main_start_btn_lang: "🇧🇷 Idioma"
 
 # LastFM
-lastfm_username_save: "Pronto, agora você pode usar o: \n/lastfm - /lt\n /artist - /lart\n /album - /lalb."
+lastfm_username_save: "Pronto, agora você pode usar o: \n/lastfm - /lt\n/artist - /lart\n/album - /lalb."
 lastfm_no_username_save: "<b>Erro</b>\n<b>Uso do comando:</b> /setuser (username)."
 lastfm_no_username: "<b>Erro.</b>\nVocê não definiu um username.\n\n<b>Use o comando:</b> /setuser (username)."
 lastfm_username_wrong: "Seu username está incorreto\n\n<strong>Use /setuser (seu username)</strong> e tente novamente"
