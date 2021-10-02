@@ -3,17 +3,30 @@ import urllib.parse
 import urllib.request
 import rapidjson as json
 
-from smudge.database import set_last_user, get_last_user
 from smudge.config import LASTFM_API_KEY
 from smudge.locales.strings import tld
+from smudge.database.core import users
+
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
+from tortoise.exceptions import IntegrityError
 
 timeout = httpx.Timeout(20)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
 
 
+async def set_last_user(user_id: int, lastfm_username: str):
+    await users.filter(user_id=user_id).update(lastfm_username=lastfm_username)
+    return
+
+
+async def get_last_user(user_id: int):
+    try:
+        return (await users.get(user_id=user_id)).lastfm_username
+    except DoesNotExist:
+        return None
+        
 @Client.on_message(filters.command("setuser"))
 async def setuser(c: Client, m: Message):
     user_id = m.from_user.id

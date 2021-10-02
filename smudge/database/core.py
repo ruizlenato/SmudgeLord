@@ -5,32 +5,14 @@ from tortoise.exceptions import DoesNotExist, IntegrityError
 
 class users(Model):
     user_id = fields.IntField(pk=True)
-    lastfm_username = fields.TextField()
+    lastfm_username = fields.TextField(null=True)
 
+class groups(Model):
+    chat_id = fields.IntField(pk=True)
 
 class lang(Model):
     chat_id = fields.IntField(pk=True)
     chat_lang = fields.TextField(default="en-US")
-
-
-async def set_last_user(user_id: int, lastfm_username: str):
-    try:
-        await users.update_or_create(
-            user_id=user_id, defaults=dict(lastfm_username=lastfm_username)
-        )
-        return
-    except IntegrityError:
-        await users.filter(user_id=user_id, lastfm_username=lastfm_username).delete()
-        await users.create(user_id=user_id, lastfm_username=lastfm_username)
-        return
-
-
-async def get_last_user(user_id: int):
-    try:
-        return (await users.get(user_id=user_id)).lastfm_username
-    except DoesNotExist:
-        return None
-
 
 async def set_db_lang(chat_id: int, lang_code: str):
     check_lang_exists = await lang.exists(chat_id=chat_id, chat_lang=lang_code)
