@@ -26,7 +26,8 @@ async def get_last_user(user_id: int):
         return (await users.get(user_id=user_id)).lastfm_username
     except DoesNotExist:
         return None
-        
+
+
 @Client.on_message(filters.command("setuser"))
 async def setuser(c: Client, m: Message):
     user_id = m.from_user.id
