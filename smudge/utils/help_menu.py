@@ -1,6 +1,7 @@
 from pyrogram.types import InlineKeyboardButton
 from smudge.locales.strings import tld
 
+
 class EqInlineKeyboardButton(InlineKeyboardButton):
     def __eq__(self, other):
         return self.text == other.text
@@ -22,9 +23,7 @@ async def help_buttons(m, HELP):
             for plugin in HELP.keys()
         ]
     )
-    buttons = [
-        plugins[i * 3:(i + 1) * 3] for i in range((len(plugins) + 3 - 1) // 3)
-    ]
+    buttons = [plugins[i * 3 : (i + 1) * 3] for i in range((len(plugins) + 3 - 1) // 3)]
     round_num = len(plugins) / 3
     calc = len(plugins) - round(round_num)
     if calc == 1:
@@ -33,6 +32,7 @@ async def help_buttons(m, HELP):
         buttons.append((plugins[-1],))
 
     return buttons
+
 
 async def help_plugin(c, m, text):
     keyboard = [[InlineKeyboardButton("Back", callback_data="menu")]]
