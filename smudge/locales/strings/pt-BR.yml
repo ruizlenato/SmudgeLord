@@ -10,20 +10,45 @@ lang_save: "Idioma alterado com sucesso"
 main_select_lang: "Selecione o idioma que você quer utilizar no bot"
 main_btn_back: "↩️ Voltar"
 main_start_btn_lang: "🇧🇷 Idioma"
+main_start_btn_help: "❓ Ajuda"
+main_help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
+
+# Android
+android_name: "Android"
+magisk_releases: "<b>Últimos lançamentos do magisk:</b>\n\n"
+android_help: |
+  - /magisk: Tenha as últimas versões do Magisk.
+
 
 # LastFM
+lastfm_name: "LastFM"
 lastfm_username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm - /lt\n/artist - /lart\n/album - /lalb."
 lastfm_no_username_save: "<b>Erro</b>\n<b>Uso do comando:</b> /setuser (username)."
 lastfm_no_username: "<b>Erro.</b>\nVocê não definiu um username.\n\n<b>Use o comando:</b> /setuser (username)."
 lastfm_username_wrong: "Seu username está incorreto\n\n<strong>Use /setuser (seu username)</strong> e tente novamente"
 lastfm_scrobble_is: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</strong>:\n\n"
 lastfm_scrobble_was: "<strong>{}</strong> estava ouvindo pela <strong>{}° vez</strong>:\n\n"
+lastfm_help: |
+ - /setuser <username>: Configure seu username (nome de usuário) do LastFM.
+ - /clearuser: apaga seu nome de usuário last.fm do banco de dados do bot.
+ - /lastfm: mostra o que você está scrobbling (escutando) no last.fm.
+ - /album: mostra o album que você estás crobbling (escutando) no last.fm.
+ - /artist: mostra o(a) artista que você estás crobbling (escutando) no last.fm.
 
 # Misc
+misc_name: "Utilitários"
 tr_error: "<b>Erro</b>\n<b>Uso do comando:</b> /tr (idioma) (texto).\n\n<i>Você também pode usar esse comando respondendo uma mensagem ou uma foto com legenda</i>"
 tr_translating: "Traduzindo..."
 print_error: "<b>Erro</b>\n<b>Uso do comando:</b> /print (link).\n\n<i>Você também pode usar esse comando respondendo uma mensagem</i>"
 print_image_prcoessfailed: "Ocorreu um erro ao tentar processar a imagem"
+misc_help: |
+ - /dicio <palavra>: Irá pesquisar a palavra no dicionario.
+ - /tr <idioma> <palavra>: Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
+ Obs: o comando também funciona através de resposta, basta digitar "/tr <idioma>" respondendo uma frase
+
 
 # Video Downloader
+ytdl_name: "Youtube-DL"
 ytdl_max_size: "O Vídeo qual você deseja baixar <b>excede o tamanho de 200MB.</b>\nNão foi possível baixar e enviar, desculpe."
+ytdl_help: |
+ - /ytdl <palavra ou link>: Se você utilizar um link o bot irá baixar de qualquer site que o YouTube-DL suporte, caso você escreva uma palavra, o bot buscará no youtube

@@ -115,3 +115,6 @@ async def ytdl(c: Client, m: Message):
 
     await reply.delete()
     os.remove(filename)
+
+plugin_name = "ytdl_name"
+plugin_help = "ytdl_help"

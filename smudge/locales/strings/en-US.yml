@@ -10,20 +10,39 @@ lang_save: "Language changed successfully"
 main_select_lang: "Select the language you want to use the bot"
 main_btn_back: "↩️ Back"
 main_start_btn_lang: "🇺🇸 Language"
+main_start_btn_help: "❓ Help"
+main_help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
 
+# Android
+android_name: "Android"
+magisk_releases: "<b>Latest Magisk Releases:</b>\n\n"
+android_help: |
+  - /magisk: Get latest Magisk releases.
+  
 # LastFM
+lastfm_name: "LastFM"
 lastfm_username_save: Done, you can use /lastfm now
 lastfm_no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
 lastfm_no_username: "<b>Error</b>\nYou didn't set a username\n\n<b>Use the command:</b> /setuser (username)."
 lastfm_username_wrong: "Your username is incorrect\n\n<strong>Use /set user (yout username)</strong> and try again"
 lastfm_scrobble_is: "<strong>{}</strong> is listening for the <strong>{}° time</strong>:\n\n"
 lastfm_scrobble_was: "<strong>{}</strong> was listening for the <strong>{}° time</strong>:\n\n"
+lastfm_help: |
+ - /setuser <username>: Configure seu username (nome de usuário) do LastFM.
+ - /clearuser: apaga seu nome de usuário last.fm do banco de dados do bot.
+ - /lastfm: mostra o que você está scrobbling (escutando) no last.fm.
+ - /album: mostra o album que você estás crobbling (escutando) no last.fm.
+ - /artist: mostra o(a) artista que você estás crobbling (escutando) no last.fm.
 
 # Misc
+misc_name: "Misc"
 tr_error: "<b>Error</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
 tr_translating: "Translating..."
 print_error: "<b>Error</b>\n<b>Command Usage:</b> /print (link).\n\n<i>You can also use this command when replying to a message.</i>"
 print_image_prcoessfailed: "An error occurred while trying to process the image"
 
 # Video Downloader
+ytdl_name: "Youtube-DL"
 ytdl_max_size: "The Video you want to download <b>exceeds 200MB in size.</b>\nUnable to download and upload, sorry."
+ytdl_help: |
+ - /ytdl <palavra ou link>: Se você utilizar um link o bot irá baixar de qualquer site que o YouTube-DL suporte, caso você escreva uma palavra, o bot buscará no youtube.

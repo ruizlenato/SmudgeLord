@@ -204,3 +204,6 @@ async def artist(c: Client, m: Message):
         rep += f"<a href='{image}'>\u200c</a>"
 
     await m.reply(rep.format(user, scrobbles))
+
+plugin_name = "lastfm_name"
+plugin_help = "lastfm_help"
