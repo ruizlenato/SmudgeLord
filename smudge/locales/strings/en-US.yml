@@ -24,3 +24,6 @@ tr_error: "<b>Error</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You 
 tr_translating: "Translating..."
 print_error: "<b>Error</b>\n<b>Command Usage:</b> /print (link).\n\n<i>You can also use this command when replying to a message.</i>"
 print_image_prcoessfailed: "An error occurred while trying to process the image"
+
+# Video Downloader
+ytdl_max_size: "The Video you want to download <b>exceeds 200MB in size.</b>\nUnable to download and upload, sorry."

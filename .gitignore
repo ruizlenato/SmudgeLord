@@ -3,6 +3,7 @@ smudge/*.session*
 
 # Config Files
 smudge/config.py
+cspell.json
 
 # Python Cache
 __pycache__/
@@ -12,3 +13,6 @@ smudge/plugins/__pycache__/
 
 # Database Files
 smudge/database/*database.*
+
+# Useless Stuffs
+stuff/
