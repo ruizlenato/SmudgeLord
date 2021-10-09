@@ -205,5 +205,6 @@ async def artist(c: Client, m: Message):
 
     await m.reply(rep.format(user, scrobbles))
 
+
 plugin_name = "lastfm_name"
 plugin_help = "lastfm_help"

@@ -113,5 +113,6 @@ async def dicio(c: Client, m: Message):
         frase = "sem resultado"
     await m.reply(frase)
 
+
 plugin_name = "misc_name"
 plugin_help = "misc_help"
