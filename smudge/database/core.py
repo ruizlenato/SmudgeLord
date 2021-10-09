@@ -7,12 +7,15 @@ class users(Model):
     user_id = fields.IntField(pk=True)
     lastfm_username = fields.TextField(null=True)
 
+
 class groups(Model):
     chat_id = fields.IntField(pk=True)
+
 
 class lang(Model):
     chat_id = fields.IntField(pk=True)
     chat_lang = fields.TextField(default="en-US")
+
 
 async def set_db_lang(chat_id: int, lang_code: str):
     check_lang_exists = await lang.exists(chat_id=chat_id, chat_lang=lang_code)
