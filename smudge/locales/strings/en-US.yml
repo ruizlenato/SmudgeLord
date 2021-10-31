@@ -20,7 +20,7 @@ updated: "updated"
 android_name: "Android"
 magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
 android_help: |
-  - /magisk: Get latest Magisk releases.
+  <b>/magisk</b> - Get latest Magisk releases.
   
 # Github
 github_name: "Github"
@@ -35,11 +35,11 @@ github_repo_noreleases: "Repo have no releases!"
 github_repo_errorreleases: "Coudn't find any releases on <code>{}</code>"
 github_nothing_save: "There are no saved repositories in this chat"
 github_help: |
-  - /gitr user/repository: get latest releses from repo.
-  - /repos: get list of saved repisitories in chat.
-  - /gitadd (name) user/repository: save repository.
-  - /gitdel (name): delete repository.
-  - /fetch (name): fetch saved repository, you can also use !(name)
+  <b>/gitr [user/repository]</b> - Get latest releses from repo.
+  <b>/repos</b> - Get list of saved repisitories in chat.
+  <b>/gitadd [name] [user/repository]</b> - Save repository.
+  <b>/gitdel [name]</b> - Delete repository.
+  <b>/fetch [name]</b> - Fetch saved repository, you can also use !(name)
 
 # LastFM
 lastfm_name: "LastFM"
@@ -50,11 +50,11 @@ lastfm_username_wrong: "Your username is incorrect\n\n<strong>Use /set user (you
 lastfm_scrobble_is: "<strong>{}</strong> is listening for the <strong>{}° time</strong>:\n\n"
 lastfm_scrobble_was: "<strong>{}</strong> was listening for the <strong>{}° time</strong>:\n\n"
 lastfm_help: |
- - /setuser <username>: Configure seu username (nome de usuário) do LastFM.
- - /clearuser: apaga seu nome de usuário last.fm do banco de dados do bot.
- - /lastfm: mostra o que você está scrobbling (escutando) no last.fm.
- - /album: mostra o album que você estás crobbling (escutando) no last.fm.
- - /artist: mostra o(a) artista que você estás crobbling (escutando) no last.fm.
+ <b>/setuser [username]</b> - Sets your last.fm username.
+ <b>/clearuser</b> - Removes your last.fm username from the bot's database.
+ <b>/lastfm</b> - Returns wh at you're scrobbling on last.fm
+ <b>/album</b> - Shows the album you are scrobbling on last.fm.
+ <b>/artist</b> - Shows the artist you are scrobbling on last.fm.
 
 # Misc
 misc_name: "Misc"
@@ -62,9 +62,15 @@ tr_error: "<b>Error</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You 
 tr_translating: "Translating..."
 print_error: "<b>Error</b>\n<b>Command Usage:</b> /print (link).\n\n<i>You can also use this command when replying to a message.</i>"
 print_image_prcoessfailed: "An error occurred while trying to process the image"
+print_image_prcoessfailed: "Ocorreu um erro ao tentar processar a imagem"
+misc_help: |
+ <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.
+ <i>• It also can be used as reply.
+ I.e <b>"/tr [language]"</b> replying a message</i>
+
 
 # Video Downloader
 ytdl_name: "Youtube-DL"
 ytdl_max_size: "The Video you want to download <b>exceeds 200MB in size.</b>\nUnable to download and upload, sorry."
 ytdl_help: |
- - /ytdl <palavra ou link>: Se você utilizar um link o bot irá baixar de qualquer site que o YouTube-DL suporte, caso você escreva uma palavra, o bot buscará no youtube.
+ <b>/ytdl [word or link]</b> - If you use a link the bot will download from any site that YouTube-DL supports, if you type a word, the bot will search youtube.

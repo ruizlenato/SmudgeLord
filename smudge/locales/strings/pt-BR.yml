@@ -20,7 +20,7 @@ updated: "atualizado"
 android_name: "Android"
 magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
 android_help: |
-  - /magisk: Tenha as últimas versões do Magisk.
+  <b>/magisk</b> - Tenha as últimas versões do Magisk.
 
 # Github
 github_name: "Github"
@@ -35,11 +35,11 @@ github_repo_noreleases: "O repositório não tem releases"
 github_repo_errorreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
 github_nothing_save: "Não há nenhum repositório salvo nesse grupo."
 github_help: |
-  - /gitr user/repository: Irá buscar as releases mais recente desse repositório.
-  - /repos: Liste todos os repositórios salvos no grupo atual.
-  - /gitadd (gatilho) user/repository: Cria um gatilho para as releases de um repositório.
-  - /gitdel (gatilho): delete repository.
-  - /fetch (gatilho): Retorna as releases de um repositório salvo com esse gatilho.
+  <b>/gitr [usuário/repositório]</b> - Irá buscar as releases mais recente desse repositório.
+  <b>/repos</b> - Lista todos os repositórios salvos no grupo atual.
+  <b>/gitadd [gatilho] [usuário/repositório]</b> - Cria um gatilho para as releases de um repositório.
+  <b>/gitdel [gatilho]</b> - Deleta o repositório definido para o gatilho.
+  <b>/fetch [gatilho]</b> - Retorna as releases de um repositório salvo com esse gatilho.
   
 # LastFM
 lastfm_name: "LastFM"
@@ -50,11 +50,13 @@ lastfm_username_wrong: "Seu username está incorreto\n\n<strong>Use /setuser (se
 lastfm_scrobble_is: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</strong>:\n\n"
 lastfm_scrobble_was: "<strong>{}</strong> estava ouvindo pela <strong>{}° vez</strong>:\n\n"
 lastfm_help: |
- - /setuser <username>: Configure seu username (nome de usuário) do LastFM.
- - /clearuser: apaga seu nome de usuário last.fm do banco de dados do bot.
- - /lastfm: mostra o que você está scrobbling (escutando) no last.fm.
- - /album: mostra o album que você estás crobbling (escutando) no last.fm.
- - /artist: mostra o(a) artista que você estás crobbling (escutando) no last.fm.
+ <b>/setuser [username]</b> - Configra seu username (nome de usuário) do LastFM.
+ <b>/clearuser</b> - Apaga seu nome de usuário last.fm do banco de dados do bot.
+ <b>/lastfm</b> - Mostra o que você está scrobbling (escutando) usando o last.fm.
+ <b>/album</b> - Mostra o album que você estás scrobbling (escutando) usando o last.fm.
+ <b>/artist</b> - Mostra o(a) artista que você estás scrobbling (escutando) usando o last.fm.
+ 
+ • Para utilizar a plataforma do last.fm recomendo que veja um tutorial caso não saiba como usar.
 
 # Misc
 misc_name: "Utilitários"
@@ -63,13 +65,15 @@ tr_translating: "Traduzindo..."
 print_error: "<b>Erro</b>\n<b>Uso do comando:</b> /print (link).\n\n<i>Você também pode usar esse comando respondendo uma mensagem</i>"
 print_image_prcoessfailed: "Ocorreu um erro ao tentar processar a imagem"
 misc_help: |
- - /dicio <palavra>: Irá pesquisar a palavra no dicionario.
- - /tr <idioma> <palavra>: Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
- Obs: o comando também funciona através de resposta, basta digitar "/tr <idioma>" respondendo uma frase
+ <b>/dicio [palavra]</b> - Irá pesquisar a palavra no dicionario.
+ 
+ <b>/tr</b> [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
+ <i>Obs: o comando também funciona através de resposta
+ Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
 
 
 # Video Downloader
 ytdl_name: "Youtube-DL"
 ytdl_max_size: "O Vídeo qual você deseja baixar <b>excede o tamanho de 200MB.</b>\nNão foi possível baixar e enviar, desculpe."
 ytdl_help: |
- - /ytdl <palavra ou link>: Se você utilizar um link o bot irá baixar de qualquer site que o YouTube-DL suporte, caso você escreva uma palavra, o bot buscará no youtube
+ <b>/ytdl [palavra ou link]</b> - Se você utilizar um link o bot irá baixar de qualquer site que o YouTube-DL suporte, caso você escreva uma palavra, o bot buscará no youtube
