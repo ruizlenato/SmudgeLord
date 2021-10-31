@@ -12,13 +12,35 @@ main_btn_back: "↩️ Back"
 main_start_btn_lang: "🇺🇸 Language"
 main_start_btn_help: "❓ Help"
 main_help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
+avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
+added: "added"
+updated: "updated"
 
 # Android
 android_name: "Android"
-magisk_releases: "<b>Latest Magisk Releases:</b>\n\n"
+magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
 android_help: |
   - /magisk: Get latest Magisk releases.
   
+# Github
+github_name: "Github"
+github_repos_saved: "<b>Repositories saved in this chat:</b>\n\n<code>${}</code>\n"
+github_repos_savedhelp: "\nYou can retrieve these notes by using /get trigger, or #trigger"
+github_add_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitadd (name) user/repo</code>"
+github_gitr_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitr user/repo</code>"
+github_repo_added: "Repo {} successfully.\n<b>Use</b> <code>/fetch {} </code>to get it"
+github_repo_deleted: "Successfully deleted repo: <b>{}</b>"
+github_repo_faildelete: "Repo <b>{}</b> not exists!"
+github_repo_noreleases: "Repo have no releases!"
+github_repo_errorreleases: "Coudn't find any releases on <code>{}</code>"
+github_nothing_save: "There are no saved repositories in this chat"
+github_help: |
+  - /gitr user/repository: get latest releses from repo.
+  - /repos: get list of saved repisitories in chat.
+  - /gitadd (name) user/repository: save repository.
+  - /gitdel (name): delete repository.
+  - /fetch (name): fetch saved repository, you can also use !(name)
+
 # LastFM
 lastfm_name: "LastFM"
 lastfm_username_save: Done, you can use /lastfm now
