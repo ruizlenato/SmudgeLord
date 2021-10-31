@@ -28,13 +28,5 @@ async def help_buttons(m, HELP):
     calc = len(plugins) - round(round_num)
     if calc == 1:
         buttons.append((plugins[-1],))
-    elif calc == 2:
-        buttons.append((plugins[-1],))
 
     return buttons
-
-
-async def help_plugin(c, m, text):
-    keyboard = [[InlineKeyboardButton("Back", callback_data="menu")]]
-    text = "<b> Avaliable Commands:</b>\n" + text
-    await m.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))

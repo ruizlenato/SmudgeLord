@@ -68,8 +68,16 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
     if chat_type == "private":
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
-                [InlineKeyboardButton(text="Portuguese", callback_data="pt-BR")],
-                [InlineKeyboardButton(text="English", callback_data="en-US")],
+                [
+                    InlineKeyboardButton(
+                        text="🇧🇷 PT-BR (Português)", callback_data="pt-BR"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="🇺🇸 EN-US (American English)", callback_data="en-US"
+                    )
+                ],
                 [
                     InlineKeyboardButton(
                         text=(await tld(chat_id, "main_btn_back")),
@@ -81,8 +89,16 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
     else:
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
-                [InlineKeyboardButton(text="Portuguese", callback_data="pt-BR")],
-                [InlineKeyboardButton(text="English", callback_data="en-US")],
+                [
+                    InlineKeyboardButton(
+                        text="🇧🇷 PT-BR (Português)", callback_data="pt-BR"
+                    )
+                ],
+                [
+                    InlineKeyboardButton(
+                        text="🇺🇸 EN-US (American English)", callback_data="en-US"
+                    )
+                ],
             ]
         )
     text = await tld(chat_id, "main_select_lang")

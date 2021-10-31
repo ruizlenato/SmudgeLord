@@ -6,7 +6,10 @@ def __list_all_plugins():
     all_modules = [
         basename(f)[:-3]
         for f in mod_paths
-        if isfile(f) and f.endswith(".py") and not f.endswith("__init__.py")
+        if isfile(f)
+        and f.endswith(".py")
+        and not f.endswith("__init__.py")
+        and not f.endswith("start.py")
     ]
     return all_modules
 
