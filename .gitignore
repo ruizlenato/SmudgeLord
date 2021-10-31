@@ -1,5 +1,6 @@
 # Session Files
 smudge/*.session*
+*.session*
 
 # Config Files
 smudge/config.py
@@ -16,3 +17,5 @@ smudge/database/*database.*
 
 # Useless Stuffs
 stuff/
+.vscode/
+
