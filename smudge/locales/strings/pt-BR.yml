@@ -12,14 +12,35 @@ main_btn_back: "↩️ Voltar"
 main_start_btn_lang: "🇧🇷 Idioma"
 main_start_btn_help: "❓ Ajuda"
 main_help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
+avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
+added: "adicionado"
+updated: "atualizado"
 
 # Android
 android_name: "Android"
-magisk_releases: "<b>Últimos lançamentos do magisk:</b>\n\n"
+magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
 android_help: |
   - /magisk: Tenha as últimas versões do Magisk.
 
-
+# Github
+github_name: "Github"
+github_repos_saved: "<b>Repositórios salvos neste chat:</b>\n\n<code>${}</code>\n"
+github_repos_savedhelp: "\nVocê pode obter essas notas usando /fetch gatilho, ou $gatilho"
+github_add_noargs: "Escreva o repositório para qual você quer criar um gatilho.\n\n<b>Por exemplo:</b>\n<code>/gitadd (gatilho) usuário/repo</code>"
+github_gitr_noargs: "Escreva o repositório para qual você quer buscar releases.\n\n<b>Por exemplo:</b>\n<code>/gitr usuário/repo</code>"
+github_repo_added: "Repositório {} com sucesso.\n<b>Use</b> <code>/fetch {} </code>para obtê-lo."
+github_repo_deleted: "O repositório <b>{}</b> foi deletado."
+github_repo_faildelete: "O repositório <b>{}</b> não existe, então não posso deletá-lo."
+github_repo_noreleases: "O repositório não tem releases"
+github_repo_errorreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
+github_nothing_save: "Não há nenhum repositório salvo nesse grupo."
+github_help: |
+  - /gitr user/repository: Irá buscar as releases mais recente desse repositório.
+  - /repos: Liste todos os repositórios salvos no grupo atual.
+  - /gitadd (gatilho) user/repository: Cria um gatilho para as releases de um repositório.
+  - /gitdel (gatilho): delete repository.
+  - /fetch (gatilho): Retorna as releases de um repositório salvo com esse gatilho.
+  
 # LastFM
 lastfm_name: "LastFM"
 lastfm_username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm - /lt\n/artist - /lart\n/album - /lalb."
