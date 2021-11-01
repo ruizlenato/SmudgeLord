@@ -189,7 +189,9 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         except BadRequest as e:
             await c.send_message(
                 chat_id=int(cid),
-                text=("ytdl_send_error{}").format(errmsg=e),
+                text=(await tld(cq.message.chat.id, "ytdl_send_error")).format(
+                    errmsg=e
+                ),
                 reply_to_message_id=int(mid),
             )
     else:
