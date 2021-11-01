@@ -74,24 +74,30 @@ async def start_command(c: Client, m: Union[Message, CallbackQuery]):
 
 
 @Client.on_callback_query(filters.regex("menu"))
-async def button(c: Client, m: Union[Message, CallbackQuery]):
-    keyboard = InlineKeyboardMarkup(await help_buttons(m, HELP))
-    text = await tld(m.message.chat.id, "main_help_text")
-    await m.edit_message_text(text, reply_markup=keyboard)
+async def button(c: Client, cq: CallbackQuery):
+    keyboard = InlineKeyboardMarkup(await help_buttons(cq, HELP))
+    text = await tld(cq.message.chat.id, "main_help_text")
+    await cq.edit_message_text(text, reply_markup=keyboard)
 
 
-async def help_menu(c, m, text):
-    keyboard = [[InlineKeyboardButton("Back", callback_data="menu")]]
-    text = (await tld(m.message.chat.id, "avaliable_commands")).format(text)
-    await m.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
+async def help_menu(c, cq, text):
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                await tld(cq.message.chat.id, "main_btn_back"), callback_data="menu"
+            )
+        ]
+    ]
+    text = (await tld(cq.message.chat.id, "avaliable_commands")).format(text)
+    await cq.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
 @Client.on_callback_query(filters.regex(pattern=".*help_plugin.*"))
-async def but(c: Client, m: CallbackQuery):
-    plug_match = re.match(r"help_plugin\((.+?)\)", m.data)
+async def but(c: Client, cq: CallbackQuery):
+    plug_match = re.match(r"help_plugin\((.+?)\)", cq.data)
     plug = plug_match.group(1)
-    text = await tld(m.message.chat.id, str(HELP[plug][0]["help"]))
-    await help_menu(c, m, text)
+    text = await tld(cq.message.chat.id, str(HELP[plug][0]["help"]))
+    await help_menu(c, cq, text)
 
 
 @Client.on_callback_query(filters.regex(r"en-US"))
@@ -136,15 +142,15 @@ async def portuguese(c: Client, m: Message):
 
 @Client.on_message(filters.command(["setlang"]))
 @Client.on_callback_query(filters.regex(r"setchatlang"))
-async def setlang(c: Client, m: Union[Message, CallbackQuery]):
-    if isinstance(m, CallbackQuery):
-        chat_id = m.message.chat.id
-        chat_type = m.message.chat.type
-        reply_text = m.edit_message_text
+async def setlang(c: Client, cq: Union[Message, CallbackQuery]):
+    if isinstance(cq, CallbackQuery):
+        chat_id = cq.message.chat.id
+        chat_type = cq.message.chat.type
+        reply_text = cq.edit_message_text
     else:
-        chat_id = m.chat.id
-        chat_type = m.chat.type
-        reply_text = m.reply_text
+        chat_id = cq.chat.id
+        chat_type = cq.chat.type
+        reply_text = cq.reply_text
 
     if chat_type == "private":
         keyboard = InlineKeyboardMarkup(
