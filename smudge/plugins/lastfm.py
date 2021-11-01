@@ -1,4 +1,3 @@
-import httpx
 import urllib.parse
 import urllib.request
 import rapidjson as json
@@ -6,14 +5,11 @@ import rapidjson as json
 from smudge.config import LASTFM_API_KEY
 from smudge.locales.strings import tld
 from smudge.database.core import users
-
+from smudge.utils import http
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
 from tortoise.exceptions import IntegrityError
-
-timeout = httpx.Timeout(20)
-http = httpx.AsyncClient(http2=True, timeout=timeout)
 
 
 async def set_last_user(user_id: int, lastfm_username: str):

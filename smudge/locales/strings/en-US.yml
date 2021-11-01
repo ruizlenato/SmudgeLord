@@ -70,7 +70,14 @@ misc_help: |
 
 
 # Video Downloader
-ytdl_name: "Youtube-DL"
-ytdl_max_size: "The Video you want to download <b>exceeds 200MB in size.</b>\nUnable to download and upload, sorry."
+ytdl_name: "YouTube"
+ytdl_audio_button: "💿 Audio"
+ytdl_video_butto: "📹 Video"
+ytdl_file_too_big: "The Video you want to download exceeds 200MB in size.\nUnable to download and upload, sorry."
+ytdl_missing_argument: "Please reply to a YouTube link or text."
+ytdl_downloading: "Downloading..."
+ytdl_sending: "Sending..."
+ytdl_button_denied: "This button is not for you."
 ytdl_help: |
- <b>/ytdl [word or link]</b> - If you use a link the bot will download from any site that YouTube-DL supports, if you type a word, the bot will search youtube.
+ <b>/ytdl [Word or link]</b> - If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
+ <b>/yt [word]</b> - It does a YouTube video search with the word you wrote and returns a list with videos.
