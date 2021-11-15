@@ -250,7 +250,7 @@ use_existing_pack: "<code>Using existing sticker pack...</code>"
 sticker_info: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
 animated_not_supported: "Animated stickers are not supported."
 
-# Video Downloader
+# Youtube Downloader
 ytdl_name: "YouTube"
 ytdl_audio_button: "💿 Audio"
 ytdl_video_butto: "📹 Video"
