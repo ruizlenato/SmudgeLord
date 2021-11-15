@@ -4,7 +4,7 @@ import tempfile
 
 from PIL import Image
 
-from smudge.config import chat_logs
+from smudge.config import CHAT_LOGS
 from smudge.utils import EMOJI_PATTERN
 from smudge.locales.strings import tld
 
@@ -161,7 +161,7 @@ async def kang_sticker(c: Client, m: Message):
         file = await c.save_file(filename)
         media = await c.send(
             SendMedia(
-                peer=(await c.resolve_peer(chat_logs)),
+                peer=(await c.resolve_peer(CHAT_LOGS)),
                 media=InputMediaUploadedDocument(
                     file=file,
                     mime_type=c.guess_mime_type(filename),

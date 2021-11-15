@@ -1,11 +1,14 @@
 import asyncio
 import logging
 
-from rich.panel import Panel
 from pyrogram import Client, idle
+
+from rich.panel import Panel
 from rich import box, print as rprint
-from smudge.config import *
+
 from tortoise import run_async
+
+from smudge.config import *
 from smudge.database import connect_database
 
 # Enable logging
@@ -23,9 +26,9 @@ plugins = dict(root="smudge.plugins")
 client = Client(
     "smudge",
     workers=20,
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
+    API_ID=API_ID,
+    API_HASH=API_HASH,
+    BOT_TOKEN=BOT_TOKEN,
     parse_mode="html",
     plugins=plugins,
 )
@@ -35,6 +38,7 @@ async def main():
     await client.start()
     print("[SmudgeLord] Starting...")
     await connect_database()
+    await client.send_message(chat_id=CHAT_LOGS, text="<b>SmudgeLord started!</b>")
     await idle()
 
 
