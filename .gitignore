@@ -17,5 +17,6 @@ smudge/database/*database.*
 
 # Useless Stuffs
 stuff/
+smudge/downloads/*
 .vscode/
 

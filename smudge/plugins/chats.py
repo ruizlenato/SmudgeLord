@@ -10,10 +10,10 @@ from smudge.database.core import users, groups
 async def add_chat(chat_id, chat_type, user_id):
     try:
         if chat_type == "private":
-            await users.update_or_create(user_id=chat_id)
+            await users.update_or_create(id=chat_id)
         elif chat_type == "group" or "supergroup":
-            await groups.update_or_create(chat_id=chat_id)
-            await users.update_or_create(user_id=user_id)
+            await groups.update_or_create(id=chat_id)
+            await users.update_or_create(id=user_id)
     except:
         return
 

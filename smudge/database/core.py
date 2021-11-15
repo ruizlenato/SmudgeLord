@@ -4,12 +4,12 @@ from tortoise.exceptions import DoesNotExist, IntegrityError
 
 
 class users(Model):
-    user_id = fields.IntField(pk=True)
+    id = fields.IntField(pk=True)
     lastfm_username = fields.TextField(null=True)
 
 
 class groups(Model):
-    chat_id = fields.IntField(pk=True)
+    id = fields.IntField(pk=True)
     git_repo = fields.TextField(null=True)
     git_repo_name = fields.TextField(null=True)
 
