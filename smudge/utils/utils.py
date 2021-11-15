@@ -1,3 +1,4 @@
+import re
 import math
 import httpx
 import asyncio
@@ -5,8 +6,11 @@ import asyncio
 from typing import Coroutine, Callable
 from functools import wraps, partial
 
+from pyrogram import emoji
+
 timeout = httpx.Timeout(20)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
+_EMOJI_REGEXP = None
 
 
 def pretty_size(size_bytes):
@@ -28,3 +32,23 @@ def aiowrap(func: Callable) -> Callable:
         return await loop.run_in_executor(executor, pfunc)
 
     return run
+
+
+def get_emoji_regex():
+    global _EMOJI_REGEXP
+    if not _EMOJI_REGEXP:
+        e_list = [
+            getattr(emoji, e).encode("unicode-escape").decode("ASCII")
+            for e in dir(emoji)
+            if not e.startswith("_")
+        ]
+        # to avoid re.error excluding char that start with '*'
+        e_sort = sorted([x for x in e_list if not x.startswith("*")], reverse=True)
+        # Sort emojis by length to make sure multi-character emojis are
+        # matched first
+        pattern_ = f"({'|'.join(e_sort)})"
+        _EMOJI_REGEXP = re.compile(pattern_)
+    return _EMOJI_REGEXP
+
+
+EMOJI_PATTERN = get_emoji_regex()

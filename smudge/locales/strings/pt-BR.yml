@@ -71,6 +71,17 @@ misc_help: |
  <i>Obs: o comando também funciona através de resposta
  Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
 
+# Stickers
+stickers_pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro. ."
+stickers_kang_noreply: "<b>Pane no sistema alguém me desconfigurou.</b>\nVocê precisa usar esse comando respondendo um sticker ou uma foto."
+stickers_kanging: "Roubando o Sticker..."
+stickers_getsticker_no_reply: Responda a um sticker para que eu faça o upload do PNG.
+err_sticker_no_file_name: "<b>Erro</b>: <code>Este sticker não possui um nome de arquivo!</code>"
+create_new_pack_string: "<b>Criando um novo pacote de stickers...</b>"
+sticker_kanged_string: "Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/{}'>Confira.</a>\n<b>Emoji:</b> {}"
+use_existing_pack: "<code>Usando o pacote de stickers existente...</code>"
+sticker_info: "<b>Emoji:</b> {}\n<b>ID do Sticker:</b> <code>{}</code>"
+animated_not_supported: "Stickers animados não são suportados."
 
 # Video Downloader
 ytdl_name: "YouTube"

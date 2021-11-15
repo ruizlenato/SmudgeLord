@@ -1,1 +1,1 @@
-from .utils import http, pretty_size, aiowrap
+from .utils import http, pretty_size, aiowrap, EMOJI_PATTERN
