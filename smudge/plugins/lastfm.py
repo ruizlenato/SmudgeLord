@@ -9,17 +9,17 @@ from smudge.utils import http
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-from tortoise.exceptions import IntegrityError
+from tortoise.exceptions import IntegrityError, DoesNotExist
 
 
 async def set_last_user(user_id: int, lastfm_username: str):
-    await users.filter(user_id=user_id).update(lastfm_username=lastfm_username)
+    await users.filter(id=user_id).update(lastfm_username=lastfm_username)
     return
 
 
 async def get_last_user(user_id: int):
     try:
-        return (await users.get(user_id=user_id)).lastfm_username
+        return (await users.get(id=user_id)).lastfm_username
     except DoesNotExist:
         return None
 
@@ -28,10 +28,7 @@ async def get_last_user(user_id: int):
 async def setuser(c: Client, m: Message):
     user_id = m.from_user.id
     try:
-        if m.reply_to_message and m.reply_to_message.text:
-            username = m.reply_to_message.text
-        elif m.text and m.text.split(maxsplit=1)[1]:
-            username = m.text.split(maxsplit=1)[1]
+        username = m.text.split(maxsplit=1)[1]
     except IndexError:
         await m.reply_text(await tld(m.chat.id, "lastfm_no_username_save"))
         return
@@ -45,7 +42,7 @@ async def setuser(c: Client, m: Message):
     return
 
 
-@Client.on_message(filters.command(["lastfm", "lt", "lmu"], prefixes="/"))
+@Client.on_message(filters.command(["lastfm", "lmu"], prefixes="/"))
 async def lastfm(c: Client, m: Message):
     user = m.from_user.first_name
     user_id = m.from_user.id

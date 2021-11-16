@@ -1,13 +1,12 @@
 import yaml
-import logging
 
 from os import path
 
 from smudge.database import get_db_lang
+from smudge import LOGGER
 
 LANGUAGES = ["en-US", "pt-BR"]
 
-LOGGER = logging.getLogger(__name__)
 
 strings = {}
 strings_folder = path.join(path.dirname(path.realpath(__file__)), "strings")

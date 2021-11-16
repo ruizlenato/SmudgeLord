@@ -5,7 +5,7 @@ import tempfile
 from PIL import Image
 
 from smudge.config import CHAT_LOGS
-from smudge.utils import EMOJI_PATTERN
+from smudge.utils import get_emoji_regex
 from smudge.locales.strings import tld
 
 from pyrogram import Client, filters
@@ -97,7 +97,7 @@ async def kang_sticker(c: Client, m: Message):
             if len(m.command) > 1:
                 # matches all valid emojis in input
                 sticker_emoji = (
-                    "".join(set(EMOJI_PATTERN.findall("".join(m.command[1:]))))
+                    "".join(set(get_emoji_regex.findall("".join(m.command[1:]))))
                     or sticker_emoji
                 )
         filename = await c.download_media(m.reply_to_message)
@@ -132,7 +132,7 @@ async def kang_sticker(c: Client, m: Message):
                 packname = f"a{packnum}_{m.from_user.id}_by_{bot_username}"
             if len(m.command) > 2:
                 sticker_emoji = (
-                    "".join(set(EMOJI_PATTERN.findall("".join(m.command[2:]))))
+                    "".join(set(get_emoji_regex.findall("".join(m.command[2:]))))
                     or sticker_emoji
                 )
             resize = True

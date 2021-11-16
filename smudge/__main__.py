@@ -26,9 +26,9 @@ plugins = dict(root="smudge.plugins")
 client = Client(
     "smudge",
     workers=20,
-    API_ID=API_ID,
-    API_HASH=API_HASH,
-    BOT_TOKEN=BOT_TOKEN,
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN,
     parse_mode="html",
     plugins=plugins,
 )

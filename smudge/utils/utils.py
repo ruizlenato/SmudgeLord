@@ -3,7 +3,6 @@ import math
 import httpx
 import asyncio
 
-from typing import Coroutine, Callable
 from functools import wraps, partial
 
 from pyrogram import emoji
@@ -51,4 +50,3 @@ def get_emoji_regex():
     return _EMOJI_REGEXP
 
 
-EMOJI_PATTERN = get_emoji_regex()
