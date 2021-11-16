@@ -3,7 +3,6 @@ from typing import Union
 from smudge.locales.strings import tld
 from smudge.database import set_db_lang
 from smudge.plugins.start import start_command
-
 from pyrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -15,6 +14,16 @@ from pyrogram import Client, filters
 
 @Client.on_callback_query(filters.regex(r"en-US"))
 async def english(c: Client, m: Message):
+    if m.message.chat.type == "private":
+        pass
+    else:
+        member = await c.get_chat_member(
+            chat_id=m.message.chat.id, user_id=m.from_user.id
+        )
+        if member.status in ["administrator", "creator"]:
+            pass
+        else:
+            return
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -35,6 +44,16 @@ async def english(c: Client, m: Message):
 
 @Client.on_callback_query(filters.regex(r"pt-BR"))
 async def portuguese(c: Client, m: Message):
+    if m.message.chat.type == "private":
+        pass
+    else:
+        member = await c.get_chat_member(
+            chat_id=m.message.chat.id, user_id=m.from_user.id
+        )
+        if member.status in ["administrator", "creator"]:
+            pass
+        else:
+            return
     keyboard = InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -87,6 +106,11 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
             ]
         )
     else:
+        member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
+        if member.status in ["administrator", "creator"]:
+            pass
+        else:
+            return
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
