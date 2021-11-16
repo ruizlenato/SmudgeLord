@@ -227,18 +227,26 @@ memes_hit_list:
   - "ataca"
 
 # Misc
-misc_name: "Misc"
+misc_name: "Utils"
 tr_error: "<b>Error</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
 tr_translating: "Translating..."
 print_error: "<b>Error</b>\n<b>Command Usage:</b> /print (link).\n\n<i>You can also use this command when replying to a message.</i>"
 print_image_prcoessfailed: "An error occurred while trying to process the image"
 print_image_prcoessfailed: "Ocorreu um erro ao tentar processar a imagem"
+no_longer_afk: "{} is no longer Afk!"
+afk_reason: "\n<b>Reason:</b> {}"
+user_afk: "{} is Afk!"
+user_now_afk: "<a href='tg://user?id={}'>{}</a> is now afk!"
 misc_help: |
  <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.
  <i>• It also can be used as reply.
  I.e <b>"/tr [language]"</b> replying a message</i>
 
+ <b>/afk [reason] - </b> Mark yourself as AFK.
+ <i>• When marked as AFK, any mentions will be replied to with a message telling that you're not available!</i>
+
 # Stickers
+stickers_name: "Stickers"
 stickers_pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first."
 stickers_kang_noreply: "<b>You need to use this command replying a sticker or a photo.</b>"
 stickers_kanging: "Stealing the sticker..."
@@ -249,6 +257,9 @@ sticker_kanged_string: "Sticker stolen <b>successfully</b>, <a href='t.me/addsti
 use_existing_pack: "<code>Using existing sticker pack...</code>"
 sticker_info: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
 animated_not_supported: "Animated stickers are not supported."
+stickers_help: |
+    - /getsticker: reply to a sticker to me to upload its raw PNG file.
+    - /kang: reply to a sticker to add it to your pack.
 
 # Youtube Downloader
 ytdl_name: "YouTube"

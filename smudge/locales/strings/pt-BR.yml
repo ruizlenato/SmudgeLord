@@ -183,14 +183,22 @@ tr_error: "<b>Erro</b>\n<b>Uso do comando:</b> /tr (idioma) (texto).\n\n<i>Você
 tr_translating: "Traduzindo..."
 print_error: "<b>Erro</b>\n<b>Uso do comando:</b> /print (link).\n\n<i>Você também pode usar esse comando respondendo uma mensagem</i>"
 print_image_prcoessfailed: "Ocorreu um erro ao tentar processar a imagem"
+no_longer_afk: "{} não está mais afk!"
+afk_reason: "\n<b>Motivo:</b> {}"
+user_afk: "{} está afk!"
+user_now_afk: "<a href='tg://user?id={}'>{}</a> agora está afk!"
 misc_help: |
  <b>/dicio [palavra]</b> - Irá pesquisar a palavra no dicionario.
  
  <b>/tr</b> [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
- <i>Obs: o comando também funciona através de resposta
+ <i><b>Obs</b>: o comando também funciona através de resposta
  Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
+ 
+ <b>/afk [motivo] - </b> Define a si mesmo como AFK.
+ <i>• Quando marcado como AFK, qualquer menção será respondida com uma mensagem informando que você não está disponível!</i>
 
 # Stickers
+stickers_name: "Stickers"
 stickers_pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro. ."
 stickers_kang_noreply: "<b>Pane no sistema alguém me desconfigurou.</b>\nVocê precisa usar esse comando respondendo um sticker ou uma foto."
 stickers_kanging: "Roubando o Sticker..."
@@ -201,6 +209,9 @@ sticker_kanged_string: "Sticker roubado <b>com sucesso</b>, <a href='t.me/addsti
 use_existing_pack: "<code>Usando o pacote de stickers existente...</code>"
 sticker_info: "<b>Emoji:</b> {}\n<b>ID do Sticker:</b> <code>{}</code>"
 animated_not_supported: "Stickers animados não são suportados."
+stickers_help: |
+ <b>/getsticker -</b> responda a um adesivo para fazer o upload do arquivo PNG bruto.
+ <b>/kang -</b> responda a um sticker para adicioná-lo ao seu pacote.
 
 # YouTube Downloader
 ytdl_name: "YouTube"
