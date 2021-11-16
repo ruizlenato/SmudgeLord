@@ -8,34 +8,31 @@ from pyrogram.types import Message
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from tortoise.exceptions import DoesNotExist
+from tortoise.exceptions import DoesNotExist, IntegrityError
 
 
 async def add_repo(chat_id: int, git_repo_name: str, git_repo: str):
     check_repo_exists = await groups.exists(
-        chat_id=chat_id, git_repo_name=git_repo_name, git_repo=git_repo
+        id=chat_id, git_repo_name=git_repo_name, git_repo=git_repo
     )
     try:
         if check_repo_exists:
-            await groups.filter(chat_id=chat_id).update(
+            await groups.filter(id=chat_id).update(
                 git_repo_name=git_repo_name, git_repo=git_repo
             )
             return True
         else:
-            await groups.filter(chat_id=chat_id).update(
+            await groups.filter(id=chat_id).update(
                 git_repo_name=git_repo_name, git_repo=git_repo
             )
             return False
     except IntegrityError:
-
         return
 
 
 async def del_repo(chat_id: int, git_repo_name: str):
     try:
-        return await groups.filter(
-            chat_id=chat_id, git_repo_name=git_repo_name
-        ).delete()
+        return await groups.filter(id=chat_id, git_repo_name=git_repo_name).delete()
     except DoesNotExist:
         return False
 
@@ -44,7 +41,7 @@ async def get_repo(chat_id: int, git_repo_name: str):
     try:
         return (
             await groups.get(
-                chat_id=chat_id,
+                id=chat_id,
                 git_repo_name=git_repo_name,
             )
         ).git_repo
@@ -53,7 +50,7 @@ async def get_repo(chat_id: int, git_repo_name: str):
 
 
 async def get_repos(chat_id: int):
-    return await groups.filter(chat_id=chat_id)
+    return await groups.filter(id=chat_id)
 
 
 @Client.on_message(filters.command(["gitr"]))
