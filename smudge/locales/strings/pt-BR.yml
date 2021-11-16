@@ -188,8 +188,6 @@ afk_reason: "\n<b>Motivo:</b> {}"
 user_afk: "{} está afk!"
 user_now_afk: "<a href='tg://user?id={}'>{}</a> agora está afk!"
 misc_help: |
- <b>/dicio [palavra]</b> - Irá pesquisar a palavra no dicionario.
- 
  <b>/tr</b> [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
  <i><b>Obs</b>: o comando também funciona através de resposta
  Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
