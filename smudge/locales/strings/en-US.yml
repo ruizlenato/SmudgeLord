@@ -25,8 +25,8 @@ android_help: |
 
 # Github
 github_name: "Github"
-github_repos_saved: "<b>Repositories saved in this chat:</b>\n\n<code>${}</code>\n"
-github_repos_savedhelp: "\nYou can retrieve these notes by using /get trigger, or #trigger"
+github_repos_saved: "<b>Repositories saved in this chat:</b>\n\n<code>&{}</code>\n"
+github_repos_savedhelp: "\nYou can retrieve these repositories by using /get trigger, or &trigger"
 github_add_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitadd (name) user/repo</code>"
 github_gitr_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitr user/repo</code>"
 github_repo_added: "Repo {} successfully.\n<b>Use</b> <code>/fetch {} </code>to get it"

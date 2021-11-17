@@ -84,7 +84,7 @@ async def git_repos(c: Client, m: Message):
 
 
 @Client.on_message(filters.command(["fetch"]) & filters.group)
-@Client.on_message(filters.regex(pattern=r"^!\w*") & filters.group)
+@Client.on_message(filters.regex(pattern=r"^&\w*") & filters.group)
 async def fetch_repo(c: Client, m: Message):
     try:
         repo = m.command[1]

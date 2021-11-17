@@ -25,8 +25,8 @@ android_help: |
 
 # Github
 github_name: "Github"
-github_repos_saved: "<b>Repositórios salvos neste chat:</b>\n\n<code>${}</code>\n"
-github_repos_savedhelp: "\nVocê pode obter essas notas usando /fetch gatilho, ou $gatilho"
+github_repos_saved: "<b>Repositórios salvos neste chat:</b>\n\n<code>&{}</code>\n"
+github_repos_savedhelp: "\nVocê pode obter essas notas usando /fetch gatilho, ou &gatilho"
 github_add_noargs: "Escreva o repositório para qual você quer criar um gatilho.\n\n<b>Por exemplo:</b>\n<code>/gitadd (gatilho) usuário/repo</code>"
 github_gitr_noargs: "Escreva o repositório para qual você quer buscar releases.\n\n<b>Por exemplo:</b>\n<code>/gitr usuário/repo</code>"
 github_repo_added: "Repositório {} com sucesso.\n<b>Use</b> <code>/fetch {} </code>para obtê-lo."
