@@ -258,8 +258,8 @@ use_existing_pack: "<code>Using existing sticker pack...</code>"
 sticker_info: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
 animated_not_supported: "Animated stickers are not supported."
 stickers_help: |
-    - /getsticker: reply to a sticker to me to upload its raw PNG file.
-    - /kang: reply to a sticker to add it to your pack.
+ <b>/getsticker -</b> reply to a sticker to me to upload its raw PNG file.
+ <b>/kang -</b> reply to a sticker to add it to your pack.
 
 # Youtube Downloader
 ytdl_name: "YouTube"
