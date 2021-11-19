@@ -18,6 +18,12 @@ updated: "updated"
 
 # Android
 android_name: "Android"
+whatis_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
+whatis_device: "<b>{}/{}</b> is <code>{} {}</code>\n"
+models_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
+models_variant: "<b>{}</b> variants:\n\n"
+models_list: "<b>Model</b>: <code>{}</code> \n<b>Name:</b> {}\n\n"
+codename_notfound: "Coudn't find your device, check device & try again!"
 magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
 android_help: |
   <b>/magisk</b> - Get latest Magisk releases.
@@ -46,7 +52,7 @@ github_help: |
 lastfm_name: "LastFM"
 lastfm_username_save: Done, you can use /lastfm now
 lastfm_no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
-lastfm_no_username: "<b>Error</b>\nYou didn't set a username\n\n<b>Use the command:</b> /setuser (username)."
+lastfm_no_username: "<b>Error</b>\nYou didn't set a username\n\n<b>Command usage:</b> /setuser (username)."
 lastfm_username_wrong: "Your username is incorrect\n\n<strong>Use /set user (yout username)</strong> and try again"
 lastfm_scrobble_is: "<strong>{}</strong> is listening for the <strong>{}° time</strong>:\n\n"
 lastfm_scrobble_was: "<strong>{}</strong> was listening for the <strong>{}° time</strong>:\n\n"

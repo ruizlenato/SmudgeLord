@@ -8,6 +8,47 @@ from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 from smudge.utils import http
 from smudge.locales.strings import tld
 
+# Port from SamsungGeeksBot.
+
+
+class GetDevice:
+    def __init__(self, device):
+        """Get device info by codename or model!"""
+        self.device = device
+
+    async def get(self):
+        if self.device.lower().startswith("sm-"):
+            data = await http.get(
+                "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_model.json"
+            )
+            db = rapidjson.loads(data)
+            try:
+                name = db[self.device.upper()][0]["name"]
+                device = db[self.device.upper()][0]["device"]
+                brand = db[self.device.upper()][0]["brand"]
+                model = self.device.lower()
+                return {"name": name, "device": device, "model": model, "brand": brand}
+            except KeyError:
+                return False
+        else:
+            data = await http.get(
+                "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
+            )
+            database = rapidjson.loads(data.content)
+            newdevice = (
+                self.device.strip("lte").lower()
+                if self.device.startswith("beyond")
+                else self.device.lower()
+            )
+            try:
+                name = database[newdevice][0]["name"]
+                model = database[newdevice][0]["model"]
+                brand = database[newdevice][0]["brand"]
+                device = newdevice
+                return {"name": name, "device": device, "model": model, "brand": brand}
+            except KeyError:
+                return False
+
 
 @Client.on_message(filters.command(["magisk"]))
 async def magisk(c: Client, m: Message):
@@ -53,6 +94,58 @@ async def twrp(c: Client, m: Message):
             message,
             reply_markup=InlineKeyboardMarkup(keyboard),
         )
+
+
+@Client.on_message(filters.command(["whatis", "device", "codename"]))
+async def models(c: Client, m: Message):
+    if not len(m.command) == 2:
+        message = await tld(m.chat.id, "whatis_nocodename")
+        await m.reply_text(message)
+        return
+    device = m.command[1]
+    data = await GetDevice(device).get()
+    if data:
+        name = data["name"]
+        device = data["device"]
+        brand = data["brand"]
+        model = data["model"]
+    else:
+        message = await tld(m.chat.id, "codename_notfound")
+        await m.reply_text(message)
+        return
+    message = (await tld(m.chat.id, "whatis_device")).format(
+        model, model.upper(), brand, name
+    )
+    await m.reply_text(message)
+
+
+@Client.on_message(filters.command(["variants", "models"]))
+async def variants(c: Client, m: Message):
+    if not len(m.command) == 2:
+        message = await tld(m.chat.id, "models_nocodename")
+        await m.reply_text(message)
+        return
+    cdevice = m.command[1]
+    data = await GetDevice(cdevice).get()
+    if data:
+        name = data["name"]
+        device = data["device"]
+    else:
+        message = await tld(m.chat.id, "codename_notfound")
+        await m.reply_text(message)
+        return
+    data = await http.get(
+        "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
+    )
+    db = rapidjson.loads(data.content)
+    device = db[device]
+    message = (await tld(m.chat.id, "models_variant")).format(cdevice)
+    for i in device:
+        name = i["name"]
+        model = i["model"]
+        message += (await tld(m.chat.id, "models_list")).format(model, name)
+
+    await m.reply_text(message)
 
 
 plugin_name = "android_name"

@@ -18,6 +18,12 @@ updated: "atualizado"
 
 # Android
 android_name: "Android"
+whatis_nocodename: "<b>Error.</b>\n<b>Uso do comando:</b> /whatis (codename)."
+whatis_device: "<b>{}/{}</b> é o <code>{} {}</code>\n"
+models_nocodename: "<b>Error.</b>\n<b>Uso do comando:</b> /models (codename)."
+models_variant: "Variantes do <b>{}</b>:\n\n"
+models_list: "<b>Modelo</b>: <code>{}</code> \n<b>Nome:</b> {}\n\n"
+codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename e tente novamente"
 magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
 android_help: |
   <b>/magisk</b> - Tenha as últimas versões do Magisk.
@@ -44,7 +50,7 @@ github_help: |
   
 # LastFM
 lastfm_name: "LastFM"
-lastfm_username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm - /lt\n/artist - /lart\n/album - /lalb."
+lastfm_username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm \n/artist - /lart\n/album - /lalb."
 lastfm_no_username_save: "<b>Erro</b>\n<b>Uso do comando:</b> /setuser (username)."
 lastfm_no_username: "<b>Erro.</b>\nVocê não definiu um username.\n\n<b>Use o comando:</b> /setuser (username)."
 lastfm_username_wrong: "Seu username está incorreto\n\n<strong>Use /setuser (seu username)</strong> e tente novamente"
