@@ -27,7 +27,9 @@ codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename 
 magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
 android_help: |
   <b>/magisk</b> - Tenha as últimas versões do Magisk.
-
+  <b>/twrp [codename]</b> - Obtenha a última versão do TWRP disponível para o device escolhido a partir do codename.
+  <b>/whatis [codename]</b> - Obtenha o nome do device a partir do codename.
+  <b>/variants [codename]</b> - Obtenha variantes de devices Android a partir do codename.
 
 # Github
 github_name: "Github"

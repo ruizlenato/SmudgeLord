@@ -27,6 +27,10 @@ codename_notfound: "Coudn't find your device, check device & try again!"
 magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
 android_help: |
   <b>/magisk</b> - Get latest Magisk releases.
+  <b>/twrp [codename]</b> - Get the latest TWRP version available for the chosen device from codename.
+  <b>/whatis [codename]</b> - Get phone neme from codename.
+  <b>/variants [codename]</b> - Get phone variants from codename..
+  
 
 
 # Github
