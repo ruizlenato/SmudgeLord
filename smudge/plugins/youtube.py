@@ -150,7 +150,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         ydl = yt_dlp.YoutubeDL(
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
-                "format": vformat,
+                "format": f"{vformat}+140",
                 "noplaylist": True,
             }
         )
@@ -166,8 +166,8 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
     try:
         yt = await extract_info(ydl, url, download=True)
     except BaseException as e:
-        await cq.message.edit(await tld(cq.message.chat.id, "ytdl_send_error")).format(
-            errmsg=e
+        await cq.message.edit(
+            (await tld(cq.message.chat.id, "ytdl_send_error")).format(e)
         )
         return
     await cq.message.edit(await tld(cq.message.chat.id, "ytdl_sending"))
