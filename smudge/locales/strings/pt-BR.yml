@@ -187,9 +187,10 @@ memes_hit_list:
 
 # Misc
 misc_name: "Utilitários"
-tr_error: "<b>Erro</b>\n<b>Uso do comando:</b> /tr (idioma) (texto).\n\n<i>Você também pode usar esse comando respondendo uma mensagem ou uma foto com legenda</i>"
+short_error: "<b>Erro.</b>\n<b>Uso do comando:</b> /short (url)\n\nFaça isso para encurtar uma url."
+tr_error: "<b>Erro.</b>\n<b>Uso do comando:</b> /tr (idioma) (texto).\n\n<i>Você também pode usar esse comando respondendo uma mensagem ou uma foto com legenda</i>"
 tr_translating: "Traduzindo..."
-print_error: "<b>Erro</b>\n<b>Uso do comando:</b> /print (link).\n\n<i>Você também pode usar esse comando respondendo uma mensagem</i>"
+print_error: "<b>Erro.</b>\n<b>Uso do comando:</b> /print (link).\n\n<i>Você também pode usar esse comando respondendo uma mensagem</i>"
 print_image_prcoessfailed: "Ocorreu um erro ao tentar processar a imagem"
 no_longer_afk: "{} não está mais afk!"
 afk_reason: "\n<b>Motivo:</b> {}"
@@ -200,9 +201,10 @@ misc_help: |
  <i><b>Obs</b>: o comando também funciona através de resposta
  Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
  
- <b>/afk [motivo] - </b> Define a si mesmo como AFK.
+ <b>/afk [motivo] - </b> Define a si mesmo como AFK. (O Comando está desativado no momento por conta de alguns problemas.)
  <i>• Quando marcado como AFK, qualquer menção será respondida com uma mensagem informando que você não está disponível!</i>
 
+ <b>/short [url]</b> - Para encurtar uma URL.
 # Stickers
 stickers_name: "Stickers"
 stickers_pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro. ."

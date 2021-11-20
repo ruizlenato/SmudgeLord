@@ -1,10 +1,12 @@
 import html
+import rapidjson
 import dicioinformal
 
 from gpytranslate import Translator
 
 from smudge import SCREENSHOT_API_KEY
 from smudge.locales.strings import tld
+from smudge.utils import http
 
 from pyrogram.types import Message
 from pyrogram import Client, filters
@@ -112,6 +114,31 @@ async def dicio(c: Client, m: Message):
     else:
         frase = "sem resultado"
     await m.reply(frase)
+
+
+@Client.on_message(filters.command("short"))
+async def short(c: Client, m: Message):
+    if len(m.command) < 2:
+        return await m.reply_text(await tld(m.chat.id, "short_error"))
+    else:
+        url = m.command[1]
+        if not url.startswith("http"):
+            url = "http://" + url
+        try:
+            short = m.command[2]
+            shortRequest = await http.get(
+                f"https://api.1pt.co/addURL?long={url}&short={short}"
+            )
+            info = rapidjson.loads(shortRequest.content)
+            short = info["short"]
+            return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
+        except IndexError:
+            shortRequest = await http.get(f"https://api.1pt.co/addURL?long={url}")
+            info = rapidjson.loads(shortRequest.content)
+            short = info["short"]
+            return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
+        except Exception as e:
+            return await m.reply_text(f"<b>{e}</b>")
 
 
 plugin_name = "misc_name"

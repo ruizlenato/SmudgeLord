@@ -238,9 +238,10 @@ memes_hit_list:
 
 # Misc
 misc_name: "Utils"
-tr_error: "<b>Error</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
+short_error: "<b>Error.</b>\n<b>Command Usage:</b> /short (url)\n\nDo this to shorten a url."
+tr_error: "<b>Error.</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
 tr_translating: "Translating..."
-print_error: "<b>Error</b>\n<b>Command Usage:</b> /print (link).\n\n<i>You can also use this command when replying to a message.</i>"
+print_error: "<b>Error.</b>\n<b>Command Usage:</b> /print (link).\n\n<i>You can also use this command when replying to a message.</i>"
 print_image_prcoessfailed: "An error occurred while trying to process the image"
 print_image_prcoessfailed: "Ocorreu um erro ao tentar processar a imagem"
 no_longer_afk: "{} is no longer Afk!"
@@ -252,9 +253,10 @@ misc_help: |
  <i>• It also can be used as reply.
  I.e <b>"/tr [language]"</b> replying a message</i>
 
- <b>/afk [reason] - </b> Mark yourself as AFK.
+ <b>/afk [reason]</b> - Mark yourself as AFK.
  <i>• When marked as AFK, any mentions will be replied to with a message telling that you're not available!</i>
 
+ <b>/short [url]</b> - To Short a url.
 # Stickers
 stickers_name: "Stickers"
 stickers_pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first."
