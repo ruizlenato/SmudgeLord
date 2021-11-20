@@ -248,6 +248,7 @@ no_longer_afk: "{} is no longer Afk!"
 afk_reason: "\n<b>Reason:</b> {}"
 user_afk: "{} is Afk!"
 user_now_afk: "<a href='tg://user?id={}'>{}</a> is now afk!"
+regex_timeout: "Oops, your regex pattern has run for too long."
 misc_help: |
  <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.
  <i>• It also can be used as reply.
