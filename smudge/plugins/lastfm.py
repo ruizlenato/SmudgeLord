@@ -97,7 +97,7 @@ async def lastfm(c: Client, m: Message):
     await m.reply_text(rep)
 
 
-@Client.on_message(filters.command(["album", "lalb"], prefixes="/"))
+@Client.on_message(filters.command(["lalbum", "lalb"], prefixes="/"))
 async def album(c: Client, m: Message):
     user = m.from_user.first_name
     username = await get_last_user(m.from_user.id)
@@ -126,10 +126,10 @@ async def album(c: Client, m: Message):
     album1 = urllib.parse.quote(album)
     loved = int(first_track.get("loved"))
     fetch = await http.get(
-        f"{base_url}?method=track.getinfo&artist={artist1}&track={album1}&user={username}&api_key={LASTFM_API_KEY}&format=json"
+        f"{base_url}?method=album.getinfo&api_key={LASTFM_API_KEY}&artist={artist1}&album={album1}&user={username}&format=json"
     )
     info = json.loads(fetch.content)
-    last_user = info["track"]
+    last_user = info["album"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
     else:
@@ -150,7 +150,7 @@ async def album(c: Client, m: Message):
     await m.reply(rep.format(user, scrobbles))
 
 
-@Client.on_message(filters.command(["artist", "lart"], prefixes="/"))
+@Client.on_message(filters.command(["lartist", "lart"], prefixes="/"))
 async def artist(c: Client, m: Message):
     user = m.from_user.first_name
     username = await get_last_user(m.from_user.id)
