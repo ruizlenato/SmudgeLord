@@ -146,7 +146,7 @@ async def kang_sticker(c: Client, m: Message):
             try:
                 stickerset = await c.send(
                     GetStickerSet(
-                        stickerset=InputStickerSetShortName(short_name=packname)
+                        stickerset=InputStickerSetShortName(short_name=packname), hash=0,
                     )
                 )
                 if stickerset.set.count >= max_stickers:
