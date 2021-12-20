@@ -191,3 +191,20 @@ async def setlang(c: Client, cq: Union[Message, CallbackQuery]):
     text = await tld(chat_id, "main_select_lang")
     await reply_text(text, reply_markup=keyboard)
     return
+
+
+@Client.on_message(filters.new_chat_members)
+async def logging(c: Client, m: Message):
+    bot = await c.get_me()
+    bot_id = bot.id
+    if bot_id in [z.id for z in m.new_chat_members]:
+        await c.send_message(
+            chat_id=m.chat.id,
+            text=(
+                "/ᐠ. ｡.ᐟ\ᵐᵉᵒʷ  Olá, obrigado por me adicionar aqui!\n"
+                "Não se esqueça de <b>mudar meu idioma usando /setlang</b>\n\n"
+                "/ᐠ. ｡.ᐟ\ᵐᵉᵒʷ  Hi, thanks for adding me here!\n"
+                "Don't forget to <b>change my language using /setlang</b>\n"
+            ),
+            disable_notification=True,
+        )
