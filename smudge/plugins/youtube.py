@@ -12,7 +12,7 @@ from typing import Union
 
 from pyrogram import Client, filters
 from pyrogram.errors import BadRequest
-from pyromod.helpers import ikb
+from pyrogram.helpers import ikb
 from pyrogram.types import CallbackQuery, Message
 
 from smudge.locales.strings import tld

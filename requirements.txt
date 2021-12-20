@@ -1,6 +1,4 @@
-pyrogram==1.2.20
-pyromod==1.5
-tgcrypto==1.2.2
+git+https://github.com/AmanoTeam/Pyrogram
 rich==10.16.1
 httpx[http2]==0.21.1
 urllib3==1.26.7
@@ -14,3 +12,5 @@ python-rapidjson==1.5
 yt-dlp==2021.12.1
 lxml==4.7.1
 pillow==8.4.0
+ujson==5.0.0
+regex==2021.11.10
