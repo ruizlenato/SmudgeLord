@@ -1,7 +1,7 @@
 pyrogram==1.2.20
 pyromod==1.5
 tgcrypto==1.2.2
-rich==10.16.0
+rich==10.16.1
 httpx[http2]==0.21.1
 urllib3==1.26.7
 pyyaml==6.0
