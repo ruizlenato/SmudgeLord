@@ -45,7 +45,7 @@ async def main():
 if __name__ == "__main__":
     try:
         run_async(main())
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         loop.run_until_complete(main())
     except KeyboardInterrupt:
-        Tortoise.close_connections()
+        loop.close()
