@@ -125,34 +125,25 @@ async def short(c: Client, m: Message):
 
 
 @Client.on_message(filters.command(["print", "ss"]))
-async def prints(c: Client, message: Message):
-    msg = message.text
+async def prints(c: Client, m: Message):
+    msg = m.text
     the_url = msg.split(" ", 1)
     wrong = False
 
     if len(the_url) == 1:
-        if message.reply_to_message:
-            the_url = message.reply_to_message.text
-            if len(the_url) == 1:
-                wrong = True
-            else:
-                the_url = the_url[1]
-        else:
-            wrong = True
+        wrong = True
     else:
         the_url = the_url[1]
 
     if wrong:
-        await message.reply_text(
-            "<b>Uso:</b> <code>/print https://example.com</code> - Tira uma captura de tela do site especificado."
-        )
+        await m.reply_text(await tld(m.chat.id, "print_error"))
         return
 
     try:
-        sent = await message.reply_text("Obtendo captura de tela...")
+        sent = await m.reply_text(await tld(m.chat.id, "print_printing"))
         res_json = await cssworker_url(target_url=the_url)
     except BaseException as e:
-        await message.reply(f"**Failed due to:** `{e}`")
+        await m.reply(f"**Failed due to:** `{e}`")
         return
 
     if res_json:
@@ -160,7 +151,7 @@ async def prints(c: Client, message: Message):
         image_url = res_json["url"]
         if image_url:
             try:
-                await message.reply_photo(image_url)
+                await m.reply_photo(image_url)
                 await sent.delete()
             except BaseException:
                 # if failed to send the message, it's not API's
@@ -170,17 +161,17 @@ async def prints(c: Client, message: Message):
                 # or the bot doesn't have access to send media in the chat.
                 return
         else:
-            await message.reply(
+            await m.reply(
                 "couldn't get url value, most probably API is not accessible."
             )
     else:
-        await message.reply("Failed, because API is not responding, try it later.")
+        await m.reply(await tld(m.chat.id, "print_api_dead"))
 
 
 async def cssworker_url(target_url: str):
     url = "https://htmlcsstoimage.com/demo_run"
     my_headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36",
         "Accept": "*/*",
         "Accept-Language": "en-US,en;q=0.5",
         "Referer": "https://htmlcsstoimage.com/",
@@ -198,8 +189,8 @@ async def cssworker_url(target_url: str):
         "selector": "",
         "ms_delay": "",
         "render_when_ready": "false",
-        "viewport_height": "1600",
-        "viewport_width": "900",
+        "viewport_height": "900",
+        "viewport_width": "1600",
         "google_fonts": "",
         "device_scale": "",
     }

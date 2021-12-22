@@ -124,11 +124,12 @@ memes_hit_list:
 
 # Misc
 misc_name: "Utilitários"
-short_error: "<b>Erro.</b>\n<b>Uso do comando:</b> /short (url)\n\nFaça isso para encurtar uma url."
-tr_error: "<b>Erro.</b>\n<b>Uso do comando:</b> /tr (idioma) (texto).\n\n<i>Você também pode usar esse comando respondendo uma mensagem ou uma foto com legenda</i>"
+short_error: "<b>Erro.</b>\n<b>Uso:</b> /short (url)\n\nFaça isso para encurtar uma url."
+tr_error: "<b>Erro.</b>\n<b>Uso:</b> /tr (idioma) (texto).\n\n<i>Você também pode usar esse comando respondendo uma mensagem ou uma foto com legenda</i>"
 tr_translating: "Traduzindo..."
-print_error: "<b>Erro.</b>\n<b>Uso do comando:</b> /print (link).\n\n<i>Você também pode usar esse comando respondendo uma mensagem</i>"
-print_image_prcoessfailed: "Ocorreu um erro ao tentar processar a imagem"
+print_printing: "Obtendo captura de tela..."
+print_error: "<b>Erro.</b>\n<b>Uso:</b> <code>/print https://exemplo.com</code> - Tira uma captura de tela do site especificado."
+print_api_dead: "Failed, because API is not responding, try it later."
 no_longer_afk: "{} não está mais afk!"
 afk_reason: "\n<b>Motivo:</b> {}"
 user_afk: "{} está afk!"
