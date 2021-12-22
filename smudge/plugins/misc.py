@@ -1,4 +1,5 @@
 import html
+import httpx
 import rapidjson
 import dicioinformal
 
@@ -53,24 +54,6 @@ def get_tr_lang(text):
     else:
         lang = "pt"
     return lang
-
-
-@Client.on_message(filters.command(["print", "ss"]))
-async def print(c: Client, m: Message):
-    try:
-        if m.reply_to_message and m.reply_to_message.text:
-            url = m.reply_to_message.text
-        elif m.text and m.text.split(maxsplit=1)[1]:
-            url = m.text.split(maxsplit=1)[1]
-    except IndexError:
-        await m.reply_text(await tld(m.chat.id, "print_error"))
-        return
-    try:
-        image_url = f"https://api.screenshotlayer.com/api/capture?access_key={SCREENSHOT_API_KEY}&url={url}&viewport=1920x1080&width=1000"
-        await m.reply_photo(image_url)
-    except ImageProcessFailed:
-        await m.reply_text(tld(m.chat.id, "print_image_prcoessfailed"))
-        return
 
 
 @Client.on_message(filters.command(["tr", "tl"]))
@@ -139,6 +122,93 @@ async def short(c: Client, m: Message):
             return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
         except Exception as e:
             return await m.reply_text(f"<b>{e}</b>")
+
+
+@Client.on_message(filters.command(["print", "ss"]))
+async def prints(c: Client, message: Message):
+    msg = message.text
+    the_url = msg.split(" ", 1)
+    wrong = False
+
+    if len(the_url) == 1:
+        if message.reply_to_message:
+            the_url = message.reply_to_message.text
+            if len(the_url) == 1:
+                wrong = True
+            else:
+                the_url = the_url[1]
+        else:
+            wrong = True
+    else:
+        the_url = the_url[1]
+
+    if wrong:
+        await message.reply_text(
+            "<b>Uso:</b> <code>/print https://example.com</code> - Tira uma captura de tela do site especificado."
+        )
+        return
+
+    try:
+        sent = await message.reply_text("Obtendo captura de tela...")
+        res_json = await cssworker_url(target_url=the_url)
+    except BaseException as e:
+        await message.reply(f"**Failed due to:** `{e}`")
+        return
+
+    if res_json:
+        # {"url":"image_url","response_time":"147ms"}
+        image_url = res_json["url"]
+        if image_url:
+            try:
+                await message.reply_photo(image_url)
+                await sent.delete()
+            except BaseException:
+                # if failed to send the message, it's not API's
+                # fault.
+                # most probably there are some other kind of problem,
+                # for example it failed to delete its message.
+                # or the bot doesn't have access to send media in the chat.
+                return
+        else:
+            await message.reply(
+                "couldn't get url value, most probably API is not accessible."
+            )
+    else:
+        await message.reply("Failed, because API is not responding, try it later.")
+
+
+async def cssworker_url(target_url: str):
+    url = "https://htmlcsstoimage.com/demo_run"
+    my_headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0",
+        "Accept": "*/*",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Referer": "https://htmlcsstoimage.com/",
+        "Content-Type": "application/json",
+        "Origin": "https://htmlcsstoimage.com",
+        "Alt-Used": "htmlcsstoimage.com",
+        "Connection": "keep-alive",
+    }
+
+    data = {
+        "html": "",
+        "console_mode": "",
+        "url": target_url,
+        "css": "",
+        "selector": "",
+        "ms_delay": "",
+        "render_when_ready": "false",
+        "viewport_height": "1600",
+        "viewport_width": "900",
+        "google_fonts": "",
+        "device_scale": "",
+    }
+
+    try:
+        resp = await http.post(url, headers=my_headers, json=data)
+        return resp.json()
+    except httpx.NetworkError:
+        return None
 
 
 plugin_name = "misc_name"
