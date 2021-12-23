@@ -70,8 +70,6 @@ async def lastfm(c: Client, m: Message):
     artist1 = urllib.parse.quote(artist)
     song = first_track.get("name")
     song1 = urllib.parse.quote(song)
-    album = first_track.get("album").get("#text")
-    album1 = urllib.parse.quote(album)
     loved = int(first_track.get("loved"))
     fetch = await http.get(
         f"{base_url}?method=track.getinfo&artist={artist1}&track={song1}&user={username}&api_key={LASTFM_API_KEY}&format=json"
@@ -88,9 +86,9 @@ async def lastfm(c: Client, m: Message):
     else:
         rep = (await tld(m.chat.id, "lastfm_scrobble_was")).format(user, scrobbles)
     if not loved:
-        rep += f"<b>{artist}</b> - {song} <i>[{album}]</i>"
+        rep += f"<b>{artist}</b> - {song}"
     else:
-        rep += f"<b>{artist}</b> - {song} <i>[{album}]</i> ❤️"
+        rep += f"<b>{artist}</b> - {song}❤️"
     if image:
         rep += f"<a href='{image}'>\u200c</a>"
 
