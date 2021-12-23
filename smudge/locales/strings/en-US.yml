@@ -180,7 +180,7 @@ tr_error: "<b>Error.</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You
 tr_translating: "Translating..."
 print_printing: "Taking screenshot..."
 print_error: "<b>Error.</b>\n<b>Usage:</b> <code>/print https://example.com</code> - Take a screenshot of the specified website."
-print_image_prcoessfailed: "An error occurred while trying to process the image"
+print_api_dead: "Ocorreu um erro porque a API não responde, tente novamente mais tarde."
 no_longer_afk: "{} is no longer Afk!"
 afk_reason: "\n<b>Reason:</b> {}"
 user_afk: "{} is Afk!"
