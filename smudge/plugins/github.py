@@ -1,9 +1,8 @@
 from requests import get
 from ujson import loads
 
-from smudge.database.core import users, groups
+from smudge.database.core import groups
 from smudge.locales.strings import tld
-from smudge.utils import http
 
 from pyrogram.types import Message
 from pyrogram import Client, filters
