@@ -75,7 +75,7 @@ async def git_repos(c: Client, m: Message):
     for i in repos:
         keyword = i.git_repo_name
 
-        if keyword == None:
+        if keyword is None:
             await m.reply_text(await tld(m.chat.id, "github_nothing_save"))
         else:
             message = (await tld(m.chat.id, "github_repos_saved")).format(keyword)
