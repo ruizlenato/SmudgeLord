@@ -117,7 +117,7 @@ async def save_repo(c: Client, m: Message):
         await m.reply(await tld(m.chat.id, "github_repo_noreleases"))
         return
     msg = await tld(m.chat.id, "github_repo_added")
-    if await add_repo(m.chat.id, name, repo) == True:
+    if await add_repo(m.chat.id, name, repo) is True:
         message = msg.format(await tld(m.chat.id, "updated"), name)
     else:
         message = msg.format(await tld(m.chat.id, "added"), name)
@@ -127,7 +127,7 @@ async def save_repo(c: Client, m: Message):
 @Client.on_message(filters.command(["gitdel"]) & filters.group)
 async def rm_repo(c: Client, m: Message):
     name = m.text.split(maxsplit=1)[1]
-    if await del_repo(m.chat.id, name) == False:
+    if await del_repo(m.chat.id, name) is False:
         message = await tld(m.chat.id, "github_repo_faildelete")
     else:
         message = await tld(m.chat.id, "github_repo_deleted")

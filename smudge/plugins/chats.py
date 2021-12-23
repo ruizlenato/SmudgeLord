@@ -24,7 +24,7 @@ async def check_chat(c: Client, m: Message):
         chat_id = m.chat.id
         chat_type = m.chat.type
         user_id = m.from_user.id
-    except UnboundLocalError or AttributeError:
+    except (UnboundLocalError, AttributeError):
         pass
 
     await add_chat(chat_id, chat_type, user_id)
