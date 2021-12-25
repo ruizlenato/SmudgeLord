@@ -13,7 +13,8 @@ from tortoise.exceptions import IntegrityError, DoesNotExist
 
 
 async def set_last_user(user_id: int, lastfm_username: str):
-    await users.update_or_create(id=user_id, lastfm_username=lastfm_username)
+    await users.update_or_create(id=user_id)
+    await users.filter(id=user_id).update(lastfm_username=lastfm_username)
     return
 
 
