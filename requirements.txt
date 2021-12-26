@@ -12,5 +12,5 @@ python-rapidjson==1.5
 yt-dlp==2021.12.1
 lxml==4.7.1
 pillow==8.4.0
-ujson==5.0.0
+ujson==5.1.0
 regex==2021.11.10
