@@ -135,6 +135,8 @@ afk_reason: "\n<b>Motivo:</b> {}"
 user_afk: "{} está afk!"
 user_now_afk: "<a href='tg://user?id={}'>{}</a> agora está afk!"
 regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
+sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
+sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download da midia."
 misc_help: |
  <b>/tr</b> [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
  <i><b>Obs</b>: o comando também funciona através de resposta
@@ -144,7 +146,12 @@ misc_help: |
  <i>• Quando marcado como AFK, qualquer menção será respondida com uma mensagem informando que você não está disponível!</i>
 
  <b>/short [url]</b> - Para encurtar uma URL.
+ 
+ <b>/sdl [link]</b> - Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>
+ 
+ <b>/ytdl [Palavra ou link]</b> - Se você utilizar um link o bot irá baixar do YouTube, caso você escreva uma palavra, o bot buscará no youtube e baixará.
  <b>/yt [Palavra]</b> - Faz uma busca no YouTube vídeos com a palavra que você escreveu e retorna uma lista com vídeos.
+ 
 # Stickers
 stickers_name: "Stickers"
 stickers_pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro. ."

@@ -414,5 +414,38 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
+@Client.on_message(filters.command(["sdl", "mdl"]))
+async def ytdl(c: Client, m: Message):
+    try:
+        if m.reply_to_message and m.reply_to_message.text:
+            url = m.reply_to_message.text
+        elif m.text and m.text.split(maxsplit=1)[1]:
+            url = m.text.split(maxsplit=1)[1]
+    except IndexError:
+        await m.reply_text(await tld(m.chat.id, "sdl_missing_arguments"))
+        return
+
+    link = re.match(
+        r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:instagram.com|twitter.com|vm.tiktok.com)\/(?:.*?))(?:\s|$)",
+        url,
+        re.M,
+    )
+
+    if not link:
+        await m.reply_text(await tld(m.chat.id, "sdl_invalid_link"))
+        return
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        path = os.path.join(tempdir, "ytdl")
+    filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
+    ydl_opts = {"outtmpl": filename}
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+    with open(filename, "rb") as video:
+        await m.reply_video(video=video)
+    shutil.rmtree(tempdir, ignore_errors=True)
+
+
 plugin_name = "misc_name"
 plugin_help = "misc_help"
