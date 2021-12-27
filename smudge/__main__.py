@@ -6,7 +6,7 @@ from pyrogram import Client, idle
 from rich.panel import Panel
 from rich import box, print as rprint
 
-from tortoise import run_async
+from tortoise import run_async, Tortoise
 
 from smudge.config import *
 from smudge.database import connect_database
@@ -22,7 +22,6 @@ rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 
 # Pyrogram Client
 plugins = dict(root="smudge.plugins")
-
 client = Client(
     "smudge",
     workers=20,
@@ -40,12 +39,14 @@ async def main():
     await connect_database()
     await client.send_message(chat_id=CHAT_LOGS, text="<b>SmudgeLord started!</b>")
     await idle()
+    await client.stop()
 
 
 if __name__ == "__main__":
+    asyncio.create_task(run_async(main()))
+    loop = asyncio.get_event_loop()
     try:
-        run_async(main())
-        loop = asyncio.get_running_loop()
         loop.run_until_complete(main())
-    except KeyboardInterrupt:
+    finally:
+        asyncio.create_task(Tortoise.close_connections())
         loop.close()
