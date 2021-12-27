@@ -435,6 +435,9 @@ async def ytdl(c: Client, m: Message):
         await m.reply_text(await tld(m.chat.id, "sdl_invalid_link"))
         return
 
+    url = re.sub("instagram.com/", "bibliogram.pussthecat.org/", url)
+    url = re.sub("www.", "", url)
+
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
     filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
