@@ -8,9 +8,6 @@ API_HASH = ""
 # Get it from https://last.fm/api/account/create
 LASTFM_API_KEY = ""
 
-# Get it from https://screenshotlayer.com/
-SCREENSHOT_API_KEY = ""
-
 # SUDOERS (to use some special commands)
 SUDOERS = [1032274246]
 
