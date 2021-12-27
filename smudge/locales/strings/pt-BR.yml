@@ -144,6 +144,7 @@ misc_help: |
  <i>• Quando marcado como AFK, qualquer menção será respondida com uma mensagem informando que você não está disponível!</i>
 
  <b>/short [url]</b> - Para encurtar uma URL.
+ <b>/yt [Palavra]</b> - Faz uma busca no YouTube vídeos com a palavra que você escreveu e retorna uma lista com vídeos.
 # Stickers
 stickers_name: "Stickers"
 stickers_pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro. ."
@@ -170,6 +171,4 @@ ytdl_missing_argument: "Por favor, responda um link do YouTube ou texto."
 ytdl_downloading: "Baixando..."
 ytdl_sending: "Enviando..."
 ytdl_button_denied: "Este botão não é para você."
-ytdl_help: |
- <b>/ytdl [Palavra ou link]</b> - Se você utilizar um link o bot irá baixar do YouTube, caso você escreva uma palavra, o bot buscará no youtube e baixará.
- <b>/yt [Palavra]</b> - Faz uma busca no YouTube vídeos com a palavra que você escreveu e retorna uma lista com vídeos.
+

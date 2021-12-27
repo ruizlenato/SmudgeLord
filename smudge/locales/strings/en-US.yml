@@ -195,6 +195,12 @@ misc_help: |
  <i>• When marked as AFK, any mentions will be replied to with a message telling that you're not available!</i>
 
  <b>/short [url]</b> - To Short a url.
+
+ <b>/sdl [link]</b> - This command downloads videos from <b>Instagram, TikTok and Twitter.</b>
+ 
+ <b>/ytdl [Word or link]</b> - If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
+ <b>/yt [word]</b> - It does a YouTube video search with the word you wrote and returns a list with videos.
+ 
 # Stickers
 stickers_name: "Stickers"
 stickers_pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first."
@@ -222,5 +228,3 @@ ytdl_downloading: "Downloading..."
 ytdl_sending: "Sending..."
 ytdl_button_denied: "This button is not for you."
 ytdl_help: |
- <b>/ytdl [Word or link]</b> - If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
- <b>/yt [word]</b> - It does a YouTube video search with the word you wrote and returns a list with videos.
