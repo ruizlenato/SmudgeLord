@@ -426,7 +426,7 @@ async def ytdl(c: Client, m: Message):
         return
 
     link = re.match(
-        r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:instagram.com|twitter.com|vm.tiktok.com)\/(?:.*?))(?:\s|$)",
+        r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)",
         url,
         re.M,
     )
