@@ -172,7 +172,8 @@ async def kang_sticker(c: Client, m: Message):
                 random_id=c.rnd_id(),
             ),
         )
-        stkr_file = media.updates[-1].message.media.document
+        msg_ = media.updates[-1].message
+        stkr_file = msg_.media.document
         if packname_found:
             await prog_msg.edit_text(await tld(m.chat.id, "use_existing_pack"))
             await c.send(
@@ -237,6 +238,7 @@ async def kang_sticker(c: Client, m: Message):
             )
         )
         # Cleanup
+        await c.delete_messages(chat_id=CHAT_LOGS, message_ids=msg_.id, revoke=True)
         try:
             os.remove(filename)
         except OSError:
