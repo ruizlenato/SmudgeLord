@@ -1,0 +1,3 @@
+files:
+  - source: /smudge/locales/strings/en-US.yml
+    translation: /smudge/locales/strings/%locale%/%locale%.yml
