@@ -15,14 +15,10 @@ for i in LANGUAGES:
     strings[i] = yaml.full_load(open("smudge/locales/strings/" + i + ".yml", "r"))
 
 
-async def tld(chat_id, t, show_none=True):
+async def tld(chat_id, t):
     LANGUAGE = await get_db_lang(chat_id)
     try:
-        if LANGUAGE:
-            if LANGUAGE in ("en-US"):
-                return strings["en-US"][t]
-            if LANGUAGE in ("pt-BR"):
-                return strings["pt-BR"][t]
+        return strings[LANGUAGE][t]
     except KeyError:
         err = f"Warning: No string found for {t}.\nReport it in @Renatoh."
         LOGGER.warning(err)
