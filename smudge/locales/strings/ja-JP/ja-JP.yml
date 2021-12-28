@@ -1,0 +1,223 @@
+---
+#Core
+start_message_private: |
+  Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
+
+  📦 <b>My SourceCode:</b> <a href='https://github.com/RenatohRibeiro/SmudgeLord'>GitHub</a>
+  💬 If you have a problem <b>problem</b> <a href='https://t.me/PaperplaneLab'>click here to talk to my owner in a super cool group</a>
+start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
+lang_save: "Language changed successfully"
+main_select_lang: "Select the language you want to use the bot"
+main_btn_back: "↩️ Back"
+main_start_btn_lang: "🇺🇸 Language"
+main_start_btn_help: "❓ Help"
+main_help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
+avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
+added: "added"
+updated: "updated"
+#Android
+android_name: "Android"
+whatis_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
+whatis_device: "<b>{}/{}</b> is <code>{} {}</code>\n"
+models_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
+models_variant: "<b>{}</b> variants:\n\n"
+models_list: "<b>Model</b>: <code>{}</code> \n<b>Name:</b> {}\n\n"
+codename_notfound: "Coudn't find your device, check device & try again!"
+magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
+android_help: |
+  <b>/magisk</b> - Get latest Magisk releases.
+  <b>/twrp [codename]</b> - Get the latest TWRP version available for the chosen device from codename.
+  <b>/whatis [codename]</b> - Get phone neme from codename.
+  <b>/variants [codename]</b> - Get phone variants from codename..
+#Github
+github_name: "Github"
+github_repos_saved: "<b>Repositories saved in this chat:</b>\n\n<code>&{}</code>\n"
+github_repos_savedhelp: "\nYou can retrieve these repositories by using /get trigger, or &trigger"
+github_add_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitadd (name) user/repo</code>"
+github_gitr_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitr user/repo</code>"
+github_repo_added: "Repo {} successfully.\n<b>Use</b> <code>/fetch {} </code>to get it"
+github_repo_deleted: "Successfully deleted repo: <b>{}</b>"
+github_repo_faildelete: "Repo <b>{}</b> not exists!"
+github_repo_noreleases: "Repo have no releases!"
+github_repo_errorreleases: "Coudn't find any releases on <code>{}</code>"
+github_nothing_save: "There are no saved repositories in this chat"
+github_help: |
+  <b>/gitr [user/repository]</b> - Get latest releses from repo.
+  <b>/repos</b> - Get list of saved repisitories in chat.
+  <b>/gitadd [name] [user/repository]</b> - Save repository.
+  <b>/gitdel [name]</b> - Delete repository.
+  <b>/fetch [name]</b> - Fetch saved repository, you can also use !(name)
+#LastFM
+lastfm_name: "LastFM"
+lastfm_username_save: Done, you can use /lastfm now
+lastfm_no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
+lastfm_no_username: "<b>Error</b>\nYou didn't set a username\n\n<b>Command usage:</b> /setuser (username)."
+lastfm_username_wrong: "Your username is incorrect\n\n<strong>Use /set user (yout username)</strong> and try again"
+lastfm_scrobble_is: "<strong>{}</strong> is listening for the <strong>{}° time</strong>:\n\n"
+lastfm_scrobble_was: "<strong>{}</strong> was listening for the <strong>{}° time</strong>:\n\n"
+lastfm_help: |
+  <b>/setuser [username]</b> - Sets your last.fm username.
+  <b>/clearuser</b> - Removes your last.fm username from the bot's database.
+  <b>/lastfm</b> ou <b>/lmu</b> - Shows the song you are scrobbling on last.fm.
+  <b>/lalbum</b> ou <b>/lalb</b> - Shows the album you are scrobbling on last.fm.
+  <b>/lartist</b> ou <b>/lart</b> - Shows the artist you are scrobbling on last.fm.
+#Memes.
+memes_runs_list:
+  - "Where do you think you're going?"
+  - "Huh? what? did they get away?"
+  - "ZZzzZZzz... Huh? what? oh, just them again, nevermind."
+  - "Get back here!"
+  - "Not so fast..."
+  - "Look out for the wall!"
+  - "Don't leave me alone with them!!"
+  - "You run, you die."
+  - "Jokes on you, I'm everywhere"
+  - "You're gonna regret that..."
+  - "You could also try /kickme, I hear that's fun."
+  - "Go bother someone else, no-one here cares."
+  - "You can run, but you can't hide."
+  - "Is that all you've got?"
+  - "I'm behind you..."
+  - "You've got company!"
+  - "We can do this the easy way, or the hard way."
+  - "You just don't get it, do you?"
+  - "Yeah, you better run!"
+  - "Please, remind me how much I care?"
+  - "I'd run faster if I were you."
+  - "That's definitely the droid we're looking for."
+  - "May the odds be ever in your favour."
+  - "Famous last words."
+  - "And they disappeared forever, never to be seen again."
+  - "'Oh, look at me! I'm so cool, I can run from a bot!' - this person"
+  - "Yeah yeah, just tap /kickme already."
+  - "Here, take this ring and head to Mordor while you're at it."
+  - "Legend has it, they're still running..."
+  - "Unlike Harry Potter, your parents can't protect you from me."
+  - "Fear leads to anger. Anger leads to hate. Hate leads to suffering. If you keep running in fear, you might "
+  - "be the next Vader."
+  - "Multiple calculations later, I have decided my interest in your shenanigans is exactly 0."
+  - "Legend has it, they're still running."
+  - "Keep it up, not sure we want you here anyway."
+  - "You're a wiza- Oh. Wait. You're not Harry, keep moving."
+  - "NO RUNNING IN THE HALLWAYS!"
+  - "Hasta la vista, baby."
+  - "Who let the dogs out?"
+  - "It's funny, because no one cares."
+  - "Ah, what a waste. I liked that one."
+  - "Frankly, my dear, I don't give a damn."
+  - "My milkshake brings all the boys to yard... So run faster!"
+  - "You can't HANDLE the truth!"
+  - "A long time ago, in a galaxy far far away... Someone would've cared about that. Not anymore though."
+  - "Hey, look at them! They're running from the inevitable banhammer... Cute."
+  - "Han shot first. So will I."
+  - "What are you running after, a white rabbit?"
+  - "As The Doctor would say... RUN!"
+memes_slaps_templates_list:
+  - "{user1} {hits} {user2} with a {item}."
+  - "{user1} {hits} {user2} in the face with a {item}."
+  - "{user1} {hits} {user2} around a bit with a {item}."
+  - "{user1} {throws} a {item} at {user2}."
+  - "{user1} grabs a {item} and {throws} it at {user2}'s face."
+  - "{user1} launches a {item} in {user2}'s general direction."
+  - "{user1} starts slapping {user2} silly with a {item}."
+  - "{user1} pins {user2} down and repeatedly {hits} them with a {item}."
+  - "{user1} grabs up a {item} and {hits} {user2} with it."
+  - "{user1} ties {user2} to a chair and {throws} a {item} at them."
+  - "{user1} gave a friendly push to help {user2} learn to swim in lava."
+memes_items_list:
+  - "cast iron skillet"
+  - "large trout"
+  - "baseball bat"
+  - "cricket bat"
+  - "wooden cane"
+  - "nail"
+  - "printer"
+  - "shovel"
+  - "CRT monitor"
+  - "physics textbook"
+  - "toaster"
+  - "portrait of Richard Stallman"
+  - "television"
+  - "five ton truck"
+  - "roll of duct tape"
+  - "book"
+  - "laptop"
+  - "old television"
+  - "sack of rocks"
+  - "rainbow trout"
+  - "rubber chicken"
+  - "spiked bat"
+  - "fire extinguisher"
+  - "heavy rock"
+  - "chunk of dirt"
+  - "beehive"
+  - "piece of rotten meat"
+  - "bear"
+  - "ton of bricks"
+memes_throw_list:
+  - "throws"
+  - "flings"
+  - "chucks"
+  - "hurls"
+memes_hit_list:
+  - "hits"
+  - "whacks"
+  - "slaps"
+  - "smacks"
+  - "bashes"
+#Misc
+misc_name: "Utils"
+short_error: "<b>Error.</b>\n<b>Command Usage:</b> /short (url)\n\nDo this to shorten a url."
+tr_error: "<b>Error.</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
+tr_translating: "Translating..."
+print_printing: "Taking screenshot..."
+print_error: "<b>Error.</b>\n<b>Usage:</b> <code>/print https://example.com</code> - Take a screenshot of the specified website."
+print_api_dead: "Ocorreu um erro porque a API não responde, tente novamente mais tarde."
+no_longer_afk: "{} is no longer Afk!"
+afk_reason: "\n<b>Reason:</b> {}"
+user_afk: "{} is Afk!"
+user_now_afk: "<a href='tg://user?id={}'>{}</a> is now afk!"
+regex_timeout: "Oops, your regex pattern has run for too long."
+sdl_invalid_link: "<b>System glitch someone disconnected me.</b>\nThe link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
+sdl_missing_arguments: "You forgot the link so I can download the media."
+misc_help: |
+  <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.
+  <i>• It also can be used as reply.
+  I.e <b>"/tr [language]"</b> replying a message</i>
+
+  <b>/afk [reason]</b> - Mark yourself as AFK.
+  <i>• When marked as AFK, any mentions will be replied to with a message telling that you're not available!</i>
+
+  <b>/short [url]</b> - To Short a url.
+
+  <b>/sdl [link]</b> - This command downloads videos from <b>Instagram, TikTok and Twitter.</b>
+
+  <b>/ytdl [Word or link]</b> - If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
+  <b>/yt [word]</b> - It does a YouTube video search with the word you wrote and returns a list with videos.
+#Stickers
+stickers_name: "Stickers"
+stickers_pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first."
+stickers_kang_noreply: "<b>You need to use this command replying a sticker or a photo.</b>"
+stickers_kanging: "Stealing the sticker..."
+stickers_getsticker_no_reply: "Reply a sticker so I can upload the PNG."
+err_sticker_no_file_name: "<b>Error</b>: <code>This sticker doesn't a have filename!</code>"
+create_new_pack_string: "<b>Creating a new sticker pack...</b>"
+sticker_kanged_string: "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\n<b>Emoji:</b> {}"
+use_existing_pack: "<code>Using existing sticker pack...</code>"
+sticker_info: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
+animated_not_supported: "Animated stickers are not supported."
+stickers_help: |
+  <b>/getsticker -</b> reply to a sticker to me to upload its raw PNG file.
+  <b>/kang -</b> reply to a sticker to add it to your pack.
+#Youtube Downloader
+ytdl_name: "YouTube"
+ytdl_audio_button: "💿 Audio"
+ytdl_video_button: "📹 Video"
+ytdl_send_error: "Sorry! I couldn't send the video because of an error.\n<b>Error:</b> <code>{}</code>"
+ytdl_file_too_big: "The Video you want to download exceeds 200MB in size.\nUnable to download and upload, sorry."
+ytdl_missing_argument: "Please reply to a YouTube link or text."
+ytdl_downloading: "Downloading..."
+ytdl_sending: "Sending..."
+ytdl_button_denied: "This button is not for you."
+ytdl_help: |
+
