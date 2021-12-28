@@ -1,12 +1,12 @@
 ---
 #Core
 start_message_private: |
-  Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
+  Hola <b>{}</b>, mi nombre es <b>SmudgeLord,</b> Soy un bot con algunos comandos divertidos y útiles para ti :3
 
-  📦 <b>My SourceCode:</b> <a href='https://github.com/RenatohRibeiro/SmudgeLord'>GitHub</a>
-  💬 If you have a problem <b>problem</b> <a href='https://t.me/PaperplaneLab'>click here to talk to my owner in a super cool group</a>
-start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
-lang_save: "Language changed successfully"
+  📦 <b>Mi SourceCode:</b> <a href='https://github.com/RenatohRibeiro/SmudgeLord'>GitHub</a>
+  :speech _balloon: Si tienes un problema <b></b> <a href='https://t.me/PaperplaneLab'>haz clic aquí para hablar con mi propietario en un grupo super cool</a>
+start_message: "Hey baby, estoy vivo, llámame al chat privado:3"
+lang_save: "Idioma cambiado con éxito"
 main_select_lang: "Select the language you want to use the bot"
 main_btn_back: "↩️ Back"
 main_start_btn_lang: "🇺🇸 Language"
