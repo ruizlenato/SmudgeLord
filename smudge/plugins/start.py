@@ -11,7 +11,6 @@ from pyrogram.types import (
 from smudge.locales.strings import tld
 from smudge.plugins import all_plugins
 from smudge.utils.help_menu import help_buttons
-from smudge.database import set_db_lang
 
 from typing import Union
 
@@ -98,99 +97,6 @@ async def but(c: Client, cq: CallbackQuery):
     plug = plug_match.group(1)
     text = await tld(cq.message.chat.id, str(HELP[plug][0]["help"]))
     await help_menu(c, cq, text)
-
-
-@Client.on_callback_query(filters.regex(r"en-US"))
-async def english(c: Client, m: Message):
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=(await tld(m.message.chat.id, "main_btn_back")),
-                    callback_data="setchatlang",
-                )
-            ],
-        ]
-    )
-    if m.message.chat.type == "private":
-        await set_db_lang(m.from_user.id, "en-US")
-    elif m.message.chat.type == "supergroup" or "group":
-        await set_db_lang(m.message.chat.id, "en-US")
-    text = await tld(m.message.chat.id, "lang_save")
-    await m.edit_message_text(text, reply_markup=keyboard)
-
-
-@Client.on_callback_query(filters.regex(r"pt-BR"))
-async def portuguese(c: Client, m: Message):
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=(await tld(m.message.chat.id, "main_btn_back")),
-                    callback_data="setchatlang",
-                )
-            ],
-        ]
-    )
-    if m.message.chat.type == "private":
-        await set_db_lang(m.from_user.id, "pt-BR")
-    elif m.message.chat.type == "supergroup" or "group":
-        await set_db_lang(m.message.chat.id, "pt-BR")
-    text = await tld(m.message.chat.id, "lang_save")
-    await m.edit_message_text(text, reply_markup=keyboard)
-
-
-@Client.on_message(filters.command(["setlang"]))
-@Client.on_callback_query(filters.regex(r"setchatlang"))
-async def setlang(c: Client, cq: Union[Message, CallbackQuery]):
-    if isinstance(cq, CallbackQuery):
-        chat_id = cq.message.chat.id
-        chat_type = cq.message.chat.type
-        reply_text = cq.edit_message_text
-    else:
-        chat_id = cq.chat.id
-        chat_type = cq.chat.type
-        reply_text = cq.reply_text
-
-    if chat_type == "private":
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="🇧🇷 PT-BR (Português)", callback_data="pt-BR"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="🇺🇸 EN-US (American English)", callback_data="en-US"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text=(await tld(chat_id, "main_btn_back")),
-                        callback_data="start_command",
-                    )
-                ],
-            ]
-        )
-    else:
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="🇧🇷 PT-BR (Português)", callback_data="pt-BR"
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="🇺🇸 EN-US (American English)", callback_data="en-US"
-                    )
-                ],
-            ]
-        )
-    text = await tld(chat_id, "main_select_lang")
-    await reply_text(text, reply_markup=keyboard)
-    return
 
 
 @Client.on_message(filters.new_chat_members)

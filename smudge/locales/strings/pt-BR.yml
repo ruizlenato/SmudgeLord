@@ -1,3 +1,5 @@
+language_name: "🇧🇷 PT-BR (Português)"
+language_code: "pt-BR"
 # Core
 start_message_private: | 
   Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns comandos divertidos e uteis para você :3

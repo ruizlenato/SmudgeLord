@@ -1,18 +1,18 @@
+import os
 import yaml
-
-from os import path
 
 from smudge.database import get_db_lang
 from smudge import LOGGER
 
 LANGUAGES = ["en-US", "pt-BR"]
-
-
 strings = {}
-strings_folder = path.join(path.dirname(path.realpath(__file__)), "strings")
 
-for i in LANGUAGES:
-    strings[i] = yaml.full_load(open("smudge/locales/strings/" + i + ".yml", "r"))
+for langs in LANGUAGES:
+    strings[langs] = yaml.full_load(open(f"smudge/locales/strings/{langs}.yml", "r"))
+    parsed_yaml_file = yaml.load(
+        open(f"smudge/locales/strings/{langs}.yml"), Loader=yaml.FullLoader
+    )
+    print(parsed_yaml_file["language_name"])
 
 
 async def tld(chat_id, t):

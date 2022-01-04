@@ -1,8 +1,8 @@
+import yaml
 from typing import Union
 
 from smudge.locales.strings import tld
 from smudge.database import set_db_lang
-from smudge.plugins.start import start_command
 from pyrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -12,38 +12,9 @@ from pyrogram.types import (
 from pyrogram import Client, filters
 
 
-@Client.on_callback_query(filters.regex(r"en-US"))
-async def english(c: Client, m: Message):
-    if m.message.chat.type == "private":
-        pass
-    else:
-        member = await c.get_chat_member(
-            chat_id=m.message.chat.id, user_id=m.from_user.id
-        )
-        if member.status in ["administrator", "creator"]:
-            pass
-        else:
-            return
-    keyboard = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text=(await tld(m.message.chat.id, "main_btn_back")),
-                    callback_data="setchatlang",
-                )
-            ],
-        ]
-    )
-    if m.message.chat.type == "private":
-        await set_db_lang(m.from_user.id, "en-US")
-    elif m.message.chat.type == "supergroup" or "group":
-        await set_db_lang(m.message.chat.id, "en-US")
-    text = await tld(m.message.chat.id, "lang_save")
-    await m.edit_message_text(text, reply_markup=keyboard)
-
-
-@Client.on_callback_query(filters.regex(r"pt-BR"))
+@Client.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
 async def portuguese(c: Client, m: Message):
+    lang = m.matches[0]["code"]
     if m.message.chat.type == "private":
         pass
     else:
@@ -65,9 +36,9 @@ async def portuguese(c: Client, m: Message):
         ]
     )
     if m.message.chat.type == "private":
-        await set_db_lang(m.from_user.id, "pt-BR")
+        await set_db_lang(m.from_user.id, lang)
     elif m.message.chat.type == "supergroup" or "group":
-        await set_db_lang(m.message.chat.id, "pt-BR")
+        await set_db_lang(m.message.chat.id, lang)
     text = await tld(m.message.chat.id, "lang_save")
     await m.edit_message_text(text, reply_markup=keyboard)
 
@@ -89,12 +60,14 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="🇧🇷 PT-BR (Português)", callback_data="pt-BR"
+                        text="🇧🇷 PT-BR (Português)",
+                        callback_data=f"set_lang pt-BR",
                     )
                 ],
                 [
                     InlineKeyboardButton(
-                        text="🇺🇸 EN-US (American English)", callback_data="en-US"
+                        text="🇺🇸 EN-US (American English)",
+                        callback_data=f"set_lang en-US",
                     )
                 ],
                 [
@@ -115,12 +88,14 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="🇧🇷 PT-BR (Português)", callback_data="pt-BR"
+                        text="🇧🇷 PT-BR (Português)",
+                        callback_data=f"set_lang pt-BR",
                     )
                 ],
                 [
                     InlineKeyboardButton(
-                        text="🇺🇸 EN-US (American English)", callback_data="en-US"
+                        text="🇺🇸 EN-US (American English)",
+                        callback_data=f"set_lang en-US",
                     )
                 ],
             ]

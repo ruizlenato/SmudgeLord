@@ -1,3 +1,6 @@
+language_name: "🇺🇸 EN-US (American English)"
+language_code: "en-US"
+
 # Core
 start_message_private: |
   Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
