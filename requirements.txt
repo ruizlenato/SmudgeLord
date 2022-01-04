@@ -12,6 +12,6 @@ tortoise-orm==0.18.0
 python-rapidjson==1.5
 yt-dlp==2021.12.27
 lxml==4.7.1
-pillow==8.4.0
+pillow==9.0.0
 ujson==5.1.0
 regex==2021.11.10
