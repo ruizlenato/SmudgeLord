@@ -5,7 +5,7 @@ language_code: "en-US"
 start_message_private: |
   Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
 
-  📦 <b>My SourceCode:</b> <a href='https://github.com/RenatohRibeiro/SmudgeLord'>GitHub</a>
+  📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
   💬 If you have a problem <b>problem</b> <a href='https://t.me/PaperplaneLab'>click here to talk to my owner in a super cool group</a>
 
 start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"

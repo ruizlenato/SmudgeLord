@@ -4,7 +4,7 @@ language_code: "pt-BR"
 start_message_private: | 
   Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns comandos divertidos e uteis para você :3
 
-  📦 <b>Meu código-fonte:</b> <a href='https://github.com/RenatohRibeiro/SmudgeLord'>GitHub</a>
+  📦 <b>Meu código-fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
   💬 Caso você tenha algum <b>problema</b> <a href='https://t.me/PaperplaneLab'>clique aqui para falar com o meu Dono em um grupo superlegal</a>
 
 start_message: "Oi Gatinha estou vivo, me chama no privado :3"
