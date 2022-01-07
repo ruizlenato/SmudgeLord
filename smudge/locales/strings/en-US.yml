@@ -62,7 +62,9 @@ lastfm_no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username
 lastfm_no_username: "<b>Error</b>\nYou didn't set a username\n\n<b>Command usage:</b> /setuser (username)."
 lastfm_username_wrong: "Your username is incorrect\n\n<strong>Use /set user (yout username)</strong> and try again"
 lastfm_scrobble_is: "<strong>{}</strong> is listening for the <strong>{}° time</strong>:\n\n"
+lastfm_scrobble_none_is: "<strong>{}</strong> is listening:\n\n"
 lastfm_scrobble_was: "<strong>{}</strong> was listening for the <strong>{}° time</strong>:\n\n"
+lastfm_scrobble_none_was: "<strong>{}</strong> was listening:\n\n"
 lastfm_help: |
  <b>/setuser [username]</b> - Sets your last.fm username.
  <b>/clearuser</b> - Removes your last.fm username from the bot's database.

@@ -75,17 +75,26 @@ async def lastfm(c: Client, m: Message):
     fetch = await http.get(
         f"{base_url}?method=track.getinfo&artist={artist1}&track={song1}&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
-    info = json.loads(fetch.content)
-    last_user = info["track"]
-    if int(last_user.get("userplaycount")) == 0:
-        scrobbles = int(last_user.get("userplaycount")) + 1
-    else:
-        scrobbles = int(last_user.get("userplaycount"))
+    try:
+        info = json.loads(fetch.content)
+        last_user = info["track"]
+        if int(last_user.get("userplaycount")) == 0:
+            scrobbles = int(last_user.get("userplaycount")) + 1
+        else:
+            scrobbles = int(last_user.get("userplaycount"))
+    except KeyError:
+        scrobbles = "none"
 
     if first_track.get("@attr"):
-        rep = (await tld(m.chat.id, "lastfm_scrobble_is")).format(user, scrobbles)
+        if scrobbles == "none":
+            rep = (await tld(m.chat.id, "lastfm_scrobble_none_is")).format(user)
+        else:
+            rep = (await tld(m.chat.id, "lastfm_scrobble_is")).format(user, scrobbles)
     else:
-        rep = (await tld(m.chat.id, "lastfm_scrobble_was")).format(user, scrobbles)
+        if scrobbles == "none":
+            rep = (await tld(m.chat.id, "lastfm_scrobble_none_was")).format(user)
+        else:
+            rep = (await tld(m.chat.id, "lastfm_scrobble_was")).format(user, scrobbles)
     if not loved:
         rep += f"<b>{artist}</b> - {song}"
     else:
