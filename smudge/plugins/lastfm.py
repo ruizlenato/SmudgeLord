@@ -35,8 +35,16 @@ async def setuser(c: Client, m: Message):
         return
 
     if username:
-        await set_last_user(user_id, username)
-        await m.reply_text((await tld(m.chat.id, "lastfm_username_save")))
+        base_url = "http://ws.audioscrobbler.com/2.0"
+        res = await http.get(
+            f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
+        )
+        if not res.status_code == 200:
+            await m.reply_text((await tld(m.chat.id, "lastfm_username_wrong")))
+            return
+        else:
+            await set_last_user(user_id, username)
+            await m.reply_text((await tld(m.chat.id, "lastfm_username_save")))
     else:
         rep = "Você esquceu do username"
         await m.reply_text(rep)
