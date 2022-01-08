@@ -370,7 +370,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         try:
             await c.send_video(
                 int(cid),
-                filename,
+                video=filename,
                 width=1920,
                 height=1080,
                 caption=ttemp + yt["title"],
@@ -395,7 +395,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         try:
             await c.send_audio(
                 int(cid),
-                filename,
+                audio=filename,
                 title=title,
                 performer=performer,
                 caption=ttemp[:-2],
@@ -417,10 +417,10 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
 @Client.on_message(filters.command(["sdl", "mdl"]))
 async def ytdl(c: Client, m: Message):
     try:
-        if m.reply_to_message and m.reply_to_message.text:
-            url = m.reply_to_message.text
-        elif m.text and m.text.split(maxsplit=1)[1]:
+        if m.text and m.text.split(maxsplit=1)[1]:
             url = m.text.split(maxsplit=1)[1]
+        elif m.reply_to_message and m.reply_to_message.text:
+            url = m.reply_to_message.text
     except IndexError:
         await m.reply_text(await tld(m.chat.id, "sdl_missing_arguments"))
         return
