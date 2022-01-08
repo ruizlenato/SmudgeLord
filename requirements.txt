@@ -10,7 +10,7 @@ git+https://github.com/ruizlenato/dicioinformal
 gpytranslate==1.4.0
 tortoise-orm==0.18.0
 python-rapidjson==1.5
-yt-dlp==2021.12.27
+git+https://github.com/yt-dlp/yt-dlp
 lxml==4.7.1
 pillow==9.0.0
 ujson==5.1.0
