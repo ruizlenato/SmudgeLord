@@ -6,8 +6,10 @@ from smudge.config import LASTFM_API_KEY
 from smudge.locales.strings import tld
 from smudge.database.core import users
 from smudge.utils import http
+
 from pyrogram import Client, filters
 from pyrogram.types import Message
+from pyrogram.errors import UserNotParticipant
 
 from tortoise.exceptions import IntegrityError, DoesNotExist
 
@@ -51,8 +53,16 @@ async def setuser(c: Client, m: Message):
     return
 
 
-@Client.on_message(filters.command(["lastfm", "lmu"], prefixes="/"))
+@Client.on_message(filters.command(["lastfm", "lmu", "lt"], prefixes="/"))
 async def lastfm(c: Client, m: Message):
+    if m.text.split(maxsplit=1)[0] == "/lt":
+        try:
+            await m.chat.get_member(642199200)
+            return
+        except UserNotParticipant:
+            pass
+    else:
+        pass
     user = m.from_user.first_name
     user_id = m.from_user.id
     username = await get_last_user(user_id)
