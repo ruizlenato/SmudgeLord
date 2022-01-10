@@ -42,6 +42,6 @@ async def sed(c: Client, m: Message):
     else:
         await c.send_message(
             m.chat.id,
-            f"<pre>{html.escape(res)}</pre>",
+            f"{html.escape(res)}",
             reply_to_message_id=m.reply_to_message.message_id,
         )
