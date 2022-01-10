@@ -10,7 +10,6 @@ from pyrogram import emoji
 
 timeout = httpx.Timeout(20)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
-_EMOJI_REGEXP = None
 
 
 def pretty_size(size_bytes):
@@ -35,20 +34,20 @@ def aiowrap(func: Callable) -> Callable:
 
 
 def get_emoji_regex():
-    global _EMOJI_REGEXP
-    if not _EMOJI_REGEXP:
-        e_list = [
-            getattr(emoji, e).encode("unicode-escape").decode("ASCII")
-            for e in dir(emoji)
-            if not e.startswith("_")
-        ]
-        # to avoid re.error excluding char that start with '*'
-        e_sort = sorted([x for x in e_list if not x.startswith("*")], reverse=True)
-        # Sort emojis by length to make sure multi-character emojis are
-        # matched first
-        pattern_ = f"({'|'.join(e_sort)})"
-        _EMOJI_REGEXP = re.compile(pattern_)
-    return _EMOJI_REGEXP
+    e_list = [
+        getattr(emoji, e).encode("unicode-escape").decode("ASCII")
+        for e in dir(emoji)
+        if not e.startswith("_")
+    ]
+    # to avoid re.error excluding char that start with '*'
+    e_sort = sorted([x for x in e_list if not x.startswith("*")], reverse=True)
+    # Sort emojis by length to make sure multi-character emojis are
+    # matched first
+    pattern_ = f"({'|'.join(e_sort)})"
+    return re.compile(pattern_)
+
+
+EMOJI_PATTERN = get_emoji_regex()
 
 
 async def extract_user(c, m) -> Tuple[int, str]:

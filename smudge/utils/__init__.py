@@ -2,6 +2,6 @@ from .utils import (
     http,
     pretty_size,
     aiowrap,
-    get_emoji_regex,
+    EMOJI_PATTERN,
     extract_user,
 )
