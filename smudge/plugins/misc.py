@@ -440,7 +440,11 @@ async def ytdl(c: Client, m: Message):
     filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
     ydl_opts = {"outtmpl": filename}
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+        try:
+            await extract_info(ydl, url, download=True)
+        except BaseException as e:
+            await m.reply_text((await tld(m.chat.id, "sdl_error")).format(e))
+            return
 
     with open(filename, "rb") as video:
         await m.reply_video(video=video)

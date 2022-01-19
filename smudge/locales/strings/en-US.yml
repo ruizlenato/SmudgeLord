@@ -192,6 +192,8 @@ user_afk: "{} is Afk!"
 user_now_afk: "<a href='tg://user?id={}'>{}</a> is now afk!"
 regex_timeout: "Oops, your regex pattern has run for too long."
 sdl_invalid_link: "<b>System glitch someone disconnected me.</b>\nThe link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
+sdl_invalid_link: "<b>System glitch someone disconnected me.</b>\n<b>Error:</b> <code>{}</code>"
+
 sdl_missing_arguments: "You forgot the link so I can download the media."
 misc_help: |
  <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.

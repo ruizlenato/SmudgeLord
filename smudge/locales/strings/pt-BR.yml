@@ -140,6 +140,7 @@ user_afk: "{} está afk!"
 user_now_afk: "<a href='tg://user?id={}'>{}</a> agora está afk!"
 regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
 sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
+sdl_error: "<b>Pane no sistema alguém me desconfigurou.</b>\n<b>Erro:</b> <code>{}</code>"
 sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download da midia."
 misc_help: |
  <b>/tr</b> [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
