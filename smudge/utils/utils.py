@@ -6,7 +6,8 @@ import asyncio
 from typing import Tuple, Callable
 from functools import wraps, partial
 
-from pyrogram import emoji
+from pyrogram import emoji, Client
+from smudge.config import CHAT_LOGS
 
 timeout = httpx.Timeout(20)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
@@ -56,8 +57,13 @@ async def extract_user(c, m) -> Tuple[int, str]:
     user_first_name = None
 
     if m.reply_to_message:
-        user_id = m.reply_to_message.from_user.id
-        user_first_name = m.reply_to_message.from_user.first_name
+        if m.reply_to_message.from_user:
+            user_id = m.reply_to_message.from_user.id
+            user_first_name = m.reply_to_message.from_user.first_name
+
+        elif m.reply_to_message.sender_chat:
+            user_id = m.reply_to_message.sender_chat.id
+            user_first_name = m.reply_to_message.sender_chat.first_name
 
     elif m.command and len(m.command) > 1:
         if m.entities:
@@ -85,3 +91,13 @@ async def extract_user(c, m) -> Tuple[int, str]:
     user_first_name = user.first_name
 
     return user_id, user_first_name
+
+
+async def send_logs(c, user_mention, user_id, e):
+    await c.send_message(
+        chat_id=CHAT_LOGS,
+        text=(
+            "<b>⚠️ Error</b>\n<b>User:</b>{} (<code>{}</code>)\n<b>Log:</b>\n<code>{}</code></b>"
+        ).format(user_mention, user_id, e),
+    )
+    return

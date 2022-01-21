@@ -4,4 +4,5 @@ from .utils import (
     aiowrap,
     EMOJI_PATTERN,
     extract_user,
+    send_logs,
 )

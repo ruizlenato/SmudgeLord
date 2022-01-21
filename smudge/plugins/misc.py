@@ -2,6 +2,7 @@ import io
 import os
 import re
 import html
+from black import err
 import httpx
 import shutil
 import yt_dlp
@@ -13,6 +14,7 @@ import dicioinformal
 
 from gpytranslate import Translator
 
+from smudge.utils import send_logs
 from smudge.locales.strings import tld
 from smudge.utils import http, pretty_size, aiowrap
 
@@ -157,7 +159,10 @@ async def prints(c: Client, m: Message):
         sent = await m.reply_text(await tld(m.chat.id, "print_printing"))
         res_json = await cssworker_url(target_url=the_url)
     except BaseException as e:
-        await m.reply(f"**Failed due to:** `{e}`")
+        user_mention = m.from_user.mention(m.from_user.first_name)
+        user_id = m.from_user.id
+        await send_logs(c, user_mention, user_id, e)
+        await m.reply(f"<b>Failed due to:</b> <code>{e}</code>")
         return
 
     if res_json:
@@ -167,12 +172,10 @@ async def prints(c: Client, m: Message):
             try:
                 await m.reply_photo(image_url)
                 await sent.delete()
-            except BaseException:
-                # if failed to send the message, it's not API's
-                # fault.
-                # most probably there are some other kind of problem,
-                # for example it failed to delete its message.
-                # or the bot doesn't have access to send media in the chat.
+            except BaseException as e:
+                user_mention = m.from_user.mention(m.from_user.first_name)
+                user_id = m.from_user.id
+                await send_logs(c, user_mention, user_id, e)
                 return
         else:
             await m.reply(
@@ -358,6 +361,9 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
     try:
         yt = await extract_info(ydl, url, download=True)
     except BaseException as e:
+        user_mention = cq.message.from_user.mention(cq.message.from_user.first_name)
+        user_id = cq.message.from_user.id
+        await send_logs(c, user_mention, user_id, e)
         await cq.message.edit(
             (await tld(cq.message.chat.id, "ytdl_send_error")).format(e)
         )
@@ -379,6 +385,9 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
                 reply_to_message_id=int(mid),
             )
         except BadRequest as e:
+            user_mention = cq.message.from_user.mention(cq.message.from_user.first_name)
+            user_id = cq.message.from_user.id
+            await send_logs(c, user_mention, user_id, e)
             await c.send_message(
                 chat_id=int(cid),
                 text=(await tld(cq.message.chat.id, "ytdl_send_error")).format(
@@ -404,6 +413,9 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
                 reply_to_message_id=int(mid),
             )
         except BadRequest as e:
+            user_mention = cq.message.from_user.mention(cq.message.from_user.first_name)
+            user_id = cq.message.from_user.id
+            await send_logs(c, user_mention, user_id, e)
             await c.send_message(
                 chat_id=int(cid),
                 text=("ytdl_send_error{}").format(errmsg=e),
@@ -439,11 +451,15 @@ async def ytdl(c: Client, m: Message):
         path = os.path.join(tempdir, "ytdl")
     filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
     ydl_opts = {"outtmpl": filename}
+
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             await extract_info(ydl, url, download=True)
         except BaseException as e:
+            user_mention = m.from_user.mention(m.from_user.first_name)
+            user_id = m.from_user.id
             await m.reply_text((await tld(m.chat.id, "sdl_error")).format(e))
+            await send_logs(c, user_mention, user_id, e)
             return
 
     with open(filename, "rb") as video:
