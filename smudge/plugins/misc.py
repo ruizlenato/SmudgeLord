@@ -2,7 +2,6 @@ import io
 import os
 import re
 import html
-from black import err
 import httpx
 import shutil
 import yt_dlp
