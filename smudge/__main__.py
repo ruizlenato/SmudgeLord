@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import aiocron
+import datetime
 
 from pyrogram import Client, idle
 
@@ -10,6 +12,9 @@ from tortoise import run_async, Tortoise
 
 from smudge.config import *
 from smudge.database import connect_database
+
+# Date
+date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
 
 # Enable logging
 logging.basicConfig(format="%(asctime)s - %(message)s", level="INFO")
@@ -35,9 +40,22 @@ client = Client(
 
 async def main():
     await client.start()
-    print("[SmudgeLord] Starting...")
+    print(f"[SmudgeLord] Starting...\nDate: {date}")
     await connect_database()
-    await client.send_message(chat_id=CHAT_LOGS, text="<b>SmudgeLord started!</b>")
+    await client.send_message(
+        chat_id=CHAT_LOGS,
+        text="<b>SmudgeLord started!</b>\n<b>Date:</b> {}".format(date),
+    )
+
+    @aiocron.crontab("*/60 * * * *")
+    async def backup() -> None:
+        await client.send_document(
+            CHAT_LOGS,
+            "smudge/database/database.db",
+            caption="<b>Database backuped!</b>\n<b>- Date:</b> {}".format(date),
+        )
+        logging.warning("[SmudgeLord] Database backuped!")
+
     await idle()
     await client.stop()
 
