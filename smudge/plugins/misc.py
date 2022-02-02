@@ -449,7 +449,7 @@ async def ytdl(c: Client, m: Message):
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
     filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
-    ydl_opts = {"outtmpl": filename}
+    ydl_opts = {"outtmpl": filename, "usenetrc": "~/.netrc"}
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
