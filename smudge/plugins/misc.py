@@ -429,10 +429,10 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
 @Client.on_message(filters.command(["sdl", "mdl"]))
 async def ytdl(c: Client, m: Message):
     try:
-        if m.text and m.text.split(maxsplit=1)[1]:
-            url = m.text.split(maxsplit=1)[1]
-        elif m.reply_to_message and m.reply_to_message.text:
+        if m.reply_to_message and m.reply_to_message.text:
             url = m.reply_to_message.text
+        elif m.text and m.text.split(maxsplit=1)[1]:
+            url = m.text.split(maxsplit=1)[1]
     except IndexError:
         await m.reply_text(await tld(m.chat.id, "sdl_missing_arguments"))
         return
