@@ -518,8 +518,8 @@ async def ddd(c: Client, m: Union[Message, CallbackQuery]):
             .lower()
             .title()
         )
-        await m.edit_message_text(await tld(m.message.chat.id, "fddd_strings")).format(
-            ddd, state, cities
+        await m.edit_message_text(
+            (await tld(m.message.chat.id, "fddd_strings")).format(ddd, state, cities)
         )
     else:
         rep = (await tld(m.chat.id, "ddd_strings")).format(ddd, state)
