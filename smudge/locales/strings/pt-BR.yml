@@ -142,12 +142,13 @@ regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
 sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
 sdl_error: "<b>Pane no sistema alguém me desconfigurou.</b>\n<b>Erro:</b> <code>{}</code>"
 sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download da midia."
-cep_strings: "🌏 <b>{}</b>\n<b>- Cidade:</b> {}\n<b>- Estado:</b> {}\n<b>- Bairro:</b> {}\n<b>- Rua:</b> {}"
+cep_strings: "🌏 <b>{}</b>\n<b>- Cidade:</b> {}\n<b>- Estado:</b> {} - {}\n<b>- Bairro:</b> {}\n<b>- Rua:</b> {}"
 cep_error: "Este CEP é invalido."
 no_cep: "Você esqueceu do CEP.\n<b>Uso do comando:</b> /cep (cep)."
-ddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {}"
-fddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {}\n<b>- Cidades:</b> <code>{}</code>"
+ddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}"
+fddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}\n<b>- Cidades:</b> <code>{}</code>"
 no_ddd: "Você esqueceu do DDD.\n<b>Uso do comando:</b> /ddd (ddd)."
+ddd_cities: "Cidades"
 misc_help: |
  <b>/tr [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
  <i><b>Obs</b>: o comando também funciona através de resposta

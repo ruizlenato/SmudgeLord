@@ -479,6 +479,8 @@ async def lastfm(c: Client, m: Message):
     res = await http.get(f"{base_url}/{cep}")
     city = res.json().get("city")
     state = res.json().get("state")
+    states = await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")
+    state_name = states.json().get("nome")
     neighborhood = res.json().get("neighborhood")
     street = res.json().get("street")
 
@@ -487,7 +489,7 @@ async def lastfm(c: Client, m: Message):
         return
     else:
         rep = (await tld(m.chat.id, "cep_strings")).format(
-            cep, city, state, neighborhood, street
+            cep, city, state_name, state, neighborhood, street
         )
         await m.reply_text(rep)
 
@@ -507,6 +509,8 @@ async def ddd(c: Client, m: Union[Message, CallbackQuery]):
     base_url = "https://brasilapi.com.br/api/ddd/v1"
     res = await http.get(f"{base_url}/{ddd}")
     state = res.json().get("state")
+    states = await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")
+    state_name = states.json().get("nome")
     cities = res.json().get("cities")
     if isinstance(m, CallbackQuery):
         cities.reverse()
@@ -519,11 +523,13 @@ async def ddd(c: Client, m: Union[Message, CallbackQuery]):
             .title()
         )
         await m.edit_message_text(
-            (await tld(m.message.chat.id, "fddd_strings")).format(ddd, state, cities)
+            (await tld(m.message.chat.id, "fddd_strings")).format(
+                ddd, state_name, state, cities
+            )
         )
     else:
-        rep = (await tld(m.chat.id, "ddd_strings")).format(ddd, state)
-        keyboard = [[(f"Cidades", f"ddd_{ddd}")]]
+        rep = (await tld(m.chat.id, "ddd_strings")).format(ddd, state_name, state)
+        keyboard = [[(await tld(m.chat.id, "ddd_cities"), f"ddd_{ddd}")]]
         await m.reply_text(rep, reply_markup=ikb(keyboard))
 
 
