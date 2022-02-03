@@ -142,6 +142,9 @@ regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
 sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
 sdl_error: "<b>Pane no sistema alguém me desconfigurou.</b>\n<b>Erro:</b> <code>{}</code>"
 sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download da midia."
+cep_strings: "🌏 <b>{}</b>\n<b>- Cidade:</b> {}\n<b>- Estado:</b> {}\n<b>- Bairro:</b> {}\n<b>- Rua:</b> {}"
+cep_error: "Este CEP é invalido."
+no_cep: "Você esqueceu do CEP.\n<b>Uso do comando:</b> /cep (cep)."
 misc_help: |
  <b>/tr</b> [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
  <i><b>Obs</b>: o comando também funciona através de resposta
@@ -151,6 +154,8 @@ misc_help: |
  <i>• Quando marcado como AFK, qualquer menção será respondida com uma mensagem informando que você não está disponível!</i>
 
  <b>/short [url]</b> - Para encurtar uma URL.
+ 
+ <b>/cep [CEP]</b> - Retornará algumas informações sobre o CEP (Brasileiro) especificado.
  
  <b>/sdl [link]</b> - Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>
  
