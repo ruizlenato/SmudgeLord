@@ -145,16 +145,20 @@ sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download 
 cep_strings: "🌏 <b>{}</b>\n<b>- Cidade:</b> {}\n<b>- Estado:</b> {}\n<b>- Bairro:</b> {}\n<b>- Rua:</b> {}"
 cep_error: "Este CEP é invalido."
 no_cep: "Você esqueceu do CEP.\n<b>Uso do comando:</b> /cep (cep)."
+ddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {}"
+fddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {}\n<b>- Cidades:</b> <code>{}</code>"
+no_ddd: "Você esqueceu do DDD.\n<b>Uso do comando:</b> /ddd (ddd)."
 misc_help: |
- <b>/tr</b> [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
+ <b>/tr [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
  <i><b>Obs</b>: o comando também funciona através de resposta
  Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
  
- <b>/afk [motivo] - </b> Define a si mesmo como AFK. (O Comando está desativado no momento por conta de alguns problemas.)
+ <b>/afk [motivo] - </b> Define a si mesmo como AFK. <b>(O Comando está desativado no momento por conta de alguns problemas.)</b>
  <i>• Quando marcado como AFK, qualquer menção será respondida com uma mensagem informando que você não está disponível!</i>
 
  <b>/short [url]</b> - Para encurtar uma URL.
  
+ <b>/ddd [DDD]</b> - Retornará algumas informações sobre o DDD (Brasileiro) especificado.
  <b>/cep [CEP]</b> - Retornará algumas informações sobre o CEP (Brasileiro) especificado.
  
  <b>/sdl [link]</b> - Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>

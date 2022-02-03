@@ -193,11 +193,13 @@ user_now_afk: "<a href='tg://user?id={}'>{}</a> is now afk!"
 regex_timeout: "Oops, your regex pattern has run for too long."
 sdl_invalid_link: "<b>System glitch someone disconnected me.</b>\nThe link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
 sdl_error: "<b>System glitch someone disconnected me.</b>\n<b>Error:</b> <code>{}</code>"
-
 sdl_missing_arguments: "You forgot the link so I can download the media."
 cep_strings: "🌏 <b>{}</b>\n<b>- City:</b> {}\n<b>- State:</b> {}\n<b>- Neighborhood:</b> {}\n<b>- Stret:</b> {}"
 cep_error: "This zip code is invalid."
 no_cep: "You forgot the zip code (Brazilian).\n<b>Use of command:</b> /cep (cep)."
+ddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b> {}"
+fddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b> {}\n<b>- Cities:</b> <code>{}</code>"
+no_ddd: "You forgot the DDD (Brazilian).\n<b>Use of command:</b> /dddd (ddd)."
 misc_help: |
  <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.
  <i>• It also can be used as reply.

@@ -10,6 +10,7 @@ import datetime
 import rapidjson
 import dicioinformal
 
+from typing import Union
 
 from gpytranslate import Translator
 
@@ -489,5 +490,42 @@ async def lastfm(c: Client, m: Message):
             cep, city, state, neighborhood, street
         )
         await m.reply_text(rep)
+
+
+@Client.on_message(filters.command(["ddd"], prefixes="/"))
+@Client.on_callback_query(filters.regex("ddd_(?P<num>.+)"))
+async def ddd(c: Client, m: Union[Message, CallbackQuery]):
+    try:
+        if isinstance(m, CallbackQuery):
+            ddd = m.matches[0]["num"]
+        else:
+            ddd = m.text.split(maxsplit=1)[1]
+    except IndexError:
+        await m.reply_text(await tld(m.chat.id, "no_ddd"))
+        return
+
+    base_url = "https://brasilapi.com.br/api/ddd/v1"
+    res = await http.get(f"{base_url}/{ddd}")
+    state = res.json().get("state")
+    cities = res.json().get("cities")
+    if isinstance(m, CallbackQuery):
+        cities.reverse()
+        cities = (
+            str(cities)
+            .replace("'", "")
+            .replace("]", "")
+            .replace("[", "")
+            .lower()
+            .title()
+        )
+        await m.edit_message_text(await tld(m.message.chat.id, "fddd_strings")).format(
+            ddd, state, cities
+        )
+    else:
+        rep = (await tld(m.chat.id, "ddd_strings")).format(ddd, state)
+        keyboard = [[(f"Cidades", f"ddd_{ddd}")]]
+        await m.reply_text(rep, reply_markup=ikb(keyboard))
+
+
 plugin_name = "misc_name"
 plugin_help = "misc_help"
