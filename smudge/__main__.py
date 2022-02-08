@@ -17,7 +17,7 @@ from smudge.database import connect_database
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
 
 # Enable logging
-logging.basicConfig(format="%(asctime)s - %(message)s", level="INFO")
+logging.basicConfig(format="%(asctime)s - %(message)s", level="WARNING")
 logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
 
 log = logging.getLogger("rich")
@@ -42,9 +42,11 @@ async def main():
     await client.start()
     print(f"[SmudgeLord] Starting...\nDate: {date}")
     await connect_database()
+    user = await client.get_me()
+    bot_name = user.first_name
     await client.send_message(
         chat_id=CHAT_LOGS,
-        text="<b>SmudgeLord started!</b>\n<b>Date:</b> {}".format(date),
+        text="<b>{} started!</b>\n<b>Date:</b> {}".format(bot_name, date),
     )
 
     @aiocron.crontab("*/60 * * * *")
