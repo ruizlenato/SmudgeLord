@@ -18,7 +18,7 @@ After all the requirements are installed, open smudge folder, rename example.con
 ## License (GPL-3.0)
 ```
 SmudgeLord (A telegram bot project)
-Copyright (C) 2021 Renatoh Ribeiro
+Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
