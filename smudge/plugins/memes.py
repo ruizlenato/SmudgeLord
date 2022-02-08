@@ -31,13 +31,6 @@ async def slap(c: Client, m: Message):
         await m.reply_text("Bruuuh")
 
 
-@Client.on_message(filters.regex(r"^fofo|cute"))
-async def cute(c: Client, m: Message):
-    await m.reply_video(
-        video="https://telegra.ph/file/cb2f3af8de1d12e10c375.mp4",
-    )
-
-
 @Client.on_message(filters.regex(r"^framengo"))
 async def framengo(c: Client, m: Message):
     await m.reply_video(
