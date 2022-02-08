@@ -12,7 +12,7 @@ tortoise-orm==0.18.1
 python-rapidjson==1.5
 git+https://github.com/yt-dlp/yt-dlp
 lxml==4.7.1
-pillow==9.0.0
+pillow==9.0.1
 ujson==5.1.0
 regex==2022.1.18
 aiocron==1.8
