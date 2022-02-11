@@ -59,14 +59,12 @@ async def get_repos(chat_id: int):
 @Client.on_message(filters.command(["gitr"]))
 async def git_on_message(c: Client, m: Message):
     if not len(m.command) == 2:
-        await m.reply_text(await tld(m.chat.id, "github_gitr_noargs"))
+        await m.reply_text(await tld(m, "github_gitr_noargs"))
         return
     repo = m.command[1]
     page = await check_repo(repo)
     if not page:
-        await m.reply_text(
-            (await tld(m.chat.id, "github_repo_errorreleases")).format(repo)
-        )
+        await m.reply_text((await tld(m, "github_repo_errorreleases")).format(repo))
 
     else:
         await git(c, m, repo, page)
@@ -79,10 +77,10 @@ async def git_repos(c: Client, m: Message):
         keyword = i.git_repo_name
 
         if keyword is None:
-            await m.reply_text(await tld(m.chat.id, "github_nothing_save"))
+            await m.reply_text(await tld(m, "github_nothing_save"))
         else:
-            message = (await tld(m.chat.id, "github_repos_saved")).format(keyword)
-            message += await tld(m.chat.id, "github_repos_savedhelp")
+            message = (await tld(m, "github_repos_saved")).format(keyword)
+            message += await tld(m, "github_repos_savedhelp")
             await m.reply_text(message)
 
 
@@ -100,9 +98,7 @@ async def fetch_repo(c: Client, m: Message):
     else:
         page = get(f"https://api.github.com/repos/{repo_db}/releases/latest")
         if not page.status_code == 200:
-            await m.reply_text(
-                (await tld(m.chat.id, "github_repo_errorreleases")).format(repo)
-            )
+            await m.reply_text((await tld(m, "github_repo_errorreleases")).format(repo))
 
         else:
             await git(c, m, repo_db, page)
@@ -111,19 +107,19 @@ async def fetch_repo(c: Client, m: Message):
 @Client.on_message(filters.command(["gitadd"]) & filters.group)
 async def save_repo(c: Client, m: Message):
     if not len(m.command) == 3:
-        await m.reply(await tld(m.chat.id, "github_add_noargs"))
+        await m.reply(await tld(m, "github_add_noargs"))
         return
     name = m.command[1]
     repo = m.command[2]
     page = await check_repo(repo)
     if not page:
-        await m.reply(await tld(m.chat.id, "github_repo_noreleases"))
+        await m.reply(await tld(m, "github_repo_noreleases"))
         return
-    msg = await tld(m.chat.id, "github_repo_added")
+    msg = await tld(m, "github_repo_added")
     if await add_repo(m.chat.id, name, repo) is True:
-        message = msg.format(await tld(m.chat.id, "updated"), name)
+        message = msg.format(await tld(m, "updated"), name)
     else:
-        message = msg.format(await tld(m.chat.id, "added"), name)
+        message = msg.format(await tld(m, "added"), name)
     await m.reply_text(message)
 
 
@@ -131,9 +127,9 @@ async def save_repo(c: Client, m: Message):
 async def rm_repo(c: Client, m: Message):
     name = m.text.split(maxsplit=1)[1]
     if await del_repo(m.chat.id, name) is False:
-        message = await tld(m.chat.id, "github_repo_faildelete")
+        message = await tld(m, "github_repo_faildelete")
     else:
-        message = await tld(m.chat.id, "github_repo_deleted")
+        message = await tld(m, "github_repo_deleted")
     await m.reply_text(message.format(name))
 
 

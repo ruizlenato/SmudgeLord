@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
-language_name: "🇺🇸 EN-US (American English)"
-language_code: "en-US"
+main:
+  language_flag: "🇺🇸"
+  language_name: "American English"
+  language_code: "en-US"
 
 # Core
 start_message_private: |
@@ -13,6 +15,7 @@ start_message_private: |
 
 start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
 lang_save: "Language changed successfully"
+lang_crowdin: "🌎 Help us with translations!"
 main_select_lang: "Select the language you want to use the bot"
 main_btn_back: "↩️ Back"
 main_start_btn_lang: "🇺🇸 Language"

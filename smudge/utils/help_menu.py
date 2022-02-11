@@ -20,7 +20,7 @@ async def help_buttons(m, HELP):
     plugins = sorted(
         [
             EqInlineKeyboardButton(
-                await tld(m.message.chat.id, str(HELP[plugin][0]["name"])),
+                await tld(m, str(HELP[plugin][0]["name"])),
                 callback_data="help_plugin({})".format(plugin.lower()),
             )
             for plugin in HELP.keys()

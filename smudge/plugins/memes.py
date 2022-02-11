@@ -22,10 +22,10 @@ async def slap(c: Client, m: Message):
         except:
             user2 = m.chat.title
 
-        temp = random.choice(await tld(m.chat.id, "memes_slaps_templates_list"))
-        item = random.choice(await tld(m.chat.id, "memes_items_list"))
-        hit = random.choice(await tld(m.chat.id, "memes_hit_list"))
-        throw = random.choice(await tld(m.chat.id, "memes_throw_list"))
+        temp = random.choice(await tld(m, "memes_slaps_templates_list"))
+        item = random.choice(await tld(m, "memes_items_list"))
+        hit = random.choice(await tld(m, "memes_hit_list"))
+        throw = random.choice(await tld(m, "memes_throw_list"))
 
         reply = temp.format(user1=user1, user2=user2, item=item, hits=hit, throws=throw)
 

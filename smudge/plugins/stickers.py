@@ -29,10 +29,10 @@ SUPPORTED_TYPES = ["jpeg", "png", "webp"]
 
 @Client.on_message(filters.command("getsticker"))
 async def getsticker(c: Client, m: Message):
-    sticker = m.reply_to_message.sticker
-    if sticker:
+    try:
+        sticker = m.reply_to_message.sticker
         if sticker.is_animated:
-            await m.reply_text(await tld(m.chat.id, "animated_not_supported"))
+            await m.reply_text(await tld(m, "animated_not_supported"))
         elif not sticker.is_animated:
             with tempfile.TemporaryDirectory() as tempdir:
                 path = os.path.join(tempdir, "getsticker")
@@ -42,19 +42,19 @@ async def getsticker(c: Client, m: Message):
             )
             await m.reply_to_message.reply_document(
                 document=sticker_file,
-                caption=(await tld(m.chat.id, "sticker_info")).format(
+                caption=(await tld(m, "sticker_info")).format(
                     sticker.emoji, sticker.file_id
                 ),
             ),
             shutil.rmtree(tempdir, ignore_errors=True)
-    else:
-        await m.reply_text(await tld(m.chat.id, "stickers_getsticker_no_reply"))
+    except AttributeError:
+        await m.reply_text(await tld(m, "stickers_getsticker_no_reply"))
         return
 
 
 @Client.on_message(filters.command("kang"))
 async def kang_sticker(c: Client, m: Message):
-    prog_msg = await m.reply_text(await tld(m.chat.id, "stickers_kanging"))
+    prog_msg = await m.reply_text(await tld(m, "stickers_kanging"))
     user = await c.get_me()
     bot_username = user.username
     sticker_emoji = "🤔"
@@ -78,7 +78,7 @@ async def kang_sticker(c: Client, m: Message):
         elif reply.sticker:
             if not reply.sticker.file_name:
                 return await prog_msg.edit_text(
-                    await tld(m.chat.id, "err_sticker_no_file_name")
+                    await tld(m, "err_sticker_no_file_name")
                 )
             if reply.sticker.emoji:
                 sticker_emoji = reply.sticker.emoji
@@ -86,9 +86,7 @@ async def kang_sticker(c: Client, m: Message):
             if not reply.sticker.file_name.endswith(".tgs"):
                 resize = True
         else:
-            return await prog_msg.edit_text(
-                await tld(m.chat.id, "invalid_media_string")
-            )
+            return await prog_msg.edit_text(await tld(m, "invalid_media_string"))
         pack_prefix = "anim" if animated else "a"
         packname = f"{pack_prefix}_{m.from_user.id}_by_{bot_username}"
 
@@ -140,7 +138,7 @@ async def kang_sticker(c: Client, m: Message):
                 )
             resize = True
     else:
-        return await prog_msg.edit_text(await tld(m.chat.id, "stickers_kang_noreply"))
+        return await prog_msg.edit_text(await tld(m, "stickers_kang_noreply"))
     try:
         if resize:
             filename = resize_image(filename)
@@ -178,7 +176,7 @@ async def kang_sticker(c: Client, m: Message):
         msg_ = media.updates[-1].message
         stkr_file = msg_.media.document
         if packname_found:
-            await prog_msg.edit_text(await tld(m.chat.id, "use_existing_pack"))
+            await prog_msg.edit_text(await tld(m, "use_existing_pack"))
             await c.send(
                 AddStickerToSet(
                     stickerset=InputStickerSetShortName(short_name=packname),
@@ -193,7 +191,7 @@ async def kang_sticker(c: Client, m: Message):
                 )
             )
         else:
-            await prog_msg.edit_text(await tld(m.chat.id, "create_new_pack_string"))
+            await prog_msg.edit_text(await tld(m, "create_new_pack_string"))
             stkr_title = f"{m.from_user.first_name[:32]}'s "
             if animated:
                 stkr_title += "Anim. "
@@ -221,7 +219,7 @@ async def kang_sticker(c: Client, m: Message):
                 )
             except PeerIdInvalid:
                 return await prog_msg.edit_text(
-                    await tld(m.chat.id, "stickers_pack_contact_pm"),
+                    await tld(m, "stickers_pack_contact_pm"),
                     reply_markup=InlineKeyboardMarkup(
                         [
                             [
@@ -236,9 +234,7 @@ async def kang_sticker(c: Client, m: Message):
         await prog_msg.edit_text(f"{all_e.__class__.__name__} : {all_e}")
     else:
         await prog_msg.edit_text(
-            (await tld(m.chat.id, "sticker_kanged_string")).format(
-                packname, sticker_emoji
-            )
+            (await tld(m, "sticker_kanged_string")).format(packname, sticker_emoji)
         )
         # Cleanup
         await c.delete_messages(chat_id=CHAT_LOGS, message_ids=msg_.id, revoke=True)

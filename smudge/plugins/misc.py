@@ -86,8 +86,8 @@ async def translate(c: Client, m: Message):
         text = m.reply_to_message.text or m.reply_to_message.caption
 
     if not text:
-        return await m.reply_text(await tld(m.chat.id, "tr_error"))
-    sent = await m.reply_text(await tld(m.chat.id, "tr_translating"))
+        return await m.reply_text(await tld(m, "tr_error"))
+    sent = await m.reply_text(await tld(m, "tr_translating"))
     langs = {}
 
     if len(lang.split("-")) > 1:
@@ -121,7 +121,7 @@ async def dicio(c: Client, m: Message):
 @Client.on_message(filters.command("short"))
 async def short(c: Client, m: Message):
     if len(m.command) < 2:
-        return await m.reply_text(await tld(m.chat.id, "short_error"))
+        return await m.reply_text(await tld(m, "short_error"))
     else:
         url = m.command[1]
         if not url.startswith("http"):
@@ -155,11 +155,11 @@ async def prints(c: Client, m: Message):
         the_url = the_url[1]
 
     if wrong:
-        await m.reply_text(await tld(m.chat.id, "print_error"))
+        await m.reply_text(await tld(m, "print_error"))
         return
 
     try:
-        sent = await m.reply_text(await tld(m.chat.id, "print_printing"))
+        sent = await m.reply_text(await tld(m, "print_printing"))
         res_json = await cssworker_url(target_url=the_url)
     except BaseException as e:
         user_mention = m.from_user.mention(m.from_user.first_name)
@@ -185,7 +185,7 @@ async def prints(c: Client, m: Message):
                 "couldn't get url value, most probably API is not accessible."
             )
     else:
-        await m.reply(await tld(m.chat.id, "print_api_dead"))
+        await m.reply(await tld(m, "print_api_dead"))
 
 
 async def cssworker_url(target_url: str):
@@ -267,7 +267,7 @@ async def ytdlcmd(c: Client, m: Message):
     elif len(m.command) > 1:
         url = m.text.split(None, 1)[1]
     else:
-        await m.reply_text(await tld(m.chat.id, "ytdl_missing_argument"))
+        await m.reply_text(await tld(m, "ytdl_missing_argument"))
         return
 
     ydl = yt_dlp.YoutubeDL(
@@ -300,11 +300,11 @@ async def ytdlcmd(c: Client, m: Message):
     keyboard = [
         [
             (
-                await tld(m.chat.id, "ytdl_audio_button"),
+                await tld(m, "ytdl_audio_button"),
                 f'_aud.{yt["id"]}|{afsize}|{temp}|{vformat}|{m.chat.id}|{user}|{m.message_id}',
             ),
             (
-                await tld(m.chat.id, "ytdl_video_button"),
+                await tld(m, "ytdl_video_button"),
                 f'_vid.{yt["id"]}|{vfsize}|{temp}|{vformat}|{m.chat.id}|{user}|{m.message_id}',
             ),
         ]
@@ -330,13 +330,13 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         return await cq.answer("ytdl_button_denied", cache_time=60)
     if int(fsize) > 200000000:
         return await cq.answer(
-            await tld(cq.message.chat.id, "ytdl_file_too_big"),
+            await tld(m, "ytdl_file_too_big"),
             show_alert=True,
             cache_time=60,
         )
     vid = re.sub(r"^\_(vid|aud)\.", "", data)
     url = "https://www.youtube.com/watch?v=" + vid
-    await cq.message.edit(await tld(cq.message.chat.id, "ytdl_downloading"))
+    await cq.message.edit(await tld(cq, "ytdl_downloading"))
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
 
@@ -367,11 +367,9 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         user_mention = cq.message.from_user.mention(cq.message.from_user.first_name)
         user_id = cq.message.from_user.id
         await send_logs(c, user_mention, user_id, e)
-        await cq.message.edit(
-            (await tld(cq.message.chat.id, "ytdl_send_error")).format(e)
-        )
+        await cq.message.edit((await tld(cq, "ytdl_send_error")).format(e))
         return
-    await cq.message.edit(await tld(cq.message.chat.id, "ytdl_sending"))
+    await cq.message.edit(await tld(cq, "ytdl_sending"))
     filename = ydl.prepare_filename(yt)
     thumb = io.BytesIO((await http.get(yt["thumbnail"])).content)
     thumb.name = "thumbnail.png"
@@ -393,9 +391,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             await send_logs(c, user_mention, user_id, e)
             await c.send_message(
                 chat_id=int(cid),
-                text=(await tld(cq.message.chat.id, "ytdl_send_error")).format(
-                    errmsg=e
-                ),
+                text=(await tld(cq, "ytdl_send_error")).format(errmsg=e),
                 reply_to_message_id=int(mid),
             )
     else:
@@ -437,7 +433,7 @@ async def ytdl(c: Client, m: Message):
         elif m.text and m.text.split(maxsplit=1)[1]:
             url = m.text.split(maxsplit=1)[1]
     except IndexError:
-        await m.reply_text(await tld(m.chat.id, "sdl_missing_arguments"))
+        await m.reply_text(await tld(m, "sdl_missing_arguments"))
         return
 
     link = re.match(
@@ -447,7 +443,7 @@ async def ytdl(c: Client, m: Message):
     )
 
     if not link:
-        await m.reply_text(await tld(m.chat.id, "sdl_invalid_link"))
+        await m.reply_text(await tld(m, "sdl_invalid_link"))
         return
 
     with tempfile.TemporaryDirectory() as tempdir:
@@ -461,7 +457,7 @@ async def ytdl(c: Client, m: Message):
         except BaseException as e:
             user_mention = m.from_user.mention(m.from_user.first_name)
             user_id = m.from_user.id
-            await m.reply_text((await tld(m.chat.id, "sdl_error")).format(e))
+            await m.reply_text((await tld(m, "sdl_error")).format(e))
             await send_logs(c, user_mention, user_id, e)
             return
 
@@ -475,7 +471,7 @@ async def lastfm(c: Client, m: Message):
     try:
         cep = m.text.split(maxsplit=1)[1]
     except IndexError:
-        await m.reply_text(await tld(m.chat.id, "no_cep"))
+        await m.reply_text(await tld(m, "no_cep"))
         return
 
     base_url = "https://brasilapi.com.br/api/cep/v1"
@@ -488,10 +484,10 @@ async def lastfm(c: Client, m: Message):
     street = res.json().get("street")
 
     if res.status_code == 404:
-        await m.reply_text((await tld(m.chat.id, "cep_error")))
+        await m.reply_text((await tld(m, "cep_error")))
         return
     else:
-        rep = (await tld(m.chat.id, "cep_strings")).format(
+        rep = (await tld(m, "cep_strings")).format(
             cep, city, state_name, state, neighborhood, street
         )
         await m.reply_text(rep)
@@ -506,7 +502,7 @@ async def ddd(c: Client, m: Union[Message, CallbackQuery]):
         else:
             ddd = m.text.split(maxsplit=1)[1]
     except IndexError:
-        await m.reply_text(await tld(m.chat.id, "no_ddd"))
+        await m.reply_text(await tld(m, "no_ddd"))
         return
 
     base_url = "https://brasilapi.com.br/api/ddd/v1"
@@ -526,13 +522,11 @@ async def ddd(c: Client, m: Union[Message, CallbackQuery]):
             .title()
         )
         await m.edit_message_text(
-            (await tld(m.message.chat.id, "fddd_strings")).format(
-                ddd, state_name, state, cities
-            )
+            (await tld(m, "fddd_strings")).format(ddd, state_name, state, cities)
         )
     else:
-        rep = (await tld(m.chat.id, "ddd_strings")).format(ddd, state_name, state)
-        keyboard = [[(await tld(m.chat.id, "ddd_cities"), f"ddd_{ddd}")]]
+        rep = (await tld(m, "ddd_strings")).format(ddd, state_name, state)
+        keyboard = [[(await tld(m, "ddd_cities"), f"ddd_{ddd}")]]
         await m.reply_text(rep, reply_markup=ikb(keyboard))
 
 

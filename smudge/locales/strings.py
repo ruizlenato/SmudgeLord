@@ -3,23 +3,39 @@
 
 import os
 import yaml
+from glob import glob
+from pyrogram.types import CallbackQuery
 
 from smudge.database import get_db_lang
 from smudge import LOGGER
 
-LANGUAGES = ["en-US", "pt-BR"]
+LANGUAGES = ["pt-BR", "en-US"]
 strings = {}
 
+
+def cache_localizations(files):
+    """Get all translated strings from files."""
+    ldict = {lang: {} for lang in LANGUAGES}
+    for file in files:
+        lang_name = (file.split(os.path.sep)[3]).replace(".yml", "")
+        lang_data = yaml.load(open(file, encoding="utf-8"), Loader=yaml.FullLoader)
+        ldict[lang_name] = lang_data
+    return ldict
+
+
+# Get all translation files
+lang_files = []
 for langs in LANGUAGES:
     strings[langs] = yaml.full_load(open(f"smudge/locales/strings/{langs}.yml", "r"))
-    parsed_yaml_file = yaml.load(
-        open(f"smudge/locales/strings/{langs}.yml"), Loader=yaml.FullLoader
-    )
-    print(parsed_yaml_file["language_name"])
+    lang_files += glob(os.path.join("smudge/locales/strings/", f"{langs}.yml"))
+lang_dict = cache_localizations(lang_files)
 
 
-async def tld(chat_id, t):
-    LANGUAGE = await get_db_lang(chat_id)
+async def tld(m, t):
+    # Get Chat
+    if isinstance(m, CallbackQuery):
+        m = m.message
+    LANGUAGE = await get_db_lang(m.chat.id)
     try:
         return strings[LANGUAGE][t]
     except KeyError:

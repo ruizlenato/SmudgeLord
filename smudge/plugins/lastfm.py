@@ -36,7 +36,7 @@ async def setuser(c: Client, m: Message):
     try:
         username = m.text.split(maxsplit=1)[1]
     except IndexError:
-        await m.reply_text(await tld(m.chat.id, "lastfm_no_username_save"))
+        await m.reply_text(await tld(m, "lastfm_no_username_save"))
         return
 
     if username:
@@ -45,11 +45,11 @@ async def setuser(c: Client, m: Message):
             f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
         )
         if not res.status_code == 200:
-            await m.reply_text((await tld(m.chat.id, "lastfm_username_wrong")))
+            await m.reply_text((await tld(m, "lastfm_username_wrong")))
             return
         else:
             await set_last_user(user_id, username)
-            await m.reply_text((await tld(m.chat.id, "lastfm_username_save")))
+            await m.reply_text((await tld(m, "lastfm_username_save")))
     else:
         rep = "Você esquceu do username"
         await m.reply_text(rep)
@@ -71,7 +71,7 @@ async def lastfm(c: Client, m: Message):
     username = await get_last_user(user_id)
 
     if not username:
-        await m.reply_text(await tld(m.chat.id, "lastfm_no_username"))
+        await m.reply_text(await tld(m, "lastfm_no_username"))
         return
 
     base_url = "http://ws.audioscrobbler.com/2.0"
@@ -79,7 +79,7 @@ async def lastfm(c: Client, m: Message):
         f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
     if not res.status_code == 200:
-        await m.reply_text((await tld(m.chat.id, "lastfm_username_wrong")))
+        await m.reply_text((await tld(m, "lastfm_username_wrong")))
         return
 
     try:
@@ -108,14 +108,14 @@ async def lastfm(c: Client, m: Message):
 
     if first_track.get("@attr"):
         if scrobbles == "none":
-            rep = (await tld(m.chat.id, "lastfm_scrobble_none_is")).format(user)
+            rep = (await tld(m, "lastfm_scrobble_none_is")).format(user)
         else:
-            rep = (await tld(m.chat.id, "lastfm_scrobble_is")).format(user, scrobbles)
+            rep = (await tld(m, "lastfm_scrobble_is")).format(user, scrobbles)
     else:
         if scrobbles == "none":
-            rep = (await tld(m.chat.id, "lastfm_scrobble_none_was")).format(user)
+            rep = (await tld(m, "lastfm_scrobble_none_was")).format(user)
         else:
-            rep = (await tld(m.chat.id, "lastfm_scrobble_was")).format(user, scrobbles)
+            rep = (await tld(m, "lastfm_scrobble_was")).format(user, scrobbles)
     if not loved:
         rep += f"<b>{artist}</b> - {song}"
     else:
@@ -140,7 +140,7 @@ async def album(c: Client, m: Message):
     username = await get_last_user(m.from_user.id)
 
     if not username:
-        await m.reply_text(await tld(m.chat.id, "lastfm_no_username"))
+        await m.reply_text(await tld(m, "lastfm_no_username"))
         return
 
     base_url = "http://ws.audioscrobbler.com/2.0"
@@ -148,7 +148,7 @@ async def album(c: Client, m: Message):
         f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
     if not res.status_code == 200:
-        await m.reply_text((await tld(m.chat.id, "lastfm_username_wrong")))
+        await m.reply_text((await tld(m, "lastfm_username_wrong")))
         return
 
     try:
@@ -173,9 +173,9 @@ async def album(c: Client, m: Message):
         scrobbles = int(last_user.get("userplaycount"))
 
     if first_track.get("@attr"):
-        rep = await tld(m.chat.id, "lastfm_scrobble_is")
+        rep = await tld(m, "lastfm_scrobble_is")
     else:
-        rep = await tld(m.chat.id, "lastfm_scrobble_was")
+        rep = await tld(m, "lastfm_scrobble_was")
 
     if not loved:
         rep += f"🎙 <strong>{artist}</strong>\n📀 {album}"
@@ -201,7 +201,7 @@ async def artist(c: Client, m: Message):
     username = await get_last_user(m.from_user.id)
 
     if not username:
-        await m.reply_text(await tld(m.chat.id, "lastfm_no_username"))
+        await m.reply_text(await tld(m, "lastfm_no_username"))
         return
 
     base_url = "http://ws.audioscrobbler.com/2.0"
@@ -209,7 +209,7 @@ async def artist(c: Client, m: Message):
         f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
     if not res.status_code == 200:
-        await m.reply_text((await tld(m.chat.id, "lastfm_username_wrong")))
+        await m.reply_text((await tld(m, "lastfm_username_wrong")))
         return
 
     try:
@@ -232,9 +232,9 @@ async def artist(c: Client, m: Message):
         scrobbles = int(last_user.get("userplaycount"))
 
     if first_track.get("@attr"):
-        rep = await tld(m.chat.id, "lastfm_scrobble_is")
+        rep = await tld(m, "lastfm_scrobble_is")
     else:
-        rep = await tld(m.chat.id, "lastfm_scrobble_was")
+        rep = await tld(m, "lastfm_scrobble_was")
 
     if not loved:
         rep += f"🎙 <strong>{artist}</strong>"

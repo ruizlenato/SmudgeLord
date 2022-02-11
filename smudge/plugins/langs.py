@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
-import yaml
+
+from smudge.locales.strings import tld, lang_dict
+from smudge.database import set_db_lang
+
 from typing import Union
 
-from smudge.locales.strings import tld
-from smudge.database import set_db_lang
 from pyrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -13,6 +14,27 @@ from pyrogram.types import (
     Message,
 )
 from pyrogram import Client, filters
+from pyrogram.helpers import ikb
+
+
+async def gen_langs_kb(m):
+    langs = sorted(list(lang_dict.keys()))
+    return [
+        [
+            (
+                f'{lang_dict[lang]["main"]["language_flag"]} {lang_dict[lang]["main"]["language_name"]} ({lang_dict[lang]["main"]["language_code"]})',
+                f"set_lang {lang}",
+            )
+            for lang in langs
+        ],
+        [
+            (
+                await tld(m, "lang_crowdin"),
+                "https://crowdin.com/project/smudgelord",
+                "url",
+            ),
+        ],
+    ]
 
 
 @Client.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
@@ -32,7 +54,7 @@ async def portuguese(c: Client, m: Message):
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=(await tld(m.message.chat.id, "main_btn_back")),
+                    text=(await tld(m, "main_btn_back")),
                     callback_data="setchatlang",
                 )
             ],
@@ -42,7 +64,7 @@ async def portuguese(c: Client, m: Message):
         await set_db_lang(m.from_user.id, lang)
     elif m.message.chat.type == "supergroup" or "group":
         await set_db_lang(m.message.chat.id, lang)
-    text = await tld(m.message.chat.id, "lang_save")
+    text = await tld(m, "lang_save")
     await m.edit_message_text(text, reply_markup=keyboard)
 
 
@@ -75,7 +97,7 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
                 ],
                 [
                     InlineKeyboardButton(
-                        text=(await tld(chat_id, "main_btn_back")),
+                        text=(await tld(m, "main_btn_back")),
                         callback_data="start_command",
                     )
                 ],
@@ -87,24 +109,8 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
             pass
         else:
             return
-        keyboard = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(
-                        text="🇧🇷 PT-BR (Português)",
-                        callback_data=f"set_lang pt-BR",
-                    )
-                ],
-                [
-                    InlineKeyboardButton(
-                        text="🇺🇸 EN-US (American English)",
-                        callback_data=f"set_lang en-US",
-                    )
-                ],
-            ]
-        )
-    text = await tld(chat_id, "main_select_lang")
-    await reply_text(text, reply_markup=keyboard)
+    text = await tld(m, "main_select_lang")
+    await reply_text(text, reply_markup=ikb(await gen_langs_kb(m)))
     return
 
 
@@ -116,6 +122,6 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
 #            [InlineKeyboardButton(text="English", callback_data="en-US")],
 #        ]
 #    )
-#    text = await tld(m.message.chat.id, "main_select_lang")
+#    text = await tld(m, "main_select_lang")
 #    await m.edit_message_text(text, reply_markup=keyboard)
 #    return
