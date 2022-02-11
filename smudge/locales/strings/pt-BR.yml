@@ -140,10 +140,6 @@ tr_translating: "Traduzindo..."
 print_printing: "Obtendo captura de tela..."
 print_error: "<b>Erro.</b>\n<b>Uso:</b> <code>/print https://exemplo.com</code> - Tira uma captura de tela do site especificado."
 print_api_dead: "Failed, because API is not responding, try it later."
-no_longer_afk: "{} não está mais afk!"
-afk_reason: "\n<b>Motivo:</b> {}"
-user_afk: "{} está afk!"
-user_now_afk: "<a href='tg://user?id={}'>{}</a> agora está afk!"
 regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
 sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
 sdl_error: "<b>Pane no sistema alguém me desconfigurou.</b>\n<b>Erro:</b> <code>{}</code>"
@@ -160,9 +156,6 @@ misc_help: |
  <i><b>Obs</b>: o comando também funciona através de resposta
  Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
  
- <b>/afk [motivo] - </b> Define a si mesmo como AFK. <b>(O Comando está desativado no momento por conta de alguns problemas.)</b>
- <i>• Quando marcado como AFK, qualquer menção será respondida com uma mensagem informando que você não está disponível!</i>
-
  <b>/short [url]</b> - Para encurtar uma URL.
  
  <b>/ddd [DDD]</b> - Retornará algumas informações sobre o DDD (Brasileiro) especificado.
