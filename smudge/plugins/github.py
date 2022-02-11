@@ -89,7 +89,7 @@ async def git_repos(c: Client, m: Message):
 async def fetch_repo(c: Client, m: Message):
     try:
         repo = m.command[1]
-    except:
+    except TypeError:
         repo = m.text[1:]
     repo_db = await get_repo(m.chat.id, repo)
     if not await get_repo(m.chat.id, repo):

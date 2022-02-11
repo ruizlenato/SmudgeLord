@@ -15,11 +15,11 @@ async def slap(c: Client, m: Message):
             user1 = (
                 f"<a href='tg://user?id={m.from_user.id}'>{m.from_user.first_name}</a>"
             )
-        except:
+        except AttributeError:
             user1 = m.chat.title
         try:
             user2 = f"<a href='tg://user?id={m.reply_to_message.from_user.id}'>{m.reply_to_message.from_user.first_name}</a>"
-        except:
+        except AttributeError:
             user2 = m.chat.title
 
         temp = random.choice(await tld(m, "memes_slaps_templates_list"))
