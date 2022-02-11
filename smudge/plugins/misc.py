@@ -427,6 +427,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
 
 @Client.on_message(filters.command(["sdl", "mdl"]))
 async def ytdl(c: Client, m: Message):
+    yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
     try:
         if m.reply_to_message and m.reply_to_message.text:
             url = m.reply_to_message.text
