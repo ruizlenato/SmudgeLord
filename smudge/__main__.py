@@ -25,7 +25,7 @@ logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
 
 log = logging.getLogger("rich")
 logs = "[bold purple]SmudgeLord Running[/bold purple]"
-logs += f"\n[SmudgeLord] Project maintained by: Renatoh"
+logs += f"\n[SmudgeLord] Project maintained by: RuizLenato"
 rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 
 # Pyrogram Client
