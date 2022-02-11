@@ -16,7 +16,7 @@ async def add_chat(chat_id, chat_type):
             await users.update_or_create(id=chat_id)
         elif chat_type == "group" or "supergroup":
             await groups.update_or_create(id=chat_id)
-    except:
+    except (TypeError, AttributeError):
         return
 
 
