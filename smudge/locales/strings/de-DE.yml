@@ -2,9 +2,9 @@
 #SPDX-License-Identifier: GPL-3.0
 #Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 main:
-  language_flag: "🇺🇸"
-  language_name: "American English"
-  language_code: "en-US"
+  language_flag: "🇩🇪"
+  language_name: "Deutsch"
+  language_code: "de"
 #Core
 start_message_private: |
   Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
