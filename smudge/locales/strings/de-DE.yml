@@ -7,10 +7,10 @@ main:
   language_code: "de"
 #Core
 start_message_private: |
-  Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
+  Hallo <b>{}</b>, mich Name ist <b>SmudgeLord,</b> Ich bin ein Bot mit lustigen und nützlichen Befehle für dich :3
 
-  📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
-  💬 If you have a problem <b>problem</b> <a href='https://t.me/PaperplaneLab'>click here to talk to my owner in a super cool group</a>
+  📦 <b>Mein Quellcode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+  💬 Wenn du ein Problem hast <b>Problem</b> <a href='https://t.me/PaperplaneLab'>Klick hier um mit meinem Besitzer zu sprechen in einer super coolen Gruppe</a>
 start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
 lang_save: "Language changed successfully"
 lang_crowdin: "🌎 Help us with translations!"
@@ -193,7 +193,7 @@ no_cep: "You forgot the zip code (Brazilian).\n<b>Use of command:</b> /cep (cep)
 ddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b>  {} - {}"
 fddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b>  {} - {}\n<b>- Cities:</b> <code>{}</code>"
 no_ddd: "You forgot the DDD (Brazilian).\n<b>Use of command:</b> /dddd (ddd)."
-ddd_cities: "Cities"
+ddd_cities: "Städte"
 misc_help: |
   <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.
   <i>• It also can be used as reply.
@@ -206,7 +206,7 @@ misc_help: |
   <b>/ytdl [Word or link]</b> - If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
   <b>/yt [word]</b> - It does a YouTube video search with the word you wrote and returns a list with videos.
 #Stickers
-stickers_name: "Stickers"
+stickers_name: "Aufkleber"
 stickers_pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first."
 stickers_kang_noreply: "<b>You need to use this command replying a sticker or a photo.</b>"
 stickers_kanging: "Stealing the sticker..."
