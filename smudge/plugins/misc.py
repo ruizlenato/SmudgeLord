@@ -429,10 +429,10 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
 async def ytdl(c: Client, m: Message):
     yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
     try:
-        if m.reply_to_message and m.reply_to_message.text:
+        if len(m.command) > 1:
+            url = m.text.split(None, 1)[1]
+        elif m.reply_to_message and m.reply_to_message.text:
             url = m.reply_to_message.text
-        elif m.text and m.text.split(maxsplit=1)[1]:
-            url = m.text.split(maxsplit=1)[1]
     except IndexError:
         await m.reply_text(await tld(m, "sdl_missing_arguments"))
         return
@@ -470,7 +470,10 @@ async def ytdl(c: Client, m: Message):
 @Client.on_message(filters.command(["cep"], prefixes="/"))
 async def lastfm(c: Client, m: Message):
     try:
-        cep = m.text.split(maxsplit=1)[1]
+        if len(m.command) > 1:
+            cep = m.text.split(None, 1)[1]
+        elif m.reply_to_message and m.reply_to_message.text:
+            cep = m.reply_to_message.text
     except IndexError:
         await m.reply_text(await tld(m, "no_cep"))
         return

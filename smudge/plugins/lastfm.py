@@ -34,7 +34,10 @@ async def get_last_user(user_id: int):
 async def setuser(c: Client, m: Message):
     user_id = m.from_user.id
     try:
-        username = m.text.split(maxsplit=1)[1]
+        if len(m.command) > 1:
+            username = m.text.split(None, 1)[1]
+        elif m.reply_to_message and m.reply_to_message.text:
+            username = m.reply_to_message.text
     except IndexError:
         await m.reply_text(await tld(m, "lastfm_no_username_save"))
         return
