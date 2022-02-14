@@ -425,8 +425,11 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
+REGEX_LINKS = r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)"
+
+
 @Client.on_message(filters.command(["sdl", "mdl"]))
-async def ytdl(c: Client, m: Message):
+async def sdl(c: Client, m: Message):
     yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
     try:
         if len(m.command) > 1:
@@ -438,7 +441,7 @@ async def ytdl(c: Client, m: Message):
         return
 
     link = re.match(
-        r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)",
+        REGEX_LINKS,
         url,
         re.M,
     )
@@ -446,6 +449,13 @@ async def ytdl(c: Client, m: Message):
     if not link:
         await m.reply_text(await tld(m, "sdl_invalid_link"))
         return
+
+    url = (
+        url.replace("instagram.com/", "bib.actionsack.com/")
+        .replace("www.", "")
+        .replace("?utm_medium=copy_link", "")
+    )
+    print(url)
 
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
