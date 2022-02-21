@@ -22,6 +22,7 @@ main_start_btn_lang: "🇧🇷 Idioma"
 main_start_btn_help: "❓ Ajuda"
 main_help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
 avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
+config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo:"
 added: "adicionado"
 updated: "atualizado"
 
@@ -152,6 +153,8 @@ ddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}"
 fddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}\n<b>- Cidades:</b> <code>{}</code>"
 no_ddd: "Você esqueceu do DDD.\n<b>Uso do comando:</b> /ddd (ddd)."
 ddd_cities: "Cidades"
+sdl_config_noauto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
+sdl_config_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
 misc_help: |
  <b>/tr [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
  <i><b>Obs</b>: o comando também funciona através de resposta
