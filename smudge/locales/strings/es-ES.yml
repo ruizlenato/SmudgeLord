@@ -21,6 +21,7 @@ main_start_btn_lang: "🇲🇽 Idioma"
 main_start_btn_help: "❓ Ayuda"
 main_help_text: "Aquí están todos mis plugins, para saber más sobre los plugins, simplemente haga clic en su nombre."
 avaliable_commands: "<b>Comandos disponibles:</b>\n\n{}"
+config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group:"
 added: "-> añadido"
 updated: "actualizado"
 #Android
@@ -194,6 +195,8 @@ ddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b>  {} - {}"
 fddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b>  {} - {}\n<b>- Cities:</b> <code>{}</code>"
 no_ddd: "You forgot the DDD (Brazilian).\n<b>Use of command:</b> /dddd (ddd)."
 ddd_cities: "Cities"
+sdl_config_noauto: "<b>Setup saved.</b>Now I will automatically download when you send a link."
+sdl_config_auto: "<b>Setup saved.</b>Now I will not automatically download when you send a link."
 misc_help: |
   <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.
   <i>• It also can be used as reply.
