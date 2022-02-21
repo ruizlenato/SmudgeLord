@@ -16,6 +16,7 @@ class groups(Model):
     id = fields.IntField(pk=True)
     git_repo = fields.TextField(null=True)
     git_repo_name = fields.TextField(null=True)
+    sdl_autodownload = fields.TextField(default="Off")
 
 
 class lang(Model):

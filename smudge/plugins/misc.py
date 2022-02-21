@@ -17,8 +17,11 @@ from typing import Union
 
 from gpytranslate import Translator
 
+from tortoise.exceptions import DoesNotExist
+
 from smudge.utils import send_logs
 from smudge.locales.strings import tld
+from smudge.database.core import groups
 from smudge.utils import http, pretty_size, aiowrap
 
 from pyrogram.types import Message, CallbackQuery
@@ -424,13 +427,18 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
 
     shutil.rmtree(tempdir, ignore_errors=True)
 
+async def sdl_autodownload(chat_id: int):
+    try:
+        return (await groups.get(id=chat_id)).sdl_autodownload
+    except DoesNotExist:
+        return None
 
 REGEX_LINKS = r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)"
-
-
-@Client.on_message(filters.command(["sdl", "mdl"]))
+@Client.on_message(filters.command(["sdl", "mdl"]), group=1)
+@Client.on_message(filters.regex(REGEX_LINKS))
 async def sdl(c: Client, m: Message):
     yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
+    
     try:
         if len(m.command) > 1:
             url = m.text.split(None, 1)[1]
@@ -439,6 +447,13 @@ async def sdl(c: Client, m: Message):
     except IndexError:
         await m.reply_text(await tld(m, "sdl_missing_arguments"))
         return
+    except TypeError:
+        if await sdl_autodownload(m.chat.id) == "Off":
+            return
+        else:
+            url = m.matches[0].group(0)
+            pass
+
 
     link = re.match(
         REGEX_LINKS,

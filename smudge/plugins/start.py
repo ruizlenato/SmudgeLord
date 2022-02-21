@@ -3,6 +3,8 @@
 
 import importlib
 import re
+import asyncio
+
 
 from pyrogram import Client, filters
 from pyrogram.types import (
@@ -11,9 +13,13 @@ from pyrogram.types import (
     InlineKeyboardMarkup,
     CallbackQuery,
 )
-from smudge.locales.strings import tld
-from smudge.plugins import all_plugins
+from pyrogram.helpers import ikb
+
+from smudge.locales.strings import tld, lang_dict
 from smudge.utils.help_menu import help_buttons
+from smudge.database import set_db_lang
+from smudge.database.core import groups
+from smudge.plugins import all_plugins
 
 from typing import Union
 
@@ -27,6 +33,7 @@ for plugin in all_plugins:
         plugin_name = imported_plugin.plugin_name
         plugin_help = imported_plugin.plugin_help
         HELP.update({plugin: [{"name": plugin_name, "help": plugin_help}]})
+
 
 
 @Client.on_message(filters.command("start", prefixes="/"))
@@ -70,6 +77,82 @@ async def start_command(c: Client, m: Union[Message, CallbackQuery]):
         text = await tld(m, "start_message")
         await reply_text(text, reply_markup=keyboard, disable_web_page_preview=True)
 
+@Client.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
+async def portuguese(c: Client, m: Message):
+    lang = m.matches[0]["code"]
+    if m.message.chat.type == "private":
+        pass
+    else:
+        member = await c.get_chat_member(
+            chat_id=m.message.chat.id, user_id=m.from_user.id
+        )
+        if member.status in ["administrator", "creator"]:
+            pass
+        else:
+            return
+    keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=(await tld(m, "main_btn_back")),
+                    callback_data="setchatlang",
+                )
+            ],
+        ]
+    )
+    if m.message.chat.type == "private":
+        await set_db_lang(m.from_user.id, lang)
+    elif m.message.chat.type == "supergroup" or "group":
+        await set_db_lang(m.message.chat.id, lang)
+    text = await tld(m, "lang_save")
+    await m.edit_message_text(text, reply_markup=keyboard)
+
+
+@Client.on_message(filters.command(["setlang"]))
+@Client.on_callback_query(filters.regex(r"setchatlang"))
+async def setlang(c: Client, m: Union[Message, CallbackQuery]):
+    if isinstance(m, CallbackQuery):
+        chat_id = m.message.chat.id
+        chat_type = m.message.chat.type
+        reply_text = m.edit_message_text
+    else:
+        chat_id = m.chat.id
+        chat_type = m.chat.type
+        reply_text = m.reply_text
+    langs = sorted(list(lang_dict.keys()))
+    keyboard = [
+        [
+            (
+                f'{lang_dict[lang]["main"]["language_flag"]} {lang_dict[lang]["main"]["language_name"]} ({lang_dict[lang]["main"]["language_code"]})',
+                f"set_lang {lang}",
+            )
+            for lang in langs
+        ],
+        [
+            (
+                await tld(m, "lang_crowdin"),
+                "https://crowdin.com/project/smudgelord",
+                "url",
+            ),
+        ],
+    ]
+    if chat_type == "private":
+        keyboard += [[(await tld(m, "main_btn_back"), f"start_command")]]
+    else:
+        try:
+            member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
+            if member.status in ["administrator", "creator"]:
+                pass
+            else:
+                return
+        except AttributeError:
+            message = await reply_text(await tld(m, "change_lang_uchannel"))
+            await asyncio.sleep(10.0)
+            await message.delete()
+            return
+    await reply_text(await tld(m, "main_select_lang"), reply_markup=ikb(keyboard))
+    return
+
 
 @Client.on_callback_query(filters.regex("menu"))
 async def button(c: Client, cq: CallbackQuery):
@@ -109,3 +192,72 @@ async def logging(c: Client, m: Message):
             ),
             disable_notification=True,
         )
+
+@Client.on_callback_query(filters.regex(r"setsdl"))
+async def setsdl(c: Client, m: Union[Message, CallbackQuery]):
+    chat_id = m.message.chat.id
+    chat_type = m.message.chat.type
+    reply_text = m.edit_message_text
+    
+    try:
+        member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
+        if member.status in ["administrator", "creator"]:
+            pass
+        else:
+            return
+    except AttributeError:
+        message = await reply_text(await tld(m, "change_lang_uchannel"))
+        await asyncio.sleep(10.0)
+        await message.delete()
+        return
+
+    if (await groups.get(id=chat_id)).sdl_autodownload == "Off":
+        await groups.filter(id=chat_id).update(sdl_autodownload="On")
+        text = await tld(m, "sdl_config_auto")
+    else:
+        await groups.filter(id=chat_id).update(sdl_autodownload="Off")
+        text = await tld(m, "sdl_config_noauto")
+
+    await reply_text(text)
+    return
+
+@Client.on_message(filters.command("config", prefixes="/") & filters.group)
+async def config(c: Client, m: Union[Message, CallbackQuery]):
+    chat_type = m.chat.type
+    reply_text = m.reply_text
+    chat_id = m.chat.id
+    
+    try:
+        member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
+        if member.status in ["administrator", "creator"]:
+            pass
+        else:
+            return
+    except AttributeError:
+        message = await reply_text(await tld(m, "change_lang_uchannel"))
+        await asyncio.sleep(10.0)
+        await message.delete()
+        return
+
+    if (await groups.get(id=chat_id)).sdl_autodownload == "Off":
+        emoji = "❌"
+    else:
+        emoji = "✅"
+
+    me = await c.get_me()
+    keyboard = [
+        [
+            (
+                "SDL Auto: {}".format(emoji),
+                "setsdl",
+            ),
+            (
+                await tld(m, "main_start_btn_lang"),
+                "setchatlang",
+            )
+        ]
+        ]
+
+    text = await tld(m, "config_text")
+    await reply_text(text, reply_markup=ikb(keyboard))
+
