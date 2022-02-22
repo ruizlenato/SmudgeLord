@@ -457,7 +457,7 @@ class MyLogger:
             print(msg)
 
 
-REGEX_LINKS = r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)"
+REGEX_LINKS = r"^(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)"
 
 
 @Client.on_message(filters.command(["sdl", "mdl"]), group=1)
