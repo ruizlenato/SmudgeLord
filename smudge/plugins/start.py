@@ -35,7 +35,6 @@ for plugin in all_plugins:
         HELP.update({plugin: [{"name": plugin_name, "help": plugin_help}]})
 
 
-
 @Client.on_message(filters.command("start", prefixes="/"))
 @Client.on_callback_query(filters.regex(r"start"))
 async def start_command(c: Client, m: Union[Message, CallbackQuery]):
@@ -76,6 +75,7 @@ async def start_command(c: Client, m: Union[Message, CallbackQuery]):
         )
         text = await tld(m, "start_message")
         await reply_text(text, reply_markup=keyboard, disable_web_page_preview=True)
+
 
 @Client.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
 async def portuguese(c: Client, m: Message):
@@ -193,12 +193,13 @@ async def logging(c: Client, m: Message):
             disable_notification=True,
         )
 
+
 @Client.on_callback_query(filters.regex(r"setsdl"))
 async def setsdl(c: Client, m: Union[Message, CallbackQuery]):
     chat_id = m.message.chat.id
     chat_type = m.message.chat.type
     reply_text = m.edit_message_text
-    
+
     try:
         member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
         if member.status in ["administrator", "creator"]:
@@ -221,12 +222,13 @@ async def setsdl(c: Client, m: Union[Message, CallbackQuery]):
     await reply_text(text)
     return
 
+
 @Client.on_message(filters.command("config", prefixes="/") & filters.group)
 async def config(c: Client, m: Union[Message, CallbackQuery]):
     chat_type = m.chat.type
     reply_text = m.reply_text
     chat_id = m.chat.id
-    
+
     try:
         member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
         if member.status in ["administrator", "creator"]:
@@ -254,10 +256,9 @@ async def config(c: Client, m: Union[Message, CallbackQuery]):
             (
                 await tld(m, "main_start_btn_lang"),
                 "setchatlang",
-            )
+            ),
         ]
-        ]
+    ]
 
     text = await tld(m, "config_text")
     await reply_text(text, reply_markup=ikb(keyboard))
-
