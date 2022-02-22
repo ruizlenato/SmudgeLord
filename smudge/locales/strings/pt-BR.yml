@@ -144,7 +144,6 @@ print_error: "<b>Erro.</b>\n<b>Uso:</b> <code>/print https://exemplo.com</code> 
 print_api_dead: "Failed, because API is not responding, try it later."
 regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
 sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
-sdl_error: "<b>Pane no sistema alguém me desconfigurou.</b>\n<b>Erro:</b> <code>{}</code>"
 sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download da midia."
 cep_strings: "🌏 <b>{}</b>\n<b>- Cidade:</b> {}\n<b>- Estado:</b> {} - {}\n<b>- Bairro:</b> {}\n<b>- Rua:</b> {}"
 cep_error: "Este CEP é invalido."
