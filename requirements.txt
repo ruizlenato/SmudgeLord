@@ -9,7 +9,7 @@ BeautifulSoup4==4.10.0
 git+https://github.com/ruizlenato/dicioinformal
 gpytranslate==1.4.0
 tortoise-orm==0.18.1
-python-rapidjson==1.5
+python-rapidjson==1.6
 git+https://github.com/yt-dlp/yt-dlp
 lxml==4.7.1
 pillow==9.0.1
