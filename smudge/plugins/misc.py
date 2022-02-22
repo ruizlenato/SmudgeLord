@@ -451,7 +451,7 @@ class MyLogger:
         pass
 
     def error(self, msg):
-        if msg.contains("There's no video in this tweet."):
+        if "There's no video" in msg:
             pass
         else:
             print(msg)
@@ -510,9 +510,6 @@ async def sdl(c: Client, m: Message):
         try:
             await extract_info(ydl, url, download=True)
         except BaseException as e:
-            user_mention = m.from_user.mention(m.from_user.first_name)
-            user_id = m.from_user.id
-            await send_logs(c, user_mention, user_id, e)
             return
 
     with open(filename, "rb") as video:
