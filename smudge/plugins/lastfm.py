@@ -63,7 +63,7 @@ async def setuser(c: Client, m: Message):
 async def lastfm(c: Client, m: Message):
     if m.text.split(maxsplit=1)[0] == "/lt":
         try:
-            await m.chat.get_member(642199200)
+            await m.chat.get_member(1993314727)
             return
         except UserNotParticipant:
             pass
