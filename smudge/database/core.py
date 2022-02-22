@@ -9,7 +9,6 @@ from tortoise.exceptions import DoesNotExist, IntegrityError
 class users(Model):
     id = fields.IntField(pk=True)
     lastfm_username = fields.TextField(null=True)
-    afk_reason = fields.TextField(default="False")
 
 
 class groups(Model):
