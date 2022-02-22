@@ -435,6 +435,28 @@ async def sdl_autodownload(chat_id: int):
         return None
 
 
+class MyLogger:
+    def debug(self, msg):
+        # For compatibility with youtube-dl, both debug and info are passed into debug
+        # You can distinguish them by the prefix '[debug] '
+        if msg.startswith("[debug] "):
+            pass
+        else:
+            self.info(msg)
+
+    def info(self, msg):
+        pass
+
+    def warning(self, msg):
+        pass
+
+    def error(self, msg):
+        if msg.contains("There's no video in this tweet."):
+            pass
+        else:
+            print(msg)
+
+
 REGEX_LINKS = r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)"
 
 
@@ -478,7 +500,11 @@ async def sdl(c: Client, m: Message):
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
     filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
-    ydl_opts = {"outtmpl": filename, "usenetrc": "~/.netrc"}
+    ydl_opts = {
+        "outtmpl": filename,
+        "usenetrc": "~/.netrc",
+        "logger": MyLogger(),
+    }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
