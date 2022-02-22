@@ -486,7 +486,6 @@ async def sdl(c: Client, m: Message):
         except BaseException as e:
             user_mention = m.from_user.mention(m.from_user.first_name)
             user_id = m.from_user.id
-            await m.reply_text((await tld(m, "sdl_error")).format(e))
             await send_logs(c, user_mention, user_id, e)
             return
 
