@@ -23,7 +23,7 @@ main_help_text: "Hier sind alle meine Plugins, um mehr über die Plugins zu erfa
 avaliable_commands: "<b>Verfügbare Befehle:</b>"
 config_text: "<b>Einstellungen.</b> Klicken Sie auf die Schaltflächen unten, um die Einstellungen in Ihrer Gruppe zu ändern:"
 added: "hinzugefügt"
-updated: "updated"
+updated: "Aktualisiert"
 #Android
 android_name: "Android"
 whatis_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
