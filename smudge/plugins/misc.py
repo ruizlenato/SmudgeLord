@@ -503,6 +503,7 @@ async def sdl(c: Client, m: Message):
     ydl_opts = {
         "outtmpl": filename,
         "usenetrc": "~/.netrc",
+        "extractor_retries": "5",
         "logger": MyLogger(),
     }
 
