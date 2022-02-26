@@ -333,7 +333,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         return await cq.answer("ytdl_button_denied", cache_time=60)
     if int(fsize) > 200000000:
         return await cq.answer(
-            await tld(m, "ytdl_file_too_big"),
+            await tld(cq, "ytdl_file_too_big"),
             show_alert=True,
             cache_time=60,
         )
