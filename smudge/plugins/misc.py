@@ -491,7 +491,7 @@ async def sdl(c: Client, m: Message):
         return
 
     url = (
-        url.replace("instagram.com/", "bib.actionsack.com/")
+        url.replace("instagram.com/", "bibliogram.1d4.us/")
         .replace("www.", "")
         .replace("?utm_medium=copy_link", "")
     )
