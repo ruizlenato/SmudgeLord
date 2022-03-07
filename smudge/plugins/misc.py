@@ -331,7 +331,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
     data, fsize, temp, vformat, userid, mid = cq.data.split("|")
     if not cq.from_user.id == int(userid):
         return await cq.answer("ytdl_button_denied", cache_time=60)
-    if int(fsize) > 200000000:
+    if int(fsize) > 500000000:
         return await cq.answer(
             await tld(cq, "ytdl_file_too_big"),
             show_alert=True,
@@ -373,6 +373,8 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         await cq.message.edit((await tld(cq, "ytdl_send_error")).format(e))
         return
     await cq.message.edit(await tld(cq, "ytdl_sending"))
+    await c.send_chat_action(cq.message.chat.id, "upload_video")
+
     filename = ydl.prepare_filename(yt)
     thumb = io.BytesIO((await http.get(yt["thumbnail"])).content)
     thumb.name = "thumbnail.png"
@@ -510,6 +512,7 @@ async def sdl(c: Client, m: Message):
             return
 
     with open(filename, "rb") as video:
+        await c.send_chat_action(m.chat.id, "upload_video")
         await m.reply_video(video=video)
     shutil.rmtree(tempdir, ignore_errors=True)
 
