@@ -120,7 +120,6 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
         chat_type = m.chat.type
         reply_text = m.reply_text
     langs = sorted(list(lang_dict.keys()))
-    print(langs)
     keyboard = [
         [
             (

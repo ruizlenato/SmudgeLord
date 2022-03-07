@@ -304,11 +304,11 @@ async def ytdlcmd(c: Client, m: Message):
         [
             (
                 await tld(m, "ytdl_audio_button"),
-                f'_aud.{yt["id"]}|{afsize}|{temp}|{vformat}|{m.chat.id}|{user}|{m.message_id}',
+                f'_aud.{yt["id"]}|{afsize}|{temp}|{vformat}|{user}|{m.message_id}',
             ),
             (
                 await tld(m, "ytdl_video_button"),
-                f'_vid.{yt["id"]}|{vfsize}|{temp}|{vformat}|{m.chat.id}|{user}|{m.message_id}',
+                f'_vid.{yt["id"]}|{vfsize}|{temp}|{vformat}|{user}|{m.message_id}',
             ),
         ]
     ]
@@ -328,7 +328,7 @@ async def ytdlcmd(c: Client, m: Message):
 
 @Client.on_callback_query(filters.regex("^(_(vid|aud))"))
 async def cli_ytdl(c: Client, cq: CallbackQuery):
-    data, fsize, temp, vformat, cid, userid, mid = cq.data.split("|")
+    data, fsize, temp, vformat, userid, mid = cq.data.split("|")
     if not cq.from_user.id == int(userid):
         return await cq.answer("ytdl_button_denied", cache_time=60)
     if int(fsize) > 200000000:
@@ -379,7 +379,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
     if "vid" in data:
         try:
             await c.send_video(
-                int(cid),
+                cq.message.chat.id,
                 video=filename,
                 width=1920,
                 height=1080,
@@ -393,7 +393,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             user_id = cq.message.from_user.id
             await send_logs(c, user_mention, user_id, e)
             await c.send_message(
-                chat_id=int(cid),
+                chat_id=cq.message.chat.id,
                 text=(await tld(cq, "ytdl_send_error")).format(errmsg=e),
                 reply_to_message_id=int(mid),
             )
@@ -405,7 +405,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             title = yt["title"]
         try:
             await c.send_audio(
-                int(cid),
+                cq.message.chat.id,
                 audio=filename,
                 title=title,
                 performer=performer,
@@ -419,7 +419,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             user_id = cq.message.from_user.id
             await send_logs(c, user_mention, user_id, e)
             await c.send_message(
-                chat_id=int(cid),
+                chat_id=cq.message.chat.id,
                 text=("ytdl_send_error{}").format(errmsg=e),
                 reply_to_message_id=int(mid),
             )
@@ -497,7 +497,7 @@ async def sdl(c: Client, m: Message):
     filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
     ydl_opts = {
         "outtmpl": filename,
-        "cookiefile": "/mnt/c/Users/Renato/Downloads/instagram.com_cookies.txt",
+        "cookiefile": "~/instagram.com_cookies.txt",
         "extractor_retries": "3",
         "noplaylist": False,
         "logger": MyLogger(),
