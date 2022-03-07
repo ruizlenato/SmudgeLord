@@ -9,7 +9,7 @@ from PIL import Image
 
 from smudge.config import CHAT_LOGS
 from smudge.utils import EMOJI_PATTERN
-from smudge.locales.strings import tld
+from smudge.plugins import tld
 
 from pyrogram import Client, filters
 from pyrogram.errors import PeerIdInvalid, StickersetInvalid

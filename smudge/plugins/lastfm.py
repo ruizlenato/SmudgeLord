@@ -6,7 +6,7 @@ import urllib.request
 import rapidjson as json
 
 from smudge.config import LASTFM_API_KEY
-from smudge.locales.strings import tld
+from smudge.plugins import tld
 from smudge.database.core import users
 from smudge.utils import http
 
@@ -61,6 +61,7 @@ async def setuser(c: Client, m: Message):
 
 @Client.on_message(filters.command(["lastfm", "lmu", "lt"], prefixes="/"))
 async def lastfm(c: Client, m: Message):
+    print(m)
     if m.text.split(maxsplit=1)[0] == "/lt":
         try:
             await m.chat.get_member(1993314727)
@@ -247,6 +248,39 @@ async def artist(c: Client, m: Message):
         rep += f"<a href='{image}'>\u200c</a>"
 
     await m.reply(rep.format(user, scrobbles))
+
+
+@Client.on_message(filters.command(["compat"], prefixes="/"))
+async def compat(c: Client, m: Message):
+    username1 = await get_last_user(m.from_user.id)
+    if not username1:
+        await m.reply_text(await tld(m, "lastfm_no_username"))
+        return
+
+    if m.reply_to_message and m.reply_to_message.from_user.id:
+        username2 = m.reply_to_message.from_user.id
+        display = f"**{username1}** and **{username2}**"
+    else:
+        return await message.edit("Please check `/help Compat`")
+
+    base_url = "http://ws.audioscrobbler.com/2.0"
+    fetch = await http.get(
+        f"{base_url}?method=user.getTopArtists&api_key={LASTFM_API_KEY}&user={username1}&limit=500&format=json"
+    )
+    info1 = fetch.json().get("topartists").get("artist")[0]
+
+    fetch = await http.get(
+        f"{base_url}?method=user.getTopArtists&api_key={LASTFM_API_KEY}&user={username2}&limit=500&format=json"
+    )
+    info2 = fetch.json().get("topartists").get("artist")[0]
+
+    ad1, ad2 = [n["name"] for n in info1], [n["name"] for n in info2]
+    comart = [value for value in ad2 if value in ad1]
+    compat = min((len(comart) * 100 / 40), 100)
+    disartlst = {comart[r] for r in range(min(len(comart), 5))}
+    disart = ", ".join(disartlst)
+    rep = f"{display} both listen to __{disart}__...\nMusic Compatibility is **{compat}%**"
+    await m.reply_text(rep, disable_web_page_preview=True)
 
 
 plugin_name = "lastfm_name"

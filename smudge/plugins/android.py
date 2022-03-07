@@ -9,7 +9,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 
 from smudge.utils import http
-from smudge.locales.strings import tld
+from smudge.plugins import tld
 
 # Port from SamsungGeeksBot.
 

@@ -5,7 +5,7 @@ from requests import get
 from ujson import loads
 
 from smudge.database.core import groups
-from smudge.locales.strings import tld
+from smudge.plugins import tld
 
 from pyrogram.types import Message
 from pyrogram import Client, filters

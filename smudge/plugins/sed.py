@@ -7,7 +7,7 @@ import regex
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-from smudge.locales.strings import tld
+from smudge.plugins import tld
 
 
 @Client.on_message(filters.regex(r"^s/(.+)?/(.+)?(/.+)?") & filters.reply)

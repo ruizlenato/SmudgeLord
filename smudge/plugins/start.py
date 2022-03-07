@@ -15,7 +15,7 @@ from pyrogram.types import (
 )
 from pyrogram.helpers import ikb
 
-from smudge.locales.strings import tld, lang_dict
+from smudge.plugins import tld, lang_dict
 from smudge.utils.help_menu import help_buttons
 from smudge.database import set_db_lang
 from smudge.database.core import groups
@@ -120,6 +120,7 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
         chat_type = m.chat.type
         reply_text = m.reply_text
     langs = sorted(list(lang_dict.keys()))
+    print(langs)
     keyboard = [
         [
             (

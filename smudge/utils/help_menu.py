@@ -2,7 +2,7 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
 from pyrogram.types import InlineKeyboardButton
-from smudge.locales.strings import tld
+from smudge.plugins import tld
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):

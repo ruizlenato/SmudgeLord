@@ -3,7 +3,7 @@
 
 import random
 
-from smudge.locales.strings import tld
+from smudge.plugins import tld
 from pyrogram import Client, filters
 from pyrogram.types import Message
 

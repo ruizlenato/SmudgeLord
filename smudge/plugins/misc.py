@@ -20,7 +20,7 @@ from gpytranslate import Translator
 from tortoise.exceptions import DoesNotExist
 
 from smudge.utils import send_logs
-from smudge.locales.strings import tld
+from smudge.plugins import tld
 from smudge.database.core import groups
 from smudge.utils import http, pretty_size, aiowrap
 
@@ -490,11 +490,6 @@ async def sdl(c: Client, m: Message):
         await m.reply_text(await tld(m, "sdl_invalid_link"))
         return
 
-    url = (
-        url.replace("instagram.com/", "bibliogram.1d4.us/")
-        .replace("www.", "")
-        .replace("?utm_medium=copy_link", "")
-    )
     print(url)
 
     with tempfile.TemporaryDirectory() as tempdir:
@@ -502,8 +497,9 @@ async def sdl(c: Client, m: Message):
     filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
     ydl_opts = {
         "outtmpl": filename,
-        "usenetrc": "~/.netrc",
-        "extractor_retries": "5",
+        "cookiefile": "/mnt/c/Users/Renato/Downloads/instagram.com_cookies.txt",
+        "extractor_retries": "3",
+        "noplaylist": False,
         "logger": MyLogger(),
     }
 
