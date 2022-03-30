@@ -2,7 +2,7 @@ git+https://github.com/AmanoTeam/Pyrogram
 tgcrypto==1.2.3
 rich==12.0.1
 httpx[http2]==0.22.0
-urllib3==1.26.8
+urllib3==1.26.9
 pyyaml==6.0
 aiohttp==3.8.1
 BeautifulSoup4==4.10.0
@@ -14,5 +14,5 @@ git+https://github.com/yt-dlp/yt-dlp
 lxml==4.8.0
 pillow==9.0.1
 ujson==5.1.0
-regex==2022.1.18
+regex==2022.3.15
 aiocron==1.8
