@@ -8,7 +8,7 @@ aiohttp==3.8.1
 BeautifulSoup4==4.10.0
 git+https://github.com/ruizlenato/dicioinformal
 gpytranslate==1.4.0
-tortoise-orm==0.18.1
+tortoise-orm==0.19.0
 python-rapidjson==1.6
 git+https://github.com/yt-dlp/yt-dlp
 lxml==4.8.0
