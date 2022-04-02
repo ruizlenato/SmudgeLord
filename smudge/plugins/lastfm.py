@@ -321,7 +321,6 @@ async def duotone(c: Client, m: Message):
                 period = f"{uwu}ounth"
             else:
                 period = f"{uwu}ay"
-            print(period)
             if uwu not in ["1m", "7d", "9d", "3d"]:
                 period = f"1month"
         elif y:
@@ -379,13 +378,11 @@ async def create_duotone(c: Client, cq: CallbackQuery):
     color, top, period, user_id, username, mid = cq.data.split("|")
     period_tld_num = re.sub("[A-z]", "", period)
     tld_string = re.sub("[0-9]", "", period)
-    print(tld_string)
     url = "https://generator.musicorumapp.com/generate"
     my_headers = {
         "Content-Type": "application/json",
     }
     color = re.sub(r"^\_(duton)\.", "", color)
-    print(period)
     data = {
         "theme": "duotone",
         "options": {
@@ -428,7 +425,7 @@ async def create_duotone(c: Client, cq: CallbackQuery):
         with open(filename, "wb") as f:
             f.write(imgdata)
         with open(filename, "rb") as image:
-            keyboard = [[(f"👤 LastFM User", f"https://last.fm/user/{username}")]]
+            keyboard = [[(f"👤 LastFM User", f"https://last.fm/user/{username}", "url")]]
             await c.send_photo(
                 cq.message.chat.id,
                 photo=filename,
