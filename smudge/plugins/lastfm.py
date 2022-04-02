@@ -370,7 +370,9 @@ async def duotone(c: Client, m: Message):
         ],
     ]
 
-    await m.reply_text(await tld(m, "lastfm_dualtone_choose"), reply_markup=ikb(keyboard))
+    await m.reply_text(
+        await tld(m, "lastfm_dualtone_choose"), reply_markup=ikb(keyboard)
+    )
 
 
 @Client.on_callback_query(filters.regex("^(_duton)"))
@@ -398,7 +400,9 @@ async def create_duotone(c: Client, cq: CallbackQuery):
             "messages": {
                 "scrobbles": [
                     "scrobbles",
-                    (await tld(cq, f"lastfm_dualtone_{tld_string}")).format(period_tld_num),
+                    (await tld(cq, f"lastfm_dualtone_{tld_string}")).format(
+                        period_tld_num
+                    ),
                 ],
                 "subtitle": (await tld(cq, f"lastfm_dualtone_{tld_string}")).format(
                     period_tld_num
