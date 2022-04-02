@@ -70,6 +70,12 @@ lastfm_scrobble_is: "<strong>{}</strong> está ouvindo pela <strong>{}° vez</st
 lastfm_scrobble_none_is: "<strong>{}</strong> está ouvindo:\n\n"
 lastfm_scrobble_was: "<strong>{}</strong> estava ouvindo pela <strong>{}° vez</strong>:\n\n"
 lastfm_scrobble_none_was: "<strong>{}</strong> estava ouvindo:\n\n"
+lastfm_dualtone_albums: "ÁLBUNS MAIS OUVIDOS"
+lastfm_dualtone_artists: "ARTISTAS MAIS OUVIDOS"
+lastfm_dualtone_tracks: "MÚSICAS MAIS OUVIDAS"
+lastfm_dualtone_month: "últimos {} meses"
+lastfm_dualtone_day: "últimos {} dias"
+lastfm_dualtone_choose: "<b>Escolha um esquema de cores.</b>"
 lastfm_help: |
  <b>/setuser [username]</b> - Configra seu username (nome de usuário) do LastFM.
  <b>/clearuser</b> - Apaga seu nome de usuário last.fm do banco de dados do bot.

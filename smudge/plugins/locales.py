@@ -26,7 +26,9 @@ def cache_localizations(files):
 # Get all translation files
 lang_files = []
 for langs in LANGUAGES:
-    strings[langs] = yaml.full_load(open(f"smudge/locales/{langs}.yml", "r"))
+    strings[langs] = yaml.full_load(
+        open(f"smudge/locales/{langs}.yml", "r", encoding="utf-8")
+    )
     lang_files += glob(os.path.join("smudge/locales/", f"{langs}.yml"))
 lang_dict = cache_localizations(lang_files)
 
