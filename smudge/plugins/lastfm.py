@@ -389,7 +389,7 @@ async def create_duotone(c: Client, cq: CallbackQuery):
     data = {
         "theme": "duotone",
         "options": {
-            "user": "renatohribeiro",
+            "user": username,
             "top": top,
             "pallete": color,
             "period": period,
