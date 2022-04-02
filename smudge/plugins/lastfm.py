@@ -432,7 +432,6 @@ async def create_duotone(c: Client, cq: CallbackQuery):
                 cq.message.chat.id,
                 photo=filename,
                 reply_markup=ikb(keyboard),
-                reply_to_message_id=int(mid),
             )
             await cq.message.delete()
             await asyncio.sleep(0.2)
