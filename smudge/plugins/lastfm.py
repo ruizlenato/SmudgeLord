@@ -118,14 +118,14 @@ async def lastfm(c: Client, m: Message):
 
     if first_track.get("@attr"):
         if scrobbles == "none":
-            rep = (await tld(m, "lastfm_scrobble_none_is")).format(user)
+            rep = (await tld(m, "lastfm_scrobble_none_is")).format(user_id, user)
         else:
-            rep = (await tld(m, "lastfm_scrobble_is")).format(user, scrobbles)
+            rep = (await tld(m, "lastfm_scrobble_is")).format(user_id, user, scrobbles)
     else:
         if scrobbles == "none":
-            rep = (await tld(m, "lastfm_scrobble_none_was")).format(user)
+            rep = (await tld(m, "lastfm_scrobble_none_was")).format(user_id, user)
         else:
-            rep = (await tld(m, "lastfm_scrobble_was")).format(user, scrobbles)
+            rep = (await tld(m, "lastfm_scrobble_was")).format(user_id, user, scrobbles)
     if not loved:
         rep += f"<b>{artist}</b> - {song}"
     else:
