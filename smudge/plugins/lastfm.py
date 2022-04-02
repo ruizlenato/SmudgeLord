@@ -315,6 +315,7 @@ async def duotone(c: Client, m: Message):
         args = args.lower()
         x = re.search("(\d+d)", args)
         y = re.search("(\d+m|\d+y)", args)
+        z = re.search("(overall)", args)
         if x:
             uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
             if uwu in "1m":
@@ -328,6 +329,8 @@ async def duotone(c: Client, m: Message):
             period = f"{uwu}onth"
             if uwu not in ["1y", "1m", "3m", "12m"]:
                 period = f"1month"
+        elif z:
+            period = f"overall"
         else:
             period = "1month"
     except UnboundLocalError:
@@ -421,7 +424,6 @@ async def create_duotone(c: Client, cq: CallbackQuery):
         imgdata = base64.b64decode(data)
 
         filename = f"({top})%s%s.png" % (user_id, int(mid))
-        print(filename)
         with open(filename, "wb") as f:
             f.write(imgdata)
         with open(filename, "rb") as image:

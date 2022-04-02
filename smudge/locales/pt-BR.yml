@@ -75,6 +75,7 @@ lastfm_dualtone_artists: "ARTISTAS MAIS OUVIDOS"
 lastfm_dualtone_tracks: "MÚSICAS MAIS OUVIDAS"
 lastfm_dualtone_month: "últimos {} meses"
 lastfm_dualtone_day: "últimos {} dias"
+lastfm_dualtone_overall: "todos os tempos"
 lastfm_dualtone_choose: "<b>Escolha um esquema de cores.</b>"
 lastfm_help: |
  <b>/setuser [username]</b> - Configra seu username (nome de usuário) do LastFM.
