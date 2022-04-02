@@ -340,33 +340,33 @@ async def duotone(c: Client, m: Message):
         [
             (
                 f"🟣+🟦",
-                f"_duton.divergent|{top}|{period}|{user_id}|{username}|{m.message_id}",
+                f"_duton.divergent|{top}|{period}|{user_id}|{username}",
             ),
             (
                 f"⬛️+🔴",
-                f"_duton.horror|{top}|{period}|{user_id}|{username}|{m.message_id}",
+                f"_duton.horror|{top}|{period}|{user_id}|{username}",
             ),
             (
                 f"🟢+🟩",
-                f"_duton.natural|{top}|{period}|{user_id}|{username}|{m.message_id}",
+                f"_duton.natural|{top}|{period}|{user_id}|{username}",
             ),
         ],
         [
             (
                 f"🟨+🔴",
-                f"_duton.sun|{top}|{period}|{user_id}|{username}|{m.message_id}",
+                f"_duton.sun|{top}|{period}|{user_id}|{username}",
             ),
             (
                 f"⚫️+🟨",
-                f"_duton.yellish|{top}|{period}|{user_id}|{username}|{m.message_id}",
+                f"_duton.yellish|{top}|{period}|{user_id}|{username}",
             ),
             (
                 f"🔵+🟦",
-                f"_duton.sea|{top}|{period}|{user_id}|{username}|{m.message_id}",
+                f"_duton.sea|{top}|{period}|{user_id}|{username}",
             ),
             (
                 f"🟣+🟪",
-                f"_duton.purplish|{top}|{period}|{user_id}|{username}|{m.message_id}",
+                f"_duton.purplish|{top}|{period}|{user_id}|{username}",
             ),
         ],
     ]
@@ -378,7 +378,7 @@ async def duotone(c: Client, m: Message):
 
 @Client.on_callback_query(filters.regex("^(_duton)"))
 async def create_duotone(c: Client, cq: CallbackQuery):
-    color, top, period, user_id, username, mid = cq.data.split("|")
+    color, top, period, user_id, username = cq.data.split("|")
     period_tld_num = re.sub("[A-z]", "", period)
     tld_string = re.sub("[0-9]", "", period)
     url = "https://generator.musicorumapp.com/generate"
@@ -423,7 +423,7 @@ async def create_duotone(c: Client, cq: CallbackQuery):
         )
         imgdata = base64.b64decode(data)
 
-        filename = f"({top})%s%s.png" % (user_id, int(mid))
+        filename = f"({top})%s%s.png" % (user_id, username)
         with open(filename, "wb") as f:
             f.write(imgdata)
         with open(filename, "rb") as image:
