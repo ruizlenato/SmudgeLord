@@ -68,7 +68,6 @@ async def setuser(c: Client, m: Message):
 
 @Client.on_message(filters.command(["lastfm", "lmu", "lt"], prefixes="/"))
 async def lastfm(c: Client, m: Message):
-    print(m)
     if m.text.split(maxsplit=1)[0] == "/lt":
         try:
             await m.chat.get_member(1993314727)
