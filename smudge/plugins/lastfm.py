@@ -36,11 +36,13 @@ async def get_last_user(user_id: int):
     except DoesNotExist:
         return None
 
+
 async def del_last_user(chat_id: int, lastfm_username: str):
     try:
         return await users.filter(id=chat_id, lastfm_username=lastfm_username).delete()
     except DoesNotExist:
         return False
+
 
 @Client.on_message(filters.command(["clearuser", "deluser"]))
 async def clear(c: Client, m: Message):
@@ -52,10 +54,13 @@ async def clear(c: Client, m: Message):
         return
     else:
         await del_last_user(user_id, username)
-        await m.reply_text((await tld(m, "LastFM.username_clear")), disable_web_page_preview=True)
+        await m.reply_text(
+            (await tld(m, "LastFM.username_clear")), disable_web_page_preview=True
+        )
         return
 
-@Client.on_message(filters.command(["setuser", "setlast"] ))
+
+@Client.on_message(filters.command(["setuser", "setlast"]))
 async def setuser(c: Client, m: Message):
     user_id = m.from_user.id
     if m.reply_to_message and m.reply_to_message.text:
@@ -63,7 +68,9 @@ async def setuser(c: Client, m: Message):
     elif len(m.command) > 1:
         username = m.text.split(None, 1)[1]
     else:
-        await m.reply_text((await tld(m, "LastFM.no_username_save")).format(m.text.split(None, 1)[0]))
+        await m.reply_text(
+            (await tld(m, "LastFM.no_username_save")).format(m.text.split(None, 1)[0])
+        )
         return
 
     if username:
@@ -140,18 +147,21 @@ async def lastfm(c: Client, m: Message):
         if scrobbles == "none":
             rep += (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_is")).format(username, user, scrobbles)
+            rep += (await tld(m, "LastFM.scrobble_is")).format(
+                username, user, scrobbles
+            )
     else:
         if scrobbles == "none":
             rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_was")).format(username, user, scrobbles)
+            rep += (await tld(m, "LastFM.scrobble_was")).format(
+                username, user, scrobbles
+            )
 
     if not loved:
         rep += f"<b>{artist}</b> - {song}"
     else:
         rep += f"<b>{artist}</b> - {song}❤️"
-
 
     await m.reply_text(rep)
 
@@ -209,18 +219,21 @@ async def album(c: Client, m: Message):
         if scrobbles == "none":
             rep += (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_is")).format(username, user, scrobbles)
+            rep += (await tld(m, "LastFM.scrobble_is")).format(
+                username, user, scrobbles
+            )
     else:
         if scrobbles == "none":
             rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_was")).format(username, user, scrobbles)
+            rep += (await tld(m, "LastFM.scrobble_was")).format(
+                username, user, scrobbles
+            )
 
     if not loved:
         rep += f"🎙 <strong>{artist}</strong>\n📀 {album}"
     else:
         rep += f"🎙 <strong>{artist}</strong>\n📀 {album} ❤️"
-
 
     await m.reply(rep)
 
@@ -276,13 +289,16 @@ async def artist(c: Client, m: Message):
         if scrobbles == "none":
             rep += (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_is")).format(username, user, scrobbles)
+            rep += (await tld(m, "LastFM.scrobble_is")).format(
+                username, user, scrobbles
+            )
     else:
         if scrobbles == "none":
             rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_was")).format(username, user, scrobbles)
-
+            rep += (await tld(m, "LastFM.scrobble_was")).format(
+                username, user, scrobbles
+            )
 
     if not loved:
         rep += f"🎙 <strong>{artist}</strong>"
@@ -290,6 +306,7 @@ async def artist(c: Client, m: Message):
         rep += f"🎙 <strong>{artist}</strong> ❤️"
 
     await m.reply(rep)
+
 
 @Client.on_message(filters.command(["duotone"], prefixes="/"))
 async def duotone(c: Client, m: Message):
