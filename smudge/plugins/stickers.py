@@ -62,6 +62,7 @@ async def kang_sticker(c: Client, m: Message):
     packname_found = False
     resize = False
     animated = False
+    videos = False
     reply = m.reply_to_message
     user = await c.resolve_peer(m.from_user.username or m.from_user.id)
 
@@ -73,23 +74,28 @@ async def kang_sticker(c: Client, m: Message):
                 # mime_type: image/webp
                 resize = True
             elif "tgsticker" in reply.document.mime_type:
-                # mime_type: application/x-tgsticker
+                # mime_type: application/v
                 animated = True
+            elif "video/webm" in reply.document.mime_type:
+                # mime_type: application/v
+                videos = True
         elif reply.sticker:
             if not reply.sticker.file_name:
-                return await prog_msg.edit_text(
-                    await tld(m, "Stickers.err_no_file_name")
-                )
+                return await prog_msg.edit_text(await tld(m, "Stickers.err_no_file_name"))
             if reply.sticker.emoji:
                 sticker_emoji = reply.sticker.emoji
             animated = reply.sticker.is_animated
-            if not reply.sticker.file_name.endswith(".tgs"):
+            videos = reply.sticker.is_video
+            if reply.sticker.file_name.endswith(".webm"):
+                convert = True
+            elif not reply.sticker.file_name.endswith(".tgs"):
                 resize = True
         else:
             return await prog_msg.edit_text(
                 await tld(m, "Stickers.invalid_media_string")
             )
-        pack_prefix = "anim" if animated else "a"
+        
+        pack_prefix = "anim" if animated else "vid" if videos else "a"
         packname = f"{pack_prefix}_{m.from_user.id}_by_{bot_username}"
 
         if len(m.command) > 1:
@@ -196,8 +202,10 @@ async def kang_sticker(c: Client, m: Message):
             await prog_msg.edit_text(await tld(m, "Stickers.create_new_pack_string"))
             stkr_title = f"{m.from_user.first_name[:32]}'s "
             if animated:
-                stkr_title += "Anim. "
-            stkr_title += "Smudge Pack"
+                stkr_title += "animated Pack "
+            elif videos:
+                stkr_title += "video Pack"
+            stkr_title += " (By Smudge)"
             if packnum != 0:
                 stkr_title += f" v{packnum}"
             try:
@@ -217,6 +225,7 @@ async def kang_sticker(c: Client, m: Message):
                             )
                         ],
                         animated=animated,
+                        videos=videos,
                     )
                 )
             except PeerIdInvalid:
