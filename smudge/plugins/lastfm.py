@@ -341,8 +341,8 @@ async def duotone(c: Client, m: Message):
 
     try:
         args = args.lower()
-        x = re.search("(\d+d)", args)
-        y = re.search("(\d+m|\d+y)", args)
+        x = re.search(r"(\d+d)", args)
+        y = re.search(r"(\d+m|\d+y)", args)
         z = re.search("(overall)", args)
         if x:
             uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
