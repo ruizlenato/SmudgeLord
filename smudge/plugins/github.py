@@ -150,11 +150,11 @@ async def git(c: Client, m: Message, repo, page):
     date = db["published_at"]
     changelog = db["body"]
     dev, repo = repo.split("/")
-    message = "<b>Name:</b> <code>{}</code>\n".format(name)
-    message += "<b>Tag:</b> <code>{}</code>\n".format(tag)
-    message += "<b>Released on:</b> <code>{}</code>\n".format(date[: date.rfind("T")])
-    message += "<b>By:</b> <code>{}@github.com</code>\n".format(dev)
-    message += "<b>Changelog:</b>\n<code>{}</code>\n\n".format(changelog)
+    message = "**Name:** `{}`\n".format(name)
+    message += "**Tag:** `{}`\n".format(tag)
+    message += "**Released on:** `{}`\n".format(date[: date.rfind("T")])
+    message += "**By:** `{}@github.com`\n".format(dev)
+    message += "**Changelog:**\n{}\n\n".format(changelog)
     keyboard = []
     for i in range(len(db)):
         try:
@@ -171,6 +171,7 @@ async def git(c: Client, m: Message, repo, page):
         text=message,
         reply_markup=InlineKeyboardMarkup(keyboard),
         disable_web_page_preview=True,
+        parse_mode="markdown",
     )
 
 
