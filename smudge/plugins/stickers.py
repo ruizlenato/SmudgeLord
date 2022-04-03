@@ -81,7 +81,9 @@ async def kang_sticker(c: Client, m: Message):
                 videos = True
         elif reply.sticker:
             if not reply.sticker.file_name:
-                return await prog_msg.edit_text(await tld(m, "Stickers.err_no_file_name"))
+                return await prog_msg.edit_text(
+                    await tld(m, "Stickers.err_no_file_name")
+                )
             if reply.sticker.emoji:
                 sticker_emoji = reply.sticker.emoji
             animated = reply.sticker.is_animated
@@ -94,7 +96,7 @@ async def kang_sticker(c: Client, m: Message):
             return await prog_msg.edit_text(
                 await tld(m, "Stickers.invalid_media_string")
             )
-        
+
         pack_prefix = "anim" if animated else "vid" if videos else "a"
         packname = f"{pack_prefix}_{m.from_user.id}_by_{bot_username}"
 
