@@ -92,14 +92,17 @@ async def setuser(c: Client, m: Message):
 
 @Client.on_message(filters.command(["lastfm", "lmu", "lt"], prefixes="/"))
 async def lastfm(c: Client, m: Message):
-    if m.text.split(maxsplit=1)[0] == "/lt":
-        try:
-            await m.chat.get_member(1993314727)
-            return
-        except UserNotParticipant:
-            pass
-    else:
+    if m.chat.type == "private":
         pass
+    else:
+        if m.text.split(maxsplit=1)[0] == "/lt":
+            try:
+                await m.chat.get_member(1993314727)
+                return
+            except UserNotParticipant:
+                pass
+        else:
+            pass
     user = m.from_user.first_name
     user_id = m.from_user.id
     username = await get_last_user(user_id)
@@ -168,14 +171,17 @@ async def lastfm(c: Client, m: Message):
 
 @Client.on_message(filters.command(["lalbum", "lalb", "album"], prefixes="/"))
 async def album(c: Client, m: Message):
-    if m.text.split(maxsplit=1)[0] == "/album":
-        try:
-            await m.chat.get_member(642199200)
-            return
-        except UserNotParticipant:
-            pass
-    else:
+    if m.chat.type == "private":
         pass
+    else:
+        if m.text.split(maxsplit=1)[0] == "/lt":
+            try:
+                await m.chat.get_member(1993314727)
+                return
+            except UserNotParticipant:
+                pass
+        else:
+            pass
     user = m.from_user.first_name
     username = await get_last_user(m.from_user.id)
 
@@ -240,14 +246,17 @@ async def album(c: Client, m: Message):
 
 @Client.on_message(filters.command(["lartist", "lart", "artist"], prefixes="/"))
 async def artist(c: Client, m: Message):
-    if m.text.split(maxsplit=1)[0] == "/artist":
-        try:
-            await m.chat.get_member(642199200)
-            return
-        except UserNotParticipant:
-            pass
-    else:
+    if m.chat.type == "private":
         pass
+    else:
+        if m.text.split(maxsplit=1)[0] == "/lt":
+            try:
+                await m.chat.get_member(1993314727)
+                return
+            except UserNotParticipant:
+                pass
+        else:
+            pass
     user = m.from_user.first_name
     username = await get_last_user(m.from_user.id)
 
