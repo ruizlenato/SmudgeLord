@@ -8,8 +8,11 @@ from functools import reduce
 from operator import getitem
 from pyrogram.types import CallbackQuery
 
+from pyrogram import Client
+from pyrogram.types import CallbackQuery
+
+from smudge import LOGGER, CHAT_LOGS
 from smudge.database import get_db_lang
-from smudge import LOGGER
 
 LANGUAGES = ["pt-BR", "en-US"]
 strings = {}
@@ -54,3 +57,4 @@ async def tld(m, t):
         err = f"Warning: No string found for {t}.\nReport it in @ruizlenatogs."
         LOGGER.warning(err)
         return err
+
