@@ -94,7 +94,7 @@ async def kang_sticker(c: Client, m: Message):
             animated = reply.sticker.is_animated
             videos = reply.sticker.is_video
             if videos:
-                convert = True
+                convert = False
             else:
                 if not reply.sticker.file_name.endswith(".tgs"):
                     resize = True
@@ -287,7 +287,7 @@ def convert_video(filename: str) -> str:
     stream = ffmpeg.trim(stream, duration=3)
     stream = ffmpeg.output(stream, webm_video, s="512x512", vcodec="vp9")
     stream = ffmpeg.overwrite_output(stream)
-    ffmpeg.run(stream, quiet=True)
+    ffmpeg.run(stream)
     if webm_video != filename:
         os.remove(filename)
     return webm_video
