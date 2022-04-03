@@ -208,8 +208,8 @@ strings:
     kanged_string: "Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/{}'>Confira.</a>\n<b>Emoji:</b> {}"
     use_existing_pack: "<code>Usando o pacote de stickers existente...</code>"
     info_sticker: "<b>Emoji:</b> {}\n<b>ID do Sticker:</b> <code>{}</code>"
-    animated_not_supported: "Stickers animados não são suportados."
+    animated_not_supported: "<b>Vídeo stickers e stickers animados</b> não são suportados."
     invalid_media_string: "<b>Erro:</b> <code>[Mídia inválida]</code> Este não é um sticker ou uma foto."
     help: |
-      <b>/getsticker -</b> responda a um adesivo para fazer o upload do arquivo PNG bruto.
-      <b>/kang -</b> responda a um sticker para adicioná-lo ao seu pacote.
+      <b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo PNG bruto.
+      <b>/kang -</b> responda a um sticker (Stickers animados e vídeos são suportados) para adicioná-lo ao seu pacote.

@@ -254,8 +254,8 @@ strings:
     kanged_string: "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\n<b>Emoji:</b> {}"
     use_existing_pack: "<code>Using existing sticker pack...</code>"
     info_sticker: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
-    animated_not_supported: "Animated stickers are not supported."
+    animated_not_supported: "<b>Animated and video</b> stickers are not supported."
     invalid_media_string: "<b>Erorr</b>: Invalid media!"
     help: |
       <b>/getsticker -</b> reply to a sticker to me to upload its raw PNG file.
-      <b>/kang -</b> reply to a sticker to add it to your pack.
+      <b>/kang -</b> reply to a sticker (Animated stickers and videos are supported) to add it to your pack.
