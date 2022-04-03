@@ -452,7 +452,8 @@ class MyLogger:
     def warning(self, msg):
         pass
 
-    def error(self, msg):
+    @staticmethod
+    def error(msg):
         if "There's no video" in msg:
             pass
         else:
