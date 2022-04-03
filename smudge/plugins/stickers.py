@@ -279,20 +279,22 @@ def resize_image(filename: str) -> str:
         os.remove(filename)
     return png_image
 
+
 def convert_video(filename: str) -> str:
     downpath, f_name = os.path.split(filename)
     print(os.path.split(filename))
     webm_video = os.path.join(downpath, f"{f_name.split('.', 1)[0]}.webm")
     print(webm_video)
     stream = ffmpeg.input(filename)
-    stream = ffmpeg.filter(stream, 'fps', fps=30, round='up')
+    stream = ffmpeg.filter(stream, "fps", fps=30, round="up")
     stream = ffmpeg.trim(stream, duration=3)
-    stream = ffmpeg.output(stream, webm_video, s='512x512', vcodec='vp9')
+    stream = ffmpeg.output(stream, webm_video, s="512x512", vcodec="vp9")
     stream = ffmpeg.overwrite_output(stream)
     ffmpeg.run(stream)
     if webm_video != filename:
         os.remove(filename)
     return webm_video
+
 
 plugin_name = "Stickers.name"
 plugin_help = "Stickers.help"
