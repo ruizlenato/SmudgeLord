@@ -2,10 +2,10 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
 import os
-import time
 import shutil
 import ffmpeg
 import tempfile
+
 from PIL import Image
 
 from smudge.config import CHAT_LOGS
@@ -210,12 +210,11 @@ async def kang_sticker(c: Client, m: Message):
             )
         else:
             await prog_msg.edit_text(await tld(m, "Stickers.create_new_pack_string"))
-            stkr_title = f"{m.from_user.first_name[:32]}'s "
+            stkr_title = f"@{m.from_user.username[:32]}'s "
             if animated:
-                stkr_title += "animated pack "
+                stkr_title += "Smudge AnimPack"
             elif videos:
-                stkr_title += "video pack"
-            stkr_title += " (By Smudge)"
+                stkr_title += "Smudge VidPack"
             if packnum != 0:
                 stkr_title += f" v{packnum}"
             try:
@@ -282,15 +281,13 @@ def resize_image(filename: str) -> str:
 
 def convert_video(filename: str) -> str:
     downpath, f_name = os.path.split(filename)
-    print(os.path.split(filename))
     webm_video = os.path.join(downpath, f"{f_name.split('.', 1)[0]}.webm")
-    print(webm_video)
     stream = ffmpeg.input(filename)
     stream = ffmpeg.filter(stream, "fps", fps=30, round="up")
     stream = ffmpeg.trim(stream, duration=3)
     stream = ffmpeg.output(stream, webm_video, s="512x512", vcodec="vp9")
     stream = ffmpeg.overwrite_output(stream)
-    ffmpeg.run(stream)
+    ffmpeg.run(stream, quiet=True)
     if webm_video != filename:
         os.remove(filename)
     return webm_video
