@@ -270,7 +270,7 @@ async def ytdlcmd(c: Client, m: Message):
     elif len(m.command) > 1:
         url = m.text.split(None, 1)[1]
     else:
-        await m.reply_text(await tld(m, "ytdl_missing_argument"))
+        await m.reply_text(await tld(m, "Misc.ytdl_missing_argument"))
         return
 
     ydl = yt_dlp.YoutubeDL(
@@ -303,11 +303,11 @@ async def ytdlcmd(c: Client, m: Message):
     keyboard = [
         [
             (
-                await tld(m, "ytdl_audio_button"),
+                await tld(m, "Misc.ytdl_audio_button"),
                 f'_aud.{yt["id"]}|{afsize}|{temp}|{vformat}|{user}|{m.message_id}',
             ),
             (
-                await tld(m, "ytdl_video_button"),
+                await tld(m, "Misc.ytdl_video_button"),
                 f'_vid.{yt["id"]}|{vfsize}|{temp}|{vformat}|{user}|{m.message_id}',
             ),
         ]
@@ -330,16 +330,16 @@ async def ytdlcmd(c: Client, m: Message):
 async def cli_ytdl(c: Client, cq: CallbackQuery):
     data, fsize, temp, vformat, userid, mid = cq.data.split("|")
     if not cq.from_user.id == int(userid):
-        return await cq.answer("ytdl_button_denied", cache_time=60)
+        return await cq.answer("Misc.ytdl_button_denied", cache_time=60)
     if int(fsize) > 500000000:
         return await cq.answer(
-            await tld(cq, "ytdl_file_too_big"),
+            await tld(cq, "Misc.ytdl_file_too_big"),
             show_alert=True,
             cache_time=60,
         )
     vid = re.sub(r"^\_(vid|aud)\.", "", data)
     url = "https://www.youtube.com/watch?v=" + vid
-    await cq.message.edit(await tld(cq, "ytdl_downloading"))
+    await cq.message.edit(await tld(cq, "Misc.ytdl_downloading"))
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
 
@@ -370,9 +370,9 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         user_mention = cq.message.from_user.mention(cq.message.from_user.first_name)
         user_id = cq.message.from_user.id
         await send_logs(c, user_mention, user_id, e)
-        await cq.message.edit((await tld(cq, "ytdl_send_error")).format(e))
+        await cq.message.edit((await tld(cq, "Misc.ytdl_send_error")).format(e))
         return
-    await cq.message.edit(await tld(cq, "ytdl_sending"))
+    await cq.message.edit(await tld(cq, "Misc.ytdl_sending"))
     await c.send_chat_action(cq.message.chat.id, "upload_video")
 
     filename = ydl.prepare_filename(yt)
@@ -396,7 +396,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             await send_logs(c, user_mention, user_id, e)
             await c.send_message(
                 chat_id=cq.message.chat.id,
-                text=(await tld(cq, "ytdl_send_error")).format(errmsg=e),
+                text=(await tld(cq, "Misc.ytdl_send_error")).format(errmsg=e),
                 reply_to_message_id=int(mid),
             )
     else:
@@ -422,7 +422,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             await send_logs(c, user_mention, user_id, e)
             await c.send_message(
                 chat_id=cq.message.chat.id,
-                text=("ytdl_send_error{}").format(errmsg=e),
+                text=("Misc.ytdl_send_error{}").format(errmsg=e),
                 reply_to_message_id=int(mid),
             )
     await cq.message.delete()
@@ -584,5 +584,5 @@ async def ddd(c: Client, m: Union[Message, CallbackQuery]):
         await m.reply_text(rep, reply_markup=ikb(keyboard))
 
 
-plugin_name = "misc_name"
-plugin_help = "misc_help"
+plugin_name = "Misc.name"
+plugin_help = "Misc.help"

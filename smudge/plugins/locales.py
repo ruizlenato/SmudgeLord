@@ -4,6 +4,8 @@
 import os
 import yaml
 from glob import glob
+from functools import reduce
+from operator import getitem
 from pyrogram.types import CallbackQuery
 
 from smudge.database import get_db_lang
@@ -37,9 +39,17 @@ async def tld(m, t):
     # Get Chat
     if isinstance(m, CallbackQuery):
         m = m.message
-    LANGUAGE = await get_db_lang(m.chat.id)
+
+    lang = await get_db_lang(m.chat.id)
+
+    m_args = t.split(".")
+    # Get lang
+    m_args.insert(0, lang)
+    m_args.insert(1, "strings")
+
     try:
-        return strings[LANGUAGE][t]
+        txt = reduce(getitem, m_args, lang_dict)
+        return txt
     except KeyError:
         err = f"Warning: No string found for {t}.\nReport it in @ruizlenatogs."
         LOGGER.warning(err)

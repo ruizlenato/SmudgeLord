@@ -56,7 +56,7 @@ class GetDevice:
 @Client.on_message(filters.command(["magisk"]))
 async def magisk(c: Client, m: Message):
     repo_url = "https://raw.githubusercontent.com/topjohnwu/magisk-files/master/"
-    text = await tld(m, "magisk_releases")
+    text = await tld(m, "Android.magisk_releases")
     for magisk_type in ["stable", "beta", "canary"]:
         fetch = await http.get(repo_url + magisk_type + ".json")
         data = rapidjson.loads(fetch.content)
@@ -102,7 +102,7 @@ async def twrp(c: Client, m: Message):
 @Client.on_message(filters.command(["whatis", "device", "codename"]))
 async def models(c: Client, m: Message):
     if not len(m.command) == 2:
-        message = await tld(m, "whatis_nocodename")
+        message = await tld(m, "Android.whatis_nocodename")
         await m.reply_text(message)
         return
     device = m.command[1]
@@ -113,17 +113,19 @@ async def models(c: Client, m: Message):
         brand = data["brand"]
         model = data["model"]
     else:
-        message = await tld(m, "codename_notfound")
+        message = await tld(m, "Android.codename_notfound")
         await m.reply_text(message)
         return
-    message = (await tld(m, "whatis_device")).format(model, model.upper(), brand, name)
+    message = (await tld(m, "Android.whatis_device")).format(
+        model, model.upper(), brand, name
+    )
     await m.reply_text(message)
 
 
 @Client.on_message(filters.command(["variants", "models"]))
 async def variants(c: Client, m: Message):
     if not len(m.command) == 2:
-        message = await tld(m, "models_nocodename")
+        message = await tld(m, "Android.models_nocodename")
         await m.reply_text(message)
         return
     cdevice = m.command[1]
@@ -132,7 +134,7 @@ async def variants(c: Client, m: Message):
         name = data["name"]
         device = data["device"]
     else:
-        message = await tld(m, "codename_notfound")
+        message = await tld(m, "Android.codename_notfound")
         await m.reply_text(message)
         return
     data = await http.get(
@@ -140,14 +142,14 @@ async def variants(c: Client, m: Message):
     )
     db = rapidjson.loads(data.content)
     device = db[device]
-    message = (await tld(m, "models_variant")).format(cdevice)
+    message = (await tld(m, "Android.models_variant")).format(cdevice)
     for i in device:
         name = i["name"]
         model = i["model"]
-        message += (await tld(m, "models_list")).format(model, name)
+        message += (await tld(m, "Android.models_list")).format(model, name)
 
     await m.reply_text(message)
 
 
-plugin_name = "android_name"
-plugin_help = "android_help"
+plugin_name = "Android.name"
+plugin_help = "Android.help"

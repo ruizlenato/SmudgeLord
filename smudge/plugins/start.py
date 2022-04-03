@@ -51,17 +51,19 @@ async def start_command(c: Client, m: Union[Message, CallbackQuery]):
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text=(await tld(m, "main_start_btn_lang")),
+                        text=(await tld(m, "Main.start_btn_lang")),
                         callback_data="setchatlang",
                     ),
                     InlineKeyboardButton(
-                        text=(await tld(m, "main_start_btn_help")),
+                        text=(await tld(m, "Main.start_btn_help")),
                         callback_data="menu",
                     ),
                 ],
             ]
         )
-        text = (await tld(m, "start_message_private")).format(m.from_user.first_name)
+        text = (await tld(m, "Main.start_message_private")).format(
+            m.from_user.first_name
+        )
         await reply_text(text, reply_markup=keyboard, disable_web_page_preview=True)
     else:
         keyboard = InlineKeyboardMarkup(
@@ -73,7 +75,7 @@ async def start_command(c: Client, m: Union[Message, CallbackQuery]):
                 ]
             ]
         )
-        text = await tld(m, "start_message")
+        text = await tld(m, "Main.start_message")
         await reply_text(text, reply_markup=keyboard, disable_web_page_preview=True)
 
 
@@ -94,7 +96,7 @@ async def portuguese(c: Client, m: Message):
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text=(await tld(m, "main_btn_back")),
+                    text=(await tld(m, "Main.btn_back")),
                     callback_data="setchatlang",
                 )
             ],
@@ -104,7 +106,7 @@ async def portuguese(c: Client, m: Message):
         await set_db_lang(m.from_user.id, lang)
     elif m.message.chat.type == "supergroup" or "group":
         await set_db_lang(m.message.chat.id, lang)
-    text = await tld(m, "lang_save")
+    text = await tld(m, "Main.lang_save")
     await m.edit_message_text(text, reply_markup=keyboard)
 
 
@@ -123,21 +125,21 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
     keyboard = [
         [
             (
-                f'{lang_dict[lang]["main"]["language_flag"]} {lang_dict[lang]["main"]["language_name"]} ({lang_dict[lang]["main"]["language_code"]})',
+                f'{lang_dict[lang]["core"]["language_flag"]} {lang_dict[lang]["core"]["language_name"]} ({lang_dict[lang]["core"]["language_code"]})',
                 f"set_lang {lang}",
             )
             for lang in langs
         ],
         [
             (
-                await tld(m, "lang_crowdin"),
+                await tld(m, "Main.lang_crowdin"),
                 "https://crowdin.com/project/smudgelord",
                 "url",
             ),
         ],
     ]
     if chat_type == "private":
-        keyboard += [[(await tld(m, "main_btn_back"), f"start_command")]]
+        keyboard += [[(await tld(m, "Main.btn_back"), f"start_command")]]
     else:
         try:
             member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
@@ -150,22 +152,22 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
             await asyncio.sleep(10.0)
             await message.delete()
             return
-    await reply_text(await tld(m, "main_select_lang"), reply_markup=ikb(keyboard))
+    await reply_text(await tld(m, "Main.select_lang"), reply_markup=ikb(keyboard))
     return
 
 
 @Client.on_callback_query(filters.regex("menu"))
 async def button(c: Client, cq: CallbackQuery):
     keyboard = InlineKeyboardMarkup(await help_buttons(cq, HELP))
-    text = await tld(cq, "main_help_text")
+    text = await tld(cq, "Main.help_text")
     await cq.edit_message_text(text, reply_markup=keyboard)
 
 
 async def help_menu(c, cq, text):
     keyboard = [
-        [InlineKeyboardButton(await tld(cq, "main_btn_back"), callback_data="menu")]
+        [InlineKeyboardButton(await tld(cq, "Main.btn_back"), callback_data="menu")]
     ]
-    text = (await tld(cq, "avaliable_commands")).format(text)
+    text = (await tld(cq, "Main.avaliable_commands")).format(text)
     await cq.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
@@ -254,7 +256,7 @@ async def config(c: Client, m: Union[Message, CallbackQuery]):
                 "setsdl",
             ),
             (
-                await tld(m, "main_start_btn_lang"),
+                await tld(m, "Main.start_btn_lang"),
                 "setchatlang",
             ),
         ]

@@ -39,7 +39,7 @@ async def sed(c: Client, m: Message):
             pattern, replace_with, text, count=count, flags=rflags, timeout=1
         )
     except TimeoutError:
-        await m.reply_text(await tld(m, "regex_timeout"))
+        await m.reply_text(await tld(m, "Misc.regex_timeout"))
     except regex.error as e:
         await m.reply_text(str(e))
     else:

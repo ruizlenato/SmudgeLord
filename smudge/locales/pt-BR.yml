@@ -1,204 +1,215 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-main:
+
+# Core
+core:
   language_flag: "🇧🇷"
   language_name: "Português"
   language_code: "pt-BR"
 
-# Core
-start_message_private: | 
-  Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns comandos divertidos e uteis para você :3
-
-  📦 <b>Meu código-fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
-  💬 Caso você tenha algum <b>problema</b> <a href='https://t.me/PaperplaneLab'>clique aqui para falar com o meu Dono em um grupo superlegal</a>
-
-start_message: "Oi Gatinha estou vivo, me chama no privado :3"
-lang_save: "Idioma alterado com sucesso"
-lang_crowdin: "🌎 Ajude-nos com as traduções!"
-main_select_lang: "Selecione o idioma que você quer utilizar no bot"
-change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens usando um canal. <b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
-main_btn_back: "↩️ Voltar"
-main_start_btn_lang: "🇧🇷 Idioma"
-main_start_btn_help: "❓ Ajuda"
-main_help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
-avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
-config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo:"
-added: "adicionado"
-updated: "atualizado"
+# Main
+strings:
+  Main:
+    start_message_private: | 
+      Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns comandos divertidos e uteis para você :3
+      
+      📦 <b>Meu código-fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+      💬 Caso você tenha algum <b>problema</b> <a href='https://t.me/PaperplaneLab'>clique aqui para falar com o meu Dono em um grupo superlegal</a>
+      start_message: "Oi Gatinha estou vivo, me chama no privado :3"
+    lang_save: "Idioma alterado com sucesso"
+    lang_crowdin: "🌎 Ajude-nos com as traduções!"
+    select_lang: "Selecione o idioma que você quer utilizar no bot"
+    btn_back: "↩️ Voltar"
+    start_btn_lang: "🇧🇷 Idioma"
+    start_btn_help: "❓ Ajuda"
+    change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens usando um canal. <b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
+    help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
+    avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
+    config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo:"
+    added: "adicionado"
+    updated: "atualizado"
 
 # Android
-android_name: "Android"
-whatis_nocodename: "<b>Error.</b>\n<b>Uso do comando:</b> /whatis (codename)."
-whatis_device: "<b>{}/{}</b> é o <code>{} {}</code>\n"
-models_nocodename: "<b>Error.</b>\n<b>Uso do comando:</b> /models (codename)."
-models_variant: "Variantes do <b>{}</b>:\n\n"
-models_list: "<b>Modelo</b>: <code>{}</code> \n<b>Nome:</b> {}\n\n"
-codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename e tente novamente"
-magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
-android_help: |
-  <b>/magisk</b> - Tenha as últimas versões do Magisk.
-  <b>/twrp [codename]</b> - Obtenha a última versão do TWRP disponível para o device escolhido a partir do codename.
-  <b>/whatis [codename]</b> - Obtenha o nome do device a partir do codename.
-  <b>/variants [codename]</b> - Obtenha variantes de devices Android a partir do codename.
+  Android:
+    name: "Android"
+    whatis_nocodename: "<b>Error.</b>\n<b>Uso do comando:</b> /whatis (codename)."
+    whatis_device: "<b>{}/{}</b> é o <code>{} {}</code>\n"
+    models_nocodename: "<b>Error.</b>\n<b>Uso do comando:</b> /models (codename)."
+    models_variant: "Variantes do <b>{}</b>:\n\n"
+    models_list: "<b>Modelo</b>: <code>{}</code> \n<b>Nome:</b> {}\n\n"
+    codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename e tente novamente"
+    magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
+    help: |
+      <b>/magisk</b> - Tenha as últimas versões do Magisk.
+      <b>/twrp [codename]</b> - Obtenha a última versão do TWRP disponível para o device escolhido a partir do codename.
+      <b>/whatis [codename]</b> - Obtenha o nome do device a partir do codename.
+      <b>/variants [codename]</b> - Obtenha variantes de devices Android a partir do codename.
 
 # Github
-github_name: "Github"
-github_repos_saved: "<b>Repositórios salvos neste chat:</b>\n\n<code>&{}</code>\n"
-github_repos_savedhelp: "\nVocê pode obter essas notas usando /fetch gatilho, ou &gatilho"
-github_add_noargs: "Escreva o repositório para qual você quer criar um gatilho.\n\n<b>Por exemplo:</b>\n<code>/gitadd (gatilho) usuário/repo</code>"
-github_gitr_noargs: "Escreva o repositório para qual você quer buscar releases.\n\n<b>Por exemplo:</b>\n<code>/gitr usuário/repo</code>"
-github_repo_added: "Repositório {} com sucesso.\n<b>Use</b> <code>/fetch {} </code>para obtê-lo."
-github_repo_deleted: "O repositório <b>{}</b> foi deletado."
-github_repo_faildelete: "O repositório <b>{}</b> não existe, então não posso deletá-lo."
-github_repo_noreleases: "O repositório não tem releases"
-github_repo_errorreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
-github_nothing_save: "Não há nenhum repositório salvo nesse grupo."
-github_help: |
-  <b>/gitr [usuário/repositório]</b> - Irá buscar as releases mais recente desse repositório.
-  <b>/repos</b> - Lista todos os repositórios salvos no grupo atual.
-  <b>/gitadd [gatilho] [usuário/repositório]</b> - Cria um gatilho para as releases de um repositório.
-  <b>/gitdel [gatilho]</b> - Deleta o repositório definido para o gatilho.
-  <b>/fetch [gatilho]</b> - Retorna as releases de um repositório salvo com esse gatilho.
+  GitHub:
+    name: "GitHub"
+    repos_saved: "<b>Repositórios salvos neste chat:</b>\n\n<code>&{}</code>\n"
+    repos_savedhelp: "\nVocê pode obter essas notas usando /fetch gatilho, ou &gatilho"
+    add_noargs: "Escreva o repositório para qual você quer criar um gatilho.\n\n<b>Por exemplo:</b>\n<code>/gitadd (gatilho) usuário/repo</code>"
+    gitr_noargs: "Escreva o repositório para qual você quer buscar releases.\n\n<b>Por exemplo:</b>\n<code>/gitr usuário/repo</code>"
+    repo_added: "Repositório {} com sucesso.\n<b>Use</b> <code>/fetch {} </code>para obtê-lo."
+    repo_deleted: "O repositório <b>{}</b> foi deletado."
+    repo_faildelete: "O repositório <b>{}</b> não existe, então não posso deletá-lo."
+    repo_noreleases: "O repositório não tem releases"
+    repo_errorreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
+    nothing_save: "Não há nenhum repositório salvo nesse grupo."
+    help: |
+      <b>/gitr [usuário/repositório]</b> - Irá buscar as releases mais recente desse repositório.
+      <b>/repos</b> - Lista todos os repositórios salvos no grupo atual.
+      <b>/gitadd [gatilho] [usuário/repositório]</b> - Cria um gatilho para as releases de um repositório.
+      <b>/gitdel [gatilho]</b> - Deleta o repositório definido para o gatilho.
+      <b>/fetch [gatilho]</b> - Retorna as releases de um repositório salvo com esse gatilho.
   
 # LastFM
-lastfm_name: "LastFM"
-lastfm_username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm \n/artist - /lart\n/album - /lalb."
-lastfm_no_username_save: "<b>Erro</b>\n<b>Uso do comando:</b> /setuser (username)."
-lastfm_no_username: "<b>Erro.</b>\nVocê não definiu um username.\n\n<b>Use o comando:</b> /setuser (username)."
-lastfm_username_wrong: "Seu username está incorreto\n\n<strong>Use /setuser (seu username)</strong> e tente novamente"
-lastfm_scrobble_is: "<b><a href='tg://user?id={}'>{}</a></b> está ouvindo pela <strong>{}° vez</strong>:\n\n"
-lastfm_scrobble_none_is: "<b><a href='tg://user?id={}'>{}</a></b> está ouvindo:\n\n" 
-lastfm_scrobble_was: "<b><a href='tg://user?id={}'>{}</a></b> estava ouvindo pela <strong>{}° vez</strong>:\n\n"
-lastfm_scrobble_none_was: "<b><a href='tg://user?id={}'>{}</a></b> estava ouvindo:\n\n"
-lastfm_dualtone_albums: "ÁLBUNS MAIS OUVIDOS"
-lastfm_dualtone_artists: "ARTISTAS MAIS OUVIDOS"
-lastfm_dualtone_tracks: "MÚSICAS MAIS OUVIDAS"
-lastfm_dualtone_month: "últimos {} meses"
-lastfm_dualtone_day: "últimos {} dias"
-lastfm_dualtone_overall: "todos os tempos"
-lastfm_dualtone_choose: "<b>Escolha um esquema de cores.</b>"
-lastfm_help: |
- <b>/setuser [username]</b> - Configra seu username (nome de usuário) do LastFM.
- <b>/clearuser</b> - Apaga seu nome de usuário last.fm do banco de dados do bot.
- <b>/lastfm</b> ou <b>/lmu</b> - Mostra a música que você está scrobblando no momento (escutando) usando o last.fm.
- <b>/lalbum</b> ou <b>/lalb</b> - Mostra o album que você está scrobblando no momento (escutando) usando o last.fm.
- <b>/lartist</b> ou <b>/lart</b> - Mostra o(a) artista que você está scrobblando no momento (escutando) usando o last.fm.
- 
- • Para utilizar a plataforma do last.fm recomendo que veja um tutorial caso não saiba como usar.
+  LastFM:
+    name: "LastFM"
+    username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm \n/artist - /lart\n/album - /lalb."
+    username_clear: "O seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> foi apagado."
+    username_nouser: "Você precisa definir um nome de usuário para usar esse comando."
+    no_username_save: "<b>Erro</b>\n<b>Uso do comando:</b> {} (nome de usuário)."
+    no_username_to_clear: "Você não definiu o seu username do <b><a href='https://last.fm/'>LastFM</a></b> para que eu possa deletar do meu banco de dados."
+    no_username: "<b>Erro.</b>\nVocê precisa definir o seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> para usar esse comando.\n\n<b>Use o comando:</b> /setuser (username)."
+    username_wrong: "Seu username do <b><a href='https://last.fm/'>LastFM</a></b> está incorreto\n\n<strong>Use /setuser (nome de usuário)</strong> e tente novamente"
+    scrobble_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> está ouvindo pela <strong>{}° vez</strong>:\n\n"
+    scrobble_none_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> está ouvindo:\n\n" 
+    scrobble_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> estava ouvindo pela <strong>{}° vez</strong>:\n\n"
+    scrobble_none_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> estava ouvindo:\n\n"
+    dualtone_albums: "ÁLBUNS MAIS OUVIDOS"
+    dualtone_artists: "ARTISTAS MAIS OUVIDOS"
+    dualtone_tracks: "MÚSICAS MAIS OUVIDAS"
+    dualtone_month: "últimos {} meses"
+    dualtone_day: "últimos {} dias"
+    dualtone_overall: "todos os tempos"
+    dualtone_choose: "<b>Escolha um esquema de cores.</b>"
+    help: |
+      <b>/setuser or /setlast [username]</b> - Configra seu username (nome de usuário) do LastFM.
+      <b>/clearuser</b> - Apaga seu nome de usuário last.fm do banco de dados do bot.
+      <b>/lastfm</b> ou <b>/lmu</b> - Mostra a música que você está scrobblando no momento (escutando) usando o last.fm.
+      <b>/lalbum</b> ou <b>/lalb</b> - Mostra o album que você está scrobblando no momento (escutando) usando o last.fm.
+      <b>/lartist</b> ou <b>/lart</b> - Mostra o(a) artista que você está scrobblando no momento (escutando) usando o last.fm.
 
-# Memes.
-memes_slaps_templates_list:
-  - "{user1} {hits} {user2} com um {item}."
-  - "{user1} {hits} {user2} no rosto com um {item}."
-  - "{user1} {hits} {user2} um pouco com um {item}."
-  - "{user1} {throws} {item} no {user2}."
-  - "{user1} {throws} {item} na cara do {user2} ."
-  - "{user1} joga um {item} na cabeça do {user2}."
-  - "{user1} pensa em bater no {user2} com {item}."
-  - "{user1} derruba {user2} e repetidamente o {hits} com {item}."
-  - "{user1} pega {item} e {hits} no {user2}."
-  - "{user1} amarra {user2} em uma cadeira e {throws} {item}."
-  - "{user1} deu um empurrão amigável no {user2} para que ele aprenda a nadar na lava"
-memes_items_list:
-  - "frigideira de ferro fundido"
-  - "truta grande"
-  - "taco de beisebol"
-  - "bastão de cricket"
-  - "bengala de madeira"
-  - "unha"
-  - "penis de borracha"
-  - "pá"
-  - "ventilador"
-  - "um Nokia 3310"
-  - "torradeira"
-  - "Laptop da positivo"
-  - "televisão"
-  - "caminhão de cinco toneladas"
-  - "piroca"
-  - "livro"
-  - "laptop"
-  - "televisão antiga"
-  - "chifre do administrador"
-  - "um vibrador gigante"
-  - "galinha de borracha"
-  - "morcego cravado"
-  - "extintor de incêndio"
-  - "litro de 51"
-  - "pedaço de terra"
-  - "colméia"
-  - "pedaço de carne podre"
-  - "Urso"
-  - "a mãe do admin"
-memes_throw_list:
-  - "joga"
-  - "lança"
-  - "arremessa"
-memes_hit_list:
-  - "golpeia"
-  - "bate"
-  - "golpeia"
-  - "esmurra"
-  - "ataca"
+      <i>Existe também o /lt que faz a mesma coisa do /lastfm 
+      <b>mas se eu estiver em um grupo onde eu esteja em conflito com outro bot que tenha a mesma função eu não responderei.</b></i>
+
+# Memes
+  Memes:
+    slaps_templates_list:
+      - "{user1} {hits} {user2} com um {item}."
+      - "{user1} {hits} {user2} no rosto com um {item}."
+      - "{user1} {hits} {user2} um pouco com um {item}."
+      - "{user1} {throws} {item} no {user2}."
+      - "{user1} {throws} {item} na cara do {user2} ."
+      - "{user1} joga um {item} na cabeça do {user2}."
+      - "{user1} pensa em bater no {user2} com {item}."
+      - "{user1} derruba {user2} e repetidamente o {hits} com {item}."
+      - "{user1} pega {item} e {hits} no {user2}."
+      - "{user1} amarra {user2} em uma cadeira e {throws} {item}."
+      - "{user1} deu um empurrão amigável no {user2} para que ele aprenda a nadar na lava"
+    items_list:
+      - "frigideira de ferro fundido"
+      - "truta grande"
+      - "taco de beisebol"
+      - "bastão de cricket"
+      - "bengala de madeira"
+      - "unha"
+      - "penis de borracha"
+      - "pá"
+      - "ventilador"
+      - "um Nokia 3310"
+      - "torradeira"
+      - "Laptop da positivo"
+      - "televisão"
+      - "caminhão de cinco toneladas"
+      - "piroca"
+      - "livro"
+      - "laptop"
+      - "televisão antiga"
+      - "chifre do administrador"
+      - "um vibrador gigante"
+      - "galinha de borracha"
+      - "morcego cravado"
+      - "extintor de incêndio"
+      - "litro de 51"
+      - "pedaço de terra"
+      - "colméia"
+      - "pedaço de carne podre"
+      - "Urso"
+      - "a mãe do admin"
+    throw_list:
+      - "joga"
+      - "lança"
+      - "arremessa"
+    hit_list:
+      - "golpeia"
+      - "bate"
+      - "golpeia"
+      - "esmurra"
+      - "ataca"
 
 
 # Misc
-misc_name: "Utilitários"
-short_error: "<b>Erro.</b>\n<b>Uso:</b> /short (url)\n\nFaça isso para encurtar uma url."
-tr_error: "<b>Erro.</b>\n<b>Uso:</b> /tr (idioma) (texto).\n\n<i>Você também pode usar esse comando respondendo uma mensagem ou uma foto com legenda</i>"
-tr_translating: "Traduzindo..."
-print_printing: "Obtendo captura de tela..."
-print_error: "<b>Erro.</b>\n<b>Uso:</b> <code>/print https://exemplo.com</code> - Tira uma captura de tela do site especificado."
-print_api_dead: "Failed, because API is not responding, try it later."
-regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
-sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
-sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download da midia."
-cep_strings: "🌏 <b>{}</b>\n<b>- Cidade:</b> {}\n<b>- Estado:</b> {} - {}\n<b>- Bairro:</b> {}\n<b>- Rua:</b> {}"
-cep_error: "Este CEP é invalido."
-no_cep: "Você esqueceu do CEP.\n<b>Uso do comando:</b> /cep (cep)."
-ddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}"
-fddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}\n<b>- Cidades:</b> <code>{}</code>"
-no_ddd: "Você esqueceu do DDD.\n<b>Uso do comando:</b> /ddd (ddd)."
-ddd_cities: "Cidades"
-sdl_config_noauto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
-sdl_config_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
-misc_help: |
- <b>/tr [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
- <i><b>Obs</b>: o comando também funciona através de resposta
- Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
+  Misc:
+    name: "Utilitários"
+    short_error: "<b>Erro.</b>\n<b>Uso:</b> /short (url)\n\nFaça isso para encurtar uma url."
+    tr_error: "<b>Erro.</b>\n<b>Uso:</b> /tr (idioma) (texto).\n\n<i>Você também pode usar esse comando respondendo uma mensagem ou uma foto com legenda</i>"
+    tr_translating: "Traduzindo..."
+    print_printing: "Obtendo captura de tela..."
+    print_error: "<b>Erro.</b>\n<b>Uso:</b> <code>/print https://exemplo.com</code> - Tira uma captura de tela do site especificado."
+    print_api_dead: "Failed, because API is not responding, try it later."
+    regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
+    sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
+    sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download da midia."
+    cep_strings: "🌏 <b>{}</b>\n<b>- Cidade:</b> {}\n<b>- Estado:</b> {} - {}\n<b>- Bairro:</b> {}\n<b>- Rua:</b> {}"
+    cep_error: "Este CEP é invalido."
+    no_cep: "Você esqueceu do CEP.\n<b>Uso do comando:</b> /cep (cep)."
+    ddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}"
+    fddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}\n<b>- Cidades:</b> <code>{}</code>"
+    no_ddd: "Você esqueceu do DDD.\n<b>Uso do comando:</b> /ddd (ddd)."
+    ddd_cities: "Cidades"
+    sdl_config_noauto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
+    sdl_config_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
+    ytdl_audio_button: "💿 Áudio"
+    ytdl_video_button: "📹 Vídeo"
+    ytdl_send_error: "Desculpe! Não pude enviar o vídeo devido a um erro.\n<b>Erro:</b> <code>{}</code>"
+    ytdl_file_too_big: "O Vídeo qual você deseja baixar excede o tamanho de 500MB.\nNão foi possível baixar e enviar, desculpe."
+    ytdl_missing_argument: "Por favor, responda um link do YouTube ou texto."
+    ytdl_downloading: "Baixando..."
+    ytdl_sending: "Enviando..."
+    ytdl_button_denied: "Este botão não é para você."
+    help: |
+      <b>/tr [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
+      <i><b>Obs</b>: o comando também funciona através de resposta
+      Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
  
- <b>/short [url]</b> - Para encurtar uma URL.
+      <b>/short [url]</b> - Para encurtar uma URL.
  
- <b>/ddd [DDD]</b> - Retornará algumas informações sobre o DDD (Brasileiro) especificado.
- <b>/cep [CEP]</b> - Retornará algumas informações sobre o CEP (Brasileiro) especificado.
+      <b>/ddd [DDD]</b> - Retornará algumas informações sobre o DDD (Brasileiro) especificado.
+      <b>/cep [CEP]</b> - Retornará algumas informações sobre o CEP (Brasileiro) especificado.
  
- <b>/sdl [link]</b> - Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>
+      <b>/sdl [link]</b> - Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>
  
- <b>/ytdl [Palavra ou link]</b> - Se você utilizar um link o bot irá baixar do YouTube, caso você escreva uma palavra, o bot buscará no youtube e baixará.
- <b>/yt [Palavra]</b> - Faz uma busca no YouTube vídeos com a palavra que você escreveu e retorna uma lista com vídeos.
+      <b>/ytdl [Palavra ou link]</b> - Se você utilizar um link o bot irá baixar do YouTube, caso você escreva uma palavra, o bot buscará no youtube e baixará.
+      <b>/yt [Palavra]</b> - Faz uma busca no YouTube vídeos com a palavra que você escreveu e retorna uma lista com vídeos.
  
 # Stickers
-stickers_name: "Stickers"
-stickers_pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro. ."
-stickers_kang_noreply: "<b>Pane no sistema alguém me desconfigurou.</b>\nVocê precisa usar esse comando respondendo um sticker ou uma foto."
-stickers_kanging: "Roubando o Sticker..."
-stickers_getsticker_no_reply: Responda a um sticker para que eu faça o upload do PNG.
-err_sticker_no_file_name: "<b>Erro</b>: <code>Este sticker não possui um nome de arquivo!</code>"
-create_new_pack_string: "<b>Criando um novo pacote de stickers...</b>"
-sticker_kanged_string: "Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/{}'>Confira.</a>\n<b>Emoji:</b> {}"
-use_existing_pack: "<code>Usando o pacote de stickers existente...</code>"
-sticker_info: "<b>Emoji:</b> {}\n<b>ID do Sticker:</b> <code>{}</code>"
-animated_not_supported: "Stickers animados não são suportados."
-stickers_help: |
- <b>/getsticker -</b> responda a um adesivo para fazer o upload do arquivo PNG bruto.
- <b>/kang -</b> responda a um sticker para adicioná-lo ao seu pacote.
-
-# YouTube Downloader
-ytdl_name: "YouTube"
-ytdl_audio_button: "💿 Áudio"
-ytdl_video_button: "📹 Vídeo"
-ytdl_send_error: "Desculpe! Não pude enviar o vídeo devido a um erro.\n<b>Erro:</b> <code>{}</code>"
-ytdl_file_too_big: "O Vídeo qual você deseja baixar excede o tamanho de 500MB.\nNão foi possível baixar e enviar, desculpe."
-ytdl_missing_argument: "Por favor, responda um link do YouTube ou texto."
-ytdl_downloading: "Baixando..."
-ytdl_sending: "Enviando..."
-ytdl_button_denied: "Este botão não é para você."
+  Stickers:
+    name: "Stickers"
+    pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro. ."
+    kang_noreply: "<b>Pane no sistema alguém me desconfigurou.</b>\nVocê precisa usar esse comando respondendo um sticker ou uma foto."
+    kanging: "Roubando o Sticker..."
+    getsticker_no_reply: Responda a um sticker para que eu faça o upload do PNG.
+    err_no_file_name: "<b>Erro:</b> Este sticker não possui um nome de arquivo!"
+    create_new_pack_string: "<b>Criando um novo pacote de stickers...</b>"
+    kanged_string: "Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/{}'>Confira.</a>\n<b>Emoji:</b> {}"
+    use_existing_pack: "<code>Usando o pacote de stickers existente...</code>"
+    info_sticker: "<b>Emoji:</b> {}\n<b>ID do Sticker:</b> <code>{}</code>"
+    animated_not_supported: "Stickers animados não são suportados."
+    invalid_media_string: "<b>Erro:</b> <code>[Mídia inválida]</code> Este não é um sticker ou uma foto."
+    help: |
+      <b>/getsticker -</b> responda a um adesivo para fazer o upload do arquivo PNG bruto.
+      <b>/kang -</b> responda a um sticker para adicioná-lo ao seu pacote.
