@@ -57,4 +57,3 @@ async def tld(m, t):
         err = f"Warning: No string found for {t}.\nReport it in @ruizlenatogs."
         LOGGER.warning(err)
         return err
-
