@@ -25,7 +25,7 @@ strings:
     change_lang_uchannel: "Hmm, apparently you are sending messages using a channel. <b>Send messages as a normal user so I can help you.</b>"
     help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
     avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
-    config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group:"
+    config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group.\n\n<b>SDL Auto -</b> <i>When enabled (✅) the bot will download videos from social networks automatically when someone sends a link</i>\n<b>Language -</b> <i>Change the language of the bot in the group</i>"
     added: "added"
     updated: "updated"
   
@@ -40,10 +40,10 @@ strings:
     codename_notfound: "Coudn't find your device, check device & try again!"
     magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
     help: |
-      <b>/magisk</b> - Get latest Magisk releases.
-      <b>/twrp [codename]</b> - Get the latest TWRP version available for the chosen device from codename.
-      <b>/whatis [codename]</b> - Get phone neme from codename.
-      <b>/variants [codename]</b> - Get phone variants from codename..
+      <b>/magisk -</b> Get latest Magisk releases.
+      <b>/twrp [codename] -</b> Get the latest TWRP version available for the chosen device from codename.
+      <b>/whatis [codename] -</b> Get phone neme from codename.
+      <b>/variants [codename] -</b> Get phone variants from codename..
   
 # Github
   GitHub:
@@ -59,11 +59,11 @@ strings:
     repo_errorreleases: "Coudn't find any releases on <code>{}</code>"
     nothing_save: "There are no saved repositories in this chat"
     help: |
-      <b>/gitr [user/repository]</b> - Get latest releses from repo.
-      <b>/repos</b> - Get list of saved repisitories in chat.
+      <b>/gitr [user/repository] -</b> Get latest releses from repo.
+      <b>/repos -</b> Get list of saved repisitories in chat.
       <b>/gitadd [name] [user/repository]</b> - Save repository.
-      <b>/gitdel [name]</b> - Delete repository.
-      <b>/fetch [name]</b> - Fetch saved repository, you can also use !(name)
+      <b>/gitdel [name] -</b> Delete repository.
+      <b>/fetch [name] -</b> Fetch saved repository, you can also use !(name)
 
 # LastFM
   LastFM:
@@ -87,10 +87,10 @@ strings:
     dualtone_choose: "<b>Choose a color scheme.</b>"
     help: |      
       <b>/setuser or /setlast [username]</b> - Sets your last.fm username.
-      <b>/clearuser</b> - Removes your last.fm username from the bot's database.
-      <b>/lastfm</b> ou <b>/lmu</b> - Shows the song you are scrobbling on last.fm.
-      <b>/lalbum</b> ou <b>/lalb</b> - Shows the album you are scrobbling on last.fm.
-      <b>/lartist</b> ou <b>/lart</b> - Shows the artist you are scrobbling on last.fm.
+      <b>/clearuser or deluser -</b> Removes your last.fm username from the bot's database.
+      <b>/lastfm or /lmu -</b> Shows the song you are scrobbling on last.fm.
+      <b>/lalbum or /lalb -</b> Shows the album you are scrobbling on last.fm.
+      <b>/lartist or /lart -</b> Shows the artist you are scrobbling on last.fm.
 
       <i>There is also /lt which does the same thing as /lastfm
       but if I am in a group where <b>I am in conflict with another bot that has the same function I will not respond.</b></i>
@@ -231,16 +231,16 @@ strings:
     ytdl_sending: "Sending..."
     ytdl_button_denied: "This button is not for you."
     help: |
-      <b>/tr</b> [language] [word]</b> - This will translate the word you type into the language of your choice.
+      <b>/tr [language] [word] -</b> This will translate the word you type into the language of your choice.
       <i>• It also can be used as reply.
       I.e <b>"/tr [language]"</b> replying a message</i>
 
-      <b>/short [url]</b> - To Short a url.
+      <b>/short [url] -</b> To Short a url.
 
-      <b>/sdl [link]</b> - This command downloads videos from <b>Instagram, TikTok and Twitter.</b>
+      <b>/sdl [link] -</b> This command downloads videos from <b>Instagram, TikTok and Twitter.</b>
  
-      <b>/ytdl [Word or link]</b> - If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
-      <b>/yt [word]</b> - It does a YouTube video search with the word you wrote and returns a list with videos.
+      <b>/ytdl [Word or link] -</b> If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
+      <b>/yt [word] -</b> It does a YouTube video search with the word you wrote and returns a list with videos.
  
 # Stickers
   Stickers:

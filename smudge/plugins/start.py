@@ -187,10 +187,10 @@ async def logging(c: Client, m: Message):
         await c.send_message(
             chat_id=m.chat.id,
             text=(
-                "/ᐠ. ｡.ᐟ\ᵐᵉᵒʷ  Olá, obrigado por me adicionar aqui!\n"
-                "Não se esqueça de <b>mudar meu idioma usando /setlang</b>\n\n"
-                "/ᐠ. ｡.ᐟ\ᵐᵉᵒʷ  Hi, thanks for adding me here!\n"
-                "Don't forget to <b>change my language using /setlang</b>\n"
+                ":3 (🇧🇷 pt-BR) Olá, obrigado por me adicionar aqui!\n"
+                "Não se esqueça de <b>mudar meu idioma usando /config</b>\n\n"
+                ":3 (🇺🇸 en-US) Hi, thanks for adding me here!\n"
+                "Don't forget to <b>change my language using /config</b>\n"
             ),
             disable_notification=True,
         )
@@ -216,10 +216,10 @@ async def setsdl(c: Client, m: Union[Message, CallbackQuery]):
 
     if (await groups.get(id=chat_id)).sdl_autodownload == "Off":
         await groups.filter(id=chat_id).update(sdl_autodownload="On")
-        text = await tld(m, "sdl_config_auto")
+        text = await tld(m, "Misc.sdl_config_auto")
     else:
         await groups.filter(id=chat_id).update(sdl_autodownload="Off")
-        text = await tld(m, "sdl_config_noauto")
+        text = await tld(m, "Misc.sdl_config_noauto")
 
     await reply_text(text)
     return
@@ -262,5 +262,5 @@ async def config(c: Client, m: Union[Message, CallbackQuery]):
         ]
     ]
 
-    text = await tld(m, "config_text")
+    text = await tld(m, "Main.config_text")
     await reply_text(text, reply_markup=ikb(keyboard))

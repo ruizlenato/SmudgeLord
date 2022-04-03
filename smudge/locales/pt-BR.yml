@@ -25,7 +25,7 @@ strings:
     change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens usando um canal. <b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
     help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
     avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
-    config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo:"
+    config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo.\n\n<b>SDL Auto -</b> <i>Quando ativo (✅) o bot irá baixar videos de redes sociais automaticamente quando alguém enviar um link</i>\n<b>Idioma -</b> <i>Altera o idioma do bot no grupo</i>"
     added: "adicionado"
     updated: "atualizado"
 
@@ -40,10 +40,10 @@ strings:
     codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename e tente novamente"
     magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
     help: |
-      <b>/magisk</b> - Tenha as últimas versões do Magisk.
-      <b>/twrp [codename]</b> - Obtenha a última versão do TWRP disponível para o device escolhido a partir do codename.
-      <b>/whatis [codename]</b> - Obtenha o nome do device a partir do codename.
-      <b>/variants [codename]</b> - Obtenha variantes de devices Android a partir do codename.
+      <b>/magisk -</b> Tenha as últimas versões do Magisk.
+      <b>/twrp [codename] -</b> Obtenha a última versão do TWRP disponível para o device escolhido a partir do codename.
+      <b>/whatis [codename] -</b> Obtenha o nome do device a partir do codename.
+      <b>/variants [codename] -</b> Obtenha variantes de devices Android a partir do codename.
 
 # Github
   GitHub:
@@ -87,11 +87,11 @@ strings:
     dualtone_overall: "todos os tempos"
     dualtone_choose: "<b>Escolha um esquema de cores.</b>"
     help: |
-      <b>/setuser or /setlast [username]</b> - Configra seu username (nome de usuário) do LastFM.
-      <b>/clearuser</b> - Apaga seu nome de usuário last.fm do banco de dados do bot.
-      <b>/lastfm</b> ou <b>/lmu</b> - Mostra a música que você está scrobblando no momento (escutando) usando o last.fm.
-      <b>/lalbum</b> ou <b>/lalb</b> - Mostra o album que você está scrobblando no momento (escutando) usando o last.fm.
-      <b>/lartist</b> ou <b>/lart</b> - Mostra o(a) artista que você está scrobblando no momento (escutando) usando o last.fm.
+      <b>/setuser ou /setlast [username] -</b> Configra seu username (nome de usuário) do LastFM.
+      <b>/clearuser ou /deluser -</b> Apaga seu nome de usuário last.fm do banco de dados do bot.
+      <b>/lastfm ou /lmu -</b> Mostra a música que você está scrobblando no momento (escutando) usando o last.fm.
+      <b>/lalbum ou /lalb -</b> Mostra o album que você está scrobblando no momento (escutando) usando o last.fm.
+      <b>/lartist ou /lart -</b> Mostra o(a) artista que você está scrobblando no momento (escutando) usando o last.fm.
 
       <i>Existe também o /lt que faz a mesma coisa do /lastfm 
       <b>mas se eu estiver em um grupo onde eu esteja em conflito com outro bot que tenha a mesma função eu não responderei.</b></i>
@@ -182,19 +182,19 @@ strings:
     ytdl_sending: "Enviando..."
     ytdl_button_denied: "Este botão não é para você."
     help: |
-      <b>/tr [idioma] [palavra]</b> - Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
+      <b>/tr [idioma] [palavra] -</b> Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
       <i><b>Obs</b>: o comando também funciona através de resposta
       Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
  
-      <b>/short [url]</b> - Para encurtar uma URL.
+      <b>/short [url] -</b> Para encurtar uma URL.
  
-      <b>/ddd [DDD]</b> - Retornará algumas informações sobre o DDD (Brasileiro) especificado.
-      <b>/cep [CEP]</b> - Retornará algumas informações sobre o CEP (Brasileiro) especificado.
+      <b>/ddd [DDD] -</b> Retornará algumas informações sobre o DDD (Brasileiro) especificado.
+      <b>/cep [CEP] -</b> Retornará algumas informações sobre o CEP (Brasileiro) especificado.
  
-      <b>/sdl [link]</b> - Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>
+      <b>/sdl [link] -</b> Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>
  
-      <b>/ytdl [Palavra ou link]</b> - Se você utilizar um link o bot irá baixar do YouTube, caso você escreva uma palavra, o bot buscará no youtube e baixará.
-      <b>/yt [Palavra]</b> - Faz uma busca no YouTube vídeos com a palavra que você escreveu e retorna uma lista com vídeos.
+      <b>/ytdl [Palavra ou link] -</b> Se você utilizar um link o bot irá baixar do YouTube, caso você escreva uma palavra, o bot buscará no youtube e baixará.
+      <b>/yt [Palavra] -</b> Faz uma busca no YouTube vídeos com a palavra que você escreveu e retorna uma lista com vídeos.
  
 # Stickers
   Stickers:

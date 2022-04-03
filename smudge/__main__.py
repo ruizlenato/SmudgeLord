@@ -32,7 +32,7 @@ rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 plugins = dict(root="smudge.plugins")
 client = Client(
     "smudge",
-    workers=20,
+    workers=24,
     api_id=API_ID,
     api_hash=API_HASH,
     bot_token=BOT_TOKEN,
