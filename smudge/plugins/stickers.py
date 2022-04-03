@@ -2,9 +2,10 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
 import os
+import time
 import shutil
+import ffmpeg
 import tempfile
-
 from PIL import Image
 
 from smudge.config import CHAT_LOGS
@@ -69,16 +70,20 @@ async def kang_sticker(c: Client, m: Message):
     if reply and reply.media:
         if reply.photo:
             resize = True
+        elif reply.animation:
+            videos = True
+            convert = True
         elif reply.document:
             if "image" in reply.document.mime_type:
                 # mime_type: image/webp
                 resize = True
+            elif "video/mp4" in reply.document.mime_type:
+                # mime_type: application/v
+                videos = True
             elif "tgsticker" in reply.document.mime_type:
                 # mime_type: application/v
                 animated = True
-            elif "video/webm" in reply.document.mime_type:
-                # mime_type: application/v
-                videos = True
+
         elif reply.sticker:
             if not reply.sticker.file_name:
                 return await prog_msg.edit_text(
@@ -88,10 +93,11 @@ async def kang_sticker(c: Client, m: Message):
                 sticker_emoji = reply.sticker.emoji
             animated = reply.sticker.is_animated
             videos = reply.sticker.is_video
-            if reply.sticker.file_name.endswith(".webm"):
+            if videos:
                 convert = True
-            elif not reply.sticker.file_name.endswith(".tgs"):
-                resize = True
+            else:
+                if not reply.sticker.file_name.endswith(".tgs"):
+                    resize = True
         else:
             return await prog_msg.edit_text(
                 await tld(m, "Stickers.invalid_media_string")
@@ -152,6 +158,8 @@ async def kang_sticker(c: Client, m: Message):
     try:
         if resize:
             filename = resize_image(filename)
+        elif convert:
+            filename = convert_video(filename)
         max_stickers = 50 if animated else 120
         while not packname_found:
             try:
@@ -204,9 +212,9 @@ async def kang_sticker(c: Client, m: Message):
             await prog_msg.edit_text(await tld(m, "Stickers.create_new_pack_string"))
             stkr_title = f"{m.from_user.first_name[:32]}'s "
             if animated:
-                stkr_title += "animated Pack "
+                stkr_title += "animated pack "
             elif videos:
-                stkr_title += "video Pack"
+                stkr_title += "video pack"
             stkr_title += " (By Smudge)"
             if packnum != 0:
                 stkr_title += f" v{packnum}"
@@ -271,6 +279,20 @@ def resize_image(filename: str) -> str:
         os.remove(filename)
     return png_image
 
+def convert_video(filename: str) -> str:
+    downpath, f_name = os.path.split(filename)
+    print(os.path.split(filename))
+    webm_video = os.path.join(downpath, f"{f_name.split('.', 1)[0]}.webm")
+    print(webm_video)
+    stream = ffmpeg.input(filename)
+    stream = ffmpeg.filter(stream, 'fps', fps=30, round='up')
+    stream = ffmpeg.trim(stream, duration=3)
+    stream = ffmpeg.output(stream, webm_video, s='512x512', vcodec='vp9')
+    stream = ffmpeg.overwrite_output(stream)
+    ffmpeg.run(stream)
+    if webm_video != filename:
+        os.remove(filename)
+    return webm_video
 
 plugin_name = "Stickers.name"
 plugin_help = "Stickers.help"
