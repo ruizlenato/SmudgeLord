@@ -5,7 +5,7 @@ httpx[http2]==0.22.0
 urllib3==1.26.9
 pyyaml==6.0
 aiohttp==3.8.1
-BeautifulSoup4==4.10.0
+BeautifulSoup4==4.11.0
 ffmpeg-python==0.2.0
 git+https://github.com/ruizlenato/dicioinformal
 gpytranslate==1.4.0
