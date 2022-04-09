@@ -11,37 +11,17 @@ import urllib.parse
 import urllib.request
 import rapidjson as json
 
+from typing import Union
+
+from smudge.database import set_last_user, get_last_user, del_last_user
 from smudge.config import LASTFM_API_KEY
 from smudge.plugins import tld
-from smudge.database.core import users
 from smudge.utils import http
 
 from pyrogram.helpers import ikb
 from pyrogram import Client, filters
-from pyrogram.errors import UserNotParticipant
-from pyrogram.types import Message, CallbackQuery
-
-from tortoise.exceptions import IntegrityError, DoesNotExist
-
-
-async def set_last_user(user_id: int, lastfm_username: str):
-    await users.update_or_create(id=user_id)
-    await users.filter(id=user_id).update(lastfm_username=lastfm_username)
-    return
-
-
-async def get_last_user(user_id: int):
-    try:
-        return (await users.get(id=user_id)).lastfm_username
-    except DoesNotExist:
-        return None
-
-
-async def del_last_user(chat_id: int, lastfm_username: str):
-    try:
-        return await users.filter(id=chat_id, lastfm_username=lastfm_username).delete()
-    except DoesNotExist:
-        return False
+from pyrogram.errors import UserNotParticipant, BadRequest
+from pyrogram.types import Message, CallbackQuery, InputMediaPhoto
 
 
 @Client.on_message(filters.command(["clearuser", "deluser"]))
@@ -317,6 +297,161 @@ async def artist(c: Client, m: Message):
     await m.reply(rep)
 
 
+@Client.on_message(filters.command(["collage"], prefixes="/"))
+@Client.on_callback_query(filters.regex("^(_(collage))"))
+async def collage(c: Client, m: Union[Message, CallbackQuery]):
+    url = "https://lastcollage.io/"
+    if isinstance(m, CallbackQuery):
+        data, colNumData, rowNumData, user_id, username, style, period = m.data.split("|")
+        user_name = m.from_user.first_name
+        if m.from_user.id == int(user_id):
+            pass
+        else:
+            await m.answer("🚫")
+            return
+
+        if "plus" in data:
+            if int(colNumData) < 20:
+                colNum = int(colNumData) + 1
+            else:
+                colNum = colNumData
+
+            if int(rowNumData) < 20:
+                rowNum = int(rowNumData) + 1
+            else:
+                rowNum = rowNumData
+        else:
+            if int(colNumData) > 1:
+                colNum = int(colNumData) - 1
+            else:
+                colNum = colNumData
+
+            if int(rowNumData) > 1:
+                rowNum = int(rowNumData) - 1
+            else:
+                rowNum = rowNumData
+        
+        if int(rowNum) and int(colNum) < 1:
+            return m.answer("🚫")
+    else:
+        user_id = m.from_user.id
+        user_name = m.from_user.first_name
+        username = await get_last_user(user_id)
+        if len(m.command) > 1:
+            args = m.text.split(None, 1)[1]
+            if re.search("[A-a]rt", args):
+                style = "artists"
+            elif re.search("[A-a]lb", args):
+                style = "albums"
+            elif re.search("[M-m]us|[T-t]ra|[S-s]ongs", args):
+                style = "tracks"
+            else:
+                style = "artists"
+
+            try:
+                args = args.lower()
+                x = re.search("(\d+d)", args)
+                y = re.search("(\d+m|\d+y)", args)
+                z = re.search("(overall)", args)
+                if x:
+                    uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
+                    if uwu in "1m":
+                        period = f"{uwu}ounth"
+                    else:
+                        period = f"{uwu}ay"
+                    if uwu not in ["1m", "7d", "9d", "3d"]:
+                        period = f"1month"
+                elif y:
+                    uwu = str(y.group(1)).replace("1y", "12m")
+                    period = f"{uwu}onth"
+                    if uwu not in ["1y", "1m", "3m", "6m", "12m"]:
+                        period = f"1month"
+                elif z:
+                    period = f"overall"
+                else:
+                    period = "1month"
+            except UnboundLocalError:
+                return
+
+            try:
+                args = args.lower()
+                x = re.search("(\d+)x(\d+)", args)
+                if x:
+                    colNum = x.group(1)
+                    rowNum = x.group(2)
+                else:
+                    colNum = "3"
+                    rowNum = "3"
+            except UnboundLocalError:
+                return
+        else:
+            await m.reply_text(await tld(m, "LastFM.collage_noargs"))
+            return
+
+    if not username:
+        await m.reply_text(await tld(m, "LastFM.no_username"))
+        return
+
+    my_headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0",
+        "Content-Type": "application/json;charset=utf-8",
+        "Origin": "https://lastcollage.io",
+        "Referer": "https://lastcollage.io/load",
+    }
+    data = {
+        "username": username,
+        "type": style,
+        "period": period,
+        "colNum": colNum,
+        "rowNum": rowNum,
+        "showName": "true",
+        "hideMissing": "false",
+    }
+    try:
+        resp = await http.post(f"{url}api/collage", headers=my_headers, json=data)
+        tCols = resp.json().get("cols")
+        tRows = resp.json().get("rows")
+    except httpx.NetworkError:
+        return None
+
+    keyboard = ikb(
+        [
+            [
+                (
+                    f"➕",
+                    f"_collage.plus|{colNum}|{rowNum}|{user_id}|{username}|{style}|{period}",
+                ),
+                (
+                    f"➖",
+                    f"_collage.minus|{colNum}|{rowNum}|{user_id}|{username}|{style}|{period}",
+                ),
+            ],
+        ]
+    )
+    caption = (await tld(m, "LastFM.collage_caption")).format(username, user_name, period, tCols, tRows, style)
+    
+    filename = f"%s%s.png" % (user_id, username)
+    urllib.request.urlretrieve(f'{url}{resp.json().get("downloadPath")}', filename)     
+    if isinstance(m, CallbackQuery):
+        try:
+            await m.edit_message_media(
+                InputMediaPhoto(
+                    filename,
+                    caption=caption),
+                reply_markup=keyboard,
+            )
+        except (UnboundLocalError, BadRequest):
+            await m.answer("🚫")
+
+    else:
+        await m.reply_photo(
+            photo=filename,
+            caption=caption,
+            reply_markup=keyboard
+        )
+    await asyncio.sleep(0.2)
+    os.remove(filename)
+
 @Client.on_message(filters.command(["duotone"], prefixes="/"))
 async def duotone(c: Client, m: Message):
     user_id = m.from_user.id
@@ -364,108 +499,113 @@ async def duotone(c: Client, m: Message):
     except UnboundLocalError:
         return
 
-    keyboard = [
+    keyboard = ikb(
         [
-            (
-                f"🟣+🟦",
-                f"_duton.divergent|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"⬛️+🔴",
-                f"_duton.horror|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"🟢+🟩",
-                f"_duton.natural|{top}|{period}|{user_id}|{username}",
-            ),
-        ],
-        [
-            (
-                f"🟨+🔴",
-                f"_duton.sun|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"⚫️+🟨",
-                f"_duton.yellish|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"🔵+🟦",
-                f"_duton.sea|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"🟣+🟪",
-                f"_duton.purplish|{top}|{period}|{user_id}|{username}",
-            ),
-        ],
-    ]
-
-    await m.reply_text(
-        await tld(m, "LastFM.dualtone_choose"), reply_markup=ikb(keyboard)
+            [
+                (
+                    f"🟣+🟦",
+                    f"_duton.divergent|{top}|{period}|{user_id}|{username}",
+                ),
+                (
+                    f"⬛️+🔴",
+                    f"_duton.horror|{top}|{period}|{user_id}|{username}",
+                ),
+                (
+                    f"🟢+🟩",
+                    f"_duton.natural|{top}|{period}|{user_id}|{username}",
+                ),
+            ],
+            [
+                (
+                    f"🟨+🔴",
+                    f"_duton.sun|{top}|{period}|{user_id}|{username}",
+                ),
+                (
+                    f"⚫️+🟨",
+                    f"_duton.yellish|{top}|{period}|{user_id}|{username}",
+                ),
+                (
+                    f"🔵+🟦",
+                    f"_duton.sea|{top}|{period}|{user_id}|{username}",
+                ),
+                (
+                    f"🟣+🟪",
+                    f"_duton.purplish|{top}|{period}|{user_id}|{username}",
+                ),
+            ],
+        ]
     )
+
+    await m.reply_text(await tld(m, "LastFM.dualtone_choose"), reply_markup=keyboard)
 
 
 @Client.on_callback_query(filters.regex("^(_duton)"))
 async def create_duotone(c: Client, cq: CallbackQuery):
     color, top, period, user_id, username = cq.data.split("|")
-    period_tld_num = re.sub("[A-z]", "", period)
-    tld_string = re.sub("[0-9]", "", period)
-    url = "https://generator.musicorumapp.com/generate"
-    my_headers = {
-        "Content-Type": "application/json",
-    }
-    color = re.sub(r"^\_(duton)\.", "", color)
-    data = {
-        "theme": "duotone",
-        "options": {
-            "user": username,
-            "top": top,
-            "pallete": color,
-            "period": period,
-            "names": "true",
-            "playcount": True,
-            "story": False,
-            "messages": {
-                "scrobbles": [
-                    "scrobbles",
-                    (await tld(cq, f"LastFM.dualtone_{tld_string}")).format(
+    if cq.from_user.id == int(user_id):
+        period_tld_num = re.sub("[A-z]", "", period)
+        tld_string = re.sub("[0-9]", "", period)
+        url = "https://generator.musicorumapp.com/generate"
+        my_headers = {
+            "Content-Type": "application/json",
+        }
+        color = re.sub(r"^\_(duton)\.", "", color)
+        data = {
+            "theme": "duotone",
+            "options": {
+                "user": username,
+                "top": top,
+                "pallete": color,
+                "period": period,
+                "names": "true",
+                "playcount": True,
+                "story": False,
+                "messages": {
+                    "scrobbles": [
+                        "scrobbles",
+                        (await tld(cq, f"LastFM.dualtone_{tld_string}")).format(
+                            period_tld_num
+                        ),
+                    ],
+                    "subtitle": (await tld(cq, f"LastFM.dualtone_{tld_string}")).format(
                         period_tld_num
                     ),
-                ],
-                "subtitle": (await tld(cq, f"LastFM.dualtone_{tld_string}")).format(
-                    period_tld_num
-                ),
-                "title": (await tld(cq, f"LastFM.dualtone_{top}")),
+                    "title": (await tld(cq, f"LastFM.dualtone_{top}")),
+                },
             },
-        },
-        "source": "web",
-    }
-    try:
-        resp = await http.post(url, headers=my_headers, json=data)
-        resp = resp.json()
-        data = (
-            str(resp["base64"])
-            .replace(" ", "+")
-            .replace("data:image/jpeg;base64,", "")
-            .replace("'}", "")
-            .replace("'{", "")
-        )
-        imgdata = base64.b64decode(data)
-
-        filename = f"({top})%s%s.png" % (user_id, username)
-        with open(filename, "wb") as f:
-            f.write(imgdata)
-        with open(filename, "rb") as image:
-            keyboard = [[(f"👤 LastFM User", f"https://last.fm/user/{username}", "url")]]
-            await c.send_photo(
-                cq.message.chat.id,
-                photo=filename,
-                reply_markup=ikb(keyboard),
+            "source": "web",
+        }
+        try:
+            resp = await http.post(url, headers=my_headers, json=data)
+            resp = resp.json()
+            data = (
+                str(resp["base64"])
+                .replace(" ", "+")
+                .replace("data:image/jpeg;base64,", "")
+                .replace("'}", "")
+                .replace("'{", "")
             )
-            await cq.message.delete()
-            await asyncio.sleep(0.2)
-            os.remove(filename)
-    except httpx.NetworkError:
-        return None
+            imgdata = base64.b64decode(data)
+
+            filename = f"({top})%s%s.png" % (user_id, username)
+            with open(filename, "wb") as f:
+                f.write(imgdata)
+            with open(filename, "rb") as image:
+                keyboard = [
+                    [(f"👤 LastFM User", f"https://last.fm/user/{username}", "url")]
+                ]
+                await c.send_photo(
+                    cq.message.chat.id,
+                    photo=filename,
+                    reply_markup=ikb(keyboard),
+                )
+                await cq.message.delete()
+                await asyncio.sleep(0.2)
+                os.remove(filename)
+        except httpx.NetworkError:
+            return None
+    else:
+        await cq.answer("🚫")
 
 
 plugin_name = "LastFM.name"

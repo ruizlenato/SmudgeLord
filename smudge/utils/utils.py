@@ -12,7 +12,7 @@ from functools import wraps, partial
 from pyrogram import emoji, Client
 from smudge.config import CHAT_LOGS
 
-timeout = httpx.Timeout(20)
+timeout = httpx.Timeout(120)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
 
 

@@ -85,6 +85,8 @@ strings:
     dualtone_day: "last {} days"
     dualtone_overall: "overall"
     dualtone_choose: "<b>Choose a color scheme.</b>"
+    collage_noargs: "You forgot the arguments.\n<b>Usagge:</b> /collage (time) (type) (size)\n\n<b>Tempos:</b> overall, 7d (7 days), 1m (1 month), 3m (3 month), 6m (6 month), 12m ou 1y (12 month/1 year)\n<b>Types:</b> artists, albums, tracks\n\n<b>Example:</b><code> /collage 1w tracks 3x3 </code>"
+    collage_caption: "<a href='https://last.fm/user/{}'>{}</a>'s {} {}x{} <b>{}</b> collage"
     help: |      
       <b>/setuser or /setlast [username]</b> - Sets your last.fm username.
       <b>/clearuser or deluser -</b> Removes your last.fm username from the bot's database.

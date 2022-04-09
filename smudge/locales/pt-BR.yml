@@ -86,6 +86,8 @@ strings:
     dualtone_day: "últimos {} dias"
     dualtone_overall: "todos os tempos"
     dualtone_choose: "<b>Escolha um esquema de cores.</b>"
+    collage_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> /collage (tempo) (tipo) (tamanho)\n\n<b>Tempos:</b> overall (no total), 7d (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Exemplo:</b><code> /collage 1w artistas 3x3 </code>"
+    collage_caption: "<a href='https://last.fm/user/{}'>{}</a>'s {} {}x{} <b>{}</b> collage"
     help: |
       <b>/setuser ou /setlast [username] -</b> Configra seu username (nome de usuário) do LastFM.
       <b>/clearuser ou /deluser -</b> Apaga seu nome de usuário last.fm do banco de dados do bot.

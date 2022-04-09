@@ -282,7 +282,6 @@ def resize_image(filename: str) -> str:
 def convert_video(filename: str) -> str:
     downpath, f_name = os.path.split(filename)
     webm_video = os.path.join(downpath, f"{f_name.split('.', 1)[0]}.webm")
-    webm_video = os.path.join(downpath, f"{f_name.split('.', 1)[0]}.webm")
     stream = ffmpeg.input(filename).filter("fps", fps=30, round="up").trim(duration=3)
     stream = ffmpeg.output(
         stream, webm_video, s="512x512", vcodec="vp9", video_bitrate="500k"
