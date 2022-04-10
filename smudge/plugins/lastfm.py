@@ -302,6 +302,21 @@ async def artist(c: Client, m: Message):
 async def collage(c: Client, m: Union[Message, CallbackQuery]):
     url = "https://lastcollage.io/"
     if isinstance(m, CallbackQuery):
+        chat_type = m.message.chat.type
+    else:
+        chat_type = m.chat.type
+    if "private" in chat_type:
+        pass
+    else:
+        if m.text.split(maxsplit=1)[0] == "/collage":
+            try:
+                await m.chat.get_member(296635833)
+                return
+            except UserNotParticipant:
+                pass
+        else:
+            pass
+    if isinstance(m, CallbackQuery):
         data, colNumData, rowNumData, user_id, username, style, period = m.data.split("|")
         user_name = m.from_user.first_name
         if m.from_user.id == int(user_id):

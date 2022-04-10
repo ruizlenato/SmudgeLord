@@ -95,6 +95,9 @@ strings:
       <b>/lalbum ou /lalb -</b> Mostra o album que você está scrobblando no momento (escutando) usando o last.fm.
       <b>/lartist ou /lart -</b> Mostra o(a) artista que você está scrobblando no momento (escutando) usando o last.fm.
 
+      <b>/collage</b> - Mostra uma collage de álbuns, artistas ou músicas. Escreva /collage para ver mais informações.
+
+
       <i>Existe também o /lt que faz a mesma coisa do /lastfm 
       <b>mas se eu estiver em um grupo onde eu esteja em conflito com outro bot que tenha a mesma função eu não responderei.</b></i>
 

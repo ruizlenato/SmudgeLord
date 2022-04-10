@@ -93,6 +93,8 @@ strings:
       <b>/lastfm or /lmu -</b> Shows the song you are scrobbling on last.fm.
       <b>/lalbum or /lalb -</b> Shows the album you are scrobbling on last.fm.
       <b>/lartist or /lart -</b> Shows the artist you are scrobbling on last.fm.
+      
+      <b>/collage</b> - Displays a collage of albums, artists, or songs. Type /collage to see more information.
 
       <i>There is also /lt which does the same thing as /lastfm
       but if I am in a group where <b>I am in conflict with another bot that has the same function I will not respond.</b></i>
