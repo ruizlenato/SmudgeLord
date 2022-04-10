@@ -317,7 +317,9 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
         else:
             pass
     if isinstance(m, CallbackQuery):
-        data, colNumData, rowNumData, user_id, username, style, period = m.data.split("|")
+        data, colNumData, rowNumData, user_id, username, style, period = m.data.split(
+            "|"
+        )
         user_name = m.from_user.first_name
         if m.from_user.id == int(user_id):
             pass
@@ -345,7 +347,7 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
                 rowNum = int(rowNumData) - 1
             else:
                 rowNum = rowNumData
-        
+
         if int(rowNum) and int(colNum) < 1:
             return m.answer("🚫")
     else:
@@ -443,29 +445,26 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
             ],
         ]
     )
-    caption = (await tld(m, "LastFM.collage_caption")).format(username, user_name, period, tCols, tRows, style)
-    
+    caption = (await tld(m, "LastFM.collage_caption")).format(
+        username, user_name, period, tCols, tRows, style
+    )
+
     filename = f"%s%s.png" % (user_id, username)
-    urllib.request.urlretrieve(f'{url}{resp.json().get("downloadPath")}', filename)     
+    urllib.request.urlretrieve(f'{url}{resp.json().get("downloadPath")}', filename)
     if isinstance(m, CallbackQuery):
         try:
             await m.edit_message_media(
-                InputMediaPhoto(
-                    filename,
-                    caption=caption),
+                InputMediaPhoto(filename, caption=caption),
                 reply_markup=keyboard,
             )
         except (UnboundLocalError, BadRequest):
             await m.answer("🚫")
 
     else:
-        await m.reply_photo(
-            photo=filename,
-            caption=caption,
-            reply_markup=keyboard
-        )
+        await m.reply_photo(photo=filename, caption=caption, reply_markup=keyboard)
     await asyncio.sleep(0.2)
     os.remove(filename)
+
 
 @Client.on_message(filters.command(["duotone"], prefixes="/"))
 async def duotone(c: Client, m: Message):
