@@ -86,17 +86,20 @@ strings:
     dualtone_day: "últimos {} dias"
     dualtone_overall: "todos os tempos"
     dualtone_choose: "<b>Escolha um esquema de cores.</b>"
-    collage_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> /collage (tempo) (tipo) (tamanho)\n\n<b>Tempos:</b> overall (no total), 7d (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Exemplo:</b><code> /collage 1w artistas 3x3 </code>"
+    dualtone_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> {command} (período de tempo) (tempo) \n\n<b>Períodos de tempo:</b> overall (no total), 7d (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Example:</b><code> {command} 1w musicas </code>"
+    collage_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> /collage (período de tempo) (tipo) (tamanho)\n\n<b>Períodos de tempo:</b> overall (no total), 7d (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Exemplo:</b><code> /collage 1w artistas 3x3 </code>"
     collage_caption: "<a href='https://last.fm/user/{}'>{}</a>'s {} {}x{} <b>{}</b> collage"
     help: |
-      <b>/setuser ou /setlast [username] -</b> Configra seu username (nome de usuário) do LastFM.
-      <b>/clearuser ou /deluser -</b> Apaga seu nome de usuário last.fm do banco de dados do bot.
-      <b>/lastfm ou /lmu -</b> Mostra a música que você está scrobblando no momento (escutando) usando o last.fm.
-      <b>/lalbum ou /lalb -</b> Mostra o album que você está scrobblando no momento (escutando) usando o last.fm.
-      <b>/lartist ou /lart -</b> Mostra o(a) artista que você está scrobblando no momento (escutando) usando o last.fm.
+      <b>/setuser</b> | <b>/setlast [username] -</b> Configra seu username (nome de usuário) do LastFM.
+      <b>/clearuser</b> | <b>/deluser -</b> Apaga seu nome de usuário last.fm do banco de dados do bot.
+      <b>/lastfm</b> | <b>/lmu -</b> Mostra a música que você está scrobblando no momento (escutando) usando o last.fm.
+      <b>/lalbum</b> | <b>/lalb -</b> Mostra o album que você está scrobblando no momento (escutando) usando o last.fm.
+      <b>/lartist</b> | <b>/lart -</b> Mostra o(a) artista que você está scrobblando no momento (escutando) usando o last.fm.
 
-      <b>/collage</b> - Mostra uma collage de álbuns, artistas ou músicas. Escreva /collage para ver mais informações.
-
+      <b>/collage</b> - Mostra uma collage de álbuns, artistas ou músicas.
+      • <i>Escreva /collage para ver mais informações.</i>
+      <b>/dualtone</b> | <b>/duotone</b> - Mostra uma lista de artistas, álbuns ou músicas mais ouvidas em uma imagem "colorida".
+      • <i>Escreva /dualtone para ver mais informações.</i>
 
       <i>Existe também o /lt que faz a mesma coisa do /lastfm 
       <b>mas se eu estiver em um grupo onde eu esteja em conflito com outro bot que tenha a mesma função eu não responderei.</b></i>

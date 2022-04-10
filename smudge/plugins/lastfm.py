@@ -402,12 +402,10 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
             except UnboundLocalError:
                 return
         else:
-            await m.reply_text(await tld(m, "LastFM.collage_noargs"))
-            return
+            return await m.reply_text(await tld(m, "LastFM.collage_noargs"))
 
     if not username:
-        await m.reply_text(await tld(m, "LastFM.no_username"))
-        return
+        return await m.reply_text(await tld(m, "LastFM.no_username"))
 
     my_headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0",
@@ -466,7 +464,8 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
     os.remove(filename)
 
 
-@Client.on_message(filters.command(["duotone"], prefixes="/"))
+@Client.on_message(filters.command(["duotone", "dualtone"], prefixes="/"))
+
 async def duotone(c: Client, m: Message):
     user_id = m.from_user.id
     username = await get_last_user(user_id)
@@ -484,34 +483,37 @@ async def duotone(c: Client, m: Message):
         elif re.search("[M-m]us|[T-t]ra", args):
             top = "tracks"
         else:
+            top = "albums"
+        try:
+            args = args.lower()
+            x = re.search("(\d+d)", args)
+            y = re.search("(\d+m|\d+y)", args)
+            z = re.search("(overall)", args)
+            if x:
+                uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
+                if uwu in "1m":
+                    period = f"{uwu}ounth"
+                else:
+                    period = f"{uwu}ay"
+                if uwu not in ["1m", "7d", "9d", "3d"]:
+                    period = f"1month"
+            elif y:
+                uwu = str(y.group(1)).replace("1y", "12m")
+                period = f"{uwu}onth"
+                if uwu not in ["1y", "1m", "3m", "12m"]:
+                    period = f"1month"
+            elif z:
+                period = f"overall"
+            else:
+                period = "1month"
+        except UnboundLocalError:
             return
     else:
-        top = "albums"
-
-    try:
-        args = args.lower()
-        x = re.search("(\d+d)", args)
-        y = re.search("(\d+m|\d+y)", args)
-        z = re.search("(overall)", args)
-        if x:
-            uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
-            if uwu in "1m":
-                period = f"{uwu}ounth"
-            else:
-                period = f"{uwu}ay"
-            if uwu not in ["1m", "7d", "9d", "3d"]:
-                period = f"1month"
-        elif y:
-            uwu = str(y.group(1)).replace("1y", "12m")
-            period = f"{uwu}onth"
-            if uwu not in ["1y", "1m", "3m", "12m"]:
-                period = f"1month"
-        elif z:
-            period = f"overall"
-        else:
-            period = "1month"
-    except UnboundLocalError:
-        return
+        return await m.reply_text(
+            (await tld(m, "LastFM.dualtone_noargs")).format(
+                command=m.text.split(None, 1)[0]
+            )
+        )
 
     keyboard = ikb(
         [
@@ -555,6 +557,7 @@ async def duotone(c: Client, m: Message):
 
 @Client.on_callback_query(filters.regex("^(_duton)"))
 async def create_duotone(c: Client, cq: CallbackQuery):
+    await cq.edit_message_text("Loading...")
     color, top, period, user_id, username = cq.data.split("|")
     if cq.from_user.id == int(user_id):
         period_tld_num = re.sub("[A-z]", "", period)
