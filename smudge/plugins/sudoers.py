@@ -4,13 +4,15 @@
 import os
 import io
 import sys
+import html
+import traceback
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
 from contextlib import redirect_stdout
 
-from smudge.database import groups
+from smudge.database import groups, users, lang
 from smudge.config import SUDOERS
 
 

@@ -123,9 +123,7 @@ async def lastfm(c: Client, m: Message):
     except KeyError:
         scrobbles = "none"
 
-    if image:
-        rep = f"<a href='{image}'>\u200c</a>"
-
+    rep = f"<a href='{image}'>\u200c</a>"
     if first_track.get("@attr"):
         if scrobbles == "none":
             rep += (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
@@ -198,8 +196,7 @@ async def album(c: Client, m: Message):
     else:
         scrobbles = int(last_user.get("userplaycount"))
 
-    if image:
-        rep = f"<a href='{image}'>\u200c</a>"
+    rep = f"<a href='{image}'>\u200c</a>"
 
     if first_track.get("@attr"):
         if scrobbles == "none":
@@ -270,8 +267,7 @@ async def artist(c: Client, m: Message):
     else:
         scrobbles = int(last_user.get("userplaycount"))
 
-    if image:
-        rep = f"<a href='{image}'>\u200c</a>"
+    rep = f"<a href='{image}'>\u200c</a>"
 
     if first_track.get("@attr"):
         if scrobbles == "none":
