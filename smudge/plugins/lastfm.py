@@ -223,6 +223,7 @@ async def album(c: Client, m: Message):
 
     await m.reply(rep)
 
+
 @Client.on_message(filters.command(["lartist", "lart", "artist"], prefixes="/"))
 async def artist(c: Client, m: Message):
     if m.chat.type == "private":
