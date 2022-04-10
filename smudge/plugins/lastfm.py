@@ -223,7 +223,6 @@ async def album(c: Client, m: Message):
 
     await m.reply(rep)
 
-
 @Client.on_message(filters.command(["lartist", "lart", "artist"], prefixes="/"))
 async def artist(c: Client, m: Message):
     if m.chat.type == "private":
@@ -458,7 +457,6 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
 
 
 @Client.on_message(filters.command(["duotone", "dualtone"], prefixes="/"))
-
 async def duotone(c: Client, m: Message):
     user_id = m.from_user.id
     username = await get_last_user(user_id)
