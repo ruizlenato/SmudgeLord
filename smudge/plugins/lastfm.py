@@ -367,24 +367,19 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
 
             try:
                 args = args.lower()
-                x = re.search("(\d+d)", args)
-                y = re.search("(\d+m|\d+y)", args)
-                z = re.search("(overall)", args)
+                x = re.search("(\d+m|\d+y|\d+d|\d+w)", args)
                 if x:
-                    uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
-                    if uwu in "1m":
-                        period = f"{uwu}ounth"
+                    uwu = str(x.group(1)).replace("12m", "1y").replace("30d", "1m").replace(" ", "")
+                    print(uwu)
+                    if uwu in ["1m", "3m", "6m"]:
+                        period = f"{uwu}onth"
+                        print(period)
+                    elif uwu in ["7d", "1w"]:
+                        period = "1week"
+                    elif uwu in "1y":
+                        period = "1year"
                     else:
-                        period = f"{uwu}ay"
-                    if uwu not in ["1m", "7d", "9d", "3d"]:
-                        period = f"1month"
-                elif y:
-                    uwu = str(y.group(1)).replace("1y", "12m")
-                    period = f"{uwu}onth"
-                    if uwu not in ["1y", "1m", "3m", "6m", "12m"]:
-                        period = f"1month"
-                elif z:
-                    period = f"overall"
+                        period = f"week"
                 else:
                     period = "1month"
             except UnboundLocalError:

@@ -87,7 +87,7 @@ strings:
     dualtone_overall: "todos os tempos"
     dualtone_choose: "<b>Escolha um esquema de cores.</b>"
     dualtone_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> {command} (período de tempo) (tempo) \n\n<b>Períodos de tempo:</b> overall (no total), 7d (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Example:</b><code> {command} 1w musicas </code>"
-    collage_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> /collage (período de tempo) (tipo) (tamanho)\n\n<b>Períodos de tempo:</b> overall (no total), 7d (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Exemplo:</b><code> /collage 1w artistas 3x3 </code>"
+    collage_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> /collage (período de tempo) (tipo) (tamanho)\n\n<b>Períodos de tempo:</b> overall (no total), 7d ou 1w (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Exemplo:</b><code> /collage 1w artistas 3x3 </code>"
     collage_caption: "<a href='https://last.fm/user/{}'>{}</a>'s {} {}x{} <b>{}</b> collage"
     help: |
       <b>/setuser</b> | <b>/setlast [username] -</b> Configra seu username (nome de usuário) do LastFM.
