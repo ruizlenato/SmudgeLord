@@ -369,7 +369,12 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
                 args = args.lower()
                 x = re.search("(\d+m|\d+y|\d+d|\d+w)", args)
                 if x:
-                    uwu = str(x.group(1)).replace("12m", "1y").replace("30d", "1m").replace(" ", "")
+                    uwu = (
+                        str(x.group(1))
+                        .replace("12m", "1y")
+                        .replace("30d", "1m")
+                        .replace(" ", "")
+                    )
                     print(uwu)
                     if uwu in ["1m", "3m", "6m"]:
                         period = f"{uwu}onth"
@@ -460,7 +465,6 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
 
 
 @Client.on_message(filters.command(["duotone", "dualtone"], prefixes="/"))
-
 async def duotone(c: Client, m: Message):
     user_id = m.from_user.id
     username = await get_last_user(user_id)
