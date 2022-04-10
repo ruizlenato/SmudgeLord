@@ -41,6 +41,7 @@ async def broadcast(c: Client, m: Message):
     args = [sys.executable, "-m", "smudge"]
     os.execl(sys.executable, *args)
 
+
 @Client.on_message(filters.command("exec") & filters.user(SUDOERS))
 async def execs(c: Client, m: Message):
     strio = io.StringIO()
