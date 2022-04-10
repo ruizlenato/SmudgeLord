@@ -368,7 +368,12 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
                 args = args.lower()
                 x = re.search("(\d+m|\d+y|\d+d|\d+w)", args)
                 if x:
-                    uwu = str(x.group(1)).replace("12m", "1y").replace("30d", "1m").replace(" ", "")
+                    uwu = (
+                        str(x.group(1))
+                        .replace("12m", "1y")
+                        .replace("30d", "1m")
+                        .replace(" ", "")
+                    )
                     if uwu in ["1m", "3m", "6m"]:
                         period = f"{uwu}onth"
                     elif uwu in ["7d", "1w"]:
