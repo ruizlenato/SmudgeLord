@@ -11,9 +11,11 @@ from smudge.utils import http
 
 async def check_spotify_token(user_id):
     try:
-        (await users.get(id=user_id)).spot_refresh_token
-        print("Token is valid")
-        return True
+        Token = (await users.get(id=user_id)).spot_refresh_token
+        if Token == None:
+            return False
+        else:
+            return True
     except DoesNotExist:
         return False
 
@@ -89,8 +91,23 @@ async def get_last_user(user_id: int):
         return None
 
 
-async def del_last_user(chat_id: int, lastfm_username: str):
+async def del_last_user(user_id: int, lastfm_username: str):
     try:
-        return await users.filter(id=chat_id, lastfm_username=lastfm_username).delete()
+        await users.filter(id=user_id, lastfm_username=lastfm_username).delete()
+        await users.update_or_create(id=user_id)
+        return
+    except DoesNotExist:
+        return False
+
+
+async def unreg_spot(user_id: int):
+    try:
+        refresh = (await users.get(id=user_id)).spot_refresh_token
+        acess = (await users.get(id=user_id)).spot_access_token
+        await users.filter(
+            id=user_id, spot_access_token=acess, spot_refresh_token=refresh
+        ).delete()
+        await users.update_or_create(id=user_id)
+        return
     except DoesNotExist:
         return False

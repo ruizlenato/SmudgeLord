@@ -84,6 +84,8 @@ strings:
     spitify_no_login: "Você precisa logar na sua conta do Spotify para usar esse comando.\n<b>Para fazer login, clque no botão abaixo.</b>"
     spotify_login_done: "Pronto, agora a sua conta do Spotify está conectada comigo."
     spotify_already_logged: "Você já conectou a sua conta do Spotify comigo\n<b>Use o comando</b> /spoti <b>sem argumentos.</b>"
+    spotify_cleaned: "Sua conta do Spotify foi desconectada com sucesso."
+    spotify_noclean: "Você não conectou sua conta do Spotify comigo, então não posso fazer nada."
     dualtone_albums: "ÁLBUNS MAIS OUVIDOS"
     dualtone_artists: "ARTISTAS MAIS OUVIDOS"
     dualtone_tracks: "MÚSICAS MAIS OUVIDAS"

@@ -13,7 +13,6 @@ import rapidjson as json
 
 from typing import Union
 
-from smudge.database import set_last_user, get_last_user, del_last_user
 from smudge.config import LASTFM_API_KEY
 from smudge.plugins import tld
 from smudge.utils import http
@@ -22,6 +21,10 @@ from smudge.utils.music import (
     gen_spotify_token,
     check_spotify_token,
     get_spot_user,
+    set_last_user,
+    get_last_user,
+    del_last_user,
+    unreg_spot,
 )
 
 from pyrogram.helpers import ikb
@@ -38,7 +41,7 @@ login_url = (
 
 
 @Client.on_message(filters.command(["spoti"]))
-async def spotireg(c: Client, m: Message):
+async def spoti(c: Client, m: Message):
     user_id = m.from_user.id
     user = m.from_user.first_name
     tx = m.text.split(" ", 1)
@@ -75,6 +78,21 @@ async def spotireg(c: Client, m: Message):
                 )
             rep += f"<b>{spotify_json['item']['artists'][0]['name']}</b> - {spotify_json['item']['name']}"
             return await m.reply_text(rep)
+
+
+@Client.on_message(filters.command(["unreg", "unregister"]))
+async def unreg(c: Client, m: Message):
+    user_id = m.from_user.id
+    spot_user = await get_spot_user(user_id)
+    if not spot_user:
+        await m.reply_text(await tld(m, "Music.spotify_noclean"))
+        return
+    else:
+        await unreg_spot(user_id)
+        await m.reply_text(
+            (await tld(m, "Music.spotify_cleaned")), disable_web_page_preview=True
+        )
+        return
 
 
 @Client.on_message(filters.command(["clearuser", "deluser"]))
