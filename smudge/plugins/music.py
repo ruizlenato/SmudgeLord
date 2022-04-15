@@ -56,7 +56,7 @@ async def spoti(c: Client, m: Message):
                 profile = sp.current_user()
                 await m.reply_text(await tld(m, "Music.spotify_login_done"))
             else:
-                await m.reply_text("LOGIN ERROR")
+                await m.reply_text(await tld(m, "Music.spotify_login_failed"))
     else:
         usr = await get_spot_user(m.from_user.id)
         if not usr:
@@ -66,7 +66,10 @@ async def spoti(c: Client, m: Message):
             )
         else:
             sp = await get_spoti_session(m.from_user.id)
+            if sp is False:
+                return await m.reply_text(await tld(m, "Music.spotify_login_failed"))
             spotify_json = sp.current_user_playing_track()
+            print(sp.me())
             rep = f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
             if spotify_json["is_playing"] == True:
                 rep += (await tld(m, "Music.spotify_np")).format(

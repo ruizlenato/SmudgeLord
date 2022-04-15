@@ -61,7 +61,11 @@ async def get_spoti_session(user_id):
         print("AAAAAAAAA")
         return a
     except SpotifyException:
-        new_token = await refresh_token(user_id)
+        try:
+            new_token = await refresh_token(user_id)
+        except:
+            await unreg_spot(user_id)
+            return False
         a = spotipy.Spotify(auth=new_token)
         return a
 
