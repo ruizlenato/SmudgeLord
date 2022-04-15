@@ -81,6 +81,8 @@ strings:
     spotify_np: "<b><a href='{}'>{}</a></b> is listening:\n\n"
     spotify_was_np: "<b><a href='{}'>{}</a></b> was listening:\n\n"
     spitify_no_login: "You need to be logged into your Spotify account to use this command.\n<b>To login, click the button below.</b>"
+    spotify_login_done: "Done, now your Spotify account is connected to me."
+    spotify_already_logged: "You have already connected your Spotify account with me.\n<b>Use the command </b> /spoti <b>without argarguments.</b>"
     dualtone_albums: "MOST PLAYED ALBUMS"
     dualtone_artists: "MOST PLAYED ARTISTS"
     dualtone_tracks: "MOST PLAYED SONGS"

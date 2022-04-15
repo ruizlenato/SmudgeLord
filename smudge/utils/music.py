@@ -2,9 +2,35 @@ import spotipy
 
 from spotipy.client import SpotifyException
 
-from smudge.database import get_spot_user, set_spot_user
+from tortoise.exceptions import DoesNotExist
+
+from smudge.database import users
 from smudge.config import SPOTIFY_BASIC
 from smudge.utils import http
+
+
+async def check_spotify_token(user_id):
+    try:
+        (await users.get(id=user_id)).spot_refresh_token
+        print("Token is valid")
+        return True
+    except DoesNotExist:
+        return False
+
+
+async def set_spot_user(user_id: int, access_token: int, refresh_token: int):
+    await users.update_or_create(id=user_id)
+    await users.filter(id=user_id).update(
+        spot_access_token=access_token, spot_refresh_token=refresh_token
+    )
+    return
+
+
+async def get_spot_user(user_id: int):
+    try:
+        return (await users.get(id=user_id)).spot_refresh_token
+    except DoesNotExist:
+        return None
 
 
 async def gen_spotify_token(user_id, token):
@@ -30,6 +56,7 @@ async def get_spoti_session(user_id):
     a = spotipy.Spotify(auth=usr)
     try:
         a.devices()
+        print("AAAAAAAAA")
         return a
     except SpotifyException:
         new_token = await refresh_token(user_id)

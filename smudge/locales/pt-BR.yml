@@ -82,6 +82,8 @@ strings:
     spotify_np: "<b><a href='{}'>{}</a></b> está ouvido:\n\n"
     spotify_was_np: "<b><a href='{}'>{}</a></b> estava ouvido:\n\n"
     spitify_no_login: "Você precisa logar na sua conta do Spotify para usar esse comando.\n<b>Para fazer login, clque no botão abaixo.</b>"
+    spotify_login_done: "Pronto, agora a sua conta do Spotify está conectada comigo."
+    spotify_already_logged: "Você já conectou a sua conta do Spotify comigo\n<b>Use o comando</b> /spoti <b>sem argumentos.</b>"
     dualtone_albums: "ÁLBUNS MAIS OUVIDOS"
     dualtone_artists: "ARTISTAS MAIS OUVIDOS"
     dualtone_tracks: "MÚSICAS MAIS OUVIDAS"

@@ -13,17 +13,16 @@ import rapidjson as json
 
 from typing import Union
 
-from smudge.database import (
-    set_last_user,
-    get_last_user,
-    del_last_user,
-    get_spot_user,
-    set_spot_user,
-)
+from smudge.database import set_last_user, get_last_user, del_last_user
 from smudge.config import LASTFM_API_KEY
 from smudge.plugins import tld
 from smudge.utils import http
-from smudge.utils.music import get_spoti_session, gen_spotify_token
+from smudge.utils.music import (
+    get_spoti_session,
+    gen_spotify_token,
+    check_spotify_token,
+    get_spot_user,
+)
 
 from pyrogram.helpers import ikb
 from pyrogram import Client, filters
@@ -45,12 +44,16 @@ async def spotireg(c: Client, m: Message):
     tx = m.text.split(" ", 1)
     if len(tx) == 2:
         print(tx[1])
-        get = await gen_spotify_token(user_id, tx[1])
-        if get[0]:
-            sp = await get_spoti_session(m.from_user.id)
-            profile = sp.current_user()
+        if await check_spotify_token(user_id) == True:
+            return await m.reply_text(await tld(m, "Music.spotify_already_logged"))
         else:
-            await m.reply_text("LOGIN ERROR")
+            get = await gen_spotify_token(user_id, tx[1])
+            if get[0]:
+                sp = await get_spoti_session(m.from_user.id)
+                profile = sp.current_user()
+                await m.reply_text(await tld(m, "Music.spotify_login_done"))
+            else:
+                await m.reply_text("LOGIN ERROR")
     else:
         usr = await get_spot_user(m.from_user.id)
         if not usr:
