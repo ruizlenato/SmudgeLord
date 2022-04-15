@@ -54,23 +54,3 @@ async def connect_database():
         db_url="sqlite://smudge/database/database.db", modules={"models": [__name__]}
     )
     await Tortoise.generate_schemas()
-
-
-async def set_last_user(user_id: int, lastfm_username: str):
-    await users.update_or_create(id=user_id)
-    await users.filter(id=user_id).update(lastfm_username=lastfm_username)
-    return
-
-
-async def get_last_user(user_id: int):
-    try:
-        return (await users.get(id=user_id)).lastfm_username
-    except DoesNotExist:
-        return None
-
-
-async def del_last_user(chat_id: int, lastfm_username: str):
-    try:
-        return await users.filter(id=chat_id, lastfm_username=lastfm_username).delete()
-    except DoesNotExist:
-        return False
