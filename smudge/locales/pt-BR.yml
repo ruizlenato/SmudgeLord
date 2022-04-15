@@ -65,9 +65,9 @@ strings:
       <b>/gitdel [gatilho]</b> - Deleta o repositório definido para o gatilho.
       <b>/fetch [gatilho]</b> - Retorna as releases de um repositório salvo com esse gatilho.
   
-# LastFM
-  LastFM:
-    name: "LastFM"
+# Music
+  Music:
+    name: "Music"
     username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm \n/artist - /lart\n/album - /lalb."
     username_clear: "O seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> foi apagado."
     username_nouser: "Você precisa definir um nome de usuário para usar esse comando."
@@ -79,6 +79,9 @@ strings:
     scrobble_none_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> está ouvindo:\n\n" 
     scrobble_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> estava ouvindo pela <strong>{}° vez</strong>:\n\n"
     scrobble_none_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> estava ouvindo:\n\n"
+    spotify_np: "<b><a href='{}'>{}</a></b> está ouvido:\n\n"
+    spotify_was_np: "<b><a href='{}'>{}</a></b> estava ouvido:\n\n"
+    spitify_no_login: "Você precisa logar na sua conta do Spotify para usar esse comando.\n<b>Para fazer login, clque no botão abaixo.</b>"
     dualtone_albums: "ÁLBUNS MAIS OUVIDOS"
     dualtone_artists: "ARTISTAS MAIS OUVIDOS"
     dualtone_tracks: "MÚSICAS MAIS OUVIDAS"

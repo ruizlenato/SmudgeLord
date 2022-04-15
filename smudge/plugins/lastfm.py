@@ -4,7 +4,7 @@
 import os
 import re
 import httpx
-import shutil
+import spotipy
 import base64
 import asyncio
 import urllib.parse
@@ -13,15 +13,65 @@ import rapidjson as json
 
 from typing import Union
 
-from smudge.database import set_last_user, get_last_user, del_last_user
+from smudge.database import (
+    set_last_user,
+    get_last_user,
+    del_last_user,
+    get_spot_user,
+    set_spot_user,
+)
 from smudge.config import LASTFM_API_KEY
 from smudge.plugins import tld
 from smudge.utils import http
+from smudge.utils.music import get_spoti_session, gen_spotify_token
 
 from pyrogram.helpers import ikb
 from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant, BadRequest
 from pyrogram.types import Message, CallbackQuery, InputMediaPhoto
+
+login_url = (
+    "https://accounts.spotify.com/authorize?response_type=code&"
+    + "client_id=425d9ff03621447b8d9e7add2e53f4d9&"
+    + "scope=user-read-currently-playing+user-modify-playback-state+user-read-playback-state&"
+    + "redirect_uri=https://ruizlenato.github.io/Smudge/go"
+)
+
+
+@Client.on_message(filters.command(["spoti"]))
+async def spotireg(c: Client, m: Message):
+    user_id = m.from_user.id
+    user = m.from_user.first_name
+    tx = m.text.split(" ", 1)
+    if len(tx) == 2:
+        print(tx[1])
+        get = await gen_spotify_token(user_id, tx[1])
+        if get[0]:
+            sp = await get_spoti_session(m.from_user.id)
+            profile = sp.current_user()
+        else:
+            await m.reply_text("LOGIN ERROR")
+    else:
+        usr = await get_spot_user(m.from_user.id)
+        if not usr:
+            keyboard = ikb([[("Login", login_url, "url")]])
+            await m.reply_text(
+                await tld(m, "Music.spitify_no_login"), reply_markup=keyboard
+            )
+        else:
+            sp = await get_spoti_session(m.from_user.id)
+            spotify_json = sp.current_user_playing_track()
+            rep = f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
+            if spotify_json["is_playing"] == True:
+                rep += (await tld(m, "Music.spotify_np")).format(
+                    sp.current_user()["external_urls"]["spotify"], user
+                )
+            else:
+                rep += (await tld(m, "Music.spotify_was_np")).format(
+                    sp.current_user()["external_urls"]["spotify"], user
+                )
+            rep += f"<b>{spotify_json['item']['artists'][0]['name']}</b> - {spotify_json['item']['name']}"
+            return await m.reply_text(rep)
 
 
 @Client.on_message(filters.command(["clearuser", "deluser"]))
@@ -30,12 +80,12 @@ async def clear(c: Client, m: Message):
     username = await get_last_user(user_id)
 
     if not username:
-        await m.reply_text(await tld(m, "LastFM.no_username_to_clear"))
+        await m.reply_text(await tld(m, "Music.no_username_to_clear"))
         return
     else:
         await del_last_user(user_id, username)
         await m.reply_text(
-            (await tld(m, "LastFM.username_clear")), disable_web_page_preview=True
+            (await tld(m, "Music.username_clear")), disable_web_page_preview=True
         )
         return
 
@@ -49,7 +99,7 @@ async def setuser(c: Client, m: Message):
         username = m.text.split(None, 1)[1]
     else:
         await m.reply_text(
-            (await tld(m, "LastFM.no_username_save")).format(m.text.split(None, 1)[0])
+            (await tld(m, "Music.no_username_save")).format(m.text.split(None, 1)[0])
         )
         return
 
@@ -59,11 +109,11 @@ async def setuser(c: Client, m: Message):
             f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
         )
         if not res.status_code == 200:
-            await m.reply_text((await tld(m, "LastFM.username_wrong")))
+            await m.reply_text((await tld(m, "Music.username_wrong")))
             return
         else:
             await set_last_user(user_id, username)
-            await m.reply_text((await tld(m, "LastFM.username_save")))
+            await m.reply_text((await tld(m, "Music.username_save")))
     else:
         rep = "Você esquceu do username"
         await m.reply_text(rep)
@@ -88,15 +138,18 @@ async def lastfm(c: Client, m: Message):
     username = await get_last_user(user_id)
 
     if not username:
-        await m.reply_text(await tld(m, "LastFM.no_username"))
+        await m.reply_text(await tld(m, "Music.no_username"))
         return
 
-    base_url = "http://ws.audioscrobbler.com/2.0"
     res = await http.get(
-        f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
+        "http://ws.audioscrobbler.com/2.0"
+        + "?method=user.getrecenttracks&limit=3"
+        + f"&extended=1&user={username}&api_key="
+        + f"{LASTFM_API_KEY}&format=json"
     )
+
     if not res.status_code == 200:
-        await m.reply_text((await tld(m, "LastFM.username_wrong")))
+        await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
     try:
@@ -104,15 +157,19 @@ async def lastfm(c: Client, m: Message):
     except IndexError:
         await m.reply_text("Você não parece ter scrobblado(escutado) nenhuma música...")
         return
+
     image = first_track.get("image")[3].get("#text")
     artist = first_track.get("artist").get("name")
-    artist1 = urllib.parse.quote(artist)
     song = first_track.get("name")
-    song1 = urllib.parse.quote(song)
     loved = int(first_track.get("loved"))
+
     fetch = await http.get(
-        f"{base_url}?method=track.getinfo&artist={artist1}&track={song1}&user={username}&api_key={LASTFM_API_KEY}&format=json"
+        "http://ws.audioscrobbler.com/2.0"
+        + f"?method=track.getinfo&artist={urllib.parse.quote(artist)}"
+        + f"&track={urllib.parse.quote(song)}&user={username}"
+        + f"&api_key={LASTFM_API_KEY}&format=json"
     )
+
     try:
         info = json.loads(fetch.content)
         last_user = info["track"]
@@ -126,16 +183,14 @@ async def lastfm(c: Client, m: Message):
     rep = f"<a href='{image}'>\u200c</a>"
     if first_track.get("@attr"):
         if scrobbles == "none":
-            rep += (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
+            rep += (await tld(m, "Music.scrobble_none_is")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_is")).format(
-                username, user, scrobbles
-            )
+            rep += (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
     else:
         if scrobbles == "none":
-            rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
+            rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_was")).format(
+            rep += (await tld(m, "Music.scrobble_was")).format(
                 username, user, scrobbles
             )
 
@@ -164,15 +219,17 @@ async def album(c: Client, m: Message):
     username = await get_last_user(m.from_user.id)
 
     if not username:
-        await m.reply_text(await tld(m, "LastFM.no_username"))
+        await m.reply_text(await tld(m, "Music.no_username"))
         return
 
-    base_url = "http://ws.audioscrobbler.com/2.0"
     res = await http.get(
-        f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
+        "http://ws.audioscrobbler.com/2.0"
+        + "?method=user.getrecenttracks&limit=3"
+        + f"&extended=1&user={username}&api_key="
+        + f"{LASTFM_API_KEY}&format=json"
     )
     if not res.status_code == 200:
-        await m.reply_text((await tld(m, "LastFM.username_wrong")))
+        await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
     try:
@@ -182,13 +239,15 @@ async def album(c: Client, m: Message):
         return
     image = first_track.get("image")[3].get("#text")
     artist = first_track.get("artist").get("name")
-    artist1 = urllib.parse.quote(artist)
     album = first_track.get("album").get("#text")
-    album1 = urllib.parse.quote(album)
     loved = int(first_track.get("loved"))
     fetch = await http.get(
-        f"{base_url}?method=album.getinfo&api_key={LASTFM_API_KEY}&artist={artist1}&album={album1}&user={username}&format=json"
+        "http://ws.audioscrobbler.com/2.0"
+        + f"?method=album.getinfo&artist={urllib.parse.quote(artist)}"
+        + f"&album={urllib.parse.quote(album)}&user={username}"
+        + f"&api_key={LASTFM_API_KEY}&format=json"
     )
+
     info = json.loads(fetch.content)
     last_user = info["album"]
     if int(last_user.get("userplaycount")) == 0:
@@ -200,16 +259,14 @@ async def album(c: Client, m: Message):
 
     if first_track.get("@attr"):
         if scrobbles == "none":
-            rep += (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
+            rep += (await tld(m, "Music.scrobble_none_is")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_is")).format(
-                username, user, scrobbles
-            )
+            rep += (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
     else:
         if scrobbles == "none":
-            rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
+            rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_was")).format(
+            rep += (await tld(m, "Music.scrobble_was")).format(
                 username, user, scrobbles
             )
 
@@ -238,15 +295,17 @@ async def artist(c: Client, m: Message):
     username = await get_last_user(m.from_user.id)
 
     if not username:
-        await m.reply_text(await tld(m, "LastFM.no_username"))
+        await m.reply_text(await tld(m, "Music.no_username"))
         return
 
-    base_url = "http://ws.audioscrobbler.com/2.0"
     res = await http.get(
-        f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
+        "http://ws.audioscrobbler.com/2.0"
+        + "?method=user.getrecenttracks&limit=3"
+        + f"&extended=1&user={username}&api_key="
+        + f"{LASTFM_API_KEY}&format=json"
     )
     if not res.status_code == 200:
-        await m.reply_text((await tld(m, "LastFM.username_wrong")))
+        await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
     try:
@@ -256,10 +315,11 @@ async def artist(c: Client, m: Message):
         return
     image = first_track.get("image")[3].get("#text")
     artist = first_track.get("artist").get("name")
-    artist1 = urllib.parse.quote(artist)
     loved = int(first_track.get("loved"))
     fetch = await http.get(
-        f"{base_url}?method=artist.getinfo&artist={artist1}&autocorrect=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
+        "http://ws.audioscrobbler.com/2.0"
+        + f"?method=artist.getinfo&artist={urllib.parse.quote(artist)}"
+        + f"&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
     info = json.loads(fetch.content)
     last_user = info["artist"]["stats"]
@@ -272,16 +332,14 @@ async def artist(c: Client, m: Message):
 
     if first_track.get("@attr"):
         if scrobbles == "none":
-            rep += (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
+            rep += (await tld(m, "Music.scrobble_none_is")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_is")).format(
-                username, user, scrobbles
-            )
+            rep += (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
     else:
         if scrobbles == "none":
-            rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
+            rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
         else:
-            rep += (await tld(m, "LastFM.scrobble_was")).format(
+            rep += (await tld(m, "Music.scrobble_was")).format(
                 username, user, scrobbles
             )
 
@@ -396,10 +454,10 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
             except UnboundLocalError:
                 return
         else:
-            return await m.reply_text(await tld(m, "LastFM.collage_noargs"))
+            return await m.reply_text(await tld(m, "Music.collage_noargs"))
 
     if not username:
-        return await m.reply_text(await tld(m, "LastFM.no_username"))
+        return await m.reply_text(await tld(m, "Music.no_username"))
 
     my_headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0",
@@ -437,7 +495,7 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
             ],
         ]
     )
-    caption = (await tld(m, "LastFM.collage_caption")).format(
+    caption = (await tld(m, "Music.collage_caption")).format(
         username, user_name, period, tCols, tRows, style
     )
 
@@ -464,7 +522,7 @@ async def duotone(c: Client, m: Message):
     username = await get_last_user(user_id)
 
     if not username:
-        await m.reply_text(await tld(m, "LastFM.no_username"))
+        await m.reply_text(await tld(m, "Music.no_username"))
         return
 
     if len(m.command) > 1:
@@ -503,7 +561,7 @@ async def duotone(c: Client, m: Message):
             return
     else:
         return await m.reply_text(
-            (await tld(m, "LastFM.dualtone_noargs")).format(
+            (await tld(m, "Music.dualtone_noargs")).format(
                 command=m.text.split(None, 1)[0]
             )
         )
@@ -545,7 +603,7 @@ async def duotone(c: Client, m: Message):
         ]
     )
 
-    await m.reply_text(await tld(m, "LastFM.dualtone_choose"), reply_markup=keyboard)
+    await m.reply_text(await tld(m, "Music.dualtone_choose"), reply_markup=keyboard)
 
 
 @Client.on_callback_query(filters.regex("^(_duton)"))
@@ -573,14 +631,14 @@ async def create_duotone(c: Client, cq: CallbackQuery):
                 "messages": {
                     "scrobbles": [
                         "scrobbles",
-                        (await tld(cq, f"LastFM.dualtone_{tld_string}")).format(
+                        (await tld(cq, f"Music.dualtone_{tld_string}")).format(
                             period_tld_num
                         ),
                     ],
-                    "subtitle": (await tld(cq, f"LastFM.dualtone_{tld_string}")).format(
+                    "subtitle": (await tld(cq, f"Music.dualtone_{tld_string}")).format(
                         period_tld_num
                     ),
-                    "title": (await tld(cq, f"LastFM.dualtone_{top}")),
+                    "title": (await tld(cq, f"Music.dualtone_{top}")),
                 },
             },
             "source": "web",
@@ -618,5 +676,5 @@ async def create_duotone(c: Client, cq: CallbackQuery):
         await cq.answer("🚫")
 
 
-plugin_name = "LastFM.name"
-plugin_help = "LastFM.help"
+plugin_name = "Music.name"
+plugin_help = "Music.help"

@@ -65,9 +65,9 @@ strings:
       <b>/gitdel [name] -</b> Delete repository.
       <b>/fetch [name] -</b> Fetch saved repository, you can also use !(name)
 
-# LastFM
-  LastFM:
-    name: "LastFM"
+# Music
+  Music:
+    name: "Music"
     username_save: Done, you can use /lastfm now
     username_deleted: "Your <b><a href='https://last.fm/'>LastFM</a></b> username has been successfully deleted."
     no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
@@ -78,6 +78,9 @@ strings:
     scrobble_none_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> is listening:\n\n"
     scrobble_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening for the <strong>{}° time</strong>:\n\n"
     scrobble_none_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening:\n\n"
+    spotify_np: "<b><a href='{}'>{}</a></b> is listening:\n\n"
+    spotify_was_np: "<b><a href='{}'>{}</a></b> was listening:\n\n"
+    spitify_no_login: "You need to be logged into your Spotify account to use this command.\n<b>To login, click the button below.</b>"
     dualtone_albums: "MOST PLAYED ALBUMS"
     dualtone_artists: "MOST PLAYED ARTISTS"
     dualtone_tracks: "MOST PLAYED SONGS"

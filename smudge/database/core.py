@@ -9,6 +9,8 @@ from tortoise.exceptions import DoesNotExist, IntegrityError
 class users(Model):
     id = fields.IntField(pk=True)
     lastfm_username = fields.TextField(null=True)
+    spot_access_token = fields.TextField(null=True)
+    spot_refresh_token = fields.TextField(null=True)
 
 
 class groups(Model):
@@ -72,3 +74,18 @@ async def del_last_user(chat_id: int, lastfm_username: str):
         return await users.filter(id=chat_id, lastfm_username=lastfm_username).delete()
     except DoesNotExist:
         return False
+
+
+async def get_spot_user(user_id: int):
+    try:
+        return (await users.get(id=user_id)).spot_refresh_token
+    except DoesNotExist:
+        return None
+
+
+async def set_spot_user(user_id: int, access_token: int, refresh_token: int):
+    await users.update_or_create(id=user_id)
+    await users.filter(id=user_id).update(
+        spot_access_token=access_token, spot_refresh_token=refresh_token
+    )
+    return
