@@ -40,7 +40,7 @@ login_url = (
 )
 
 
-@Client.on_message(filters.command(["spoti"]))
+@Client.on_message(filters.command(["spoti", "spo"]))
 async def spoti(c: Client, m: Message):
     user_id = m.from_user.id
     user = m.from_user.first_name
