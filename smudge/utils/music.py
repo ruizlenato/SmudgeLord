@@ -58,7 +58,6 @@ async def get_spoti_session(user_id):
     a = spotipy.Spotify(auth=usr)
     try:
         a.devices()
-        print("AAAAAAAAA")
         return a
     except SpotifyException:
         try:

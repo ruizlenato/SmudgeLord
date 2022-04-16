@@ -42,6 +42,19 @@ login_url = (
 
 @Client.on_message(filters.command(["spoti", "spo"]))
 async def spoti(c: Client, m: Message):
+    if m.chat.type == "private":
+        pass
+    else:
+        if m.text.split(maxsplit=1)[0] == "/spo":
+            try:
+                await m.chat.get_member(
+                    796461943
+                )  # To avoid conflict with @lyricspybot
+                return
+            except UserNotParticipant:
+                pass
+        else:
+            pass
     user_id = m.from_user.id
     user = m.from_user.first_name
     tx = m.text.split(" ", 1)
@@ -69,7 +82,6 @@ async def spoti(c: Client, m: Message):
             if sp is False:
                 return await m.reply_text(await tld(m, "Music.spotify_login_failed"))
             spotify_json = sp.current_user_playing_track()
-            print(sp.me())
             rep = f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
             if spotify_json["is_playing"] == True:
                 rep += (await tld(m, "Music.spotify_np")).format(
@@ -81,6 +93,37 @@ async def spoti(c: Client, m: Message):
                 )
             rep += f"<b>{spotify_json['item']['artists'][0]['name']}</b> - {spotify_json['item']['name']}"
             return await m.reply_text(rep)
+
+
+@Client.on_message(filters.command(["spotf"]))
+async def spoti(c: Client, m: Message):
+    user_id = m.from_user.id
+    usr = await get_spot_user(m.from_user.id)
+    if not usr:
+        keyboard = ikb([[("Login", login_url, "url")]])
+        return await m.reply_text(
+            await tld(m, "Music.spitify_no_login"), reply_markup=keyboard
+        )
+    else:
+        sp = await get_spoti_session(m.from_user.id)
+        spotify_json = sp.current_user_playing_track()
+        rep = (
+            f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
+        )
+        rep += f"<b>{spotify_json['item']['name']}</b>\n<b>Artist:</b> {spotify_json['item']['artists'][0]['name']}\n"
+        rep += f"<b>Release Date:</b> {spotify_json['item']['album']['release_date']}"
+        keyboard = ikb(
+            [
+                [
+                    (
+                        "Spotify Link",
+                        f"{spotify_json['item']['external_urls']['spotify']}",
+                        "url",
+                    )
+                ]
+            ]
+        )
+        await m.reply_text(rep, reply_markup=keyboard)
 
 
 @Client.on_message(filters.command(["unreg", "unregister"]))
@@ -151,7 +194,9 @@ async def lastfm(c: Client, m: Message):
     else:
         if m.text.split(maxsplit=1)[0] == "/lt":
             try:
-                await m.chat.get_member(1993314727)
+                await m.chat.get_member(
+                    1993314727
+                )  # To avoid conflict with @MyScrobblesbot
                 return
             except UserNotParticipant:
                 pass
@@ -231,9 +276,11 @@ async def album(c: Client, m: Message):
     if m.chat.type == "private":
         pass
     else:
-        if m.text.split(maxsplit=1)[0] == "/lt":
+        if m.text.split(maxsplit=1)[0] == "/album":
             try:
-                await m.chat.get_member(1993314727)
+                await m.chat.get_member(
+                    1993314727
+                )  # To avoid conflict with @MyScrobblesbot
                 return
             except UserNotParticipant:
                 pass
@@ -307,9 +354,11 @@ async def artist(c: Client, m: Message):
     if m.chat.type == "private":
         pass
     else:
-        if m.text.split(maxsplit=1)[0] == "/lt":
+        if m.text.split(maxsplit=1)[0] == "artist":
             try:
-                await m.chat.get_member(1993314727)
+                await m.chat.get_member(
+                    1993314727
+                )  # To avoid conflict with @MyScrobblesbot
                 return
             except UserNotParticipant:
                 pass
@@ -388,7 +437,9 @@ async def collage(c: Client, m: Union[Message, CallbackQuery]):
     else:
         if m.text.split(maxsplit=1)[0] == "/collage":
             try:
-                await m.chat.get_member(296635833)
+                await m.chat.get_member(
+                    296635833
+                )  # To avoid conflict with @lastfmrobot
                 return
             except UserNotParticipant:
                 pass
