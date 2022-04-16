@@ -45,7 +45,7 @@ async def spoti(c: Client, m: Message):
     if m.chat.type == "private":
         pass
     else:
-        if m.text.split(maxsplit=1)[0] == "/spo":
+        if m.text.split(maxsplit=1)[0] == "/spoti":
             try:
                 await m.chat.get_member(
                     796461943
@@ -96,7 +96,7 @@ async def spoti(c: Client, m: Message):
 
 
 @Client.on_message(filters.command(["spotf"]))
-async def spoti(c: Client, m: Message):
+async def spotf(c: Client, m: Message):
     user_id = m.from_user.id
     usr = await get_spot_user(m.from_user.id)
     if not usr:
