@@ -29,6 +29,17 @@ strings:
     added: "added"
     updated: "updated"
   
+  # Admin
+  Admin:
+    Admin: "Admin"
+    noadmin: "You are not a group admin."
+    botnotadmin: "I am not a group admin. Please add me as a group admin."
+    err_private: "This command cannot be used in a private chat, use this command in a group that you admin."
+    cleanup_start: "Removing deleted accounts..."
+    cleanup_start_d: "Deleted accounts: {}"
+    cleanup_no_deleted: "There are no deleted accounts in the group."
+    help: |
+      <b>/cleanup</b> - Removes all deleted accounts from the group.
   # Android
   Android:
     name: "Android"

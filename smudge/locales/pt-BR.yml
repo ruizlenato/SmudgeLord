@@ -29,6 +29,18 @@ strings:
     added: "adicionado"
     updated: "atualizado"
 
+# Admin
+  Admin:
+    Admin: "Administração"
+    noadmin: "Você não é um administrador do grupo"
+    botnotadmin: "Eu não sou um administrador do grupo!"
+    err_private: "Esse comando não pode ser usado em um grupo privado, use esse comando em um grupo que você administra."
+    cleanup_start: "Removendo contas excluídas..."
+    cleanup_start_d: "Contas excluídas: {}"
+    cleanup_no_deleted: "Não há contas excluídas no grupo."
+    help: |
+      <b>/cleanup</b> - Remove todas as contas excluídas do grupo.
+
 # Android
   Android:
     name: "Android"
