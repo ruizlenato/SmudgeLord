@@ -80,6 +80,7 @@ strings:
 # Music
   Music:
     name: "Músicas"
+    spotf_info: "<b>{}</b>\n<b>Artista:</b> {}\n<b>Data de lançamento:</b> <i>{}</i>\n<b>Álbum:</b> {} - {}\n\n"
     username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm \n/artist - /lart\n/album - /lalb."
     username_clear: "O seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> foi apagado."
     username_nouser: "Você precisa definir um nome de usuário para usar esse comando."

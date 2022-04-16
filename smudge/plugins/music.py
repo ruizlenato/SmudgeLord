@@ -110,8 +110,13 @@ async def spoti(c: Client, m: Message):
         rep = (
             f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
         )
-        rep += f"<b>{spotify_json['item']['name']}</b>\n<b>Artist:</b> {spotify_json['item']['artists'][0]['name']}\n"
-        rep += f"<b>Release Date:</b> {spotify_json['item']['album']['release_date']}"
+        rep += (await tld(m, "Music.spotf_info")).format(
+            spotify_json["item"]["name"],
+            spotify_json["item"]["artists"][0]["name"],
+            spotify_json["item"]["album"]["release_date"],
+            spotify_json["item"]["album"]["name"],
+            spotify_json["item"]["album"]["album_type"],
+        )
         keyboard = ikb(
             [
                 [
