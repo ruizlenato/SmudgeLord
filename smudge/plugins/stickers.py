@@ -65,7 +65,7 @@ async def getsticker(c: Client, m: Message):
         return
 
 
-@Client.on_message(filters.command("kang"))
+@Client.on_message(filters.command("kang") & ~filters.edite)
 async def kang_sticker(c: Client, m: Message):
     prog_msg = await m.reply_text(await tld(m, "Stickers.kanging"))
     user = await c.get_me()
