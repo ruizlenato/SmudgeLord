@@ -6,6 +6,7 @@ import os
 import re
 import html
 import httpx
+import yt_dlp
 import shutil
 import tempfile
 import datetime
@@ -13,10 +14,6 @@ import rapidjson
 import dicioinformal
 
 from typing import Union
-
-from urllib.parse import parse_qs, urlsplit
-
-from yt_dlp import YoutubeDL
 
 from gpytranslate import Translator
 
@@ -34,7 +31,7 @@ from pyrogram.helpers import ikb
 
 
 @aiowrap
-def extract_info(instance: YoutubeDL, url: str, download=True):
+def extract_info(instance: yt_dlp.YoutubeDL, url: str, download=True):
     return instance.extract_info(url, download)
 
 
@@ -279,18 +276,15 @@ async def ytdlcmd(c: Client, m: Message):
         await m.reply_text(await tld(m, "Misc.ytdl_missing_argument"))
         return
 
-    ydl = YoutubeDL({"noplaylist": True})
+    ydl = yt_dlp.YoutubeDL({"noplaylist": True})
 
     rege = re.match(
         r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?",
         url,
         re.M,
     )
-    t = parse_qs(urlsplit(url).query).get("t")
-    if t:
-        temp = re.search(r"[0-9]+", str(t)).group()
-    else:
-        temp = 0
+    t = re.search(r"[?&]t=([0-9]+)", url)
+    temp = t.group(1) if t else 0
 
     if not rege:
         yt = await extract_info(ydl, "ytsearch:" + url, download=False)
@@ -355,7 +349,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         ttemp = f"⏰ {datetime.timedelta(seconds=int(temp))} | "
 
     if "vid" in data:
-        ydl = YoutubeDL(
+        ydl = yt_dlp.YoutubeDL(
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
                 "format": "best[ext=mp4]",
@@ -364,7 +358,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             }
         )
     else:
-        ydl = YoutubeDL(
+        ydl = yt_dlp.YoutubeDL(
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
                 "format": "bestaudio[ext=m4a]",
@@ -508,7 +502,7 @@ async def sdl(c: Client, m: Message):
         "logger": MyLogger(),
     }
 
-    with YoutubeDL(ydl_opts) as ydl:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         try:
             await extract_info(ydl, url, download=True)
         except BaseException as e:
