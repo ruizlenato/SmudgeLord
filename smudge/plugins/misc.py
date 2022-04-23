@@ -288,7 +288,7 @@ async def ytdlcmd(c: Client, m: Message):
     )
     params = parse_qs(urlsplit(url).query)
     t = params.get("t")
-    
+
     if t:
         temp = url.split("t=")[1].split("&")[0]
     else:
