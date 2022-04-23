@@ -7,13 +7,14 @@ import re
 import html
 import httpx
 import shutil
-import yt_dlp
 import tempfile
 import datetime
 import rapidjson
 import dicioinformal
 
 from typing import Union
+
+from yt_dlp import YoutubeDL
 
 from gpytranslate import Translator
 
@@ -31,7 +32,7 @@ from pyrogram.helpers import ikb
 
 
 @aiowrap
-def extract_info(instance, url, download=True):
+def extract_info(instance: YoutubeDL, url: str, download=True):
     return instance.extract_info(url, download)
 
 
@@ -261,6 +262,9 @@ async def yt_search_cmd(c: Client, m: Message):
     )
 
 
+MAX_FILESIZE = 500000000
+
+
 @Client.on_message(filters.command("ytdl"))
 async def ytdlcmd(c: Client, m: Message):
     user = m.from_user.id
@@ -273,9 +277,8 @@ async def ytdlcmd(c: Client, m: Message):
         await m.reply_text(await tld(m, "Misc.ytdl_missing_argument"))
         return
 
-    ydl = yt_dlp.YoutubeDL(
-        {"outtmpl": "dls/%(title)s-%(id)s.%(ext)s", "format": "mp4", "noplaylist": True}
-    )
+    ydl = YoutubeDL({"noplaylist": True})
+
     rege = re.match(
         r"http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?",
         url,
@@ -289,7 +292,10 @@ async def ytdlcmd(c: Client, m: Message):
 
     if not rege:
         yt = await extract_info(ydl, "ytsearch:" + url, download=False)
-        yt = yt["entries"][0]
+        try:
+            yt = yt["entries"][0]
+        except IndexError:
+            return
     else:
         yt = await extract_info(ydl, rege.group(), download=False)
 
@@ -298,17 +304,16 @@ async def ytdlcmd(c: Client, m: Message):
             afsize = f["filesize"] or 0
         if f["ext"] == "mp4" and f["filesize"] is not None:
             vfsize = f["filesize"] or 0
-            vformat = f["format_id"]
 
     keyboard = [
         [
             (
                 await tld(m, "Misc.ytdl_audio_button"),
-                f'_aud.{yt["id"]}|{afsize}|{temp}|{vformat}|{user}|{m.message_id}',
+                f'_aud.{yt["id"]}|{afsize}|{temp}|{user}|{m.message_id}',
             ),
             (
                 await tld(m, "Misc.ytdl_video_button"),
-                f'_vid.{yt["id"]}|{vfsize}|{temp}|{vformat}|{user}|{m.message_id}',
+                f'_vid.{yt["id"]}|{vfsize}|{temp}|{user}|{m.message_id}',
             ),
         ]
     ]
@@ -328,10 +333,10 @@ async def ytdlcmd(c: Client, m: Message):
 
 @Client.on_callback_query(filters.regex("^(_(vid|aud))"))
 async def cli_ytdl(c: Client, cq: CallbackQuery):
-    data, fsize, temp, vformat, userid, mid = cq.data.split("|")
+    data, fsize, temp, userid, mid = cq.data.split("|")
     if not cq.from_user.id == int(userid):
-        return await cq.answer("Misc.ytdl_button_denied", cache_time=60)
-    if int(fsize) > 500000000:
+        return await cq.answer(await tld("Misc.ytdl_button_denied"), cache_time=60)
+    if int(fsize) > MAX_FILESIZE:
         return await cq.answer(
             await tld(cq, "Misc.ytdl_file_too_big"),
             show_alert=True,
@@ -348,19 +353,20 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         ttemp = f"⏰ {datetime.timedelta(seconds=int(temp))} | "
 
     if "vid" in data:
-        ydl = yt_dlp.YoutubeDL(
+        ydl = YoutubeDL(
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
-                "format": f"{vformat}+140",
+                "format": "best[ext=mp4]",
+                "max_filesize": MAX_FILESIZE,
                 "noplaylist": True,
             }
         )
     else:
-        ydl = yt_dlp.YoutubeDL(
+        ydl = YoutubeDL(
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
-                "format": "140",
-                "extractaudio": True,
+                "format": "bestaudio[ext=m4a]",
+                "max_filesize": MAX_FILESIZE,
                 "noplaylist": True,
             }
         )
@@ -417,15 +423,9 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
                 reply_to_message_id=int(mid),
             )
         except BadRequest as e:
-            user_mention = cq.message.from_user.mention(cq.message.from_user.first_name)
-            user_id = cq.message.from_user.id
-            await send_logs(c, user_mention, user_id, e)
-            await c.send_message(
-                chat_id=cq.message.chat.id,
-                text=("Misc.ytdl_send_error{}").format(errmsg=e),
-                reply_to_message_id=int(mid),
-            )
-    await cq.message.delete()
+            await cq.message.edit_text(await tld(m, "ytdl_send_error").format(errmsg=e))
+        else:
+            await cq.message.delete()
 
     shutil.rmtree(tempdir, ignore_errors=True)
 
@@ -506,7 +506,7 @@ async def sdl(c: Client, m: Message):
         "logger": MyLogger(),
     }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+    with YoutubeDL(ydl_opts) as ydl:
         try:
             await extract_info(ydl, url, download=True)
         except BaseException as e:
