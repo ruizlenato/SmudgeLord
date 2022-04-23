@@ -280,12 +280,12 @@ async def ytdlcmd(c: Client, m: Message):
     ydl = YoutubeDL({"noplaylist": True})
 
     rege = re.match(
-        r"http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?",
+        r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?",
         url,
         re.M,
     )
 
-    if "t=" in url:
+    if "?t=" in url:
         temp = url.split("t=")[1].split("&")[0]
     else:
         temp = 0
