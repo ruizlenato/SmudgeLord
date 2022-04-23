@@ -14,6 +14,8 @@ import dicioinformal
 
 from typing import Union
 
+from urllib.parse import parse_qs, urlsplit
+
 from yt_dlp import YoutubeDL
 
 from gpytranslate import Translator
@@ -284,9 +286,9 @@ async def ytdlcmd(c: Client, m: Message):
         url,
         re.M,
     )
-
-    if "?t=" in url:
-        temp = url.split("t=")[1].split("&")[0]
+    t = parse_qs(urlsplit(url).query).get("t")
+    if t:
+        temp = re.search(r"[0-9]+", str(t)).group()
     else:
         temp = 0
 
