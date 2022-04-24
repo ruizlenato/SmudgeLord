@@ -9,8 +9,8 @@ import shutil
 import tempfile
 import datetime
 
-from pyrogram import filters
 from pyrogram.helpers import ikb
+from pyrogram import filters, enums
 from pyrogram.errors import BadRequest
 from pyrogram.types import Message, CallbackQuery
 
@@ -75,11 +75,11 @@ async def ytdlcmd(c: Smudge, m: Message):
         [
             (
                 await tld(m, "Misc.ytdl_audio_button"),
-                f'_aud.{yt["id"]}|{afsize}|{temp}|{user}|{m.message_id}',
+                f'_aud.{yt["id"]}|{afsize}|{temp}|{user}|{m.id}',
             ),
             (
                 await tld(m, "Misc.ytdl_video_button"),
-                f'_vid.{yt["id"]}|{vfsize}|{temp}|{user}|{m.message_id}',
+                f'_vid.{yt["id"]}|{vfsize}|{temp}|{user}|{m.id}',
             ),
         ]
     ]
@@ -145,7 +145,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
         await cq.message.edit((await tld(cq, "Misc.ytdl_send_error")).format(e))
         return
     await cq.message.edit(await tld(cq, "Misc.ytdl_sending"))
-    await c.send_chat_action(cq.message.chat.id, "upload_video")
+    await c.send_chat_action(cq.message.chat.id, enums.ChatAction.UPLOAD_VIDEO)
 
     filename = ydl.prepare_filename(yt)
     thumb = io.BytesIO((await http.get(yt["thumbnail"])).content)
@@ -236,11 +236,9 @@ async def sdl(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
         return
 
-    print(url)
-
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
-    filename = f"{path}/%s%s.mp4" % (m.chat.id, m.message_id)
+    filename = f"{path}/%s%s.mp4" % (m.chat.id, m.id)
     ydl_opts = {
         "outtmpl": filename,
         "cookiefile": "~/instagram.com_cookies.txt",
@@ -256,7 +254,7 @@ async def sdl(c: Smudge, m: Message):
             return
 
     with open(filename, "rb") as video:
-        await c.send_chat_action(m.chat.id, "upload_video")
+        await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
         await m.reply_video(video=video)
     shutil.rmtree(tempdir, ignore_errors=True)
 
