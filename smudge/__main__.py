@@ -1,8 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-import logging
-import datetime
 
+import logging
 
 from rich.panel import Panel
 from rich import box, print as rprint
