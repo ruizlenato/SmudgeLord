@@ -160,6 +160,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
                 thumb=thumb,
                 reply_to_message_id=int(mid),
             )
+            await cq.message.delete()
         except BadRequest as e:
             user_mention = cq.message.from_user.mention(cq.message.from_user.first_name)
             user_id = cq.message.from_user.id
@@ -187,7 +188,9 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
                 reply_to_message_id=int(mid),
             )
         except BadRequest as e:
-            await cq.message.edit_text(await tld(m, "ytdl_send_error").format(errmsg=e))
+            await cq.message.edit_text(
+                await tld(cq, "ytdl_send_error").format(errmsg=e)
+            )
         else:
             await cq.message.delete()
 
