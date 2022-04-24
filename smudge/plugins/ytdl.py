@@ -8,11 +8,12 @@ import shutil
 import tempfile
 import datetime
 
+from pyrogram import filters
 from pyrogram.helpers import ikb
-from pyrogram import Client, filters
 from pyrogram.errors import BadRequest
 from pyrogram.types import Message, CallbackQuery
 
+from smudge import Smudge
 from smudge.plugins import tld
 from smudge.utils import send_logs
 from smudge.database.core import groups
@@ -35,8 +36,8 @@ def extract_info(instance: yt_dlp.YoutubeDL, url: str, download=True):
     return instance.extract_info(url, download)
 
 
-@Client.on_message(filters.command("ytdl"))
-async def ytdlcmd(c: Client, m: Message):
+@Smudge.on_message(filters.command("ytdl"))
+async def ytdlcmd(c: Smudge, m: Message):
     user = m.from_user.id
 
     if m.reply_to_message and m.reply_to_message.text:
@@ -95,8 +96,8 @@ async def ytdlcmd(c: Client, m: Message):
     await m.reply_text(text, reply_markup=ikb(keyboard))
 
 
-@Client.on_callback_query(filters.regex("^(_(vid|aud))"))
-async def cli_ytdl(c: Client, cq: CallbackQuery):
+@Smudge.on_callback_query(filters.regex("^(_(vid|aud))"))
+async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     data, fsize, temp, userid, mid = cq.data.split("|")
     if not cq.from_user.id == int(userid):
         return await cq.answer(await tld("Misc.ytdl_button_denied"), cache_time=60)
@@ -204,9 +205,9 @@ async def sdl_autodownload(chat_id: int):
         return None
 
 
-@Client.on_message(filters.command(["sdl", "mdl"]), group=1)
-@Client.on_message(filters.regex(SDL_REGEX_LINKS))
-async def sdl(c: Client, m: Message):
+@Smudge.on_message(filters.command(["sdl", "mdl"]), group=1)
+@Smudge.on_message(filters.regex(SDL_REGEX_LINKS))
+async def sdl(c: Smudge, m: Message):
     yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
 
     try:

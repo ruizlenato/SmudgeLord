@@ -4,11 +4,12 @@
 from requests import get
 from ujson import loads
 
-from smudge.database.core import groups
+from smudge import Smudge
 from smudge.plugins import tld
+from smudge.database.core import groups
 
 from pyrogram.types import Message
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from tortoise.exceptions import DoesNotExist, IntegrityError
@@ -56,8 +57,8 @@ async def get_repos(chat_id: int):
     return await groups.filter(id=chat_id)
 
 
-@Client.on_message(filters.command(["gitr"]))
-async def git_on_message(c: Client, m: Message):
+@Smudge.on_message(filters.command(["gitr"]))
+async def git_on_message(c: Smudge, m: Message):
     if not len(m.command) == 2:
         await m.reply_text(await tld(m, "GitHub.gitr_noargs"))
         return
@@ -70,8 +71,8 @@ async def git_on_message(c: Client, m: Message):
         await git(c, m, repo, page)
 
 
-@Client.on_message(filters.command(["repos"]) & filters.group)
-async def git_repos(c: Client, m: Message):
+@Smudge.on_message(filters.command(["repos"]) & filters.group)
+async def git_repos(c: Smudge, m: Message):
     repos = await get_repos(m.chat.id)
     for i in repos:
         keyword = i.git_repo_name
@@ -84,9 +85,9 @@ async def git_repos(c: Client, m: Message):
             await m.reply_text(message)
 
 
-@Client.on_message(filters.command(["fetch"]) & filters.group)
-@Client.on_message(filters.regex(pattern=r"^&\w*") & filters.group)
-async def fetch_repo(c: Client, m: Message):
+@Smudge.on_message(filters.command(["fetch"]) & filters.group)
+@Smudge.on_message(filters.regex(pattern=r"^&\w*") & filters.group)
+async def fetch_repo(c: Smudge, m: Message):
     try:
         repo = m.command[1]
     except TypeError:
@@ -104,8 +105,8 @@ async def fetch_repo(c: Client, m: Message):
             await git(c, m, repo_db, page)
 
 
-@Client.on_message(filters.command(["gitadd"]) & filters.group)
-async def save_repo(c: Client, m: Message):
+@Smudge.on_message(filters.command(["gitadd"]) & filters.group)
+async def save_repo(c: Smudge, m: Message):
     if not len(m.command) == 3:
         await m.reply(await tld(m, "GitHub.add_noargs"))
         return
@@ -123,8 +124,8 @@ async def save_repo(c: Client, m: Message):
     await m.reply_text(message)
 
 
-@Client.on_message(filters.command(["gitdel"]) & filters.group)
-async def rm_repo(c: Client, m: Message):
+@Smudge.on_message(filters.command(["gitdel"]) & filters.group)
+async def rm_repo(c: Smudge, m: Message):
     name = m.text.split(maxsplit=1)[1]
     if await del_repo(m.chat.id, name) is False:
         message = await tld(m, "GitHub.repo_faildelete")
@@ -142,7 +143,7 @@ async def check_repo(repo):
         return page
 
 
-async def git(c: Client, m: Message, repo, page):
+async def git(c: Smudge, m: Message, repo, page):
     db = loads(page.content)
     name = db["name"]
     date = db["published_at"]

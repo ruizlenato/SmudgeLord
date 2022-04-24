@@ -8,11 +8,12 @@ import tempfile
 
 from PIL import Image
 
+from smudge import Smudge
 from smudge.config import CHAT_LOGS
 from smudge.utils import EMOJI_PATTERN
 from smudge.plugins import tld
 
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.errors import PeerIdInvalid, StickersetInvalid
 from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
 from pyrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
@@ -28,8 +29,8 @@ from pyrogram.raw.types import (
 SUPPORTED_TYPES = ["jpeg", "png", "webp"]
 
 
-@Client.on_message(filters.command("getsticker"))
-async def getsticker(c: Client, m: Message):
+@Smudge.on_message(filters.command("getsticker"))
+async def getsticker(c: Smudge, m: Message):
     try:
         sticker = m.reply_to_message.sticker
         if sticker.is_animated or sticker.is_video:
@@ -65,8 +66,8 @@ async def getsticker(c: Client, m: Message):
         return
 
 
-@Client.on_message(filters.command("kang") & ~filters.edited)
-async def kang_sticker(c: Client, m: Message):
+@Smudge.on_message(filters.command("kang"))
+async def kang_sticker(c: Smudge, m: Message):
     prog_msg = await m.reply_text(await tld(m, "Stickers.kanging"))
     user = await c.get_me()
     bot_username = user.username
@@ -175,7 +176,7 @@ async def kang_sticker(c: Client, m: Message):
         max_stickers = 50 if animated else 120
         while not packname_found:
             try:
-                stickerset = await c.send(
+                stickerset = await c.invoke(
                     GetStickerSet(
                         stickerset=InputStickerSetShortName(short_name=packname),
                         hash=0,
@@ -191,7 +192,7 @@ async def kang_sticker(c: Client, m: Message):
             except StickersetInvalid:
                 break
         file = await c.save_file(filename)
-        media = await c.send(
+        media = await c.invoke(
             SendMedia(
                 peer=(await c.resolve_peer(CHAT_LOGS)),
                 media=InputMediaUploadedDocument(
@@ -207,7 +208,7 @@ async def kang_sticker(c: Client, m: Message):
         stkr_file = msg_.media.document
         if packname_found:
             await prog_msg.edit_text(await tld(m, "Stickers.use_existing_pack"))
-            await c.send(
+            await c.invoke(
                 AddStickerToSet(
                     stickerset=InputStickerSetShortName(short_name=packname),
                     sticker=InputStickerSetItem(
@@ -230,7 +231,7 @@ async def kang_sticker(c: Client, m: Message):
             if packnum != 0:
                 stkr_title += f" v{packnum}"
             try:
-                await c.send(
+                await c.invoke(
                     CreateStickerSet(
                         user_id=user,
                         title=stkr_title,

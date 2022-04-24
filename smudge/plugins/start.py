@@ -6,7 +6,7 @@ import re
 import asyncio
 
 
-from pyrogram import Client, filters
+from pyrogram import filters, enums
 from pyrogram.types import (
     Message,
     InlineKeyboardButton,
@@ -15,11 +15,12 @@ from pyrogram.types import (
 )
 from pyrogram.helpers import ikb
 
-from smudge.plugins import tld, lang_dict
-from smudge.utils.help_menu import help_buttons
+from smudge import Smudge
+from smudge.plugins import all_plugins
 from smudge.database import set_db_lang
 from smudge.database.core import groups
-from smudge.plugins import all_plugins
+from smudge.plugins import tld, lang_dict
+from smudge.utils.help_menu import help_buttons
 
 from typing import Union
 
@@ -35,9 +36,9 @@ for plugin in all_plugins:
         HELP.update({plugin: [{"name": plugin_name, "help": plugin_help}]})
 
 
-@Client.on_message(filters.command("start", prefixes="/"))
-@Client.on_callback_query(filters.regex(r"start"))
-async def start_command(c: Client, m: Union[Message, CallbackQuery]):
+@Smudge.on_message(filters.command("start", prefixes="/"))
+@Smudge.on_callback_query(filters.regex(r"start"))
+async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
         chat_type = m.message.chat.type
         reply_text = m.edit_message_text
@@ -46,7 +47,7 @@ async def start_command(c: Client, m: Union[Message, CallbackQuery]):
         reply_text = m.reply_text
 
     me = await c.get_me()
-    if chat_type == "private":
+    if chat_type == enums.ChatType.PRIVATE:
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -79,10 +80,10 @@ async def start_command(c: Client, m: Union[Message, CallbackQuery]):
         await reply_text(text, reply_markup=keyboard, disable_web_page_preview=True)
 
 
-@Client.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
-async def portuguese(c: Client, m: Message):
+@Smudge.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
+async def portuguese(c: Smudge, m: Message):
     lang = m.matches[0]["code"]
-    if m.message.chat.type == "private":
+    if m.message.chat.type == enums.ChatType.PRIVATE:
         pass
     else:
         member = await c.get_chat_member(
@@ -102,17 +103,17 @@ async def portuguese(c: Client, m: Message):
             ],
         ]
     )
-    if m.message.chat.type == "private":
+    if m.message.chat.type == enums.ChatType.PRIVATE:
         await set_db_lang(m.from_user.id, lang)
-    elif m.message.chat.type == "supergroup" or "group":
+    elif m.message.chat.type in (enums.ChatType.GROUP, enums.ChatType.SUPERGROUP):
         await set_db_lang(m.message.chat.id, lang)
     text = await tld(m, "Main.lang_save")
     await m.edit_message_text(text, reply_markup=keyboard)
 
 
-@Client.on_message(filters.command(["setlang"]))
-@Client.on_callback_query(filters.regex(r"setchatlang"))
-async def setlang(c: Client, m: Union[Message, CallbackQuery]):
+@Smudge.on_message(filters.command(["setlang"]))
+@Smudge.on_callback_query(filters.regex(r"setchatlang"))
+async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
         chat_id = m.message.chat.id
         chat_type = m.message.chat.type
@@ -156,8 +157,8 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
     return
 
 
-@Client.on_callback_query(filters.regex("menu"))
-async def button(c: Client, cq: CallbackQuery):
+@Smudge.on_callback_query(filters.regex("menu"))
+async def button(c: Smudge, cq: CallbackQuery):
     keyboard = InlineKeyboardMarkup(await help_buttons(cq, HELP))
     text = await tld(cq, "Main.help_text")
     await cq.edit_message_text(text, reply_markup=keyboard)
@@ -171,16 +172,16 @@ async def help_menu(c, cq, text):
     await cq.edit_message_text(text, reply_markup=InlineKeyboardMarkup(keyboard))
 
 
-@Client.on_callback_query(filters.regex(pattern=".*help_plugin.*"))
-async def but(c: Client, cq: CallbackQuery):
+@Smudge.on_callback_query(filters.regex(pattern=".*help_plugin.*"))
+async def but(c: Smudge, cq: CallbackQuery):
     plug_match = re.match(r"help_plugin\((.+?)\)", cq.data)
     plug = plug_match.group(1)
     text = await tld(cq, str(HELP[plug][0]["help"]))
     await help_menu(c, cq, text)
 
 
-@Client.on_message(filters.new_chat_members)
-async def logging(c: Client, m: Message):
+@Smudge.on_message(filters.new_chat_members)
+async def logging(c: Smudge, m: Message):
     bot = await c.get_me()
     bot_id = bot.id
     if bot_id in [z.id for z in m.new_chat_members]:
@@ -196,8 +197,8 @@ async def logging(c: Client, m: Message):
         )
 
 
-@Client.on_callback_query(filters.regex(r"setsdl"))
-async def setsdl(c: Client, m: Union[Message, CallbackQuery]):
+@Smudge.on_callback_query(filters.regex(r"setsdl"))
+async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
     chat_id = m.message.chat.id
     chat_type = m.message.chat.type
     reply_text = m.edit_message_text
@@ -225,8 +226,8 @@ async def setsdl(c: Client, m: Union[Message, CallbackQuery]):
     return
 
 
-@Client.on_message(filters.command("config", prefixes="/") & filters.group)
-async def config(c: Client, m: Union[Message, CallbackQuery]):
+@Smudge.on_message(filters.command("config", prefixes="/") & filters.group)
+async def config(c: Smudge, m: Union[Message, CallbackQuery]):
     chat_type = m.chat.type
     reply_text = m.reply_text
     chat_id = m.chat.id

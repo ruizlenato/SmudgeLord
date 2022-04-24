@@ -9,14 +9,14 @@ from typing import Union
 
 from gpytranslate import Translator
 
-from smudge.utils import send_logs
-from smudge.plugins import tld
+from smudge import Smudge
 from smudge.utils import http
+from smudge.plugins import tld
+from smudge.utils import send_logs
 
-from pyrogram.types import Message, CallbackQuery
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.helpers import ikb
-
+from pyrogram.types import Message, CallbackQuery
 
 tr = Translator()
 
@@ -61,8 +61,8 @@ def get_tr_lang(text):
     return lang
 
 
-@Client.on_message(filters.command(["tr", "tl"]))
-async def translate(c: Client, m: Message):
+@Smudge.on_message(filters.command(["tr", "tl"]))
+async def translate(c: Smudge, m: Message):
     text = m.text[4:]
     lang = get_tr_lang(text)
 
@@ -93,8 +93,8 @@ async def translate(c: Client, m: Message):
     )
 
 
-@Client.on_message(filters.command("dicio"))
-async def dicio(c: Client, m: Message):
+@Smudge.on_message(filters.command("dicio"))
+async def dicio(c: Smudge, m: Message):
     txt = m.text.split(" ", 1)[1]
     a = dicioinformal.definicao(txt)["results"]
     if a:
@@ -104,8 +104,8 @@ async def dicio(c: Client, m: Message):
     await m.reply(frase)
 
 
-@Client.on_message(filters.command("short"))
-async def short(c: Client, m: Message):
+@Smudge.on_message(filters.command("short"))
+async def short(c: Smudge, m: Message):
     if len(m.command) < 2:
         return await m.reply_text(await tld(m, "Misc.short_error"))
     else:
@@ -129,8 +129,8 @@ async def short(c: Client, m: Message):
             return await m.reply_text(f"<b>{e}</b>")
 
 
-@Client.on_message(filters.command(["print", "ss"]))
-async def prints(c: Client, m: Message):
+@Smudge.on_message(filters.command(["print", "ss"]))
+async def prints(c: Smudge, m: Message):
     msg = m.text
     the_url = msg.split(" ", 1)
     wrong = False
@@ -233,8 +233,8 @@ async def search_yt(query):
     return list_videos
 
 
-@Client.on_message(filters.command("yt"))
-async def yt_search_cmd(c: Client, m: Message):
+@Smudge.on_message(filters.command("yt"))
+async def yt_search_cmd(c: Smudge, m: Message):
     vids = [
         '{}: <a href="{}">{}</a>'.format(num + 1, i["url"], i["title"])
         for num, i in enumerate(await search_yt(m.text.split(None, 1)[1]))
@@ -244,8 +244,8 @@ async def yt_search_cmd(c: Client, m: Message):
     )
 
 
-@Client.on_message(filters.command(["cep"], prefixes="/"))
-async def lastfm(c: Client, m: Message):
+@Smudge.on_message(filters.command(["cep"], prefixes="/"))
+async def lastfm(c: Smudge, m: Message):
     try:
         if len(m.command) > 1:
             cep = m.text.split(None, 1)[1]
@@ -274,9 +274,9 @@ async def lastfm(c: Client, m: Message):
         await m.reply_text(rep)
 
 
-@Client.on_message(filters.command(["ddd"], prefixes="/"))
-@Client.on_callback_query(filters.regex("ddd_(?P<num>.+)"))
-async def ddd(c: Client, m: Union[Message, CallbackQuery]):
+@Smudge.on_message(filters.command(["ddd"], prefixes="/"))
+@Smudge.on_callback_query(filters.regex("ddd_(?P<num>.+)"))
+async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
     try:
         if isinstance(m, CallbackQuery):
             ddd = m.matches[0]["num"]

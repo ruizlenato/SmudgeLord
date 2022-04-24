@@ -1,13 +1,14 @@
 from pyrogram.types import Message
-from pyrogram import Client, filters
+from pyrogram import filters, enums
 from pyrogram.errors import BadRequest, Forbidden
 
+from smudge import Smudge
 from smudge.plugins import tld
 
 
-@Client.on_message(filters.command("cleanup", prefixes="/"))
-async def cleanup(c: Client, m: Message):
-    if m.chat.type == "private":
+@Smudge.on_message(filters.command("cleanup", prefixes="/"))
+async def cleanup(c: Smudge, m: Message):
+    if m.chat.type == enums.ChatType.PRIVATE:
         return await m.reply_text(await tld(m, "Admin.err_private"))
     else:
         bot = await c.get_chat_member(chat_id=m.chat.id, user_id=(await c.get_me()).id)

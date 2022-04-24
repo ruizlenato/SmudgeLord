@@ -2,12 +2,12 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
 import rapidjson
-
 from bs4 import BeautifulSoup
 
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 
+from smudge import Smudge
 from smudge.utils import http
 from smudge.plugins import tld
 
@@ -53,8 +53,8 @@ class GetDevice:
                 return False
 
 
-@Client.on_message(filters.command(["magisk"]))
-async def magisk(c: Client, m: Message):
+@Smudge.on_message(filters.command(["magisk"]))
+async def magisk(c: Smudge, m: Message):
     repo_url = "https://raw.githubusercontent.com/topjohnwu/magisk-files/master/"
     text = await tld(m, "Android.magisk_releases")
     for magisk_type in ["stable", "beta", "canary"]:
@@ -68,8 +68,8 @@ async def magisk(c: Client, m: Message):
     await m.reply_text(text, disable_web_page_preview=True)
 
 
-@Client.on_message(filters.command(["twrp"]))
-async def twrp(c: Client, m: Message):
+@Smudge.on_message(filters.command(["twrp"]))
+async def twrp(c: Smudge, m: Message):
     if not len(m.command) == 2:
         message = "Please write your codename into it, i.e <code>/twrp herolte</code>"
         await m.reply_text(message)
@@ -99,8 +99,8 @@ async def twrp(c: Client, m: Message):
         )
 
 
-@Client.on_message(filters.command(["whatis", "device", "codename"]))
-async def models(c: Client, m: Message):
+@Smudge.on_message(filters.command(["whatis", "device", "codename"]))
+async def models(c: Smudge, m: Message):
     if not len(m.command) == 2:
         message = await tld(m, "Android.whatis_nocodename")
         await m.reply_text(message)
@@ -122,8 +122,8 @@ async def models(c: Client, m: Message):
     await m.reply_text(message)
 
 
-@Client.on_message(filters.command(["variants", "models"]))
-async def variants(c: Client, m: Message):
+@Smudge.on_message(filters.command(["variants", "models"]))
+async def variants(c: Smudge, m: Message):
     if not len(m.command) == 2:
         message = await tld(m, "Android.models_nocodename")
         await m.reply_text(message)

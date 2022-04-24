@@ -2,16 +2,17 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
 import html
-
 import regex
-from pyrogram import Client, filters
+
+from pyrogram import filters
 from pyrogram.types import Message
 
+from smudge import Smudge
 from smudge.plugins import tld
 
 
-@Client.on_message(filters.regex(r"^s/(.+)?/(.+)?(/.+)?") & filters.reply)
-async def sed(c: Client, m: Message):
+@Smudge.on_message(filters.regex(r"^s/(.+)?/(.+)?(/.+)?") & filters.reply)
+async def sed(c: Smudge, m: Message):
     exp = regex.split(r"(?<![^\\]\\)/", m.text)
     pattern = exp[1]
     replace_with = exp[2].replace(r"\/", "/")

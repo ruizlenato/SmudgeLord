@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
-from pyrogram import Client
+from pyrogram import enums
 from pyrogram.types import Message
 
+from smudge import Smudge
 from smudge.database.core import users, groups
 
 # This is the first plugin run to guarantee
@@ -12,16 +13,16 @@ from smudge.database.core import users, groups
 
 async def add_chat(chat_id, chat_type):
     try:
-        if chat_type == "private":
+        if chat_type == enums.ChatType.PRIVATE:
             await users.update_or_create(id=chat_id)
-        elif chat_type == "group" or "supergroup":
+        elif chat_type in (enums.ChatType.GROUP, enums.ChatType.SUPERGROUP):
             await groups.update_or_create(id=chat_id)
     except (TypeError, AttributeError):
         return
 
 
-@Client.on_message(group=-1)
-async def check_chat(c: Client, m: Message):
+@Smudge.on_message(group=-1)
+async def check_chat(c: Smudge, m: Message):
     try:
         chat_id = m.chat.id
         chat_type = m.chat.type

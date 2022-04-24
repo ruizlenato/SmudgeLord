@@ -7,17 +7,18 @@ import sys
 import html
 import traceback
 
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import Message
 
 from contextlib import redirect_stdout
 
-from smudge.database import groups, users, lang
+from smudge import Smudge
 from smudge.config import SUDOERS
+from smudge.database import groups
 
 
-@Client.on_message(filters.command("(broadcast|announcement)") & filters.user(SUDOERS))
-async def broadcast(c: Client, m: Message):
+@Smudge.on_message(filters.command("(broadcast|announcement)") & filters.user(SUDOERS))
+async def broadcast(c: Smudge, m: Message):
     sm = await m.reply_text("Broadcasting...")
     command = m.text.split()[0]
     text = m.text[len(command) + 1 :]
@@ -37,15 +38,15 @@ async def broadcast(c: Client, m: Message):
     )
 
 
-@Client.on_message(filters.command("restart") & filters.user(SUDOERS))
-async def broadcast(c: Client, m: Message):
+@Smudge.on_message(filters.command("restart") & filters.user(SUDOERS))
+async def broadcast(c: Smudge, m: Message):
     await m.reply_text("Restarting...")
     args = [sys.executable, "-m", "smudge"]
     os.execl(sys.executable, *args)
 
 
-@Client.on_message(filters.command("exec") & filters.user(SUDOERS))
-async def execs(c: Client, m: Message):
+@Smudge.on_message(filters.command("exec") & filters.user(SUDOERS))
+async def execs(c: Smudge, m: Message):
     strio = io.StringIO()
     code = m.text.split(maxsplit=1)[1]
     exec(
