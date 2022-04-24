@@ -16,6 +16,8 @@ from smudge import Smudge
 from smudge.config import SUDOERS
 from smudge.database import groups
 
+from rich import print as rprint
+
 
 @Smudge.on_message(filters.command("(broadcast|announcement)") & filters.user(SUDOERS))
 async def broadcast(c: Smudge, m: Message):
@@ -42,6 +44,8 @@ async def broadcast(c: Smudge, m: Message):
 async def broadcast(c: Smudge, m: Message):
     await m.reply_text("Restarting...")
     args = [sys.executable, "-m", "smudge"]
+    os.system("cls" if os.name == "nt" else "clear")
+    rprint("[red]Restarting...")
     os.execl(sys.executable, *args)
 
 

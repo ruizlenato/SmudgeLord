@@ -139,7 +139,7 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
             ),
         ],
     ]
-    if chat_type == "private":
+    if chat_type == enums.ChatType.PRIVATE:
         keyboard += [[(await tld(m, "Main.btn_back"), f"start_command")]]
     else:
         try:
