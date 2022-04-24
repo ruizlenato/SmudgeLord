@@ -45,6 +45,16 @@ class Smudge(Client):
         await connect_database()  # Connect to the database
         rprint(f"[green] SmudgeLord Started.")
 
+        self.me = await self.get_me()
+
+        if "test" not in sys.argv:
+            await self.send_message(
+                chat_id=CHAT_LOGS,
+                text="<b>{} started!</b>\n<b>Date:</b> {}".format(
+                    self.me.first_name, date
+                ),
+            )
+
         # Backup the database every 1h
         @aiocron.crontab("*/60 * * * *")
         async def backup() -> None:
