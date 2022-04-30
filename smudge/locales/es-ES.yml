@@ -3,36 +3,36 @@
 #Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 #Core
 core:
-  language_flag: "🇺🇸"
-  language_name: "American English"
-  language_code: "en-US"
+  language_flag: "🇪🇸"
+  language_name: "Español"
+  language_code: "es-ES"
 #Main
 strings:
   Main:
     start_message_private: |
-      Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
+      Hola <b>{}</b>, mi nombre es <b>SmudgeLord,</b> Soy un bot con algunos comandos divertidos y útiles para ti :3
 
-      📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
-      💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>
-    start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
-    lang_save: "Language changed successfully"
-    lang_crowdin: "🌎 Help us with translations!"
-    select_lang: "Select the language you want to use the bot"
-    btn_back: "↩️ Back"
-    start_btn_lang: "🇺🇸 Language"
-    start_btn_help: "❓ Help"
-    change_lang_uchannel: "Hmm, apparently you are sending messages using a channel. <b>Send messages as a normal user so I can help you.</b>"
-    help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
-    avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
-    config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group.\n\n<b>SDL Auto -</b> <i>When enabled (✅) the bot will download videos from social networks automatically when someone sends a link</i>\n<b>Language -</b> <i>Change the language of the bot in the group</i>"
-    added: "added"
-    updated: "updated"
+      📦 <b>Mi SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+      💬 Si tienes un problema <b></b> <a href='https://t.me/RuizLenato'>haz clic aquí para hablar con mi propietario</a>
+    start_message: "Hey Kitty, estoy vivo, llámame al chat privado:3"
+    lang_save: "Idioma cambiado con éxito"
+    lang_crowdin: "🌎 ¡Ayúdanos con las traducciones!"
+    select_lang: "Selecciona el lenguaje que usará el bot"
+    btn_back: "↩️ Volver"
+    start_btn_lang: "🇺🇸 Idioma"
+    start_btn_help: "❓ Ayuda"
+    change_lang_uchannel: "Mmm, aparentemente éstas usando un canal para enviar mensajes, <b>Envía mensajes como usuario normal</b>"
+    help_text: "Aquí están todos mis plugins, para saber más sobre los plugins, simplemente haga clic en su nombre."
+    avaliable_commands: "<b>Comandos disponibles:</b>\n\n{}"
+    config_text: "<b>Ajustes.</b>\nHaga clic en los botones de abajo para cambiar la configuración de su grupo.\n\n<b>SDL Auto -</b> <i>Cuando está activado (✅) el bot descargará videos de redes sociales automáticamente cuando alguien envíe un enlace</i>\n<b>Idioma -</b> <i>Cambie el idioma del bot en el grupo</i>"
+    added: "-> añadido"
+    updated: "actualizado"
   #Admin
   Admin:
-    Admin: "Admin"
-    noadmin: "You are not a group admin."
-    botnotadmin: "I am not a group admin. Please add me as a group admin."
-    err_private: "This command cannot be used in a private chat, use this command in a group that you admin."
+    Admin: "Administrador"
+    noadmin: "No eres un administrador de grupo."
+    botnotadmin: "No soy administrador de grupo. Por favor, añádame como administrador de grupo."
+    err_private: "Este comando no puede ser usado en un chat privado, usa este comando en un grupo que administras."
     cleanup_start: "Removing deleted accounts..."
     cleanup_start_d: "Deleted accounts: {}"
     cleanup_no_deleted: "There are no deleted accounts in the group."
@@ -41,13 +41,13 @@ strings:
   #Android
   Android:
     name: "Android"
-    whatis_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
+    whatis_nocodename: "<b>Error.</b>\n<b>Uso del comando:</b> /models (codename)."
     whatis_device: "<b>{}/{}</b> is <code>{} {}</code>\n"
-    models_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
+    models_nocodename: "<b>Error.</b>\n<b>Uso del comando:</b> /models (codename)."
     models_variant: "<b>{}</b> variants:\n\n"
     models_list: "<b>Model</b>: <code>{}</code> \n<b>Name:</b> {}\n\n"
     codename_notfound: "Coudn't find your device, check device & try again!"
-    magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
+    magisk_releases: "<b>Últimas versiones de Magisk</b>\n\n"
     help: |
       <b>/magisk -</b> Get latest Magisk releases.
       <b>/twrp [codename] -</b> Get the latest TWRP version available for the chosen device from codename.
@@ -76,7 +76,7 @@ strings:
   Music:
     name: "Music"
     spotf_info: "<b>{}</b>\n<b>Artist:</b> {}\n<b>Release Date:</b> <i>{}</i>\n<b>Album:</b> {} - {}\n\n"
-    username_save: Done, you can use /lastfm now
+    username_save: Hecho, puedes usar /lastfm ahora
     username_deleted: "Your <b><a href='https://last.fm/'>LastFM</a></b> username has been successfully deleted."
     no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
     no_username_to_clear: "You have not set your <b><a href='https://last.fm/'>LastFM</a></b> username so that I can delete it from my database."
