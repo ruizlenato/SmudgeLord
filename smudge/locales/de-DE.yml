@@ -1,0 +1,236 @@
+---
+#SPDX-License-Identifier: GPL-3.0
+#Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
+#Core
+core:
+  language_flag: "🇺🇸"
+  language_name: "American English"
+  language_code: "en-US"
+#Main
+strings:
+  Main:
+    start_message_private: |
+      Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
+
+      📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+      💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>
+    start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
+    lang_save: "Language changed successfully"
+    lang_crowdin: "🌎 Help us with translations!"
+    select_lang: "Select the language you want to use the bot"
+    btn_back: "↩️ Back"
+    start_btn_lang: "🇺🇸 Language"
+    start_btn_help: "❓ Help"
+    change_lang_uchannel: "Hmm, apparently you are sending messages using a channel. <b>Send messages as a normal user so I can help you.</b>"
+    help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
+    avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
+    config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group.\n\n<b>SDL Auto -</b> <i>When enabled (✅) the bot will download videos from social networks automatically when someone sends a link</i>\n<b>Language -</b> <i>Change the language of the bot in the group</i>"
+    added: "added"
+    updated: "updated"
+  #Admin
+  Admin:
+    Admin: "Admin"
+    noadmin: "You are not a group admin."
+    botnotadmin: "I am not a group admin. Please add me as a group admin."
+    err_private: "This command cannot be used in a private chat, use this command in a group that you admin."
+    cleanup_start: "Removing deleted accounts..."
+    cleanup_start_d: "Deleted accounts: {}"
+    cleanup_no_deleted: "There are no deleted accounts in the group."
+    help: |
+      <b>/cleanup</b> - Removes all deleted accounts from the group.
+  #Android
+  Android:
+    name: "Android"
+    whatis_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
+    whatis_device: "<b>{}/{}</b> is <code>{} {}</code>\n"
+    models_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
+    models_variant: "<b>{}</b> variants:\n\n"
+    models_list: "<b>Model</b>: <code>{}</code> \n<b>Name:</b> {}\n\n"
+    codename_notfound: "Coudn't find your device, check device & try again!"
+    magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
+    help: |
+      <b>/magisk -</b> Get latest Magisk releases.
+      <b>/twrp [codename] -</b> Get the latest TWRP version available for the chosen device from codename.
+      <b>/whatis [codename] -</b> Get phone neme from codename.
+      <b>/variants [codename] -</b> Get phone variants from codename..
+  #Github
+  GitHub:
+    name: "Github"
+    repos_saved: "<b>Repositories saved in this chat:</b>\n\n<code>&{}</code>\n"
+    repos_savedhelp: "\nYou can retrieve these repositories by using /get trigger, or &trigger"
+    add_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitadd (name) user/repo</code>"
+    gitr_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitr user/repo</code>"
+    repo_added: "Repo {} successfully.\n<b>Use</b> <code>/fetch {} </code>to get it"
+    repo_deleted: "Successfully deleted repo: <b>{}</b>"
+    repo_faildelete: "Repo <b>{}</b> not exists!"
+    repo_noreleases: "Repo have no releases!"
+    repo_errorreleases: "Coudn't find any releases on <code>{}</code>"
+    nothing_save: "There are no saved repositories in this chat"
+    help: |
+      <b>/gitr [user/repository] -</b> Get latest releses from repo.
+      <b>/repos -</b> Get list of saved repisitories in chat.
+      <b>/gitadd [name] [user/repository]</b> - Save repository.
+      <b>/gitdel [name] -</b> Delete repository.
+      <b>/fetch [name] -</b> Fetch saved repository, you can also use !(name)
+  #Music
+  Music:
+    name: "Music"
+    spotf_info: "<b>{}</b>\n<b>Artist:</b> {}\n<b>Release Date:</b> <i>{}</i>\n<b>Album:</b> {} - {}\n\n"
+    username_save: Done, you can use /lastfm now
+    username_deleted: "Your <b><a href='https://last.fm/'>LastFM</a></b> username has been successfully deleted."
+    no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
+    no_username_to_clear: "You have not set your <b><a href='https://last.fm/'>LastFM</a></b> username so that I can delete it from my database."
+    no_username: "<b>Error</b>\nYou have not set your <b><a href='https://last.fm/'>LastFM</a></b> username\n\n<b>Command usage:</b> /setuser (username)."
+    username_wrong: "Your LastFM username is incorrect\n\n<strong>Use /setuser (yout username)</strong> and try again"
+    scrobble_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> is listening for the <strong>{}° time</strong>:\n\n"
+    scrobble_none_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> is listening:\n\n"
+    scrobble_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening for the <strong>{}° time</strong>:\n\n"
+    scrobble_none_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening:\n\n"
+    spotify_np: "<b><a href='{}'>{}</a></b> is listening:\n\n"
+    spotify_was_np: "<b><a href='{}'>{}</a></b> was listening:\n\n"
+    spitify_no_login: "You need to be logged into your Spotify account to use this command.\n<b>To login, click the button below.</b>"
+    spotify_login_done: "Done, now your Spotify account is connected to me."
+    spotify_login_failed: "Try removing the app from your account at spotify.com/account/apps/.\n<b>Search for SmudgeLord and click REMOVE ACCESS</b> after that type /spoti to try logging into the bot again."
+    spotify_already_logged: "You have already connected your Spotify account with me.\n<b>Use the command </b> /spo <b>without argarguments.</b>"
+    spotify_cleaned: "Your Spotify account was successfully disconnected."
+    spotify_noclean: "You haven't connected your Spotify account with me, so there's nothing I can do."
+    dualtone_albums: "MOST PLAYED ALBUMS"
+    dualtone_artists: "MOST PLAYED ARTISTS"
+    dualtone_tracks: "MOST PLAYED SONGS"
+    dualtone_month: "last {} months"
+    dualtone_day: "last {} days"
+    dualtone_overall: "overall"
+    dualtone_choose: "<b>Choose a color scheme.</b>"
+    dualtone_noargs: "You forgot the arguments.\n<b>Usagge:</b> {command} (Timespan) (type) \n\n<b>Timespan:</b> overall, 7d (7 days), 1m (1 month), 3m (3 month), 6m (6 month), 12m ou 1y (12 month/1 year)\n<b>Types:</b> artists, albums, tracks\n\n<b>Example:</b><code> {command} 1w tracks </code>"
+    collage_noargs: "You forgot the arguments.\n<b>Usagge:</b> /collage (Timespan) (type) (size)\n\n<b>Timespan:</b> overall, 7d or 1w (7 days), 1m (1 month), 3m (3 month), 6m (6 month), 12m or 1y (12 month/1 year)\n<b>Types:</b> artists, albums, tracks\n\n<b>Example:</b><code> /collage 1w tracks 3x3 </code>"
+    collage_caption: "<a href='https://last.fm/user/{}'>{}</a>'s {} {}x{} <b>{}</b> collage"
+    help: |
+      <b>/setuser</b> |  <b>/setlast [username]</b> - Sets your last.fm username.
+      <b>/clearuser</b> | <b>/deluser -</b> Removes your last.fm username from the bot's database.
+      <b>/lastfm</b> | <b>/lmu -</b> Shows the song you are scrobbling on last.fm.
+      <b>/lalbum</b> | <b>/lalb -</b> Shows the album you are scrobbling on last.fm.
+      <b>/lartist</b> | <b>/lart -</b> Shows the artist you are scrobbling on last.fm.
+
+      <b>/spotf</b> -</b> Shows information of the song you are listening to on Spotify.
+      <b>/spo</b> | <b>/spoti -</b> Shows the music you are listening to on Spotify.
+      <b>/unreg</b> | <b>/unregister -</b> Disconnect your Spotify account.
+
+      <b>/collage</b> - Displays a collage of albums, artists, or songs.
+      • <i>Type /collage to see more information.</i>
+      <b>/dualtone</b> | <b>/duotone</b> - Shows a list of most-listened artists, albums or songs in a "colorful" picture.
+      • <i>Type /dualtone to see more information.</i>
+
+      <i>There is also /lt which does the same thing as /lastfm
+      but if I am in a group where <b>I am in conflict with another bot that has the same function I will not respond.</b></i>
+  #Memes
+  Memes:
+    slaps_templates_list:
+      - "{user1} {hits} {user2} with a {item}."
+      - "{user1} {hits} {user2} in the face with a {item}."
+      - "{user1} {hits} {user2} around a bit with a {item}."
+      - "{user1} {throws} a {item} at {user2}."
+      - "{user1} grabs a {item} and {throws} it at {user2}'s face."
+      - "{user1} launches a {item} in {user2}'s general direction."
+      - "{user1} starts slapping {user2} silly with a {item}."
+      - "{user1} pins {user2} down and repeatedly {hits} them with a {item}."
+      - "{user1} grabs up a {item} and {hits} {user2} with it."
+      - "{user1} ties {user2} to a chair and {throws} a {item} at them."
+      - "{user1} gave a friendly push to help {user2} learn to swim in lava."
+    items_list:
+      - "cast iron skillet"
+      - "large trout"
+      - "baseball bat"
+      - "cricket bat"
+      - "wooden cane"
+      - "nail"
+      - "printer"
+      - "shovel"
+      - "CRT monitor"
+      - "physics textbook"
+      - "toaster"
+      - "portrait of Richard Stallman"
+      - "television"
+      - "five ton truck"
+      - "roll of duct tape"
+      - "book"
+      - "laptop"
+      - "old television"
+      - "sack of rocks"
+      - "rainbow trout"
+      - "rubber chicken"
+      - "spiked bat"
+      - "fire extinguisher"
+      - "heavy rock"
+      - "chunk of dirt"
+      - "beehive"
+      - "piece of rotten meat"
+      - "bear"
+      - "ton of bricks"
+    throw_list:
+      - "throws"
+      - "flings"
+      - "chucks"
+      - "hurls"
+    hit_list:
+      - "hits"
+      - "whacks"
+      - "slaps"
+      - "smacks"
+      - "bashes"
+  #Misc
+  Misc:
+    name: "Utils"
+    short_error: "<b>Error.</b>\n<b>Command Usage:</b> /short (url)\n\nDo this to shorten a url."
+    tr_error: "<b>Error.</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
+    tr_translating: "Translating..."
+    print_printing: "Taking screenshot..."
+    print_error: "<b>Error.</b>\n<b>Usage:</b> <code>/print https://example.com</code> - Take a screenshot of the specified website."
+    print_api_dead: "Ocorreu um erro porque a API não responde, tente novamente mais tarde."
+    regex_timeout: "Oops, your regex pattern has run for too long."
+    sdl_invalid_link: "<b>System glitch someone disconnected me.</b>\nThe link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
+    sdl_missing_arguments: "You forgot the link so I can download the media."
+    cep_strings: "🌏 <b>{}</b>\n<b>- City:</b> {}\n<b>- State:</b>  {} - {}\n<b>- Neighborhood:</b> {}\n<b>- Stret:</b> {}"
+    cep_error: "This zip code is invalid."
+    no_cep: "You forgot the zip code (Brazilian).\n<b>Use of command:</b> /cep (cep)."
+    ddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b>  {} - {}"
+    fddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b>  {} - {}\n<b>- Cities:</b> <code>{}</code>"
+    no_ddd: "You forgot the DDD (Brazilian).\n<b>Use of command:</b> /dddd (ddd)."
+    ddd_cities: "Cities"
+    sdl_config_noauto: "<b>Setup saved.</b>Now I will automatically download when you send a link."
+    sdl_config_auto: "<b>Setup saved.</b>Now I will not automatically download when you send a link."
+    ytdl_audio_button: "💿 Audio"
+    ytdl_video_button: "📹 Video"
+    ytdl_send_error: "Sorry! I couldn't send the video because of an error.\n<b>Error:</b> <code>{}</code>"
+    ytdl_file_too_big: "The Video you want to download exceeds 500MB in size.\nUnable to download and upload, sorry."
+    ytdl_missing_argument: "Please reply to a YouTube link or text."
+    ytdl_downloading: "Downloading..."
+    ytdl_sending: "Sending..."
+    ytdl_button_denied: "This button is not for you."
+    help: |
+      <b>/tr [language] [word] -</b> This will translate the word you type into the language of your choice.
+      <i>• It also can be used as reply.
+      I.e <b>"/tr [language]"</b> replying a message</i>
+
+      <b>/short [url] -</b> To Short a url.
+
+      <b>/sdl [link] -</b> This command downloads videos from <b>Instagram, TikTok and Twitter.</b>
+
+      <b>/ytdl [Word or link] -</b> If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
+      <b>/yt [word] -</b> It does a YouTube video search with the word you wrote and returns a list with videos.
+  #Stickers
+  Stickers:
+    name: "Stickers"
+    pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first."
+    kang_noreply: "<b>You need to use this command replying a sticker or a photo.</b>"
+    kanging: "Stealing the sticker..."
+    getsticker_no_reply: "Reply a sticker so I can upload the PNG."
+    err_no_file_name: "<b>Error</b>: <code>This sticker doesn't a have filename!</code>"
+    create_new_pack_string: "<b>Creating a new sticker pack...</b>"
+    kanged_string: "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\n<b>Emoji:</b> {}"
+    use_existing_pack: "<code>Using existing sticker pack...</code>"
+    info_sticker: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
+    animated_not_supported: "<b>Animated and video</b> stickers are not supported."
+    invalid_media_string: "<b>Erorr</b>: Invalid media!"
+    help: |
+      <b>/getsticker -</b> reply to a sticker to me to upload its raw PNG file.
+      <b>/kang -</b> reply to a sticker (Animated stickers and videos are supported) to add it to your pack.
