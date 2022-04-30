@@ -1,3 +1,5 @@
+commit_message: "Crowdin: Update %language% translations"
+append_commit_message: false
 files:
   - source: /smudge/locales/en-US.yml
     translation: /smudge/locales/%locale%.yml
