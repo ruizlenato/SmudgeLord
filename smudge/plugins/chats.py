@@ -14,6 +14,6 @@ async def check_chat(c: Smudge, m: Message):
     chat_id = m.chat.id
     chat_type = m.chat.type
     chatexists = await chat_exists(chat_id, chat_type)
-    
+
     if not chatexists:
         await add_chat(chat_id, chat_type)
