@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-
 import os
 import yaml
 from glob import glob
@@ -8,7 +7,7 @@ from functools import reduce
 from operator import getitem
 from pyrogram.types import CallbackQuery
 
-from smudge.database import get_db_lang
+from smudge.database.locales import get_db_lang
 from smudge import LOGGER
 
 LANGUAGES = ["pt-BR", "en-US"]
@@ -40,7 +39,7 @@ async def tld(m, t):
     if isinstance(m, CallbackQuery):
         m = m.message
 
-    lang = await get_db_lang(m.chat.id)
+    lang = await get_db_lang(m.chat.id, m.chat.type)
 
     m_args = t.split(".")
     # Get lang

@@ -3,7 +3,7 @@ git+https://github.com/AmanoTeam/pyrogram.git#egg=Pyrogram # AmanoTeam Pyrogram'
 tgcrypto==1.2.3 # To increase Pyrogram speed
 
 # Database
-tortoise-orm==0.19.0
+aiosqlite==0.17.0
 
 # Plugins Dependencies
 rich>=12.3.0

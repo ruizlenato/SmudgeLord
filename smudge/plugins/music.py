@@ -1,10 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-
 import os
 import re
 import httpx
-import spotipy
 import base64
 import asyncio
 import urllib.parse
@@ -17,15 +15,16 @@ from smudge import Smudge
 from smudge.utils import http
 from smudge.plugins import tld
 from smudge.config import LASTFM_API_KEY
+from smudge.database.music import (
+    get_last_user,
+    set_last_user,
+    del_last_user,
+    get_spot_user,
+    unreg_spot,
+)
 from smudge.utils.music import (
     get_spoti_session,
     gen_spotify_token,
-    check_spotify_token,
-    get_spot_user,
-    set_last_user,
-    get_last_user,
-    del_last_user,
-    unreg_spot,
 )
 
 from pyrogram.helpers import ikb
@@ -60,10 +59,7 @@ async def spoti(c: Smudge, m: Message):
     user = m.from_user.first_name
     tx = m.text.split(" ", 1)
     if len(tx) == 2:
-        print(tx[1])
-        if await check_spotify_token(user_id) == True:
-            return await m.reply_text(await tld(m, "Music.spotify_already_logged"))
-        else:
+        if not await get_spot_user(user_id):
             get = await gen_spotify_token(user_id, tx[1])
             if get[0]:
                 sp = await get_spoti_session(m.from_user.id)
@@ -71,6 +67,8 @@ async def spoti(c: Smudge, m: Message):
                 await m.reply_text(await tld(m, "Music.spotify_login_done"))
             else:
                 await m.reply_text(await tld(m, "Music.spotify_login_failed"))
+        else:
+            return await m.reply_text(await tld(m, "Music.spotify_already_logged"))
     else:
         usr = await get_spot_user(m.from_user.id)
         if not usr:
@@ -156,7 +154,7 @@ async def clear(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Music.no_username_to_clear"))
         return
     else:
-        await del_last_user(user_id, username)
+        await del_last_user(user_id)
         await m.reply_text(
             (await tld(m, "Music.username_clear")), disable_web_page_preview=True
         )

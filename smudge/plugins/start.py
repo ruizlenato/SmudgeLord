@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-
 import importlib
 import re
 import asyncio
 
+from typing import Union
 
-from pyrogram import filters, enums
+from pyrogram import filters
 from pyrogram.types import (
     Message,
     InlineKeyboardButton,
@@ -15,14 +15,14 @@ from pyrogram.types import (
 )
 from pyrogram.helpers import ikb
 
+from pyrogram.enums import ChatType, ChatMemberStatus
+
 from smudge import Smudge
 from smudge.plugins import all_plugins
-from smudge.database import set_db_lang
-from smudge.database.core import groups
 from smudge.plugins import tld, lang_dict
 from smudge.utils.help_menu import help_buttons
-
-from typing import Union
+from smudge.database.start import toggle_sdl, check_sdl
+from smudge.database.locales import set_db_lang
 
 HELP = {}
 
@@ -47,7 +47,7 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
         reply_text = m.reply_text
 
     me = await c.get_me()
-    if chat_type == enums.ChatType.PRIVATE:
+    if chat_type == ChatType.PRIVATE:
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -83,13 +83,13 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
 @Smudge.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
 async def portuguese(c: Smudge, m: Message):
     lang = m.matches[0]["code"]
-    if m.message.chat.type == enums.ChatType.PRIVATE:
+    if m.message.chat.type == ChatType.PRIVATE:
         pass
     else:
         member = await c.get_chat_member(
             chat_id=m.message.chat.id, user_id=m.from_user.id
         )
-        if member.status in ["administrator", "creator"]:
+        if member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
             pass
         else:
             return
@@ -103,10 +103,12 @@ async def portuguese(c: Smudge, m: Message):
             ],
         ]
     )
-    if m.message.chat.type == enums.ChatType.PRIVATE:
-        await set_db_lang(m.from_user.id, lang)
-    elif m.message.chat.type in (enums.ChatType.GROUP, enums.ChatType.SUPERGROUP):
-        await set_db_lang(m.message.chat.id, lang)
+    if m.message.chat.type == ChatType.PRIVATE:
+        await set_db_lang(m.from_user.id, lang, m.message.chat.type)
+    elif m.message.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
+        await set_db_lang(m.message.chat.id, lang, m.message.chat.type)
+    elif m.message.chat.type == ChatType.CHANNEL:
+        await set_db_lang(m.from_user.id, lang, m.message.chat.type)
     text = await tld(m, "Main.lang_save")
     await m.edit_message_text(text, reply_markup=keyboard)
 
@@ -139,12 +141,15 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
             ),
         ],
     ]
-    if chat_type == enums.ChatType.PRIVATE:
+    if chat_type == ChatType.PRIVATE:
         keyboard += [[(await tld(m, "Main.btn_back"), f"start_command")]]
     else:
         try:
             member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
-            if member.status in ["administrator", "creator"]:
+            if member.status in (
+                ChatMemberStatus.ADMINISTRATOR,
+                ChatMemberStatus.OWNER,
+            ):
                 pass
             else:
                 return
@@ -200,12 +205,11 @@ async def logging(c: Smudge, m: Message):
 @Smudge.on_callback_query(filters.regex(r"setsdl"))
 async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
     chat_id = m.message.chat.id
-    chat_type = m.message.chat.type
     reply_text = m.edit_message_text
 
     try:
         member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
-        if member.status in ["administrator", "creator"]:
+        if member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
             pass
         else:
             return
@@ -215,11 +219,11 @@ async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
         await message.delete()
         return
 
-    if (await groups.get(id=chat_id)).sdl_autodownload == "Off":
-        await groups.filter(id=chat_id).update(sdl_autodownload="On")
+    if await check_sdl(chat_id) is None:
+        await toggle_sdl(chat_id, True)
         text = await tld(m, "Misc.sdl_config_auto")
     else:
-        await groups.filter(id=chat_id).update(sdl_autodownload="Off")
+        await toggle_sdl(chat_id, None)
         text = await tld(m, "Misc.sdl_config_noauto")
 
     await reply_text(text)
@@ -228,13 +232,16 @@ async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
 
 @Smudge.on_message(filters.command("config", prefixes="/") & filters.group)
 async def config(c: Smudge, m: Union[Message, CallbackQuery]):
-    chat_type = m.chat.type
-    reply_text = m.reply_text
-    chat_id = m.chat.id
+    if isinstance(m, CallbackQuery):
+        chat_id = m.message.chat.id
+        reply_text = m.edit_message_text
+    else:
+        chat_id = m.chat.id
+        reply_text = m.reply_text
 
     try:
         member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
-        if member.status in ["administrator", "creator"]:
+        if member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
             pass
         else:
             return
@@ -244,7 +251,7 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
         await message.delete()
         return
 
-    if (await groups.get(id=chat_id)).sdl_autodownload == "Off":
+    if await check_sdl(m.chat.id) is None:
         emoji = "❌"
     else:
         emoji = "✅"

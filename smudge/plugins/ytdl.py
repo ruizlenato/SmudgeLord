@@ -16,9 +16,8 @@ from pyrogram.types import Message, CallbackQuery
 
 from smudge import Smudge
 from smudge.plugins import tld
-from smudge.utils import send_logs
-from smudge.database.core import groups
-from smudge.utils import http, pretty_size, aiowrap
+from smudge.utils import send_logs, http, pretty_size, aiowrap
+from smudge.database.start import check_sdl
 
 from tortoise.exceptions import DoesNotExist
 
@@ -199,13 +198,6 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
-async def sdl_autodownload(chat_id: int):
-    try:
-        return (await groups.get(id=chat_id)).sdl_autodownload
-    except DoesNotExist:
-        return None
-
-
 @Smudge.on_message(filters.command(["sdl", "mdl"]), group=1)
 @Smudge.on_message(filters.regex(SDL_REGEX_LINKS))
 async def sdl(c: Smudge, m: Message):
@@ -220,7 +212,10 @@ async def sdl(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Misc.sdl_missing_arguments"))
         return
     except TypeError:
-        if await sdl_autodownload(m.chat.id) == "Off":
+        if m.chat.type == enums.ChatType.PRIVATE:
+            url = m.matches[0].group(0)
+            pass
+        elif await check_sdl(m.chat.id) is None:
             return
         else:
             url = m.matches[0].group(0)

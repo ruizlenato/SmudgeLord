@@ -7,11 +7,8 @@ import logging
 import datetime
 
 from pyrogram import Client, enums
-from tortoise import Tortoise
 
-from smudge.utils import http
-from smudge.database import connect_database
-from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
+from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS, DISABLED_PLUGINS
 
 from rich import box, print as rprint
 
@@ -40,11 +37,8 @@ class Smudge(Client):
         )
 
     async def start(self):
-        rprint(f"[yellow] Connecting to telegram's servers...")
+        rprint(f"[green] Connected to telegram servers...")
         await super().start()  # Connect to telegram's servers
-        rprint(f"[yellow] Connecting to the database...")
-        await connect_database()  # Connect to the database
-        rprint(f"[green] SmudgeLord Started.")
 
         self.me = await self.get_me()
 
@@ -67,7 +61,5 @@ class Smudge(Client):
             logging.warning("[SmudgeLord] Database backuped!")
 
     async def stop(self, *args):
-        await Tortoise.close_connections()
         await super().stop()
-        await http.aclose()  # Close httpx session
         rprint("[red]SmudgeLord stopped. Bye.")

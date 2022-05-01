@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-
 import os
 import io
 import sys
@@ -14,7 +13,6 @@ from contextlib import redirect_stdout
 
 from smudge import Smudge
 from smudge.config import SUDOERS
-from smudge.database import groups
 
 from rich import print as rprint
 

@@ -15,9 +15,6 @@ SPOTIFY_CLIENT_ID: str = ""
 SPOTIFY_CLIENT_SECRET: str = ""
 SPOTIFY_BASIC: str = ""
 
-# Get it from https://screenshotlayer.com/
-SCREENSHOT_API_KEY: str = ""
-
 # SUDOERS (to use some special commands)
 SUDOERS: List[int] = [1032274246]
 

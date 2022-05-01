@@ -55,32 +55,12 @@ strings:
       <b>/twrp [codename] -</b> Get the latest TWRP version available for the chosen device from codename.
       <b>/whatis [codename] -</b> Get phone neme from codename.
       <b>/variants [codename] -</b> Get phone variants from codename..
-  
-# Github
-  GitHub:
-    name: "Github"
-    repos_saved: "<b>Repositories saved in this chat:</b>\n\n<code>&{}</code>\n"
-    repos_savedhelp: "\nYou can retrieve these repositories by using /get trigger, or &trigger"
-    add_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitadd (name) user/repo</code>"
-    gitr_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitr user/repo</code>"
-    repo_added: "Repo {} successfully.\n<b>Use</b> <code>/fetch {} </code>to get it"
-    repo_deleted: "Successfully deleted repo: <b>{}</b>"
-    repo_faildelete: "Repo <b>{}</b> not exists!"
-    repo_noreleases: "Repo have no releases!"
-    repo_errorreleases: "Coudn't find any releases on <code>{}</code>"
-    nothing_save: "There are no saved repositories in this chat"
-    help: |
-      <b>/gitr [user/repository] -</b> Get latest releses from repo.
-      <b>/repos -</b> Get list of saved repisitories in chat.
-      <b>/gitadd [name] [user/repository]</b> - Save repository.
-      <b>/gitdel [name] -</b> Delete repository.
-      <b>/fetch [name] -</b> Fetch saved repository, you can also use !(name)
 
 # Music
   Music:
     name: "Music"
     spotf_info: "<b>{}</b>\n<b>Artist:</b> {}\n<b>Release Date:</b> <i>{}</i>\n<b>Album:</b> {} - {}\n\n"
-    username_save: Done, you can use /lastfm now
+    username_save: Done, you can use /lastfm|/lmu now
     username_deleted: "Your <b><a href='https://last.fm/'>LastFM</a></b> username has been successfully deleted."
     no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
     no_username_to_clear: "You have not set your <b><a href='https://last.fm/'>LastFM</a></b> username so that I can delete it from my database."
@@ -105,7 +85,7 @@ strings:
     dualtone_day: "last {} days"
     dualtone_overall: "overall"
     dualtone_choose: "<b>Choose a color scheme.</b>"
-    dualtone_noargs: "You forgot the arguments.\n<b>Usagge:</b> {command} (Timespan) (type) \n\n<b>Timespan:</b> overall, 7d (7 days), 1m (1 month), 3m (3 month), 6m (6 month), 12m ou 1y (12 month/1 year)\n<b>Types:</b> artists, albums, tracks\n\n<b>Example:</b><code> {command} 1w tracks </code>"
+    dualtone_noargs: "You forgot the arguments.\n<b>Usagge:</b> {command} (Timespan) (type) \n\n<b>Timespan:</b> overall, 7d (7 days), 1m (1 month), 3m (3 month), 6m (6 month), 12m ou 1y (12 month/1 year)\n<b>Types:</b> artists, albums, tracks\n\n<b>Exemplo:</b><code> {command} 1w tracks </code>"
     collage_noargs: "You forgot the arguments.\n<b>Usagge:</b> /collage (Timespan) (type) (size)\n\n<b>Timespan:</b> overall, 7d or 1w (7 days), 1m (1 month), 3m (3 month), 6m (6 month), 12m or 1y (12 month/1 year)\n<b>Types:</b> artists, albums, tracks\n\n<b>Example:</b><code> /collage 1w tracks 3x3 </code>"
     collage_caption: "<a href='https://last.fm/user/{}'>{}</a>'s {} {}x{} <b>{}</b> collage"
     help: |      
@@ -252,8 +232,10 @@ strings:
     fddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b>  {} - {}\n<b>- Cities:</b> <code>{}</code>"
     no_ddd: "You forgot the DDD (Brazilian).\n<b>Use of command:</b> /dddd (ddd)."
     ddd_cities: "Cities"
-    sdl_config_noauto: "<b>Setup saved.</b>Now I will automatically download when you send a link."
-    sdl_config_auto: "<b>Setup saved.</b>Now I will not automatically download when you send a link."
+    sdl_config_noauto: "<b>Saved.</b>Now I will automatically download when you send a link."
+    sdl_config_auto: "<b>Saved.</b>Now I will <b>not</b> automatically download when you send a link."
+    gitr_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitr user/repo</code>"
+    gitr_noreleases: "Coudn't find any releases on <code>{}</code>"
     ytdl_audio_button: "💿 Audio"
     ytdl_video_button: "📹 Video"
     ytdl_send_error: "Sorry! I couldn't send the video because of an error.\n<b>Error:</b> <code>{}</code>"
@@ -268,6 +250,8 @@ strings:
       I.e <b>"/tr [language]"</b> replying a message</i>
 
       <b>/short [url] -</b> To Short a url.
+
+      <b>/ghr [user/repository] -</b> Get latest releses from repo (github).
 
       <b>/sdl [link] -</b> This command downloads videos from <b>Instagram, TikTok and Twitter.</b>
  

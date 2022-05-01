@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-
+from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram import filters, enums
+from pyrogram.enums import ChatType, ChatMemberStatus
 from pyrogram.errors import BadRequest, Forbidden
 
 from smudge import Smudge
@@ -11,13 +11,13 @@ from smudge.plugins import tld
 
 @Smudge.on_message(filters.command("cleanup", prefixes="/"))
 async def cleanup(c: Smudge, m: Message):
-    if m.chat.type == enums.ChatType.PRIVATE:
+    if m.chat.type == ChatType.PRIVATE:
         return await m.reply_text(await tld(m, "Admin.err_private"))
     else:
         bot = await c.get_chat_member(chat_id=m.chat.id, user_id=(await c.get_me()).id)
         member = await c.get_chat_member(chat_id=m.chat.id, user_id=m.from_user.id)
-        if member.status in ["administrator", "creator"]:
-            if bot.status in ["administrator"]:
+        if member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
+            if bot.status == ChatMemberStatus.ADMINISTRATOR:
                 pass
             else:
                 return await m.reply_text(await tld(m, "Admin.botnotadmin"))

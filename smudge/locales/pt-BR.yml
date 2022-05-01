@@ -56,32 +56,12 @@ strings:
       <b>/twrp [codename] -</b> Obtenha a última versão do TWRP disponível para o device escolhido a partir do codename.
       <b>/whatis [codename] -</b> Obtenha o nome do device a partir do codename.
       <b>/variants [codename] -</b> Obtenha variantes de devices Android a partir do codename.
-
-# Github
-  GitHub:
-    name: "GitHub"
-    repos_saved: "<b>Repositórios salvos neste chat:</b>\n\n<code>&{}</code>\n"
-    repos_savedhelp: "\nVocê pode obter essas notas usando /fetch gatilho, ou &gatilho"
-    add_noargs: "Escreva o repositório para qual você quer criar um gatilho.\n\n<b>Por exemplo:</b>\n<code>/gitadd (gatilho) usuário/repo</code>"
-    gitr_noargs: "Escreva o repositório para qual você quer buscar releases.\n\n<b>Por exemplo:</b>\n<code>/gitr usuário/repo</code>"
-    repo_added: "Repositório {} com sucesso.\n<b>Use</b> <code>/fetch {} </code>para obtê-lo."
-    repo_deleted: "O repositório <b>{}</b> foi deletado."
-    repo_faildelete: "O repositório <b>{}</b> não existe, então não posso deletá-lo."
-    repo_noreleases: "O repositório não tem releases"
-    repo_errorreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
-    nothing_save: "Não há nenhum repositório salvo nesse grupo."
-    help: |
-      <b>/gitr [usuário/repositório]</b> - Irá buscar as releases mais recente desse repositório.
-      <b>/repos</b> - Lista todos os repositórios salvos no grupo atual.
-      <b>/gitadd [gatilho] [usuário/repositório]</b> - Cria um gatilho para as releases de um repositório.
-      <b>/gitdel [gatilho]</b> - Deleta o repositório definido para o gatilho.
-      <b>/fetch [gatilho]</b> - Retorna as releases de um repositório salvo com esse gatilho.
   
 # Music
   Music:
     name: "Músicas"
     spotf_info: "<b>{}</b>\n<b>Artista:</b> {}\n<b>Data de lançamento:</b> <i>{}</i>\n<b>Álbum:</b> {} - {}\n\n"
-    username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm \n/artist - /lart\n/album - /lalb."
+    username_save: "Pronto, agora você pode usar os seguintes comandos: \n/lastfm - /lmu \n/artist - /lart\n/album - /lalb."
     username_clear: "O seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> foi apagado."
     username_nouser: "Você precisa definir um nome de usuário para usar esse comando."
     no_username_save: "<b>Erro</b>\n<b>Uso do comando:</b> {} (nome de usuário)."
@@ -204,8 +184,10 @@ strings:
     fddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}\n<b>- Cidades:</b> <code>{}</code>"
     no_ddd: "Você esqueceu do DDD.\n<b>Uso do comando:</b> /ddd (ddd)."
     ddd_cities: "Cidades"
-    sdl_config_noauto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
+    sdl_config_noauto: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei baixar automaticamente quando você enviar um link."
     sdl_config_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
+    gitr_noargs: "Escreva o repositório para qual você quer buscar releases.\n\n<b>Por exemplo:</b>\n<code>/gitr usuário/repo</code>"
+    gitr_noreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
     ytdl_audio_button: "💿 Áudio"
     ytdl_video_button: "📹 Vídeo"
     ytdl_send_error: "Desculpe! Não pude enviar o vídeo devido a um erro.\n<b>Erro:</b> <code>{}</code>"
@@ -223,6 +205,8 @@ strings:
  
       <b>/ddd [DDD] -</b> Retornará algumas informações sobre o DDD (Brasileiro) especificado.
       <b>/cep [CEP] -</b> Retornará algumas informações sobre o CEP (Brasileiro) especificado.
+ 
+      <b>/ghr [usuário/repositório] -</b> Irá buscar as releases (lançamentos) mais recente desse repositório no github.
  
       <b>/sdl [link] -</b> Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>
  
