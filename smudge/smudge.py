@@ -8,7 +8,7 @@ import datetime
 
 from pyrogram import Client, enums
 
-from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS, DISABLED_PLUGINS
+from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
 from rich import box, print as rprint
 
