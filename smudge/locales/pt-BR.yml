@@ -22,7 +22,7 @@ strings:
     btn_back: "↩️ Voltar"
     start_btn_lang: "🇧🇷 Idioma"
     start_btn_help: "❓ Ajuda"
-    change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens usando um canal. <b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
+    change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens usando um canal.\n<b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
     help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
     avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
     config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo.\n\n<b>SDL Auto -</b> <i>Quando ativo (✅) o bot irá baixar videos de redes sociais automaticamente quando alguém enviar um link</i>\n<b>Idioma -</b> <i>Altera o idioma do bot no grupo</i>"

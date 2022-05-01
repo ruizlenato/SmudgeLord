@@ -122,6 +122,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
                 "format": "best[ext=mp4]",
                 "max_filesize": MAX_FILESIZE,
                 "noplaylist": True,
+                "logger": MyLogger(),
             }
         )
     else:
@@ -131,6 +132,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
                 "format": "bestaudio[ext=m4a]",
                 "max_filesize": MAX_FILESIZE,
                 "noplaylist": True,
+                "logger": MyLogger(),
             }
         )
     try:
@@ -199,26 +201,20 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
 @Smudge.on_message(filters.command(["sdl", "mdl"]), group=1)
 @Smudge.on_message(filters.regex(SDL_REGEX_LINKS))
 async def sdl(c: Smudge, m: Message):
-    yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
-
-    try:
+    if m.matches:
+        if m.chat.type == enums.ChatType.PRIVATE or await check_sdl(m.chat.id) == True:
+            url = m.matches[0].group(0)
+        else:
+            return
+    else:
         if len(m.command) > 1:
             url = m.text.split(None, 1)[1]
         elif m.reply_to_message and m.reply_to_message.text:
             url = m.reply_to_message.text
-    except IndexError:
-        await m.reply_text(await tld(m, "Misc.sdl_missing_arguments"))
-        return
-    except TypeError:
-        if m.chat.type == enums.ChatType.PRIVATE:
-            url = m.matches[0].group(0)
-            pass
-        elif await check_sdl(m.chat.id) is None:
-            return
         else:
-            url = m.matches[0].group(0)
-            pass
-
+            await m.reply_text(await tld(m, "Misc.sdl_missing_arguments"))
+            return
+    yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
     link = re.match(
         SDL_REGEX_LINKS,
         url,

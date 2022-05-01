@@ -154,7 +154,7 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
             else:
                 return
         except AttributeError:
-            message = await reply_text(await tld(m, "change_lang_uchannel"))
+            message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
             await asyncio.sleep(10.0)
             await message.delete()
             return
@@ -214,7 +214,7 @@ async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
         else:
             return
     except AttributeError:
-        message = await reply_text(await tld(m, "change_lang_uchannel"))
+        message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
         await asyncio.sleep(10.0)
         await message.delete()
         return
@@ -246,7 +246,7 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
         else:
             return
     except AttributeError:
-        message = await reply_text(await tld(m, "change_lang_uchannel"))
+        message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
         await asyncio.sleep(10.0)
         await message.delete()
         return
