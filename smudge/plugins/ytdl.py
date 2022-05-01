@@ -19,8 +19,6 @@ from smudge.plugins import tld
 from smudge.utils import send_logs, http, pretty_size, aiowrap
 from smudge.database.start import check_sdl
 
-from tortoise.exceptions import DoesNotExist
-
 SDL_REGEX_LINKS = r"^(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)"
 
 YOUTUBE_REGEX = re.compile(

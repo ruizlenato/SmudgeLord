@@ -16,6 +16,7 @@ from smudge.utils import send_logs
 
 from pyrogram import filters
 from pyrogram.helpers import ikb
+from pyrogram.enums import ParseMode
 from pyrogram.types import Message, CallbackQuery
 
 tr = Translator()
@@ -309,6 +310,53 @@ async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
         rep = (await tld(m, "Misc.ddd_strings")).format(ddd, state_name, state)
         keyboard = [[(await tld(m, "Misc.ddd_cities"), f"ddd_{ddd}")]]
         await m.reply_text(rep, reply_markup=ikb(keyboard))
+
+
+@Smudge.on_message(filters.command(["gitr", "ghr"]))
+async def git_on_message(c: Smudge, m: Message):
+    if not len(m.command) == 2:
+        await m.reply_text(await tld(m, "Misc.gitr_noargs"))
+        return
+    repo = m.command[1]
+    page = await http.get(f"https://api.github.com/repos/{repo}/releases/latest")
+    if not page.status_code == 200:
+        return await m.reply_text((await tld(m, "Misc.gitr_noreleases")).format(repo))
+    else:
+        await git(c, m, repo, page)
+
+
+async def git(c: Smudge, m: Message, repo, page):
+    db = rapidjson.loads(page.content)
+    name = db["name"]
+    date = db["published_at"]
+    tag = db["tag_name"]
+    date = db["published_at"]
+    changelog = db["body"]
+    dev, repo = repo.split("/")
+    message = "**Name:** `{}`\n".format(name)
+    message += "**Tag:** `{}`\n".format(tag)
+    message += "**Released on:** `{}`\n".format(date[: date.rfind("T")])
+    message += "**By:** `{}@github.com`\n".format(dev)
+    message += "**Changelog:**\n{}\n\n".format(changelog)
+    keyboard = []
+    for i in range(len(db)):
+        try:
+            file_name = db["assets"][i]["name"]
+            url = db["assets"][i]["browser_download_url"]
+            dls = db["assets"][i]["download_count"]
+            size_bytes = db["assets"][i]["size"]
+            size = float("{:.2f}".format((size_bytes / 1024) / 1024))
+            text = "{}\n💾 {}MB | 📥 {}".format(file_name, size, dls)
+            keyboard += [[(text, url, "url")]]
+
+        except IndexError:
+            continue
+    await m.reply_text(
+        text=message,
+        reply_markup=ikb(keyboard),
+        disable_web_page_preview=True,
+        parse_mode=ParseMode.MARKDOWN,
+    )
 
 
 plugin_name = "Misc.name"
