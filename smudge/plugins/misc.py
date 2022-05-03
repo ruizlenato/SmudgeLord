@@ -73,7 +73,7 @@ async def translate(c: Smudge, m: Message):
         text = m.reply_to_message.text or m.reply_to_message.caption
 
     if not text:
-        return await m.reply_text(await tld(m, "Misc.tr_error"))
+        return await m.reply_text(await tld(m, "Misc.noargs_tr"))
     sent = await m.reply_text(await tld(m, "Misc.tr_translating"))
     langs = {}
 
@@ -142,7 +142,7 @@ async def prints(c: Smudge, m: Message):
         the_url = the_url[1]
 
     if wrong:
-        await m.reply_text(await tld(m, "Misc.print_error"))
+        await m.reply_text(await tld(m, "Misc.noargs_print"))
         return
 
     try:
@@ -203,42 +203,6 @@ async def cssworker_url(target_url: str):
         return resp.json()
     except httpx.NetworkError:
         return None
-
-
-async def search_yt(query):
-    page = (
-        await http.get(
-            "https://www.youtube.com/results",
-            params=dict(search_query=query, pbj="1"),
-            headers={
-                "x-youtube-client-name": "1",
-                "x-youtube-client-version": "2.20200827",
-            },
-        )
-    ).json()
-    list_videos = []
-    for video in page[1]["response"]["contents"]["twoColumnSearchResultsRenderer"][
-        "primaryContents"
-    ]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"]:
-        if video.get("videoRenderer"):
-            dic = {
-                "title": video["videoRenderer"]["title"]["runs"][0]["text"],
-                "url": "https://www.youtube.com/watch?v="
-                + video["videoRenderer"]["videoId"],
-            }
-            list_videos.append(dic)
-    return list_videos
-
-
-@Smudge.on_message(filters.command("yt"))
-async def yt_search_cmd(c: Smudge, m: Message):
-    vids = [
-        '{}: <a href="{}">{}</a>'.format(num + 1, i["url"], i["title"])
-        for num, i in enumerate(await search_yt(m.text.split(None, 1)[1]))
-    ]
-    await m.reply_text(
-        "\n".join(vids) if vids else r"¯\_(ツ)_/¯", disable_web_page_preview=True
-    )
 
 
 @Smudge.on_message(filters.command(["cep"], prefixes="/"))
@@ -311,7 +275,7 @@ async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
 @Smudge.on_message(filters.command(["gitr", "ghr"]))
 async def git_on_message(c: Smudge, m: Message):
     if not len(m.command) == 2:
-        await m.reply_text(await tld(m, "Misc.gitr_noargs"))
+        await m.reply_text(await tld(m, "Misc.noargs_gitr"))
         return
     repo = m.command[1]
     page = await http.get(f"https://api.github.com/repos/{repo}/releases/latest")

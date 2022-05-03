@@ -7,15 +7,15 @@ import asyncio
 from typing import Union
 
 from pyrogram import filters
+from pyrogram.helpers import ikb
+from pyrogram.errors import FloodWait
+from pyrogram.enums import ChatType, ChatMemberStatus
 from pyrogram.types import (
     Message,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     CallbackQuery,
 )
-from pyrogram.helpers import ikb
-
-from pyrogram.enums import ChatType, ChatMemberStatus
 
 from smudge import Smudge
 from smudge.plugins import all_plugins
@@ -46,7 +46,10 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
         chat_type = m.chat.type
         reply_text = m.reply_text
 
-    me = await c.get_me()
+    try:
+        me = await c.get_me()
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
     if chat_type == ChatType.PRIVATE:
         keyboard = InlineKeyboardMarkup(
             inline_keyboard=[

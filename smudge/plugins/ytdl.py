@@ -34,6 +34,49 @@ def extract_info(instance: yt_dlp.YoutubeDL, url: str, download=True):
     return instance.extract_info(url, download)
 
 
+async def search_yt(query):
+    page = (
+        await http.get(
+            "https://www.youtube.com/results",
+            params=dict(search_query=query, pbj="1"),
+            headers={
+                "x-youtube-client-name": "1",
+                "x-youtube-client-version": "2.20200827",
+            },
+        )
+    ).json()
+    list_videos = []
+    for video in page[1]["response"]["contents"]["twoColumnSearchResultsRenderer"][
+        "primaryContents"
+    ]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"]:
+        if video.get("videoRenderer"):
+            dic = {
+                "title": video["videoRenderer"]["title"]["runs"][0]["text"],
+                "url": "https://www.youtube.com/watch?v="
+                + video["videoRenderer"]["videoId"],
+            }
+            list_videos.append(dic)
+    return list_videos
+
+
+@Smudge.on_message(filters.command("yt"))
+async def yt_search_cmd(c: Smudge, m: Message):
+    if m.reply_to_message and m.reply_to_message.text:
+        args = m.reply_to_message.text
+    elif len(m.command) > 1:
+        args = m.text.split(None, 1)[1]
+    else:
+        await m.reply_text(await tld(m, "Misc.noargs_yt"))
+        return
+    vids = [
+        '{}: <a href="{}">{}</a>'.format(num + 1, i["url"], i["title"])
+        for num, i in enumerate(await search_yt(args))
+    ]
+    await m.reply_text(
+        "\n".join(vids) if vids else r"¯\_(ツ)_/¯", disable_web_page_preview=True
+    )
+
+
 @Smudge.on_message(filters.command("ytdl"))
 async def ytdlcmd(c: Smudge, m: Message):
     user = m.from_user.id
@@ -43,7 +86,7 @@ async def ytdlcmd(c: Smudge, m: Message):
     elif len(m.command) > 1:
         url = m.text.split(None, 1)[1]
     else:
-        await m.reply_text(await tld(m, "Misc.ytdl_missing_argument"))
+        await m.reply_text(await tld(m, "Misc.noargs_ytdl"))
         return
 
     ydl = yt_dlp.YoutubeDL({"noplaylist": True})
@@ -208,7 +251,9 @@ async def sdl(c: Smudge, m: Message):
         elif m.reply_to_message and m.reply_to_message.text:
             url = m.reply_to_message.text
         else:
-            await m.reply_text(await tld(m, "Misc.sdl_missing_arguments"))
+            await m.reply_text(
+                (await tld(m, "Misc.noargs_sdl")).format(m.text.split(None, 1)[0])
+            )
             return
     yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
     link = re.match(

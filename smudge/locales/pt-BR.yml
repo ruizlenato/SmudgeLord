@@ -173,14 +173,11 @@ strings:
     user_afk: "{} está afk!"
     user_now_afk: "<a href='tg://user?id={}'>{}</a> agora está afk!"
     short_error: "<b>Erro.</b>\n<b>Uso:</b> /short (url)\n\nFaça isso para encurtar uma url."
-    tr_error: "<b>Erro.</b>\n<b>Uso:</b> /tr (idioma) (texto).\n\n<i>Você também pode usar esse comando respondendo uma mensagem ou uma foto com legenda</i>"
     tr_translating: "Traduzindo..."
     print_printing: "Obtendo captura de tela..."
-    print_error: "<b>Erro.</b>\n<b>Uso:</b> <code>/print https://exemplo.com</code> - Tira uma captura de tela do site especificado."
     print_api_dead: "Failed, because API is not responding, try it later."
     regex_timeout: "Ops, o seu regex modelo executou por muito tempo."
     sdl_invalid_link: "<b>Pane no sistema alguém me desconfigurou.</b>\nO link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
-    sdl_missing_arguments: "Você esqueceu do link para que eu possa fazer download da midia."
     cep_strings: "🌏 <b>{}</b>\n<b>- Cidade:</b> {}\n<b>- Estado:</b> {} - {}\n<b>- Bairro:</b> {}\n<b>- Rua:</b> {}"
     cep_error: "Este CEP é invalido."
     no_cep: "Você esqueceu do CEP.\n<b>Uso do comando:</b> /cep (cep)."
@@ -190,32 +187,34 @@ strings:
     ddd_cities: "Cidades"
     sdl_config_noauto: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei baixar automaticamente quando você enviar um link."
     sdl_config_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
-    gitr_noargs: "Escreva o repositório para qual você quer buscar releases.\n\n<b>Por exemplo:</b>\n<code>/gitr usuário/repo</code>"
     gitr_noreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
     ytdl_audio_button: "💿 Áudio"
     ytdl_video_button: "📹 Vídeo"
     ytdl_send_error: "Desculpe! Não pude enviar o vídeo devido a um erro.\n<b>Erro:</b> <code>{}</code>"
     ytdl_file_too_big: "O Vídeo qual você deseja baixar excede o tamanho de 500MB.\nNão foi possível baixar e enviar, desculpe."
-    ytdl_missing_argument: "Por favor, responda um link do YouTube ou texto."
     ytdl_downloading: "Baixando..."
     ytdl_sending: "Enviando..."
     ytdl_button_denied: "Este botão não é para você."
+    noargs_tr: "<b>Uso do comando:</b> <code>/tr [idioma] [texto para tradução]</code>\n\nTraduzirá a palavra que você digitar para o idioma de sua preferência.\n<i>O comando também funciona através de resposta</i>"
+    noargs_sdl: "<b>Uso do comando:</b> <code>{} [link]</code>\n\nEspecifique um link do Instagram, TikTok ou Twitter para que eu possa baixar o vídeo."
+    noargs_yt: "<b>Uso do comando:</b> <code>/yt [Palavra]</code>\n\nEspecifique uma palavra para que eu possa buscar no YouTube e retornar a lista vídeos."
+    noargs_ytdl: "<b>Uso do comando:</b> <code>/ytdl [Palavra ou link]</code>\n\nEspecifique uma palavra ou um link para que eu possa buscar e baixar um vídeo."
+    noargs_gitr: "<b>Uso do comando:</b> <code>/gitr [usuário]/[repositório]</code>\n\nEspecifique nome de usuário e repositório para qual você quer buscar releases."
+    noargs_print: "<b>Uso do comando:</b> <code>/print https://exemplo.com</code>\n\nEspecifique o site para que eu possa retornar a captura de tela."
     help: |
-      <b>/tr [idioma] [palavra] -</b> Traduzirá a palavra que voce digitar para o idioma de sua preferencia.
-      <i><b>Obs</b>: o comando também funciona através de resposta
-      Basta digitar <b>"/tr [idioma]"</b> respondendo uma frase</i>
+      <b>/afk ou brb -</b> <i>Adicionará você como <a href='https://bit.ly/3yaR9TL'>afk</a> e toda vez que alguém marcar você em um grupo eu irei responder falando que você está afk</i>
+      <i>Esse comando também pode ser usado com algum argumento, exemplo: <code>/afk Estou dormindo</code></i>
+
+      <b>/tr -</b> <i>Traduzirá a palavra que você digitar para o idioma de sua preferência.</i>
+      <b>/short -</b> <i>Encurta o link especificado.</i>
+      <b>/ghr -</b> <i>Irá buscar as releases (lançamentos) mais recente desse repositório no github.</i>
  
-      <b>/short [url] -</b> Para encurtar uma URL.
- 
-      <b>/ddd [DDD] -</b> Retornará algumas informações sobre o DDD (Brasileiro) especificado.
-      <b>/cep [CEP] -</b> Retornará algumas informações sobre o CEP (Brasileiro) especificado.
- 
-      <b>/ghr [usuário/repositório] -</b> Irá buscar as releases (lançamentos) mais recente desse repositório no github.
- 
-      <b>/sdl [link] -</b> Esse comando baixa videos do <b>Instagram, TikTok e Twitter.</b>
- 
-      <b>/ytdl [Palavra ou link] -</b> Se você utilizar um link o bot irá baixar do YouTube, caso você escreva uma palavra, o bot buscará no youtube e baixará.
-      <b>/yt [Palavra] -</b> Faz uma busca no YouTube vídeos com a palavra que você escreveu e retorna uma lista com vídeos.
+      <b>/ddd -</b> <i>Obtém informações sobre o DDD (Brasileiro) especificado.</i>
+      <b>/cep -</b> <i>Obtém informações sobre o CEP (Brasileiro) especificado.</i>
+
+      <b>/sdl ou /mdl -</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>
+      <b>/ytdl -</b> <i>Baixa vídeos do YouTube em formato de vídeo ou audio.</i>
+      <b>/yt -</b> <i>Faz uma busca no YouTube com a palavra que você escreveu e retorna uma lista com vídeos.</i>
  
 # Stickers
   Stickers:
