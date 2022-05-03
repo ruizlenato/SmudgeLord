@@ -166,14 +166,11 @@ strings:
     user_afk: "{} is Afk!"
     user_now_afk: "<a href='tg://user?id={}'>{}</a> is now afk!"
     short_error: "<b>Error.</b>\n<b>Command Usage:</b> /short (url)\n\nDo this to shorten a url."
-    tr_error: "<b>Error.</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
     tr_translating: "Translating..."
     print_printing: "Taking screenshot..."
-    print_error: "<b>Error.</b>\n<b>Usage:</b> <code>/print https://example.com</code> - Take a screenshot of the specified website."
     print_api_dead: "Ocorreu um erro porque a API não responde, tente novamente mais tarde."
     regex_timeout: "Oops, your regex pattern has run for too long."
     sdl_invalid_link: "<b>System glitch someone disconnected me.</b>\nThe link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
-    sdl_missing_arguments: "You forgot the link so I can download the media."
     cep_strings: "🌏 <b>{}</b>\n<b>- City:</b> {}\n<b>- State:</b>  {} - {}\n<b>- Neighborhood:</b> {}\n<b>- Stret:</b> {}"
     cep_error: "This zip code is invalid."
     no_cep: "You forgot the zip code (Brazilian).\n<b>Use of command:</b> /cep (cep)."
@@ -183,29 +180,31 @@ strings:
     ddd_cities: "Cities"
     sdl_config_noauto: "<b>Saved.</b>\nNow I will <b>not</b> automatically download when you send a link."
     sdl_config_auto: "<b>Saved.</b>\nNow <b>I will</b> automatically download when you send a link."
-    gitr_noargs: "Please write release repository into it,\n\n<b>i.e</b> <code>/gitr user/repo</code>"
     gitr_noreleases: "Coudn't find any releases on <code>{}</code>"
     ytdl_audio_button: "💿 Audio"
     ytdl_video_button: "📹 Video"
     ytdl_send_error: "Sorry! I couldn't send the video because of an error.\n<b>Error:</b> <code>{}</code>"
     ytdl_file_too_big: "The Video you want to download exceeds 500MB in size.\nUnable to download and upload, sorry."
-    ytdl_missing_argument: "Please reply to a YouTube link or text."
     ytdl_downloading: "Downloading..."
     ytdl_sending: "Sending..."
     ytdl_button_denied: "This button is not for you."
+    noargs_tr: "<b>Usage:</b> <code> /tr [language] [text for translation]</b>.\n\nIt will translate the word you type into the language of your choice.\n<i>The command also works via reply</i>"
+    noargs_sdl: "<b>Usage:</b> <code>{} [link]</code>\n\nSpecify a link from Instagram, TikTok or Twitter so I can download the video."
+    noargs_yt: "<b>Usage:</b> <code>/yt [Word]</code>\n\nSpecify a word so I can search YouTube and return a list of videos."
+    noargs_ytdl: "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\nSpecify a word or a link so that I can search and download a video."
+    noargs_gitr: "<b>Usage:</b> <code>/gitr [user]/[repo]</code>\n\nSpecify the username and repository for which you want to fetch releases."
+    noargs_print: "<b>Usage:</b> <code>/print https://exemplo.com</code>\n\nSpecify the link so that I can return the screenshot."
     help: |
-      <b>/tr [language] [word] -</b> This will translate the word you type into the language of your choice.
-      <i>• It also can be used as reply.
-      I.e <b>"/tr [language]"</b> replying a message</i>
+      <b>/afk or brb -</b> <i>Will add you as <a href='https://bit.ly/3vTIxyg'>afk</a> every time someone tags you in a group I will reply saying you are afk</i>
+      <i>This command can also be used with some argument, for example: <code>/afk I am sleeping</code></i>
 
-      <b>/short [url] -</b> To Short a url.
+      <b>/tr -</b> <i>It will translate the word you enter into the language of your choice.</i>
+      <b>/short -</b> <i>Shortens the specified link.</i>
+      <b>/ghr -</b> <i>Will fetch the latest releases from the specified github repository.</i>
 
-      <b>/ghr [user/repository] -</b> Get latest releses from repo (github).
-
-      <b>/sdl [link] -</b> This command downloads videos from <b>Instagram, TikTok and Twitter.</b>
-
-      <b>/ytdl [Word or link] -</b> If you use a link the bot will download from youtube, if you type a word, the bot will search youtube and download.
-      <b>/yt [word] -</b> It does a YouTube video search with the word you wrote and returns a list with videos.
+      <b>/sdl or /mdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>
+      <b>/ytdl -</b> <i>Download videos from YouTube in video or audio format.</i>
+      <b>/yt -</b> <i>It does a YouTube search with the word you wrote and returns a list with videos.</i>
   #Stickers
   Stickers:
     name: "Stickers"
