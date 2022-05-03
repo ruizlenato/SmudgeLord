@@ -3,6 +3,7 @@
 import os
 import shutil
 import ffmpeg
+import asyncio
 import tempfile
 
 from PIL import Image
@@ -13,10 +14,11 @@ from smudge.utils import EMOJI_PATTERN
 from smudge.plugins import tld
 
 from pyrogram import filters
-from pyrogram.errors import PeerIdInvalid, StickersetInvalid
+from pyrogram.helpers import ikb
 from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
+from pyrogram.errors import PeerIdInvalid, StickersetInvalid, FloodWait
 from pyrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import Message
 from pyrogram.raw.types import (
     DocumentAttributeFilename,
     InputDocument,
@@ -68,7 +70,10 @@ async def getsticker(c: Smudge, m: Message):
 @Smudge.on_message(filters.command("kang"))
 async def kang_sticker(c: Smudge, m: Message):
     prog_msg = await m.reply_text(await tld(m, "Stickers.kanging"))
-    user = await c.get_me()
+    try:
+        user = await c.get_me()
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
     bot_username = user.username
     sticker_emoji = "🤔"
     packnum = 0
@@ -252,16 +257,11 @@ async def kang_sticker(c: Smudge, m: Message):
             except PeerIdInvalid:
                 return await prog_msg.edit_text(
                     await tld(m, "Stickers.pack_contact_pm"),
-                    reply_markup=InlineKeyboardMarkup(
-                        [
-                            [
-                                InlineKeyboardButton(
-                                    "/start", url=f"https://t.me/{bot_username}?start"
-                                )
-                            ]
-                        ]
+                    reply_markup=ikb(
+                        [[("/start", f"https://t.me/{bot_username}?start", "url")]]
                     ),
                 )
+
     except Exception as all_e:
         await prog_msg.edit_text(f"{all_e.__class__.__name__} : {all_e}")
     else:

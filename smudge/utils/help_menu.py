@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-
 from pyrogram.types import InlineKeyboardButton
 from smudge.plugins import tld
 
@@ -19,9 +18,9 @@ class EqInlineKeyboardButton(InlineKeyboardButton):
 async def help_buttons(m, HELP):
     plugins = sorted(
         [
-            EqInlineKeyboardButton(
+            (
                 await tld(m, str(HELP[plugin][0]["name"])),
-                callback_data="help_plugin({})".format(plugin.lower()),
+                "help_plugin({})".format(plugin.lower()),
             )
             for plugin in HELP.keys()
         ]

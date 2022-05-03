@@ -4,8 +4,8 @@ import rapidjson
 from bs4 import BeautifulSoup
 
 from pyrogram import filters
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
-
+from pyrogram.helpers import ikb
+from pyrogram.types import Message
 from smudge import Smudge
 from smudge.utils import http
 from smudge.plugins import tld
@@ -91,10 +91,10 @@ async def twrp(c: Smudge, m: Message):
             size = trs[i].find("span", {"class": "filesize"}).text
         message += f"<b>Size:</b> <code>{size}</code>\n"
         message += f"<b>File:</b> <code>{dl_file.upper()}</code>"
-        keyboard = [[InlineKeyboardButton(text="Download", url=dl_link)]]
+        keyboard = [[("Download", dl_link, "url")]]
         await m.reply_text(
             message,
-            reply_markup=InlineKeyboardMarkup(keyboard),
+            reply_markup=ikb(keyboard),
         )
 
 
