@@ -23,6 +23,8 @@ async def get_db_lang(chat_id: int, chat_type: str):
         return row[0]
     except IndexError:
         return None
+    except TypeError:
+        return "en-US"
 
 
 async def set_db_lang(chat_id: int, lang_code: str, chat_type: str):
