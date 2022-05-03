@@ -29,7 +29,8 @@ class Database:
             lang TEXT DEFAULT 'en-US',
             lastfm_username TEXT,
             spot_access_token TEXT,
-            spot_refresh_token TEXT
+            spot_refresh_token TEXT,
+            afk_reason TEXT
         );
         CREATE TABLE IF NOT EXISTS groups(
             id INTEGER PRIMARY KEY,

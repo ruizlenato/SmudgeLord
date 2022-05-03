@@ -216,6 +216,10 @@ strings:
 # Misc
   Misc:
     name: "Utils"
+    no_longer_afk: "{} is no longer Afk!"
+    afk_reason: "\n<b>Reason:</b> {}"
+    user_afk: "{} is Afk!"
+    user_now_afk: "<a href='tg://user?id={}'>{}</a> is now afk!"
     short_error: "<b>Error.</b>\n<b>Command Usage:</b> /short (url)\n\nDo this to shorten a url."
     tr_error: "<b>Error.</b>\n<b>Command Usage:</b> /tr (language) (text).\n\n<i>You can also use this command when replying to a message or photo with a caption.</i>"
     tr_translating: "Translating..."

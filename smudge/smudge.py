@@ -3,10 +3,12 @@
 
 import sys
 import aiocron
+import asyncio
 import logging
 import datetime
 
 from pyrogram import Client, enums
+from pyrogram.errors import FloodWait
 
 from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
@@ -34,13 +36,17 @@ class Smudge(Client):
             workers=24,
             workdir="smudge",
             plugins={"root": "smudge.plugins"},
+            sleep_threshold=0.5,
         )
 
     async def start(self):
         rprint(f"[green] Connected to telegram servers...")
         await super().start()  # Connect to telegram's servers
 
-        self.me = await self.get_me()
+        try:
+            self.me = await self.get_me()
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
 
         if "test" not in sys.argv:
             await self.send_message(

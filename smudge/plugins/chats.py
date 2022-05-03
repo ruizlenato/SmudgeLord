@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
+import asyncio
 from pyrogram.types import Message
 
 from smudge import Smudge
@@ -17,3 +18,4 @@ async def check_chat(c: Smudge, m: Message):
 
     if not chatexists:
         await add_chat(chat_id, chat_type)
+        await asyncio.sleep(0.5)
