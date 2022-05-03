@@ -107,8 +107,11 @@ async def afk_mentioned(c: Smudge, m: Message):
             else:
                 return
     elif m.reply_to_message and m.reply_to_message.from_user:
-        user_id = m.reply_to_message.from_user.id
-        user_first_name = m.reply_to_message.from_user.first_name
+        try:
+            user_id = m.reply_to_message.from_user.id
+            user_first_name = m.reply_to_message.from_user.first_name
+        except AttributeError:
+            return
     else:
         return
 
