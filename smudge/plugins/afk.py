@@ -5,7 +5,7 @@ import asyncio
 
 from pyrogram.types import Message
 from pyrogram import filters, enums
-from pyrogram.errors import FloodWait
+from pyrogram.errors import FloodWait, BadRequest
 
 from smudge import Smudge
 from smudge.plugins import tld
@@ -99,6 +99,8 @@ async def afk_mentioned(c: Smudge, m: Message):
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
                     user = await c.get_users(x.group(1))
+                except BadRequest:
+                    return
 
                 user_id = user.id
                 user_first_name = user.first_name
