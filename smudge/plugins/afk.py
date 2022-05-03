@@ -45,18 +45,26 @@ async def del_afk_user(user_id: int):
 
 
 @Smudge.on_message(filters.command("afk"))
+@Smudge.on_message(filters.regex(r"^brb(\s(?P<args>.+))?"))
 async def set_afk(_, m: Message):
-
     afkmsg = (await tld(m, "Misc.user_now_afk")).format(
         m.from_user.id, m.from_user.first_name
     )
 
-    if len(m.command) > 1:
-        reason = m.text.split(None, 1)[1]
-        reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
+    if m.matches:
+        if m.matches[0]["args"]:
+            reason = m.matches[0]["args"]
+            reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
+        else:
+            reason = "No reason"
+            reason_txt = ""
     else:
-        reason = "No reason"
-        reason_txt = ""
+        if len(m.command) > 1:
+            reason = m.text.split(None, 1)[1]
+            reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
+        else:
+            reason = "No reason"
+            reason_txt = ""
 
     await set_afk_user(m.from_user.id, reason)
     await m.reply_text(afkmsg + reason_txt)
