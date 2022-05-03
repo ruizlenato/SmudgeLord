@@ -46,5 +46,5 @@ async def sed(c: Smudge, m: Message):
         await c.send_message(
             m.chat.id,
             f"{html.escape(res)}",
-            reply_to_message_id=m.reply_to_message.message_id,
+            reply_to_message_id=m.reply_to_message.id,
         )
