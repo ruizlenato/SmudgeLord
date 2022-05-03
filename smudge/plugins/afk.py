@@ -5,7 +5,7 @@ import asyncio
 
 from pyrogram.types import Message
 from pyrogram import filters, enums
-from pyrogram.errors import FloodWait, BadRequest
+from pyrogram.errors import FloodWait, UserNotParticipant, BadRequest
 
 from smudge import Smudge
 from smudge.plugins import tld
@@ -93,10 +93,10 @@ async def afk_mentioned(c: Smudge, m: Message):
     if m.entities:
         for y in m.entities:
             if y.type == enums.MessageEntityType.MENTION:
-                x = re.search("@(\w+)", m.text)
+                x = re.search("@(\w+)", m.text)  # Regex to get @username
                 try:
                     user = await c.get_users(x.group(1))
-                except FloodWait as e:
+                except FloodWait as e:  # Avoid FloodWait
                     await asyncio.sleep(e.value)
                     user = await c.get_users(x.group(1))
                 except (IndexError, BadRequest):
@@ -120,8 +120,14 @@ async def afk_mentioned(c: Smudge, m: Message):
             return
     except AttributeError:
         return
-    except FloodWait as e:
+    except FloodWait as e:  # Avoid FloodWait
         await asyncio.sleep(e.value)
+
+    try:
+        await m.chat.get_member(user_id)  # Check if the user is in the group
+        pass
+    except UserNotParticipant:
+        return
 
     user_afk = await get_afk_user(user_id)
 
