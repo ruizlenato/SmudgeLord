@@ -6,11 +6,14 @@ import math
 import httpx
 import asyncio
 
+from smudge import Smudge
+
 from typing import Tuple, Callable
 from functools import wraps, partial
 
-from pyrogram import emoji, Client
+from pyrogram import emoji
 from smudge.config import CHAT_LOGS
+from pyrogram.types import CallbackQuery
 
 timeout = httpx.Timeout(120)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
@@ -96,8 +99,13 @@ async def extract_user(c, m) -> Tuple[int, str]:
     return user_id, user_first_name
 
 
-async def send_logs(c, user_mention, user_id, e):
-    await c.send_message(
+async def send_logs(m, e):
+    if isinstance(m, CallbackQuery):
+        m = m.message
+
+    user_mention = m.from_user.mention(m.from_user.first_name)
+    user_id = m.from_user.id
+    await Smudge.send_message(
         chat_id=CHAT_LOGS,
         text=(
             "<b>⚠️ Error</b>\n<b>User:</b>{} (<code>{}</code>)\n<b>Log:</b>\n<code>{}</code></b>"

@@ -149,9 +149,7 @@ async def prints(c: Smudge, m: Message):
         sent = await m.reply_text(await tld(m, "Misc.print_printing"))
         res_json = await cssworker_url(target_url=the_url)
     except BaseException as e:
-        user_mention = m.from_user.mention(m.from_user.first_name)
-        user_id = m.from_user.id
-        await send_logs(c, user_mention, user_id, e)
+        await send_logs(m, e)
         await m.reply(f"<b>Failed due to:</b> <code>{e}</code>")
         return
 
@@ -163,9 +161,7 @@ async def prints(c: Smudge, m: Message):
                 await m.reply_photo(image_url)
                 await sent.delete()
             except BaseException as e:
-                user_mention = m.from_user.mention(m.from_user.first_name)
-                user_id = m.from_user.id
-                await send_logs(c, user_mention, user_id, e)
+                await send_logs(m, e)
                 return
         else:
             await m.reply(
