@@ -177,9 +177,10 @@ async def but(c: Smudge, cq: CallbackQuery):
 async def logging(c: Smudge, m: Message):
     try:
         bot = await c.get_me()
+        bot_id = bot.id
     except FloodWait as e:
         await asyncio.sleep(e.value)
-    bot_id = bot.id
+
     if bot_id in [z.id for z in m.new_chat_members]:
         await c.send_message(
             chat_id=m.chat.id,
