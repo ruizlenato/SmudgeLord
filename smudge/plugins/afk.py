@@ -98,7 +98,6 @@ async def afk_mentioned(c: Smudge, m: Message):
                     user = await c.get_users(x.group(1))
                 except FloodWait as e:  # Avoid FloodWait
                     await asyncio.sleep(e.value)
-                    user = await c.get_users(x.group(1))
                 except (IndexError, BadRequest, KeyError):
                     return
 
