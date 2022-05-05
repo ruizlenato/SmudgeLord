@@ -14,11 +14,6 @@ from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
 from rich import box, print as rprint
 
-# Enable logging
-logging.basicConfig(format="%(asctime)s - %(message)s", level="WARNING")
-logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
-logging.getLogger("spotipy").setLevel(logging.CRITICAL)
-
 # Date
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
 

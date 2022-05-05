@@ -4,7 +4,7 @@ import sys
 import asyncio
 import logging
 
-from pyrogram import idle
+from pyrogram import idle, __version__ as pyrogram_version
 
 from rich.panel import Panel
 from rich import box, print as rprint
@@ -18,7 +18,8 @@ logging.basicConfig(format="%(asctime)s - %(message)s", level="WARNING")
 logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
 log = logging.getLogger("rich")
 logs = "[bold purple]SmudgeLord[/bold purple]"
-logs += f"\nProject maintained by: RuizLenato"
+logs += f"\n[cyan]Project maintained by:[/cyan] RuizLenato"
+logs += f"\n[yellow]Pyrogram Version:[/yellow] {pyrogram_version}"
 rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 
 
