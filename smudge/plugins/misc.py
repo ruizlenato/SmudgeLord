@@ -213,7 +213,7 @@ async def lastfm(c: Smudge, m: Message):
         elif m.reply_to_message and m.reply_to_message.text:
             cep = m.reply_to_message.text
     except IndexError:
-        await m.reply_text(await tld(m, "Misc.no_cep"))
+        await m.reply_text(await tld(m, "Misc.noargs_cep"))
         return
 
     base_url = "https://brasilapi.com.br/api/cep/v1"
@@ -244,14 +244,14 @@ async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
         else:
             ddd = m.text.split(maxsplit=1)[1]
     except IndexError:
-        await m.reply_text(await tld(m, "Misc.no_ddd"))
+        await m.reply_text(await tld(m, "Misc.noargs_ddd"))
         return
 
     base_url = "https://brasilapi.com.br/api/ddd/v1"
     res = await http.get(f"{base_url}/{ddd}")
     state = res.json().get("state")
     if res.status_code == 404:
-        return
+        return await m.reply_text((await tld(m, "Misc.ddd_error")))
     states = await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")
     state_name = states.json().get("nome")
     cities = res.json().get("cities")
