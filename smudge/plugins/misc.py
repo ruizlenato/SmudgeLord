@@ -250,6 +250,8 @@ async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
     base_url = "https://brasilapi.com.br/api/ddd/v1"
     res = await http.get(f"{base_url}/{ddd}")
     state = res.json().get("state")
+    if res.status_code == 404:
+        return
     states = await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")
     state_name = states.json().get("nome")
     cities = res.json().get("cities")
