@@ -72,7 +72,7 @@ async def set_afk(_, m: Message):
     await m.stop_propagation()
 
 
-@Smudge.on_message(filters.all & ~filters.bot, group=2)
+@Smudge.on_message(filters.group & ~filters.bot, group=2)
 async def rem_afk(c: Smudge, m: Message):
     if not m.from_user:
         return
@@ -88,7 +88,7 @@ async def rem_afk(c: Smudge, m: Message):
     )
 
 
-@Smudge.on_message(filters.all & ~filters.bot, group=3)
+@Smudge.on_message(filters.group & ~filters.bot, group=3)
 async def afk_mentioned(c: Smudge, m: Message):
     if m.entities:
         for y in m.entities:
@@ -100,9 +100,6 @@ async def afk_mentioned(c: Smudge, m: Message):
                     await asyncio.sleep(e.value)
                 except (IndexError, BadRequest, KeyError):
                     return
-
-                user_id = user.id
-                user_first_name = user.first_name
             else:
                 return
     elif m.reply_to_message and m.reply_to_message.from_user:
@@ -113,6 +110,9 @@ async def afk_mentioned(c: Smudge, m: Message):
             return
     else:
         return
+
+    user_id = user.id
+    user_first_name = user.first_name
 
     try:
         if user_id == m.from_user.id:
