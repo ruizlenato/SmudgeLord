@@ -100,6 +100,13 @@ async def afk_mentioned(c: Smudge, m: Message):
                     await asyncio.sleep(e.value)
                 except (IndexError, BadRequest, KeyError):
                     return
+                try:
+                    user_id = user.id
+                    user_first_name = user.first_name
+                except UnboundLocalError:
+                    return
+                except FloodWait as e:  # Avoid FloodWait
+                    await asyncio.sleep(e.value)
             else:
                 return
     elif m.reply_to_message and m.reply_to_message.from_user:
@@ -110,9 +117,6 @@ async def afk_mentioned(c: Smudge, m: Message):
             return
     else:
         return
-
-    user_id = user.id
-    user_first_name = user.first_name
 
     try:
         if user_id == m.from_user.id:
