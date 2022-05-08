@@ -55,6 +55,8 @@ async def broadcast(c: Smudge, m: Message):
     await sm.edit_text(
         f"Anúncio feito com sucesso! Sua mensagem foi enviada em um total de <code>{len(success)}</code> grupos e falhou o envio em <code>{len(fail)}</code> grupos."
     )
+
+
 @Smudge.on_message(filters.command("exec") & filters.user(SUDOERS))
 async def execs(c: Smudge, m: Message):
     strio = io.StringIO()
