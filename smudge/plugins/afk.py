@@ -68,7 +68,6 @@ async def set_afk(_, m: Message):
 
     await set_afk_user(m.from_user.id, reason)
     await m.reply_text(afkmsg + reason_txt)
-
     await m.stop_propagation()
 
 
@@ -145,3 +144,4 @@ async def afk_mentioned(c: Smudge, m: Message):
         else:
             pass
         await m.reply_text(afkmsg)
+    await m.stop_propagation()

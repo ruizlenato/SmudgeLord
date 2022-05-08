@@ -13,33 +13,15 @@ from contextlib import redirect_stdout
 
 from smudge import Smudge
 from smudge.config import SUDOERS
+from smudge.database.core import database
 
 from rich import print as rprint
 
-
-@Smudge.on_message(filters.command("(broadcast|announcement)") & filters.user(SUDOERS))
-async def broadcast(c: Smudge, m: Message):
-    sm = await m.reply_text("Broadcasting...")
-    command = m.text.split()[0]
-    text = m.text[len(command) + 1 :]
-    chats = await groups.all()
-    success = []
-    fail = []
-    for chat in chats:
-        try:
-            if await c.send_message(chat.id, text):
-                success.append(chat.id)
-            else:
-                fail.append(chat.id)
-        except:
-            fail.append(chat.id)
-    await sm.edit_text(
-        f"Anúncio feito com sucesso! Sua mensagem foi enviada em um total de <code>{len(success)}</code> grupos e falhou o envio em <code>{len(fail)}</code> grupos."
-    )
+conn = database.get_conn()
 
 
 @Smudge.on_message(filters.command("restart") & filters.user(SUDOERS))
-async def broadcast(c: Smudge, m: Message):
+async def restart(c: Smudge, m: Message):
     await m.reply_text("Restarting...")
     args = [sys.executable, "-m", "smudge"]
     os.system("cls" if os.name == "nt" else "clear")
@@ -47,6 +29,32 @@ async def broadcast(c: Smudge, m: Message):
     os.execl(sys.executable, *args)
 
 
+@Smudge.on_message(filters.command("broadcast") & filters.user(SUDOERS))
+async def broadcast(c: Smudge, m: Message):
+    print("AAAAAAAAA")
+    if len(m.command) > 1:
+        lang = m.text.split(None, 2)[1]
+        text = m.text.split(None, 2)[2]
+    else:
+        await m.reply_text("Você esqueceu dos argumentos!")
+        return
+    sm = await m.reply_text("Broadcasting...")
+    cursor = await conn.execute("SELECT id FROM groups WHERE lang = ?", (lang,))
+    row = await cursor.fetchall()
+    success = []
+    fail = []
+    for keywords in row:
+        keyword = keywords[0]
+        try:
+            if await c.send_message(keyword, text):
+                success.append(keyword)
+            else:
+                fail.append(keyword)
+        except:
+            fail.append(keyword)
+    await sm.edit_text(
+        f"Anúncio feito com sucesso! Sua mensagem foi enviada em um total de <code>{len(success)}</code> grupos e falhou o envio em <code>{len(fail)}</code> grupos."
+    )
 @Smudge.on_message(filters.command("exec") & filters.user(SUDOERS))
 async def execs(c: Smudge, m: Message):
     strio = io.StringIO()
