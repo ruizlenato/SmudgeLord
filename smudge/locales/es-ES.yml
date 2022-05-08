@@ -27,6 +27,9 @@ strings:
     config_text: "<b>Ajustes.</b>\nHaga clic en los botones de abajo para cambiar la configuración de su grupo.\n\n<b>SDL Auto -</b> <i>Cuando está activado (✅) el bot descargará videos de redes sociales automáticamente cuando alguien envíe un enlace</i>\n<b>Idioma -</b> <i>Cambie el idioma del bot en el grupo</i>"
     added: "-> añadido"
     updated: "actualizado"
+    downloading: "Downloading..."
+    sending: "Sending..."
+    loading: "Loading..."
   #Admin
   Admin:
     Admin: "Administrador"
@@ -183,8 +186,6 @@ strings:
     ytdl_video_button: "📹 Video"
     ytdl_send_error: "Sorry! I couldn't send the video because of an error.\n<b>Error:</b> <code>{}</code>"
     ytdl_file_too_big: "The Video you want to download exceeds 500MB in size.\nUnable to download and upload, sorry."
-    ytdl_downloading: "Downloading..."
-    ytdl_sending: "Sending..."
     ytdl_button_denied: "This button is not for you."
     noargs_cep: "<b>Usage:</b> <code> /cep [zip code (Brazilian)]</code>\n\nYou forgot the zip code (Brazilian)."
     noargs_dddd: "<b>Usage:</b> <code> /ddd [Brazilian DDD]</code>\n\n You forgot the DDD (Brazilian)."
