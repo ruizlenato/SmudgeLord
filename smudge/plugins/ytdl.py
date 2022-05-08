@@ -150,7 +150,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
         )
     vid = re.sub(r"^\_(vid|aud)\.", "", data)
     url = "https://www.youtube.com/watch?v=" + vid
-    await cq.message.edit(await tld(cq, "Misc.ytdl_downloading"))
+    await cq.message.edit(await tld(cq, "Main.downloading"))
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
 
@@ -184,7 +184,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
         await send_logs(c, cq, e)
         await cq.message.edit((await tld(cq, "Misc.ytdl_send_error")).format(e))
         return
-    await cq.message.edit(await tld(cq, "Misc.ytdl_sending"))
+    await cq.message.edit(await tld(cq, "Main.sending"))
     await c.send_chat_action(cq.message.chat.id, enums.ChatAction.UPLOAD_VIDEO)
 
     filename = ydl.prepare_filename(yt)

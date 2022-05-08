@@ -28,6 +28,9 @@ strings:
     config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo.\n\n<b>SDL Auto -</b> <i>Quando ativo (✅) o bot irá baixar videos de redes sociais automaticamente quando alguém enviar um link</i>\n<b>Idioma -</b> <i>Altera o idioma do bot no grupo</i>"
     added: "adicionado"
     updated: "atualizado"
+    downloading: "Baixando..."
+    sending: "Enviando..."
+    loading: "Carregando..."
 
 # Admin
   Admin:
@@ -87,7 +90,7 @@ strings:
     dualtone_day: "últimos {} dias"
     dualtone_overall: "todos os tempos"
     dualtone_choose: "<b>Escolha um esquema de cores.</b>"
-    dualtone_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> {command} (período de tempo) (tempo) \n\n<b>Períodos de tempo:</b> overall (no total), 7d (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Example:</b><code> {command} 1w musicas </code>"
+    dualtone_noargs: "<b>Uso do comando:</b> <code>{command} (período de tempo) (tempo)</code>\n\n<b>Períodos de tempo:</b> overall (no total), 7d (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Exemplo:</b><code> {command} 1w musicas </code>"
     collage_noargs: "Você esqueceu dos argumentos.\n<b>Use:</b> /collage (período de tempo) (tipo) (tamanho)\n\n<b>Períodos de tempo:</b> overall (no total), 7d ou 1w (7 dias), 1m (1 mês), 3m (3 meses), 6m (6 meses), 12m ou 1y (12 meses/1 ano)\n<b>Tipos:</b> artistas, albuns, musicas\n\n<b>Exemplo:</b><code> /collage 1w artistas 3x3 </code>"
     collage_caption: "<a href='https://last.fm/user/{}'>{}</a>'s {} {}x{} <b>{}</b> collage"
     help: |
@@ -191,8 +194,6 @@ strings:
     ytdl_video_button: "📹 Vídeo"
     ytdl_send_error: "Desculpe! Não pude enviar o vídeo devido a um erro.\n<b>Erro:</b> <code>{}</code>"
     ytdl_file_too_big: "O Vídeo qual você deseja baixar excede o tamanho de 500MB.\nNão foi possível baixar e enviar, desculpe."
-    ytdl_downloading: "Baixando..."
-    ytdl_sending: "Enviando..."
     ytdl_button_denied: "Este botão não é para você."
     noargs_cep: "<b>Uso do comando:</b> <code>/cep [cep]</code>\nEspecifique o CEP que você quer consultar."
     noargs_ddd: "<b>Uso do comando:</b> <code>/ddd [ddd]</code>\n\nEspecifique o DDD que você quer consultar."

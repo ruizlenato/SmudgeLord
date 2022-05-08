@@ -689,7 +689,7 @@ async def duotone(c: Smudge, m: Message):
 @Smudge.on_callback_query(filters.regex("^(_duton)"))
 async def create_duotone(c: Smudge, cq: CallbackQuery):
     try:
-        await cq.edit_message_text("Loading...")
+        await cq.edit_message_text(await tld(cq, "Main.loading"))
     except BadRequest:
         return
     color, top, period, user_id, username = cq.data.split("|")
@@ -745,7 +745,6 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
             )
             with open(filename, "wb") as f:
                 f.write(imgdata)
-            with open(filename, "rb") as image:
                 keyboard = [
                     [(f"👤 LastFM User", f"https://last.fm/user/{username}", "url")]
                 ]
