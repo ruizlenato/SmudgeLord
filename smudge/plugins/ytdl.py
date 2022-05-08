@@ -8,11 +8,12 @@ import yt_dlp
 import shutil
 import tempfile
 import datetime
-from glob import glob
+import gallery_dl
+
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
 from pyrogram.errors import BadRequest
-from pyrogram.types import Message, CallbackQuery, InputMediaVideo
+from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPhoto
 
 from smudge import Smudge
 from smudge.plugins import tld
@@ -255,6 +256,7 @@ async def sdl(c: Smudge, m: Message):
                 (await tld(m, "Misc.noargs_sdl")).format(m.text.split(None, 1)[0])
             )
             return
+
     yt_dlp.utils.std_headers["User-Agent"] = "facebookexternalhit/1.1"
     link = re.match(
         SDL_REGEX_LINKS,
@@ -265,27 +267,54 @@ async def sdl(c: Smudge, m: Message):
     if not link:
         await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
         return
-
-    with tempfile.TemporaryDirectory() as tempdir:
-        path = os.path.join(tempdir, "ytdl")
-    ydl_opts = {
-        "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
-        "cookiefile": "~/instagram.com_cookies.txt",
-        "extractor_retries": "3",
-        "wait-for-video": "1",
-        "noplaylist": False,
-        "logger": MyLogger(),
-    }
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        try:
-            await extract_info(ydl, url, download=True)
-        except BaseException as e:
-            return
-    videos = [InputMediaVideo(os.path.join(path, video)) for video in os.listdir(path)]
-    await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
-    await m.reply_media_group(media=videos)
-    shutil.rmtree(tempdir, ignore_errors=True)
+    else:
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = os.path.join(tempdir, "sdl")
+            try:
+                gallery_dl.config.set(("output",), "mode", "null")
+                gallery_dl.config.set((), "directory", [])
+                gallery_dl.config.set((), "base-directory", [path])
+                gallery_dl.config.set(
+                    (),
+                    "cookies",
+                    "~/instagram.com_cookies.txt",
+                )
+                gallery_dl.job.DownloadJob(url).run()
+                files = []
+                files += [
+                    InputMediaVideo(os.path.join(path, video))
+                    for video in os.listdir(path)
+                    if video.endswith(".mp4")
+                ]
+                files += [
+                    InputMediaPhoto(os.path.join(path, video))
+                    for video in os.listdir(path)
+                    if video.endswith(".jpg")
+                ]
+                await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_DOCUMENT)
+                await m.reply_media_group(media=files)
+                shutil.rmtree(tempdir, ignore_errors=True)
+            except gallery_dl.exception.GalleryDLException:
+                ydl_opts = {
+                    "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
+                    "usenetrc": "true",
+                    "extractor_retries": "3",
+                    "wait-for-video": "1",
+                    "noplaylist": False,
+                    "logger": MyLogger(),
+                }
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    try:
+                        await extract_info(ydl, url, download=True)
+                    except BaseException as e:
+                        return
+                videos = [
+                    InputMediaVideo(os.path.join(path, video))
+                    for video in os.listdir(path)
+                ]
+                await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
+                await m.reply_media_group(media=videos)
+        shutil.rmtree(tempdir, ignore_errors=True)
 
 
 class MyLogger:
