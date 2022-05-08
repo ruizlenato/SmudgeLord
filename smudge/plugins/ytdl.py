@@ -9,10 +9,11 @@ import shutil
 import tempfile
 import datetime
 import gallery_dl
+import asyncio
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
-from pyrogram.errors import BadRequest
+from pyrogram.errors import BadRequest, FloodWait
 from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPhoto
 
 from smudge import Smudge
@@ -292,7 +293,10 @@ async def sdl(c: Smudge, m: Message):
                     if video.endswith(".jpg")
                 ]
                 await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_DOCUMENT)
-                await m.reply_media_group(media=files)
+                try:
+                    await m.reply_media_group(media=files)
+                except FloodWait as e:
+                    await asyncio.sleep(e.value)
                 shutil.rmtree(tempdir, ignore_errors=True)
             except gallery_dl.exception.GalleryDLException:
                 ydl_opts = {
