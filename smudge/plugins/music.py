@@ -4,6 +4,7 @@ import os
 import re
 import httpx
 import base64
+import random
 import asyncio
 import urllib.parse
 import urllib.request
@@ -645,49 +646,52 @@ async def duotone(c: Smudge, m: Message):
             )
         )
 
-    keyboard = ikb(
+    keyboard = [
         [
-            [
-                (
-                    f"🟣+🟦",
-                    f"_duton.divergent|{top}|{period}|{user_id}|{username}",
-                ),
-                (
-                    f"⬛️+🔴",
-                    f"_duton.horror|{top}|{period}|{user_id}|{username}",
-                ),
-                (
-                    f"🟢+🟩",
-                    f"_duton.natural|{top}|{period}|{user_id}|{username}",
-                ),
-            ],
-            [
-                (
-                    f"🟨+🔴",
-                    f"_duton.sun|{top}|{period}|{user_id}|{username}",
-                ),
-                (
-                    f"⚫️+🟨",
-                    f"_duton.yellish|{top}|{period}|{user_id}|{username}",
-                ),
-                (
-                    f"🔵+🟦",
-                    f"_duton.sea|{top}|{period}|{user_id}|{username}",
-                ),
-                (
-                    f"🟣+🟪",
-                    f"_duton.purplish|{top}|{period}|{user_id}|{username}",
-                ),
-            ],
-        ]
-    )
+            (
+                f"🟣+🟦",
+                f"_duton.divergent|{top}|{period}|{user_id}|{username}",
+            ),
+            (
+                f"⬛️+🔴",
+                f"_duton.horror|{top}|{period}|{user_id}|{username}",
+            ),
+            (
+                f"🟢+🟩",
+                f"_duton.natural|{top}|{period}|{user_id}|{username}",
+            ),
+        ],
+        [
+            (
+                f"🟨+🔴",
+                f"_duton.sun|{top}|{period}|{user_id}|{username}",
+            ),
+            (
+                f"⚫️+🟨",
+                f"_duton.yellish|{top}|{period}|{user_id}|{username}",
+            ),
+            (
+                f"🔵+🟦",
+                f"_duton.sea|{top}|{period}|{user_id}|{username}",
+            ),
+            (
+                f"🟣+🟪",
+                f"_duton.purplish|{top}|{period}|{user_id}|{username}",
+            ),
+        ],
+    ]
 
-    await m.reply_text(await tld(m, "Music.dualtone_choose"), reply_markup=keyboard)
+    await m.reply_text(
+        await tld(m, "Music.dualtone_choose"), reply_markup=ikb(keyboard)
+    )
 
 
 @Smudge.on_callback_query(filters.regex("^(_duton)"))
 async def create_duotone(c: Smudge, cq: CallbackQuery):
-    await cq.edit_message_text("Loading...")
+    try:
+        await cq.edit_message_text("Loading...")
+    except BadRequest:
+        return
     color, top, period, user_id, username = cq.data.split("|")
     if cq.from_user.id == int(user_id):
         period_tld_num = re.sub("[A-z]", "", period)
@@ -734,7 +738,11 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
             )
             imgdata = base64.b64decode(data)
 
-            filename = f"({top})%s%s.png" % (user_id, username)
+            filename = f"({top})%s%s(%s).png" % (
+                user_id,
+                username,
+                random.randint(0, 300),
+            )
             with open(filename, "wb") as f:
                 f.write(imgdata)
             with open(filename, "rb") as image:
@@ -747,7 +755,6 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
                     reply_markup=ikb(keyboard),
                 )
                 await cq.message.delete()
-                await asyncio.sleep(0.2)
                 os.remove(filename)
         except httpx.NetworkError:
             return None
