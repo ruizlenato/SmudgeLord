@@ -8,11 +8,11 @@ import yt_dlp
 import shutil
 import tempfile
 import datetime
-
+from glob import glob
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
 from pyrogram.errors import BadRequest
-from pyrogram.types import Message, CallbackQuery
+from pyrogram.types import Message, CallbackQuery, InputMediaVideo
 
 from smudge import Smudge
 from smudge.plugins import tld
@@ -268,11 +268,11 @@ async def sdl(c: Smudge, m: Message):
 
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
-    filename = f"{path}/%s%s.mp4" % (m.chat.id, m.id)
     ydl_opts = {
-        "outtmpl": filename,
+        "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
         "cookiefile": "~/instagram.com_cookies.txt",
         "extractor_retries": "3",
+        "wait-for-video": "1",
         "noplaylist": False,
         "logger": MyLogger(),
     }
@@ -282,10 +282,9 @@ async def sdl(c: Smudge, m: Message):
             await extract_info(ydl, url, download=True)
         except BaseException as e:
             return
-
-    with open(filename, "rb") as video:
-        await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
-        await m.reply_video(video=video)
+    videos = [InputMediaVideo(os.path.join(path, video)) for video in os.listdir(path)]
+    await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
+    await m.reply_media_group(media=videos)
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
