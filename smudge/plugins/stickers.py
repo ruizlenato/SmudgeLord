@@ -179,7 +179,7 @@ async def kang_sticker(c: Smudge, m: Message):
         if resize:
             filename = resize_image(filename)
         elif convert:
-            filename = convert_video(filename)
+            filename = await convert_video(filename)
         max_stickers = 50 if animated else 120
         while not packname_found:
             try:
@@ -294,14 +294,18 @@ def resize_image(filename: str) -> str:
     return png_image
 
 
-def convert_video(filename: str) -> str:
+async def convert_video(filename: str) -> str:
     downpath, f_name = os.path.split(filename)
     webm_video = os.path.join(downpath, f"{f_name.split('.', 1)[0]}.webm")
-    stream = ffmpeg.input(filename).filter("fps", fps=30, round="up").trim(duration=3)
-    stream = ffmpeg.output(
-        stream, webm_video, s="512x512", vcodec="vp9", video_bitrate="500k"
+    process = (
+        ffmpeg.input(filename)
+        .filter("fps", fps=30, round="up")
+        .trim(duration=3)
+        .output(webm_video, s="512x512", vcodec="vp9", video_bitrate="500k")
+        .overwrite_output()
+        .run_async(quiet=True)
     )
-    ffmpeg.run(stream, overwrite_output=True, quiet=True)
+    process.communicate()
     if webm_video != filename:
         os.remove(filename)
     return webm_video
