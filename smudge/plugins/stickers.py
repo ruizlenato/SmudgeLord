@@ -10,10 +10,10 @@ from PIL import Image
 
 from smudge import Smudge
 from smudge.config import CHAT_LOGS
-from smudge.utils import EMOJI_PATTERN
+from smudge.utils import EMOJI_PATTERN, http
 from smudge.plugins import tld
 
-from pyrogram import filters
+from pyrogram import filters, enums
 from pyrogram.helpers import ikb
 from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
 from pyrogram.errors import PeerIdInvalid, StickersetInvalid, FloodWait
@@ -81,6 +81,7 @@ async def kang_sticker(c: Smudge, m: Message):
     resize = False
     animated = False
     videos = False
+    convert = False
     reply = m.reply_to_message
     user = await c.resolve_peer(m.from_user.username or m.from_user.id)
 
@@ -89,18 +90,20 @@ async def kang_sticker(c: Smudge, m: Message):
             resize = True
         elif reply.animation:
             videos = True
+        elif reply.video:
             convert = True
+            videos = True
         elif reply.document:
             if "image" in reply.document.mime_type:
                 # mime_type: image/webp
                 resize = True
-            elif "video/mp4" in reply.document.mime_type:
-                # mime_type: application/v
+            elif enums.MessageMediaType.VIDEO == reply.document.mime_type:
+                # mime_type: application/video
                 videos = True
-            elif "tgsticker" in reply.document.mime_type:
-                # mime_type: application/v
+                convert = True
+            elif enums.MessageMediaType.ANIMATION == reply.document.mime_type:
+                # mime_type: application/x-tgsticker
                 animated = True
-
         elif reply.sticker:
             if not reply.sticker.file_name:
                 return await prog_msg.edit_text(
