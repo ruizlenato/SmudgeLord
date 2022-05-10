@@ -12,7 +12,6 @@ from gpytranslate import Translator
 from smudge import Smudge
 from smudge.utils import http
 from smudge.plugins import tld
-from smudge.utils import send_logs
 
 from pyrogram import filters
 from pyrogram.helpers import ikb
@@ -149,8 +148,7 @@ async def prints(c: Smudge, m: Message):
         sent = await m.reply_text(await tld(m, "Misc.print_printing"))
         res_json = await cssworker_url(target_url=the_url)
     except BaseException as e:
-        await send_logs(m, e)
-        await m.reply(f"<b>Failed due to:</b> <code>{e}</code>")
+        await m.reply(f"<b>Error:</b> <code>{e}</code>")
         return
 
     if res_json:
@@ -161,7 +159,7 @@ async def prints(c: Smudge, m: Message):
                 await m.reply_photo(image_url)
                 await sent.delete()
             except BaseException as e:
-                await send_logs(m, e)
+                await m.reply(f"<b>Error:</b> <code>{e}</code>")
                 return
         else:
             await m.reply(
