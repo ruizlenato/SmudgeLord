@@ -102,6 +102,10 @@ async def kang_sticker(c: Smudge, m: Message):
                 videos = True
                 convert = True
             elif enums.MessageMediaType.ANIMATION == reply.document.mime_type:
+                # mime_type: video/mp4
+                videos = True
+                convert = True
+            elif "tgsticker" in reply.document.mime_type:
                 # mime_type: application/x-tgsticker
                 animated = True
         elif reply.sticker:
