@@ -90,6 +90,7 @@ async def kang_sticker(c: Smudge, m: Message):
             resize = True
         elif reply.animation:
             videos = True
+            convert = True
         elif reply.video:
             convert = True
             videos = True
