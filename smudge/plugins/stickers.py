@@ -2,7 +2,6 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import os
 import shutil
-import ffmpeg
 import asyncio
 import tempfile
 
@@ -304,19 +303,22 @@ def resize_image(filename: str) -> str:
 async def convert_video(filename: str) -> str:
     downpath, f_name = os.path.split(filename)
     webm_video = os.path.join(downpath, f"{f_name.split('.', 1)[0]}.webm")
-    process = (
-        ffmpeg.input(filename)
-        .filter("fps", fps=30, round="up")
-        .trim(duration=3)
-        .output(webm_video, s="512x512", vcodec="vp9", video_bitrate="500k")
-        .overwrite_output()
-        .run_async(quiet=True)
-    )
-    try:
-        process.communicate()
-    except ffmpeg.Error as e:
-        print(e)
-        return False
+    cmd = [
+        "ffmpeg",
+        "-loglevel", "quiet",
+        "-i", filename,
+        "-t", "00:00:03", 
+        "-vf", "fps=30", 
+        "-c:v", "vp9", 
+        "-b:v:", "500k", 
+        "-preset", "ultrafast",
+        "-s", "512x512",
+        "-y", webm_video
+        ]
+    
+    proc = await asyncio.create_subprocess_exec(*cmd)
+    # Wait for the subprocess to finish
+    await proc.communicate()
 
     if webm_video != filename:
         os.remove(filename)
