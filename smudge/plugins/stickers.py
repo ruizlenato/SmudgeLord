@@ -305,17 +305,26 @@ async def convert_video(filename: str) -> str:
     webm_video = os.path.join(downpath, f"{f_name.split('.', 1)[0]}.webm")
     cmd = [
         "ffmpeg",
-        "-loglevel", "quiet",
-        "-i", filename,
-        "-t", "00:00:03", 
-        "-vf", "fps=30", 
-        "-c:v", "vp9", 
-        "-b:v:", "500k", 
-        "-preset", "ultrafast",
-        "-s", "512x512",
-        "-y", webm_video
-        ]
-    
+        "-loglevel",
+        "quiet",
+        "-i",
+        filename,
+        "-t",
+        "00:00:03",
+        "-vf",
+        "fps=30",
+        "-c:v",
+        "vp9",
+        "-b:v:",
+        "500k",
+        "-preset",
+        "ultrafast",
+        "-s",
+        "512x512",
+        "-y",
+        webm_video,
+    ]
+
     proc = await asyncio.create_subprocess_exec(*cmd)
     # Wait for the subprocess to finish
     await proc.communicate()
