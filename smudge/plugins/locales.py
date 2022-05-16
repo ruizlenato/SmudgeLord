@@ -15,7 +15,7 @@ strings = {}
 
 
 def cache_localizations(files):
-    """Get all translated strings from files."""
+    # Get all translated strings from files
     ldict = {lang: {} for lang in LANGUAGES}
     for file in files:
         lang_name = (file.split(os.path.sep)[2]).replace(".yml", "")

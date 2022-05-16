@@ -24,7 +24,7 @@ from smudge.database.start import check_sdl
 SDL_REGEX_LINKS = r"^(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)"
 
 YOUTUBE_REGEX = re.compile(
-    r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"
+    r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/|embed/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"
 )
 TIME_REGEX = re.compile(r"[?&]t=([0-9]+)")
 
@@ -91,7 +91,7 @@ async def ytdlcmd(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Misc.noargs_ytdl"))
         return
 
-    ydl = yt_dlp.YoutubeDL({"noplaylist": True})
+    ydl = yt_dlp.YoutubeDL({"noplaylist": True, "logger": MyLogger()})
 
     rege = YOUTUBE_REGEX.match(url)
 
@@ -244,7 +244,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
 async def sdl(c: Smudge, m: Message):
     if m.matches:
         if m.chat.type == enums.ChatType.PRIVATE or await check_sdl(m.chat.id) == True:
-            url = m.matches[0].group(0)
+            url = m.matches[0].group(1)
         else:
             return
     else:
