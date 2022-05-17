@@ -50,7 +50,7 @@ async def set_afk(_, m: Message):
     try:
         afkmsg = (await tld(m, "Misc.user_now_afk")).format(
             m.from_user.id, m.from_user.first_name
-            )
+        )
     except AttributeError:
         return
 
