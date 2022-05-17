@@ -30,6 +30,7 @@ strings:
     downloading: "Downloading..."
     sending: "Sending..."
     loading: "Loading..."
+    start: "Start"
   #Admin
   Admin:
     Admin: "Administrador"
@@ -209,7 +210,7 @@ strings:
   #Stickers
   Stickers:
     name: "Stickers"
-    pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first."
+    pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first.\n\nClick on the button below to send me a message."
     kang_noreply: "<b>You need to use this command replying a sticker or a photo.</b>"
     kanging: "Stealing the sticker..."
     getsticker_no_reply: "Reply a sticker so I can upload the PNG."
