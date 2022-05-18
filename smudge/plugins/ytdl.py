@@ -315,8 +315,12 @@ async def sdl(c: Smudge, m: Message):
                     "logger": MyLogger(),
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    if re.match(r'https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)', url, re.M,): 
-                        r = await http.head(url, follow_redirects=True) 
+                    if re.match(
+                        r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)",
+                        url,
+                        re.M,
+                    ):
+                        r = await http.head(url, follow_redirects=True)
                         url = r.url
                     try:
                         await extract_info(ydl, str(url), download=True)
@@ -329,6 +333,7 @@ async def sdl(c: Smudge, m: Message):
                 await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
                 await m.reply_media_group(media=videos)
         shutil.rmtree(tempdir, ignore_errors=True)
+
 
 class MyLogger:
     def debug(self, msg):
