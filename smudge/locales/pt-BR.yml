@@ -31,6 +31,7 @@ strings:
     downloading: "Baixando..."
     sending: "Enviando..."
     loading: "Carregando..."
+    start: "Iniciar"
 
 # Admin
   Admin:
@@ -221,7 +222,7 @@ strings:
 # Stickers
   Stickers:
     name: "Stickers"
-    pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro. ."
+    pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro.\n\nClique no botão abaixo para interagir comigo."
     kang_noreply: "<b>Pane no sistema alguém me desconfigurou.</b>\nVocê precisa usar esse comando respondendo um sticker ou uma foto."
     kanging: "Roubando o Sticker..."
     getsticker_no_reply: Responda a um sticker para que eu faça o upload do PNG.
