@@ -21,7 +21,7 @@ from smudge.plugins import tld
 from smudge.utils import send_logs, http, pretty_size, aiowrap
 from smudge.database.start import check_sdl
 
-SDL_REGEX_LINKS = r"^(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:.*?))(?:\s|$)"
+SDL_REGEX_LINKS = r"^http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:\S*)"
 
 YOUTUBE_REGEX = re.compile(
     r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/|embed/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"
@@ -244,7 +244,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
 async def sdl(c: Smudge, m: Message):
     if m.matches:
         if m.chat.type == enums.ChatType.PRIVATE or await check_sdl(m.chat.id) == True:
-            url = m.matches[0].group(1)
+            url = m.matches[0].group(0)
         else:
             return
     else:
