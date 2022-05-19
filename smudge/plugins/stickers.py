@@ -267,7 +267,15 @@ async def kang_sticker(c: Smudge, m: Message):
                 return await prog_msg.edit_text(
                     await tld(m, "Stickers.pack_contact_pm"),
                     reply_markup=ikb(
-                        [[(await tld(m, "Main.start"), f"https://t.me/{bot_username}?start", "url")]]
+                        [
+                            [
+                                (
+                                    await tld(m, "Main.start"),
+                                    f"https://t.me/{bot_username}?start",
+                                    "url",
+                                )
+                            ]
+                        ]
                     ),
                 )
 
