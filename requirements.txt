@@ -15,7 +15,7 @@ Pillow>=8.4.0
 git+https://github.com/ruizlenato/dicioinformal
 gpytranslate==1.4.0
 python-rapidjson==1.6
-yt-dlp==2022.4.8
+yt-dlp==2022.5.18
 regex>=2022.4.24
 aiocron==1.8
 spotipy==2.19.0
