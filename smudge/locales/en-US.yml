@@ -33,7 +33,7 @@ strings:
     loading: "Loading..."
     start: "Start"
 
-  # Admin
+# Admin
   Admin:
     Admin: "Admin"
     noadmin: "You are not a group admin."
@@ -44,7 +44,8 @@ strings:
     cleanup_no_deleted: "There are no deleted accounts in the group."
     help: |
       <b>/cleanup</b> - Removes all deleted accounts from the group.
-  # Android
+
+# Android
   Android:
     name: "Android"
     whatis_nocodename: "<b>Error.</b>\n<b>Command usage:</b> /models (codename)."
@@ -54,6 +55,10 @@ strings:
     models_list: "<b>Model</b>: <code>{}</code> \n<b>Name:</b> {}\n\n"
     codename_notfound: "Coudn't find your device, check device & try again!"
     magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
+    twrp_found: "Latest <b>TWRP Recovery for {}</b>\n\n"
+    twrp_404: "TWRP currently is not avaliable for <code>{}</code>"
+    twrp_date: "📆 <b>Updated:</b> <code>{}</code>\n"
+    twrp_size: "📦 <b>Size:</b> <code>{}</code>\n"
     help: |
       <b>/magisk -</b> Get latest Magisk releases.
       <b>/twrp [codename] -</b> Get the latest TWRP version available for the chosen device from codename.
@@ -262,6 +267,7 @@ strings:
       <b>/sdl or /mdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>
       <b>/ytdl -</b> <i>Download videos from YouTube in video or audio format.</i>
       <b>/yt -</b> <i>It does a YouTube search with the word you wrote and returns a list with videos.</i>
+
 # Stickers
   Stickers:
     name: "Stickers"

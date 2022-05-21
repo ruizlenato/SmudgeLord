@@ -55,6 +55,10 @@ strings:
     models_list: "<b>Modelo</b>: <code>{}</code> \n<b>Nome:</b> {}\n\n"
     codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename e tente novamente"
     magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
+    twrp_found: "Última versão do <b>TWRP para o {}</b>\n\n"
+    twrp_404: "O TWRP não está atualmente disponível para o <code>{}</code>"
+    twrp_date: "📆 <b>Atualizado em:</b> <code>{}</code>\n"
+    twrp_size: "📦 <b>Tamanho:</b> <code>{}</code>\n"
     help: |
       <b>/magisk -</b> Tenha as últimas versões do Magisk.
       <b>/twrp [codename] -</b> Obtenha a última versão do TWRP disponível para o device escolhido a partir do codename.
@@ -168,7 +172,6 @@ strings:
       - "esmurra"
       - "ataca"
 
-
 # Misc
   Misc:
     name: "Utilitários"
@@ -218,7 +221,7 @@ strings:
       <b>/sdl ou /mdl -</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>
       <b>/ytdl -</b> <i>Baixa vídeos do YouTube em formato de vídeo ou audio.</i>
       <b>/yt -</b> <i>Faz uma busca no YouTube com a palavra que você escreveu e retorna uma lista com vídeos.</i>
- 
+
 # Stickers
   Stickers:
     name: "Stickers"
