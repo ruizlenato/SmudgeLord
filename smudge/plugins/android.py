@@ -79,19 +79,19 @@ async def twrp(c: Smudge, m: Message):
         await m.reply_text(f"TWRP currently is not avaliable for <code>{device}</code>")
     else:
         message = f"<b>Latest TWRP Recovery For {device}</b>\n"
-        page = BeautifulSoup(url.content, "lxml")
+        page = BeautifulSoup(url.content, "html.parser")
         date = page.find("em").text.strip()
         message += f"<b>Updated:</b> <code>{date}</code>\n"
         trs = page.find("table").find_all("tr")
         row = 2 if trs[0].find("a").text.endswith("tar") else 1
+        keyboard = []
         for i in range(row):
             download = trs[i].find("a")
             dl_link = f"https://eu.dl.twrp.me{download['href']}"
             dl_file = download.text
-            size = trs[i].find("span", {"class": "filesize"}).text
+            keyboard += [[(dl_file.upper(), dl_link, "url")]]
+        size = trs[i].find("span", {"class": "filesize"}).text
         message += f"<b>Size:</b> <code>{size}</code>\n"
-        message += f"<b>File:</b> <code>{dl_file.upper()}</code>"
-        keyboard = [[("Download", dl_link, "url")]]
         await m.reply_text(
             message,
             reply_markup=ikb(keyboard),
