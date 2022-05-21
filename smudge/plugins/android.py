@@ -97,7 +97,10 @@ async def twrp(c: Smudge, m: Message):
             reply_markup=ikb(keyboard),
         )
 
-@Smudge.on_message(filters.command(["variants", "models", "whatis", "device", "codename"]))
+
+@Smudge.on_message(
+    filters.command(["variants", "models", "whatis", "device", "codename"])
+)
 async def variants(c: Smudge, m: Message):
     if not len(m.command) == 2:
         message = await tld(m, "Android.models_nocodename")
