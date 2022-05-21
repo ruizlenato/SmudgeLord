@@ -52,6 +52,10 @@ strings:
     models_list: "<b>Model</b>: <code>{}</code> \n<b>Name:</b> {}\n\n"
     codename_notfound: "Coudn't find your device, check device & try again!"
     magisk_releases: "<b>Últimas versiones de Magisk</b>\n\n"
+    twrp_found: "Latest <b>TWRP Recovery for {}</b>\n\n"
+    twrp_404: "TWRP currently is not avaliable for <code>{}</code>"
+    twrp_date: "📆 <b>Updated:</b> <code>{}</code>\n"
+    twrp_size: "📦 <b>Size:</b> <code>{}</code>\n"
     help: |
       <b>/magisk -</b> Get latest Magisk releases.
       <b>/twrp [codename] -</b> Get the latest TWRP version available for the chosen device from codename.
