@@ -149,7 +149,11 @@ async def button(c: Smudge, m: Union[Message, CallbackQuery]):
         args = None
     else:
         reply_text = m.reply_text
-        args = m.text.split(maxsplit=1)[1]
+        try:
+            args = m.text.split(maxsplit=1)[1]
+        except IndexError:
+            args = None
+
     if args:
         try:
             text = await tld(m, str(HELP[args][0]["help"]))
