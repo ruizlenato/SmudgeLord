@@ -45,7 +45,7 @@ strings:
   #Android
   Android:
     name: "Android"
-    models_nocodename: "<b>Error.</b>\n<b>Uso del comando:</b> /models (codename)."
+    models_nocodename: "<b>Error.</b>\n<b>Command usage:</b> {} (codename)."
     models_variant: "<b>{}</b> variants:\n\n"
     models_list: "<b>Brand:</b> {}\n<b>Name:</b> {}\n<b>Model</b>: <code>{}</code>\n\n"
     codename_notfound: "Coudn't find your device, check device & try again!"
