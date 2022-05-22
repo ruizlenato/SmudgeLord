@@ -35,7 +35,7 @@ class Smudge(Client):
         )
 
     async def start(self):
-        print(f"[green]Connected to telegram servers.[/]")
+        print("[green]Connected to telegram servers.[/]")
         await super().start()  # Connect to telegram's servers
 
         try:
@@ -62,7 +62,7 @@ class Smudge(Client):
 
         aiocron.crontab("*/60 * * * *", func=backup, start=True)
 
-        print(f"[bold green]- Started.[/]")
+        print("[bold green]- Started.[/]")
 
     async def stop(self, *args):
         await super().stop()
