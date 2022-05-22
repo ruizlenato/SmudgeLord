@@ -8,17 +8,21 @@ from pyrogram import idle, __version__ as pyrogram_version
 
 from rich.panel import Panel
 from rich import box, print
-from rich.logging import RichHandler
 
 from .smudge import Smudge
 from smudge.utils import http
 from smudge.database import database
 
 # Custom logging format
+bar = "\u001B[31m | "
 logging.basicConfig(
     level=logging.WARNING,
-    format="%(name)s | %(message)s",
-    handlers=[RichHandler(rich_tracebacks=True, log_time_format="%m/%d %H:%M:%S")],
+    format="\u001B[35m%(name)s"
+    + bar
+    + "\u001B[36m%(asctime)s"
+    + bar
+    + "\u001B[37m%(message)s",
+    datefmt="%m/%d %H:%M:%S",
 )
 
 # To avoid some annoying log

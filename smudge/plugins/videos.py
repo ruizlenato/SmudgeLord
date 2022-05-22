@@ -241,7 +241,6 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
 @Smudge.on_message(filters.regex(SDL_REGEX_LINKS))
 async def sdl(c: Smudge, m: Message):
     if m.matches:
-        print(await check_sdl(m.chat.id))
         if m.chat.type == enums.ChatType.PRIVATE or await check_sdl(m.chat.id) == True:
             url = m.matches[0].group(0)
         else:
