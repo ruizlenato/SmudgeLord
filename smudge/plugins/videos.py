@@ -333,6 +333,7 @@ async def sdl(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
         return
 
+
 class MyLogger:
     def debug(self, msg):
         # For compatibility with youtube-dl, both debug and info are passed into debug
