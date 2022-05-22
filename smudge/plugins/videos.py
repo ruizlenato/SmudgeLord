@@ -10,6 +10,7 @@ import tempfile
 import datetime
 import gallery_dl
 import asyncio
+import orjson
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
@@ -37,16 +38,15 @@ def extract_info(instance: yt_dlp.YoutubeDL, url: str, download=True):
 
 
 async def search_yt(query):
-    page = (
-        await http.get(
-            "https://www.youtube.com/results",
-            params=dict(search_query=query, pbj="1"),
-            headers={
-                "x-youtube-client-name": "1",
-                "x-youtube-client-version": "2.20200827",
-            },
-        )
-    ).json()
+    page = await http.get(
+        "https://www.youtube.com/results",
+        params=dict(search_query=query, pbj="1"),
+        headers={
+            "x-youtube-client-name": "1",
+            "x-youtube-client-version": "2.20200827",
+        },
+    )
+    page = orjson.loads(page.content)
     list_videos = []
     for video in page[1]["response"]["contents"]["twoColumnSearchResultsRenderer"][
         "primaryContents"

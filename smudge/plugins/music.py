@@ -4,11 +4,11 @@ import os
 import re
 import httpx
 import base64
+import orjson
 import random
 import asyncio
 import urllib.parse
 import urllib.request
-import orjson as json
 
 from spotipy.client import SpotifyException
 
@@ -215,20 +215,22 @@ async def lastfm(c: Smudge, m: Message):
         + f"{LASTFM_API_KEY}&format=json"
     )
 
+    db = orjson.loads(res.content)
+
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
     try:
-        first_track = res.json().get("recenttracks").get("track")[0]
+        first_track = db["recenttracks"]["track"][0]
     except IndexError:
         await m.reply_text("Você não parece ter scrobblado(escutado) nenhuma música...")
         return
 
-    image = first_track.get("image")[3].get("#text")
-    artist = first_track.get("artist").get("name")
-    song = first_track.get("name")
-    loved = int(first_track.get("loved"))
+    image = first_track["image"][3]["#text"]
+    artist = first_track["artist"]["name"]
+    song = first_track["name"]
+    loved = int(first_track["loved"])
 
     fetch = await http.get(
         "http://ws.audioscrobbler.com/2.0"
@@ -238,7 +240,7 @@ async def lastfm(c: Smudge, m: Message):
     )
 
     try:
-        info = json.loads(fetch.content)
+        info = orjson.loads(fetch.content)
         last_user = info["track"]
         if int(last_user.get("userplaycount")) == 0:
             scrobbles = int(last_user.get("userplaycount")) + 1
@@ -248,7 +250,7 @@ async def lastfm(c: Smudge, m: Message):
         scrobbles = "none"
 
     rep = f"<a href='{image}'>\u200c</a>"
-    if first_track.get("@attr"):
+    if first_track["@attr"]:
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
@@ -290,19 +292,21 @@ async def album(c: Smudge, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
+    db = orjson.loads(res.content)
+
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
     try:
-        first_track = res.json().get("recenttracks").get("track")[0]
+        first_track = db["recenttracks"]["track"][0]
     except IndexError:
         await m.reply_text("Você não parece ter scrobblado(escutado) nenhuma música...")
         return
-    image = first_track.get("image")[3].get("#text")
-    artist = first_track.get("artist").get("name")
-    album = first_track.get("album").get("#text")
-    loved = int(first_track.get("loved"))
+    image = first_track["image"][3]["#text"]
+    artist = first_track["artist"]["name"]
+    album = first_track["album"]["#text"]
+    loved = int(first_track["loved"])
     fetch = await http.get(
         "http://ws.audioscrobbler.com/2.0"
         + f"?method=album.getinfo&artist={urllib.parse.quote(artist)}"
@@ -310,7 +314,7 @@ async def album(c: Smudge, m: Message):
         + f"&api_key={LASTFM_API_KEY}&format=json"
     )
 
-    info = json.loads(fetch.content)
+    info = orjson.loads(fetch.content)
     last_user = info["album"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
@@ -319,7 +323,7 @@ async def album(c: Smudge, m: Message):
 
     rep = f"<a href='{image}'>\u200c</a>"
 
-    if first_track.get("@attr"):
+    if first_track["@attr"]:
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
@@ -366,24 +370,26 @@ async def artist(c: Smudge, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
+    db = orjson.loads(res.content)
+
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
     try:
-        first_track = res.json().get("recenttracks").get("track")[0]
+        first_track = db["recenttracks"]["track"][0]
     except IndexError:
         await m.reply_text("Você não parece ter scrobblado(escutado) nenhuma música...")
         return
-    image = first_track.get("image")[3].get("#text")
-    artist = first_track.get("artist").get("name")
-    loved = int(first_track.get("loved"))
+    image = first_track["image"][3]["#text"]
+    artist = first_track["artist"]["name"]
+    loved = int(first_track["loved"])
     fetch = await http.get(
         "http://ws.audioscrobbler.com/2.0"
         + f"?method=artist.getinfo&artist={urllib.parse.quote(artist)}"
         + f"&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
-    info = json.loads(fetch.content)
+    info = orjson.loads(fetch.content)
     last_user = info["artist"]["stats"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
@@ -392,7 +398,7 @@ async def artist(c: Smudge, m: Message):
 
     rep = f"<a href='{image}'>\u200c</a>"
 
-    if first_track.get("@attr"):
+    if first_track["@attr"]:
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
@@ -514,8 +520,9 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
     }
     try:
         resp = await http.post(f"{url}api/collage", headers=my_headers, json=data)
-        tCols = resp.json().get("cols")
-        tRows = resp.json().get("rows")
+        res = orjson.loads(resp.content)
+        tCols = res["cols"]
+        tRows = res["rows"]
     except httpx.NetworkError:
         return None
 
@@ -538,8 +545,8 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
         username, user_name, period, tCols, tRows, style
     )
 
-    filename = f"{user_id}{username}.png"
-    urllib.request.urlretrieve(f'{url}{resp.json().get("downloadPath")}', filename)
+    filename = f"{user_id}{username}{random.randint(0, 300)}.png"
+    urllib.request.urlretrieve(f'{url}{res["downloadPath"]}', filename)
     if isinstance(m, CallbackQuery):
         try:
             await m.edit_message_media(
@@ -661,9 +668,9 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
         }
         try:
             resp = await http.post(url, headers=my_headers, json=data)
-            resp = resp.json()
+            res = orjson.loads(resp.content)
             data = (
-                str(resp["base64"])
+                str(res["base64"])
                 .replace(" ", "+")
                 .replace("data:image/jpeg;base64,", "")
                 .replace("'}", "")

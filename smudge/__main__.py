@@ -17,9 +17,8 @@ from smudge.database import database
 # Custom logging format
 logging.basicConfig(
     level=logging.WARNING,
-    format="%(name)s | %(asctime)s | %(message)s",
-    datefmt="%m/%d %H:%M:%S",
-    handlers=[RichHandler(rich_tracebacks=True)],
+    format="%(name)s | %(message)s",
+    handlers=[RichHandler(rich_tracebacks=True, log_time_format="%m/%d %H:%M:%S")],
 )
 
 # To avoid some annoying log
