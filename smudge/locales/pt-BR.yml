@@ -48,11 +48,9 @@ strings:
 # Android
   Android:
     name: "Android"
-    whatis_nocodename: "<b>Error.</b>\n<b>Uso do comando:</b> /whatis (codename)."
-    whatis_device: "<b>{}/{}</b> é o <code>{} {}</code>\n"
-    models_nocodename: "<b>Error.</b>\n<b>Uso do comando:</b> /models (codename)."
+    models_nocodename: "<b>Erro.</b>\n<b>Uso do comando:</b> /models (codename)."
     models_variant: "Variantes do <b>{}</b>:\n\n"
-    models_list: "<b>Modelo</b>: <code>{}</code> \n<b>Nome:</b> {}\n\n"
+    models_list: "<b>Marca:</b> {}\n<b>Nome:</b> {}\n<b>Modelo</b>: <code>{}</code>\n\n"
     codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename e tente novamente"
     magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
     twrp_found: "Última versão do <b>TWRP para o {}</b>\n\n"

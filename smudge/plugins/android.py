@@ -23,7 +23,7 @@ class GetDevice:
             data = await http.get(
                 "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_model.json"
             )
-            db = rapidjson.loads(data)
+            db = rapidjson.loads(data.content)
             try:
                 name = db[self.device.upper()][0]["name"]
                 device = db[self.device.upper()][0]["device"]
@@ -97,31 +97,7 @@ async def twrp(c: Smudge, m: Message):
             reply_markup=ikb(keyboard),
         )
 
-
-@Smudge.on_message(filters.command(["whatis", "device", "codename"]))
-async def models(c: Smudge, m: Message):
-    if not len(m.command) == 2:
-        message = await tld(m, "Android.whatis_nocodename")
-        await m.reply_text(message)
-        return
-    device = m.command[1]
-    data = await GetDevice(device).get()
-    if data:
-        name = data["name"]
-        device = data["device"]
-        brand = data["brand"]
-        model = data["model"]
-    else:
-        message = await tld(m, "Android.codename_notfound")
-        await m.reply_text(message)
-        return
-    message = (await tld(m, "Android.whatis_device")).format(
-        model, model.upper(), brand, name
-    )
-    await m.reply_text(message)
-
-
-@Smudge.on_message(filters.command(["variants", "models"]))
+@Smudge.on_message(filters.command(["variants", "models", "whatis", "device", "codename"]))
 async def variants(c: Smudge, m: Message):
     if not len(m.command) == 2:
         message = await tld(m, "Android.models_nocodename")
@@ -145,7 +121,9 @@ async def variants(c: Smudge, m: Message):
     for i in device:
         name = i["name"]
         model = i["model"]
-        message += (await tld(m, "Android.models_list")).format(model, name)
+        brand = i["brand"]
+        print(device, brand)
+        message += (await tld(m, "Android.models_list")).format(brand, name, model)
 
     await m.reply_text(message)
 

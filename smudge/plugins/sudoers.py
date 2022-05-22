@@ -19,7 +19,6 @@ from rich import print as rprint
 
 conn = database.get_conn()
 
-
 @Smudge.on_message(filters.command("restart") & filters.user(SUDOERS))
 async def restart(c: Smudge, m: Message):
     await m.reply_text("Restarting...")

@@ -293,15 +293,16 @@ async def sdl(c: Smudge, m: Message):
                     re.M,
                 ):
                     files += [
-                        InputMediaPhoto(os.path.join(path, video))
-                        for video in os.listdir(path)
-                        if video.endswith(".jpg")
+                        InputMediaPhoto(os.path.join(path, photo))
+                        for photo in os.listdir(path)
+                        if photo.endswith((".jpg", ".png", ".jpeg"))
                     ]
                 try:
+                    if files:
+                        await c.send_chat_action(
+                            m.chat.id, enums.ChatAction.UPLOAD_DOCUMENT
+                            )
                     await m.reply_media_group(media=files)
-                    await c.send_chat_action(
-                        m.chat.id, enums.ChatAction.UPLOAD_DOCUMENT
-                    )
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
                 shutil.rmtree(tempdir, ignore_errors=True)
@@ -330,7 +331,8 @@ async def sdl(c: Smudge, m: Message):
                     InputMediaVideo(os.path.join(path, video))
                     for video in os.listdir(path)
                 ]
-                await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
+                if videos:
+                    await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
                 await m.reply_media_group(media=videos)
         shutil.rmtree(tempdir, ignore_errors=True)
 
