@@ -88,7 +88,7 @@ async def afk_mentioned(c: Smudge, m: Message):
         for y in m.entities:
             if y.type != enums.MessageEntityType.MENTION:
                 return
-            x = re.search("@(\w+)", m.text)  # Regex to get @username
+            x = re.search(r"@(\w+)", m.text)  # Regex to get @username
             try:
                 user = await c.get_users(x[1])
             except FloodWait as e:  # Avoid FloodWait
