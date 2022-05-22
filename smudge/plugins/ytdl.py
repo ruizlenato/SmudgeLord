@@ -282,11 +282,15 @@ async def sdl(c: Smudge, m: Message):
                 )
                 gallery_dl.job.DownloadJob(url).run()
                 files = []
-                files += [
-                    InputMediaVideo(os.path.join(path, video))
-                    for video in os.listdir(path)
-                    if video.endswith(".mp4")
-                ]
+                try: 
+                    files += [
+                        InputMediaVideo(os.path.join(path, video))
+                        for video in os.listdir(path)
+                        if video.endswith(".mp4")
+                        ]
+                except FileNotFoundError:
+                    print(url)
+                    pass
                 if not re.match(
                     f"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
                     url,
