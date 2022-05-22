@@ -470,7 +470,7 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
 
         try:
             args = args.lower()
-            if x := re.search("(\d+m|\d+y|\d+d|\d+w)", args):
+            if x := re.search(r"(\d+m|\d+y|\d+d|\d+w)", args):
                 uwu = (
                     str(x.group(1))
                     .replace("12m", "1y")
@@ -492,7 +492,7 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
 
         try:
             args = args.lower()
-            if x := re.search("(\d+)x(\d+)", args):
+            if x := re.search(r"(\d+)x(\d+)", args):
                 colNum = x.group(1)
                 rowNum = x.group(2)
             else:
@@ -589,8 +589,8 @@ async def duotone(c: Smudge, m: Message):
         top = "albums"
     try:
         args = args.lower()
-        x = re.search("(\d+d)", args)
-        y = re.search("(\d+m|\d+y)", args)
+        x = re.search(r"(\d+d)", args)
+        y = re.search(r"(\d+m|\d+y)", args)
         z = re.search("(overall)", args)
         if x:
             uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")

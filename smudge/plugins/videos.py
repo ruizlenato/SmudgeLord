@@ -282,7 +282,7 @@ async def sdl(c: Smudge, m: Message):
                 except FileNotFoundError:
                     print(url)
                 if not re.match(
-                    f"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
+                    rf"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
                     url,
                     re.M,
                 ):
