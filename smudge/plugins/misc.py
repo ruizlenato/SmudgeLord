@@ -203,7 +203,7 @@ async def cssworker_url(target_url: str):
         return None
 
 
-@Smudge.on_message(filters.command(["cep"], prefixes="/"))
+@Smudge.on_message(filters.command("cep"))
 async def lastfm(c: Smudge, m: Message):
     try:
         if len(m.command) > 1:
@@ -233,7 +233,7 @@ async def lastfm(c: Smudge, m: Message):
         await m.reply_text(rep)
 
 
-@Smudge.on_message(filters.command(["ddd"], prefixes="/"))
+@Smudge.on_message(filters.command("ddd"))
 @Smudge.on_callback_query(filters.regex("ddd_(?P<num>.+)"))
 async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
     try:

@@ -67,7 +67,7 @@ strings:
   Music:
     name: "Music"
     spotf_info: "<b>{}</b>\n<b>Artist:</b> {}\n<b>Release Date:</b> <i>{}</i>\n<b>Album:</b> {} - {}\n\n"
-    username_save: Done, you can use /lastfm|/lmu now
+    username_save: "<b>Done, LastFM user saved!</b>\nUse <code>/help music</code> to learn more about the commands.\n<i>(This command can only be used in my private chat.)</i>"
     username_deleted: "Your <b><a href='https://last.fm/'>LastFM</a></b> username has been successfully deleted."
     no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
     no_username_to_clear: "You have not set your <b><a href='https://last.fm/'>LastFM</a></b> username so that I can delete it from my database."

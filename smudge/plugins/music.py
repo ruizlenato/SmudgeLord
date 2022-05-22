@@ -192,7 +192,7 @@ async def setuser(c: Smudge, m: Message):
     return
 
 
-@Smudge.on_message(filters.command(["lastfm", "lmu", "lt"], prefixes="/"))
+@Smudge.on_message(filters.command(["lastfm", "lmu", "lt"]))
 async def lastfm(c: Smudge, m: Message):
     if m.chat.type == enums.ChatType.PRIVATE:
         pass
@@ -276,7 +276,7 @@ async def lastfm(c: Smudge, m: Message):
     await m.reply_text(rep)
 
 
-@Smudge.on_message(filters.command(["lalbum", "lalb", "album"], prefixes="/"))
+@Smudge.on_message(filters.command(["lalbum", "lalb", "album"]))
 async def album(c: Smudge, m: Message):
     if m.chat.type == enums.ChatType.PRIVATE:
         pass
@@ -354,7 +354,7 @@ async def album(c: Smudge, m: Message):
     await m.reply(rep)
 
 
-@Smudge.on_message(filters.command(["lartist", "lart", "artist"], prefixes="/"))
+@Smudge.on_message(filters.command(["lartist", "lart", "artist"]))
 async def artist(c: Smudge, m: Message):
     if m.chat.type == enums.ChatType.PRIVATE:
         pass
@@ -429,7 +429,7 @@ async def artist(c: Smudge, m: Message):
     await m.reply(rep)
 
 
-@Smudge.on_message(filters.command(["collage"], prefixes="/"))
+@Smudge.on_message(filters.command("collage"))
 @Smudge.on_callback_query(filters.regex("^(_(collage))"))
 async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
     url = "https://lastcollage.io/"
@@ -596,7 +596,7 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
     os.remove(filename)
 
 
-@Smudge.on_message(filters.command(["duotone", "dualtone"], prefixes="/"))
+@Smudge.on_message(filters.command(["duotone", "dualtone"]))
 async def duotone(c: Smudge, m: Message):
     user_id = m.from_user.id
     username = await get_last_user(user_id)

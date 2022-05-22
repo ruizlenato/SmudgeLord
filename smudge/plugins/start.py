@@ -31,7 +31,7 @@ for plugin in all_plugins:
         HELP.update({plugin: [{"name": plugin_name, "help": plugin_help}]})
 
 
-@Smudge.on_message(filters.command("start", prefixes="/"))
+@Smudge.on_message(filters.command("start"))
 @Smudge.on_callback_query(filters.regex(r"start"))
 async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
@@ -104,7 +104,7 @@ async def portuguese(c: Smudge, m: Message):
     await m.edit_message_text(text, reply_markup=ikb(keyboard))
 
 
-@Smudge.on_message(filters.command(["setlang"]))
+@Smudge.on_message(filters.command("setlang"))
 @Smudge.on_callback_query(filters.regex(r"setchatlang"))
 async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
@@ -154,23 +154,39 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
 
 
 @Smudge.on_callback_query(filters.regex("menu"))
-async def button(c: Smudge, cq: CallbackQuery):
-    text = await tld(cq, "Main.help_text")
-    await cq.edit_message_text(text, reply_markup=ikb(await help_buttons(cq, HELP)))
+@Smudge.on_message(filters.command("help") & filters.private)
+async def button(c: Smudge, m: Union[Message, CallbackQuery]):
+    if isinstance(m, CallbackQuery):
+        reply_text = m.edit_message_text
+        args = None
+    else:
+        reply_text = m.reply_text
+        args = m.text.split(maxsplit=1)[1]
+    if args:
+        try:
+            text = await tld(m, str(HELP[args][0]["help"]))
+            return await help_menu(m, text)
+        except KeyError:
+            pass
+    text = await tld(m, "Main.help_text")
+    await reply_text(text, reply_markup=ikb(await help_buttons(m, HELP)))
+
+async def help_menu(m, text):
+    if isinstance(m, CallbackQuery):
+        reply_text = m.edit_message_text
+    else:
+        reply_text = m.reply_text
+    keyboard = [[(await tld(m, "Main.btn_back"), f"menu")]]
+    text = (await tld(m, "Main.avaliable_commands")).format(text)
+    await reply_text(text, reply_markup=ikb(keyboard))
 
 
-async def help_menu(c, cq, text):
-    keyboard = [[(await tld(cq, "Main.btn_back"), f"menu")]]
-    text = (await tld(cq, "Main.avaliable_commands")).format(text)
-    await cq.edit_message_text(text, reply_markup=ikb(keyboard))
-
-
-@Smudge.on_callback_query(filters.regex(pattern=".*help_plugin.*"))
+@Smudge.on_callback_query(filters.regex(pattern="help_plugin.*"))
 async def but(c: Smudge, cq: CallbackQuery):
     plug_match = re.match(r"help_plugin\((.+?)\)", cq.data)
     plug = plug_match.group(1)
     text = await tld(cq, str(HELP[plug][0]["help"]))
-    await help_menu(c, cq, text)
+    await help_menu(cq, text)
 
 
 @Smudge.on_message(filters.new_chat_members)
@@ -222,7 +238,7 @@ async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
     return
 
 
-@Smudge.on_message(filters.command("config", prefixes="/") & filters.group)
+@Smudge.on_message(filters.command("config") & filters.group)
 async def config(c: Smudge, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
         chat_id = m.message.chat.id

@@ -10,7 +10,7 @@ from smudge import Smudge
 from smudge.plugins import tld
 
 
-@Smudge.on_message(filters.command("cleanup", prefixes="/"))
+@Smudge.on_message(filters.command("cleanup"))
 async def cleanup(c: Smudge, m: Message):
     try:
         me = await c.get_me()
