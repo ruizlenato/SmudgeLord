@@ -35,7 +35,7 @@ class Smudge(Client):
         )
 
     async def start(self):
-        rprint(f"[green] Connected to telegram servers...")
+        rprint(f"[green] Connected to telegram servers.")
         await super().start()  # Connect to telegram's servers
 
         try:
@@ -60,7 +60,7 @@ class Smudge(Client):
                 caption="<b>Database backuped!</b>\n<b>- Date:</b> {}".format(date),
             )
             logging.warning("[SmudgeLord] Database backuped!")
-
+        rprint(f"[green] :rocket: Started.")
     async def stop(self, *args):
         await super().stop()
         rprint("[red]SmudgeLord stopped. Bye.")
