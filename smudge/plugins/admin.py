@@ -3,7 +3,7 @@
 import asyncio
 from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram.enums import ChatType, ChatMemberStatus, ChatMembersFilter
+from pyrogram.enums import ChatType, ChatMemberStatus
 from pyrogram.errors import BadRequest, Forbidden, FloodWait
 
 from smudge import Smudge

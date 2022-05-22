@@ -12,7 +12,7 @@ from pyrogram.errors import FloodWait
 
 from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
-from rich import box, print
+from rich import print
 
 # Date
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
