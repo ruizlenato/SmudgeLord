@@ -296,7 +296,7 @@ async def sdl(c: Smudge, m: Message):
                         await c.send_chat_action(
                             m.chat.id, enums.ChatAction.UPLOAD_DOCUMENT
                         )
-                    await m.reply_media_group(media=files)
+                        await m.reply_media_group(media=files)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
                 shutil.rmtree(tempdir, ignore_errors=True)
