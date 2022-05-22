@@ -95,7 +95,7 @@ async def magisk(c: Smudge, m: Message):
 
 @Smudge.on_message(filters.command(["twrp"]))
 async def twrp(c: Smudge, m: Message):
-    if not len(m.command) == 2:
+    if len(m.command) != 2:
         message = "Please write your codename into it, i.e <code>/twrp herolte</code>"
         await m.reply_text(message)
         return

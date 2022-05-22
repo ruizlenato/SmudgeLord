@@ -22,13 +22,13 @@ from smudge.database.locales import set_db_lang
 HELP = {}
 
 for plugin in all_plugins:
-    imported_plugin = importlib.import_module("smudge.plugins." + plugin)
+    imported_plugin = importlib.import_module(f"smudge.plugins.{plugin}")
     if hasattr(imported_plugin, "plugin_help") and hasattr(
         imported_plugin, "plugin_name"
     ):
         plugin_name = imported_plugin.plugin_name
         plugin_help = imported_plugin.plugin_help
-        HELP.update({plugin: [{"name": plugin_name, "help": plugin_help}]})
+        HELP[plugin] = [{"name": plugin_name, "help": plugin_help}]
 
 
 @Smudge.on_message(filters.command("start"))
@@ -48,14 +48,8 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
     if chat_type == ChatType.PRIVATE:
         keyboard = [
             [
-                (
-                    await tld(m, "Main.start_btn_lang"),
-                    f"setchatlang",
-                ),
-                (
-                    await tld(m, "Main.start_btn_help"),
-                    f"menu",
-                ),
+                (await tld(m, "Main.start_btn_lang"), "setchatlang"),
+                (await tld(m, "Main.start_btn_help"), "menu"),
             ],
             [
                 (
@@ -65,35 +59,31 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
                 ),
             ],
         ]
+
         text = (await tld(m, "Main.start_message_private")).format(
             m.from_user.first_name
-        )
-        await reply_text(
-            text, reply_markup=ikb(keyboard), disable_web_page_preview=True
         )
     else:
         keyboard = [[("Start", f"https://t.me/{me.username}?start=start", "url")]]
         text = await tld(m, "Main.start_message")
-        await reply_text(
-            text, reply_markup=ikb(keyboard), disable_web_page_preview=True
-        )
+
+    await reply_text(text, reply_markup=ikb(keyboard), disable_web_page_preview=True)
 
 
 @Smudge.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
 async def portuguese(c: Smudge, m: Message):
     lang = m.matches[0]["code"]
-    if m.message.chat.type == ChatType.PRIVATE:
-        pass
-    else:
+    if m.message.chat.type != ChatType.PRIVATE:
         member = await c.get_chat_member(
             chat_id=m.message.chat.id, user_id=m.from_user.id
         )
-        if member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
-            pass
-        else:
+        if member.status not in (
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+        ):
             return
 
-    keyboard = [[(await tld(m, "Main.btn_back"), f"setchatlang")]]
+    keyboard = [[(await tld(m, "Main.btn_back"), "setchatlang")]]
     if m.message.chat.type == ChatType.PRIVATE:
         await set_db_lang(m.from_user.id, lang, m.message.chat.type)
     elif m.message.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
@@ -133,16 +123,14 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
         ],
     ]
     if chat_type == ChatType.PRIVATE:
-        keyboard += [[(await tld(m, "Main.btn_back"), f"start_command")]]
+        keyboard += [[(await tld(m, "Main.btn_back"), "start_command")]]
     else:
         try:
             member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
-            if member.status in (
+            if member.status not in (
                 ChatMemberStatus.ADMINISTRATOR,
                 ChatMemberStatus.OWNER,
             ):
-                pass
-            else:
                 return
         except AttributeError:
             message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
@@ -177,7 +165,7 @@ async def help_menu(m, text):
         reply_text = m.edit_message_text
     else:
         reply_text = m.reply_text
-    keyboard = [[(await tld(m, "Main.btn_back"), f"menu")]]
+    keyboard = [[(await tld(m, "Main.btn_back"), "menu")]]
     text = (await tld(m, "Main.avaliable_commands")).format(text)
     await reply_text(text, reply_markup=ikb(keyboard))
 
@@ -185,7 +173,7 @@ async def help_menu(m, text):
 @Smudge.on_callback_query(filters.regex(pattern="help_plugin.*"))
 async def but(c: Smudge, cq: CallbackQuery):
     plug_match = re.match(r"help_plugin\((.+?)\)", cq.data)
-    plug = plug_match.group(1)
+    plug = plug_match[1]
     text = await tld(cq, str(HELP[plug][0]["help"]))
     await help_menu(cq, text)
 
@@ -218,9 +206,10 @@ async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
 
     try:
         member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
-        if member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
-            pass
-        else:
+        if member.status not in (
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+        ):
             return
     except AttributeError:
         message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
@@ -250,9 +239,10 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
 
     try:
         member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
-        if member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
-            pass
-        else:
+        if member.status not in (
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+        ):
             return
     except AttributeError:
         message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
@@ -260,17 +250,10 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
         await message.delete()
         return
 
-    if await check_sdl(m.chat.id) is None:
-        emoji = "❌"
-    else:
-        emoji = "✅"
-
+    emoji = "❌" if await check_sdl(m.chat.id) is None else "✅"
     keyboard = [
         [
-            (
-                "SDL Auto: {}".format(emoji),
-                "setsdl",
-            ),
+            (f"SDL Auto: {emoji}", "setsdl"),
             (
                 await tld(m, "Main.start_btn_lang"),
                 "setchatlang",

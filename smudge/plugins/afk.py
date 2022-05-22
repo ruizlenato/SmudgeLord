@@ -54,21 +54,15 @@ async def set_afk(_, m: Message):
     except AttributeError:
         return
 
-    if m.matches:
-        if m.matches[0]["args"]:
-            reason = m.matches[0]["args"]
-            reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
-        else:
-            reason = "No reason"
-            reason_txt = ""
+    if m.matches and m.matches[0]["args"]:
+        reason = m.matches[0]["args"]
+        reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
+    elif m.matches or len(m.command) <= 1:
+        reason = "No reason"
+        reason_txt = ""
     else:
-        if len(m.command) > 1:
-            reason = m.text.split(None, 1)[1]
-            reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
-        else:
-            reason = "No reason"
-            reason_txt = ""
-
+        reason = m.text.split(None, 1)[1]
+        reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
     await set_afk_user(m.from_user.id, reason)
     await m.reply_text(afkmsg + reason_txt)
     await m.stop_propagation()
@@ -94,23 +88,22 @@ async def rem_afk(c: Smudge, m: Message):
 async def afk_mentioned(c: Smudge, m: Message):
     if m.entities:
         for y in m.entities:
-            if y.type == enums.MessageEntityType.MENTION:
-                x = re.search("@(\w+)", m.text)  # Regex to get @username
-                try:
-                    user = await c.get_users(x.group(1))
-                except FloodWait as e:  # Avoid FloodWait
-                    await asyncio.sleep(e.value)
-                except (IndexError, BadRequest, KeyError):
-                    return
-                try:
-                    user_id = user.id
-                    user_first_name = user.first_name
-                except UnboundLocalError:
-                    return
-                except FloodWait as e:  # Avoid FloodWait
-                    await asyncio.sleep(e.value)
-            else:
+            if y.type != enums.MessageEntityType.MENTION:
                 return
+            x = re.search("@(\w+)", m.text)  # Regex to get @username
+            try:
+                user = await c.get_users(x[1])
+            except FloodWait as e:  # Avoid FloodWait
+                await asyncio.sleep(e.value)
+            except (IndexError, BadRequest, KeyError):
+                return
+            try:
+                user_id = user.id
+                user_first_name = user.first_name
+            except UnboundLocalError:
+                return
+            except FloodWait as e:  # Avoid FloodWait
+                await asyncio.sleep(e.value)
     elif m.reply_to_message and m.reply_to_message.from_user:
         try:
             user_id = m.reply_to_message.from_user.id
@@ -130,7 +123,6 @@ async def afk_mentioned(c: Smudge, m: Message):
 
     try:
         await m.chat.get_member(user_id)  # Check if the user is in the group
-        pass
     except UserNotParticipant:
         return
 
@@ -138,13 +130,8 @@ async def afk_mentioned(c: Smudge, m: Message):
 
     if not user_afk:
         return
-    else:
-        afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name)
-        if not await get_afk_user(user_id) == "No reason":
-            afkmsg += (await tld(m, "Misc.afk_reason")).format(
-                await get_afk_user(user_id)
-            )
-        else:
-            pass
-        await m.reply_text(afkmsg)
+    afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name)
+    if await get_afk_user(user_id) != "No reason":
+        afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_afk_user(user_id))
+    await m.reply_text(afkmsg)
     await m.stop_propagation()

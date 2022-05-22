@@ -15,13 +15,10 @@ async def sed(c: Smudge, m: Message):
     exp = regex.split(r"(?<![^\\]\\)/", m.text)
     pattern = exp[1]
     replace_with = exp[2].replace(r"\/", "/")
-    flags = exp[3] if len(exp) > 3 else ""
-
-    count = 1
     rflags = 0
 
-    if "g" in flags:
-        count = 0
+    flags = exp[3] if len(exp) > 3 else ""
+    count = 0 if "g" in flags else 1
     if "i" in flags and "s" in flags:
         rflags = regex.I | regex.S
     elif "i" in flags:

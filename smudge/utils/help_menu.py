@@ -20,11 +20,12 @@ async def help_buttons(m, HELP):
         [
             (
                 await tld(m, str(HELP[plugin][0]["name"])),
-                "help_plugin({})".format(plugin.lower()),
+                f"help_plugin({plugin.lower()})",
             )
             for plugin in HELP.keys()
         ]
     )
+
     buttons = [plugins[i * 3 : (i + 1) * 3] for i in range((len(plugins) + 3 - 1) // 3)]
     round_num = len(plugins) / 3
     calc = len(plugins) - round(round_num)

@@ -43,33 +43,28 @@ login_url = (
 
 @Smudge.on_message(filters.command(["spoti", "spo"]))
 async def spoti(c: Smudge, m: Message):
-    if m.chat.type == enums.ChatType.PRIVATE:
-        pass
-    else:
-        if m.text.split(maxsplit=1)[0] == "/spoti":
-            try:
-                await m.chat.get_member(
-                    796461943
-                )  # To avoid conflict with @lyricspybot
-                return
-            except UserNotParticipant:
-                pass
-        else:
+    if (
+        m.chat.type != enums.ChatType.PRIVATE
+        and m.text.split(maxsplit=1)[0] == "/spoti"
+    ):
+        try:
+            await m.chat.get_member(796461943)  # To avoid conflict with @lyricspybot
+            return
+        except UserNotParticipant:
             pass
     user_id = m.from_user.id
     user = m.from_user.first_name
     tx = m.text.split(" ", 1)
     if len(tx) == 2:
-        if not await get_spot_user(user_id):
-            get = await gen_spotify_token(user_id, tx[1])
-            if get[0]:
-                sp = await get_spoti_session(m.from_user.id)
-                profile = sp.current_user()
-                await m.reply_text(await tld(m, "Music.spotify_login_done"))
-            else:
-                await m.reply_text(await tld(m, "Music.spotify_login_failed"))
-        else:
+        if await get_spot_user(user_id):
             return await m.reply_text(await tld(m, "Music.spotify_already_logged"))
+        get = await gen_spotify_token(user_id, tx[1])
+        if get[0]:
+            sp = await get_spoti_session(m.from_user.id)
+            profile = sp.current_user()
+            await m.reply_text(await tld(m, "Music.spotify_login_done"))
+        else:
+            await m.reply_text(await tld(m, "Music.spotify_login_failed"))
     else:
         usr = await get_spot_user(m.from_user.id)
         if not usr:
@@ -137,13 +132,13 @@ async def unreg(c: Smudge, m: Message):
     spot_user = await get_spot_user(user_id)
     if not spot_user:
         await m.reply_text(await tld(m, "Music.spotify_noclean"))
-        return
     else:
         await unreg_spot(user_id)
         await m.reply_text(
             (await tld(m, "Music.spotify_cleaned")), disable_web_page_preview=True
         )
-        return
+
+    return
 
 
 @Smudge.on_message(filters.command(["clearuser", "deluser"]))
@@ -153,13 +148,13 @@ async def clear(c: Smudge, m: Message):
 
     if not username:
         await m.reply_text(await tld(m, "Music.no_username_to_clear"))
-        return
     else:
         await del_last_user(user_id)
         await m.reply_text(
             (await tld(m, "Music.username_clear")), disable_web_page_preview=True
         )
-        return
+
+    return
 
 
 @Smudge.on_message(filters.command(["setuser", "setlast"]))
@@ -180,7 +175,7 @@ async def setuser(c: Smudge, m: Message):
         res = await http.get(
             f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
         )
-        if not res.status_code == 200:
+        if res.status_code != 200:
             await m.reply_text((await tld(m, "Music.username_wrong")))
             return
         else:
@@ -194,18 +189,13 @@ async def setuser(c: Smudge, m: Message):
 
 @Smudge.on_message(filters.command(["lastfm", "lmu", "lt"]))
 async def lastfm(c: Smudge, m: Message):
-    if m.chat.type == enums.ChatType.PRIVATE:
-        pass
-    else:
-        if m.text.split(maxsplit=1)[0] == "/lt":
-            try:
-                await m.chat.get_member(
-                    1993314727
-                )  # To avoid conflict with @MyScrobblesbot
-                return
-            except UserNotParticipant:
-                pass
-        else:
+    if m.chat.type != enums.ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
+        try:
+            await m.chat.get_member(
+                1993314727
+            )  # To avoid conflict with @MyScrobblesbot
+            return
+        except UserNotParticipant:
             pass
     user = m.from_user.first_name
     user_id = m.from_user.id
@@ -222,7 +212,7 @@ async def lastfm(c: Smudge, m: Message):
         + f"{LASTFM_API_KEY}&format=json"
     )
 
-    if not res.status_code == 200:
+    if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
@@ -256,40 +246,33 @@ async def lastfm(c: Smudge, m: Message):
 
     rep = f"<a href='{image}'>\u200c</a>"
     if first_track.get("@attr"):
-        if scrobbles == "none":
-            rep += (await tld(m, "Music.scrobble_none_is")).format(username, user)
-        else:
-            rep += (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
-    else:
-        if scrobbles == "none":
-            rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
-        else:
-            rep += (await tld(m, "Music.scrobble_was")).format(
-                username, user, scrobbles
-            )
+        rep += (
+            (await tld(m, "Music.scrobble_none_is")).format(username, user)
+            if scrobbles == "none"
+            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
+        )
 
-    if not loved:
-        rep += f"<b>{artist}</b> - {song}"
+    elif scrobbles == "none":
+        rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
     else:
-        rep += f"<b>{artist}</b> - {song}❤️"
+        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
 
+    rep += f"<b>{artist}</b> - {song}❤️" if loved else f"<b>{artist}</b> - {song}"
     await m.reply_text(rep)
 
 
 @Smudge.on_message(filters.command(["lalbum", "lalb", "album"]))
 async def album(c: Smudge, m: Message):
-    if m.chat.type == enums.ChatType.PRIVATE:
-        pass
-    else:
-        if m.text.split(maxsplit=1)[0] == "/album":
-            try:
-                await m.chat.get_member(
-                    1993314727
-                )  # To avoid conflict with @MyScrobblesbot
-                return
-            except UserNotParticipant:
-                pass
-        else:
+    if (
+        m.chat.type != enums.ChatType.PRIVATE
+        and m.text.split(maxsplit=1)[0] == "/album"
+    ):
+        try:
+            await m.chat.get_member(
+                1993314727
+            )  # To avoid conflict with @MyScrobblesbot
+            return
+        except UserNotParticipant:
             pass
     user = m.from_user.first_name
     username = await get_last_user(m.from_user.id)
@@ -304,7 +287,7 @@ async def album(c: Smudge, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
-    if not res.status_code == 200:
+    if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
@@ -334,40 +317,38 @@ async def album(c: Smudge, m: Message):
     rep = f"<a href='{image}'>\u200c</a>"
 
     if first_track.get("@attr"):
-        if scrobbles == "none":
-            rep += (await tld(m, "Music.scrobble_none_is")).format(username, user)
-        else:
-            rep += (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
-    else:
-        if scrobbles == "none":
-            rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
-        else:
-            rep += (await tld(m, "Music.scrobble_was")).format(
-                username, user, scrobbles
-            )
+        rep += (
+            (await tld(m, "Music.scrobble_none_is")).format(username, user)
+            if scrobbles == "none"
+            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
+        )
 
-    if not loved:
-        rep += f"🎙 <strong>{artist}</strong>\n📀 {album}"
+    elif scrobbles == "none":
+        rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
     else:
-        rep += f"🎙 <strong>{artist}</strong>\n📀 {album} ❤️"
+        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
+
+    rep += (
+        f"🎙 <strong>{artist}</strong>\n📀 {album} ❤️"
+        if loved
+        else f"🎙 <strong>{artist}</strong>\n📀 {album}"
+    )
 
     await m.reply(rep)
 
 
 @Smudge.on_message(filters.command(["lartist", "lart", "artist"]))
 async def artist(c: Smudge, m: Message):
-    if m.chat.type == enums.ChatType.PRIVATE:
-        pass
-    else:
-        if m.text.split(maxsplit=1)[0] == "artist":
-            try:
-                await m.chat.get_member(
-                    1993314727
-                )  # To avoid conflict with @MyScrobblesbot
-                return
-            except UserNotParticipant:
-                pass
-        else:
+    if (
+        m.chat.type != enums.ChatType.PRIVATE
+        and m.text.split(maxsplit=1)[0] == "artist"
+    ):
+        try:
+            await m.chat.get_member(
+                1993314727
+            )  # To avoid conflict with @MyScrobblesbot
+            return
+        except UserNotParticipant:
             pass
     user = m.from_user.first_name
     username = await get_last_user(m.from_user.id)
@@ -382,7 +363,7 @@ async def artist(c: Smudge, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
-    if not res.status_code == 200:
+    if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
         return
 
@@ -409,22 +390,20 @@ async def artist(c: Smudge, m: Message):
     rep = f"<a href='{image}'>\u200c</a>"
 
     if first_track.get("@attr"):
-        if scrobbles == "none":
-            rep += (await tld(m, "Music.scrobble_none_is")).format(username, user)
-        else:
-            rep += (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
-    else:
-        if scrobbles == "none":
-            rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
-        else:
-            rep += (await tld(m, "Music.scrobble_was")).format(
-                username, user, scrobbles
-            )
+        rep += (
+            (await tld(m, "Music.scrobble_none_is")).format(username, user)
+            if scrobbles == "none"
+            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
+        )
 
-    if not loved:
-        rep += f"🎙 <strong>{artist}</strong>"
+    elif scrobbles == "none":
+        rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
     else:
-        rep += f"🎙 <strong>{artist}</strong> ❤️"
+        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
+
+    rep += (
+        f"🎙 <strong>{artist}</strong> ❤️" if loved else f"🎙 <strong>{artist}</strong>"
+    )
 
     await m.reply(rep)
 
@@ -437,105 +416,81 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
         chat_type = m.message.chat.type
     else:
         chat_type = m.chat.type
-    if enums.ChatType.PRIVATE == chat_type:
-        pass
-    else:
-        if m.text.split(maxsplit=1)[0] == "/collage":
-            try:
-                await m.chat.get_member(
-                    296635833
-                )  # To avoid conflict with @lastfmrobot
-                return
-            except UserNotParticipant:
-                pass
-        else:
+    if (
+        enums.ChatType.PRIVATE != chat_type
+        and m.text.split(maxsplit=1)[0] == "/collage"
+    ):
+        try:
+            await m.chat.get_member(296635833)  # To avoid conflict with @lastfmrobot
+            return
+        except UserNotParticipant:
             pass
     if isinstance(m, CallbackQuery):
         data, colNumData, rowNumData, user_id, username, style, period = m.data.split(
             "|"
         )
         user_name = m.from_user.first_name
-        if m.from_user.id == int(user_id):
-            pass
-        else:
+        if m.from_user.id != int(user_id):
             await m.answer("🚫")
             return
 
         if "plus" in data:
-            if int(colNumData) < 20:
-                colNum = int(colNumData) + 1
-            else:
-                colNum = colNumData
-
-            if int(rowNumData) < 20:
-                rowNum = int(rowNumData) + 1
-            else:
-                rowNum = rowNumData
+            colNum = int(colNumData) + 1 if int(colNumData) < 20 else colNumData
+            rowNum = int(rowNumData) + 1 if int(rowNumData) < 20 else rowNumData
         else:
-            if int(colNumData) > 1:
-                colNum = int(colNumData) - 1
-            else:
-                colNum = colNumData
-
-            if int(rowNumData) > 1:
-                rowNum = int(rowNumData) - 1
-            else:
-                rowNum = rowNumData
-
+            colNum = int(colNumData) - 1 if int(colNumData) > 1 else colNumData
+            rowNum = int(rowNumData) - 1 if int(rowNumData) > 1 else rowNumData
         if int(rowNum) and int(colNum) < 1:
             return m.answer("🚫")
     else:
         user_id = m.from_user.id
         user_name = m.from_user.first_name
         username = await get_last_user(user_id)
-        if len(m.command) > 1:
-            args = m.text.split(None, 1)[1]
-            if re.search("[A-a]rt", args):
-                style = "artists"
-            elif re.search("[A-a]lb", args):
-                style = "albums"
-            elif re.search("[M-m]us|[T-t]ra|[S-s]ongs", args):
-                style = "tracks"
-            else:
-                style = "artists"
-
-            try:
-                args = args.lower()
-                x = re.search("(\d+m|\d+y|\d+d|\d+w)", args)
-                if x:
-                    uwu = (
-                        str(x.group(1))
-                        .replace("12m", "1y")
-                        .replace("30d", "1m")
-                        .replace(" ", "")
-                    )
-                    if uwu in ["1m", "3m", "6m"]:
-                        period = f"{uwu}onth"
-                    elif uwu in ["7d", "1w"]:
-                        period = "1week"
-                    elif uwu in "1y":
-                        period = "1year"
-                    else:
-                        period = f"week"
-                else:
-                    period = "1month"
-            except UnboundLocalError:
-                return
-
-            try:
-                args = args.lower()
-                x = re.search("(\d+)x(\d+)", args)
-                if x:
-                    colNum = x.group(1)
-                    rowNum = x.group(2)
-                else:
-                    colNum = "3"
-                    rowNum = "3"
-            except UnboundLocalError:
-                return
-        else:
+        if len(m.command) <= 1:
             return await m.reply_text(await tld(m, "Music.collage_noargs"))
 
+        args = m.text.split(None, 1)[1]
+        if re.search("[A-a]rt", args):
+            style = "artists"
+        elif re.search("[A-a]lb", args):
+            style = "albums"
+        elif re.search("[M-m]us|[T-t]ra|[S-s]ongs", args):
+            style = "tracks"
+        else:
+            style = "artists"
+
+        try:
+            args = args.lower()
+            if x := re.search("(\d+m|\d+y|\d+d|\d+w)", args):
+                uwu = (
+                    str(x.group(1))
+                    .replace("12m", "1y")
+                    .replace("30d", "1m")
+                    .replace(" ", "")
+                )
+                if uwu in {"1m", "3m", "6m"}:
+                    period = f"{uwu}onth"
+                elif uwu in {"7d", "1w"}:
+                    period = "1week"
+                elif uwu in "1y":
+                    period = "1year"
+                else:
+                    period = "week"
+            else:
+                period = "1month"
+        except UnboundLocalError:
+            return
+
+        try:
+            args = args.lower()
+            if x := re.search("(\d+)x(\d+)", args):
+                colNum = x.group(1)
+                rowNum = x.group(2)
+            else:
+                colNum = "3"
+                rowNum = "3"
+        except UnboundLocalError:
+            return
     if not username:
         return await m.reply_text(await tld(m, "Music.no_username"))
 
@@ -565,21 +520,22 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
         [
             [
                 (
-                    f"➕",
+                    "➕",
                     f"_collage.plus|{colNum}|{rowNum}|{user_id}|{username}|{style}|{period}",
                 ),
                 (
-                    f"➖",
+                    "➖",
                     f"_collage.minus|{colNum}|{rowNum}|{user_id}|{username}|{style}|{period}",
                 ),
-            ],
+            ]
         ]
     )
+
     caption = (await tld(m, "Music.collage_caption")).format(
         username, user_name, period, tCols, tRows, style
     )
 
-    filename = f"%s%s.png" % (user_id, username)
+    filename = f"{user_id}{username}.png"
     urllib.request.urlretrieve(f'{url}{resp.json().get("downloadPath")}', filename)
     if isinstance(m, CallbackQuery):
         try:
@@ -605,79 +561,53 @@ async def duotone(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Music.no_username"))
         return
 
-    if len(m.command) > 1:
-        args = m.text.split(None, 1)[1]
-        if re.search("[A-a]rt", args):
-            top = "artists"
-        elif re.search("[A-a]lb", args):
-            top = "albums"
-        elif re.search("[M-m]us|[T-t]ra", args):
-            top = "tracks"
-        else:
-            top = "albums"
-        try:
-            args = args.lower()
-            x = re.search("(\d+d)", args)
-            y = re.search("(\d+m|\d+y)", args)
-            z = re.search("(overall)", args)
-            if x:
-                uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
-                if uwu in "1m":
-                    period = f"{uwu}ounth"
-                else:
-                    period = f"{uwu}ay"
-                if uwu not in ["1m", "7d", "9d", "3d"]:
-                    period = f"1month"
-            elif y:
-                uwu = str(y.group(1)).replace("1y", "12m")
-                period = f"{uwu}onth"
-                if uwu not in ["1y", "1m", "3m", "12m"]:
-                    period = f"1month"
-            elif z:
-                period = f"overall"
-            else:
-                period = "1month"
-        except UnboundLocalError:
-            return
-    else:
+    if len(m.command) <= 1:
         return await m.reply_text(
             (await tld(m, "Music.dualtone_noargs")).format(
                 command=m.text.split(None, 1)[0]
             )
         )
 
+    args = m.text.split(None, 1)[1]
+    if re.search("[A-a]rt", args):
+        top = "artists"
+    elif re.search("[A-a]lb", args):
+        top = "albums"
+    elif re.search("[M-m]us|[T-t]ra", args):
+        top = "tracks"
+    else:
+        top = "albums"
+    try:
+        args = args.lower()
+        x = re.search("(\d+d)", args)
+        y = re.search("(\d+m|\d+y)", args)
+        z = re.search("(overall)", args)
+        if x:
+            uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
+            if uwu in {"1m", "7d", "9d", "3d"}:
+                period = f"{uwu}ounth" if uwu in "1m" else f"{uwu}ay"
+            else:
+                period = "1month"
+        elif y:
+            uwu = str(y.group(1)).replace("1y", "12m")
+            period = "1month" if uwu not in ["1y", "1m", "3m", "12m"] else f"{uwu}onth"
+        elif z:
+            period = "overall"
+        else:
+            period = "1month"
+    except UnboundLocalError:
+        return
     keyboard = [
         [
-            (
-                f"🟣+🟦",
-                f"_duton.divergent|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"⬛️+🔴",
-                f"_duton.horror|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"🟢+🟩",
-                f"_duton.natural|{top}|{period}|{user_id}|{username}",
-            ),
+            ("🟣+🟦", f"_duton.divergent|{top}|{period}|{user_id}|{username}"),
+            ("⬛️+🔴", f"_duton.horror|{top}|{period}|{user_id}|{username}"),
+            ("🟢+🟩", f"_duton.natural|{top}|{period}|{user_id}|{username}"),
         ],
         [
-            (
-                f"🟨+🔴",
-                f"_duton.sun|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"⚫️+🟨",
-                f"_duton.yellish|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"🔵+🟦",
-                f"_duton.sea|{top}|{period}|{user_id}|{username}",
-            ),
-            (
-                f"🟣+🟪",
-                f"_duton.purplish|{top}|{period}|{user_id}|{username}",
-            ),
+            ("🟨+🔴", f"_duton.sun|{top}|{period}|{user_id}|{username}"),
+            ("⚫️+🟨", f"_duton.yellish|{top}|{period}|{user_id}|{username}"),
+            ("🔵+🟦", f"_duton.sea|{top}|{period}|{user_id}|{username}"),
+            ("🟣+🟪", f"_duton.purplish|{top}|{period}|{user_id}|{username}"),
         ],
     ]
 
@@ -746,7 +676,7 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
             with open(filename, "wb") as f:
                 f.write(imgdata)
                 keyboard = [
-                    [(f"👤 LastFM User", f"https://last.fm/user/{username}", "url")]
+                    [("👤 LastFM User", f"https://last.fm/user/{username}", "url")]
                 ]
                 await c.send_photo(
                     cq.message.chat.id,
