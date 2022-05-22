@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
+import re
 import orjson
 from bs4 import BeautifulSoup
 
@@ -11,7 +12,9 @@ from smudge.utils import http
 from smudge.plugins import tld
 
 # Port from SamsungGeeksBot.
-
+DEVICE_DATA: str = "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_model.json"
+DEVICE_DATA_NAME: str = "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_name.json"
+DEVICE_DATA_MODEL: str = "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
 
 class GetDevice:
     def __init__(self, device):
@@ -19,38 +22,43 @@ class GetDevice:
         self.device = device
 
     async def get(self):
-        if self.device.lower().startswith("sm-"):
-            data = await http.get(
-                "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_model.json"
-            )
+        try:
+            data = await http.get(DEVICE_DATA_NAME)
             db = orjson.loads(data.content)
-            try:
-                name = db[self.device.upper()][0]["name"]
-                device = db[self.device.upper()][0]["device"]
-                brand = db[self.device.upper()][0]["brand"]
-                model = self.device.lower()
-                return {"name": name, "device": device, "model": model, "brand": brand}
-            except KeyError:
-                return False
-        else:
-            data = await http.get(
-                "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
-            )
-            database = orjson.loads(data.content)
-            newdevice = (
-                self.device.strip("lte").lower()
-                if self.device.startswith("beyond")
-                else self.device.lower()
-            )
-            print(newdevice)
-            try:
-                name = database[newdevice][0]["name"]
-                model = database[newdevice][0]["model"]
-                brand = database[newdevice][0]["brand"]
-                device = newdevice
-                return {"name": name, "device": device, "model": model, "brand": brand}
-            except KeyError:
-                return False
+            name = self.device.lower()
+            device = db[self.device][0]["device"] # To-Do: Add support for case-insensitive search.
+            brand = db[self.device][0]["brand"]
+            model = db[self.device][0]["model"]
+            return {"name": name, "device": device, "model": model, "brand": brand}
+        except KeyError:
+            if re.search(r"^(ASUS.*|sm-.*)", self.device):
+                argdevice = self.device.upper() if re.search(r"(sm-.*)", self.device) else self.device
+                data = await http.get(DEVICE_DATA)
+                db = orjson.loads(data.content)
+                try:
+                    name = db[argdevice][0]["name"]
+                    device = db[argdevice][0]["device"]
+                    brand = db[argdevice][0]["brand"]
+                    model = self.device.lower()
+                    return {"name": name, "device": device, "model": model, "brand": brand}
+                except KeyError:
+                    return False
+            else:
+                data = await http.get(DEVICE_DATA_MODEL)
+                database = orjson.loads(data.content)
+                newdevice = (
+                    self.device.strip("lte").lower()
+                    if self.device.startswith("beyond")
+                    else self.device.lower()
+                )
+                try:
+                    name = database[newdevice][0]["name"]
+                    model = database[newdevice][0]["model"]
+                    brand = database[newdevice][0]["brand"]
+                    device = newdevice
+                    return {"name": name, "device": device, "model": model, "brand": brand}
+                except KeyError:
+                    return False
 
 
 @Smudge.on_message(filters.command(["magisk"]))
