@@ -319,7 +319,7 @@ async def sdl(c: Smudge, m: Message):
                         url = r.url
                     try:
                         await extract_info(ydl, str(url), download=True)
-                    except BaseException as e:
+                    except BaseException:
                         return
                 videos = [
                     InputMediaVideo(os.path.join(path, video))
