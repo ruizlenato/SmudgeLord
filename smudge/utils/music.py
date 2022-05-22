@@ -24,7 +24,7 @@ async def gen_spotify_token(user_id, token):
     b = orjson.loads(r.content)
     if b.get("error"):
         return False, b["error"]
-    else: 
+    else:
         await set_spot_user(user_id, b["access_token"], b["refresh_token"])
         return True, b["access_token"]
 
