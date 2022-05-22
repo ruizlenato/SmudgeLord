@@ -16,6 +16,5 @@ __all__: List[str] = [
     "pretty_size",
     "EMOJI_PATTERN",
     "aiowrap",
-    "button_parser",
     "send_logs",
 ]
