@@ -52,7 +52,6 @@ class Smudge(Client):
             )
 
         # Backup the database every 1h
-        @aiocron.crontab("*/60 * * * *")
         async def backup() -> None:
             await self.send_document(
                 CHAT_LOGS,
@@ -60,6 +59,8 @@ class Smudge(Client):
                 caption="<b>Database backuped!</b>\n<b>- Date:</b> {}".format(date),
             )
             logging.warning("[SmudgeLord] Database backuped!")
+
+        aiocron.crontab("*/60 * * * *", func=backup, start=True)
 
         print(f"[bold green]- Started.[/]")
 
