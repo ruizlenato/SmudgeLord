@@ -181,7 +181,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     try:
         yt = await extract_info(ydl, url, download=True)
     except BaseException as e:
-        await send_logs(c, cq, e)
+        await send_logs(cq, e)
         await cq.message.edit((await tld(cq, "Misc.ytdl_send_error")).format(e))
         return
     await cq.message.edit(await tld(cq, "Main.sending"))
@@ -204,7 +204,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
             )
             await cq.message.delete()
         except BadRequest as e:
-            await send_logs(c, cq, e)
+            await send_logs(cq, e)
             await c.send_message(
                 chat_id=cq.message.chat.id,
                 text=(await tld(cq, "Misc.ytdl_send_error")).format(errmsg=e),

@@ -12,7 +12,7 @@ from pyrogram.errors import FloodWait
 
 from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
-from rich import box, print as rprint
+from rich import box, print
 
 # Date
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
@@ -35,7 +35,7 @@ class Smudge(Client):
         )
 
     async def start(self):
-        rprint(f"[green] Connected to telegram servers.")
+        print(f"[green]Connected to telegram servers.[/]")
         await super().start()  # Connect to telegram's servers
 
         try:
@@ -61,8 +61,8 @@ class Smudge(Client):
             )
             logging.warning("[SmudgeLord] Database backuped!")
 
-        rprint(f"[green] :rocket: Started.")
+        print(f"[bold green]- Started.[/]")
 
     async def stop(self, *args):
         await super().stop()
-        rprint("[red]SmudgeLord stopped. Bye.")
+        print("[red]SmudgeLord stopped. Bye.")

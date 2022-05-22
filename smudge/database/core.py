@@ -4,7 +4,7 @@ import logging
 
 import aiosqlite
 
-from rich import box, print as rprint
+from rich import print
 
 logger = logging.getLogger(__name__)
 
@@ -58,7 +58,7 @@ class Database:
         self.conn = conn
         self.is_connected: bool = True
 
-        rprint("[green] The database has been connected.")
+        print("[green]The database has been connected.")
 
     async def close(self):
         # Close the connection

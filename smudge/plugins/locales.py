@@ -19,7 +19,7 @@ def cache_localizations(files):
     ldict = {lang: {} for lang in LANGUAGES}
     for file in files:
         lang_name = (file.split(os.path.sep)[2]).replace(".yml", "")
-        lang_data = yaml.load(open(file, encoding="utf-8"), Loader=yaml.FullLoader)
+        lang_data = yaml.safe_load(open(file, encoding="utf-8"))
         ldict[lang_name] = lang_data
     return ldict
 

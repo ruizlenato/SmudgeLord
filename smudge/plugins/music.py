@@ -10,6 +10,8 @@ import urllib.parse
 import urllib.request
 import orjson as json
 
+from spotipy.client import SpotifyException
+
 from typing import Union
 
 from smudge import Smudge
@@ -61,7 +63,6 @@ async def spoti(c: Smudge, m: Message):
         get = await gen_spotify_token(user_id, tx[1])
         if get[0]:
             sp = await get_spoti_session(m.from_user.id)
-            profile = sp.current_user()
             await m.reply_text(await tld(m, "Music.spotify_login_done"))
         else:
             await m.reply_text(await tld(m, "Music.spotify_login_failed"))
@@ -76,7 +77,10 @@ async def spoti(c: Smudge, m: Message):
             sp = await get_spoti_session(m.from_user.id)
             if sp is False:
                 return await m.reply_text(await tld(m, "Music.spotify_login_failed"))
-            spotify_json = sp.current_user_playing_track()
+            try:
+                spotify_json = sp.current_user_playing_track()
+            except SpotifyException:
+                return
             rep = f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
             if spotify_json["is_playing"] == True:
                 rep += (await tld(m, "Music.spotify_np")).format(
@@ -92,7 +96,6 @@ async def spoti(c: Smudge, m: Message):
 
 @Smudge.on_message(filters.command(["spotf"]))
 async def spotf(c: Smudge, m: Message):
-    user_id = m.from_user.id
     usr = await get_spot_user(m.from_user.id)
     if not usr:
         keyboard = ikb([[("Login", login_url, "url")]])

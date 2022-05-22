@@ -7,20 +7,29 @@ import logging
 from pyrogram import idle, __version__ as pyrogram_version
 
 from rich.panel import Panel
-from rich import box, print as rprint
+from rich import box, print
+from rich.logging import RichHandler
 
 from .smudge import Smudge
 from smudge.utils import http
 from smudge.database import database
 
-# Enable logging
-logging.basicConfig(format="%(asctime)s - %(message)s", level="WARNING")
-logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
+# Custom logging format
+logging.basicConfig(
+    level=logging.WARNING,
+    format="%(name)s | %(asctime)s | %(message)s",
+    datefmt='%m/%d %H:%M:%S',
+    handlers=[RichHandler(rich_tracebacks=True)]
+)
+
+# To avoid some annoying log
+logging.getLogger("spotipy.client").setLevel(logging.ERROR)
 log = logging.getLogger("rich")
+
 logs = "[bold purple]SmudgeLord[/bold purple]"
 logs += f"\n[cyan]Project maintained by:[/cyan] RuizLenato"
 logs += f"\n[yellow]Pyrogram Version:[/yellow] {pyrogram_version}"
-rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
+print(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 
 
 async def main():
@@ -35,7 +44,7 @@ async def main():
             await idle()
     except KeyboardInterrupt:
         # exit gracefully
-        rprint("[red]Forced stop... Bye!")
+        print("[red]Forced stop... Bye!")
     finally:
         # close https connections and the DB if open
         await smudge.stop()

@@ -8,6 +8,7 @@ import traceback
 
 from pyrogram import filters
 from pyrogram.types import Message
+from pyrogram.errors import BadRequest
 
 from contextlib import redirect_stdout
 
@@ -48,7 +49,7 @@ async def broadcast(c: Smudge, m: Message):
                 success.append(keyword)
             else:
                 fail.append(keyword)
-        except:
+        except BadRequest:
             fail.append(keyword)
     await sm.edit_text(
         f"Anúncio feito com sucesso! Sua mensagem foi enviada em um total de <code>{len(success)}</code> grupos e falhou o envio em <code>{len(fail)}</code> grupos."
@@ -65,7 +66,7 @@ async def execs(c: Smudge, m: Message):
     with redirect_stdout(strio):
         try:
             await locals()["__ex"](c, m)
-        except:  # skipcq
+        except BaseException:  # skipcq
             return await m.reply_text(html.escape(traceback.format_exc()))
 
     if strio.getvalue().strip():

@@ -67,7 +67,7 @@ strings:
   Music:
     name: "Músicas"
     spotf_info: "<b>{}</b>\n<b>Artista:</b> {}\n<b>Data de lançamento:</b> <i>{}</i>\n<b>Álbum:</b> {} - {}\n\n"
-    username_save: "<b>Pronto!</b>\nUse <code>/help music</code> para saber mais sobre os comandos.\n<i>(Esse comando só pode ser usado no chat meu chat privado.)</i>"
+    username_save: "<b>Pronto!</b>\nUse <code>/help music</code> para saber mais sobre os comandos.\n<i>(Esse comando só pode ser usado no meu chat privado.)</i>"
     username_clear: "O seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> foi apagado."
     username_nouser: "Você precisa definir um nome de usuário para usar esse comando."
     no_username_save: "<b>Erro</b>\n<b>Uso do comando:</b> {} (nome de usuário)."
