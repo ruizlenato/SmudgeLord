@@ -96,8 +96,7 @@ async def translate(c: Smudge, m: Message):
 @Smudge.on_message(filters.command("dicio"))
 async def dicio(c: Smudge, m: Message):
     txt = m.text.split(" ", 1)[1]
-    a = dicioinformal.definicao(txt)["results"]
-    if a:
+    if a := dicioinformal.definicao(txt)["results"]:
         frase = f'<b>{a[0]["title"]}:</b>\n{a[0]["tit"]}\n\n<i>{a[0]["desc"]}</i>'
     else:
         frase = "sem resultado"
@@ -108,25 +107,24 @@ async def dicio(c: Smudge, m: Message):
 async def short(c: Smudge, m: Message):
     if len(m.command) < 2:
         return await m.reply_text(await tld(m, "Misc.short_error"))
-    else:
-        url = m.command[1]
-        if not url.startswith("http"):
-            url = "http://" + url
-        try:
-            short = m.command[2]
-            shortRequest = await http.get(
-                f"https://api.1pt.co/addURL?long={url}&short={short}"
-            )
-            info = orjson.loads(shortRequest.content)
-            short = info["short"]
-            return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
-        except IndexError:
-            shortRequest = await http.get(f"https://api.1pt.co/addURL?long={url}")
-            info = orjson.loads(shortRequest.content)
-            short = info["short"]
-            return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
-        except Exception as e:
-            return await m.reply_text(f"<b>{e}</b>")
+    url = m.command[1]
+    if not url.startswith("http"):
+        url = f"http://{url}"
+    try:
+        short = m.command[2]
+        shortRequest = await http.get(
+            f"https://api.1pt.co/addURL?long={url}&short={short}"
+        )
+        info = orjson.loads(shortRequest.content)
+        short = info["short"]
+        return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
+    except IndexError:
+        shortRequest = await http.get(f"https://api.1pt.co/addURL?long={url}")
+        info = orjson.loads(shortRequest.content)
+        short = info["short"]
+        return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
+    except Exception as e:
+        return await m.reply_text(f"<b>{e}</b>")
 
 
 @Smudge.on_message(filters.command(["print", "ss"]))
@@ -152,9 +150,7 @@ async def prints(c: Smudge, m: Message):
         return
 
     if res_json:
-        # {"url":"image_url","response_time":"147ms"}
-        image_url = res_json["url"]
-        if image_url:
+        if image_url := res_json["url"]:
             try:
                 await m.reply_photo(image_url)
                 await sent.delete()
@@ -274,12 +270,12 @@ async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
 
 @Smudge.on_message(filters.command(["gitr", "ghr"]))
 async def git_on_message(c: Smudge, m: Message):
-    if not len(m.command) == 2:
+    if len(m.command) != 2:
         await m.reply_text(await tld(m, "Misc.noargs_gitr"))
         return
     repo = m.command[1]
     page = await http.get(f"https://api.github.com/repos/{repo}/releases/latest")
-    if not page.status_code == 200:
+    if page.status_code != 200:
         return await m.reply_text((await tld(m, "Misc.gitr_noreleases")).format(repo))
     else:
         await git(c, m, repo, page)
@@ -293,8 +289,7 @@ async def git(c: Smudge, m: Message, repo, page):
     date = db["published_at"]
     changelog = db["body"]
     dev, repo = repo.split("/")
-    message = "**Name:** `{}`\n".format(name)
-    message += "**Tag:** `{}`\n".format(tag)
+    message = "**Name:** `{}`\n".format(name) + "**Tag:** `{}`\n".format(tag)
     message += "**Released on:** `{}`\n".format(date[: date.rfind("T")])
     message += "**By:** `{}@github.com`\n".format(dev)
     message += "**Changelog:**\n{}\n\n".format(changelog)

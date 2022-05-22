@@ -71,9 +71,10 @@ async def yt_search_cmd(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Misc.noargs_yt"))
         return
     vids = [
-        '{}: <a href="{}">{}</a>'.format(num + 1, i["url"], i["title"])
+        f'{num + 1}: <a href="{i["url"]}">{i["title"]}</a>'
         for num, i in enumerate(await search_yt(args))
     ]
+
     await m.reply_text(
         "\n".join(vids) if vids else r"¯\_(ツ)_/¯", disable_web_page_preview=True
     )
@@ -99,7 +100,7 @@ async def ytdlcmd(c: Smudge, m: Message):
     temp = t.group(1) if t else 0
 
     if not rege:
-        yt = await extract_info(ydl, "ytsearch:" + url, download=False)
+        yt = await extract_info(ydl, f"ytsearch:{url}", download=False)
         try:
             yt = yt["entries"][0]
         except IndexError:
@@ -142,7 +143,7 @@ async def ytdlcmd(c: Smudge, m: Message):
 @Smudge.on_callback_query(filters.regex("^(_(vid|aud))"))
 async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     data, fsize, temp, userid, mid = cq.data.split("|")
-    if not cq.from_user.id == int(userid):
+    if cq.from_user.id != int(userid):
         return await cq.answer(await tld(cq, "Misc.ytdl_button_denied"), cache_time=60)
     if int(fsize) > MAX_FILESIZE:
         return await cq.answer(
@@ -151,15 +152,12 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
             cache_time=60,
         )
     vid = re.sub(r"^\_(vid|aud)\.", "", data)
-    url = "https://www.youtube.com/watch?v=" + vid
+    url = f"https://www.youtube.com/watch?v={vid}"
     await cq.message.edit(await tld(cq, "Main.downloading"))
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
 
-    ttemp = ""
-    if int(temp):
-        ttemp = f"⏰ {datetime.timedelta(seconds=int(temp))} | "
-
+    ttemp = f"⏰ {datetime.timedelta(seconds=int(temp))} | " if int(temp) else ""
     if "vid" in data:
         ydl = yt_dlp.YoutubeDL(
             {
@@ -247,28 +245,22 @@ async def sdl(c: Smudge, m: Message):
             url = m.matches[0].group(0)
         else:
             return
+    elif len(m.command) > 1:
+        url = m.text.split(None, 1)[1]
+    elif m.reply_to_message and m.reply_to_message.text:
+        url = m.reply_to_message.text
     else:
-        if len(m.command) > 1:
-            url = m.text.split(None, 1)[1]
-        elif m.reply_to_message and m.reply_to_message.text:
-            url = m.reply_to_message.text
-        else:
-            await m.reply_text(
-                (await tld(m, "Misc.noargs_sdl")).format(m.text.split(None, 1)[0])
-            )
-            return
+        await m.reply_text(
+            (await tld(m, "Misc.noargs_sdl")).format(m.text.split(None, 1)[0])
+        )
+        return
 
     yt_dlp.utils.std_headers["User-Agent"] = "Mozilla/5.0"
-    link = re.match(
+    if link := re.match(
         SDL_REGEX_LINKS,
         url,
         re.M,
-    )
-
-    if not link:
-        await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
-        return
-    else:
+    ):
         with tempfile.TemporaryDirectory() as tempdir:
             path = os.path.join(tempdir, "sdl")
             try:
@@ -290,7 +282,6 @@ async def sdl(c: Smudge, m: Message):
                         ]
                 except FileNotFoundError:
                     print(url)
-                    pass
                 if not re.match(
                     f"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
                     url,
@@ -339,15 +330,16 @@ async def sdl(c: Smudge, m: Message):
                     await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
                 await m.reply_media_group(media=videos)
         shutil.rmtree(tempdir, ignore_errors=True)
+    else:
+        await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
+        return
 
 
 class MyLogger:
     def debug(self, msg):
         # For compatibility with youtube-dl, both debug and info are passed into debug
         # You can distinguish them by the prefix '[debug] '
-        if msg.startswith("[debug] "):
-            pass
-        else:
+        if not msg.startswith("[debug] "):
             self.info(msg)
 
     def info(self, msg):
@@ -358,7 +350,5 @@ class MyLogger:
 
     @staticmethod
     def error(msg):
-        if "There's no video" in msg:
-            pass
-        else:
+        if "There's no video" not in msg:
             print(msg)

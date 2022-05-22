@@ -47,8 +47,7 @@ async def tld(m, t):
     m_args.insert(1, "strings")
 
     try:
-        txt = reduce(getitem, m_args, lang_dict)
-        return txt
+        return reduce(getitem, m_args, lang_dict)
     except KeyError:
         err = f"Warning: No string found for {t}.\nChatID: {m.chat.id}\nReport it in @ruizlenato."
         LOGGER.warning(err)
