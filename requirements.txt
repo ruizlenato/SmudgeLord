@@ -1,22 +1,22 @@
 # Bot Dependencies
 git+https://github.com/AmanoTeam/pyrogram.git#egg=Pyrogram # AmanoTeam Pyrogram's
-tgcrypto==1.2.3 # To increase Pyrogram speed
+tgcrypto # To increase Pyrogram speed
 
 # Database
 aiosqlite==0.17.0
 
 # Plugins Dependencies
-rich>=12.3.0
-httpx[http2]>=0.18.1,<1.0.0
-urllib3==1.26.9
-pyyaml==6.0
-BeautifulSoup4==4.11.1
-Pillow>=8.4.0
-git+https://github.com/ruizlenato/dicioinformal
-gpytranslate==1.4.0
-orjson==3.6.8
-yt-dlp==2022.5.18
-regex>=2022.4.24
-aiocron==1.8
-spotipy==2.19.0
+aiocron # To schedule tasks
+BeautifulSoup
+git+https://github.com/ruizlenato/dicioinformal # Dicionário Informal
 gallery-dl>=1.21.2
+gpytranslate==1.4.0
+httpx[http2]>=0.18.1,<1.0.0
+orjson
+Pillow>=8.4.0
+pyyaml==6.0
+regex
+rich>=12.3.0
+spotipy==2.19.0
+urllib3
+yt-dlp==2022.5.18
