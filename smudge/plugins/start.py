@@ -171,6 +171,7 @@ async def button(c: Smudge, m: Union[Message, CallbackQuery]):
     text = await tld(m, "Main.help_text")
     await reply_text(text, reply_markup=ikb(await help_buttons(m, HELP)))
 
+
 async def help_menu(m, text):
     if isinstance(m, CallbackQuery):
         reply_text = m.edit_message_text
