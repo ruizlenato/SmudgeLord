@@ -60,7 +60,9 @@ class Smudge(Client):
                 caption="<b>Database backuped!</b>\n<b>- Date:</b> {}".format(date),
             )
             logging.warning("[SmudgeLord] Database backuped!")
+
         rprint(f"[green] :rocket: Started.")
+
     async def stop(self, *args):
         await super().stop()
         rprint("[red]SmudgeLord stopped. Bye.")
