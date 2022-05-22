@@ -194,7 +194,7 @@ async def cssworker_url(target_url: str):
 
     try:
         resp = await http.post(url, headers=my_headers, json=data)
-        return resp.json()
+        return orjson.loads(resp.content)
     except httpx.NetworkError:
         return None
 
@@ -212,12 +212,13 @@ async def lastfm(c: Smudge, m: Message):
 
     base_url = "https://brasilapi.com.br/api/cep/v1"
     res = await http.get(f"{base_url}/{cep}")
-    city = res.json().get("city")
-    state = res.json().get("state")
+    db = orjson.loads(res.content)
+    city = db["city"]
+    state = db["state"]
     states = await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")
-    state_name = states.json().get("nome")
-    neighborhood = res.json().get("neighborhood")
-    street = res.json().get("street")
+    state_name = orjson.loads(states.content)["nome"]
+    neighborhood = db["neighborhood"]
+    street = db["street"]
 
     if res.status_code == 404:
         await m.reply_text((await tld(m, "Misc.cep_error")))
@@ -243,12 +244,13 @@ async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
 
     base_url = "https://brasilapi.com.br/api/ddd/v1"
     res = await http.get(f"{base_url}/{ddd}")
-    state = res.json().get("state")
+    db = orjson.loads(res.content)
+    state = db["state"]
     if res.status_code == 404:
         return await m.reply_text((await tld(m, "Misc.ddd_error")))
     states = await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")
-    state_name = states.json().get("nome")
-    cities = res.json().get("cities")
+    state_name = orjson.loads(states.content)["nome"]
+    cities = db["cities"]
     if isinstance(m, CallbackQuery):
         cities.reverse()
         cities = (
