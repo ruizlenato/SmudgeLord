@@ -250,7 +250,7 @@ async def lastfm(c: Smudge, m: Message):
         scrobbles = "none"
 
     rep = f"<a href='{image}'>\u200c</a>"
-    if first_track["@attr"]:
+    if first_track.get("@attr"):  # Check if track is now playing
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
@@ -323,7 +323,7 @@ async def album(c: Smudge, m: Message):
 
     rep = f"<a href='{image}'>\u200c</a>"
 
-    if first_track["@attr"]:
+    if first_track.get("@attr"):  # Check if track is now playing
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
@@ -398,7 +398,7 @@ async def artist(c: Smudge, m: Message):
 
     rep = f"<a href='{image}'>\u200c</a>"
 
-    if first_track["@attr"]:
+    if first_track.get("@attr"):  # Check if track is now playing
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
