@@ -255,8 +255,7 @@ async def sdl(c: Smudge, m: Message):
         )
         return
 
-    yt_dlp.utils.std_headers["User-Agent"] = "Mozilla/5.0"
-    if link := re.match(
+    if re.match(
         SDL_REGEX_LINKS,
         url,
         re.M,
@@ -333,7 +332,6 @@ async def sdl(c: Smudge, m: Message):
     else:
         await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
         return
-
 
 class MyLogger:
     def debug(self, msg):
