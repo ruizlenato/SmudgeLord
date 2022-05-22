@@ -18,8 +18,8 @@ from smudge.database import database
 logging.basicConfig(
     level=logging.WARNING,
     format="%(name)s | %(asctime)s | %(message)s",
-    datefmt='%m/%d %H:%M:%S',
-    handlers=[RichHandler(rich_tracebacks=True)]
+    datefmt="%m/%d %H:%M:%S",
+    handlers=[RichHandler(rich_tracebacks=True)],
 )
 
 # To avoid some annoying log
