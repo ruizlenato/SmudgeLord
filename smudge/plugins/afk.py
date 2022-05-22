@@ -9,8 +9,6 @@ from pyrogram.errors import FloodWait, UserNotParticipant, BadRequest
 
 from smudge import Smudge
 from smudge.plugins import tld
-
-from smudge.plugins import tld
 from smudge.database.core import database
 
 conn = database.get_conn()
