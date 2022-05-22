@@ -8,7 +8,7 @@ import random
 import asyncio
 import urllib.parse
 import urllib.request
-import rapidjson as json
+import orjson as json
 
 from typing import Union
 

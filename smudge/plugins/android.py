@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-import rapidjson
+import orjson
 from bs4 import BeautifulSoup
 
 from pyrogram import filters
@@ -23,7 +23,7 @@ class GetDevice:
             data = await http.get(
                 "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_model.json"
             )
-            db = rapidjson.loads(data.content)
+            db = orjson.loads(data.content)
             try:
                 name = db[self.device.upper()][0]["name"]
                 device = db[self.device.upper()][0]["device"]
@@ -36,12 +36,13 @@ class GetDevice:
             data = await http.get(
                 "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
             )
-            database = rapidjson.loads(data.content)
+            database = orjson.loads(data.content)
             newdevice = (
                 self.device.strip("lte").lower()
                 if self.device.startswith("beyond")
                 else self.device.lower()
             )
+            print(newdevice)
             try:
                 name = database[newdevice][0]["name"]
                 model = database[newdevice][0]["model"]
@@ -58,7 +59,7 @@ async def magisk(c: Smudge, m: Message):
     text = await tld(m, "Android.magisk_releases")
     for magisk_type in ["stable", "beta", "canary"]:
         fetch = await http.get(repo_url + magisk_type + ".json")
-        data = rapidjson.loads(fetch.content)
+        data = orjson.loads(fetch.content)
         text += (
             f"<b>{magisk_type.capitalize()}</b>:\n"
             f'<a href="{data["magisk"]["link"]}" >Magisk - V{data["magisk"]["version"]}</a>'
@@ -102,11 +103,16 @@ async def twrp(c: Smudge, m: Message):
     filters.command(["variants", "models", "whatis", "device", "codename"])
 )
 async def variants(c: Smudge, m: Message):
-    if not len(m.command) == 2:
-        message = await tld(m, "Android.models_nocodename")
-        await m.reply_text(message)
+    if m.reply_to_message and m.reply_to_message.text:
+        cdevice = m.reply_to_message.text
+    elif len(m.command) > 1:
+        cdevice = m.text.split(None, 1)[1]
+    else:
+        await m.reply_text(
+            (await tld(m, "Android.models_nocodename")).format(m.text.split(None, 1)[0])
+        )
         return
-    cdevice = m.command[1]
+
     data = await GetDevice(cdevice).get()
     if data:
         name = data["name"]
@@ -118,14 +124,13 @@ async def variants(c: Smudge, m: Message):
     data = await http.get(
         "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
     )
-    db = rapidjson.loads(data.content)
+    db = orjson.loads(data.content)
     device = db[device]
     message = (await tld(m, "Android.models_variant")).format(cdevice)
     for i in device:
         name = i["name"]
         model = i["model"]
         brand = i["brand"]
-        print(device, brand)
         message += (await tld(m, "Android.models_list")).format(brand, name, model)
 
     await m.reply_text(message)

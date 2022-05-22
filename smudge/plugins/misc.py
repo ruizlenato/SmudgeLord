@@ -2,7 +2,7 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import html
 import httpx
-import rapidjson
+import orjson
 import dicioinformal
 
 from typing import Union
@@ -117,12 +117,12 @@ async def short(c: Smudge, m: Message):
             shortRequest = await http.get(
                 f"https://api.1pt.co/addURL?long={url}&short={short}"
             )
-            info = rapidjson.loads(shortRequest.content)
+            info = orjson.loads(shortRequest.content)
             short = info["short"]
             return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
         except IndexError:
             shortRequest = await http.get(f"https://api.1pt.co/addURL?long={url}")
-            info = rapidjson.loads(shortRequest.content)
+            info = orjson.loads(shortRequest.content)
             short = info["short"]
             return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
         except Exception as e:
@@ -286,7 +286,7 @@ async def git_on_message(c: Smudge, m: Message):
 
 
 async def git(c: Smudge, m: Message, repo, page):
-    db = rapidjson.loads(page.content)
+    db = orjson.loads(page.content)
     name = db["name"]
     date = db["published_at"]
     tag = db["tag_name"]
