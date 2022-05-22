@@ -16,6 +16,7 @@ DEVICE_DATA: str = "https://raw.githubusercontent.com/androidtrackers/certified-
 DEVICE_DATA_NAME: str = "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_name.json"
 DEVICE_DATA_MODEL: str = "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
 
+
 class GetDevice:
     def __init__(self, device):
         """Get device info by codename or model!"""
@@ -26,13 +27,19 @@ class GetDevice:
             data = await http.get(DEVICE_DATA_NAME)
             db = orjson.loads(data.content)
             name = self.device.lower()
-            device = db[self.device][0]["device"] # To-Do: Add support for case-insensitive search.
+            device = db[self.device][0][
+                "device"
+            ]  # To-Do: Add support for case-insensitive search.
             brand = db[self.device][0]["brand"]
             model = db[self.device][0]["model"]
             return {"name": name, "device": device, "model": model, "brand": brand}
         except KeyError:
             if re.search(r"^(ASUS.*|sm-.*)", self.device):
-                argdevice = self.device.upper() if re.search(r"(sm-.*)", self.device) else self.device
+                argdevice = (
+                    self.device.upper()
+                    if re.search(r"(sm-.*)", self.device)
+                    else self.device
+                )
                 data = await http.get(DEVICE_DATA)
                 db = orjson.loads(data.content)
                 try:
@@ -40,7 +47,12 @@ class GetDevice:
                     device = db[argdevice][0]["device"]
                     brand = db[argdevice][0]["brand"]
                     model = self.device.lower()
-                    return {"name": name, "device": device, "model": model, "brand": brand}
+                    return {
+                        "name": name,
+                        "device": device,
+                        "model": model,
+                        "brand": brand,
+                    }
                 except KeyError:
                     return False
             else:
@@ -56,7 +68,12 @@ class GetDevice:
                     model = database[newdevice][0]["model"]
                     brand = database[newdevice][0]["brand"]
                     device = newdevice
-                    return {"name": name, "device": device, "model": model, "brand": brand}
+                    return {
+                        "name": name,
+                        "device": device,
+                        "model": model,
+                        "brand": brand,
+                    }
                 except KeyError:
                     return False
 

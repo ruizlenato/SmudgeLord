@@ -48,9 +48,7 @@ async def spoti(c: Smudge, m: Message):
         and m.text.split(maxsplit=1)[0] == "/spoti"
     ):
         try:
-            await m.chat.get_member(
-                796461943
-            )  # To avoid conflict with @lyricspybot
+            await m.chat.get_member(796461943)  # To avoid conflict with @lyricspybot
             return
         except UserNotParticipant:
             pass
@@ -191,10 +189,7 @@ async def setuser(c: Smudge, m: Message):
 
 @Smudge.on_message(filters.command(["lastfm", "lmu", "lt"]))
 async def lastfm(c: Smudge, m: Message):
-    if (
-        m.chat.type != enums.ChatType.PRIVATE
-        and m.text.split(maxsplit=1)[0] == "/lt"
-    ):
+    if m.chat.type != enums.ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
         try:
             await m.chat.get_member(
                 1993314727
@@ -254,17 +249,13 @@ async def lastfm(c: Smudge, m: Message):
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
-            else (await tld(m, "Music.scrobble_is")).format(
-                username, user, scrobbles
-            )
+            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
         )
 
     elif scrobbles == "none":
         rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
     else:
-        rep += (await tld(m, "Music.scrobble_was")).format(
-            username, user, scrobbles
-        )
+        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
 
     rep += f"<b>{artist}</b> - {song}❤️" if loved else f"<b>{artist}</b> - {song}"
     await m.reply_text(rep)
@@ -329,17 +320,13 @@ async def album(c: Smudge, m: Message):
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
-            else (await tld(m, "Music.scrobble_is")).format(
-                username, user, scrobbles
-            )
+            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
         )
 
     elif scrobbles == "none":
         rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
     else:
-        rep += (await tld(m, "Music.scrobble_was")).format(
-            username, user, scrobbles
-        )
+        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
 
     rep += (
         f"🎙 <strong>{artist}</strong>\n📀 {album} ❤️"
@@ -406,22 +393,16 @@ async def artist(c: Smudge, m: Message):
         rep += (
             (await tld(m, "Music.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
-            else (await tld(m, "Music.scrobble_is")).format(
-                username, user, scrobbles
-            )
+            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
         )
 
     elif scrobbles == "none":
         rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
     else:
-        rep += (await tld(m, "Music.scrobble_was")).format(
-            username, user, scrobbles
-        )
+        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
 
     rep += (
-        f"🎙 <strong>{artist}</strong> ❤️"
-        if loved
-        else f"🎙 <strong>{artist}</strong>"
+        f"🎙 <strong>{artist}</strong> ❤️" if loved else f"🎙 <strong>{artist}</strong>"
     )
 
     await m.reply(rep)
@@ -440,9 +421,7 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
         and m.text.split(maxsplit=1)[0] == "/collage"
     ):
         try:
-            await m.chat.get_member(
-                296635833
-            )  # To avoid conflict with @lastfmrobot
+            await m.chat.get_member(296635833)  # To avoid conflict with @lastfmrobot
             return
         except UserNotParticipant:
             pass
@@ -632,7 +611,6 @@ async def duotone(c: Smudge, m: Message):
         ],
     ]
 
-
     await m.reply_text(
         await tld(m, "Music.dualtone_choose"), reply_markup=ikb(keyboard)
     )
@@ -697,7 +675,9 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
             )
             with open(filename, "wb") as f:
                 f.write(imgdata)
-                keyboard = [[("👤 LastFM User", f"https://last.fm/user/{username}", "url")]]
+                keyboard = [
+                    [("👤 LastFM User", f"https://last.fm/user/{username}", "url")]
+                ]
                 await c.send_photo(
                     cq.message.chat.id,
                     photo=filename,

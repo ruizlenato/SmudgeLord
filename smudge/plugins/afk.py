@@ -132,8 +132,6 @@ async def afk_mentioned(c: Smudge, m: Message):
         return
     afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name)
     if await get_afk_user(user_id) != "No reason":
-        afkmsg += (await tld(m, "Misc.afk_reason")).format(
-            await get_afk_user(user_id)
-        )
+        afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_afk_user(user_id))
     await m.reply_text(afkmsg)
     await m.stop_propagation()

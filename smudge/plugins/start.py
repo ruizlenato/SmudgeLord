@@ -67,9 +67,7 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
         keyboard = [[("Start", f"https://t.me/{me.username}?start=start", "url")]]
         text = await tld(m, "Main.start_message")
 
-    await reply_text(
-        text, reply_markup=ikb(keyboard), disable_web_page_preview=True
-    )
+    await reply_text(text, reply_markup=ikb(keyboard), disable_web_page_preview=True)
 
 
 @Smudge.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
@@ -160,6 +158,7 @@ async def button(c: Smudge, m: Union[Message, CallbackQuery]):
             pass
     text = await tld(m, "Main.help_text")
     await reply_text(text, reply_markup=ikb(await help_buttons(m, HELP)))
+
 
 async def help_menu(m, text):
     if isinstance(m, CallbackQuery):
@@ -261,7 +260,6 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
             ),
         ]
     ]
-
 
     text = await tld(m, "Main.config_text")
     await reply_text(text, reply_markup=ikb(keyboard))
