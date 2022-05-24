@@ -239,6 +239,19 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
+@aiowrap
+def gallery_down(path, url: str):
+    gallery_dl.config.set(("output",), "mode", "null")
+    gallery_dl.config.set((), "directory", [])
+    gallery_dl.config.set((), "base-directory", [path])
+    gallery_dl.config.set(
+        (),
+        "cookies",
+        "~/instagram.com_cookies.txt",
+    )
+    return gallery_dl.job.DownloadJob(url).run()
+
+
 @Smudge.on_message(filters.command(["sdl", "mdl"]), group=1)
 @Smudge.on_message(filters.regex(SDL_REGEX_LINKS))
 async def sdl(c: Smudge, m: Message):
@@ -265,15 +278,7 @@ async def sdl(c: Smudge, m: Message):
         with tempfile.TemporaryDirectory() as tempdir:
             path = os.path.join(tempdir, "sdl")
             try:
-                gallery_dl.config.set(("output",), "mode", "null")
-                gallery_dl.config.set((), "directory", [])
-                gallery_dl.config.set((), "base-directory", [path])
-                gallery_dl.config.set(
-                    (),
-                    "cookies",
-                    "~/instagram.com_cookies.txt",
-                )
-                gallery_dl.job.DownloadJob(url).run()
+                await gallery_down(path, url)
                 files = []
                 try:
                     files += [
