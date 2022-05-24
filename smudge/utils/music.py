@@ -23,9 +23,8 @@ async def gen_spotify_token(user_id, token):
     b = r.json()
     if b.get("error"):
         return False, b["error"]
-    else:
-        await set_spot_user(user_id, b["access_token"], b["refresh_token"])
-        return True, b["access_token"]
+    await set_spot_user(user_id, b["access_token"], b["refresh_token"])
+    return True, b["access_token"]
 
 
 async def get_spoti_session(user_id):
@@ -34,8 +33,7 @@ async def get_spoti_session(user_id):
     except SpotifyException:
         await unreg_spot(user_id)
         return False
-    a = spotipy.Spotify(auth=new_token)
-    return a
+    return spotipy.Spotify(auth=new_token)
 
 
 async def refresh_token(user_id):

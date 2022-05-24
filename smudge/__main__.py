@@ -24,8 +24,11 @@ logging.basicConfig(
 logging.getLogger("spotipy.client").setLevel(logging.ERROR)
 log = logging.getLogger("rich")
 
-logs = "[bold purple]SmudgeLord[/bold purple]"
-logs += "\n[cyan]Project maintained by:[/cyan] RuizLenato"
+logs = (
+    "[bold purple]SmudgeLord[/bold purple]"
+    + "\n[cyan]Project maintained by:[/cyan] RuizLenato"
+)
+
 logs += f"\n[yellow]Pyrogram Version:[/yellow] {pyrogram_version}"
 rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 
