@@ -121,11 +121,7 @@ async def kang_sticker(c: Smudge, m: Message):
         pack_prefix = "anim" if animated else "vid" if videos else "a"
         packname = f"{pack_prefix}_{m.from_user.id}_by_{bot_username}"
 
-        if (
-            len(m.command) > 1
-            and m.command[1].isdigit()
-            and int(m.command[1]) > 0
-        ):
+        if len(m.command) > 1 and m.command[1].isdigit() and int(m.command[1]) > 0:
             # provide pack number to kang in desired pack
             packnum = m.command.pop(1)
             packname = f"{pack_prefix}{packnum}_{m.from_user.id}_by_{bot_username}"
