@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import re
-import orjson
 from bs4 import BeautifulSoup
 
 from pyrogram import filters
@@ -25,7 +24,7 @@ class GetDevice:
     async def get(self):
         try:
             data = await http.get(DEVICE_DATA_NAME)
-            db = orjson.loads(data.content)
+            db = data.json()
             name = self.device.lower()
             device = db[self.device][0][
                 "device"
@@ -41,7 +40,7 @@ class GetDevice:
                     else self.device
                 )
                 data = await http.get(DEVICE_DATA)
-                db = orjson.loads(data.content)
+                db = data.json()
                 try:
                     name = db[argdevice][0]["name"]
                     device = db[argdevice][0]["device"]
@@ -57,7 +56,7 @@ class GetDevice:
                     return False
             else:
                 data = await http.get(DEVICE_DATA_MODEL)
-                database = orjson.loads(data.content)
+                database = data.json()
                 newdevice = (
                     self.device.strip("lte").lower()
                     if self.device.startswith("beyond")
@@ -84,7 +83,7 @@ async def magisk(c: Smudge, m: Message):
     text = await tld(m, "Android.magisk_releases")
     for magisk_type in ["stable", "beta", "canary"]:
         fetch = await http.get(repo_url + magisk_type + ".json")
-        data = orjson.loads(fetch.content)
+        data = fetch.json()
         text += (
             f"<b>{magisk_type.capitalize()}</b>:\n"
             f'<a href="{data["magisk"]["link"]}" >Magisk - V{data["magisk"]["version"]}</a>'
@@ -149,7 +148,7 @@ async def variants(c: Smudge, m: Message):
     data = await http.get(
         "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
     )
-    db = orjson.loads(data.content)
+    db = data.json()
     device = db[device]
     message = (await tld(m, "Android.models_variant")).format(cdevice)
     for i in device:

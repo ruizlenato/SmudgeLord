@@ -12,7 +12,6 @@ git+https://github.com/ruizlenato/dicioinformal # Dicionário Informal
 gallery-dl>=1.21.2
 gpytranslate==1.4.0
 httpx[http2]>=0.18.1,<1.0.0
-orjson
 Pillow>=8.4.0
 pyyaml==6.0
 regex

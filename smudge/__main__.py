@@ -15,7 +15,7 @@ from smudge.database import database
 
 # Custom logging format
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format=f"\u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
     datefmt="%m/%d %H:%M:%S",
 )

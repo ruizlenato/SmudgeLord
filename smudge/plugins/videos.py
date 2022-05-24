@@ -10,7 +10,6 @@ import tempfile
 import datetime
 import gallery_dl
 import asyncio
-import orjson
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
@@ -46,7 +45,7 @@ async def search_yt(query):
             "x-youtube-client-version": "2.20200827",
         },
     )
-    page = orjson.loads(page.content)
+    page = page.json()
     list_videos = []
     for video in page[1]["response"]["contents"]["twoColumnSearchResultsRenderer"][
         "primaryContents"

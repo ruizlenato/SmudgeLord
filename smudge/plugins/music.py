@@ -4,7 +4,6 @@ import os
 import re
 import httpx
 import base64
-import orjson
 import random
 import asyncio
 import urllib.parse
@@ -43,7 +42,7 @@ login_url = (
 )
 
 
-@Smudge.on_message(filters.command(["spoti", "spo"]))
+@Smudge.on_message(filters.command(["spoti", "spo", "spot"]))
 async def spoti(c: Smudge, m: Message):
     if (
         m.chat.type != enums.ChatType.PRIVATE
@@ -98,7 +97,7 @@ async def spoti(c: Smudge, m: Message):
             return await m.reply_text(rep)
 
 
-@Smudge.on_message(filters.command(["spotf"]))
+@Smudge.on_message(filters.command(["spotf", "spotif"]))
 async def spotf(c: Smudge, m: Message):
     usr = await get_spot_user(m.from_user.id)
     if not usr:
@@ -219,7 +218,7 @@ async def lastfm(c: Smudge, m: Message):
         + f"{LASTFM_API_KEY}&format=json"
     )
 
-    db = orjson.loads(res.content)
+    db = res.json()
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -244,7 +243,7 @@ async def lastfm(c: Smudge, m: Message):
     )
 
     try:
-        info = orjson.loads(fetch.content)
+        info = fetch.json()
         last_user = info["track"]
         if int(last_user.get("userplaycount")) == 0:
             scrobbles = int(last_user.get("userplaycount")) + 1
@@ -296,7 +295,7 @@ async def album(c: Smudge, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
-    db = orjson.loads(res.content)
+    db = res.json()
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -318,7 +317,7 @@ async def album(c: Smudge, m: Message):
         + f"&api_key={LASTFM_API_KEY}&format=json"
     )
 
-    info = orjson.loads(fetch.content)
+    info = fetch.json()
     last_user = info["album"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
@@ -374,7 +373,7 @@ async def artist(c: Smudge, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
-    db = orjson.loads(res.content)
+    db = res.json()
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -393,7 +392,7 @@ async def artist(c: Smudge, m: Message):
         + f"?method=artist.getinfo&artist={urllib.parse.quote(artist)}"
         + f"&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
-    info = orjson.loads(fetch.content)
+    info = fetch.json()
     last_user = info["artist"]["stats"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
@@ -524,7 +523,7 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
     }
     try:
         resp = await http.post(f"{url}api/collage", headers=my_headers, json=data)
-        res = orjson.loads(resp.content)
+        res = resp.json()
         tCols = res["cols"]
         tRows = res["rows"]
     except httpx.NetworkError:
@@ -672,7 +671,7 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
         }
         try:
             resp = await http.post(url, headers=my_headers, json=data)
-            res = orjson.loads(resp.content)
+            res = resp.json()
             data = (
                 str(res["base64"])
                 .replace(" ", "+")

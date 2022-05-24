@@ -2,7 +2,6 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import html
 import httpx
-import orjson
 import dicioinformal
 
 from typing import Union
@@ -112,15 +111,13 @@ async def short(c: Smudge, m: Message):
         url = f"http://{url}"
     try:
         short = m.command[2]
-        shortRequest = await http.get(
-            f"https://api.1pt.co/addURL?long={url}&short={short}"
-        )
-        info = orjson.loads(shortRequest.content)
+        fetch = await http.get(f"https://api.1pt.co/addURL?long={url}&short={short}")
+        info = fetch.json()
         short = info["short"]
         return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
     except IndexError:
-        shortRequest = await http.get(f"https://api.1pt.co/addURL?long={url}")
-        info = orjson.loads(shortRequest.content)
+        fetch = await http.get(f"https://api.1pt.co/addURL?long={url}")
+        info = fetch.json()
         short = info["short"]
         return await m.reply_text(f"<code>https://1pt.co/{short}</code>")
     except Exception as e:
@@ -194,7 +191,7 @@ async def cssworker_url(target_url: str):
 
     try:
         resp = await http.post(url, headers=my_headers, json=data)
-        return orjson.loads(resp.content)
+        return resp.json()
     except httpx.NetworkError:
         return None
 
@@ -212,11 +209,11 @@ async def lastfm(c: Smudge, m: Message):
 
     base_url = "https://brasilapi.com.br/api/cep/v1"
     res = await http.get(f"{base_url}/{cep}")
-    db = orjson.loads(res.content)
+    db = res.json()
     city = db["city"]
     state = db["state"]
     states = await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")
-    state_name = orjson.loads(states.content)["nome"]
+    state_name = states.json()["nome"]
     neighborhood = db["neighborhood"]
     street = db["street"]
 
@@ -244,12 +241,12 @@ async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
 
     base_url = "https://brasilapi.com.br/api/ddd/v1"
     res = await http.get(f"{base_url}/{ddd}")
-    db = orjson.loads(res.content)
+    db = res.json()
     state = db["state"]
     if res.status_code == 404:
         return await m.reply_text((await tld(m, "Misc.ddd_error")))
     states = await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")
-    state_name = orjson.loads(states.content)["nome"]
+    state_name = states.json()["nome"]
     cities = db["cities"]
     if isinstance(m, CallbackQuery):
         cities.reverse()
@@ -284,7 +281,7 @@ async def git_on_message(c: Smudge, m: Message):
 
 
 async def git(c: Smudge, m: Message, repo, page):
-    db = orjson.loads(page.content)
+    db = page.json()
     name = db["name"]
     date = db["published_at"]
     tag = db["tag_name"]
