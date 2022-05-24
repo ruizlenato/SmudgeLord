@@ -81,6 +81,10 @@ async def spoti(c: Smudge, m: Message):
                 spotify_json = sp.current_user_playing_track()
             except SpotifyException:
                 return
+
+            if spotify_json is None:
+                return
+
             rep = f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
             if spotify_json["is_playing"] is True:
                 rep += (await tld(m, "Music.spotify_np")).format(

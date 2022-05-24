@@ -12,7 +12,7 @@ from pyrogram.errors import FloodWait
 
 from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
-from rich import box, print
+from rich import print as rprint
 
 # Date
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
@@ -35,7 +35,7 @@ class Smudge(Client):
         )
 
     async def start(self):
-        print("[green]Connected to telegram servers.[/]")
+        rprint("[green]Connected to telegram servers.[/]")
         await super().start()  # Connect to telegram's servers
 
         try:
@@ -62,8 +62,8 @@ class Smudge(Client):
 
         aiocron.crontab("*/60 * * * *", func=backup, start=True)
 
-        print("[bold green]- Started.[/]")
+        rprint("[bold green]- Started.[/]")
 
     async def stop(self, *args):
         await super().stop()
-        print("[red]SmudgeLord stopped. Bye.")
+        rprint("[red]SmudgeLord stopped. Bye.")

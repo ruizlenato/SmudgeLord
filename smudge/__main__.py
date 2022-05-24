@@ -7,21 +7,16 @@ import logging
 from pyrogram import idle, __version__ as pyrogram_version
 
 from rich.panel import Panel
-from rich import box, print
+from rich import box, print as rprint
 
 from .smudge import Smudge
 from smudge.utils import http
 from smudge.database import database
 
 # Custom logging format
-bar = "\u001B[31m | "
 logging.basicConfig(
-    level=logging.WARNING,
-    format="\u001B[35m%(name)s"
-    + bar
-    + "\u001B[36m%(asctime)s"
-    + bar
-    + "\u001B[37m%(message)s",
+    level=logging.INFO,
+    format=f"\u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
     datefmt="%m/%d %H:%M:%S",
 )
 
@@ -32,7 +27,7 @@ log = logging.getLogger("rich")
 logs = "[bold purple]SmudgeLord[/bold purple]"
 logs += "\n[cyan]Project maintained by:[/cyan] RuizLenato"
 logs += f"\n[yellow]Pyrogram Version:[/yellow] {pyrogram_version}"
-print(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
+rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 
 
 async def main():
@@ -47,7 +42,7 @@ async def main():
             await idle()
     except KeyboardInterrupt:
         # exit gracefully
-        print("[red]Forced stop... Bye!")
+        rprint("[red]Forced stop... Bye!")
     finally:
         # close https connections and the DB if open
         await smudge.stop()

@@ -142,7 +142,10 @@ async def ytdlcmd(c: Smudge, m: Message):
 
 @Smudge.on_callback_query(filters.regex("^(_(vid|aud))"))
 async def cli_ytdl(c: Smudge, cq: CallbackQuery):
-    data, fsize, temp, userid, mid = cq.data.split("|")
+    try:
+        data, fsize, temp, userid, mid = cq.data.split("|")
+    except ValueError:
+        return print(cq.data)
     if cq.from_user.id != int(userid):
         return await cq.answer(await tld(cq, "Misc.ytdl_button_denied"), cache_time=60)
     if int(fsize) > MAX_FILESIZE:

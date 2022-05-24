@@ -110,7 +110,6 @@ async def afk_mentioned(c: Smudge, m: Message):
             return
     else:
         return
-
     try:
         if user_id == m.from_user.id:
             return

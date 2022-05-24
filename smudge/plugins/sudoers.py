@@ -16,7 +16,7 @@ from smudge import Smudge
 from smudge.config import SUDOERS
 from smudge.database.core import database
 
-from rich import print
+from rich import print as rprint
 
 conn = database.get_conn()
 
@@ -26,7 +26,7 @@ async def restart(c: Smudge, m: Message):
     await m.reply_text("Restarting...")
     args = [sys.executable, "-m", "smudge"]
     os.system("cls" if os.name == "nt" else "clear")
-    print("[red]Restarting...")
+    rprint("[red]Restarting...")
     os.execl(sys.executable, *args)
 
 
