@@ -4,12 +4,13 @@
 import io
 import os
 import re
+import random
 import yt_dlp
 import shutil
+import asyncio
 import tempfile
 import datetime
 import gallery_dl
-import asyncio
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
@@ -276,7 +277,7 @@ async def sdl(c: Smudge, m: Message):
         re.M,
     ):
         with tempfile.TemporaryDirectory() as tempdir:
-            path = os.path.join(tempdir, "sdl")
+            path = os.path.join(tempdir, f"sdl|{random.randint(0, 300)}")
             try:
                 await gallery_down(path, url)
                 files = []
@@ -287,17 +288,20 @@ async def sdl(c: Smudge, m: Message):
                         if video.endswith(".mp4")
                     ]
                 except FileNotFoundError:
-                    print(url)
+                    return
                 if not re.match(
                     r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
                     url,
                     re.M,
                 ):
-                    files += [
-                        InputMediaPhoto(os.path.join(path, photo))
-                        for photo in os.listdir(path)
-                        if photo.endswith((".jpg", ".png", ".jpeg"))
-                    ]
+                    try:
+                        files += [
+                            InputMediaPhoto(os.path.join(path, photo))
+                            for photo in os.listdir(path)
+                            if photo.endswith((".jpg", ".png", ".jpeg"))
+                        ]
+                    except FileNotFoundError:
+                        return
                 try:
                     if files:
                         await c.send_chat_action(
