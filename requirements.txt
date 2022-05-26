@@ -7,7 +7,7 @@ aiosqlite==0.17.0
 
 # Plugins Dependencies
 aiocron # To schedule tasks
-BeautifulSoup
+beautifulsoup4
 gallery-dl>=1.21.2
 gpytranslate==1.4.0
 httpx[http2]>=0.18.1,<1.0.0
