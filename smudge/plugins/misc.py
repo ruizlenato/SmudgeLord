@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import html
-import httpx
-import dicioinformal
 
 from typing import Union
 
@@ -11,6 +9,7 @@ from gpytranslate import Translator
 from smudge import Smudge
 from smudge.utils import http
 from smudge.plugins import tld
+from smudge.utils.misc import get_tr_lang, cssworker_url, dicio_def
 
 from pyrogram import filters
 from pyrogram.helpers import ikb
@@ -18,46 +17,6 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message, CallbackQuery
 
 tr = Translator()
-
-# See https://cloud.google.com/translate/docs/languages
-# fmt: off
-LANGUAGES = [
-    "af", "sq", "am", "ar", "hy",
-    "az", "eu", "be", "bn", "bs",
-    "bg", "ca", "ceb", "zh", "co",
-    "hr", "cs", "da", "nl", "en",
-    "eo", "et", "fi", "fr", "fy",
-    "gl", "ka", "de", "el", "gu",
-    "ht", "ha", "haw", "he", "iw",
-    "hi", "hmn", "hu", "is", "ig",
-    "id", "ga", "it", "ja", "jv",
-    "kn", "kk", "km", "rw", "ko",
-    "ku", "ky", "lo", "la", "lv",
-    "lt", "lb", "mk", "mg", "ms",
-    "ml", "mt", "mi", "mr", "mn",
-    "my", "ne", "no", "ny", "or",
-    "ps", "fa", "pl", "pt", "pa",
-    "ro", "ru", "sm", "gd", "sr",
-    "st", "sn", "sd", "si", "sk",
-    "sl", "so", "es", "su", "sw",
-    "sv", "tl", "tg", "ta", "tt",
-    "te", "th", "tr", "tk", "uk",
-    "ur", "ug", "uz", "vi", "cy",
-    "xh", "yi", "yo", "zu",
-]
-# fmt: on
-
-
-def get_tr_lang(text):
-    if len(text.split()) > 0:
-        lang = text.split()[0]
-        if lang.split("-")[0] not in LANGUAGES:
-            lang = "pt"
-        if len(lang.split("-")) > 1 and lang.split("-")[1] not in LANGUAGES:
-            lang = "pt"
-    else:
-        lang = "pt"
-    return lang
 
 
 @Smudge.on_message(filters.command(["tr", "tl"]))
@@ -95,7 +54,8 @@ async def translate(c: Smudge, m: Message):
 @Smudge.on_message(filters.command("dicio"))
 async def dicio(c: Smudge, m: Message):
     txt = m.text.split(" ", 1)[1]
-    if a := dicioinformal.definicao(txt)["results"]:
+    if a := await dicio_def(txt):
+        print(a)
         frase = f'<b>{a[0]["title"]}:</b>\n{a[0]["tit"]}\n\n<i>{a[0]["desc"]}</i>'
     else:
         frase = "sem resultado"
@@ -160,40 +120,6 @@ async def prints(c: Smudge, m: Message):
             )
     else:
         await m.reply(await tld(m, "Misc.print_api_dead"))
-
-
-async def cssworker_url(target_url: str):
-    url = "https://htmlcsstoimage.com/demo_run"
-    my_headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36",
-        "Accept": "*/*",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Referer": "https://htmlcsstoimage.com/",
-        "Content-Type": "application/json",
-        "Origin": "https://htmlcsstoimage.com",
-        "Alt-Used": "htmlcsstoimage.com",
-        "Connection": "keep-alive",
-    }
-
-    data = {
-        "html": "",
-        "console_mode": "",
-        "url": target_url,
-        "css": "",
-        "selector": "",
-        "ms_delay": "",
-        "render_when_ready": "false",
-        "viewport_height": "900",
-        "viewport_width": "1600",
-        "google_fonts": "",
-        "device_scale": "",
-    }
-
-    try:
-        resp = await http.post(url, headers=my_headers, json=data)
-        return resp.json()
-    except httpx.NetworkError:
-        return None
 
 
 @Smudge.on_message(filters.command("cep"))
