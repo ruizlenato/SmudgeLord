@@ -55,7 +55,6 @@ async def translate(c: Smudge, m: Message):
 async def dicio(c: Smudge, m: Message):
     txt = m.text.split(" ", 1)[1]
     if a := await dicio_def(txt):
-        print(a)
         frase = f'<b>{a[0]["title"]}:</b>\n{a[0]["tit"]}\n\n<i>{a[0]["desc"]}</i>'
     else:
         frase = "sem resultado"
