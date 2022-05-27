@@ -304,9 +304,6 @@ async def sdl(c: Smudge, m: Message):
                         return
                 try:
                     if files:
-                        await c.send_chat_action(
-                            m.chat.id, enums.ChatAction.UPLOAD_DOCUMENT
-                        )
                         await m.reply_media_group(media=files)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
