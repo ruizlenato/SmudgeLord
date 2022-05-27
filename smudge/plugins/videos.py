@@ -288,7 +288,7 @@ async def sdl(c: Smudge, m: Message):
                         if video.endswith(".mp4")
                     ]
                 except FileNotFoundError:
-                    return
+                    pass
                 if not re.match(
                     r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
                     url,
@@ -310,7 +310,6 @@ async def sdl(c: Smudge, m: Message):
                         await m.reply_media_group(media=files)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
-                shutil.rmtree(tempdir, ignore_errors=True)
             except gallery_dl.exception.GalleryDLException:
                 ydl_opts = {
                     "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
@@ -338,7 +337,8 @@ async def sdl(c: Smudge, m: Message):
                 ]
                 if videos:
                     await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
-                await m.reply_media_group(media=videos)
+                    await m.reply_media_group(media=videos)
+        await asyncio.sleep(2)
         shutil.rmtree(tempdir, ignore_errors=True)
     else:
         await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
