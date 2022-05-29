@@ -191,6 +191,8 @@ strings:
     ddd_cities: "Cidades"
     sdl_config_noauto: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei baixar automaticamente quando você enviar um link."
     sdl_config_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
+    sdl_config_noauto_images: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei <b>baixar imagens junto com os vídeos</b> automaticamente quando você enviar um link."
+    sdl_config_auto_images: "<b>Configuração salva.</b>\nAgora eu irei <b>baixar imagens junto com os vídeos</b> automaticamente quando você enviar um link."
     gitr_noreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
     ytdl_audio_button: "💿 Áudio"
     ytdl_video_button: "📹 Vídeo"

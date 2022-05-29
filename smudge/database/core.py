@@ -35,7 +35,8 @@ class Database:
         CREATE TABLE IF NOT EXISTS groups(
             id INTEGER PRIMARY KEY,
             lang TEXT DEFAULT 'en-US',
-            sdl_auto INTEGER
+            sdl_auto INTEGER,
+            sdl_images INTEGER
         );
         CREATE TABLE IF NOT EXISTS channels(
             id INTEGER PRIMARY KEY,

@@ -16,7 +16,12 @@ from smudge import Smudge
 from smudge.plugins import all_plugins
 from smudge.plugins import tld, lang_dict
 from smudge.utils.help_menu import help_buttons
-from smudge.database.start import toggle_sdl, check_sdl
+from smudge.database.videos import (
+    tsdl,
+    csdl,
+    tisdl,
+    cisdl,
+)
 from smudge.database.locales import set_db_lang
 
 HELP = {}
@@ -203,8 +208,8 @@ async def logging(c: Smudge, m: Message):
         )
 
 
-@Smudge.on_callback_query(filters.regex(r"setsdl"))
-async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
+@Smudge.on_callback_query(filters.regex(r"^ssdl_auto"))
+async def ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
     chat_id = m.message.chat.id
     reply_text = m.edit_message_text
 
@@ -221,17 +226,49 @@ async def setsdl(c: Smudge, m: Union[Message, CallbackQuery]):
         await message.delete()
         return
 
-    if await check_sdl(chat_id) is None:
-        await toggle_sdl(chat_id, True)
+    if await csdl(chat_id) is None:
+        await tsdl(chat_id, True)
         text = await tld(m, "Misc.sdl_config_auto")
     else:
-        await toggle_sdl(chat_id, None)
+        await tsdl(chat_id, None)
         text = await tld(m, "Misc.sdl_config_noauto")
 
-    await reply_text(text)
+    keyboard = [[(await tld(m, "Main.btn_back"), "config")]]
+    await reply_text(text, reply_markup=ikb(keyboard))
     return
 
 
+@Smudge.on_callback_query(filters.regex(r"^ssdl_image"))
+async def image_ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
+    chat_id = m.message.chat.id
+    reply_text = m.edit_message_text
+
+    try:
+        member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
+        if member.status not in (
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+        ):
+            return
+    except AttributeError:
+        message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
+        await asyncio.sleep(10.0)
+        await message.delete()
+        return
+
+    if await cisdl(chat_id) is None:
+        await tisdl(chat_id, True)
+        text = await tld(m, "Misc.sdl_config_auto_images")
+    else:
+        await tisdl(chat_id, None)
+        text = await tld(m, "Misc.sdl_config_noauto_images")
+
+    keyboard = [[(await tld(m, "Main.btn_back"), "config")]]
+    await reply_text(text, reply_markup=ikb(keyboard))
+    return
+
+
+@Smudge.on_callback_query(filters.regex(r"config"))
 @Smudge.on_message(filters.command("config") & filters.group)
 async def config(c: Smudge, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
@@ -254,15 +291,19 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
         await message.delete()
         return
 
-    emoji = "❌" if await check_sdl(m.chat.id) is None else "✅"
+    emoji = "❌" if await csdl(chat_id) is None else "✅"
+    emoji_image = "❌" if await cisdl(chat_id) is None else "✅"
     keyboard = [
         [
-            (f"SDL Auto: {emoji}", "setsdl"),
+            (f"SDL Images: {emoji_image}", "ssdl_image"),
+            (f"SDL Auto: {emoji}", "ssdl_auto"),
+        ],
+        [
             (
                 await tld(m, "Main.start_btn_lang"),
                 "setchatlang",
             ),
-        ]
+        ],
     ]
 
     text = await tld(m, "Main.config_text")

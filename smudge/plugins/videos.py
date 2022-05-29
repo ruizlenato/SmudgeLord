@@ -20,7 +20,7 @@ from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPh
 from smudge import Smudge
 from smudge.plugins import tld
 from smudge.utils import send_logs, http, pretty_size, aiowrap
-from smudge.database.start import check_sdl
+from smudge.database.videos import csdl, cisdl
 
 SDL_REGEX_LINKS = r"^http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com)\/(?:\S*)"
 
@@ -257,7 +257,7 @@ def gallery_down(path, url: str):
 @Smudge.on_message(filters.regex(SDL_REGEX_LINKS))
 async def sdl(c: Smudge, m: Message):
     if m.matches:
-        if m.chat.type == enums.ChatType.PRIVATE or await check_sdl(m.chat.id) == True:
+        if m.chat.type == enums.ChatType.PRIVATE or await csdl(m.chat.id) == True:
             url = m.matches[0].group(0)
         else:
             return
@@ -294,16 +294,23 @@ async def sdl(c: Smudge, m: Message):
                     url,
                     re.M,
                 ):
-                    try:
-                        files += [
-                            InputMediaPhoto(os.path.join(path, photo))
-                            for photo in os.listdir(path)
-                            if photo.endswith((".jpg", ".png", ".jpeg"))
-                        ]
-                    except FileNotFoundError:
-                        return
+                    if (
+                        m.chat.type == enums.ChatType.PRIVATE
+                        or await cisdl(m.chat.id) == True
+                    ):
+                        try:
+                            files += [
+                                InputMediaPhoto(os.path.join(path, photo))
+                                for photo in os.listdir(path)
+                                if photo.endswith((".jpg", ".png", ".jpeg"))
+                            ]
+                        except FileNotFoundError:
+                            pass
                 try:
                     if files:
+                        await c.send_chat_action(
+                            m.chat.id, enums.ChatAction.UPLOAD_DOCUMENT
+                        )
                         await m.reply_media_group(media=files)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
