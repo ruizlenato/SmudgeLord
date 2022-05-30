@@ -12,34 +12,38 @@ from smudge.plugins import tld
 
 @Smudge.on_message(filters.command("cleanup"))
 async def cleanup(c: Smudge, m: Message):
+    if m.chat.type == ChatType.PRIVATE:
+        return await m.reply_text(await tld(m, "Admin.err_private"))
+
     try:
         me = await c.get_me()
     except FloodWait as e:
         await asyncio.sleep(e.value)
 
-    if m.chat.type == ChatType.PRIVATE:
-        return await m.reply_text(await tld(m, "Admin.err_private"))
     bot = await c.get_chat_member(chat_id=m.chat.id, user_id=me.id)
-    member = await c.get_chat_member(chat_id=m.chat.id, user_id=m.from_user.id)
-    if member.status not in (
-        ChatMemberStatus.ADMINISTRATOR,
-        ChatMemberStatus.OWNER,
-    ):
+    user = await c.get_chat_member(chat_id=m.chat.id, user_id=m.from_user.id)
+
+    if user.status not in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
         return await m.reply_text(await tld(m, "Admin.noadmin"))
+
     if bot.status != ChatMemberStatus.ADMINISTRATOR:
         return await m.reply_text(await tld(m, "Admin.botnotadmin"))
-    deleted_users = []
+
     mes = await m.reply_text(await tld(m, "Admin.cleanup_start"))
-    async for a in c.get_chat_members(chat_id=m.chat.id):
-        if not a.user.is_deleted:
-            return await mes.edit_text(await tld(m, "Admin.cleanup_no_deleted"))
+    deleted_users = []
+    async for member in c.get_chat_members(chat_id=m.chat.id):
+        if member.user.is_deleted:
+            await c.ban_chat_member(m.chat.id, member.user.id)
+            deleted_users.append(member.user.id)
+
+    if deleted_users:
         try:
-            await c.ban_chat_member(m.chat.id, a.user.id)
-            deleted_users.append(a)
-            await mes.edit_text(await tld(m, "Admin.cleanup_start_d")).format(
-                {len(deleted_users)}
+            await mes.edit_text(
+                (await tld(m, "Admin.cleanup_start_d")).format(len(deleted_users))
             )
         except BadRequest:
             pass
         except Forbidden as e:
             return await m.reply_text(f"<b>Erro:</b> {e}")
+    else:
+        return await mes.edit_text(await tld(m, "Admin.cleanup_no_deleted"))
