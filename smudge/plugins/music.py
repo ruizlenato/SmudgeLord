@@ -425,7 +425,7 @@ async def artist(c: Smudge, m: Message):
 CollageLastFM = LastFMImage()
 
 
-@Smudge.on_message(filters.command("collage"))
+@Smudge.on_message(filters.command(["collage", "lastcllg"]))
 @Smudge.on_callback_query(filters.regex("^(_(collage))"))
 async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
@@ -494,7 +494,7 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
                 elif uwu in {"7d", "1w"}:
                     period = "7day"
                 elif uwu in "1y":
-                    period = "1year"
+                    period = "12month"
                 elif uwu == "overall":
                     period = "overall"
                 else:
