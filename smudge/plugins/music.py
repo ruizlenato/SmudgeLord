@@ -5,6 +5,7 @@ import re
 import httpx
 import base64
 import random
+import shutil
 import asyncio
 import urllib.parse
 import urllib.request
@@ -27,6 +28,7 @@ from smudge.database.music import (
 from smudge.utils.music import (
     get_spoti_session,
     gen_spotify_token,
+    LastFMImage,
 )
 
 from pyrogram.helpers import ikb
@@ -420,23 +422,30 @@ async def artist(c: Smudge, m: Message):
     await m.reply(rep)
 
 
+CollageLastFM = LastFMImage()
+
+
 @Smudge.on_message(filters.command("collage"))
 @Smudge.on_callback_query(filters.regex("^(_(collage))"))
 async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
-    url = "https://lastcollage.io/"
     if isinstance(m, CallbackQuery):
         chat_type = m.message.chat.type
     else:
         chat_type = m.chat.type
-    if (
-        enums.ChatType.PRIVATE != chat_type
-        and m.text.split(maxsplit=1)[0] == "/collage"
-    ):
-        try:
-            await m.chat.get_member(296635833)  # To avoid conflict with @lastfmrobot
-            return
-        except UserNotParticipant:
-            pass
+
+    if not isinstance(m, CallbackQuery):
+        if (
+            enums.ChatType.PRIVATE != chat_type
+            and m.text.split(maxsplit=1)[0] == "/collage"
+        ):
+            try:
+                await m.chat.get_member(
+                    296635833
+                )  # To avoid conflict with @lastfmrobot
+                return
+            except UserNotParticipant:
+                pass
+
     if isinstance(m, CallbackQuery):
         data, colNumData, rowNumData, user_id, username, style, period = m.data.split(
             "|"
@@ -473,7 +482,7 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
 
         try:
             args = args.lower()
-            if x := re.search(r"(\d+m|\d+y|\d+d|\d+w)", args):
+            if x := re.search(r"(\d+m|\d+y|\d+d|\d+w|overall)", args):
                 uwu = (
                     str(x.group(1))
                     .replace("12m", "1y")
@@ -483,11 +492,13 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
                 if uwu in {"1m", "3m", "6m"}:
                     period = f"{uwu}onth"
                 elif uwu in {"7d", "1w"}:
-                    period = "1week"
+                    period = "7day"
                 elif uwu in "1y":
                     period = "1year"
+                elif uwu == "overall":
+                    period = "overall"
                 else:
-                    period = "week"
+                    period = "7day"
             else:
                 period = "1month"
         except UnboundLocalError:
@@ -506,29 +517,6 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
     if not username:
         return await m.reply_text(await tld(m, "Music.no_username"))
 
-    my_headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:99.0) Gecko/20100101 Firefox/99.0",
-        "Content-Type": "application/json;charset=utf-8",
-        "Origin": "https://lastcollage.io",
-        "Referer": "https://lastcollage.io/load",
-    }
-    data = {
-        "username": username,
-        "type": style,
-        "period": period,
-        "colNum": colNum,
-        "rowNum": rowNum,
-        "showName": "true",
-        "hideMissing": "false",
-    }
-    try:
-        resp = await http.post(f"{url}api/collage", headers=my_headers, json=data)
-        res = resp.json()
-        tCols = res["cols"]
-        tRows = res["rows"]
-    except httpx.NetworkError:
-        return None
-
     keyboard = ikb(
         [
             [
@@ -545,24 +533,29 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
     )
 
     caption = (await tld(m, "Music.collage_caption")).format(
-        username, user_name, period, tCols, tRows, style
+        username, user_name, period, colNum, rowNum, style
     )
 
-    filename = f"{user_id}{username}{random.randint(0, 300)}.png"
-    urllib.request.urlretrieve(f'{url}{res["downloadPath"]}', filename)
     if isinstance(m, CallbackQuery):
         try:
+            filename = await CollageLastFM.create_collage(
+                username, style, period, colNum, rowNum
+            )
             await m.edit_message_media(
-                InputMediaPhoto(filename, caption=caption),
+                InputMediaPhoto(f"{filename}/lastfm-final.jpg", caption=caption),
                 reply_markup=keyboard,
             )
         except (UnboundLocalError, BadRequest):
             await m.answer("🚫")
 
     else:
-        await m.reply_photo(photo=filename, caption=caption, reply_markup=keyboard)
-    await asyncio.sleep(0.2)
-    os.remove(filename)
+        filename = await CollageLastFM.create_collage(
+            username, style, period, colNum, rowNum
+        )
+        await m.reply_photo(
+            photo=f"{filename}/lastfm-final.jpg", caption=caption, reply_markup=keyboard
+        )
+        shutil.rmtree(filename, ignore_errors=True)
 
 
 @Smudge.on_message(filters.command(["duotone", "dualtone"]))
