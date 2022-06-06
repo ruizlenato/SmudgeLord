@@ -147,16 +147,42 @@ class LastFMImage:
     async def _get_tracks_images(self, tracks):
         image_info = []
         for track in tracks:
-            res = await http.get(track["url"], follow_redirects=True)
-            found = re.search(
-                r"(?s)<span class=\"cover-art\"*?>.*?<img.*?src=\"([^\"]+)\"", res.text
+            artist_name = track["artist"]["name"]
+            track_name = track["name"]
+            res = await http.get(
+                f"{self.url}?method=track.getInfo&api_key={self.api_key}&artist={quote(artist_name)}&track={quote(track_name)}&format=json"
             )
-            if found:
-                url = found.groups()[0]
+            info = res.json()
+            try:
+                sp = await get_spoti_session("1032274246")
+                spotify_json = sp.search(
+                    q=f"{artist_name}+{track_name}",
+                    type="track",
+                    limit="20",
+                    market="BR",
+                )
+                json = spotify_json["tracks"]["items"]
+                for i in json:
+                    if i["album"]["name"] == info["track"]["album"]["title"]:
+                        if i["album"]["album_type"] == "album" or "single":
+                            url = i["album"]["images"][1]["url"]
+                    else:
+                        if i["album"]["album_type"] == "album" or "single":
+                            url = i["album"]["images"][1]["url"]
+                        break
+            except KeyError:
+                res = await http.get(track["url"], follow_redirects=True)
+                found = re.search(
+                    r"(?s)<span class=\"cover-art\"*?>.*?<img.*?src=\"([^\"]+)\"",
+                    res.text,
+                )
+                if found:
+                    url = found.groups()[0]
 
             path = await self._get_image_from_cache(url)
             spot_info = {
                 "name": track["name"],
+                "artist": track["artist"]["name"],
                 "playcount": track["playcount"],
                 "path": path,
             }
@@ -170,28 +196,41 @@ class LastFMImage:
             path = await self._get_image_from_cache(url)
             spot_info = {
                 "name": album["name"],
+                "artist": album["artist"]["name"],
                 "playcount": album["playcount"],
                 "path": path,
             }
             image_info.append(spot_info)
         return image_info
 
-    async def _insert_name(self, w, h, image, name, playcount, cursor):
+    async def _insert_name(self, w, h, image, name, artist, playcount, cursor):
         if w and h > 700 < 1000:
-            font = ImageFont.truetype(Fonts.JetBrainsMono, size=40)
+            font = ImageFont.truetype(Fonts.JetBrainsMono, size=50)
         elif w and h > 200 < 400:
             font = ImageFont.truetype(Fonts.JetBrainsMono, size=15)
         draw = ImageDraw.Draw(image, "RGBA")
         x = cursor[0]
         y = cursor[1]
-        draw.text(
-            (x + 8, y + 1),
-            f"{name}\n{playcount}",
-            font=font,
-            fill="white",
-            stroke_width=3,
-            stroke_fill="black",
-        )
+        if artist == None:
+            draw.multiline_text(
+                (x + 8, y + 1),
+                f"{name}\n{playcount} plays",
+                font=font,
+                fill="white",
+                stroke_width=3,
+                stroke_fill="black",
+                spacing=5,
+            )
+        else:
+            draw.multiline_text(
+                (x + 5, y + 1),
+                f"{name}\n{artist}\n{playcount} plays",
+                font=font,
+                fill="white",
+                stroke_width=3,
+                stroke_fill="black",
+                spacing=0,
+            )
 
     async def create_collage(
         self,
@@ -209,10 +248,14 @@ class LastFMImage:
 
         if self.method == "user.gettopartists":
             images = await self._get_artists_images(await self.get_artists())
+            artist_name = False
         elif self.method == "user.gettoptracks":
             images = await self._get_tracks_images(await self.get_tracks())
+            artist_name = True
         elif self.method == "user.gettopalbums":
             images = await self._get_albums_images(await self.get_albums())
+            artist_name = True
+
         w, h = Image.open(images[0]["path"]).size
         collage_width = int(col) * int(w)
         collage_height = int(row) * int(h)
@@ -223,9 +266,26 @@ class LastFMImage:
             final_image.paste(Image.open(image["path"]), cursor)
 
             # add name
-            await self._insert_name(
-                w, h, final_image, image["name"], image["playcount"], cursor
-            )
+            if artist_name:
+                await self._insert_name(
+                    w,
+                    h,
+                    final_image,
+                    image["name"],
+                    image["artist"],
+                    image["playcount"],
+                    cursor,
+                )
+            else:
+                await self._insert_name(
+                    w,
+                    h,
+                    final_image,
+                    image["name"],
+                    None,
+                    image["playcount"],
+                    cursor,
+                )
 
             # move cursor
             y = cursor[1]
