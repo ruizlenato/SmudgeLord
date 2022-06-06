@@ -159,17 +159,19 @@ class LastFMImage:
                     q=f"{artist_name}+{track_name}",
                     type="track",
                     limit="20",
-                    market="BR",
+                    market="US",
                 )
                 json = spotify_json["tracks"]["items"]
                 for i in json:
                     if i["album"]["name"] == info["track"]["album"]["title"]:
                         if i["album"]["album_type"] == "album" or "single":
+                            if i["album"]["artists"][0]["name"] in artist_name:
+                                url = i["album"]["images"][1]["url"]
                             url = i["album"]["images"][1]["url"]
                     else:
                         if i["album"]["album_type"] == "album" or "single":
                             url = i["album"]["images"][1]["url"]
-                        break
+                    break
             except KeyError:
                 res = await http.get(track["url"], follow_redirects=True)
                 found = re.search(
