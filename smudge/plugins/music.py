@@ -436,9 +436,7 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
         and m.text.split(maxsplit=1)[0] == "/collage"
     ):
         try:
-            await m.chat.get_member(
-                296635833
-            )  # To avoid conflict with @lastfmrobot
+            await m.chat.get_member(296635833)  # To avoid conflict with @lastfmrobot
             return
         except UserNotParticipant:
             pass
@@ -480,7 +478,9 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
         try:
             args = args.lower()
             if x := re.search(r"(\d+m|\d+y|\d+d|\d+w|overall)", args):
-                uwu = str(x[1]).replace("12m", "1y").replace("30d", "1m").replace(" ", "")
+                uwu = (
+                    str(x[1]).replace("12m", "1y").replace("30d", "1m").replace(" ", "")
+                )
                 if uwu in {"1m", "3m", "6m"}:
                     period = f"{uwu}onth"
                 elif uwu in {"7d", "1w"} or uwu not in "1y" and uwu != "overall":
