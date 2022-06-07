@@ -31,7 +31,7 @@ class SpotifyUser:
         self.redirect_url = "https://ruizlenato.github.io/Smudge/go"
 
     def getAuthUrl(self):
-        authorization_redirect_url = (
+        return (
             self.authorize_url
             + "?response_type=code&client_id="
             + self.client_id
@@ -39,7 +39,6 @@ class SpotifyUser:
             + self.redirect_url
             + "&scope=user-read-currently-playing"
         )
-        return authorization_redirect_url
 
     async def getAccessToken(self, user_id, token: str):
         r = await http.post(
@@ -156,8 +155,7 @@ class LastFMImage:
             return False
         if "error" in b:
             raise LastFMError(b["message"])
-        artists = b["topartists"]["artist"]
-        return artists
+        return b["topartists"]["artist"]
 
     async def get_tracks(self):
         r = await http.get(await self._get_body())
@@ -167,8 +165,7 @@ class LastFMImage:
             return False
         if "error" in b:
             raise LastFMError(b["message"])
-        tracks = b["toptracks"]["track"]
-        return tracks
+        return b["toptracks"]["track"]
 
     async def get_albums(self):
         r = await http.get(await self._get_body())
@@ -178,8 +175,7 @@ class LastFMImage:
             return False
         if "error" in b:
             raise LastFMError(b["message"])
-        album = b["topalbums"]["album"]
-        return album
+        return b["topalbums"]["album"]
 
     @staticmethod
     async def _download_file(url, path):
@@ -196,9 +192,9 @@ class LastFMImage:
         url_parts = urlparse(url)
         cache_name = str(url_parts.path).replace("/", "")
         cache_name = cache_name or "empty.png"
-        if os.path.isfile(self.cache_path + "/" + cache_name):
-            return self.cache_path + "/" + cache_name
-        path = await self._download_file(url, self.cache_path + "/" + cache_name)
+        if os.path.isfile(f"{self.cache_path}/{cache_name}"):
+            return f"{self.cache_path}/{cache_name}"
+        path = await self._download_file(url, f"{self.cache_path}/{cache_name}")
         return path
 
     async def _get_artists_images(self, artists):
@@ -207,11 +203,10 @@ class LastFMImage:
             response = await http.get(
                 self.url_image + str(quote(artist["name"])) + "/+images"
             )
-            found = re.search(
+            if found := re.search(
                 'https://lastfm.freetls.fastly.net/i/u/avatar170s/.*?(?=")',
                 response.text,
-            )
-            if found:
+            ):
                 image_url = found.group().replace("avatar170s", "770x0") + ".jpg"
 
             path = await self._get_image_from_cache(image_url)
@@ -247,22 +242,19 @@ class LastFMImage:
                 )
                 json = spotify_json["tracks"]["items"]
                 for i in json:
-                    if i["album"]["name"] == info["track"]["album"]["title"]:
-                        if i["album"]["album_type"] == "album" or "single":
-                            if i["album"]["artists"][0]["name"] in artist_name:
-                                url = i["album"]["images"][1]["url"]
-                            url = i["album"]["images"][1]["url"]
-                    else:
-                        if i["album"]["album_type"] == "album" or "single":
-                            url = i["album"]["images"][1]["url"]
+                    if (
+                        i["album"]["name"] == info["track"]["album"]["title"]
+                        and i["album"]["artists"][0]["name"] in artist_name
+                    ):
+                        url = i["album"]["images"][1]["url"]
+                    url = i["album"]["images"][1]["url"]
                     break
             except KeyError:
                 res = await http.get(track["url"], follow_redirects=True)
-                found = re.search(
+                if found := re.search(
                     r"(?s)<span class=\"cover-art\"*?>.*?<img.*?src=\"([^\"]+)\"",
                     res.text,
-                )
-                if found:
+                ):
                     url = found.groups()[0]
 
             path = await self._get_image_from_cache(url)
@@ -297,7 +289,7 @@ class LastFMImage:
         draw = ImageDraw.Draw(image, "RGBA")
         x = cursor[0]
         y = cursor[1]
-        if artist == None:
+        if artist is None:
             draw.multiline_text(
                 (x + 8, y + 1),
                 f"{name}\n{playcount} plays",
@@ -329,7 +321,7 @@ class LastFMImage:
         self.user = username
         self.period = period
         self.method = f"user.gettop{method}"
-        self.limit = int(col) * int(row)
+        self.limit = col * row
         self.cache_path = os.path.join(tempfile.mkdtemp())
 
         if self.method == "user.gettopartists":
@@ -343,8 +335,8 @@ class LastFMImage:
             artist_name = True
 
         w, h = Image.open(images[0]["path"]).size
-        collage_width = int(col) * int(w)
-        collage_height = int(row) * int(h)
+        collage_width = col * int(w)
+        collage_height = row * int(h)
         final_image = Image.new("RGB", (collage_width, collage_height))
         cursor = (0, 0)
         for image in images:
@@ -381,6 +373,6 @@ class LastFMImage:
                 x = 0
             cursor = (x, y)
 
-        final_image.save(self.cache_path + "/lastfm-final.jpg")
+        final_image.save(f"{self.cache_path}/lastfm-final.jpg")
         return self.cache_path
         # final_image.show()

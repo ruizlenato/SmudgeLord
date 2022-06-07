@@ -36,14 +36,13 @@ async def cleanup(c: Smudge, m: Message):
             await c.ban_chat_member(m.chat.id, member.user.id)
             deleted_users.append(member.user.id)
 
-    if deleted_users:
-        try:
-            await mes.edit_text(
-                (await tld(m, "Admin.cleanup_start_d")).format(len(deleted_users))
-            )
-        except BadRequest:
-            pass
-        except Forbidden as e:
-            return await m.reply_text(f"<b>Erro:</b> {e}")
-    else:
+    if not deleted_users:
         return await mes.edit_text(await tld(m, "Admin.cleanup_no_deleted"))
+    try:
+        await mes.edit_text(
+            (await tld(m, "Admin.cleanup_start_d")).format(len(deleted_users))
+        )
+    except BadRequest:
+        pass
+    except Forbidden as e:
+        return await m.reply_text(f"<b>Erro:</b> {e}")
