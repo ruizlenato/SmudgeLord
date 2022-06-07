@@ -431,18 +431,15 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
     else:
         chat_type = m.chat.type
 
-    if not isinstance(m, CallbackQuery):
-        if (
-            enums.ChatType.PRIVATE != chat_type
-            and m.text.split(maxsplit=1)[0] == "/collage"
-        ):
-            try:
-                await m.chat.get_member(
-                    296635833
-                )  # To avoid conflict with @lastfmrobot
-                return
-            except UserNotParticipant:
-                pass
+    if not isinstance(m, CallbackQuery) and (
+        enums.ChatType.PRIVATE != chat_type
+        and m.text.split(maxsplit=1)[0] == "/collage"
+    ):
+        try:
+            await m.chat.get_member(296635833)  # To avoid conflict with @lastfmrobot
+            return
+        except UserNotParticipant:
+            pass
 
     if isinstance(m, CallbackQuery):
         data, colNumData, rowNumData, user_id, username, style, period = m.data.split(
@@ -482,21 +479,16 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
             args = args.lower()
             if x := re.search(r"(\d+m|\d+y|\d+d|\d+w|overall)", args):
                 uwu = (
-                    str(x.group(1))
-                    .replace("12m", "1y")
-                    .replace("30d", "1m")
-                    .replace(" ", "")
+                    str(x[1]).replace("12m", "1y").replace("30d", "1m").replace(" ", "")
                 )
                 if uwu in {"1m", "3m", "6m"}:
                     period = f"{uwu}onth"
-                elif uwu in {"7d", "1w"}:
+                elif uwu in {"7d", "1w"} or uwu not in "1y" and uwu != "overall":
                     period = "7day"
                 elif uwu in "1y":
                     period = "12month"
-                elif uwu == "overall":
-                    period = "overall"
                 else:
-                    period = "7day"
+                    period = "overall"
             else:
                 period = "1month"
         except UnboundLocalError:
@@ -505,8 +497,8 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
         try:
             args = args.lower()
             if x := re.search(r"(\d+)x(\d+)", args):
-                colNum = x.group(1)
-                rowNum = x.group(2)
+                colNum = x[1]
+                rowNum = x[2]
             else:
                 colNum = "3"
                 rowNum = "3"
@@ -587,13 +579,13 @@ async def duotone(c: Smudge, m: Message):
         y = re.search(r"(\d+m|\d+y)", args)
         z = re.search("(overall)", args)
         if x:
-            uwu = str(x.group(1)).replace("30d", "1m").replace(" ", "")
+            uwu = str(x[1]).replace("30d", "1m").replace(" ", "")
             if uwu in {"1m", "7d", "9d", "3d"}:
                 period = f"{uwu}ounth" if uwu in "1m" else f"{uwu}ay"
             else:
                 period = "1month"
         elif y:
-            uwu = str(y.group(1)).replace("1y", "12m")
+            uwu = str(y[1]).replace("1y", "12m")
             period = "1month" if uwu not in ["1y", "1m", "3m", "12m"] else f"{uwu}onth"
         elif z:
             period = "overall"

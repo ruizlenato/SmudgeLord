@@ -293,19 +293,20 @@ async def sdl(c: Smudge, m: Message):
                     r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
                     url,
                     re.M,
-                ):
-                    if (
+                ) and (
+                    (
                         m.chat.type == enums.ChatType.PRIVATE
                         or await cisdl(m.chat.id) == True
-                    ):
-                        try:
-                            files += [
-                                InputMediaPhoto(os.path.join(path, photo))
-                                for photo in os.listdir(path)
-                                if photo.endswith((".jpg", ".png", ".jpeg"))
-                            ]
-                        except FileNotFoundError:
-                            pass
+                    )
+                ):
+                    try:
+                        files += [
+                            InputMediaPhoto(os.path.join(path, photo))
+                            for photo in os.listdir(path)
+                            if photo.endswith((".jpg", ".png", ".jpeg"))
+                        ]
+                    except FileNotFoundError:
+                        pass
                 try:
                     if files:
                         await c.send_chat_action(
@@ -335,11 +336,10 @@ async def sdl(c: Smudge, m: Message):
                         await extract_info(ydl, str(url), download=True)
                     except BaseException:
                         return
-                videos = [
+                if videos := [
                     InputMediaVideo(os.path.join(path, video))
                     for video in os.listdir(path)
-                ]
-                if videos:
+                ]:
                     await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
                     await m.reply_media_group(media=videos)
         await asyncio.sleep(2)
