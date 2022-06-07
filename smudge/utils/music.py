@@ -3,64 +3,140 @@
 
 import re
 import os
-import spotipy
+import orjson
 import tempfile
 
 from smudge.utils import http
-from smudge.config import SPOTIFY_BASIC, LASTFM_API_KEY
+from smudge.config import (
+    SPOTIFY_BASIC,
+    SPOTIFY_CLIENT_ID,
+    SPOTIFY_CLIENT_SECRET,
+    LASTFM_API_KEY,
+)
 from smudge.database.music import set_spot_user, get_spot_user, unreg_spot
 
 from urllib.parse import urlparse, quote
 from PIL import Image, ImageDraw, ImageFont
-from spotipy.client import SpotifyException
 
 from asyncio import get_event_loop
 
 
-class Fonts:
-    JetBrainsMono = "smudge/fonts/JetBrainsMono-Regular.ttf"
+class SpotifyUser:
+    authorize_url = "https://accounts.spotify.com/authorize"
+    token_url = "https://accounts.spotify.com/api/token"
+
+    def __init__(self, ClientID, ClientSecret):
+        self.client_id = ClientID
+        self.client_secret = ClientSecret
+        self.redirect_url = "https://ruizlenato.github.io/Smudge/go"
+
+    def getAuthUrl(self):
+        authorization_redirect_url = (
+            self.authorize_url
+            + "?response_type=code&client_id="
+            + self.client_id
+            + "&redirect_uri="
+            + self.redirect_url
+            + "&scope=user-read-currently-playing"
+        )
+        return authorization_redirect_url
+
+    async def getAccessToken(self, user_id, token: str):
+        r = await http.post(
+            "https://accounts.spotify.com/api/token",
+            headers=dict(Authorization=f"Basic {SPOTIFY_BASIC}"),
+            data=dict(
+                grant_type="authorization_code",
+                code=token,
+                redirect_uri=self.redirect_url,
+            ),
+        )
+
+        if r.status_code in range(200, 299):
+            b = orjson.loads(r.content)
+            await set_spot_user(user_id, b["access_token"], b["refresh_token"])
+            return True, b["access_token"]
+        else:
+            return False
+
+    async def getCurrentyPlayingSong(self, refreshToken):
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": refreshToken,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+        }
+        token = orjson.loads((await http.post(self.token_url, data=data)).content)
+
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token["access_token"],
+        }
+        return await http.get(
+            "https://api.spotify.com/v1/me/player/currently-playing", headers=headers
+        )
+
+    async def getCurrentUser(self, refreshToken):
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": refreshToken,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+        }
+        token = orjson.loads((await http.post(self.token_url, data=data)).content)
+
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token["access_token"],
+        }
+        return await http.get("https://api.spotify.com/v1/me", headers=headers)
+
+    async def search(self, refreshToken, query, type, market, limit):
+        data = {
+            "grant_type": "refresh_token",
+            "refresh_token": refreshToken,
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+        }
+        token = orjson.loads((await http.post(self.token_url, data=data)).content)
+
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token["access_token"],
+        }
+        return await http.get(
+            f"https://api.spotify.com/v1/search?q={query}&type={type}&market={market}&limit={limit}",
+            headers=headers,
+        )
 
 
-async def gen_spotify_token(user_id, token):
-    r = await http.post(
-        "https://accounts.spotify.com/api/token",
-        headers=dict(Authorization=f"Basic {SPOTIFY_BASIC}"),
-        data=dict(
-            grant_type="authorization_code",
-            code=token,
-            redirect_uri="https://ruizlenato.github.io/Smudge/go",
-        ),
-    )
-    b = r.json()
-    if b.get("error"):
-        return False, b["error"]
-    await set_spot_user(user_id, b["access_token"], b["refresh_token"])
-    return True, b["access_token"]
-
-
-async def get_spoti_session(user_id):
-    try:
-        new_token = await refresh_token(user_id)
-    except SpotifyException:
-        await unreg_spot(user_id)
-        return False
-    return spotipy.Spotify(auth=new_token)
+Spotify = SpotifyUser(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
 
 
 async def refresh_token(user_id):
     usr = await get_spot_user(user_id)
-    r = await http.post(
-        "https://accounts.spotify.com/api/token",
-        headers=dict(Authorization=f"Basic {SPOTIFY_BASIC}"),
-        data=dict(grant_type="refresh_token", refresh_token=usr),
+    b = orjson.loads(
+        (
+            await http.post(
+                "https://accounts.spotify.com/api/token",
+                headers=dict(Authorization=f"Basic {SPOTIFY_BASIC}"),
+                data=dict(grant_type="refresh_token", refresh_token=usr),
+            )
+        ).content
     )
-    b = r.json()
     await set_spot_user(user_id, b["access_token"], usr)
     return b["access_token"]
 
 
 class LastFMError(Exception):
     pass
+
+
+class Fonts:
+    JetBrainsMono = "smudge/fonts/JetBrainsMono-Regular.ttf"
 
 
 class LastFMImage:
@@ -74,32 +150,35 @@ class LastFMImage:
 
     async def get_artists(self):
         r = await http.get(await self._get_body())
+        b = orjson.loads(r.content)
         if r.status_code == 403:
             print("cannot access")
             return False
-        if "error" in r.json():
-            raise LastFMError(r.json()["message"])
-        artists = r.json()["topartists"]["artist"]
+        if "error" in b:
+            raise LastFMError(b["message"])
+        artists = b["topartists"]["artist"]
         return artists
 
     async def get_tracks(self):
         r = await http.get(await self._get_body())
+        b = orjson.loads(r.content)
         if r.status_code == 403:
             print("cannot access")
             return False
-        if "error" in r.json():
-            raise LastFMError(r.json()["message"])
-        tracks = r.json()["toptracks"]["track"]
+        if "error" in b:
+            raise LastFMError(b["message"])
+        tracks = b["toptracks"]["track"]
         return tracks
 
     async def get_albums(self):
         r = await http.get(await self._get_body())
+        b = orjson.loads(r.content)
         if r.status_code == 403:
             print("cannot access")
             return False
-        if "error" in r.json():
-            raise LastFMError(r.json()["message"])
-        album = r.json()["topalbums"]["album"]
+        if "error" in b:
+            raise LastFMError(b["message"])
+        album = b["topalbums"]["album"]
         return album
 
     @staticmethod
@@ -149,17 +228,22 @@ class LastFMImage:
         for track in tracks:
             artist_name = track["artist"]["name"]
             track_name = track["name"]
-            res = await http.get(
-                f"{self.url}?method=track.getInfo&api_key={self.api_key}&artist={quote(artist_name)}&track={quote(track_name)}&format=json"
+            info = orjson.loads(
+                (
+                    await http.get(
+                        f"{self.url}?method=track.getInfo&api_key={self.api_key}&artist={quote(artist_name)}&track={quote(track_name)}&format=json"
+                    )
+                ).content
             )
-            info = res.json()
+
             try:
-                sp = await get_spoti_session("1032274246")
-                spotify_json = sp.search(
-                    q=f"{artist_name}+{track_name}",
-                    type="track",
-                    limit="20",
-                    market="US",
+                usr = await get_spot_user("1032274246")
+                spotify_json = orjson.loads(
+                    (
+                        await Spotify.search(
+                            usr, f"{artist_name}+{track_name}", "track", "US", 20
+                        )
+                    ).content
                 )
                 json = spotify_json["tracks"]["items"]
                 for i in json:

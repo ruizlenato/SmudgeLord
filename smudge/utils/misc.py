@@ -1,4 +1,5 @@
 import httpx
+import orjson
 
 from smudge.utils import http, aiowrap
 
@@ -75,8 +76,9 @@ async def cssworker_url(target_url: str):
     }
 
     try:
-        resp = await http.post(url, headers=my_headers, json=data)
-        return resp.json()
+        return orjson.loads(
+            (await http.post(url, headers=my_headers, json=data)).content
+        )
     except httpx.NetworkError:
         return None
 

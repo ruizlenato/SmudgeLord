@@ -6,11 +6,9 @@ import httpx
 import base64
 import random
 import shutil
-import asyncio
+import orjson
 import urllib.parse
 import urllib.request
-
-from spotipy.client import SpotifyException
 
 from typing import Union
 
@@ -25,23 +23,12 @@ from smudge.database.music import (
     get_spot_user,
     unreg_spot,
 )
-from smudge.utils.music import (
-    get_spoti_session,
-    gen_spotify_token,
-    LastFMImage,
-)
+from smudge.utils.music import Spotify, LastFMImage
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
 from pyrogram.errors import UserNotParticipant, BadRequest
 from pyrogram.types import Message, CallbackQuery, InputMediaPhoto
-
-login_url = (
-    "https://accounts.spotify.com/authorize?response_type=code&"
-    + "client_id=425d9ff03621447b8d9e7add2e53f4d9&"
-    + "scope=user-read-currently-playing+user-modify-playback-state+user-read-playback-state&"
-    + "redirect_uri=https://ruizlenato.github.io/Smudge/go"
-)
 
 
 @Smudge.on_message(filters.command(["spoti", "spo", "spot"]))
@@ -61,39 +48,38 @@ async def spoti(c: Smudge, m: Message):
     if len(tx) == 2:
         if await get_spot_user(user_id):
             return await m.reply_text(await tld(m, "Music.spotify_already_logged"))
-        get = await gen_spotify_token(user_id, tx[1])
-        if get[0]:
-            sp = await get_spoti_session(m.from_user.id)
+        get = await Spotify.getAccessToken(user_id, tx[1])
+        if get:
             await m.reply_text(await tld(m, "Music.spotify_login_done"))
         else:
             await m.reply_text(await tld(m, "Music.spotify_login_failed"))
     else:
         usr = await get_spot_user(m.from_user.id)
         if not usr:
-            keyboard = ikb([[("Login", login_url, "url")]])
+            keyboard = ikb([[("Login", Spotify.getAuthUrl(), "url")]])
             await m.reply_text(
                 await tld(m, "Music.spitify_no_login"), reply_markup=keyboard
             )
         else:
-            sp = await get_spoti_session(m.from_user.id)
+            sp = await Spotify.getCurrentyPlayingSong(usr)
             if sp is False:
                 return await m.reply_text(await tld(m, "Music.spotify_login_failed"))
-            try:
-                spotify_json = sp.current_user_playing_track()
-            except SpotifyException:
-                return
+
+            spotify_json = orjson.loads(sp.content)
 
             if spotify_json is None:
                 return
 
+            userlink = orjson.loads((await Spotify.getCurrentUser(usr)).content)
+
             rep = f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
             if spotify_json["is_playing"] is True:
                 rep += (await tld(m, "Music.spotify_np")).format(
-                    sp.current_user()["external_urls"]["spotify"], user
+                    userlink["external_urls"]["spotify"], user
                 )
             else:
                 rep += (await tld(m, "Music.spotify_was_np")).format(
-                    sp.current_user()["external_urls"]["spotify"], user
+                    userlink["external_urls"]["spotify"], user
                 )
             rep += f"<b>{spotify_json['item']['artists'][0]['name']}</b> - {spotify_json['item']['name']}"
             return await m.reply_text(rep)
@@ -103,13 +89,12 @@ async def spoti(c: Smudge, m: Message):
 async def spotf(c: Smudge, m: Message):
     usr = await get_spot_user(m.from_user.id)
     if not usr:
-        keyboard = ikb([[("Login", login_url, "url")]])
+        keyboard = ikb([[("Login", Spotify.getAuthUrl(), "url")]])
         return await m.reply_text(
             await tld(m, "Music.spitify_no_login"), reply_markup=keyboard
         )
     else:
-        sp = await get_spoti_session(m.from_user.id)
-        spotify_json = sp.current_user_playing_track()
+        spotify_json = orjson.loads((await Spotify.getCurrentyPlayingSong(usr)).content)
         rep = (
             f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
         )
@@ -195,6 +180,19 @@ async def setuser(c: Smudge, m: Message):
     return
 
 
+@Smudge.on_message(filters.command(["teste"]))
+async def teste(c: Smudge, m: Message):
+    sp = await get_spoti_session("1032274246")
+    spotify_json = sp.search(q="Lady+Gaga+911", type="track", limit="20", market="BR")
+    json = spotify_json["tracks"]["items"]
+    for i in json:
+        if i["album"]["album_type"] == "album":
+            rep = i["album"]["images"][1]["url"]
+            await m.reply_text(rep)
+            break
+        print(i["album"]["album_type"])
+
+
 @Smudge.on_message(filters.command(["lastfm", "lmu", "lt"]))
 async def lastfm(c: Smudge, m: Message):
     if m.chat.type != enums.ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
@@ -220,7 +218,7 @@ async def lastfm(c: Smudge, m: Message):
         + f"{LASTFM_API_KEY}&format=json"
     )
 
-    db = res.json()
+    db = orjson.loads(res.content)
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -245,7 +243,7 @@ async def lastfm(c: Smudge, m: Message):
     )
 
     try:
-        info = fetch.json()
+        info = orjson.loads(fetch.content)
         last_user = info["track"]
         if int(last_user.get("userplaycount")) == 0:
             scrobbles = int(last_user.get("userplaycount")) + 1
@@ -297,7 +295,7 @@ async def album(c: Smudge, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
-    db = res.json()
+    db = orjson.loads(res.content)
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -319,7 +317,7 @@ async def album(c: Smudge, m: Message):
         + f"&api_key={LASTFM_API_KEY}&format=json"
     )
 
-    info = fetch.json()
+    info = orjson.loads(fetch.content)
     last_user = info["album"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
@@ -375,7 +373,7 @@ async def artist(c: Smudge, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
-    db = res.json()
+    db = orjson.loads(res.content)
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -394,7 +392,7 @@ async def artist(c: Smudge, m: Message):
         + f"?method=artist.getinfo&artist={urllib.parse.quote(artist)}"
         + f"&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
-    info = fetch.json()
+    info = orjson.loads(fetch.content)
     last_user = info["artist"]["stats"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
@@ -664,7 +662,7 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
         }
         try:
             resp = await http.post(url, headers=my_headers, json=data)
-            res = resp.json()
+            res = orjson.loads(resp.content)
             data = (
                 str(res["base64"])
                 .replace(" ", "+")

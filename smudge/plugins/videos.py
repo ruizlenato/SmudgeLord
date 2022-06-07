@@ -46,7 +46,7 @@ async def search_yt(query):
             "x-youtube-client-version": "2.20200827",
         },
     )
-    page = page.json()
+    page = orjson.loads(page.content)
     list_videos = []
     for video in page[1]["response"]["contents"]["twoColumnSearchResultsRenderer"][
         "primaryContents"

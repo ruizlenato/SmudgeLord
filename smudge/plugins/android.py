@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import re
+import orjson
 from bs4 import BeautifulSoup
 
 from pyrogram import filters
@@ -24,8 +25,7 @@ class GetDevice:
 
     async def get(self):
         try:
-            data = await http.get(DEVICE_DATA_NAME)
-            db = data.json()
+            db = orjson.loads((await http.get(DEVICE_DATA_NAME)).content)
             name = self.device.lower()
             device = db[self.device][0][
                 "device"
@@ -40,8 +40,7 @@ class GetDevice:
                     if re.search(r"(sm-.*)", self.device)
                     else self.device
                 )
-                data = await http.get(DEVICE_DATA)
-                db = data.json()
+                db = orjson.loads((await http.get(DEVICE_DATA)).content)
                 try:
                     name = db[argdevice][0]["name"]
                     device = db[argdevice][0]["device"]
@@ -56,8 +55,7 @@ class GetDevice:
                 except KeyError:
                     return False
             else:
-                data = await http.get(DEVICE_DATA_MODEL)
-                database = data.json()
+                database = orjson.loads((await http.get(DEVICE_DATA_MODEL)).content)
                 newdevice = (
                     self.device.strip("lte").lower()
                     if self.device.startswith("beyond")
@@ -83,8 +81,7 @@ async def magisk(c: Smudge, m: Message):
     repo_url = "https://raw.githubusercontent.com/topjohnwu/magisk-files/master/"
     text = await tld(m, "Android.magisk_releases")
     for magisk_type in ["stable", "beta", "canary"]:
-        fetch = await http.get(repo_url + magisk_type + ".json")
-        data = fetch.json()
+        data = orjson.loads((await http.get(repo_url + magisk_type + ".json")).content)
         text += (
             f"<b>{magisk_type.capitalize()}</b>:\n"
             f'<a href="{data["magisk"]["link"]}" >Magisk - V{data["magisk"]["version"]}</a>'
@@ -146,10 +143,13 @@ async def variants(c: Smudge, m: Message):
         message = await tld(m, "Android.codename_notfound")
         await m.reply_text(message)
         return
-    data = await http.get(
-        "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
+    db = orjson.loads(
+        (
+            await http.get(
+                "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"
+            )
+        ).content
     )
-    db = data.json()
     device = db[device]
     message = (await tld(m, "Android.models_variant")).format(cdevice)
     for i in device:

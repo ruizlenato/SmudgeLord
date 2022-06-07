@@ -177,7 +177,6 @@ strings:
     afk_reason: "\n<b>Motivo:</b> {}"
     user_afk: "{} está afk!"
     user_now_afk: "<a href='tg://user?id={}'>{}</a> agora está afk!"
-    short_error: "<b>Erro.</b>\n<b>Uso:</b> /short (url)\n\nFaça isso para encurtar uma url."
     tr_translating: "Traduzindo..."
     print_printing: "Obtendo captura de tela..."
     print_api_dead: "Failed, because API is not responding, try it later."
@@ -212,7 +211,6 @@ strings:
       <i>Esse comando também pode ser usado com algum argumento, exemplo: <code>/afk Estou dormindo</code></i>
 
       <b>/tr -</b> <i>Traduzirá a palavra que você digitar para o idioma de sua preferência.</i>
-      <b>/short -</b> <i>Encurta o link especificado.</i>
       <b>/ghr -</b> <i>Irá buscar as releases (lançamentos) mais recente desse repositório no github.</i>
  
       <b>/ddd -</b> <i>Obtém informações sobre o DDD (Brasileiro) especificado.</i>

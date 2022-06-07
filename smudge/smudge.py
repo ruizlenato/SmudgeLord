@@ -31,7 +31,7 @@ class Smudge(Client):
             workers=24,
             workdir="smudge",
             plugins={"root": "smudge.plugins"},
-            sleep_threshold=0.5,
+            sleep_threshold=60,
         )
 
     async def start(self):
