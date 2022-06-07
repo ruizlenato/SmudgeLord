@@ -321,7 +321,7 @@ class LastFMImage:
         self.user = username
         self.period = period
         self.method = f"user.gettop{method}"
-        self.limit = col * row
+        self.limit = int(col) * int(row)
         self.cache_path = os.path.join(tempfile.mkdtemp())
 
         if self.method == "user.gettopartists":
@@ -335,8 +335,8 @@ class LastFMImage:
             artist_name = True
 
         w, h = Image.open(images[0]["path"]).size
-        collage_width = col * int(w)
-        collage_height = row * int(h)
+        collage_width = int(col) * int(w)
+        collage_height = int(row) * int(h)
         final_image = Image.new("RGB", (collage_width, collage_height))
         cursor = (0, 0)
         for image in images:
