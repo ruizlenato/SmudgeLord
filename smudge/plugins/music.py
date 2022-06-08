@@ -180,19 +180,6 @@ async def setuser(c: Smudge, m: Message):
     return
 
 
-@Smudge.on_message(filters.command(["teste"]))
-async def teste(c: Smudge, m: Message):
-    sp = await get_spoti_session("1032274246")
-    spotify_json = sp.search(q="Lady+Gaga+911", type="track", limit="20", market="BR")
-    json = spotify_json["tracks"]["items"]
-    for i in json:
-        if i["album"]["album_type"] == "album":
-            rep = i["album"]["images"][1]["url"]
-            await m.reply_text(rep)
-            break
-        print(i["album"]["album_type"])
-
-
 @Smudge.on_message(filters.command(["lastfm", "lmu", "lt"]))
 async def lastfm(c: Smudge, m: Message):
     if m.chat.type != enums.ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":

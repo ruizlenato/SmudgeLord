@@ -14,7 +14,7 @@ import gallery_dl
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
-from pyrogram.errors import BadRequest, FloodWait
+from pyrogram.errors import BadRequest, FloodWait, Forbidden
 from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPhoto
 
 from smudge import Smudge
@@ -315,6 +315,8 @@ async def sdl(c: Smudge, m: Message):
                         await m.reply_media_group(media=files)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
+                except Forbidden:
+                    return shutil.rmtree(tempdir, ignore_errors=True)
             except gallery_dl.exception.GalleryDLException:
                 ydl_opts = {
                     "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
@@ -341,12 +343,16 @@ async def sdl(c: Smudge, m: Message):
                     for video in os.listdir(path)
                 ]:
                     await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
-                    await m.reply_media_group(media=videos)
+                    try:
+                        await m.reply_media_group(media=videos)
+                    except FloodWait as e:
+                        await asyncio.sleep(e.value)
+                    except Forbidden:
+                        return shutil.rmtree(tempdir, ignore_errors=True)
         await asyncio.sleep(2)
         shutil.rmtree(tempdir, ignore_errors=True)
     else:
-        await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
-        return
+        return await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
 
 
 class MyLogger:
