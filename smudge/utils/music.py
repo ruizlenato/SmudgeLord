@@ -254,6 +254,8 @@ class LastFMImage:
                     res.text,
                 ):
                     url = found.groups()[0]
+                else:
+                    url = "https://lastfm.freetls.fastly.net/i/u/300x300/2a96cbd8b46e442fc41c2b86b821562f.png"
 
             path = await self._get_image_from_cache(url)
             spot_info = {
