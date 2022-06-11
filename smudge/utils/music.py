@@ -18,8 +18,6 @@ from smudge.database.music import set_spot_user, get_spot_user, unreg_spot
 from urllib.parse import urlparse, quote
 from PIL import Image, ImageDraw, ImageFont
 
-from asyncio import get_event_loop
-
 
 class SpotifyUser:
     authorize_url = "https://accounts.spotify.com/authorize"
@@ -135,7 +133,7 @@ class LastFMError(Exception):
 
 
 class Fonts:
-    JetBrainsMono = "smudge/fonts/JetBrainsMono-Regular.ttf"
+    UbuntuRegular = "smudge/fonts/Ubuntu-Regular.ttf"
 
 
 class LastFMImage:
@@ -283,9 +281,9 @@ class LastFMImage:
 
     async def _insert_name(self, w, h, image, name, artist, playcount, cursor):
         if w and h > 700 < 1000:
-            font = ImageFont.truetype(Fonts.JetBrainsMono, size=50)
+            font = ImageFont.truetype(Fonts.UbuntuRegular, size=60)
         elif w and h > 200 < 400:
-            font = ImageFont.truetype(Fonts.JetBrainsMono, size=15)
+            font = ImageFont.truetype(Fonts.UbuntuRegular, size=18)
         draw = ImageDraw.Draw(image, "RGBA")
         x = cursor[0]
         y = cursor[1]

@@ -14,7 +14,7 @@ import gallery_dl
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
-from pyrogram.errors import BadRequest, FloodWait, Forbidden
+from pyrogram.errors import BadRequest, FloodWait, Forbidden, MediaEmpty
 from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPhoto
 
 from smudge import Smudge
@@ -315,6 +315,8 @@ async def sdl(c: Smudge, m: Message):
                         await m.reply_media_group(media=files)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
+                except MediaEmpty:
+                    return
                 except Forbidden:
                     return shutil.rmtree(tempdir, ignore_errors=True)
             except gallery_dl.exception.GalleryDLException:
@@ -347,6 +349,8 @@ async def sdl(c: Smudge, m: Message):
                         await m.reply_media_group(media=videos)
                     except FloodWait as e:
                         await asyncio.sleep(e.value)
+                    except MediaEmpty:
+                        return
                     except Forbidden:
                         return shutil.rmtree(tempdir, ignore_errors=True)
         await asyncio.sleep(2)

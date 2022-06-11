@@ -2,13 +2,13 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import os
 import re
+import PIL
 import httpx
 import base64
 import random
 import shutil
 import orjson
 import urllib.parse
-import urllib.request
 
 from typing import Union
 
@@ -27,7 +27,7 @@ from smudge.utils.music import Spotify, LastFMImage
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
-from pyrogram.errors import UserNotParticipant, BadRequest
+from pyrogram.errors import UserNotParticipant, BadRequest, MessageNotModified
 from pyrogram.types import Message, CallbackQuery, InputMediaPhoto
 
 
@@ -524,7 +524,8 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
             )
         except (UnboundLocalError, BadRequest):
             await m.answer("🚫")
-
+        except PIL.UnidentifiedImageError:
+            await m.answer("🚫")
     else:
         filename = await CollageLastFM.create_collage(
             username, style, period, colNum, rowNum

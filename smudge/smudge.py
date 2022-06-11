@@ -58,7 +58,6 @@ class Smudge(Client):
                 "smudge/database/database.db",
                 caption="<b>Database backuped!</b>\n<b>- Date:</b> {}".format(date),
             )
-            logging.warning("[SmudgeLord] Database backuped!")
 
         aiocron.crontab("*/60 * * * *", func=backup, start=True)
 

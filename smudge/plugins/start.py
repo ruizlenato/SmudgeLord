@@ -1,28 +1,23 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-import importlib
 import re
 import asyncio
-
+import importlib
+import contextlib
 from typing import Union
 
 from pyrogram import filters
 from pyrogram.helpers import ikb
-from pyrogram.errors import FloodWait
-from pyrogram.enums import ChatType, ChatMemberStatus
 from pyrogram.types import Message, CallbackQuery
+from pyrogram.enums import ChatType, ChatMemberStatus
+from pyrogram.errors import FloodWait, MessageNotModified
 
 from smudge import Smudge
 from smudge.plugins import all_plugins
 from smudge.plugins import tld, lang_dict
-from smudge.utils.help_menu import help_buttons
-from smudge.database.videos import (
-    tsdl,
-    csdl,
-    tisdl,
-    cisdl,
-)
 from smudge.database.locales import set_db_lang
+from smudge.utils.help_menu import help_buttons
+from smudge.database.videos import tsdl, csdl, tisdl, cisdl
 
 HELP = {}
 
@@ -96,7 +91,8 @@ async def portuguese(c: Smudge, m: Message):
     elif m.message.chat.type == ChatType.CHANNEL:
         await set_db_lang(m.from_user.id, lang, m.message.chat.type)
     text = await tld(m, "Main.lang_save")
-    await m.edit_message_text(text, reply_markup=ikb(keyboard))
+    with contextlib.suppress(MessageNotModified):
+        await m.edit_message_text(text, reply_markup=ikb(keyboard))
 
 
 @Smudge.on_message(filters.command("setlang"))
