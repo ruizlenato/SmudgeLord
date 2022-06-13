@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
+import uuid
+
 import httpx
 import orjson
 
@@ -51,28 +55,17 @@ def get_tr_lang(text):
 async def cssworker_url(target_url: str):
     url = "https://htmlcsstoimage.com/demo_run"
     my_headers = {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36",
-        "Accept": "*/*",
-        "Accept-Language": "en-US,en;q=0.5",
-        "Referer": "https://htmlcsstoimage.com/",
-        "Content-Type": "application/json",
-        "Origin": "https://htmlcsstoimage.com",
-        "Alt-Used": "htmlcsstoimage.com",
-        "Connection": "keep-alive",
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0",
     }
 
     data = {
-        "html": "",
-        "console_mode": "",
         "url": target_url,
-        "css": "",
-        "selector": "",
-        "ms_delay": "",
-        "render_when_ready": "false",
-        "viewport_height": "900",
-        "viewport_width": "1600",
-        "google_fonts": "",
-        "device_scale": "",
+        # Sending a random CSS to make the API to generate a new screenshot.
+        "css": f"random-tag: {uuid.uuid4()}",
+        "render_when_ready": False,
+        "viewport_width": 900,
+        "viewport_height": 1600,
+        "device_scale": 1,
     }
 
     try:
