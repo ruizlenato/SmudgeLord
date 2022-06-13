@@ -5,6 +5,7 @@ import io
 import os
 import re
 import random
+import orjson
 import yt_dlp
 import shutil
 import asyncio
