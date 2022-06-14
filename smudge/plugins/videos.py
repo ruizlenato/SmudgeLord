@@ -6,12 +6,13 @@ import os
 import re
 import random
 import orjson
-import yt_dlp
 import shutil
 import asyncio
 import tempfile
 import datetime
 import gallery_dl
+
+from yt_dlp import YoutubeDL
 
 from pyrogram.helpers import ikb
 from pyrogram import filters, enums
@@ -34,7 +35,7 @@ MAX_FILESIZE = 500000000
 
 
 @aiowrap
-def extract_info(instance: yt_dlp.YoutubeDL, url: str, download=True):
+def extract_info(instance: YoutubeDL, url: str, download=True):
     return instance.extract_info(url, download)
 
 
@@ -93,7 +94,7 @@ async def ytdlcmd(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Misc.noargs_ytdl"))
         return
 
-    ydl = yt_dlp.YoutubeDL({"noplaylist": True, "logger": MyLogger()})
+    ydl = YoutubeDL({"noplaylist": True, "logger": MyLogger()})
 
     rege = YOUTUBE_REGEX.match(url)
 
@@ -114,16 +115,17 @@ async def ytdlcmd(c: Smudge, m: Message):
             afsize = f["filesize"] or 0
         if f["ext"] == "mp4" and f["filesize"] is not None:
             vfsize = f["filesize"] or 0
+            vformat = f["format_id"]
 
     keyboard = [
         [
             (
                 await tld(m, "Misc.ytdl_audio_button"),
-                f'_aud.{yt["id"]}|{afsize}|{temp}|{user}|{m.id}',
+                f'_aud.{yt["id"]}|{afsize}|{vformat}|{temp}|{user}|{m.id}',
             ),
             (
                 await tld(m, "Misc.ytdl_video_button"),
-                f'_vid.{yt["id"]}|{vfsize}|{temp}|{user}|{m.id}',
+                f'_vid.{yt["id"]}|{vfsize}|{vformat}|{temp}|{user}|{m.id}',
             ),
         ]
     ]
@@ -144,7 +146,7 @@ async def ytdlcmd(c: Smudge, m: Message):
 @Smudge.on_callback_query(filters.regex("^(_(vid|aud))"))
 async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     try:
-        data, fsize, temp, userid, mid = cq.data.split("|")
+        data, fsize, vformat, temp, userid, mid = cq.data.split("|")
     except ValueError:
         return print(cq.data)
     if cq.from_user.id != int(userid):
@@ -163,17 +165,17 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
 
     ttemp = f"⏰ {datetime.timedelta(seconds=int(temp))} | " if int(temp) else ""
     if "vid" in data:
-        ydl = yt_dlp.YoutubeDL(
+        ydl = YoutubeDL(
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
-                "format": "best[ext=mp4]",
+                "format": f"{vformat}+140",
                 "max_filesize": MAX_FILESIZE,
                 "noplaylist": True,
                 "logger": MyLogger(),
             }
         )
     else:
-        ydl = yt_dlp.YoutubeDL(
+        ydl = YoutubeDL(
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
                 "format": "bestaudio[ext=m4a]",
@@ -329,14 +331,7 @@ async def sdl(c: Smudge, m: Message):
                     "noplaylist": False,
                     "logger": MyLogger(),
                 }
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    if re.match(
-                        r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)",
-                        url,
-                        re.M,
-                    ):
-                        r = await http.head(url, follow_redirects=True)
-                        url = r.url
+                with YoutubeDL(ydl_opts) as ydl:
                     try:
                         await extract_info(ydl, str(url), download=True)
                     except BaseException:
