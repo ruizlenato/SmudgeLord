@@ -86,22 +86,26 @@ async def rem_afk(c: Smudge, m: Message):
 async def afk_mentioned(c: Smudge, m: Message):
     if m.entities:
         for y in m.entities:
-            if y.type != enums.MessageEntityType.MENTION:
+            if y.type == enums.MessageEntityType.MENTION:
+                x = re.search(r"@(\w+)", m.text)  # Regex to get @username
+                try:
+                    user = await c.get_users(x[1])
+                    user_id = user.id
+                    user_first_name = user.first_name
+                except FloodWait as e:  # Avoid FloodWait
+                    await asyncio.sleep(e.value)
+                except (IndexError, BadRequest, KeyError):
+                    return
+            elif y.type == enums.MessageEntityType.TEXT_MENTION:
+                try:
+                    user_id = y.user.id
+                    user_first_name = y.user.first_name
+                except UnboundLocalError:
+                    return
+                except FloodWait as e:  # Avoid FloodWait
+                    await asyncio.sleep(e.value)
+            else:
                 return
-            x = re.search(r"@(\w+)", m.text)  # Regex to get @username
-            try:
-                user = await c.get_users(x[1])
-            except FloodWait as e:  # Avoid FloodWait
-                await asyncio.sleep(e.value)
-            except (IndexError, BadRequest, KeyError):
-                return
-            try:
-                user_id = user.id
-                user_first_name = user.first_name
-            except UnboundLocalError:
-                return
-            except FloodWait as e:  # Avoid FloodWait
-                await asyncio.sleep(e.value)
     elif m.reply_to_message and m.reply_to_message.from_user:
         try:
             user_id = m.reply_to_message.from_user.id
