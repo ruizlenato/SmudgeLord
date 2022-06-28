@@ -100,7 +100,7 @@ async def prints(c: Smudge, m: Message):
 
 
 @Smudge.on_message(filters.command("cep"))
-async def lastfm(c: Smudge, m: Message):
+async def cep(c: Smudge, m: Message):
     try:
         if len(m.command) > 1:
             cep = m.text.split(None, 1)[1]
@@ -113,8 +113,11 @@ async def lastfm(c: Smudge, m: Message):
     base_url = "https://brasilapi.com.br/api/cep/v1"
     res = await http.get(f"{base_url}/{cep}")
     db = orjson.loads(res.content)
-    city = db["city"]
-    state = db["state"]
+    try:
+        city = db["city"]
+        state = db["state"]
+    except KeyError:
+        return await m.reply_text((await tld(m, "Misc.cep_error")))
     state_name = orjson.loads(
         (await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")).content
     )["nome"]
@@ -122,8 +125,7 @@ async def lastfm(c: Smudge, m: Message):
     street = db["street"]
 
     if res.status_code == 404:
-        await m.reply_text((await tld(m, "Misc.cep_error")))
-        return
+        return await m.reply_text((await tld(m, "Misc.cep_error")))
     else:
         rep = (await tld(m, "Misc.cep_strings")).format(
             cep, city, state_name, state, neighborhood, street
@@ -144,7 +146,10 @@ async def ddd(c: Smudge, m: Union[Message, CallbackQuery]):
         return
     res = await http.get(f"https://brasilapi.com.br/api/ddd/v1/{ddd}")
     db = orjson.loads(res.content)
-    state = db["state"]
+    try:
+        state = db["state"]
+    except KeyError:
+        return await m.reply_text((await tld(m, "Misc.ddd_error")))
     if res.status_code == 404:
         return await m.reply_text((await tld(m, "Misc.ddd_error")))
     state_name = orjson.loads(

@@ -144,7 +144,7 @@ async def clear(c: Smudge, m: Message):
     else:
         await del_last_user(user_id)
         await m.reply_text(
-            (await tld(m, "Music.username_clear")), disable_web_page_preview=True
+            (await tld(m, "Music.username_deleted")), disable_web_page_preview=True
         )
 
     return
