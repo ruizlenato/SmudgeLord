@@ -117,7 +117,7 @@ async def afk_mentioned(c: Smudge, m: Message):
     try:
         if user_id == m.from_user.id:
             return
-    except AttributeError:
+    except (AttributeError, UnboundLocalError):
         return
     except FloodWait as e:  # Avoid FloodWait
         await asyncio.sleep(e.value)
