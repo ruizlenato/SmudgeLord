@@ -5,7 +5,7 @@ import asyncio
 
 from pyrogram.types import Message
 from pyrogram import filters, enums
-from pyrogram.errors import FloodWait, UserNotParticipant, BadRequest
+from pyrogram.errors import FloodWait, UserNotParticipant, BadRequest, PeerIdInvalid
 
 from smudge import Smudge
 from smudge.plugins import tld
@@ -123,8 +123,8 @@ async def afk_mentioned(c: Smudge, m: Message):
         await asyncio.sleep(e.value)
 
     try:
-        await m.chat.get_member(user_id)  # Check if the user is in the group
-    except UserNotParticipant:
+        await m.chat.get_member(int(user_id))  # Check if the user is in the group
+    except (UserNotParticipant, PeerIdInvalid):
         return
 
     user_afk = await get_afk_user(user_id)
