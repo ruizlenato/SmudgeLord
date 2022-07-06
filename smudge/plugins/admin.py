@@ -21,7 +21,12 @@ async def cleanup(c: Smudge, m: Message):
         await asyncio.sleep(e.value)
 
     bot = await c.get_chat_member(chat_id=m.chat.id, user_id=me.id)
-    user = await c.get_chat_member(chat_id=m.chat.id, user_id=m.from_user.id)
+    try:
+        user = await c.get_chat_member(chat_id=m.chat.id, user_id=m.from_user.id)
+    except AttributeError:
+        message = await m.reply_text(await tld(m, "Main.change_lang_uchannel"))
+        await asyncio.sleep(5.0)
+        return await message.delete()
 
     if user.status not in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
         return await m.reply_text(await tld(m, "Admin.noadmin"))
