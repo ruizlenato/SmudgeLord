@@ -332,6 +332,13 @@ async def sdl(c: Smudge, m: Message):
                     "logger": MyLogger(),
                 }
                 with YoutubeDL(ydl_opts) as ydl:
+                    if re.match(
+                        r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)",
+                        url,
+                        re.M,
+                    ):
+                        r = await http.head(url, follow_redirects=True)
+                        url = r.url
                     try:
                         await extract_info(ydl, str(url), download=True)
                     except BaseException:
