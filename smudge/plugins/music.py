@@ -12,9 +12,8 @@ import urllib.parse
 
 from typing import Union
 
-from smudge import Smudge
 from smudge.utils import http
-from smudge.plugins import tld
+from smudge.utils.locales import tld
 from smudge.config import LASTFM_API_KEY
 from smudge.database.music import (
     get_last_user,
@@ -26,13 +25,13 @@ from smudge.database.music import (
 from smudge.utils.music import Spotify, LastFMImage
 
 from pyrogram.helpers import ikb
-from pyrogram import filters, enums
+from pyrogram import Client, filters, enums
 from pyrogram.errors import UserNotParticipant, BadRequest, MessageNotModified
 from pyrogram.types import Message, CallbackQuery, InputMediaPhoto
 
 
-@Smudge.on_message(filters.command(["spoti", "spo", "spot"]))
-async def spoti(c: Smudge, m: Message):
+@Client.on_message(filters.command(["spoti", "spo", "spot"]))
+async def spoti(c: Client, m: Message):
     if (
         m.chat.type != enums.ChatType.PRIVATE
         and m.text.split(maxsplit=1)[0] == "/spoti"
@@ -85,8 +84,8 @@ async def spoti(c: Smudge, m: Message):
             return await m.reply_text(rep)
 
 
-@Smudge.on_message(filters.command(["spotf", "spotif"]))
-async def spotf(c: Smudge, m: Message):
+@Client.on_message(filters.command(["spotf", "spotif"]))
+async def spotf(c: Client, m: Message):
     usr = await get_spot_user(m.from_user.id)
     if not usr:
         keyboard = ikb([[("Login", Spotify.getAuthUrl(), "url")]])
@@ -119,8 +118,8 @@ async def spotf(c: Smudge, m: Message):
         await m.reply_text(rep, reply_markup=keyboard)
 
 
-@Smudge.on_message(filters.command(["unreg", "unregister"]))
-async def unreg(c: Smudge, m: Message):
+@Client.on_message(filters.command(["unreg", "unregister"]))
+async def unreg(c: Client, m: Message):
     user_id = m.from_user.id
     spot_user = await get_spot_user(user_id)
     if not spot_user:
@@ -134,8 +133,8 @@ async def unreg(c: Smudge, m: Message):
     return
 
 
-@Smudge.on_message(filters.command(["clearuser", "deluser"]))
-async def clear(c: Smudge, m: Message):
+@Client.on_message(filters.command(["clearuser", "deluser"]))
+async def clear(c: Client, m: Message):
     user_id = m.from_user.id
     username = await get_last_user(user_id)
 
@@ -150,8 +149,8 @@ async def clear(c: Smudge, m: Message):
     return
 
 
-@Smudge.on_message(filters.command(["setuser", "setlast"]))
-async def setuser(c: Smudge, m: Message):
+@Client.on_message(filters.command(["setuser", "setlast"]))
+async def setuser(c: Client, m: Message):
     user_id = m.from_user.id
     if m.reply_to_message and m.reply_to_message.text:
         username = m.reply_to_message.text
@@ -180,8 +179,8 @@ async def setuser(c: Smudge, m: Message):
     return
 
 
-@Smudge.on_message(filters.command(["lastfm", "lmu", "lt"]))
-async def lastfm(c: Smudge, m: Message):
+@Client.on_message(filters.command(["lastfm", "lmu", "lt"]))
+async def lastfm(c: Client, m: Message):
     if m.chat.type != enums.ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
         try:
             await m.chat.get_member(
@@ -256,8 +255,8 @@ async def lastfm(c: Smudge, m: Message):
     await m.reply_text(rep)
 
 
-@Smudge.on_message(filters.command(["lalbum", "lalb", "album"]))
-async def album(c: Smudge, m: Message):
+@Client.on_message(filters.command(["lalbum", "lalb", "album"]))
+async def album(c: Client, m: Message):
     if (
         m.chat.type != enums.ChatType.PRIVATE
         and m.text.split(maxsplit=1)[0] == "/album"
@@ -334,8 +333,8 @@ async def album(c: Smudge, m: Message):
     await m.reply(rep)
 
 
-@Smudge.on_message(filters.command(["lartist", "lart", "artist"]))
-async def artist(c: Smudge, m: Message):
+@Client.on_message(filters.command(["lartist", "lart", "artist"]))
+async def artist(c: Client, m: Message):
     if (
         m.chat.type != enums.ChatType.PRIVATE
         and m.text.split(maxsplit=1)[0] == "artist"
@@ -410,9 +409,9 @@ async def artist(c: Smudge, m: Message):
 CollageLastFM = LastFMImage()
 
 
-@Smudge.on_message(filters.command(["collage", "lastcllg"]))
-@Smudge.on_callback_query(filters.regex("^(_(collage))"))
-async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
+@Client.on_message(filters.command(["collage", "lastcllg"]))
+@Client.on_callback_query(filters.regex("^(_(collage))"))
+async def collage(c: Client, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
         chat_type = m.message.chat.type
     else:
@@ -536,8 +535,8 @@ async def collage(c: Smudge, m: Union[Message, CallbackQuery]):
         shutil.rmtree(filename, ignore_errors=True)
 
 
-@Smudge.on_message(filters.command(["duotone", "dualtone"]))
-async def duotone(c: Smudge, m: Message):
+@Client.on_message(filters.command(["duotone", "dualtone"]))
+async def duotone(c: Client, m: Message):
     user_id = m.from_user.id
     username = await get_last_user(user_id)
 
@@ -600,8 +599,8 @@ async def duotone(c: Smudge, m: Message):
     )
 
 
-@Smudge.on_callback_query(filters.regex("^(_duton)"))
-async def create_duotone(c: Smudge, cq: CallbackQuery):
+@Client.on_callback_query(filters.regex("^(_duton)"))
+async def create_duotone(c: Client, cq: CallbackQuery):
     try:
         await cq.edit_message_text(await tld(cq, "Main.loading"))
     except BadRequest:

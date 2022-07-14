@@ -4,11 +4,10 @@ import re
 import asyncio
 
 from pyrogram.types import Message
-from pyrogram import filters, enums
+from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, UserNotParticipant, BadRequest, PeerIdInvalid
 
-from smudge import Smudge
-from smudge.plugins import tld
+from smudge.utils.locales import tld
 from smudge.database.core import database
 
 conn = database.get_conn()
@@ -42,8 +41,8 @@ async def del_afk_user(user_id: int):
     await conn.commit()
 
 
-@Smudge.on_message(filters.command("afk"))
-@Smudge.on_message(filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))
+@Client.on_message(filters.command("afk"))
+@Client.on_message(filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))
 async def set_afk(_, m: Message):
     try:
         afkmsg = (await tld(m, "Misc.user_now_afk")).format(
@@ -66,8 +65,8 @@ async def set_afk(_, m: Message):
     await m.stop_propagation()
 
 
-@Smudge.on_message(filters.group & ~filters.bot, group=2)
-async def rem_afk(c: Smudge, m: Message):
+@Client.on_message(filters.group & ~filters.bot, group=2)
+async def rem_afk(c: Client, m: Message):
     if not m.from_user:
         return
 
@@ -83,8 +82,8 @@ async def rem_afk(c: Smudge, m: Message):
     await m.stop_propagation()
 
 
-@Smudge.on_message(filters.group & ~filters.bot, group=3)
-async def afk_mentioned(c: Smudge, m: Message):
+@Client.on_message(filters.group & ~filters.bot, group=3)
+async def afk_mentioned(c: Client, m: Message):
     if m.entities:
         for y in m.entities:
             if y.type == enums.MessageEntityType.MENTION:

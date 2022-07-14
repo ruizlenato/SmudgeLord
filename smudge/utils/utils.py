@@ -6,16 +6,15 @@ import math
 import httpx
 import asyncio
 
-from smudge import Smudge
-
-from typing import Tuple, Callable
+from typing import Callable
 from functools import wraps, partial
 
-from pyrogram import emoji
 from smudge.config import CHAT_LOGS
+
+from pyrogram import Client, emoji
 from pyrogram.types import CallbackQuery
 
-timeout = httpx.Timeout(120)
+timeout = httpx.Timeout(30, pool=None)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
 
 
@@ -63,7 +62,7 @@ async def send_logs(m, e):
 
     user_mention = m.from_user.mention(m.from_user.first_name)
     user_id = m.from_user.id
-    await Smudge.send_message(
+    await Client.send_message(
         chat_id=CHAT_LOGS,
         text=(
             "<b>⚠️ Error</b>\n<b>User:</b>{} (<code>{}</code>)\n<b>Log:</b>\n<code>{}</code></b>"

@@ -1,26 +1,20 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import asyncio
-from pyrogram import filters
 from pyrogram.types import Message
+from pyrogram import Client, filters
 from pyrogram.enums import ChatType, ChatMemberStatus, ChatMembersFilter
 from pyrogram.errors import BadRequest, Forbidden, FloodWait
 
-from smudge import Smudge
-from smudge.plugins import tld
+from smudge.utils.locales import tld
 
 
-@Smudge.on_message(filters.command("cleanup"))
-async def cleanup(c: Smudge, m: Message):
+@Client.on_message(filters.command("cleanup"))
+async def cleanup(c: Client, m: Message):
     if m.chat.type == ChatType.PRIVATE:
         return await m.reply_text(await tld(m, "Admin.err_private"))
 
-    try:
-        me = await c.get_me()
-    except FloodWait as e:
-        await asyncio.sleep(e.value)
-
-    bot = await c.get_chat_member(chat_id=m.chat.id, user_id=me.id)
+    bot = await c.get_chat_member(chat_id=m.chat.id, user_id=c.me.id)
     try:
         user = await c.get_chat_member(chat_id=m.chat.id, user_id=m.from_user.id)
     except AttributeError:

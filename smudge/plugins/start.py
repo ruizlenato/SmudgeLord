@@ -6,15 +6,14 @@ import importlib
 import contextlib
 from typing import Union
 
-from pyrogram import filters
 from pyrogram.helpers import ikb
+from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 from pyrogram.enums import ChatType, ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified
 
-from smudge import Smudge
 from smudge.plugins import all_plugins
-from smudge.plugins import tld, lang_dict
+from smudge.utils.locales import tld, lang_dict
 from smudge.database.locales import set_db_lang
 from smudge.utils.help_menu import help_buttons
 from smudge.database.videos import tsdl, csdl, tisdl, cisdl
@@ -31,9 +30,9 @@ for plugin in all_plugins:
         HELP[plugin] = [{"name": plugin_name, "help": plugin_help}]
 
 
-@Smudge.on_message(filters.command("start"))
-@Smudge.on_callback_query(filters.regex(r"start"))
-async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
+@Client.on_message(filters.command("start"))
+@Client.on_callback_query(filters.regex(r"start"))
+async def start_command(c: Client, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
         chat_type = m.message.chat.type
         reply_text = m.edit_message_text
@@ -41,10 +40,6 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
         chat_type = m.chat.type
         reply_text = m.reply_text
 
-    try:
-        me = await c.get_me()
-    except FloodWait as e:
-        await asyncio.sleep(e.value)
     if chat_type == ChatType.PRIVATE:
         keyboard = [
             [
@@ -64,14 +59,14 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
             m.from_user.first_name
         )
     else:
-        keyboard = [[("Start", f"https://t.me/{me.username}?start=start", "url")]]
+        keyboard = [[("Start", f"https://t.me/{c.me.username}?start=start", "url")]]
         text = await tld(m, "Main.start_message")
 
     await reply_text(text, reply_markup=ikb(keyboard), disable_web_page_preview=True)
 
 
-@Smudge.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
-async def portuguese(c: Smudge, m: Message):
+@Client.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
+async def portuguese(c: Client, m: Message):
     lang = m.matches[0]["code"]
     if m.message.chat.type != ChatType.PRIVATE:
         member = await c.get_chat_member(
@@ -95,9 +90,9 @@ async def portuguese(c: Smudge, m: Message):
         await m.edit_message_text(text, reply_markup=ikb(keyboard))
 
 
-@Smudge.on_message(filters.command("setlang"))
-@Smudge.on_callback_query(filters.regex(r"setchatlang"))
-async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
+@Client.on_message(filters.command("setlang"))
+@Client.on_callback_query(filters.regex(r"setchatlang"))
+async def setlang(c: Client, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
         chat_id = m.message.chat.id
         chat_type = m.message.chat.type
@@ -142,9 +137,9 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
     return
 
 
-@Smudge.on_callback_query(filters.regex("menu"))
-@Smudge.on_message(filters.command("help") & filters.private)
-async def button(c: Smudge, m: Union[Message, CallbackQuery]):
+@Client.on_callback_query(filters.regex("menu"))
+@Client.on_message(filters.command("help") & filters.private)
+async def button(c: Client, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
         reply_text = m.edit_message_text
         args = None
@@ -172,40 +167,37 @@ async def help_menu(m, text):
         reply_text = m.reply_text
     keyboard = [[(await tld(m, "Main.btn_back"), "menu")]]
     text = (await tld(m, "Main.avaliable_commands")).format(text)
-    await reply_text(text, reply_markup=ikb(keyboard))
+    await reply_text(text, reply_markup=ikb(keyboard), disable_web_page_preview=True)
 
 
-@Smudge.on_callback_query(filters.regex(pattern="help_plugin.*"))
-async def but(c: Smudge, cq: CallbackQuery):
+@Client.on_callback_query(filters.regex(pattern="help_plugin.*"))
+async def but(c: Client, cq: CallbackQuery):
     plug_match = re.match(r"help_plugin\((.+?)\)", cq.data)
     plug = plug_match[1]
     text = await tld(cq, str(HELP[plug][0]["help"]))
     await help_menu(cq, text)
 
 
-@Smudge.on_message(filters.new_chat_members)
-async def logging(c: Smudge, m: Message):
+@Client.on_message(filters.new_chat_members)
+async def logging(c: Client, m: Message):
     try:
-        bot = await c.get_me()
-        bot_id = bot.id
+        if c.me.id in [x.id for x in m.new_chat_members]:
+            await c.send_message(
+                chat_id=m.chat.id,
+                text=(
+                    ":3 (🇧🇷 pt-BR) Olá, obrigado por me adicionar aqui!\n"
+                    "Não se esqueça de <b>mudar meu idioma usando /config</b>\n\n"
+                    ":3 (🇺🇸 en-US) Hi, thanks for adding me here!\n"
+                    "Don't forget to <b>change my language using /config</b>\n"
+                ),
+                disable_notification=True,
+            )
     except FloodWait as e:
         await asyncio.sleep(e.value)
 
-    if bot_id in [z.id for z in m.new_chat_members]:
-        await c.send_message(
-            chat_id=m.chat.id,
-            text=(
-                ":3 (🇧🇷 pt-BR) Olá, obrigado por me adicionar aqui!\n"
-                "Não se esqueça de <b>mudar meu idioma usando /config</b>\n\n"
-                ":3 (🇺🇸 en-US) Hi, thanks for adding me here!\n"
-                "Don't forget to <b>change my language using /config</b>\n"
-            ),
-            disable_notification=True,
-        )
 
-
-@Smudge.on_callback_query(filters.regex(r"^ssdl_auto"))
-async def ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
+@Client.on_callback_query(filters.regex(r"^ssdl_auto"))
+async def ssdl(c: Client, m: Union[Message, CallbackQuery]):
     chat_id = m.message.chat.id
     reply_text = m.edit_message_text
 
@@ -234,8 +226,8 @@ async def ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
     return
 
 
-@Smudge.on_callback_query(filters.regex(r"^ssdl_image"))
-async def image_ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
+@Client.on_callback_query(filters.regex(r"^ssdl_image"))
+async def image_ssdl(c: Client, m: Union[Message, CallbackQuery]):
     chat_id = m.message.chat.id
     reply_text = m.edit_message_text
 
@@ -264,9 +256,9 @@ async def image_ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
     return
 
 
-@Smudge.on_callback_query(filters.regex(r"config"))
-@Smudge.on_message(filters.command("config") & filters.group)
-async def config(c: Smudge, m: Union[Message, CallbackQuery]):
+@Client.on_callback_query(filters.regex(r"config"))
+@Client.on_message(filters.command("config") & filters.group)
+async def config(c: Client, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
         chat_id = m.message.chat.id
         reply_text = m.edit_message_text

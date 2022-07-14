@@ -24,7 +24,7 @@ logging.basicConfig(
 logging.getLogger("pyrogram.syncer").setLevel(logging.WARNING)
 logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
 
-log = logging.getLogger("rich")
+logger = logging.getLogger("rich")
 
 logs = (
     "[bold purple]SmudgeLord[/bold purple]"
@@ -37,7 +37,6 @@ rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 
 async def main():
     smudge = Smudge()
-
     try:
         # start the bot
         await database.connect()

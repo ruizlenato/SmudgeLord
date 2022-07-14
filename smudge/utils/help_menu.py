@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 from pyrogram.types import InlineKeyboardButton
-from smudge.plugins import tld
+from smudge.utils.locales import tld
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):

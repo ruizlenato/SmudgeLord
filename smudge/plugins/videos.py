@@ -15,12 +15,11 @@ import gallery_dl
 from yt_dlp import YoutubeDL
 
 from pyrogram.helpers import ikb
-from pyrogram import filters, enums
+from pyrogram import Client, filters, enums
 from pyrogram.errors import BadRequest, FloodWait, Forbidden, MediaEmpty
 from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPhoto
 
-from smudge import Smudge
-from smudge.plugins import tld
+from smudge.utils.locales import tld
 from smudge.utils import send_logs, http, pretty_size, aiowrap
 from smudge.database.videos import csdl, cisdl
 
@@ -63,8 +62,8 @@ async def search_yt(query):
     return list_videos
 
 
-@Smudge.on_message(filters.command("yt"))
-async def yt_search_cmd(c: Smudge, m: Message):
+@Client.on_message(filters.command("yt"))
+async def yt_search_cmd(c: Client, m: Message):
     if m.reply_to_message and m.reply_to_message.text:
         args = m.reply_to_message.text
     elif len(m.command) > 1:
@@ -82,8 +81,8 @@ async def yt_search_cmd(c: Smudge, m: Message):
     )
 
 
-@Smudge.on_message(filters.command("ytdl"))
-async def ytdlcmd(c: Smudge, m: Message):
+@Client.on_message(filters.command("ytdl"))
+async def ytdlcmd(c: Client, m: Message):
     user = m.from_user.id
 
     if m.reply_to_message and m.reply_to_message.text:
@@ -143,8 +142,8 @@ async def ytdlcmd(c: Smudge, m: Message):
     await m.reply_text(text, reply_markup=ikb(keyboard))
 
 
-@Smudge.on_callback_query(filters.regex("^(_(vid|aud))"))
-async def cli_ytdl(c: Smudge, cq: CallbackQuery):
+@Client.on_callback_query(filters.regex("^(_(vid|aud))"))
+async def cli_ytdl(c: Client, cq: CallbackQuery):
     try:
         data, fsize, vformat, temp, userid, mid = cq.data.split("|")
     except ValueError:
@@ -256,9 +255,9 @@ def gallery_down(path, url: str):
     return gallery_dl.job.DownloadJob(url).run()
 
 
-@Smudge.on_message(filters.command(["sdl", "mdl"]), group=1)
-@Smudge.on_message(filters.regex(SDL_REGEX_LINKS))
-async def sdl(c: Smudge, m: Message):
+@Client.on_message(filters.command(["sdl", "mdl"]), group=1)
+@Client.on_message(filters.regex(SDL_REGEX_LINKS))
+async def sdl(c: Client, m: Message):
     if m.matches:
         if m.chat.type == enums.ChatType.PRIVATE or await csdl(m.chat.id) == True:
             url = m.matches[0].group(0)

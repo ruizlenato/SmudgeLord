@@ -7,13 +7,12 @@ import tempfile
 
 from PIL import Image
 
-from smudge import Smudge
 from smudge.config import CHAT_LOGS
 from smudge.utils import EMOJI_PATTERN, http
-from smudge.plugins import tld
+from smudge.utils.locales import tld
 
-from pyrogram import filters, enums
 from pyrogram.helpers import ikb
+from pyrogram import Client, filters, enums
 from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
 from pyrogram.errors import PeerIdInvalid, StickersetInvalid, FloodWait
 from pyrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
@@ -29,8 +28,8 @@ from pyrogram.raw.types import (
 SUPPORTED_TYPES = ["jpeg", "png", "webp"]
 
 
-@Smudge.on_message(filters.command("getsticker"))
-async def getsticker(c: Smudge, m: Message):
+@Client.on_message(filters.command("getsticker"))
+async def getsticker(c: Client, m: Message):
     try:
         sticker = m.reply_to_message.sticker
         if sticker.is_animated or sticker.is_video:
@@ -59,14 +58,9 @@ async def getsticker(c: Smudge, m: Message):
         return
 
 
-@Smudge.on_message(filters.command("kang"))
-async def kang_sticker(c: Smudge, m: Message):
+@Client.on_message(filters.command("kang"))
+async def kang_sticker(c: Client, m: Message):
     prog_msg = await m.reply_text(await tld(m, "Stickers.kanging"))
-    try:
-        user = await c.get_me()
-    except FloodWait as e:
-        await asyncio.sleep(e.value)
-    bot_username = user.username
     sticker_emoji = "🤔"
     packnum = 0
     packname_found = False
@@ -119,12 +113,12 @@ async def kang_sticker(c: Smudge, m: Message):
             )
 
         pack_prefix = "anim" if animated else "vid" if videos else "a"
-        packname = f"{pack_prefix}_{m.from_user.id}_by_{bot_username}"
+        packname = f"{pack_prefix}_{m.from_user.id}_by_{c.me.username}"
 
         if len(m.command) > 1 and m.command[1].isdigit() and int(m.command[1]) > 0:
             # provide pack number to kang in desired pack
             packnum = m.command.pop(1)
-            packname = f"{pack_prefix}{packnum}_{m.from_user.id}_by_{bot_username}"
+            packname = f"{pack_prefix}{packnum}_{m.from_user.id}_by_{c.me.username}"
         if len(m.command) > 1:
             # matches all valid emojis in input
             sticker_emoji = (
@@ -139,7 +133,7 @@ async def kang_sticker(c: Smudge, m: Message):
     elif m.entities and len(m.entities) > 1:
         pack_prefix = "a"
         filename = "sticker.png"
-        packname = f"c{m.from_user.id}_by_{bot_username}"
+        packname = f"c{m.from_user.id}_by_{c.me.username}"
         img_url = next(
             (
                 m.text[y.offset : (y.offset + y.length)]
@@ -163,7 +157,7 @@ async def kang_sticker(c: Smudge, m: Message):
             # m.command[1] is image_url
             if m.command[2].isdigit() and int(m.command[2]) > 0:
                 packnum = m.command.pop(2)
-                packname = f"a{packnum}_{m.from_user.id}_by_{bot_username}"
+                packname = f"a{packnum}_{m.from_user.id}_by_{c.me.username}"
             if len(m.command) > 2:
                 sticker_emoji = (
                     "".join(set(EMOJI_PATTERN.findall("".join(m.command[2:]))))
@@ -191,7 +185,7 @@ async def kang_sticker(c: Smudge, m: Message):
                 if stickerset.set.count >= max_stickers:
                     packnum += 1
                     packname = (
-                        f"{pack_prefix}_{packnum}_{m.from_user.id}_by_{bot_username}"
+                        f"{pack_prefix}_{packnum}_{m.from_user.id}_by_{c.me.username}"
                     )
                 else:
                     packname_found = True
@@ -264,7 +258,7 @@ async def kang_sticker(c: Smudge, m: Message):
                             [
                                 (
                                     await tld(m, "Main.start"),
-                                    f"https://t.me/{bot_username}?start",
+                                    f"https://t.me/{c.me.username}?start",
                                     "url",
                                 )
                             ]
