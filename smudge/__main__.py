@@ -15,13 +15,15 @@ from smudge.database import database
 
 # Custom logging format
 logging.basicConfig(
-    level=logging.WARNING,
+    level=logging.INFO,
     format=f"\u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
     datefmt="%m/%d %H:%M:%S",
 )
 
 # To avoid some annoying log
-logging.getLogger("spotipy.client").setLevel(logging.ERROR)
+logging.getLogger("pyrogram.syncer").setLevel(logging.WARNING)
+logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
+
 log = logging.getLogger("rich")
 
 logs = (

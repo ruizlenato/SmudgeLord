@@ -80,6 +80,7 @@ async def rem_afk(c: Smudge, m: Message):
     await m.reply_text(
         (await tld(m, "Misc.no_longer_afk")).format(m.from_user.first_name)
     )
+    await m.stop_propagation()
 
 
 @Smudge.on_message(filters.group & ~filters.bot, group=3)
