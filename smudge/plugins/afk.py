@@ -65,69 +65,76 @@ async def set_afk(_, m: Message):
     await m.stop_propagation()
 
 
-@Client.on_message(filters.group & ~filters.bot, group=2)
+@Client.on_message(filters.group & ~filters.bot, group=1)
 async def afk(c: Client, m: Message):
-    if await get_afk_user(m.from_user.id):
-        user_afk = await get_afk_user(m.from_user.id)
-        if not user_afk:
-            return
+    try:
+        if await get_afk_user(m.from_user.id):
+            user_afk = await get_afk_user(m.from_user.id)
+            if not user_afk:
+                return
+            else:
+                await del_afk_user(m.from_user.id)
+                await m.reply_text(
+                    (await tld(m, "Misc.no_longer_afk")).format(m.from_user.first_name)
+                )
         else:
-            await del_afk_user(m.from_user.id)
-            await m.reply_text(
-                (await tld(m, "Misc.no_longer_afk")).format(m.from_user.first_name)
-            )
-    else:
-        if m.entities:
-            for y in m.entities:
-                if y.type == enums.MessageEntityType.MENTION:
-                    x = re.search(r"@(\w+)", m.text)  # Regex to get @username
-                    try:
-                        user = await c.get_users(x[1])
-                        user_id = user.id
-                        user_first_name = user.first_name
-                    except FloodWait as e:  # Avoid FloodWait
-                        await asyncio.sleep(e.value)
-                    except (IndexError, BadRequest, KeyError):
+            if m.entities:
+                for y in m.entities:
+                    if y.type == enums.MessageEntityType.MENTION:
+                        x = re.search(r"@(\w+)", m.text)  # Regex to get @username
+                        try:
+                            user = await c.get_users(x[1])
+                            user_id = user.id
+                            user_first_name = user.first_name
+                        except FloodWait as e:  # Avoid FloodWait
+                            await asyncio.sleep(e.value)
+                        except (IndexError, BadRequest, KeyError):
+                            return
+                    elif y.type == enums.MessageEntityType.TEXT_MENTION:
+                        try:
+                            user_id = y.user.id
+                            user_first_name = y.user.first_name
+                        except UnboundLocalError:
+                            return
+                        except FloodWait as e:  # Avoid FloodWait
+                            await asyncio.sleep(e.value)
+                    else:
                         return
-                elif y.type == enums.MessageEntityType.TEXT_MENTION:
-                    try:
-                        user_id = y.user.id
-                        user_first_name = y.user.first_name
-                    except UnboundLocalError:
-                        return
-                    except FloodWait as e:  # Avoid FloodWait
-                        await asyncio.sleep(e.value)
-                else:
+            elif m.reply_to_message and m.reply_to_message.from_user:
+                try:
+                    user_id = m.reply_to_message.from_user.id
+                    user_first_name = m.reply_to_message.from_user.first_name
+                except AttributeError:
                     return
-        elif m.reply_to_message and m.reply_to_message.from_user:
+            else:
+                return
             try:
-                user_id = m.reply_to_message.from_user.id
-                user_first_name = m.reply_to_message.from_user.first_name
-            except AttributeError:
+                if user_id == m.from_user.id:
+                    return
+            except (AttributeError, UnboundLocalError):
                 return
-        else:
-            return
-        try:
-            if user_id == m.from_user.id:
+            except FloodWait as e:  # Avoid FloodWait
+                await asyncio.sleep(e.value)
+
+            try:
+                await m.chat.get_member(
+                    int(user_id)
+                )  # Check if the user is in the group
+            except (UserNotParticipant, PeerIdInvalid):
                 return
-        except (AttributeError, UnboundLocalError):
-            return
-        except FloodWait as e:  # Avoid FloodWait
-            await asyncio.sleep(e.value)
 
-        try:
-            await m.chat.get_member(int(user_id))  # Check if the user is in the group
-        except (UserNotParticipant, PeerIdInvalid):
-            return
+            user_afk = await get_afk_user(user_id)
 
-        user_afk = await get_afk_user(user_id)
-
-        if not user_afk:
-            return
-        afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name)
-        if await get_afk_user(user_id) != "No reason":
-            afkmsg += (await tld(m, "Misc.afk_reason")).format(
-                await get_afk_user(user_id)
-            )
-        await m.reply_text(afkmsg)
+            if not user_afk:
+                return
+            afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name)
+            if await get_afk_user(user_id) != "No reason":
+                afkmsg += (await tld(m, "Misc.afk_reason")).format(
+                    await get_afk_user(user_id)
+                )
+            await m.reply_text(afkmsg)
+    except FloodWait as e:  # Avoid FloodWait
+        await asyncio.sleep(e.value)
+    except AttributeError:
+        return await m.stop_propagation()
     await m.stop_propagation()
