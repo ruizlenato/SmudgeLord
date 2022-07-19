@@ -36,6 +36,15 @@ async def slap(c: Client, m: Message):
 
 @Client.on_message(filters.regex(r"^framengo"))
 async def framengo(c: Client, m: Message):
-    await m.reply_video(
-        video="https://telegra.ph/file/edead6d5de1df2eb2ab84.mp4",
-    )
+    await m.reply_video(video="https://telegra.ph/file/edead6d5de1df2eb2ab84.mp4")
+
+
+@Client.on_message(filters.regex(r"^paysandu"))
+async def paysandu(c: Client, m: Message):
+    answer = random.choice(["yes", "no"])
+    if answer == "yes":
+        await m.reply_audio(
+            audio="CQACAgEAAx0CUYV5ZQACJEBi1xxZbiuqd3r96dG5RbePA6-hBgACOgIAAqa2uUatB5Ukvjck9R4E"
+        )
+    else:
+        return
