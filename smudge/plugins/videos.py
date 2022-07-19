@@ -324,24 +324,23 @@ async def sdl(c: Client, m: Message):
             except gallery_dl.exception.GalleryDLException:
                 ydl_opts = {
                     "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
-                    "usenetrc": "true",
-                    "extractor_retries": "3",
                     "wait-for-video": "1",
-                    "noplaylist": False,
+                    "noplaylist": True,
                     "logger": MyLogger(),
                 }
-                with YoutubeDL(ydl_opts) as ydl:
-                    if re.match(
-                        r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)",
-                        url,
-                        re.M,
-                    ):
-                        r = await http.head(url, follow_redirects=True)
-                        url = r.url
-                    try:
-                        await extract_info(ydl, str(url), download=True)
-                    except BaseException:
-                        return
+
+                if re.match(
+                    r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)",
+                    url,
+                    re.M,
+                ):
+                    r = await http.head(url, follow_redirects=True)
+                    url = r.url
+
+                try:
+                    await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
+                except BaseException:
+                    return
                 if videos := [
                     InputMediaVideo(os.path.join(path, video))
                     for video in os.listdir(path)
