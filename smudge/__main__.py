@@ -9,7 +9,7 @@ from pyrogram import idle, __version__ as pyrogram_version
 from rich.panel import Panel
 from rich import box, print as rprint
 
-from .smudge import Smudge
+from smudge.bot import Smudge
 from smudge.utils import http
 from smudge.database import database
 
@@ -19,19 +19,15 @@ logging.basicConfig(
     format=f"\u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
     datefmt="%m/%d %H:%M:%S",
 )
+logs = "[bold purple]SmudgeLord[/bold purple]"
+logs += "\n[cyan]Project maintained by:[/cyan] RuizLenato"
+logs += f"\n[yellow]Pyrogram Version:[/yellow] {pyrogram_version}"
 
 # To avoid some annoying log
 logging.getLogger("pyrogram.syncer").setLevel(logging.WARNING)
 logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
 
 logger = logging.getLogger("rich")
-
-logs = (
-    "[bold purple]SmudgeLord[/bold purple]"
-    + "\n[cyan]Project maintained by:[/cyan] RuizLenato"
-)
-
-logs += f"\n[yellow]Pyrogram Version:[/yellow] {pyrogram_version}"
 rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
 
 
