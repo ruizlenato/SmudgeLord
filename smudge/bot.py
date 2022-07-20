@@ -20,14 +20,14 @@ class Smudge(Client):
         name = self.__class__.__name__.lower()
 
         super().__init__(
-            name=name,
-            api_hash=API_HASH,
-            api_id=API_ID,
-            bot_token=BOT_TOKEN,
-            parse_mode=enums.ParseMode.HTML,
+            name,
             workdir="smudge",
-            plugins={"root": "smudge.plugins"},
+            api_id=API_ID,
+            api_hash=API_HASH,
+            bot_token=BOT_TOKEN,
             sleep_threshold=180,
+            parse_mode=enums.ParseMode.HTML,
+            plugins={"root": "smudge.plugins"},
         )
 
     async def start(self):
@@ -36,10 +36,7 @@ class Smudge(Client):
 
         if "test" not in sys.argv:
             await self.send_message(
-                chat_id=CHAT_LOGS,
-                text="<b>{} started!</b>\n<b>Date:</b> {}".format(
-                    self.me.first_name, date
-                ),
+                CHAT_LOGS, f"<b>{self.me.first_name} started!</b>\n<b>Date:</b> {date}"
             )
 
         # Backup the database every 1h
@@ -47,7 +44,7 @@ class Smudge(Client):
             await self.send_document(
                 CHAT_LOGS,
                 "smudge/database/database.db",
-                caption="<b>Database backuped!</b>\n<b>- Date:</b> {}".format(date),
+                f"<b>Database backuped!</b>\n<b>- Date:</b> {date}",
             )
 
         aiocron.crontab("*/60 * * * *", func=backup, start=True)
