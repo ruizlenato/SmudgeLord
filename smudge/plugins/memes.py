@@ -39,7 +39,7 @@ async def framengo(c: Client, m: Message):
     await m.reply_video(video="https://telegra.ph/file/edead6d5de1df2eb2ab84.mp4")
 
 
-@Client.on_message(filters.regex(r"^paysandu"))
+@Client.on_message(filters.regex(r"paysandu"))
 async def paysandu(c: Client, m: Message):
     answer = random.choice(["yes", "no"])
     if answer == "yes":
