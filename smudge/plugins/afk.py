@@ -62,7 +62,6 @@ async def set_afk(_, m: Message):
         reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
     await set_afk_user(m.from_user.id, reason)
     await m.reply_text(afkmsg + reason_txt)
-    await m.stop_propagation()
 
 
 @Client.on_message(filters.group & ~filters.bot, group=1)
@@ -136,5 +135,4 @@ async def afk(c: Client, m: Message):
     except FloodWait as e:  # Avoid FloodWait
         await asyncio.sleep(e.value)
     except AttributeError:
-        return await m.stop_propagation()
-    await m.stop_propagation()
+        return
