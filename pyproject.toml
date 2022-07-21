@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "Smudge"
+version = "1.3.0"
+description = "SmudgeLord is a bot developed in python3 with some fun and useful commands"
+authors = ["RuizLenato <ruizlenato@protonmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pyrogram = {git = "https://github.com/AmanoTeam/pyrogram"}
+tgcrypto = "1.2.3"
+aiosqlite = "0.17.0"
+aiocron = "^1.8"
+beautifulsoup4 = "^4.11.1"
+gallery-dl = "^1.22.4"
+gpytranslate = "^1.4.0"
+orjson = "^3.7.8"
+Pillow = "^9.2.0"
+PyYAML = "^6.0"
+regex = "^2022.7.9"
+rich = "^12.5.1"
+urllib3 = "^1.26.10"
+yt-dlp = "^2022.7.18"
+
+[tool.poetry.dev-dependencies]
+black = "^22.6"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
