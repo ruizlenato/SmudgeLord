@@ -66,6 +66,9 @@ async def set_afk(_, m: Message):
 
 @Client.on_message(filters.group & ~filters.bot, group=1)
 async def afk(c: Client, m: Message):
+    if m.text.startswith(("brb", "/afk")):
+        return
+
     try:
         if await get_afk_user(m.from_user.id):
             user_afk = await get_afk_user(m.from_user.id)
@@ -84,19 +87,19 @@ async def afk(c: Client, m: Message):
                         try:
                             user = await c.get_users(x[1])
                             user_id = user.id
+                            if user_id == m.from_user.id:
+                                return
                             user_first_name = user.first_name
-                        except FloodWait as e:  # Avoid FloodWait
-                            await asyncio.sleep(e.value)
                         except (IndexError, BadRequest, KeyError):
                             return
                     elif y.type == enums.MessageEntityType.TEXT_MENTION:
                         try:
                             user_id = y.user.id
+                            if user_id == m.from_user.id:
+                                return
                             user_first_name = y.user.first_name
                         except UnboundLocalError:
                             return
-                        except FloodWait as e:  # Avoid FloodWait
-                            await asyncio.sleep(e.value)
                     else:
                         return
             elif m.reply_to_message and m.reply_to_message.from_user:
@@ -106,14 +109,7 @@ async def afk(c: Client, m: Message):
                 except AttributeError:
                     return
             else:
-                return
-            try:
-                if user_id == m.from_user.id:
-                    return
-            except (AttributeError, UnboundLocalError):
-                return
-            except FloodWait as e:  # Avoid FloodWait
-                await asyncio.sleep(e.value)
+                return  # No user to set afk
 
             try:
                 await m.chat.get_member(
@@ -122,11 +118,7 @@ async def afk(c: Client, m: Message):
             except (UserNotParticipant, PeerIdInvalid):
                 return
 
-            user_afk = await get_afk_user(user_id)
-
-            if not user_afk:
-                return
-            afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name)
+            afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name[:25])
             if await get_afk_user(user_id) != "No reason":
                 afkmsg += (await tld(m, "Misc.afk_reason")).format(
                     await get_afk_user(user_id)
