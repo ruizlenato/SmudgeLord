@@ -15,8 +15,8 @@ Can be found as [SmudgeLord](https://t.me/SmudgeLordBOT) on Telegram.
 - A [Telegram bot token](//t.me/botfather).
 
 ## Setup - How to host locally
-1. Clone source code: `git clone https://github.com/ruizlenato/SmudgeLord.`
-2. Change directory to *SmudgeLord* : `cd SmudgeLord`.
+1. Clone source code: `git clone https://github.com/ruizlenato/SmudgeLord`
+2. Change directory to *SmudgeLord* : `cd SmudgeLord`
 3. Install the bot and dependencies: `python3 -m pip install .`
 4. After the bot and all dependencies are installed, open Smudge folder, **rename example.config.py to config.py** and put what is requested in the file (The explanations are all inside).
 
