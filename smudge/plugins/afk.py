@@ -66,7 +66,10 @@ async def set_afk(_, m: Message):
 
 @Client.on_message(filters.group & ~filters.bot, group=1)
 async def afk(c: Client, m: Message):
-    if m.text.startswith(("brb", "/afk")):
+    try:
+        if m.text.startswith(("brb", "/afk")):
+            return
+    except AttributeError:
         return
 
     try:
@@ -116,6 +119,9 @@ async def afk(c: Client, m: Message):
                     int(user_id)
                 )  # Check if the user is in the group
             except (UserNotParticipant, PeerIdInvalid):
+                return
+
+            if not await get_afk_user(user_id):
                 return
 
             afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name[:25])
