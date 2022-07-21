@@ -44,7 +44,7 @@ class Smudge(Client):
             await self.send_document(
                 CHAT_LOGS,
                 "smudge/database/database.db",
-                f"<b>Database backuped!</b>\n<b>- Date:</b> {date}",
+                caption=f"<b>Database backuped!</b>\n<b>- Date:</b> {date}",
             )
 
         aiocron.crontab("*/60 * * * *", func=backup, start=True)
