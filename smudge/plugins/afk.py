@@ -72,7 +72,11 @@ async def afk(c: Client, m: Message):
     except AttributeError:
         return
 
-    user_afk = await get_afk_user(m.from_user.id)
+    try:
+        user_afk = await get_afk_user(m.from_user.id)
+    except AttributeError:
+        return
+
     if user_afk:
         await del_afk_user(m.from_user.id)
         return await m.reply_text(
@@ -124,4 +128,4 @@ async def afk(c: Client, m: Message):
     afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name[:25])
     if await get_afk_user(user_id) != "No reason":
         afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_afk_user(user_id))
-    await m.reply_text(afkmsg)
+    return await m.reply_text(afkmsg)
