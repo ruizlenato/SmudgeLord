@@ -91,6 +91,8 @@ async def afk(c: Client, m: Message):
                     user_first_name = user.first_name
                 except (IndexError, BadRequest, KeyError):
                     return
+                except FloodWait as e:  # Avoid FloodWait
+                    await asyncio.sleep(e.value)
             elif y.type == enums.MessageEntityType.TEXT_MENTION:
                 try:
                     user_id = y.user.id
