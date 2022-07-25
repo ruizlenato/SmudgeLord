@@ -3,9 +3,9 @@
 #Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 #Core
 core:
-  language_flag: "🇪🇸"
-  language_name: "Español"
-  language_code: "es-ES"
+  flag: "🇺🇸"
+  name: "American English"
+  code: "en-US"
 #Main
 strings:
   Main:
@@ -15,13 +15,13 @@ strings:
       📦 <b>Mi SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
       💬 Si tienes un problema <b></b> <a href='https://t.me/RuizLenato'>haz clic aquí para hablar con mi propietario</a>
     start_message: "Hey Kitty, estoy vivo, llámame al chat privado:3"
-    lang_save: "Idioma cambiado con éxito"
-    lang_crowdin: "🌎 ¡Ayúdanos con las traducciones!"
+    lang_saved: "Language changed successfully"
+    crowdin: "🌎 Help us with translations!"
     select_lang: "Selecciona el lenguaje que usará el bot"
-    btn_back: "↩️ Volver"
-    start_btn_lang: "🇺🇸 Idioma"
-    start_btn_help: "❓ Ayuda"
-    change_lang_uchannel: "Hmm, aparentemente estás enviando mensajes usando un canal.\n<b>Envía mensajes como un usuario normal para que te pueda ayudar.</b>"
+    back_btn: "↩️ Back"
+    btn_lang: "🇺🇸 Language"
+    btn_help: "❓ Help"
+    change_lang_uchannel: "Hmm, apparently you are sending messages anonymously.\n<b>Send messages as a normal user so I can help you.</b>"
     help_text: "Aquí están todos mis plugins, para saber más sobre los plugins, simplemente haga clic en su nombre."
     avaliable_commands: "<b>Comandos disponibles:</b>\n\n{}"
     config_text: "<b>Ajustes.</b>\nHaga clic en los botones de abajo para cambiar la configuración de su grupo.\n\n<b>SDL Auto -</b> <i>Cuando está activado (✅) el bot descargará videos de redes sociales automáticamente cuando alguien envíe un enlace</i>\n<b>Idioma -</b> <i>Cambie el idioma del bot en el grupo</i>"
@@ -33,15 +33,12 @@ strings:
     start: "Iniciar"
   #Admin
   Admin:
-    Admin: "Administrador"
     noadmin: "No eres un administrador de grupo."
     botnotadmin: "No soy administrador de grupo. Por favor, añádame como administrador de grupo."
     err_private: "Este comando no puede ser usado en un chat privado, usa este comando en un grupo que administras."
     cleanup_start: "Eliminando cuentas borradas..."
     cleanup_start_d: "Cuentas eliminadas: {}"
     cleanup_no_deleted: "There are no deleted accounts in the group."
-    help: |
-      <b>/cleanup</b> - Removes all deleted accounts from the group.
   #Android
   Android:
     name: "Android"
@@ -210,6 +207,8 @@ strings:
       <b>/sdl or /mdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>
       <b>/ytdl -</b> <i>Download videos from YouTube in video or audio format.</i>
       <b>/yt -</b> <i>It does a YouTube search with the word you wrote and returns a list with videos.</i>
+
+      <b>/cleanup</b> - Removes all deleted accounts from the group.
   #Stickers
   Stickers:
     name: "Stickers"
