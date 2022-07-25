@@ -4,10 +4,7 @@ import sys
 import asyncio
 import logging
 
-from pyrogram import idle, __version__ as pyrogram_version
-
-from rich.panel import Panel
-from rich import box, print as rprint
+from pyrogram import idle, __version__
 
 from smudge.bot import Smudge
 from smudge.utils import http
@@ -19,16 +16,17 @@ logging.basicConfig(
     format=f"\u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
     datefmt="%m/%d %H:%M:%S",
 )
-logs = "[bold purple]SmudgeLord[/bold purple]"
-logs += "\n[cyan]Project maintained by:[/cyan] RuizLenato"
-logs += f"\n[yellow]Pyrogram Version:[/yellow] {pyrogram_version}"
+logs = "\033[1m\033[35mSmudgeLord\033[0m"
+logs += "\n\033[96mProject maintained by:\033[0m RuizLenato"
+logs += f"\n\033[93mPyrogram Version:\033[0m {__version__}"
+logs += "\n\033[94m------------------------------------------------------\033[0m"
+print(logs)
 
 # To avoid some annoying log
 logging.getLogger("pyrogram.syncer").setLevel(logging.WARNING)
 logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
 
-logger = logging.getLogger("rich")
-rprint(Panel.fit(logs, border_style="turquoise2", box=box.ASCII))
+logger = logging.getLogger(__name__)
 
 
 async def main():
@@ -42,7 +40,7 @@ async def main():
             await idle()
     except KeyboardInterrupt:
         # exit gracefully
-        rprint("[red]Forced stop... Bye!")
+        print(f"\033[93mForced stop... Bye!\033[0m")
     finally:
         # close https connections and the DB if open
         await smudge.stop()

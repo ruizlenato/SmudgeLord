@@ -9,8 +9,6 @@ from pyrogram import Client, enums
 
 from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
-from rich import print as rprint
-
 # Date
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
 
@@ -31,7 +29,7 @@ class Smudge(Client):
         )
 
     async def start(self):
-        rprint("[green]Connected to telegram servers.[/]")
+        print("\033[92mConnected to telegram servers.\033[0m")
         await super().start()  # Connect to telegram's servers
 
         if "test" not in sys.argv:
@@ -49,8 +47,8 @@ class Smudge(Client):
 
         aiocron.crontab("*/60 * * * *", func=backup, start=True)
 
-        rprint("[bold green]- Started.[/]")
+        print("\033[92m- Started.\033[0m")
 
     async def stop(self, *args):
         await super().stop()
-        rprint("[red]SmudgeLord stopped. Bye.")
+        print(f"\033[93mSmudgeLord stopped. Bye!\033[0m")

@@ -15,8 +15,6 @@ from contextlib import redirect_stdout
 from smudge.config import SUDOERS
 from smudge.database.core import database
 
-from rich import print as rprint
-
 conn = database.get_conn()
 
 
@@ -25,7 +23,7 @@ async def restart(c: Client, m: Message):
     await m.reply_text("Restarting...")
     args = [sys.executable, "-m", "smudge"]
     os.system("cls" if os.name == "nt" else "clear")
-    rprint("[red]Restarting...")
+    print("\033[91mRestarting...\033[0m")
     os.execl(sys.executable, *args)
 
 
