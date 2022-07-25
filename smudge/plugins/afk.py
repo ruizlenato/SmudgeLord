@@ -8,46 +8,15 @@ from pyrogram import Client, filters, enums
 from pyrogram.errors import FloodWait, UserNotParticipant, BadRequest, PeerIdInvalid
 
 from smudge.utils.locales import tld
-from smudge.database.core import database
-
-conn = database.get_conn()
-
-
-async def set_afk_user(user_id: int, reason: str):
-    cursor = await conn.execute("SELECT id FROM users where id = ?", (user_id,))
-    row = await cursor.fetchone()
-    if not bool(row):
-        await conn.execute("INSERT INTO users (id) values (?)", (user_id,))
-
-    await conn.execute(
-        "UPDATE users SET afk_reason = ? WHERE id = ?", (reason, user_id)
-    )
-    await conn.commit()
-
-
-async def get_afk_user(user_id: int):
-    cursor = await conn.execute(
-        "SELECT afk_reason FROM users WHERE id = (?)", (user_id,)
-    )
-    try:
-        row = await cursor.fetchone()
-        return row[0]
-    except (IndexError, TypeError):
-        return None
-
-
-async def del_afk_user(user_id: int):
-    await conn.execute("UPDATE users SET afk_reason = ? WHERE id = ?", ("", user_id))
-    await conn.commit()
+from smudge.database.afk import set_uafk, get_uafk, del_uafk
 
 
 @Client.on_message(filters.command("afk"))
 @Client.on_message(filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))
-async def set_afk(_, m: Message):
+async def set_afk(c: Client, m: Message):
     try:
-        afkmsg = (await tld(m, "Misc.user_now_afk")).format(
-            m.from_user.id, m.from_user.first_name
-        )
+        user = m.from_user
+        afkmsg = (await tld(m, "Misc.user_now_afk")).format(user.id, user.first_name)
     except AttributeError:
         return
 
@@ -60,12 +29,15 @@ async def set_afk(_, m: Message):
     else:
         reason = m.text.split(None, 1)[1]
         reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
-    await set_afk_user(m.from_user.id, reason)
+    await set_uafk(m.from_user.id, reason)
     await m.reply_text(afkmsg + reason_txt)
 
 
 @Client.on_message(filters.group & ~filters.bot, group=1)
-async def afk(c: Client, m: Message):
+async def afk_watcher(c: Client, m: Message):
+    user = m.from_user
+    if m.sender_chat:
+        return
     try:
         if m.text.startswith(("brb", "/afk")):
             return
@@ -73,14 +45,14 @@ async def afk(c: Client, m: Message):
         return
 
     try:
-        user_afk = await get_afk_user(m.from_user.id)
+        user_afk = await get_uafk(user.id)
     except AttributeError:
         return
 
     if user_afk:
-        await del_afk_user(m.from_user.id)
+        await del_uafk(user.id)
         return await m.reply_text(
-            (await tld(m, "Misc.no_longer_afk")).format(m.from_user.first_name)
+            (await tld(m, "Misc.no_longer_afk")).format(user.first_name)
         )
 
     if m.entities:
@@ -90,7 +62,7 @@ async def afk(c: Client, m: Message):
                 try:
                     user = await c.get_users(x[1])
                     user_id = user.id
-                    if user_id == m.from_user.id:
+                    if user_id == user.id:
                         return
                     user_first_name = user.first_name
                 except (IndexError, BadRequest, KeyError):
@@ -100,7 +72,7 @@ async def afk(c: Client, m: Message):
             elif y.type == enums.MessageEntityType.TEXT_MENTION:
                 try:
                     user_id = y.user.id
-                    if user_id == m.from_user.id:
+                    if user_id == user.id:
                         return
                     user_first_name = y.user.first_name
                 except UnboundLocalError:
@@ -117,7 +89,7 @@ async def afk(c: Client, m: Message):
     else:
         return  # No user to set afk
 
-    if not await get_afk_user(user_id):
+    if not await get_uafk(user_id):
         return
 
     try:
@@ -126,6 +98,6 @@ async def afk(c: Client, m: Message):
         return
 
     afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name[:25])
-    if await get_afk_user(user_id) != "No reason":
-        afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_afk_user(user_id))
+    if await get_uafk(user_id) != "No reason":
+        afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_uafk(user_id))
     return await m.reply_text(afkmsg)

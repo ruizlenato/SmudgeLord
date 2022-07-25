@@ -4,35 +4,29 @@ from .core import database
 from pyrogram.enums import ChatType
 
 conn = database.get_conn()
+GROUPS = (ChatType.GROUP, ChatType.SUPERGROUP)
 
 
-async def add_chat(chat_id, chat_type):
-    if chat_type == ChatType.PRIVATE:
-        await conn.execute("INSERT INTO users (id) values (?)", (chat_id,))
+async def add_chat(id, type):
+    if type == ChatType.PRIVATE:
+        await conn.execute("INSERT INTO users (id) values (?)", (id,))
         await conn.commit()
-    elif chat_type in (
-        ChatType.GROUP,
-        ChatType.SUPERGROUP,
-    ):  # groups and supergroups share the same table
-        await conn.execute(
-            "INSERT INTO groups (id, lang) values (?, ?)", (chat_id, "en-US")
-        )
+    elif type in GROUPS:  # groups and supergroups share the same table
+        await conn.execute("INSERT INTO groups (id) values (?)", (id,))
         await conn.commit()
     else:
-        raise TypeError("Unknown chat type '%s'." % chat_type)
-    return True
+        return
 
 
-async def chat_exists(chat_id, chat_type):
-    if chat_type == ChatType.PRIVATE:
-        cursor = await conn.execute("SELECT id FROM users where id = ?", (chat_id,))
+async def get_chat(id, type):
+    if type == ChatType.PRIVATE:
+        cursor = await conn.execute("SELECT * FROM users WHERE id = ?", (id,))
         row = await cursor.fetchone()
-        return bool(row)
-    elif chat_type in (
-        ChatType.GROUP,
-        ChatType.SUPERGROUP,
-    ):
-        cursor = await conn.execute("SELECT id FROM groups where id = ?", (chat_id,))
+        await cursor.close()
+        return row
+    elif type in GROUPS:  # groups and supergroups share the same table
+        cursor = await conn.execute("SELECT * FROM groups where id = ?", (id,))
         row = await cursor.fetchone()
-        return bool(row)
-    raise TypeError("Unknown chat type '%s'." % chat_type)
+        return row
+    else:
+        return

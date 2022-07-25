@@ -5,7 +5,7 @@ import uuid
 import httpx
 import orjson
 
-from smudge.utils import http, aiowrap
+from smudge.utils import http
 
 from bs4 import BeautifulSoup
 

@@ -11,12 +11,16 @@ from smudge.utils.locales import tld
 
 @Client.on_message(filters.command("cleanup"))
 async def cleanup(c: Client, m: Message):
-    if m.chat.type == ChatType.PRIVATE:
+    deleted_users = []
+    chat = m.chat
+
+    if chat.type == ChatType.PRIVATE:
         return await m.reply_text(await tld(m, "Admin.err_private"))
 
-    bot = await c.get_chat_member(chat_id=m.chat.id, user_id=c.me.id)
+    bot = await c.get_chat_member(chat_id=chat.id, user_id=c.me.id)
+
     try:
-        user = await c.get_chat_member(chat_id=m.chat.id, user_id=m.from_user.id)
+        user = await c.get_chat_member(chat_id=chat.id, user_id=m.from_user.id)
     except AttributeError:
         message = await m.reply_text(await tld(m, "Main.change_lang_uchannel"))
         await asyncio.sleep(5.0)
@@ -29,7 +33,7 @@ async def cleanup(c: Client, m: Message):
         return await m.reply_text(await tld(m, "Admin.botnotadmin"))
 
     mes = await m.reply_text(await tld(m, "Admin.cleanup_start"))
-    deleted_users = []
+
     async for member in c.get_chat_members(chat_id=m.chat.id):
         if member.user.is_deleted:
             await c.ban_chat_member(m.chat.id, member.user.id)

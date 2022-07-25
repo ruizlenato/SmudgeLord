@@ -189,16 +189,13 @@ async def git_on_message(c: Client, m: Message):
 
 async def git(c: Client, m: Message, repo, page):
     db = orjson.loads(page.content)
-    name = db["name"]
     date = db["published_at"]
-    tag = db["tag_name"]
-    date = db["published_at"]
-    changelog = db["body"]
-    dev, repo = repo.split("/")
-    message = "**Name:** `{}`\n".format(name) + "**Tag:** `{}`\n".format(tag)
-    message += "**Released on:** `{}`\n".format(date[: date.rfind("T")])
-    message += "**By:** `{}@github.com`\n".format(dev)
-    message += "**Changelog:**\n{}\n\n".format(changelog)
+    message = (
+        f"<b>Name:</b> <i>{db['name']}</i>\n"
+        + f"<b>Tag:</b> <i>{db['tag_name']}</i>\n"
+        + f"<b>Released on:</b> <i>{date[: date.rfind('T')]}</i>\n"
+        + f"<b>By:</b> <i>{repo.split('/')[0]}@github.com</i>\n"
+    )
     keyboard = []
     for i in range(len(db)):
         try:
@@ -212,12 +209,7 @@ async def git(c: Client, m: Message, repo, page):
 
         except IndexError:
             continue
-    await m.reply_text(
-        text=message,
-        reply_markup=ikb(keyboard),
-        disable_web_page_preview=True,
-        parse_mode=ParseMode.MARKDOWN,
-    )
+    await m.reply_text(message, reply_markup=ikb(keyboard))
 
 
 plugin_name = "Misc.name"
