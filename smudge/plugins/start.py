@@ -83,8 +83,7 @@ async def portuguese(c: Client, m: Message):
         await set_db_lang(m.from_user.id, lang, m.message.chat.type)
     elif m.message.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
         await set_db_lang(m.message.chat.id, lang, m.message.chat.type)
-    elif m.message.chat.type == ChatType.CHANNEL:
-        await set_db_lang(m.from_user.id, lang, m.message.chat.type)
+    text = await tld(m, "Main.lang_saved")
     text = await tld(m, "Main.lang_save")
     with contextlib.suppress(MessageNotModified):
         await m.edit_message_text(text, reply_markup=ikb(keyboard))

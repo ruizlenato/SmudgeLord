@@ -4,7 +4,6 @@ import logging
 
 import aiosqlite
 
-
 logger = logging.getLogger(__name__)
 
 DATABASE_PATH = "./smudge/database/database.db"
@@ -36,10 +35,6 @@ class Database:
             lang TEXT DEFAULT 'en-US',
             sdl_auto INTEGER,
             sdl_images INTEGER
-        );
-        CREATE TABLE IF NOT EXISTS channels(
-            id INTEGER PRIMARY KEY,
-            lang TEXT DEFAULT 'en-US'
         );
         """
         )

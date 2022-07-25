@@ -17,9 +17,8 @@ async def check_chat(c: Client, m: Message):
     except AttributeError:
         return
 
-    if not chatexists:
+    if chatexists is None:
         await add_chat(chat_id, chat_type)
-        await asyncio.sleep(0.5)
 
 
 def __list_all_plugins():

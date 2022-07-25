@@ -14,10 +14,6 @@ async def get_db_lang(chat_id: int, chat_type: str):
         cursor = await conn.execute(
             "SELECT lang FROM groups WHERE id = (?)", (chat_id,)
         )
-    elif chat_type == ChatType.CHANNEL:
-        cursor = await conn.execute(
-            "SELECT lang FROM channels WHERE id = (?)", (chat_id,)
-        )
     try:
         row = await cursor.fetchone()
         return row[0]
@@ -35,9 +31,5 @@ async def set_db_lang(chat_id: int, lang_code: str, chat_type: str):
     elif chat_type in (ChatType.GROUP, ChatType.SUPERGROUP):
         await conn.execute(
             "UPDATE groups SET lang = ? WHERE id = ?", (lang_code, chat_id)
-        )
-    elif chat_type == ChatType.CHANNEL:
-        await conn.execute(
-            "UPDATE channels SET lang = ? WHERE id = ?", (lang_code, chat_id)
         )
     await conn.commit()
