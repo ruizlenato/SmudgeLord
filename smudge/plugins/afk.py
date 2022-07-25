@@ -60,8 +60,7 @@ async def afk_watcher(c: Client, m: Message):
             if y.type == enums.MessageEntityType.MENTION:
                 x = re.search(r"@(\w+)", m.text)  # Regex to get @username
                 try:
-                    user = await c.get_users(x[1])
-                    user_id = user.id
+                    user_id = (await c.get_users(x[1])).id
                     if user_id == user.id:
                         return
                     user_first_name = user.first_name
