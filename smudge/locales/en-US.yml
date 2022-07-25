@@ -3,9 +3,9 @@
 
 # Core
 core:
-  language_flag: "🇺🇸"
-  language_name: "American English"
-  language_code: "en-US"
+  flag: "🇺🇸"
+  name: "American English"
+  code: "en-US"
 
 # Main
 strings:
@@ -16,13 +16,13 @@ strings:
       📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
       💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>
     start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
-    lang_save: "Language changed successfully"
-    lang_crowdin: "🌎 Help us with translations!"
+    lang_saved: "Language changed successfully"
+    crowdin: "🌎 Help us with translations!"
     select_lang: "Select the language you want to use the bot"
-    btn_back: "↩️ Back"
-    start_btn_lang: "🇺🇸 Language"
-    start_btn_help: "❓ Help"
-    change_lang_uchannel: "Hmm, apparently you are sending messages using a channel.\n<b>Send messages as a normal user so I can help you.</b>"
+    back_btn: "↩️ Back"
+    btn_lang: "🇺🇸 Language"
+    btn_help: "❓ Help"
+    change_lang_uchannel: "Hmm, apparently you are sending messages anonymously.\n<b>Send messages as a normal user so I can help you.</b>"
     help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
     avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
     config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group.\n\n<b>SDL Auto -</b> <i>When enabled (✅) the bot will download videos from social networks automatically when someone sends a link</i>\n<b>Language -</b> <i>Change the language of the bot in the group</i>"
@@ -35,15 +35,12 @@ strings:
 
 # Admin
   Admin:
-    Admin: "Admin"
     noadmin: "You are not a group admin."
     botnotadmin: "I am not a group admin. Please add me as a group admin."
     err_private: "This command cannot be used in a private chat, use this command in a group that you admin."
     cleanup_start: "Removing deleted accounts..."
     cleanup_start_d: "Deleted accounts: {}"
     cleanup_no_deleted: "There are no deleted accounts in the group."
-    help: |
-      <b>/cleanup</b> - Removes all deleted accounts from the group.
 
 # Android
   Android:
@@ -256,7 +253,7 @@ strings:
     noargs_ytdl: "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\nSpecify a word or a link so that I can search and download a video."
     noargs_gitr: "<b>Usage:</b> <code>/gitr [user]/[repo]</code>\n\nSpecify the username and repository for which you want to fetch releases."
     noargs_print: "<b>Usage:</b> <code>/print https://exemplo.com</code>\n\nSpecify the link so that I can return the screenshot."
-    help: |
+    help: |      
       <b>/afk or brb -</b> <i>Will add you as <a href='https://bit.ly/3vTIxyg'>afk</a> every time someone tags you in a group I will reply saying you are afk</i>
       <i>This command can also be used with some argument, for example: <code>/afk I am sleeping</code></i>
 
@@ -266,6 +263,8 @@ strings:
       <b>/sdl or /mdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>
       <b>/ytdl -</b> <i>Download videos from YouTube in video or audio format.</i>
       <b>/yt -</b> <i>It does a YouTube search with the word you wrote and returns a list with videos.</i>
+
+      <b>/cleanup</b> - Removes all deleted accounts from the group.
 
 # Stickers
   Stickers:

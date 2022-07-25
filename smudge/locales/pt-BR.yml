@@ -3,9 +3,9 @@
 
 # Core
 core:
-  language_flag: "🇧🇷"
-  language_name: "Português"
-  language_code: "pt-BR"
+  flag: "🇧🇷"
+  name: "Português"
+  code: "pt-BR"
 
 # Main
 strings:
@@ -16,13 +16,13 @@ strings:
       📦 <b>Meu código-fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
       💬 Caso você tenha algum <b>problema</b> <a href='https://t.me/RuizLenato'>clique aqui para falar com o meu desenvolvedor.</a>
     start_message: "Oi Gatinha estou vivo, me chama no privado :3"
-    lang_save: "Idioma alterado com sucesso"
-    lang_crowdin: "🌎 Ajude-nos com as traduções!"
+    lang_saved: "Idioma alterado com sucesso"
+    crowdin: "🌎 Ajude-nos com as traduções!"
     select_lang: "Selecione o idioma que você quer utilizar no bot"
-    btn_back: "↩️ Voltar"
-    start_btn_lang: "🇧🇷 Idioma"
-    start_btn_help: "❓ Ajuda"
-    change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens usando um canal.\n<b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
+    back_btn: "↩️ Voltar"
+    btn_lang: "🇧🇷 Idioma"
+    btn_help: "❓ Ajuda"
+    change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens de forma anônima.\n<b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
     help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
     avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
     config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo.\n\n<b>SDL Auto -</b> <i>Quando ativo (✅) o bot irá baixar videos de redes sociais automaticamente quando alguém enviar um link</i>\n<b>Idioma -</b> <i>Altera o idioma do bot no grupo</i>"
@@ -35,15 +35,12 @@ strings:
 
 # Admin
   Admin:
-    Admin: "Administração"
     noadmin: "Você não é um administrador do grupo"
     botnotadmin: "Eu não sou um administrador do grupo!"
     err_private: "Esse comando não pode ser usado no meu chat privado, use esse comando em um grupo que você administra."
     cleanup_start: "Removendo contas excluídas..."
     cleanup_start_d: "Contas excluídas: {}"
     cleanup_no_deleted: "Não há contas excluídas no grupo."
-    help: |
-      <b>/cleanup</b> - Remove todas as contas excluídas do grupo.
 
 # Android
   Android:
@@ -206,7 +203,7 @@ strings:
     noargs_ytdl: "<b>Uso do comando:</b> <code>/ytdl [Palavra ou link]</code>\n\nEspecifique uma palavra ou um link para que eu possa buscar e baixar um vídeo."
     noargs_gitr: "<b>Uso do comando:</b> <code>/gitr [usuário]/[repositório]</code>\n\nEspecifique nome de usuário e repositório para qual você quer buscar releases."
     noargs_print: "<b>Uso do comando:</b> <code>/print https://exemplo.com</code>\n\nEspecifique o site para que eu possa retornar a captura de tela."
-    help: |
+    help: |      
       <b>/afk ou brb -</b> <i>Adicionará você como <a href='https://bit.ly/3yaR9TL'>afk</a> e toda vez que alguém marcar você em um grupo eu irei responder falando que você está afk</i>
       <i>Esse comando também pode ser usado com algum argumento, exemplo: <code>/afk Estou dormindo</code></i>
 
@@ -219,6 +216,8 @@ strings:
       <b>/sdl ou /mdl -</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>
       <b>/ytdl -</b> <i>Baixa vídeos do YouTube em formato de vídeo ou audio.</i>
       <b>/yt -</b> <i>Faz uma busca no YouTube com a palavra que você escreveu e retorna uma lista com vídeos.</i>
+
+      <b>/cleanup</b> - Remove todas as contas excluídas do grupo.
 
 # Stickers
   Stickers:

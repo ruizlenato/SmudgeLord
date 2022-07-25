@@ -43,8 +43,8 @@ async def start_command(c: Client, m: Union[Message, CallbackQuery]):
     if chat_type == ChatType.PRIVATE:
         keyboard = [
             [
-                (await tld(m, "Main.start_btn_lang"), "setchatlang"),
-                (await tld(m, "Main.start_btn_help"), "menu"),
+                (await tld(m, "Main.btn_lang"), "setchatlang"),
+                (await tld(m, "Main.btn_help"), "menu"),
             ],
             [
                 (
@@ -78,13 +78,12 @@ async def portuguese(c: Client, m: Message):
         ):
             return
 
-    keyboard = [[(await tld(m, "Main.btn_back"), "setchatlang")]]
+    keyboard = [[(await tld(m, "Main.back_btn"), "setchatlang")]]
     if m.message.chat.type == ChatType.PRIVATE:
         await set_db_lang(m.from_user.id, lang, m.message.chat.type)
     elif m.message.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
         await set_db_lang(m.message.chat.id, lang, m.message.chat.type)
     text = await tld(m, "Main.lang_saved")
-    text = await tld(m, "Main.lang_save")
     with contextlib.suppress(MessageNotModified):
         await m.edit_message_text(text, reply_markup=ikb(keyboard))
 
@@ -104,21 +103,21 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
     keyboard = [
         [
             (
-                f'{lang_dict[lang]["core"]["language_flag"]} {lang_dict[lang]["core"]["language_name"]} ({lang_dict[lang]["core"]["language_code"]})',
+                f'{lang_dict[lang]["core"]["flag"]} {lang_dict[lang]["core"]["name"]} ({lang_dict[lang]["core"]["code"]})',
                 f"set_lang {lang}",
             )
             for lang in langs
         ],
         [
             (
-                await tld(m, "Main.lang_crowdin"),
+                await tld(m, "Main.crowdin"),
                 "https://crowdin.com/project/smudgelord",
                 "url",
             ),
         ],
     ]
     if chat_type == ChatType.PRIVATE:
-        keyboard += [[(await tld(m, "Main.btn_back"), "start_command")]]
+        keyboard += [[(await tld(m, "Main.back_btn"), "start_command")]]
     else:
         try:
             member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
@@ -164,7 +163,7 @@ async def help_menu(m, text):
         reply_text = m.edit_message_text
     else:
         reply_text = m.reply_text
-    keyboard = [[(await tld(m, "Main.btn_back"), "menu")]]
+    keyboard = [[(await tld(m, "Main.back_btn"), "menu")]]
     text = (await tld(m, "Main.avaliable_commands")).format(text)
     await reply_text(text, reply_markup=ikb(keyboard), disable_web_page_preview=True)
 
@@ -220,7 +219,7 @@ async def ssdl(c: Client, m: Union[Message, CallbackQuery]):
         await tsdl(chat_id, None)
         text = await tld(m, "Misc.sdl_config_noauto")
 
-    keyboard = [[(await tld(m, "Main.btn_back"), "config")]]
+    keyboard = [[(await tld(m, "Main.back_btn"), "config")]]
     await reply_text(text, reply_markup=ikb(keyboard))
     return
 
@@ -250,7 +249,7 @@ async def image_ssdl(c: Client, m: Union[Message, CallbackQuery]):
         await tisdl(chat_id, None)
         text = await tld(m, "Misc.sdl_config_noauto_images")
 
-    keyboard = [[(await tld(m, "Main.btn_back"), "config")]]
+    keyboard = [[(await tld(m, "Main.back_btn"), "config")]]
     await reply_text(text, reply_markup=ikb(keyboard))
     return
 
@@ -287,7 +286,7 @@ async def config(c: Client, m: Union[Message, CallbackQuery]):
         ],
         [
             (
-                await tld(m, "Main.start_btn_lang"),
+                await tld(m, "Main.btn_lang"),
                 "setchatlang",
             ),
         ],
