@@ -22,6 +22,7 @@ strings:
     btn_lang: "🇺🇸 Language"
     btn_help: "❓ Help"
     change_lang_uchannel: "Hmm, apparently you are sending messages anonymously.\n<b>Send messages as a normal user so I can help you.</b>"
+    bot_muted: "I am silenced in group <b>{}</b> (<code>{}</code>) and you are admin.\n<b>Please give me permissions so I can send messages and media</b>."
     help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
     avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
     config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group.\n\n<b>SDL Auto -</b> <i>When enabled (✅) the bot will download videos from social networks automatically when someone sends a link</i>\n<b>Language -</b> <i>Change the language of the bot in the group</i>"
