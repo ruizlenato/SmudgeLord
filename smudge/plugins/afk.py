@@ -33,62 +33,8 @@ async def set_afk(c: Client, m: Message):
     await m.reply_text(afkmsg + reason_txt)
 
 
-@Client.on_message(filters.group & ~filters.bot, group=1)
-async def afk_watcher(c: Client, m: Message):
-    user = m.from_user
-    if m.sender_chat:
-        return
-    try:
-        if m.text.startswith(("brb", "/afk")):
-            return
-    except AttributeError:
-        return
-
-    try:
-        user_afk = await get_uafk(user.id)
-    except AttributeError:
-        return
-
-    if user_afk:
-        await del_uafk(user.id)
-        return await m.reply_text(
-            (await tld(m, "Misc.no_longer_afk")).format(user.first_name)
-        )
-
-    if m.entities:
-        for y in m.entities:
-            if y.type == enums.MessageEntityType.MENTION:
-                x = re.search(r"@(\w+)", m.text)  # Regex to get @username
-                try:
-                    user_id = (await c.get_users(x[1])).id
-                    if user_id == user.id:
-                        return
-                    user_first_name = user.first_name
-                except (IndexError, BadRequest, KeyError):
-                    return
-                except FloodWait as e:  # Avoid FloodWait
-                    await asyncio.sleep(e.value)
-            elif y.type == enums.MessageEntityType.TEXT_MENTION:
-                try:
-                    user_id = y.user.id
-                    if user_id == user.id:
-                        return
-                    user_first_name = y.user.first_name
-                except UnboundLocalError:
-                    return
-            else:
-                return
-
-    elif m.reply_to_message and m.reply_to_message.from_user:
-        try:
-            user_id = m.reply_to_message.from_user.id
-            user_first_name = m.reply_to_message.from_user.first_name
-        except AttributeError:
-            return
-    else:
-        return  # No user to set afk
-
-    if not await get_uafk(user_id):
+async def check_afk(m, user_id, user_fn, user):
+    if user_id == user.id:
         return
 
     try:
@@ -96,7 +42,56 @@ async def afk_watcher(c: Client, m: Message):
     except (UserNotParticipant, PeerIdInvalid):
         return
 
-    afkmsg = (await tld(m, "Misc.user_afk")).format(user_first_name[:25])
+    afkmsg = (await tld(m, "Misc.user_afk")).format(user_fn[:25])
     if await get_uafk(user_id) != "No reason":
         afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_uafk(user_id))
     return await m.reply_text(afkmsg)
+
+
+@Client.on_message(filters.group & ~filters.bot, group=1)
+async def afk(c: Client, m: Message):
+    user = m.from_user
+    if m.sender_chat:
+        return
+
+    try:
+        if m.text.startswith(("brb", "/afk")):
+            return
+    except AttributeError:
+        return
+
+    if user and await get_uafk(user.id) is not None:
+        await del_uafk(user.id)
+        return await m.reply_text(
+            (await tld(m, "Misc.no_longer_afk")).format(user.first_name)
+        )
+
+    elif m.reply_to_message:
+        try:
+            user_id = m.reply_to_message.from_user.id
+            user_fn = m.reply_to_message.from_user.first_name
+        except AttributeError:
+            return
+        await check_afk(m, user_id, user_fn, user)
+
+    elif m.entities:
+        for y in m.entities:
+            if y.type == enums.MessageEntityType.MENTION:
+                x = re.search(r"@(\w+)", m.text)  # Regex to get @username
+                try:
+                    user_id = (await c.get_users(x[1])).id
+                    user_fn = user.first_name
+                except (IndexError, BadRequest, KeyError):
+                    return
+                except FloodWait as e:  # Avoid FloodWait
+                    await asyncio.sleep(e.value)
+            elif y.type == enums.MessageEntityType.TEXT_MENTION:
+                try:
+                    user_id = y.user.id
+                    user_fn = y.user.first_name
+                except UnboundLocalError:
+                    return
+            else:
+                return
+
+            await check_afk(m, user_id, user_fn, user)
