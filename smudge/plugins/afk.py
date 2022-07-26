@@ -5,7 +5,13 @@ import asyncio
 
 from pyrogram.types import Message
 from pyrogram import Client, filters, enums
-from pyrogram.errors import FloodWait, UserNotParticipant, BadRequest, PeerIdInvalid
+from pyrogram.errors import (
+    FloodWait,
+    UserNotParticipant,
+    BadRequest,
+    PeerIdInvalid,
+    ChatWriteForbidden,
+)
 
 from smudge.utils.locales import tld
 from smudge.database.afk import set_uafk, get_uafk, del_uafk
@@ -30,22 +36,29 @@ async def set_afk(c: Client, m: Message):
         reason = m.text.split(None, 1)[1]
         reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
     await set_uafk(m.from_user.id, reason)
-    await m.reply_text(afkmsg + reason_txt)
+    try:
+        await m.reply_text(afkmsg + reason_txt)
+    except ChatWriteForbidden:
+        return
 
 
 async def check_afk(m, user_id, user_fn, user):
     if user_id == user.id:
         return
 
-    try:
-        await m.chat.get_member(int(user_id))  # Check if the user is in the group
-    except (UserNotParticipant, PeerIdInvalid):
-        return
+    if await get_uafk(user_id) is not None:
+        try:
+            await m.chat.get_member(int(user_id))  # Check if the user is in the group
+        except (UserNotParticipant, PeerIdInvalid):
+            return
 
-    afkmsg = (await tld(m, "Misc.user_afk")).format(user_fn[:25])
-    if await get_uafk(user_id) != "No reason":
-        afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_uafk(user_id))
-    return await m.reply_text(afkmsg)
+        afkmsg = (await tld(m, "Misc.user_afk")).format(user_fn[:25])
+        if await get_uafk(user_id) != "No reason":
+            afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_uafk(user_id))
+        try:
+            return await m.reply_text(afkmsg)
+        except ChatWriteForbidden:
+            return
 
 
 @Client.on_message(filters.group & ~filters.bot, group=1)
@@ -62,10 +75,12 @@ async def afk(c: Client, m: Message):
 
     if user and await get_uafk(user.id) is not None:
         await del_uafk(user.id)
-        return await m.reply_text(
-            (await tld(m, "Misc.no_longer_afk")).format(user.first_name)
-        )
-
+        try:
+            return await m.reply_text(
+                (await tld(m, "Misc.no_longer_afk")).format(user.first_name)
+            )
+        except ChatWriteForbidden:
+            return
     elif m.reply_to_message:
         try:
             user_id = m.reply_to_message.from_user.id
