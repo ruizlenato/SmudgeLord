@@ -71,6 +71,8 @@ strings:
     no_username_to_clear: "Você não definiu o seu username do <b><a href='https://last.fm/'>LastFM</a></b> para que eu possa deletar do meu banco de dados."
     no_username: "<b>Erro.</b>\nVocê precisa definir o seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> para usar esse comando.\n\n<b>Use o comando:</b> /setuser (username)."
     username_wrong: "Seu username do <b><a href='https://last.fm/'>LastFM</a></b> está incorreto\n\n<strong>Use /setuser (nome de usuário)</strong> e tente novamente"
+    lastfm_info: "<b>Informações do LastFM do(a) {}\n\n📎 Nome de usuário:</b> {}\n<b>🏷 Nome real:</b> {}\n<b>📈 Quantidade de scrobbles:</b> {}\n<b>📅 Conta criada em:</b> {}"
+    lastfm_info_btn: "🔗 Link para o perfil do LastFM"
     scrobble_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> está ouvindo pela <strong>{}° vez</strong>:\n\n"
     scrobble_none_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> está ouvindo:\n\n" 
     scrobble_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> estava ouvindo pela <strong>{}° vez</strong>:\n\n"

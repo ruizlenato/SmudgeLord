@@ -3,6 +3,7 @@
 import os
 import re
 import PIL
+import time
 import httpx
 import base64
 import random
@@ -177,6 +178,52 @@ async def setuser(c: Client, m: Message):
         rep = "Você esquceu do username"
         await m.reply_text(rep)
     return
+
+
+@Client.on_message(filters.command(["lastinfo", "linfo"]))
+async def lastfm_info(c: Client, m: Message):
+    user = m.from_user.first_name
+    user_id = m.from_user.id
+    username = await get_last_user(user_id)
+
+    if not username:
+        await m.reply_text(await tld(m, "Music.no_username"))
+        return
+
+    res = await http.get(
+        "http://ws.audioscrobbler.com/2.0"
+        + f"?method=user.getInfo&user={username}"
+        + f"&api_key={LASTFM_API_KEY}&format=json"
+    )
+
+    db = orjson.loads(res.content)
+
+    if res.status_code != 200:
+        return
+
+    luser = db["user"]
+    photo = luser["image"][3]["#text"]
+    rname = luser["realname"]
+    pcount = luser["playcount"]
+    rtime = time.strftime("%m/%Y", time.localtime(luser["registered"]["#text"]))
+
+    rep = f"<a href='{photo}'>\u200c</a>"
+    rep += (await tld(m, "Music.lastfm_info")).format(
+        user, username, rname, pcount, rtime
+    )
+    keyboard = ikb(
+        [
+            [
+                (
+                    await tld(m, "Music.lastfm_info_btn"),
+                    f"https://last.fm/user/{username}",
+                    "url",
+                ),
+            ],
+        ]
+    )
+
+    await m.reply_text(rep, reply_markup=keyboard)
 
 
 @Client.on_message(filters.command(["lastfm", "lmu", "lt", "whl"]))
