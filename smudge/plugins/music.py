@@ -179,7 +179,7 @@ async def setuser(c: Client, m: Message):
     return
 
 
-@Client.on_message(filters.command(["lastfm", "lmu", "lt"]))
+@Client.on_message(filters.command(["lastfm", "lmu", "lt", "whl"]))
 async def lastfm(c: Client, m: Message):
     if m.chat.type != enums.ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
         try:
@@ -189,9 +189,18 @@ async def lastfm(c: Client, m: Message):
             return
         except UserNotParticipant:
             pass
-    user = m.from_user.first_name
-    user_id = m.from_user.id
-    username = await get_last_user(user_id)
+
+    if m.text.split(maxsplit=1)[0] == "/whl":
+        try:
+            user = m.reply_to_message.from_user.first_name
+            user_id = m.reply_to_message.from_user.id
+            username = await get_last_user(user_id)
+        except AttributeError:
+            return
+    else:
+        user = m.from_user.first_name
+        user_id = m.from_user.id
+        username = await get_last_user(user_id)
 
     if not username:
         await m.reply_text(await tld(m, "Music.no_username"))
