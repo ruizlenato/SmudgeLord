@@ -160,5 +160,4 @@ async def variants(c: Client, m: Message):
     await m.reply_text(message)
 
 
-plugin_name = "Android.name"
-plugin_help = "Android.help"
+__help__ = "Android"

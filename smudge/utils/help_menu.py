@@ -19,7 +19,7 @@ async def help_buttons(m, HELP):
     plugins = sorted(
         [
             (
-                await tld(m, str(HELP[plugin][0]["name"])),
+                await tld(m, str(HELP[plugin][0]["name"] + ".name")),
                 f"help_plugin({plugin.lower()})",
             )
             for plugin in HELP.keys()

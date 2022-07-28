@@ -328,6 +328,6 @@ async def convert_video(filename: str) -> str:
         os.remove(filename)
     return webm_video
 
-
+__help__ = "Stickers"
 plugin_name = "Stickers.name"
 plugin_help = "Stickers.help"

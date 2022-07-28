@@ -20,14 +20,10 @@ from smudge.database.videos import tsdl, csdl, tisdl, cisdl
 
 HELP = {}
 
-for plugin in all_plugins:
-    imported_plugin = importlib.import_module(f"smudge.plugins.{plugin}")
-    if hasattr(imported_plugin, "plugin_help") and hasattr(
-        imported_plugin, "plugin_name"
-    ):
-        plugin_name = imported_plugin.plugin_name
-        plugin_help = imported_plugin.plugin_help
-        HELP[plugin] = [{"name": plugin_name, "help": plugin_help}]
+for plugins in all_plugins:
+    plugin = importlib.import_module(f"smudge.plugins.{plugins}")
+    if hasattr(plugin, "__help__"):
+        HELP[plugins] = [{"name": plugin.__help__}]
 
 
 @Client.on_message(filters.command("start"))
@@ -172,7 +168,7 @@ async def help_menu(m, text):
 async def but(c: Client, cq: CallbackQuery):
     plug_match = re.match(r"help_plugin\((.+?)\)", cq.data)
     plug = plug_match[1]
-    text = await tld(cq, str(HELP[plug][0]["help"]))
+    text = await tld(cq, str(HELP[plug][0]["name"] + ".help"))
     await help_menu(cq, text)
 
 

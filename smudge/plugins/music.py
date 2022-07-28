@@ -674,5 +674,4 @@ async def create_duotone(c: Client, cq: CallbackQuery):
         await cq.answer("🚫")
 
 
-plugin_name = "Music.name"
-plugin_help = "Music.help"
+__help__ = "Music"
