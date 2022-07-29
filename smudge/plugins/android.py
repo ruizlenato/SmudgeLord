@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import re
-import orjson
+import json
 from bs4 import BeautifulSoup
 
 from pyrogram.helpers import ikb
@@ -24,7 +24,7 @@ class GetDevice:
 
     async def get(self):
         try:
-            db = orjson.loads((await http.get(DEVICE_DATA_NAME)).content)
+            db = json.loads((await http.get(DEVICE_DATA_NAME)).content)
             name = self.device.lower()
             device = db[self.device][0][
                 "device"
@@ -39,7 +39,7 @@ class GetDevice:
                     if re.search(r"(sm-.*)", self.device)
                     else self.device
                 )
-                db = orjson.loads((await http.get(DEVICE_DATA)).content)
+                db = json.loads((await http.get(DEVICE_DATA)).content)
                 try:
                     name = db[argdevice][0]["name"]
                     device = db[argdevice][0]["device"]
@@ -54,7 +54,7 @@ class GetDevice:
                 except KeyError:
                     return False
             else:
-                database = orjson.loads((await http.get(DEVICE_DATA_MODEL)).content)
+                database = json.loads((await http.get(DEVICE_DATA_MODEL)).content)
                 newdevice = (
                     self.device.strip("lte").lower()
                     if self.device.startswith("beyond")
@@ -80,7 +80,7 @@ async def magisk(c: Client, m: Message):
     repo_url = "https://raw.githubusercontent.com/topjohnwu/magisk-files/master/"
     text = await tld(m, "Android.magisk_releases")
     for magisk_type in ["stable", "beta", "canary"]:
-        data = orjson.loads((await http.get(repo_url + magisk_type + ".json")).content)
+        data = json.loads((await http.get(repo_url + magisk_type + ".json")).content)
         text += (
             f"<b>{magisk_type.capitalize()}</b>:\n"
             f'<a href="{data["magisk"]["link"]}" >Magisk - V{data["magisk"]["version"]}</a>'
@@ -142,7 +142,7 @@ async def variants(c: Client, m: Message):
         message = await tld(m, "Android.codename_notfound")
         await m.reply_text(message)
         return
-    db = orjson.loads(
+    db = json.loads(
         (
             await http.get(
                 "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_device.json"

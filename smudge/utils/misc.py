@@ -1,9 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import uuid
-
+import json
 import httpx
-import orjson
 
 from smudge.utils import http
 
@@ -69,9 +68,7 @@ async def cssworker_url(target_url: str):
     }
 
     try:
-        return orjson.loads(
-            (await http.post(url, headers=my_headers, json=data)).content
-        )
+        return json.loads((await http.post(url, headers=my_headers, json=data)).content)
     except httpx.NetworkError:
         return None
 

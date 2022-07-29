@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import html
-import orjson
+import json
 
 from typing import Union
 from gpytranslate import Translator
@@ -111,13 +111,13 @@ async def cep(c: Client, m: Message):
 
     base_url = "https://brasilapi.com.br/api/cep/v1"
     res = await http.get(f"{base_url}/{cep}")
-    db = orjson.loads(res.content)
+    db = json.loads(res.content)
     try:
         city = db["city"]
         state = db["state"]
     except KeyError:
         return await m.reply_text((await tld(m, "Misc.cep_error")))
-    state_name = orjson.loads(
+    state_name = json.loads(
         (await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")).content
     )["nome"]
     neighborhood = db["neighborhood"]
@@ -144,14 +144,14 @@ async def ddd(c: Client, m: Union[Message, CallbackQuery]):
         await m.reply_text(await tld(m, "Misc.noargs_ddd"))
         return
     res = await http.get(f"https://brasilapi.com.br/api/ddd/v1/{ddd}")
-    db = orjson.loads(res.content)
+    db = json.loads(res.content)
     try:
         state = db["state"]
     except KeyError:
         return await m.reply_text((await tld(m, "Misc.ddd_error")))
     if res.status_code == 404:
         return await m.reply_text((await tld(m, "Misc.ddd_error")))
-    state_name = orjson.loads(
+    state_name = json.loads(
         (await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")).content
     )["nome"]
     cities = db["cities"]
@@ -188,7 +188,7 @@ async def git_on_message(c: Client, m: Message):
 
 
 async def git(c: Client, m: Message, repo, page):
-    db = orjson.loads(page.content)
+    db = json.loads(page.content)
     date = db["published_at"]
     message = (
         f"<b>Name:</b> <i>{db['name']}</i>\n"

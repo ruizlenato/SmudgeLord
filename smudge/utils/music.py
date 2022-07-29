@@ -3,7 +3,7 @@
 
 import re
 import os
-import orjson
+import json
 import tempfile
 
 from smudge.utils import http
@@ -50,7 +50,7 @@ class SpotifyUser:
         )
 
         if r.status_code in range(200, 299):
-            b = orjson.loads(r.content)
+            b = json.loads(r.content)
             await set_spot_user(user_id, b["access_token"], b["refresh_token"])
             return True, b["access_token"]
         else:
@@ -63,7 +63,7 @@ class SpotifyUser:
             "client_id": self.client_id,
             "client_secret": self.client_secret,
         }
-        token = orjson.loads((await http.post(self.token_url, data=data)).content)
+        token = json.loads((await http.post(self.token_url, data=data)).content)
 
         headers = {
             "Accept": "application/json",
@@ -81,7 +81,7 @@ class SpotifyUser:
             "client_id": self.client_id,
             "client_secret": self.client_secret,
         }
-        token = orjson.loads((await http.post(self.token_url, data=data)).content)
+        token = json.loads((await http.post(self.token_url, data=data)).content)
 
         headers = {
             "Accept": "application/json",
@@ -97,7 +97,7 @@ class SpotifyUser:
             "client_id": self.client_id,
             "client_secret": self.client_secret,
         }
-        token = orjson.loads((await http.post(self.token_url, data=data)).content)
+        token = json.loads((await http.post(self.token_url, data=data)).content)
 
         headers = {
             "Accept": "application/json",
@@ -115,7 +115,7 @@ Spotify = SpotifyUser(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET)
 
 async def refresh_token(user_id):
     usr = await get_spot_user(user_id)
-    b = orjson.loads(
+    b = json.loads(
         (
             await http.post(
                 "https://accounts.spotify.com/api/token",
@@ -147,7 +147,7 @@ class LastFMImage:
 
     async def get_artists(self):
         r = await http.get(await self._get_body())
-        b = orjson.loads(r.content)
+        b = json.loads(r.content)
         if r.status_code == 403:
             print("cannot access")
             return False
@@ -157,7 +157,7 @@ class LastFMImage:
 
     async def get_tracks(self):
         r = await http.get(await self._get_body())
-        b = orjson.loads(r.content)
+        b = json.loads(r.content)
         if r.status_code == 403:
             print("cannot access")
             return False
@@ -167,7 +167,7 @@ class LastFMImage:
 
     async def get_albums(self):
         r = await http.get(await self._get_body())
-        b = orjson.loads(r.content)
+        b = json.loads(r.content)
         if r.status_code == 403:
             print("cannot access")
             return False
@@ -221,7 +221,7 @@ class LastFMImage:
         for track in tracks:
             artist_name = track["artist"]["name"]
             track_name = track["name"]
-            info = orjson.loads(
+            info = json.loads(
                 (
                     await http.get(
                         f"{self.url}?method=track.getInfo&api_key={self.api_key}&artist={quote(artist_name)}&track={quote(track_name)}&format=json"
@@ -231,7 +231,7 @@ class LastFMImage:
 
             try:
                 usr = await get_spot_user("1032274246")
-                spotify_json = orjson.loads(
+                spotify_json = json.loads(
                     (
                         await Spotify.search(
                             usr, f"{artist_name}+{track_name}", "track", "US", 20

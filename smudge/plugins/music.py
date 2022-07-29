@@ -4,11 +4,11 @@ import os
 import re
 import PIL
 import time
+import json
 import httpx
 import base64
 import random
 import shutil
-import orjson
 import urllib.parse
 
 from typing import Union
@@ -65,12 +65,12 @@ async def spoti(c: Client, m: Message):
             if sp is False:
                 return await m.reply_text(await tld(m, "Music.spotify_login_failed"))
 
-            spotify_json = orjson.loads(sp.content)
+            spotify_json = json.loads(sp.content)
 
             if spotify_json is None:
                 return
 
-            userlink = orjson.loads((await Spotify.getCurrentUser(usr)).content)
+            userlink = json.loads.loads((await Spotify.getCurrentUser(usr)).content)
 
             rep = f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
             if spotify_json["is_playing"] is True:
@@ -94,7 +94,7 @@ async def spotf(c: Client, m: Message):
             await tld(m, "Music.spitify_no_login"), reply_markup=keyboard
         )
     else:
-        spotify_json = orjson.loads((await Spotify.getCurrentyPlayingSong(usr)).content)
+        spotify_json = json.loads((await Spotify.getCurrentyPlayingSong(usr)).content)
         rep = (
             f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
         )
@@ -196,7 +196,7 @@ async def lastfm_info(c: Client, m: Message):
         + f"&api_key={LASTFM_API_KEY}&format=json"
     )
 
-    db = orjson.loads(res.content)
+    db = json.loads(res.content)
 
     if res.status_code != 200:
         return
@@ -260,7 +260,7 @@ async def lastfm(c: Client, m: Message):
         + f"{LASTFM_API_KEY}&format=json"
     )
 
-    db = orjson.loads(res.content)
+    db = json.loads(res.content)
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -285,7 +285,7 @@ async def lastfm(c: Client, m: Message):
     )
 
     try:
-        info = orjson.loads(fetch.content)
+        info = json.loads(fetch.content)
         last_user = info["track"]
         if int(last_user.get("userplaycount")) == 0:
             scrobbles = int(last_user.get("userplaycount")) + 1
@@ -337,7 +337,7 @@ async def album(c: Client, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
-    db = orjson.loads(res.content)
+    db = json.loads(res.content)
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -359,7 +359,7 @@ async def album(c: Client, m: Message):
         + f"&api_key={LASTFM_API_KEY}&format=json"
     )
 
-    info = orjson.loads(fetch.content)
+    info = json.loads(fetch.content)
     last_user = info["album"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
@@ -415,7 +415,7 @@ async def artist(c: Client, m: Message):
         + f"&extended=1&user={username}&api_key="
         + f"{LASTFM_API_KEY}&format=json"
     )
-    db = orjson.loads(res.content)
+    db = json.loads(res.content)
 
     if res.status_code != 200:
         await m.reply_text((await tld(m, "Music.username_wrong")))
@@ -434,7 +434,7 @@ async def artist(c: Client, m: Message):
         + f"?method=artist.getinfo&artist={urllib.parse.quote(artist)}"
         + f"&user={username}&api_key={LASTFM_API_KEY}&format=json"
     )
-    info = orjson.loads(fetch.content)
+    info = json.loads(fetch.content)
     last_user = info["artist"]["stats"]
     if int(last_user.get("userplaycount")) == 0:
         scrobbles = int(last_user.get("userplaycount")) + 1
@@ -697,7 +697,7 @@ async def create_duotone(c: Client, cq: CallbackQuery):
         }
         try:
             resp = await http.post(url, headers=my_headers, json=data)
-            res = orjson.loads(resp.content)
+            res = json.loads(resp.content)
             data = (
                 str(res["base64"])
                 .replace(" ", "+")

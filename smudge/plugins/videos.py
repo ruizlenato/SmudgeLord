@@ -4,8 +4,8 @@
 import io
 import os
 import re
+import json
 import random
-import orjson
 import shutil
 import asyncio
 import tempfile
@@ -47,7 +47,7 @@ async def search_yt(query):
             "x-youtube-client-version": "2.20200827",
         },
     )
-    page = orjson.loads(page.content)
+    page = json.loads(page.content)
     list_videos = []
     for video in page[1]["response"]["contents"]["twoColumnSearchResultsRenderer"][
         "primaryContents"
