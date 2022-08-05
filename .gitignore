@@ -16,6 +16,7 @@ smudge/plugins/__pycache__/
 smudge/database/*database.*
 
 # Useless Stuffs
+unknown_errors.txt*
 stuff/
 downloads/*
 smudge/downloads/*
