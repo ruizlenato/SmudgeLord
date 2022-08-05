@@ -317,6 +317,7 @@ async def convert_video(filename: str) -> str:
         "-s",
         "512x512",
         "-y",
+        "-an",
         webm_video,
     ]
 
