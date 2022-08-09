@@ -15,4 +15,4 @@ Pillow>=8.4.0
 pyyaml==6.0
 regex
 urllib3
-yt-dlp==2022.7.18
+yt-dlp==2022.8.8
