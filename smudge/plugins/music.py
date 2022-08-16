@@ -263,7 +263,7 @@ async def lastfm(c: Client, m: Message):
     db = json.loads(res.content)
 
     if res.status_code != 200:
-        await m.reply_text((await tld(m, "Music.username_wrong")))
+        await m.reply_text((await tld(m, "Music.lastfm_api_error")))
         return
 
     try:
@@ -340,7 +340,7 @@ async def album(c: Client, m: Message):
     db = json.loads(res.content)
 
     if res.status_code != 200:
-        await m.reply_text((await tld(m, "Music.username_wrong")))
+        await m.reply_text((await tld(m, "Music.lastfm_api_error")))
         return
 
     try:
@@ -418,7 +418,7 @@ async def artist(c: Client, m: Message):
     db = json.loads(res.content)
 
     if res.status_code != 200:
-        await m.reply_text((await tld(m, "Music.username_wrong")))
+        await m.reply_text((await tld(m, "Music.lastfm_api_error")))
         return
 
     try:
