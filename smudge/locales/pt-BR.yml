@@ -35,7 +35,7 @@ strings:
 
 # Admin
   Admin:
-    noadmin: "Você não é um administrador do grupo"
+    not_admin: "Você não é um administrador do grupo"
     botnotadmin: "Eu não sou um administrador do grupo!"
     err_private: "Esse comando não pode ser usado no meu chat privado, use esse comando em um grupo que você administra."
     cleanup_start: "Removendo contas excluídas..."
@@ -224,18 +224,17 @@ strings:
 
 # Stickers
   Stickers:
-    name: "Stickers"
+    name: "Stickers/Figurinhas"
     pack_contact_pm: "Parece que você nunca interagiu comigo no chat privado, é necessário que faça isso primeiro.\n\nClique no botão abaixo para interagir comigo."
     kang_noreply: "<b>Pane no sistema alguém me desconfigurou.</b>\nVocê precisa usar esse comando respondendo um sticker ou uma foto."
     kanging: "Roubando o Sticker..."
-    getsticker_no_reply: Responda a um sticker para que eu faça o upload do PNG.
+    getsticker_no_reply: "Responda a um sticker usando esse comando para que eu possa enviar ele a você como <b>png ou gif</b>."
     err_no_file_name: "<b>Erro:</b> Este sticker não possui um nome de arquivo!"
     create_new_pack_string: "<b>Criando um novo pacote de stickers...</b>"
     kanged_string: "Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/{}'>Confira.</a>\n<b>Emoji:</b> {}"
     use_existing_pack: "<code>Usando o pacote de stickers existente...</code>"
     info_sticker: "<b>Emoji:</b> {}\n<b>ID do Sticker:</b> <code>{}</code>"
-    animated_not_supported: "<b>Vídeo stickers e stickers animados</b> não são suportados."
     invalid_media_string: "<b>Erro:</b> <code>[Mídia inválida]</code> Este não é um sticker ou uma foto."
     help: |
-      <b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo PNG bruto.
-      <b>/kang -</b> responda a um sticker (Stickers animados e vídeos são suportados) para adicioná-lo ao seu pacote.
+      <b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo como <b>png ou gif</b>.
+      <b>/kang -</b> responda a um sticker (Stickers animados e vídeos <b>são suportados</b>) para adicioná-lo ao seu pacote.

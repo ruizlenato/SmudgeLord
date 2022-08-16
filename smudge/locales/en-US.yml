@@ -35,7 +35,7 @@ strings:
 
 # Admin
   Admin:
-    noadmin: "You are not a group admin."
+    not_admin: "You are not a group admin."
     botnotadmin: "I am not a group admin. Please add me as a group admin."
     err_private: "This command cannot be used in a private chat, use this command in a group that you admin."
     cleanup_start: "Removing deleted accounts..."
@@ -275,14 +275,13 @@ strings:
     pack_contact_pm: "It seems like you've never interacted with me on the private chat, you need to do it first.\n\nClick on the button below to send me a message."
     kang_noreply: "<b>You need to use this command replying a sticker or a photo.</b>"
     kanging: "Stealing the sticker..."
-    getsticker_no_reply: "Reply a sticker so I can upload the PNG."
+    getsticker_no_reply: "Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>."
     err_no_file_name: "<b>Error</b>: <code>This sticker doesn't a have filename!</code>"
     create_new_pack_string: "<b>Creating a new sticker pack...</b>"
     kanged_string: "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\n<b>Emoji:</b> {}"
     use_existing_pack: "<code>Using existing sticker pack...</code>"
     info_sticker: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
-    animated_not_supported: "<b>Animated and video</b> stickers are not supported."
     invalid_media_string: "<b>Erorr</b>: Invalid media!"
     help: |
-      <b>/getsticker -</b> reply to a sticker to me to upload its raw PNG file.
+      <b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b>.
       <b>/kang -</b> reply to a sticker (Animated stickers and videos are supported) to add it to your pack.

@@ -27,7 +27,7 @@ async def cleanup(c: Client, m: Message):
         return await message.delete()
 
     if user.status not in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
-        return await m.reply_text(await tld(m, "Admin.noadmin"))
+        return await m.reply_text(await tld(m, "Admin.not_admin"))
 
     if bot.status != ChatMemberStatus.ADMINISTRATOR:
         return await m.reply_text(await tld(m, "Admin.botnotadmin"))

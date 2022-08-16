@@ -87,7 +87,7 @@ async def afk(c: Client, m: Message):
             user_fn = m.reply_to_message.from_user.first_name
         except AttributeError:
             return
-        await check_afk(m, user_id, user_fn, user)
+        return await check_afk(m, user_id, user_fn, user)
 
     elif m.entities:
         for y in m.entities:
@@ -109,4 +109,4 @@ async def afk(c: Client, m: Message):
             else:
                 return
 
-            await check_afk(m, user_id, user_fn, user)
+            return await check_afk(m, user_id, user_fn, user)

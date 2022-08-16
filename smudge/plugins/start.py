@@ -84,7 +84,7 @@ async def portuguese(c: Client, m: Message):
         await m.edit_message_text(text, reply_markup=ikb(keyboard))
 
 
-@Client.on_message(filters.command("setlang"))
+@Client.on_message(filters.command(["setlang", "language"]))
 @Client.on_callback_query(filters.regex(r"setchatlang"))
 async def setlang(c: Client, m: Union[Message, CallbackQuery]):
     if isinstance(m, CallbackQuery):
@@ -121,12 +121,13 @@ async def setlang(c: Client, m: Union[Message, CallbackQuery]):
                 ChatMemberStatus.ADMINISTRATOR,
                 ChatMemberStatus.OWNER,
             ):
-                return
+                message = await reply_text(await tld(m, "Admin.not_admin"))
+                await asyncio.sleep(5.0)
+                return await message.delete()
         except AttributeError:
             message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
-            await asyncio.sleep(10.0)
-            await message.delete()
-            return
+            await asyncio.sleep(5.0)
+            return await message.delete()
     await reply_text(await tld(m, "Main.select_lang"), reply_markup=ikb(keyboard))
     return
 

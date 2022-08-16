@@ -32,30 +32,30 @@ SUPPORTED_TYPES = ["jpeg", "png", "webp"]
 async def getsticker(c: Client, m: Message):
     try:
         sticker = m.reply_to_message.sticker
-        if sticker.is_animated or sticker.is_video:
-            with tempfile.TemporaryDirectory() as tempdir:
-                path = os.path.join(tempdir, "getsticker")
-            sticker_file = await c.download_media(
-                message=m.reply_to_message,
-                file_name=f"{path}/{sticker.set_name}.gif",
-            )
-        else:
-            with tempfile.TemporaryDirectory() as tempdir:
-                path = os.path.join(tempdir, "getsticker")
-            sticker_file = await c.download_media(
-                message=m.reply_to_message,
-                file_name=f"{path}/{sticker.set_name}.png",
-            )
-        await m.reply_to_message.reply_document(
-            document=sticker_file,
-            caption=(await tld(m, "Stickers.info_sticker")).format(
-                sticker.emoji, sticker.file_id
-            ),
-        ),
-        shutil.rmtree(tempdir, ignore_errors=True)
     except AttributeError:
-        await m.reply_text(await tld(m, "Stickers.getsticker_no_reply"))
-        return
+        return await m.reply_text(await tld(m, "Stickers.getsticker_no_reply"))
+
+    if sticker.is_animated or sticker.is_video:
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = os.path.join(tempdir, "getsticker")
+        sticker_file = await c.download_media(
+            message=m.reply_to_message, file_name=f"{path}/{sticker.set_name}.gif"
+        )
+
+    else:
+        with tempfile.TemporaryDirectory() as tempdir:
+            path = os.path.join(tempdir, "getsticker")
+        sticker_file = await c.download_media(
+            message=m.reply_to_message, file_name=f"{path}/{sticker.set_name}.png"
+        )
+
+    await m.reply_to_message.reply_document(
+        document=sticker_file,
+        caption=(await tld(m, "Stickers.info_sticker")).format(
+            sticker.emoji, sticker.file_id
+        ),
+    )
+    shutil.rmtree(tempdir, ignore_errors=True)
 
 
 @Client.on_message(filters.command("kang"))
