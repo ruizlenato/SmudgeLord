@@ -14,7 +14,7 @@ from smudge.utils.locales import tld
 from pyrogram.helpers import ikb
 from pyrogram import Client, filters, enums
 from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
-from pyrogram.errors import PeerIdInvalid, StickersetInvalid, FloodWait
+from pyrogram.errors import PeerIdInvalid, StickersetInvalid
 from pyrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
 from pyrogram.types import Message
 from pyrogram.raw.types import (

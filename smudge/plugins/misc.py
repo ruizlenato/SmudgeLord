@@ -15,6 +15,7 @@ from pyrogram.enums import ParseMode
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 
+# Translator
 tr = Translator()
 
 

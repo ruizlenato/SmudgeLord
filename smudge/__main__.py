@@ -7,7 +7,7 @@ from smudge.bot import Smudge
 
 # Custom logging format
 logging.basicConfig(
-    level=logging.WARNING,
+    level=logging.INFO,
     format=f"\u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
     datefmt="%m/%d %H:%M:%S",
 )
@@ -18,7 +18,6 @@ logs += "\n\033[94m------------------------------------------------------\033[0m
 print(logs)
 
 # To avoid some annoying log
-logger = logging.getLogger(__name__)
 logging.getLogger("pyrogram.syncer").setLevel(logging.WARNING)
 logging.getLogger("pyrogram.client").setLevel(logging.WARNING)
 

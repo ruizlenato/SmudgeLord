@@ -8,13 +8,13 @@ import traceback
 
 from pyrogram.types import Message
 from pyrogram import Client, filters
-from pyrogram.errors import BadRequest
 
 from contextlib import redirect_stdout
 
 from smudge.config import SUDOERS
 from smudge.database.core import database
 
+# Database connection
 conn = database.get_conn()
 
 

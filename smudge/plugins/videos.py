@@ -23,14 +23,13 @@ from smudge.utils.locales import tld
 from smudge.utils import send_logs, http, pretty_size, aiowrap
 from smudge.database.videos import csdl, cisdl
 
+# Regex to get link
 SDL_REGEX_LINKS = r"^http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.|m.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com|facebook.com)\/(?:\S*)"
 
+# Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
     r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/|embed/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"
 )
-TIME_REGEX = re.compile(r"[?&]t=([0-9]+)")
-
-MAX_FILESIZE = 500000000
 
 
 @aiowrap
@@ -97,7 +96,7 @@ async def ytdlcmd(c: Client, m: Message):
 
     rege = YOUTUBE_REGEX.match(url)
 
-    t = TIME_REGEX.search(url)
+    t = (re.compile(r"[?&]t=([0-9]+)")).search(url)
     temp = t.group(1) if t else 0
 
     if not rege:
@@ -150,7 +149,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         return print(cq.data)
     if cq.from_user.id != int(userid):
         return await cq.answer(await tld(cq, "Misc.ytdl_button_denied"), cache_time=60)
-    if int(fsize) > MAX_FILESIZE:
+    if int(fsize) > int(500000000):
         return await cq.answer(
             await tld(cq, "Misc.ytdl_file_too_big"),
             show_alert=True,
@@ -168,7 +167,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
                 "format": f"{vformat}+140",
-                "max_filesize": MAX_FILESIZE,
+                "max_filesize": int(500000000),
                 "noplaylist": True,
                 "logger": MyLogger(),
             }
@@ -178,7 +177,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
             {
                 "outtmpl": f"{path}/%(title)s-%(id)s.%(ext)s",
                 "format": "bestaudio[ext=m4a]",
-                "max_filesize": MAX_FILESIZE,
+                "max_filesize": int(500000000),
                 "noplaylist": True,
                 "logger": MyLogger(),
             }

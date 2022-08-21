@@ -4,11 +4,15 @@
 import sys
 import aiocron
 import datetime
+import logging
 from pyrogram import Client, enums
 
 from smudge.utils import http
 from smudge.database import database
 from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
+
+# Logging
+logger = logging.getLogger(__name__)
 
 # Date
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
@@ -31,7 +35,7 @@ class Smudge(Client):
 
     async def start(self):
         await database.connect()
-        print("\033[92mConnected to telegram servers.\033[0m")
+        logger.info("\033[92mConnected to telegram servers.\033[0m")
         await super().start()  # Connect to telegram's servers
 
         if "test" not in sys.argv:
@@ -54,4 +58,4 @@ class Smudge(Client):
         if database.is_connected:
             await database.close()
         await super().stop()
-        print(f"\033[93mSmudgeLord stopped. Bye!\033[0m")
+        logger.warning(f"\033[93mSmudgeLord stopped. Bye!\033[0m")

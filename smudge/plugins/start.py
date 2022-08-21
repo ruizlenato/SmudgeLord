@@ -18,6 +18,7 @@ from smudge.database.locales import set_db_lang
 from smudge.utils.help_menu import help_buttons
 from smudge.database.videos import tsdl, csdl, tisdl, cisdl
 
+# Help plugins
 HELP = {}
 
 for plugins in all_plugins:

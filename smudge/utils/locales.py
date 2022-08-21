@@ -2,7 +2,9 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import os
 import yaml
+
 import logging
+
 from glob import glob
 from functools import reduce
 from operator import getitem
@@ -13,6 +15,7 @@ from smudge.database.locales import get_db_lang
 LANGUAGES = ["pt-BR", "en-US"]
 strings = {}
 
+# Logging
 logger = logging.getLogger(__name__)
 
 
