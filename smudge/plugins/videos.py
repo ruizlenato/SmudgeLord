@@ -15,7 +15,8 @@ import gallery_dl
 from yt_dlp import YoutubeDL
 
 from pyrogram.helpers import ikb
-from pyrogram import Client, filters, enums
+from pyrogram import Client, filters
+from pyrogram.enums import ChatAction, ChatType
 from pyrogram.errors import BadRequest, FloodWait, Forbidden, MediaEmpty
 from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPhoto
 
@@ -189,7 +190,7 @@ async def cli_ytdl(c: Client, cq: CallbackQuery):
         await cq.message.edit((await tld(cq, "Misc.ytdl_send_error")).format(e))
         return
     await cq.message.edit(await tld(cq, "Main.sending"))
-    await c.send_chat_action(cq.message.chat.id, enums.ChatAction.UPLOAD_VIDEO)
+    await c.send_chat_action(cq.message.chat.id, ChatAction.UPLOAD_VIDEO)
 
     filename = ydl.prepare_filename(yt)
     thumb = io.BytesIO((await http.get(yt["thumbnail"])).content)
@@ -258,7 +259,7 @@ def gallery_down(path, url: str):
 @Client.on_message(filters.regex(SDL_REGEX_LINKS))
 async def sdl(c: Client, m: Message):
     if m.matches:
-        if m.chat.type == enums.ChatType.PRIVATE or await csdl(m.chat.id) == True:
+        if m.chat.type == ChatType.PRIVATE or await csdl(m.chat.id) == True:
             url = m.matches[0].group(0)
         else:
             return
@@ -295,10 +296,7 @@ async def sdl(c: Client, m: Message):
                     url,
                     re.M,
                 ) and (
-                    (
-                        m.chat.type == enums.ChatType.PRIVATE
-                        or await cisdl(m.chat.id) == True
-                    )
+                    (m.chat.type == ChatType.PRIVATE or await cisdl(m.chat.id) == True)
                 ):
                     try:
                         files += [
@@ -310,9 +308,7 @@ async def sdl(c: Client, m: Message):
                         pass
                 try:
                     if files:
-                        await c.send_chat_action(
-                            m.chat.id, enums.ChatAction.UPLOAD_DOCUMENT
-                        )
+                        await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
                         await m.reply_media_group(media=files)
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
@@ -344,7 +340,7 @@ async def sdl(c: Client, m: Message):
                     InputMediaVideo(os.path.join(path, video))
                     for video in os.listdir(path)
                 ]:
-                    await c.send_chat_action(m.chat.id, enums.ChatAction.UPLOAD_VIDEO)
+                    await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_VIDEO)
                     try:
                         await m.reply_media_group(media=videos)
                     except FloodWait as e:

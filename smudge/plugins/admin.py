@@ -3,8 +3,8 @@
 import asyncio
 from pyrogram.types import Message
 from pyrogram import Client, filters
-from pyrogram.enums import ChatType, ChatMemberStatus, ChatMembersFilter
-from pyrogram.errors import BadRequest, Forbidden, FloodWait
+from pyrogram.errors import BadRequest, Forbidden
+from pyrogram.enums import ChatType, ChatMemberStatus
 
 from smudge.utils.locales import tld
 

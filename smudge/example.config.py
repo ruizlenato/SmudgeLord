@@ -20,3 +20,9 @@ SUDOERS: List[int] = [1032274246]
 
 # Chat used for logs
 CHAT_LOGS: int = ""
+
+# IPV6 support
+IPV6: bool = True
+
+# Workers count
+WORKERS: int = 24

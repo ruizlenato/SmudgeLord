@@ -12,7 +12,8 @@ from smudge.utils import EMOJI_PATTERN, http
 from smudge.utils.locales import tld
 
 from pyrogram.helpers import ikb
-from pyrogram import Client, filters, enums
+from pyrogram import Client, filters
+from pyrogram.enums import MessageMediaType
 from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
 from pyrogram.errors import PeerIdInvalid, StickersetInvalid
 from pyrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
@@ -85,8 +86,8 @@ async def kang_sticker(c: Client, m: Message):
                 # mime_type: image/webp
                 resize = True
             elif (
-                enums.MessageMediaType.VIDEO == reply.document.mime_type
-                or enums.MessageMediaType.ANIMATION == reply.document.mime_type
+                MessageMediaType.VIDEO == reply.document.mime_type
+                or MessageMediaType.ANIMATION == reply.document.mime_type
             ):
                 # mime_type: application/video
                 videos = True

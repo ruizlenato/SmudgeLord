@@ -22,17 +22,15 @@ from smudge.database.music import (
 from smudge.utils.music import Spotify
 
 from pyrogram.helpers import ikb
-from pyrogram import Client, filters, enums
+from pyrogram.enums import ChatType
+from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant, BadRequest
 from pyrogram.types import Message, CallbackQuery
 
 
 @Client.on_message(filters.command(["spoti", "spo", "spot"]))
 async def spoti(c: Client, m: Message):
-    if (
-        m.chat.type != enums.ChatType.PRIVATE
-        and m.text.split(maxsplit=1)[0] == "/spoti"
-    ):
+    if m.chat.type != ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/spoti":
         try:
             await m.chat.get_member(796461943)  # To avoid conflict with @lyricspybot
             return
@@ -224,7 +222,7 @@ async def lastfm_info(c: Client, m: Message):
 
 @Client.on_message(filters.command(["lastfm", "lmu", "lt", "whl"]))
 async def lastfm(c: Client, m: Message):
-    if m.chat.type != enums.ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
+    if m.chat.type != ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
         try:
             await m.chat.get_member(
                 1993314727
@@ -309,10 +307,7 @@ async def lastfm(c: Client, m: Message):
 
 @Client.on_message(filters.command(["lalbum", "lalb", "album"]))
 async def album(c: Client, m: Message):
-    if (
-        m.chat.type != enums.ChatType.PRIVATE
-        and m.text.split(maxsplit=1)[0] == "/album"
-    ):
+    if m.chat.type != ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/album":
         try:
             await m.chat.get_member(
                 1993314727
@@ -387,10 +382,7 @@ async def album(c: Client, m: Message):
 
 @Client.on_message(filters.command(["lartist", "lart", "artist"]))
 async def artist(c: Client, m: Message):
-    if (
-        m.chat.type != enums.ChatType.PRIVATE
-        and m.text.split(maxsplit=1)[0] == "artist"
-    ):
+    if m.chat.type != ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "artist":
         try:
             await m.chat.get_member(
                 1993314727

@@ -11,7 +11,6 @@ from smudge.utils.locales import tld
 from smudge.utils.misc import get_tr_lang, cssworker_url, dicio_def
 
 from pyrogram.helpers import ikb
-from pyrogram.enums import ParseMode
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 

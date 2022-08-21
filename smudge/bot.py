@@ -5,11 +5,13 @@ import sys
 import aiocron
 import datetime
 import logging
-from pyrogram import Client, enums
+
+from pyrogram import Client
+from pyrogram.enums import ParseMode
 
 from smudge.utils import http
 from smudge.database import database
-from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
+from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS, IPV6, WORKERS
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -24,12 +26,14 @@ class Smudge(Client):
 
         super().__init__(
             name,
-            workdir="smudge",
-            api_id=API_ID,
-            api_hash=API_HASH,
             bot_token=BOT_TOKEN,
+            api_hash=API_HASH,
+            api_id=API_ID,
+            ipv6=IPV6,
+            workers=WORKERS,
+            parse_mode=ParseMode.HTML,
+            workdir="smudge",
             sleep_threshold=180,
-            parse_mode=enums.ParseMode.HTML,
             plugins={"root": "smudge.plugins"},
         )
 

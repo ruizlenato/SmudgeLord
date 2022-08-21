@@ -4,7 +4,8 @@ import re
 import asyncio
 
 from pyrogram.types import Message
-from pyrogram import Client, filters, enums
+from pyrogram import Client, filters
+from pyrogram.enums import MessageEntityType
 from pyrogram.errors import (
     FloodWait,
     UserNotParticipant,
@@ -91,7 +92,7 @@ async def afk(c: Client, m: Message):
 
     elif m.entities:
         for y in m.entities:
-            if y.type == enums.MessageEntityType.MENTION:
+            if y.type == MessageEntityType.MENTION:
                 x = re.search(r"@(\w+)", m.text)  # Regex to get @username
                 try:
                     user_id = (await c.get_users(x[1])).id
@@ -100,7 +101,7 @@ async def afk(c: Client, m: Message):
                     return
                 except FloodWait as e:  # Avoid FloodWait
                     await asyncio.sleep(e.value)
-            elif y.type == enums.MessageEntityType.TEXT_MENTION:
+            elif y.type == MessageEntityType.TEXT_MENTION:
                 try:
                     user_id = y.user.id
                     user_fn = y.user.first_name
