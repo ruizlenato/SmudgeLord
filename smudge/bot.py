@@ -4,9 +4,10 @@
 import sys
 import aiocron
 import datetime
-
 from pyrogram import Client, enums
 
+from smudge.utils import http
+from smudge.database import database
 from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
 # Date
@@ -29,6 +30,7 @@ class Smudge(Client):
         )
 
     async def start(self):
+        await database.connect()
         print("\033[92mConnected to telegram servers.\033[0m")
         await super().start()  # Connect to telegram's servers
 
@@ -47,8 +49,9 @@ class Smudge(Client):
 
         aiocron.crontab("*/60 * * * *", func=backup, start=True)
 
-        print("\033[92m- Started.\033[0m")
-
-    async def stop(self, *args):
+    async def stop(self) -> None:
+        await http.aclose()
+        if database.is_connected:
+            await database.close()
         await super().stop()
         print(f"\033[93mSmudgeLord stopped. Bye!\033[0m")
