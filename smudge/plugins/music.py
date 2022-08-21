@@ -2,16 +2,12 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import os
 import re
-import PIL
 import time
 import json
 import httpx
 import base64
 import random
-import shutil
 import urllib.parse
-
-from typing import Union
 
 from smudge.utils import http
 from smudge.utils.locales import tld
@@ -23,12 +19,12 @@ from smudge.database.music import (
     get_spot_user,
     unreg_spot,
 )
-from smudge.utils.music import Spotify, LastFMImage
+from smudge.utils.music import Spotify
 
 from pyrogram.helpers import ikb
 from pyrogram import Client, filters, enums
-from pyrogram.errors import UserNotParticipant, BadRequest, MessageNotModified
-from pyrogram.types import Message, CallbackQuery, InputMediaPhoto
+from pyrogram.errors import UserNotParticipant, BadRequest
+from pyrogram.types import Message, CallbackQuery
 
 
 @Client.on_message(filters.command(["spoti", "spo", "spot"]))
@@ -460,135 +456,6 @@ async def artist(c: Client, m: Message):
     )
 
     await m.reply(rep)
-
-
-CollageLastFM = LastFMImage()
-
-
-@Client.on_message(filters.command(["collage", "lastcllg"]))
-@Client.on_callback_query(filters.regex("^(_(collage))"))
-async def collage(c: Client, m: Union[Message, CallbackQuery]):
-    if isinstance(m, CallbackQuery):
-        chat_type = m.message.chat.type
-    else:
-        chat_type = m.chat.type
-
-    if not isinstance(m, CallbackQuery) and (
-        enums.ChatType.PRIVATE != chat_type
-        and m.text.split(maxsplit=1)[0] == "/collage"
-    ):
-        try:
-            await m.chat.get_member(296635833)  # To avoid conflict with @lastfmrobot
-            return
-        except UserNotParticipant:
-            pass
-
-    if isinstance(m, CallbackQuery):
-        data, colNumData, rowNumData, user_id, username, style, period = m.data.split(
-            "|"
-        )
-        user_name = m.from_user.first_name
-        if m.from_user.id != int(user_id):
-            await m.answer("🚫")
-            return
-
-        if "plus" in data:
-            colNum = int(colNumData) + 1 if int(colNumData) < 20 else colNumData
-            rowNum = int(rowNumData) + 1 if int(rowNumData) < 20 else rowNumData
-        else:
-            colNum = int(colNumData) - 1 if int(colNumData) > 1 else colNumData
-            rowNum = int(rowNumData) - 1 if int(rowNumData) > 1 else rowNumData
-        if int(rowNum) and int(colNum) < 1:
-            return m.answer("🚫")
-    else:
-        user_id = m.from_user.id
-        user_name = m.from_user.first_name
-        username = await get_last_user(user_id)
-        if len(m.command) <= 1:
-            return await m.reply_text(await tld(m, "Music.collage_noargs"))
-
-        args = m.text.split(None, 1)[1]
-        if re.search("[A-a]rt", args):
-            style = "artists"
-        elif re.search("[A-a]lb", args):
-            style = "albums"
-        elif re.search("[M-m]us|[T-t]ra|[S-s]ongs", args):
-            style = "tracks"
-        else:
-            style = "artists"
-
-        try:
-            args = args.lower()
-            if x := re.search(r"(\d+m|\d+y|\d+d|\d+w|overall)", args):
-                uwu = (
-                    str(x[1]).replace("12m", "1y").replace("30d", "1m").replace(" ", "")
-                )
-                if uwu in {"1m", "3m", "6m"}:
-                    period = f"{uwu}onth"
-                elif uwu in {"7d", "1w"} or uwu not in "1y" and uwu != "overall":
-                    period = "7day"
-                elif uwu in "1y":
-                    period = "12month"
-                else:
-                    period = "overall"
-            else:
-                period = "1month"
-        except UnboundLocalError:
-            return
-
-        try:
-            args = args.lower()
-            if x := re.search(r"(\d+)x(\d+)", args):
-                colNum = x[1]
-                rowNum = x[2]
-            else:
-                colNum = "3"
-                rowNum = "3"
-        except UnboundLocalError:
-            return
-    if not username:
-        return await m.reply_text(await tld(m, "Music.no_username"))
-
-    keyboard = ikb(
-        [
-            [
-                (
-                    "➕",
-                    f"_collage.plus|{colNum}|{rowNum}|{user_id}|{username}|{style}|{period}",
-                ),
-                (
-                    "➖",
-                    f"_collage.minus|{colNum}|{rowNum}|{user_id}|{username}|{style}|{period}",
-                ),
-            ]
-        ]
-    )
-
-    caption = (await tld(m, "Music.collage_caption")).format(
-        username, user_name, period, colNum, rowNum, style
-    )
-
-    if isinstance(m, CallbackQuery):
-        try:
-            filename = await CollageLastFM.create_collage(
-                username, style, period, colNum, rowNum
-            )
-            await m.edit_message_media(
-                InputMediaPhoto(f"{filename}/lastfm-final.jpg", caption=caption),
-                reply_markup=keyboard,
-            )
-        except (UnboundLocalError, BadRequest):
-            await m.answer("🚫")
-        except PIL.UnidentifiedImageError:
-            await m.answer("🚫")
-    else:
-        filename = await CollageLastFM.create_collage(
-            username, style, period, colNum, rowNum
-        )
-        await m.reply_photo(
-            photo=f"{filename}/lastfm-final.jpg", caption=caption, reply_markup=keyboard
-        )
-        shutil.rmtree(filename, ignore_errors=True)
 
 
 @Client.on_message(filters.command(["duotone", "dualtone"]))

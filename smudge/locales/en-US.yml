@@ -93,8 +93,6 @@ strings:
     dualtone_overall: "overall"
     dualtone_choose: "<b>Choose a color scheme.</b>"
     dualtone_noargs: "You forgot the arguments.\n<b>Usagge:</b> {command} (Timespan) (type) \n\n<b>Timespan:</b> overall, 7d (7 days), 1m (1 month), 3m (3 month), 6m (6 month), 12m ou 1y (12 month/1 year)\n<b>Types:</b> artists, albums, tracks\n\n<b>Exemplo:</b><code> {command} 1w tracks </code>"
-    collage_noargs: "You forgot the arguments.\n<b>Usagge:</b> /collage (Timespan) (type) (size)\n\n<b>Timespan:</b> overall, 7d or 1w (7 days), 1m (1 month), 3m (3 month), 6m (6 month), 12m or 1y (12 month/1 year)\n<b>Types:</b> artists, albums, tracks\n\n<b>Example:</b><code> /collage 1w tracks 3x3 </code>"
-    collage_caption: "<a href='https://last.fm/user/{}'>{}</a>'s {} {}x{} <b>{}</b> collage"
     help: |      
       <b>/setuser</b> |  <b>/setlast [username]</b> - Sets your last.fm username.
       <b>/clearuser</b> | <b>/deluser -</b> Removes your last.fm username from the bot's database.
@@ -106,8 +104,6 @@ strings:
       <b>/spo</b> | <b>/spoti -</b> Shows the music you are listening to on Spotify.
       <b>/unreg</b> | <b>/unregister -</b> Disconnect your Spotify account.
 
-      <b>/collage</b> - Displays a collage of albums, artists, or songs.
-      • <i>Type /collage to see more information.</i>
       <b>/dualtone</b> | <b>/duotone</b> - Shows a list of most-listened artists, albums or songs in a "colorful" picture.
       • <i>Type /dualtone to see more information.</i>
 
