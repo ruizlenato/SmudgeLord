@@ -50,7 +50,6 @@ async def tld(m, t):
     # Get lang
     m_args.insert(0, lang)
     m_args.insert(1, "strings")
-
     try:
         return reduce(getitem, m_args, lang_dict)
     except KeyError:

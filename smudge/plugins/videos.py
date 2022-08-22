@@ -255,8 +255,10 @@ def gallery_down(path, url: str):
     return gallery_dl.job.DownloadJob(url).run()
 
 
-@Client.on_message(filters.command(["sdl", "mdl"]), group=1)
-@Client.on_message(filters.regex(SDL_REGEX_LINKS))
+# ToDo: Refactor this
+@Client.on_message(
+    filters.command(["sdl", "mdl"]) | filters.regex(SDL_REGEX_LINKS), group=2
+)
 async def sdl(c: Client, m: Message):
     if m.matches:
         if m.chat.type == ChatType.PRIVATE or await csdl(m.chat.id) == True:
@@ -350,7 +352,7 @@ async def sdl(c: Client, m: Message):
                     except Forbidden:
                         return shutil.rmtree(tempdir, ignore_errors=True)
         await asyncio.sleep(2)
-        shutil.rmtree(tempdir, ignore_errors=True)
+        return shutil.rmtree(tempdir, ignore_errors=True)
     else:
         return await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
 

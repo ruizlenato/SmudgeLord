@@ -18,8 +18,7 @@ from smudge.utils.locales import tld
 from smudge.database.afk import set_uafk, get_uafk, del_uafk
 
 
-@Client.on_message(filters.command("afk"))
-@Client.on_message(filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))
+@Client.on_message(filters.command("afk") | filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))
 async def set_afk(c: Client, m: Message):
     try:
         user = m.from_user
@@ -62,7 +61,7 @@ async def check_afk(m, user_id, user_fn, user):
             return
 
 
-@Client.on_message(filters.group & ~filters.bot, group=1)
+@Client.on_message(~filters.private & ~filters.bot & filters.all, group=3)
 async def afk(c: Client, m: Message):
     user = m.from_user
     if m.sender_chat:
@@ -82,6 +81,7 @@ async def afk(c: Client, m: Message):
             )
         except ChatWriteForbidden:
             return
+
     elif m.reply_to_message:
         try:
             user_id = m.reply_to_message.from_user.id
