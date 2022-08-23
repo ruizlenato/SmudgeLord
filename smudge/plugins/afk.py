@@ -83,31 +83,29 @@ async def afk(c: Client, m: Message):
             return
 
     elif m.reply_to_message:
-        try:
-            user_id = m.reply_to_message.from_user.id
-            user_fn = m.reply_to_message.from_user.first_name
-        except AttributeError:
-            return
-        return await check_afk(m, user_id, user_fn, user)
+        await check_afk(
+            m,
+            m.reply_to_message.from_user.id,
+            m.reply_to_message.from_user.first_name,
+            user,
+        )
 
     elif m.entities:
         for y in m.entities:
             if y.type == MessageEntityType.MENTION:
-                x = re.search(r"@(\w+)", m.text)  # Regex to get @username
                 try:
-                    user_id = (await c.get_users(x[1])).id
-                    user_fn = user.first_name
-                except (IndexError, BadRequest, KeyError):
+                    ent = await c.get_users(m.text[y.offset : y.offset + y.length])
+                except (IndexError, KeyError, BadRequest):
                     return
-                except FloodWait as e:  # Avoid FloodWait
+                except FloodWait as e:
                     await asyncio.sleep(e.value)
+
             elif y.type == MessageEntityType.TEXT_MENTION:
                 try:
-                    user_id = y.user.id
-                    user_fn = y.user.first_name
+                    ent = y.user
                 except UnboundLocalError:
                     return
             else:
                 return
 
-            return await check_afk(m, user_id, user_fn, user)
+            return await check_afk(m, ent.id, ent.first_name, user)
