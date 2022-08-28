@@ -3,8 +3,8 @@
 import re
 import asyncio
 
+from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram import Client, filters
 from pyrogram.enums import MessageEntityType
 from pyrogram.errors import (
     FloodWait,
@@ -14,12 +14,13 @@ from pyrogram.errors import (
     ChatWriteForbidden,
 )
 
+from ..bot import Smudge
 from smudge.utils.locales import tld
 from smudge.database.afk import set_uafk, get_uafk, del_uafk
 
 
-@Client.on_message(filters.command("afk") | filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))
-async def set_afk(c: Client, m: Message):
+@Smudge.on_message(filters.command("afk") | filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))
+async def set_afk(c: Smudge, m: Message):
     try:
         user = m.from_user
         afkmsg = (await tld(m, "Misc.user_now_afk")).format(user.id, user.first_name)
@@ -61,8 +62,8 @@ async def check_afk(m, user_id, user_fn, user):
             return
 
 
-@Client.on_message(~filters.private & ~filters.bot & filters.all, group=3)
-async def afk(c: Client, m: Message):
+@Smudge.on_message(~filters.private & ~filters.bot & filters.all, group=1)
+async def afk(c: Smudge, m: Message):
     user = m.from_user
     if m.sender_chat:
         return

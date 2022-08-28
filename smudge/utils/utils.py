@@ -9,9 +9,10 @@ import asyncio
 from typing import Callable
 from functools import wraps, partial
 
+from ..bot import Smudge
 from smudge.config import CHAT_LOGS
 
-from pyrogram import Client, emoji
+from pyrogram import emoji
 from pyrogram.types import CallbackQuery
 
 timeout = httpx.Timeout(30, pool=None)
@@ -62,7 +63,7 @@ async def send_logs(m, e):
 
     user_mention = m.from_user.mention(m.from_user.first_name)
     user_id = m.from_user.id
-    await Client.send_message(
+    await Smudge.send_message(
         chat_id=CHAT_LOGS,
         text=(
             "<b>⚠️ Error</b>\n<b>User:</b>{} (<code>{}</code>)\n<b>Log:</b>\n<code>{}</code></b>"

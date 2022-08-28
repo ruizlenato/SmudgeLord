@@ -1,16 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
-from pyrogram import Client
 from pyrogram.types import Message
 from pyrogram.enums import ChatType
 
+from ..bot import Smudge
 from smudge.utils.locales import LANGUAGES
 from smudge.database.chats import add_chat, get_chat
 
 # This is the first plugin run to guarantee
 # that the actual chat is initialized in the DB.
-@Client.on_message(group=-1)
-async def check_chat(c: Client, m: Message):
+@Smudge.on_message(group=-1)
+async def check_chat(c: Smudge, m: Message):
     chat = m.chat
     user = m.from_user
 

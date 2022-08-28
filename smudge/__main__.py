@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import logging
-from pyrogram import __version__
+import pyrogram
 
 from smudge.bot import Smudge
 
@@ -13,7 +13,7 @@ logging.basicConfig(
 )
 logs = "\033[1m\033[35mSmudgeLord\033[0m"
 logs += "\n\033[96mProject maintained by:\033[0m RuizLenato"
-logs += f"\n\033[93mPyrogram Version:\033[0m {__version__}"
+logs += f"\n\033[93mPyrogram Version:\033[0m {pyrogram.__version__}"
 logs += "\n\033[94m------------------------------------------------------\033[0m"
 print(logs)
 
