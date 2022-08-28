@@ -7,12 +7,24 @@ conn = database.get_conn()
 GROUPS = (ChatType.GROUP, ChatType.SUPERGROUP)
 
 
-async def add_chat(id, type):
+async def add_chat(id, lang, type):
     if type is ChatType.PRIVATE:
-        await conn.execute("INSERT INTO users (id) values (?)", (id,))
+        await conn.execute(
+            "INSERT INTO users (id, lang) values (?, ?)",
+            (
+                id,
+                lang,
+            ),
+        )
         await conn.commit()
     elif type in GROUPS:  # groups and supergroups share the same table
-        await conn.execute("INSERT INTO groups (id) values (?)", (id,))
+        await conn.execute(
+            "INSERT INTO groups (id, lang) values (?, ?)",
+            (
+                id,
+                lang,
+            ),
+        )
         await conn.commit()
     else:
         return

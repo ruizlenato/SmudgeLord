@@ -4,6 +4,7 @@ from pyrogram import Client
 from pyrogram.types import Message
 from pyrogram.enums import ChatType
 
+from smudge.utils.locales import LANGUAGES
 from smudge.database.chats import add_chat, get_chat
 
 # This is the first plugin run to guarantee
@@ -13,8 +14,16 @@ async def check_chat(c: Client, m: Message):
     chat = m.chat
     user = m.from_user
 
+    if m.from_user.language_code is None:
+        language_code: str = "en-us"
+    else:
+        language_code = m.from_user.language_code
+
+    if language_code not in LANGUAGES:
+        language_code: str = "en-us"
+
     if user and await get_chat(user.id, ChatType.PRIVATE) is None:
-        await add_chat(user.id, ChatType.PRIVATE)
+        await add_chat(user.id, language_code, ChatType.PRIVATE)
 
     if await get_chat(chat.id, chat.type) is None:
         await add_chat(chat.id, chat.type)
