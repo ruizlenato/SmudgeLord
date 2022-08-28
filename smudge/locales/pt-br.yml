@@ -101,10 +101,6 @@ strings:
       <b>/lalbum</b> | <b>/lalb -</b> Mostra o album que você está scrobblando no momento (escutando) usando o last.fm.
       <b>/lartist</b> | <b>/lart -</b> Mostra o(a) artista que você está scrobblando no momento (escutando) usando o last.fm.
 
-      <b>/spotf</b> -</b> Mostra informações da música que você está escutando no Spotify.
-      <b>/spo</b> | <b>/spoti -</b> Mostra a música que você está escutando Spotify.
-      <b>/unreg</b> | <b>/unregister -</b> Desconecta sua conta do Spotify.
-
       <b>/dualtone</b> | <b>/duotone</b> - Mostra uma lista de artistas, álbuns ou músicas mais ouvidas em uma imagem "colorida".
       • <i>Escreva /dualtone para ver mais informações.</i>
 
