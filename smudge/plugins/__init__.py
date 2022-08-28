@@ -26,7 +26,7 @@ async def check_chat(c: Client, m: Message):
         await add_chat(user.id, language_code, ChatType.PRIVATE)
 
     if await get_chat(chat.id, chat.type) is None:
-        await add_chat(chat.id, chat.type)
+        await add_chat(chat.id, language_code, chat.type)
 
 
 def __list_all_plugins():
