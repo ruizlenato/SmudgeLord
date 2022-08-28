@@ -2,7 +2,7 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 
 import sys
-import aiocron
+import uvloop
 import datetime
 import logging
 
@@ -13,16 +13,21 @@ from smudge.utils import http
 from smudge.database import database
 from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS, IPV6, WORKERS
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 # Logging
 logger = logging.getLogger(__name__)
 
 # Date
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
 
+uvloop.install()
+
 
 class Smudge(Client):
     def __init__(self):
         name = self.__class__.__name__.lower()
+        self.scheduler = AsyncIOScheduler()
 
         super().__init__(
             name,
@@ -55,7 +60,8 @@ class Smudge(Client):
                 caption=f"<b>Database backuped!</b>\n<b>- Date:</b> {date}",
             )
 
-        aiocron.crontab("*/60 * * * *", func=backup, start=True)
+        self.scheduler.add_job(backup, "interval", minutes=30)
+        self.scheduler.start()
 
     async def stop(self) -> None:
         await http.aclose()

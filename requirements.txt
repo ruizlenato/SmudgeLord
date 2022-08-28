@@ -6,7 +6,7 @@ tgcrypto
 aiosqlite==0.17.0
 
 # Plugins Dependencies
-aiocron
+apscheduler
 beautifulsoup4
 gallery-dl>=1.21.2
 gpytranslate==1.4.0
@@ -15,4 +15,5 @@ Pillow>=8.4.0
 pyyaml==6.0
 regex
 urllib3
+uvloop
 yt-dlp==2022.8.19
