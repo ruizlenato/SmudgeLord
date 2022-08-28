@@ -13,7 +13,7 @@ from ..bot import Smudge
 from smudge.utils import http
 from smudge.utils.locales import tld
 from smudge.config import LASTFM_API_KEY
-from smudge.database.music import get_last_user, set_last_user, del_last_user
+from smudge.database.lastfm import get_last_user, set_last_user, del_last_user
 
 from pyrogram import filters
 from pyrogram.helpers import ikb
@@ -28,11 +28,11 @@ async def clear(c: Smudge, m: Message):
     username = await get_last_user(user_id)
 
     if not username:
-        await m.reply_text(await tld(m, "Music.no_username_to_clear"))
+        await m.reply_text(await tld(m, "LastFM.no_username_to_clear"))
     else:
         await del_last_user(user_id)
         await m.reply_text(
-            (await tld(m, "Music.username_deleted")), disable_web_page_preview=True
+            (await tld(m, "LastFM.username_deleted")), disable_web_page_preview=True
         )
 
     return
@@ -47,7 +47,7 @@ async def setuser(c: Smudge, m: Message):
         username = m.text.split(None, 1)[1]
     else:
         await m.reply_text(
-            (await tld(m, "Music.no_username_save")).format(m.text.split(None, 1)[0])
+            (await tld(m, "LastFM.no_username_save")).format(m.text.split(None, 1)[0])
         )
         return
 
@@ -57,11 +57,11 @@ async def setuser(c: Smudge, m: Message):
             f"{base_url}?method=user.getrecenttracks&limit=3&extended=1&user={username}&api_key={LASTFM_API_KEY}&format=json"
         )
         if res.status_code != 200:
-            await m.reply_text((await tld(m, "Music.username_wrong")))
+            await m.reply_text((await tld(m, "LastFM.username_wrong")))
             return
         else:
             await set_last_user(user_id, username)
-            await m.reply_text((await tld(m, "Music.username_save")))
+            await m.reply_text((await tld(m, "LastFM.username_save")))
     else:
         rep = "Você esquceu do username"
         await m.reply_text(rep)
@@ -75,7 +75,7 @@ async def lastfm_info(c: Smudge, m: Message):
     username = await get_last_user(user_id)
 
     if not username:
-        await m.reply_text(await tld(m, "Music.no_username"))
+        await m.reply_text(await tld(m, "LastFM.no_username"))
         return
 
     res = await http.get(
@@ -96,14 +96,14 @@ async def lastfm_info(c: Smudge, m: Message):
     rtime = time.strftime("%m/%Y", time.localtime(luser["registered"]["#text"]))
 
     rep = f"<a href='{photo}'>\u200c</a>"
-    rep += (await tld(m, "Music.lastfm_info")).format(
+    rep += (await tld(m, "LastFM.lastfm_info")).format(
         user, username, rname, pcount, rtime
     )
     keyboard = ikb(
         [
             [
                 (
-                    await tld(m, "Music.lastfm_info_btn"),
+                    await tld(m, "LastFM.lastfm_info_btn"),
                     f"https://last.fm/user/{username}",
                     "url",
                 ),
@@ -114,7 +114,7 @@ async def lastfm_info(c: Smudge, m: Message):
     await m.reply_text(rep, reply_markup=keyboard)
 
 
-@Smudge.on_message(filters.command(["lastfm", "lmu", "lt", "whl"]))
+@Smudge.on_message(filters.command(["lastfm", "lmu", "lt", "whl", "whyl"]))
 async def lastfm(c: Smudge, m: Message):
     if m.chat.type is not ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
         try:
@@ -125,11 +125,13 @@ async def lastfm(c: Smudge, m: Message):
         except UserNotParticipant:
             pass
 
-    if m.text.split(maxsplit=1)[0] == "/whl":
+    if m.text.split(maxsplit=1)[0] in ("/whl", "/whyl"):
         try:
             user = m.reply_to_message.from_user.first_name
             user_id = m.reply_to_message.from_user.id
             username = await get_last_user(user_id)
+            if not username:
+                return await m.reply_text(await tld(m, "LastFM.no_username_whl"))
         except AttributeError:
             return
     else:
@@ -138,8 +140,7 @@ async def lastfm(c: Smudge, m: Message):
         username = await get_last_user(user_id)
 
     if not username:
-        await m.reply_text(await tld(m, "Music.no_username"))
-        return
+        return await m.reply_text(await tld(m, "LastFM.no_username"))
 
     res = await http.get(
         "http://ws.audioscrobbler.com/2.0"
@@ -151,7 +152,7 @@ async def lastfm(c: Smudge, m: Message):
     db = json.loads(res.content)
 
     if res.status_code != 200:
-        await m.reply_text((await tld(m, "Music.lastfm_api_error")))
+        await m.reply_text((await tld(m, "LastFM.lastfm_api_error")))
         return
 
     try:
@@ -185,15 +186,15 @@ async def lastfm(c: Smudge, m: Message):
     rep = f"<a href='{image}'>\u200c</a>"
     if first_track.get("@attr"):  # Check if track is now playing
         rep += (
-            (await tld(m, "Music.scrobble_none_is")).format(username, user)
+            (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
-            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
+            else (await tld(m, "LastFM.scrobble_is")).format(username, user, scrobbles)
         )
 
     elif scrobbles == "none":
-        rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
+        rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
     else:
-        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
+        rep += (await tld(m, "LastFM.scrobble_was")).format(username, user, scrobbles)
 
     rep += f"<b>{artist}</b> - {song}❤️" if loved else f"<b>{artist}</b> - {song}"
     await m.reply_text(rep)
@@ -213,7 +214,7 @@ async def album(c: Smudge, m: Message):
     username = await get_last_user(m.from_user.id)
 
     if not username:
-        await m.reply_text(await tld(m, "Music.no_username"))
+        await m.reply_text(await tld(m, "LastFM.no_username"))
         return
 
     res = await http.get(
@@ -225,7 +226,7 @@ async def album(c: Smudge, m: Message):
     db = json.loads(res.content)
 
     if res.status_code != 200:
-        await m.reply_text((await tld(m, "Music.lastfm_api_error")))
+        await m.reply_text((await tld(m, "LastFM.lastfm_api_error")))
         return
 
     try:
@@ -255,15 +256,15 @@ async def album(c: Smudge, m: Message):
 
     if first_track.get("@attr"):  # Check if track is now playing
         rep += (
-            (await tld(m, "Music.scrobble_none_is")).format(username, user)
+            (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
-            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
+            else (await tld(m, "LastFM.scrobble_is")).format(username, user, scrobbles)
         )
 
     elif scrobbles == "none":
-        rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
+        rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
     else:
-        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
+        rep += (await tld(m, "LastFM.scrobble_was")).format(username, user, scrobbles)
 
     rep += (
         f"🎙 <strong>{artist}</strong>\n📀 {album} ❤️"
@@ -288,7 +289,7 @@ async def artist(c: Smudge, m: Message):
     username = await get_last_user(m.from_user.id)
 
     if not username:
-        await m.reply_text(await tld(m, "Music.no_username"))
+        await m.reply_text(await tld(m, "LastFM.no_username"))
         return
 
     res = await http.get(
@@ -300,7 +301,7 @@ async def artist(c: Smudge, m: Message):
     db = json.loads(res.content)
 
     if res.status_code != 200:
-        await m.reply_text((await tld(m, "Music.lastfm_api_error")))
+        await m.reply_text((await tld(m, "LastFM.lastfm_api_error")))
         return
 
     try:
@@ -327,15 +328,15 @@ async def artist(c: Smudge, m: Message):
 
     if first_track.get("@attr"):  # Check if track is now playing
         rep += (
-            (await tld(m, "Music.scrobble_none_is")).format(username, user)
+            (await tld(m, "LastFM.scrobble_none_is")).format(username, user)
             if scrobbles == "none"
-            else (await tld(m, "Music.scrobble_is")).format(username, user, scrobbles)
+            else (await tld(m, "LastFM.scrobble_is")).format(username, user, scrobbles)
         )
 
     elif scrobbles == "none":
-        rep += (await tld(m, "Music.scrobble_none_was")).format(username, user)
+        rep += (await tld(m, "LastFM.scrobble_none_was")).format(username, user)
     else:
-        rep += (await tld(m, "Music.scrobble_was")).format(username, user, scrobbles)
+        rep += (await tld(m, "LastFM.scrobble_was")).format(username, user, scrobbles)
 
     rep += (
         f"🎙 <strong>{artist}</strong> ❤️" if loved else f"🎙 <strong>{artist}</strong>"
@@ -350,12 +351,12 @@ async def duotone(c: Smudge, m: Message):
     username = await get_last_user(user_id)
 
     if not username:
-        await m.reply_text(await tld(m, "Music.no_username"))
+        await m.reply_text(await tld(m, "LastFM.no_username"))
         return
 
     if len(m.command) <= 1:
         return await m.reply_text(
-            (await tld(m, "Music.dualtone_noargs")).format(
+            (await tld(m, "LastFM.dualtone_noargs")).format(
                 command=m.text.split(None, 1)[0]
             )
         )
@@ -404,7 +405,7 @@ async def duotone(c: Smudge, m: Message):
     ]
 
     await m.reply_text(
-        await tld(m, "Music.dualtone_choose"), reply_markup=ikb(keyboard)
+        await tld(m, "LastFM.dualtone_choose"), reply_markup=ikb(keyboard)
     )
 
 
@@ -436,14 +437,14 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
                 "messages": {
                     "scrobbles": [
                         "scrobbles",
-                        (await tld(cq, f"Music.dualtone_{tld_string}")).format(
+                        (await tld(cq, f"LastFM.dualtone_{tld_string}")).format(
                             period_tld_num
                         ),
                     ],
-                    "subtitle": (await tld(cq, f"Music.dualtone_{tld_string}")).format(
+                    "subtitle": (await tld(cq, f"LastFM.dualtone_{tld_string}")).format(
                         period_tld_num
                     ),
-                    "title": (await tld(cq, f"Music.dualtone_{top}")),
+                    "title": (await tld(cq, f"LastFM.dualtone_{top}")),
                 },
             },
             "source": "web",
@@ -483,4 +484,4 @@ async def create_duotone(c: Smudge, cq: CallbackQuery):
         await cq.answer("🚫")
 
 
-__help__ = "Music"
+__help__ = "LastFM"

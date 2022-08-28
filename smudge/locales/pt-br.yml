@@ -60,16 +60,17 @@ strings:
       <b>/whatis [codename] -</b> Obtenha o nome do device a partir do codename.
       <b>/variants [codename] -</b> Obtenha variantes de devices Android a partir do codename.
   
-# Music
-  Music:
-    name: "Músicas"
+# LastFM
+  LastFM:
+    name: "LastFM"
     spotf_info: "<b>{}</b>\n<b>Artista:</b> {}\n<b>Data de lançamento:</b> <i>{}</i>\n<b>Álbum:</b> {} - {}\n\n"
-    username_save: "<b>Pronto!</b>\nUse <code>/help music</code> para saber mais sobre os comandos.\n<i>(Esse comando só pode ser usado no meu chat privado.)</i>"
+    username_save: "<b>Pronto!</b>\nUse <code>/help LastFM</code> para saber mais sobre os comandos.\n<i>(Esse comando só pode ser usado no meu chat privado.)</i>"
     username_deleted: "O seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> foi apagado."
     username_nouser: "Você precisa definir um nome de usuário para usar esse comando."
     no_username_save: "<b>Erro.</b>\n<b>Uso do comando:</b> {} (nome de usuário)."
     no_username_to_clear: "Você não definiu o seu username do <b><a href='https://last.fm/'>LastFM</a></b> para que eu possa deletar do meu banco de dados."
     no_username: "<b>Erro.</b>\nVocê precisa definir o seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> para usar esse comando.\n\n<b>Use o comando:</b> /setuser (username)."
+    no_username_whl: "<b>Erro.</b>\nA pessoa que você mencionou precisa definir um nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> para você poder utilizar esse comando."
     username_wrong: "Seu username do <b><a href='https://last.fm/'>LastFM</a></b> está incorreto\n\n<strong>Use /setuser (nome de usuário)</strong> e tente novamente"
     lastfm_api_error: "<b>Erro.</b>\nErro ao obter informações do LastFM. Aguarde alguns segundos e tente novamente, atualmente o LastFM está com problemas."
     lastfm_info: "<b>Informações do LastFM do(a) {}\n\n📎 Nome de usuário:</b> {}\n<b>🏷 Nome real:</b> {}\n<b>📈 Quantidade de scrobbles:</b> {}\n<b>📅 Conta criada em:</b> {}"
@@ -78,14 +79,6 @@ strings:
     scrobble_none_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> está ouvindo:\n\n" 
     scrobble_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> estava ouvindo pela <strong>{}° vez</strong>:\n\n"
     scrobble_none_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> estava ouvindo:\n\n"
-    spotify_np: "<b><a href='{}'>{}</a></b> está ouvido:\n\n"
-    spotify_was_np: "<b><a href='{}'>{}</a></b> estava ouvido:\n\n"
-    spitify_no_login: "Você precisa logar na sua conta do Spotify para usar esse comando.\n<b>Para fazer login, clque no botão abaixo.</b>"
-    spotify_login_done: "Pronto, agora a sua conta do Spotify está conectada comigo."
-    spotify_already_logged: "Você já conectou a sua conta do Spotify comigo\n<b>Use o comando</b> /spoti <b>sem argumentos.</b>"
-    spotify_login_failed: "Tente remover o aplicativo de sua conta em spotify.com/account/apps.\n<b>Pesquise por SmudgeLord e clique em REMOVER ACESSO</b> após isso escreva /spo para tentar logar novamente no Bot."
-    spotify_cleaned: "Sua conta do Spotify foi desconectada com sucesso."
-    spotify_noclean: "Você não conectou sua conta do Spotify comigo, então não posso fazer nada."
     dualtone_albums: "ÁLBUNS MAIS OUVIDOS"
     dualtone_artists: "ARTISTAS MAIS OUVIDOS"
     dualtone_tracks: "MÚSICAS MAIS OUVIDAS"
