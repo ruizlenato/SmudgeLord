@@ -1,43 +1,42 @@
----
 #SPDX-License-Identifier: GPL-3.0
 #Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 #Core
 core:
   flag: "🇺🇸"
   name: "American English"
-  code: "en-US"
+  code: "en-us"
 #Main
 strings:
   Main:
     start_message_private: |
-      Hola <b>{}</b>, mi nombre es <b>SmudgeLord,</b> Soy un bot con algunos comandos divertidos y útiles para ti :3
+      Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3
 
-      📦 <b>Mi SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
-      💬 Si tienes un problema <b></b> <a href='https://t.me/RuizLenato'>haz clic aquí para hablar con mi propietario</a>
-    start_message: "Hey Kitty, estoy vivo, llámame al chat privado:3"
+      📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+      💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>
+    start_message: "Hey Kitty, I'm alive, call me on the Private chat:3"
     lang_saved: "Language changed successfully"
     crowdin: "🌎 Help us with translations!"
-    select_lang: "Selecciona el lenguaje que usará el bot"
+    select_lang: "Select the language you want to use the bot"
     back_btn: "↩️ Back"
     btn_lang: "🇺🇸 Language"
     btn_help: "❓ Help"
     change_lang_uchannel: "Hmm, apparently you are sending messages anonymously.\n<b>Send messages as a normal user so I can help you.</b>"
-    help_text: "Aquí están todos mis plugins, para saber más sobre los plugins, simplemente haga clic en su nombre."
-    avaliable_commands: "<b>Comandos disponibles:</b>\n\n{}"
-    config_text: "<b>Ajustes.</b>\nHaga clic en los botones de abajo para cambiar la configuración de su grupo.\n\n<b>SDL Auto -</b> <i>Cuando está activado (✅) el bot descargará videos de redes sociales automáticamente cuando alguien envíe un enlace</i>\n<b>Idioma -</b> <i>Cambie el idioma del bot en el grupo</i>"
-    added: "-> añadido"
-    updated: "actualizado"
-    downloading: "Descargando..."
-    sending: "Enviando…"
-    loading: "Cargando..."
-    start: "Iniciar"
+    help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
+    avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
+    config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group.\n\n<b>SDL Auto -</b> <i>When enabled (✅) the bot will download videos from social networks automatically when someone sends a link</i>\n<b>Language -</b> <i>Change the language of the bot in the group</i>"
+    added: "added"
+    updated: "updated"
+    downloading: "Downloading..."
+    sending: "Sending..."
+    loading: "Loading..."
+    start: "Start"
   #Admin
   Admin:
     not_admin: "You are not a group admin."
-    botnotadmin: "No soy administrador de grupo. Por favor, añádame como administrador de grupo."
-    err_private: "Este comando no puede ser usado en un chat privado, usa este comando en un grupo que administras."
-    cleanup_start: "Eliminando cuentas borradas..."
-    cleanup_start_d: "Cuentas eliminadas: {}"
+    botnotadmin: "I am not a group admin. Please add me as a group admin."
+    err_private: "This command cannot be used in a private chat, use this command in a group that you admin."
+    cleanup_start: "Removing deleted accounts..."
+    cleanup_start_d: "Deleted accounts: {}"
     cleanup_no_deleted: "There are no deleted accounts in the group."
   #Android
   Android:
@@ -46,7 +45,7 @@ strings:
     models_variant: "<b>{}</b> variants:\n\n"
     models_list: "<b>Brand:</b> {}\n<b>Name:</b> {}\n<b>Model</b>: <code>{}</code>\n\n"
     codename_notfound: "Coudn't find your device, check device & try again!"
-    magisk_releases: "<b>Últimas versiones de Magisk</b>\n\n"
+    magisk_releases: "<b>Latest Magisk Releases</b>\n\n"
     twrp_found: "Latest <b>TWRP Recovery for {}</b>\n\n"
     twrp_404: "TWRP currently is not avaliable for <code>{}</code>"
     twrp_date: "📆 <b>Updated:</b> <code>{}</code>\n"
@@ -56,31 +55,24 @@ strings:
       <b>/twrp [codename] -</b> Get the latest TWRP version available for the chosen device from codename.
       <b>/whatis [codename] -</b> Get phone neme from codename.
       <b>/variants [codename] -</b> Get phone variants from codename..
-  #Music
-  Music:
-    name: "Music"
+  #LastFM
+  LastFM:
+    name: "LastFM"
     spotf_info: "<b>{}</b>\n<b>Artist:</b> {}\n<b>Release Date:</b> <i>{}</i>\n<b>Album:</b> {} - {}\n\n"
-    username_save: "<b>Done, LastFM user saved!</b>\nUse <code>/help music</code> to learn more about the commands.\n<i>(This command can only be used in my private chat.)</i>"
+    username_save: "<b>Done, LastFM user saved!</b>\nUse <code>/help</code> to learn more about the commands.\n<i>(This command can only be used in my private chat.)</i>"
     username_deleted: "Your <b><a href='https://last.fm/'>LastFM</a></b> username has been successfully deleted."
     no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
     no_username_to_clear: "You have not set your <b><a href='https://last.fm/'>LastFM</a></b> username so that I can delete it from my database."
     no_username: "<b>Error</b>\nYou have not set your <b><a href='https://last.fm/'>LastFM</a></b> username\n\n<b>Command usage:</b> /setuser (username)."
+    no_username_whl: "<b>Error.</b>\nThe person you mentioned needs to define a <b><a href='https://last.fm/'>LastFM</a></b> username for you to be able to use this command."
     username_wrong: "<b>Error</b>\nYour LastFM username is incorrect\n\n<strong>Use /setuser (yout username)</strong> and try again"
     lastfm_api_error: "Error getting information from LastFM. Please wait a few seconds and try again, LastFM is currently in trouble."
     lastfm_info: "<b>Information from {}'s LastFM\n\n📎 Username:</b> {}\n<b>🏷 Real name:</b> {}\n<b>📈 Number of scrobbles:</b> {}\n<b>📅 Account created in:</b> {}"
     lastfm_info_btn: "🔗 Link to LastFM profile"
-    scrobble_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> is listening for the <strong>{}° time</strong>:\n\n"
+    scrobble_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> is listening for the <strong>{}nd time</strong>:\n\n"
     scrobble_none_is: "<b><a href='https://last.fm/user/{}'>{}</a></b> is listening:\n\n"
-    scrobble_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening for the <strong>{}° time</strong>:\n\n"
+    scrobble_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening for the <strong>{}nd time</strong>:\n\n"
     scrobble_none_was: "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening:\n\n"
-    spotify_np: "<b><a href='{}'>{}</a></b> is listening:\n\n"
-    spotify_was_np: "<b><a href='{}'>{}</a></b> was listening:\n\n"
-    spitify_no_login: "You need to be logged into your Spotify account to use this command.\n<b>To login, click the button below.</b>"
-    spotify_login_done: "Done, now your Spotify account is connected to me."
-    spotify_login_failed: "Try removing the app from your account at spotify.com/account/apps/.\n<b>Search for SmudgeLord and click REMOVE ACCESS</b> after that type /spoti to try logging into the bot again."
-    spotify_already_logged: "You have already connected your Spotify account with me.\n<b>Use the command </b> /spo <b>without argarguments.</b>"
-    spotify_cleaned: "Your Spotify account was successfully disconnected."
-    spotify_noclean: "You haven't connected your Spotify account with me, so there's nothing I can do."
     dualtone_albums: "MOST PLAYED ALBUMS"
     dualtone_artists: "MOST PLAYED ARTISTS"
     dualtone_tracks: "MOST PLAYED SONGS"
@@ -95,10 +87,6 @@ strings:
       <b>/lastfm</b> | <b>/lmu -</b> Shows the song you are scrobbling on last.fm.
       <b>/lalbum</b> | <b>/lalb -</b> Shows the album you are scrobbling on last.fm.
       <b>/lartist</b> | <b>/lart -</b> Shows the artist you are scrobbling on last.fm.
-
-      <b>/spotf</b> -</b> Shows information of the song you are listening to on Spotify.
-      <b>/spo</b> | <b>/spoti -</b> Shows the music you are listening to on Spotify.
-      <b>/unreg</b> | <b>/unregister -</b> Disconnect your Spotify account.
 
       <b>/dualtone</b> | <b>/duotone</b> - Shows a list of most-listened artists, albums or songs in a "colorful" picture.
       • <i>Type /dualtone to see more information.</i>
