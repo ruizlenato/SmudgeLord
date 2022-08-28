@@ -17,7 +17,7 @@ async def get_db_lang(id: int, type: str):
         await cursor.close()
         return row[0]
     except TypeError:
-        return "en-US"
+        return "en-us"
 
 
 async def set_db_lang(id: int, code: str, type: str):

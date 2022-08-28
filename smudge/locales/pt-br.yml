@@ -5,7 +5,7 @@
 core:
   flag: "🇧🇷"
   name: "Português"
-  code: "pt-BR"
+  code: "pt-br"
 
 # Main
 strings:

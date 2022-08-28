@@ -5,7 +5,7 @@
 core:
   flag: "🇺🇸"
   name: "American English"
-  code: "en-US"
+  code: "en-us"
 
 # Main
 strings:
@@ -60,8 +60,8 @@ strings:
       <b>/whatis [codename] -</b> Get phone neme from codename.
       <b>/variants [codename] -</b> Get phone variants from codename..
 
-# Music
-  Music:
+# LastFM
+  LastFM:
     name: "LastFM"
     spotf_info: "<b>{}</b>\n<b>Artist:</b> {}\n<b>Release Date:</b> <i>{}</i>\n<b>Album:</b> {} - {}\n\n"
     username_save: "<b>Done, LastFM user saved!</b>\nUse <code>/help</code> to learn more about the commands.\n<i>(This command can only be used in my private chat.)</i>"

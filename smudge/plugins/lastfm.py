@@ -319,10 +319,7 @@ async def artist(c: Smudge, m: Message):
     )
     info = json.loads(fetch.content)
     last_user = info["artist"]["stats"]
-    if int(last_user.get("userplaycount")) == 0:
-        scrobbles = int(last_user.get("userplaycount")) + 1
-    else:
-        scrobbles = int(last_user.get("userplaycount"))
+    scrobbles = int(last_user.get("userplaycount")) + 1
 
     rep = f"<a href='{image}'>\u200c</a>"
 
