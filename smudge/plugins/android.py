@@ -4,10 +4,11 @@ import re
 import json
 from bs4 import BeautifulSoup
 
+from pyrogram import filters
 from pyrogram.helpers import ikb
 from pyrogram.types import Message
-from pyrogram import Client, filters
 
+from ..bot import Smudge
 from smudge.utils import http
 from smudge.utils.locales import tld
 
@@ -75,8 +76,8 @@ class GetDevice:
                     return False
 
 
-@Client.on_message(filters.command(["magisk"]))
-async def magisk(c: Client, m: Message):
+@Smudge.on_message(filters.command(["magisk"]))
+async def magisk(c: Smudge, m: Message):
     repo_url = "https://raw.githubusercontent.com/topjohnwu/magisk-files/master/"
     text = await tld(m, "Android.magisk_releases")
     for magisk_type in ["stable", "beta", "canary"]:
@@ -89,8 +90,8 @@ async def magisk(c: Client, m: Message):
     await m.reply_text(text, disable_web_page_preview=True)
 
 
-@Client.on_message(filters.command(["twrp"]))
-async def twrp(c: Client, m: Message):
+@Smudge.on_message(filters.command(["twrp"]))
+async def twrp(c: Smudge, m: Message):
     if len(m.command) != 2:
         message = "Please write your codename into it, i.e <code>/twrp herolte</code>"
         await m.reply_text(message)
@@ -120,10 +121,10 @@ async def twrp(c: Client, m: Message):
         )
 
 
-@Client.on_message(
+@Smudge.on_message(
     filters.command(["variants", "models", "whatis", "device", "codename"])
 )
-async def variants(c: Client, m: Message):
+async def variants(c: Smudge, m: Message):
     if m.reply_to_message and m.reply_to_message.text:
         cdevice = m.reply_to_message.text
     elif len(m.command) > 1:

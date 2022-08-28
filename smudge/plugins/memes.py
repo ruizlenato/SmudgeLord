@@ -2,15 +2,16 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import random
 
+from ..bot import Smudge
 from smudge.utils.locales import tld
 
+from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram import Client, filters
 from pyrogram.errors import ChatWriteForbidden
 
 
-@Client.on_message(filters.command("slap"))
-async def slap(c: Client, m: Message):
+@Smudge.on_message(filters.command("slap"))
+async def slap(c: Smudge, m: Message):
     if m.reply_to_message:
         try:
             user1 = (
@@ -35,16 +36,16 @@ async def slap(c: Client, m: Message):
         await m.reply_text("Bruuuh")
 
 
-@Client.on_message(filters.regex(r"^framengo"))
-async def framengo(c: Client, m: Message):
+@Smudge.on_message(filters.regex(r"^framengo"))
+async def framengo(c: Smudge, m: Message):
     try:
         await m.reply_video(video="https://telegra.ph/file/edead6d5de1df2eb2ab84.mp4")
     except ChatWriteForbidden:
         return
 
 
-@Client.on_message(filters.regex(r"paysandu"))
-async def paysandu(c: Client, m: Message):
+@Smudge.on_message(filters.regex(r"paysandu"))
+async def paysandu(c: Smudge, m: Message):
     answer = random.choice(["yes", "no"])
     if answer == "yes":
         try:

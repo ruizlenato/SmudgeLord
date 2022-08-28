@@ -24,7 +24,7 @@ class Database:
             """
         CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY,
-            lang TEXT DEFAULT 'en-US',
+            lang TEXT DEFAULT 'en-us',
             lastfm_username TEXT,
             spot_access_token TEXT,
             spot_refresh_token TEXT,
@@ -32,7 +32,7 @@ class Database:
         );
         CREATE TABLE IF NOT EXISTS groups(
             id INTEGER PRIMARY KEY,
-            lang TEXT DEFAULT 'en-US',
+            lang TEXT DEFAULT 'en-us',
             sdl_auto INTEGER,
             sdl_images INTEGER
         );

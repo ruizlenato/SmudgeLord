@@ -1,20 +1,22 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
 import asyncio
+
+from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram import Client, filters
 from pyrogram.errors import BadRequest, Forbidden
 from pyrogram.enums import ChatType, ChatMemberStatus
 
+from ..bot import Smudge
 from smudge.utils.locales import tld
 
 
-@Client.on_message(filters.command("cleanup"))
-async def cleanup(c: Client, m: Message):
+@Smudge.on_message(filters.command("cleanup"))
+async def cleanup(c: Smudge, m: Message):
     deleted_users = []
     chat = m.chat
 
-    if chat.type == ChatType.PRIVATE:
+    if chat.type is ChatType.PRIVATE:
         return await m.reply_text(await tld(m, "Admin.err_private"))
 
     bot = await c.get_chat_member(chat_id=chat.id, user_id=c.me.id)
@@ -29,7 +31,7 @@ async def cleanup(c: Client, m: Message):
     if user.status not in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
         return await m.reply_text(await tld(m, "Admin.not_admin"))
 
-    if bot.status != ChatMemberStatus.ADMINISTRATOR:
+    if bot.status is not ChatMemberStatus.ADMINISTRATOR:
         return await m.reply_text(await tld(m, "Admin.botnotadmin"))
 
     mes = await m.reply_text(await tld(m, "Admin.cleanup_start"))

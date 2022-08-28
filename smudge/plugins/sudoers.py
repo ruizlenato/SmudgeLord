@@ -6,11 +6,12 @@ import sys
 import html
 import traceback
 
+from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram import Client, filters
 
 from contextlib import redirect_stdout
 
+from ..bot import Smudge
 from smudge.config import SUDOERS
 from smudge.database.core import database
 
@@ -18,8 +19,8 @@ from smudge.database.core import database
 conn = database.get_conn()
 
 
-@Client.on_message(filters.command("restart") & filters.user(SUDOERS))
-async def restart(c: Client, m: Message):
+@Smudge.on_message(filters.command("restart") & filters.user(SUDOERS))
+async def restart(c: Smudge, m: Message):
     await m.reply_text("Restarting...")
     args = [sys.executable, "-m", "smudge"]
     os.system("cls" if os.name == "nt" else "clear")
@@ -27,8 +28,8 @@ async def restart(c: Client, m: Message):
     os.execl(sys.executable, *args)
 
 
-@Client.on_message(filters.command("exec") & filters.user(SUDOERS))
-async def execs(c: Client, m: Message):
+@Smudge.on_message(filters.command("exec") & filters.user(SUDOERS))
+async def execs(c: Smudge, m: Message):
     strio = io.StringIO()
     code = m.text.split(maxsplit=1)[1]
     exec(

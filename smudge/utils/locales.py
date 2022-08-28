@@ -12,7 +12,7 @@ from pyrogram.types import CallbackQuery
 
 from smudge.database.locales import get_db_lang
 
-LANGUAGES = ["pt-BR", "en-US"]
+LANGUAGES = ["pt-br", "en-us"]
 strings = {}
 
 # Logging

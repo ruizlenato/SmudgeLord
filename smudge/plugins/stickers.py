@@ -7,12 +7,13 @@ import tempfile
 
 from PIL import Image
 
+from ..bot import Smudge
 from smudge.config import CHAT_LOGS
 from smudge.utils import EMOJI_PATTERN, http
 from smudge.utils.locales import tld
 
+from pyrogram import filters
 from pyrogram.helpers import ikb
-from pyrogram import Client, filters
 from pyrogram.enums import MessageMediaType
 from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
 from pyrogram.errors import PeerIdInvalid, StickersetInvalid
@@ -29,8 +30,8 @@ from pyrogram.raw.types import (
 SUPPORTED_TYPES = ["jpeg", "png", "webp"]
 
 
-@Client.on_message(filters.command("getsticker"))
-async def getsticker(c: Client, m: Message):
+@Smudge.on_message(filters.command("getsticker"))
+async def getsticker(c: Smudge, m: Message):
     try:
         sticker = m.reply_to_message.sticker
     except AttributeError:
@@ -59,8 +60,8 @@ async def getsticker(c: Client, m: Message):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
-@Client.on_message(filters.command("kang"))
-async def kang_sticker(c: Client, m: Message):
+@Smudge.on_message(filters.command("kang"))
+async def kang_sticker(c: Smudge, m: Message):
     prog_msg = await m.reply_text(await tld(m, "Stickers.kanging"))
     sticker_emoji = "🤔"
     packnum = 0

@@ -92,7 +92,7 @@ async def afk(c: Client, m: Message):
 
     elif m.entities:
         for y in m.entities:
-            if y.type == MessageEntityType.MENTION:
+            if y.type is MessageEntityType.MENTION:
                 try:
                     ent = await c.get_users(m.text[y.offset : y.offset + y.length])
                 except (IndexError, KeyError, BadRequest):
@@ -100,7 +100,7 @@ async def afk(c: Client, m: Message):
                 except FloodWait as e:
                     await asyncio.sleep(e.value)
 
-            elif y.type == MessageEntityType.TEXT_MENTION:
+            elif y.type is MessageEntityType.TEXT_MENTION:
                 try:
                     ent = y.user
                 except UnboundLocalError:

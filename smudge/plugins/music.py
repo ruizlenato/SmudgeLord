@@ -9,127 +9,21 @@ import base64
 import random
 import urllib.parse
 
+from ..bot import Smudge
 from smudge.utils import http
 from smudge.utils.locales import tld
 from smudge.config import LASTFM_API_KEY
-from smudge.database.music import (
-    get_last_user,
-    set_last_user,
-    del_last_user,
-    get_spot_user,
-    unreg_spot,
-)
-from smudge.utils.music import Spotify
+from smudge.database.music import get_last_user, set_last_user, del_last_user
 
+from pyrogram import filters
 from pyrogram.helpers import ikb
 from pyrogram.enums import ChatType
-from pyrogram import Client, filters
 from pyrogram.errors import UserNotParticipant, BadRequest
 from pyrogram.types import Message, CallbackQuery
 
 
-@Client.on_message(filters.command(["spoti", "spo", "spot"]))
-async def spoti(c: Client, m: Message):
-    if m.chat.type != ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/spoti":
-        try:
-            await m.chat.get_member(796461943)  # To avoid conflict with @lyricspybot
-            return
-        except UserNotParticipant:
-            pass
-    user_id = m.from_user.id
-    user = m.from_user.first_name
-    tx = m.text.split(" ", 1)
-    if len(tx) == 2:
-        if await get_spot_user(user_id):
-            return await m.reply_text(await tld(m, "Music.spotify_already_logged"))
-        get = await Spotify.getAccessToken(user_id, tx[1])
-        if get:
-            await m.reply_text(await tld(m, "Music.spotify_login_done"))
-        else:
-            await m.reply_text(await tld(m, "Music.spotify_login_failed"))
-    else:
-        usr = await get_spot_user(m.from_user.id)
-        if not usr:
-            keyboard = ikb([[("Login", Spotify.getAuthUrl(), "url")]])
-            await m.reply_text(
-                await tld(m, "Music.spitify_no_login"), reply_markup=keyboard
-            )
-        else:
-            sp = await Spotify.getCurrentyPlayingSong(usr)
-            if sp is False:
-                return await m.reply_text(await tld(m, "Music.spotify_login_failed"))
-
-            spotify_json = json.loads(sp.content)
-
-            if spotify_json is None:
-                return
-
-            userlink = json.loads.loads((await Spotify.getCurrentUser(usr)).content)
-
-            rep = f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
-            if spotify_json["is_playing"] is True:
-                rep += (await tld(m, "Music.spotify_np")).format(
-                    userlink["external_urls"]["spotify"], user
-                )
-            else:
-                rep += (await tld(m, "Music.spotify_was_np")).format(
-                    userlink["external_urls"]["spotify"], user
-                )
-            rep += f"<b>{spotify_json['item']['artists'][0]['name']}</b> - {spotify_json['item']['name']}"
-            return await m.reply_text(rep)
-
-
-@Client.on_message(filters.command(["spotf", "spotif"]))
-async def spotf(c: Client, m: Message):
-    usr = await get_spot_user(m.from_user.id)
-    if not usr:
-        keyboard = ikb([[("Login", Spotify.getAuthUrl(), "url")]])
-        return await m.reply_text(
-            await tld(m, "Music.spitify_no_login"), reply_markup=keyboard
-        )
-    else:
-        spotify_json = json.loads((await Spotify.getCurrentyPlayingSong(usr)).content)
-        rep = (
-            f"<a href='{spotify_json['item']['album']['images'][1]['url']}'>\u200c</a>"
-        )
-        rep += (await tld(m, "Music.spotf_info")).format(
-            spotify_json["item"]["name"],
-            spotify_json["item"]["artists"][0]["name"],
-            spotify_json["item"]["album"]["release_date"],
-            spotify_json["item"]["album"]["name"],
-            spotify_json["item"]["album"]["album_type"],
-        )
-        keyboard = ikb(
-            [
-                [
-                    (
-                        "Spotify Link",
-                        f"{spotify_json['item']['external_urls']['spotify']}",
-                        "url",
-                    )
-                ]
-            ]
-        )
-        await m.reply_text(rep, reply_markup=keyboard)
-
-
-@Client.on_message(filters.command(["unreg", "unregister"]))
-async def unreg(c: Client, m: Message):
-    user_id = m.from_user.id
-    spot_user = await get_spot_user(user_id)
-    if not spot_user:
-        await m.reply_text(await tld(m, "Music.spotify_noclean"))
-    else:
-        await unreg_spot(user_id)
-        await m.reply_text(
-            (await tld(m, "Music.spotify_cleaned")), disable_web_page_preview=True
-        )
-
-    return
-
-
-@Client.on_message(filters.command(["clearuser", "deluser"]))
-async def clear(c: Client, m: Message):
+@Smudge.on_message(filters.command(["clearuser", "deluser"]))
+async def clear(c: Smudge, m: Message):
     user_id = m.from_user.id
     username = await get_last_user(user_id)
 
@@ -144,8 +38,8 @@ async def clear(c: Client, m: Message):
     return
 
 
-@Client.on_message(filters.command(["setuser", "setlast"]))
-async def setuser(c: Client, m: Message):
+@Smudge.on_message(filters.command(["setuser", "setlast"]))
+async def setuser(c: Smudge, m: Message):
     user_id = m.from_user.id
     if m.reply_to_message and m.reply_to_message.text:
         username = m.reply_to_message.text
@@ -174,8 +68,8 @@ async def setuser(c: Client, m: Message):
     return
 
 
-@Client.on_message(filters.command(["lastinfo", "linfo"]))
-async def lastfm_info(c: Client, m: Message):
+@Smudge.on_message(filters.command(["lastinfo", "linfo"]))
+async def lastfm_info(c: Smudge, m: Message):
     user = m.from_user.first_name
     user_id = m.from_user.id
     username = await get_last_user(user_id)
@@ -220,9 +114,9 @@ async def lastfm_info(c: Client, m: Message):
     await m.reply_text(rep, reply_markup=keyboard)
 
 
-@Client.on_message(filters.command(["lastfm", "lmu", "lt", "whl"]))
-async def lastfm(c: Client, m: Message):
-    if m.chat.type != ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
+@Smudge.on_message(filters.command(["lastfm", "lmu", "lt", "whl"]))
+async def lastfm(c: Smudge, m: Message):
+    if m.chat.type is not ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
         try:
             await m.chat.get_member(
                 1993314727
@@ -305,9 +199,9 @@ async def lastfm(c: Client, m: Message):
     await m.reply_text(rep)
 
 
-@Client.on_message(filters.command(["lalbum", "lalb", "album"]))
-async def album(c: Client, m: Message):
-    if m.chat.type != ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/album":
+@Smudge.on_message(filters.command(["lalbum", "lalb", "album"]))
+async def album(c: Smudge, m: Message):
+    if m.chat.type is not ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/album":
         try:
             await m.chat.get_member(
                 1993314727
@@ -380,9 +274,9 @@ async def album(c: Client, m: Message):
     await m.reply(rep)
 
 
-@Client.on_message(filters.command(["lartist", "lart", "artist"]))
-async def artist(c: Client, m: Message):
-    if m.chat.type != ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "artist":
+@Smudge.on_message(filters.command(["lartist", "lart", "artist"]))
+async def artist(c: Smudge, m: Message):
+    if m.chat.type is not ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "artist":
         try:
             await m.chat.get_member(
                 1993314727
@@ -450,8 +344,8 @@ async def artist(c: Client, m: Message):
     await m.reply(rep)
 
 
-@Client.on_message(filters.command(["duotone", "dualtone"]))
-async def duotone(c: Client, m: Message):
+@Smudge.on_message(filters.command(["duotone", "dualtone"]))
+async def duotone(c: Smudge, m: Message):
     user_id = m.from_user.id
     username = await get_last_user(user_id)
 
@@ -514,8 +408,8 @@ async def duotone(c: Client, m: Message):
     )
 
 
-@Client.on_callback_query(filters.regex("^(_duton)"))
-async def create_duotone(c: Client, cq: CallbackQuery):
+@Smudge.on_callback_query(filters.regex("^(_duton)"))
+async def create_duotone(c: Smudge, cq: CallbackQuery):
     try:
         await cq.edit_message_text(await tld(cq, "Main.loading"))
     except BadRequest:
