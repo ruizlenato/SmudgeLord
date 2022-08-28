@@ -8,7 +8,6 @@ from .utils import (
     pretty_size,
     aiowrap,
     EMOJI_PATTERN,
-    send_logs,
 )
 
 __all__: List[str] = [
@@ -16,5 +15,4 @@ __all__: List[str] = [
     "pretty_size",
     "EMOJI_PATTERN",
     "aiowrap",
-    "send_logs",
 ]

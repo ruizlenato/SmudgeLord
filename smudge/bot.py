@@ -8,6 +8,7 @@ import logging
 
 from pyrogram import Client
 from pyrogram.enums import ParseMode
+from pyrogram.types import CallbackQuery
 
 from smudge.utils import http
 from smudge.database import database
@@ -69,3 +70,16 @@ class Smudge(Client):
             await database.close()
         await super().stop()
         logger.warning(f"\033[93mSmudgeLord stopped. Bye!\033[0m")
+
+    async def send_logs(self, m, e):
+        if isinstance(m, CallbackQuery):
+            m = m.message
+
+        user_mention = m.from_user.mention(m.from_user.first_name)
+        user_id = m.from_user.id
+        return await Smudge.send_message(
+            chat_id=CHAT_LOGS,
+            text=(
+                "<b>⚠️ Error</b>\n<b>User:</b>{} (<code>{}</code>)\n<b>Log:</b>\n<code>{}</code></b>"
+            ).format(user_mention, user_id, e),
+        )

@@ -9,11 +9,7 @@ import asyncio
 from typing import Callable
 from functools import wraps, partial
 
-from ..bot import Smudge
-from smudge.config import CHAT_LOGS
-
 from pyrogram import emoji
-from pyrogram.types import CallbackQuery
 
 timeout = httpx.Timeout(30, pool=None)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
@@ -55,18 +51,3 @@ def get_emoji_regex():
 
 
 EMOJI_PATTERN = get_emoji_regex()
-
-
-async def send_logs(m, e):
-    if isinstance(m, CallbackQuery):
-        m = m.message
-
-    user_mention = m.from_user.mention(m.from_user.first_name)
-    user_id = m.from_user.id
-    await Smudge.send_message(
-        chat_id=CHAT_LOGS,
-        text=(
-            "<b>⚠️ Error</b>\n<b>User:</b>{} (<code>{}</code>)\n<b>Log:</b>\n<code>{}</code></b>"
-        ).format(user_mention, user_id, e),
-    )
-    return
