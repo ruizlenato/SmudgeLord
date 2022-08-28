@@ -14,10 +14,10 @@ async def check_chat(c: Client, m: Message):
     chat = m.chat
     user = m.from_user
 
-    if m.from_user.language_code is None:
-        language_code: str = "en-us"
-    else:
+    try:
         language_code = m.from_user.language_code
+    except AttributeError:
+        language_code: str = "en-us"
 
     if language_code not in LANGUAGES:
         language_code: str = "en-us"
