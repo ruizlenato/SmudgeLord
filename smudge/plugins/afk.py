@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0
-# Copyright (c) 2021-2022 Luiz Renato (ruizlenato@protonmail.com)
+# Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
 import re
 import asyncio
 
@@ -99,10 +99,8 @@ async def afk(c: Smudge, m: Message):
             if y.type is MessageEntityType.MENTION:
                 try:
                     ent = await c.get_users(m.text[y.offset : y.offset + y.length])
-                except (IndexError, KeyError, BadRequest):
+                except (IndexError, KeyError, BadRequest, FloodWait):
                     return
-                except FloodWait as e:
-                    await asyncio.sleep(e.value)
 
             elif y.type is MessageEntityType.TEXT_MENTION:
                 try:

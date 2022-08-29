@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
+
 from typing import List
 
 # Telegram Bot token get it from Bot Father
