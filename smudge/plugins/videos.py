@@ -297,8 +297,8 @@ async def sdl(c: Smudge, m: Message):
         ):
             try:
                 await m.chat.get_member(
-                    1993314727
-                )  # To avoid conflict with @MyScrobblesbot
+                    1703426201
+                )  # To avoid conflict with @TwitterGramRobot
                 return
             except UserNotParticipant:
                 pass
