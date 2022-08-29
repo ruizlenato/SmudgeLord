@@ -17,8 +17,14 @@ from yt_dlp import YoutubeDL
 from pyrogram import filters
 from pyrogram.helpers import ikb
 from pyrogram.enums import ChatAction, ChatType
-from pyrogram.errors import BadRequest, FloodWait, Forbidden, MediaEmpty
 from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPhoto
+from pyrogram.errors import (
+    BadRequest,
+    FloodWait,
+    Forbidden,
+    MediaEmpty,
+    UserNotParticipant,
+)
 
 from ..bot import Smudge
 from smudge.utils.locales import tld
@@ -31,6 +37,11 @@ SDL_REGEX_LINKS = r"^http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.|m.)?(?:instagra
 # Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
     r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/|embed/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"
+)
+
+# Twitter regex
+TWITTER_REGEX_LINKS = (
+    r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)"
 )
 
 
@@ -258,7 +269,7 @@ def gallery_down(path, url: str):
 
 # ToDo: Refactor this
 @Smudge.on_message(
-    filters.command(["sdl", "mdl"]) | filters.regex(SDL_REGEX_LINKS), group=2
+    filters.command(["sdl", "mdl"]) | filters.regex(SDL_REGEX_LINKS), group=1
 )
 async def sdl(c: Smudge, m: Message):
     if m.matches:
@@ -281,77 +292,56 @@ async def sdl(c: Smudge, m: Message):
         url,
         re.M,
     ):
+        if m.chat.type is not ChatType.PRIVATE and re.match(
+            TWITTER_REGEX_LINKS, url, re.M
+        ):
+            try:
+                await m.chat.get_member(
+                    1993314727
+                )  # To avoid conflict with @MyScrobblesbot
+                return
+            except UserNotParticipant:
+                pass
+
         with tempfile.TemporaryDirectory() as tempdir:
             path = os.path.join(tempdir, f"sdl|{random.randint(0, 300)}")
+        try:
+            await gallery_down(path, url)
+        except gallery_dl.exception.GalleryDLException:
+            return
+        files = []
+        try:
+            files += [
+                InputMediaVideo(os.path.join(path, video))
+                for video in os.listdir(path)
+                if video.endswith(".mp4")
+            ]
+        except FileNotFoundError:
+            pass
+
+        if not re.match(TWITTER_REGEX_LINKS, url, re.M) and (
+            m.chat.type == ChatType.PRIVATE or await cisdl(m.chat.id) == True
+        ):
             try:
-                await gallery_down(path, url)
-                files = []
-                try:
-                    files += [
-                        InputMediaVideo(os.path.join(path, video))
-                        for video in os.listdir(path)
-                        if video.endswith(".mp4")
-                    ]
-                except FileNotFoundError:
-                    pass
-                if not re.match(
-                    r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
-                    url,
-                    re.M,
-                ) and (
-                    (m.chat.type == ChatType.PRIVATE or await cisdl(m.chat.id) == True)
-                ):
-                    try:
-                        files += [
-                            InputMediaPhoto(os.path.join(path, photo))
-                            for photo in os.listdir(path)
-                            if photo.endswith((".jpg", ".png", ".jpeg"))
-                        ]
-                    except FileNotFoundError:
-                        pass
-                try:
-                    if files:
-                        await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
-                        await m.reply_media_group(media=files)
-                except FloodWait as e:
-                    await asyncio.sleep(e.value)
-                except MediaEmpty:
-                    return
-                except Forbidden:
-                    return shutil.rmtree(tempdir, ignore_errors=True)
-            except gallery_dl.exception.GalleryDLException:
-                ydl_opts = {
-                    "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
-                    "wait-for-video": "1",
-                    "noplaylist": True,
-                    "logger": MyLogger(),
-                }
+                files += [
+                    InputMediaPhoto(os.path.join(path, photo))
+                    for photo in os.listdir(path)
+                    if photo.endswith((".jpg", ".png", ".jpeg"))
+                ]
+            except FileNotFoundError:
+                pass
 
-                if re.match(
-                    r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)",
-                    url,
-                    re.M,
-                ):
-                    r = await http.head(url, follow_redirects=True)
-                    url = r.url
+        try:
+            if files:
+                await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
+                await m.reply_media_group(media=files)
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+        except MediaEmpty:
+            return
+        except Forbidden:
+            return shutil.rmtree(tempdir, ignore_errors=True)
 
-                try:
-                    await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
-                except BaseException:
-                    return
-                if videos := [
-                    InputMediaVideo(os.path.join(path, video))
-                    for video in os.listdir(path)
-                ]:
-                    await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_VIDEO)
-                    try:
-                        await m.reply_media_group(media=videos)
-                    except FloodWait as e:
-                        await asyncio.sleep(e.value)
-                    except MediaEmpty:
-                        return
-                    except Forbidden:
-                        return shutil.rmtree(tempdir, ignore_errors=True)
         await asyncio.sleep(2)
         return shutil.rmtree(tempdir, ignore_errors=True)
     else:

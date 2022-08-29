@@ -62,7 +62,7 @@ async def check_afk(m, user_id, user_fn, user):
             return
 
 
-@Smudge.on_message(~filters.private & ~filters.bot & filters.all, group=1)
+@Smudge.on_message(~filters.private & ~filters.bot & filters.all, group=-1)
 async def afk(c: Smudge, m: Message):
     user = m.from_user
     if m.sender_chat:
