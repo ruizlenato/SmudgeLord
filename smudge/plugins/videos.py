@@ -273,7 +273,7 @@ def gallery_down(path, url: str):
 )
 async def sdl(c: Smudge, m: Message):
     if m.matches:
-        if m.chat.type == ChatType.PRIVATE or await csdl(m.chat.id) == True:
+        if m.chat.type == ChatType.PRIVATE or await csdl(m.chat.id) is True:
             url = m.matches[0].group(0)
         else:
             return
@@ -326,7 +326,7 @@ async def sdl(c: Smudge, m: Message):
             pass
 
         if not re.match(TWITTER_REGEX_LINKS, url, re.M) and (
-            m.chat.type == ChatType.PRIVATE or await cisdl(m.chat.id) == True
+            m.chat.type == ChatType.PRIVATE or await cisdl(m.chat.id) is True
         ):
             try:
                 files += [
