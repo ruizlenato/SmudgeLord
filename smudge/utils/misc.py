@@ -2,6 +2,7 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
 import uuid
 import json
+import sys
 import httpx
 
 from smudge.utils import http
@@ -106,7 +107,7 @@ async def dicio_def(query):
                 .replace("                 ", "")
                 .replace("""\n                """, "")
             )
-        except:
+        except AttributeError:
             if i == " ":
                 des = ""
         desc.append(des)
@@ -121,7 +122,7 @@ async def dicio_def(query):
             }
             max += 1
             result.append(b)
-        except:
+        except IndexError:
             pass
 
     return result
