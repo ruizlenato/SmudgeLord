@@ -9,7 +9,7 @@ from smudge.database.chats import add_chat, get_chat
 
 # This is the first plugin run to guarantee
 # that the actual chat is initialized in the DB.
-@Smudge.on_message(group=-2)
+@Smudge.on_message(group=-1)
 async def check_chat(c: Smudge, m: Message):
     chat = m.chat
     user = m.from_user

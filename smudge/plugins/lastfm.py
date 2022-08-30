@@ -176,10 +176,7 @@ async def lastfm(c: Smudge, m: Message):
     try:
         info = json.loads(fetch.content)
         last_user = info["track"]
-        if int(last_user.get("userplaycount")) == 0:
-            scrobbles = int(last_user.get("userplaycount")) + 1
-        else:
-            scrobbles = int(last_user.get("userplaycount"))
+        scrobbles = int(last_user.get("userplaycount")) + 1
     except KeyError:
         scrobbles = "none"
 
@@ -247,11 +244,7 @@ async def album(c: Smudge, m: Message):
 
     info = json.loads(fetch.content)
     last_user = info["album"]
-    if int(last_user.get("userplaycount")) == 0:
-        scrobbles = int(last_user.get("userplaycount")) + 1
-    else:
-        scrobbles = int(last_user.get("userplaycount"))
-
+    scrobbles = int(last_user.get("userplaycount")) + 1
     rep = f"<a href='{image}'>\u200c</a>"
 
     if first_track.get("@attr"):  # Check if track is now playing
