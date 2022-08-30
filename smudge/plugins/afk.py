@@ -43,25 +43,6 @@ async def set_afk(c: Smudge, m: Message):
         return
 
 
-async def check_afk(m, user_id, user_fn, user):
-    if user_id == user.id:
-        return
-
-    if await get_uafk(user_id) is not None:
-        try:
-            await m.chat.get_member(int(user_id))  # Check if the user is in the group
-        except (UserNotParticipant, PeerIdInvalid):
-            return
-
-        afkmsg = (await tld(m, "Misc.user_afk")).format(user_fn[:25])
-        if await get_uafk(user_id) != "No reason":
-            afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_uafk(user_id))
-        try:
-            return await m.reply_text(afkmsg)
-        except ChatWriteForbidden:
-            return
-
-
 @Smudge.on_message(~filters.private & ~filters.bot & filters.all, group=-1)
 async def afk(c: Smudge, m: Message):
     user = m.from_user
@@ -110,4 +91,16 @@ async def afk(c: Smudge, m: Message):
             else:
                 return
 
-            return await check_afk(m, ent.id, ent.first_name, user)
+            await check_afk(m, ent.id, ent.first_name, user)
+
+
+async def check_afk(m, user_id, user_fn, user):
+    if user_id == user.id:
+        return
+
+    if await get_uafk(user_id) is not None:
+        afkmsg = (await tld(m, "Misc.user_afk")).format(user_fn[:25])
+
+        if await get_uafk(user_id) != "No reason":
+            afkmsg += (await tld(m, "Misc.afk_reason")).format(await get_uafk(user_id))
+            await m.reply_text(afkmsg)
