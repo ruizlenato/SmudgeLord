@@ -308,7 +308,13 @@ async def sdl(c: Smudge, m: Message):
         try:
             await gallery_down(path, url)
         except gallery_dl.exception.GalleryDLException:
-            return
+            ydl_opts = {
+                "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
+                "wait-for-video": "1",
+                "noplaylist": True,
+                "logger": MyLogger(),
+            }
+            await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
         files = []
         try:
             files += [
