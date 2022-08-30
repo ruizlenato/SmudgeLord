@@ -7,25 +7,25 @@ from .core import database
 conn = database.get_conn()
 
 
-async def csdl(id: int) -> bool:
+async def sdl_c(id: int) -> bool:
     cursor = await conn.execute("SELECT sdl_auto FROM groups WHERE id = ?", (id,))
     row = await cursor.fetchone()
     await cursor.close()
     return row[0]
 
 
-async def tsdl(id: int, mode: Optional[bool]) -> None:
-    await conn.execute("UPDATE groups SET sdl_auto = ? WHERE id = ?", (mode, id))
-    await conn.commit()
-
-
-async def cisdl(id: int) -> bool:
+async def isdl_c(id: int) -> bool:
     cursor = await conn.execute("SELECT sdl_images FROM groups WHERE id = ?", (id,))
     row = await cursor.fetchone()
     await cursor.close()
     return row[0]
 
 
-async def tisdl(id: int, mode: Optional[bool]) -> None:
+async def sdl_t(id: int, mode: Optional[bool]) -> None:
+    await conn.execute("UPDATE groups SET sdl_auto = ? WHERE id = ?", (mode, id))
+    await conn.commit()
+
+
+async def isdl_t(id: int, mode: Optional[bool]) -> None:
     await conn.execute("UPDATE groups SET sdl_images = ? WHERE id = ?", (mode, id))
     await conn.commit()

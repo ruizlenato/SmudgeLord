@@ -29,7 +29,7 @@ from pyrogram.errors import (
 from ..bot import Smudge
 from smudge.utils.locales import tld
 from smudge.utils import http, pretty_size, aiowrap
-from smudge.database.videos import csdl, cisdl
+from smudge.database.videos import sdl_c, isdl_c
 
 # Regex to get link
 SDL_REGEX_LINKS = r"^http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.|m.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com|facebook.com)\/(?:\S*)"
@@ -273,7 +273,7 @@ def gallery_down(path, url: str):
 )
 async def sdl(c: Smudge, m: Message):
     if m.matches:
-        if m.chat.type == ChatType.PRIVATE or await csdl(m.chat.id) is True:
+        if m.chat.type is ChatType.PRIVATE or await sdl_c(m.chat.id):
             url = m.matches[0].group(0)
         else:
             return
@@ -287,24 +287,9 @@ async def sdl(c: Smudge, m: Message):
         )
         return
 
-    if re.match(
-        SDL_REGEX_LINKS,
-        url,
-        re.M,
-    ):
-        if m.chat.type is not ChatType.PRIVATE and re.match(
-            TWITTER_REGEX_LINKS, url, re.M
-        ):
-            try:
-                await m.chat.get_member(
-                    1703426201
-                )  # To avoid conflict with @TwitterGramRobot
-                return
-            except UserNotParticipant:
-                pass
-
+    if re.match(SDL_REGEX_LINKS, url, re.M):
         with tempfile.TemporaryDirectory() as tempdir:
-            path = os.path.join(tempdir, f"sdl|{random.randint(0, 300)}")
+            path = os.path.join(tempdir)
         try:
             await gallery_down(path, url)
         except gallery_dl.exception.GalleryDLException:
@@ -314,7 +299,15 @@ async def sdl(c: Smudge, m: Message):
                 "noplaylist": True,
                 "logger": MyLogger(),
             }
-            await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
+
+            if re.match(r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)", url, re.M):
+                url = (await http.head(url, follow_redirects=True)).url
+
+            try:
+                await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
+            except BaseException:
+                return
+
         files = []
         try:
             files += [
@@ -325,9 +318,11 @@ async def sdl(c: Smudge, m: Message):
         except FileNotFoundError:
             pass
 
-        if not re.match(TWITTER_REGEX_LINKS, url, re.M) and (
-            m.chat.type == ChatType.PRIVATE or await cisdl(m.chat.id) is True
-        ):
+        if not re.match(
+            r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
+            url,
+            re.M,
+        ) and ((m.chat.type is ChatType.PRIVATE or await isdl_c(m.chat.id))):
             try:
                 files += [
                     InputMediaPhoto(os.path.join(path, photo))
@@ -337,16 +332,16 @@ async def sdl(c: Smudge, m: Message):
             except FileNotFoundError:
                 pass
 
-        try:
-            if files:
+        if files:
+            try:
                 await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
                 await m.reply_media_group(media=files)
-        except FloodWait as e:
-            await asyncio.sleep(e.value)
-        except MediaEmpty:
-            return
-        except Forbidden:
-            return shutil.rmtree(tempdir, ignore_errors=True)
+            except FloodWait as e:
+                await asyncio.sleep(e.value)
+            except MediaEmpty:
+                return
+            except Forbidden:
+                return shutil.rmtree(tempdir, ignore_errors=True)
 
         await asyncio.sleep(2)
         return shutil.rmtree(tempdir, ignore_errors=True)

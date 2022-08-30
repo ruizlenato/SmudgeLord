@@ -17,7 +17,7 @@ from smudge.plugins import all_plugins
 from smudge.utils.locales import tld, lang_dict
 from smudge.database.locales import set_db_lang
 from smudge.utils.help_menu import help_buttons
-from smudge.database.videos import tsdl, csdl, tisdl, cisdl
+from smudge.database.videos import sdl_c, isdl_c, sdl_t, isdl_t
 
 # Help plugins
 HELP = {}
@@ -207,15 +207,15 @@ async def ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
             return
     except AttributeError:
         message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
-        await asyncio.sleep(10.0)
+        await asyncio.sleep(5.0)
         await message.delete()
         return
 
-    if await csdl(chat_id) is None:
-        await tsdl(chat_id, True)
+    if not await sdl_c(chat_id):
+        await sdl_t(chat_id, True)
         text = await tld(m, "Misc.sdl_config_auto")
     else:
-        await tsdl(chat_id, None)
+        await sdl_t(chat_id, None)
         text = await tld(m, "Misc.sdl_config_noauto")
 
     keyboard = [[(await tld(m, "Main.back_btn"), "config")]]
@@ -237,15 +237,15 @@ async def image_ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
             return
     except AttributeError:
         message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
-        await asyncio.sleep(10.0)
+        await asyncio.sleep(5.0)
         await message.delete()
         return
 
-    if await cisdl(chat_id) is None:
-        await tisdl(chat_id, True)
+    if not await isdl_c(chat_id):
+        await isdl_t(chat_id, True)
         text = await tld(m, "Misc.sdl_config_auto_images")
     else:
-        await tisdl(chat_id, None)
+        await isdl_t(chat_id, None)
         text = await tld(m, "Misc.sdl_config_noauto_images")
 
     keyboard = [[(await tld(m, "Main.back_btn"), "config")]]
@@ -276,8 +276,8 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
         await message.delete()
         return
 
-    emoji = "❌" if await csdl(chat_id) is None else "✅"
-    emoji_image = "❌" if await cisdl(chat_id) is None else "✅"
+    emoji = "❌" if not await sdl_c(chat_id) else "✅"
+    emoji_image = "❌" if not await isdl_c(chat_id) else "✅"
     keyboard = [
         [
             (f"SDL Images: {emoji_image}", "ssdl_image"),
