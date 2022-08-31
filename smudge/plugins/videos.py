@@ -334,7 +334,7 @@ async def sdl(c: Smudge, m: Message):
             url,
             re.M,
         ) and (
-            (m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_image", m.chat.id))
+            (m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_images", m.chat.id))
         ):
             try:
                 files += [
