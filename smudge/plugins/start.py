@@ -10,14 +10,14 @@ from pyrogram import filters
 from pyrogram.helpers import ikb
 from pyrogram.types import Message, CallbackQuery
 from pyrogram.enums import ChatType, ChatMemberStatus
-from pyrogram.errors import FloodWait, MessageNotModified
+from pyrogram.errors import FloodWait, MessageNotModified, UserNotParticipant
 
 from ..bot import Smudge
 from smudge.plugins import all_plugins
 from smudge.utils.locales import tld, lang_dict
 from smudge.database.locales import set_db_lang
 from smudge.utils.help_menu import help_buttons
-from smudge.database.videos import sdl_c, isdl_c, sdl_t, isdl_t
+from smudge.database.videos import sdl_c, sdl_t
 
 # Help plugins
 HELP = {}
@@ -64,16 +64,19 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
 
 
 @Smudge.on_callback_query(filters.regex("^set_lang (?P<code>.+)"))
-async def portuguese(c: Smudge, m: Message):
+async def set_lang(c: Smudge, m: Message):
     lang = m.matches[0]["code"]
     if m.message.chat.type is not ChatType.PRIVATE:
-        member = await c.get_chat_member(
-            chat_id=m.message.chat.id, user_id=m.from_user.id
-        )
-        if member.status not in (
-            ChatMemberStatus.ADMINISTRATOR,
-            ChatMemberStatus.OWNER,
-        ):
+        try:
+            member = await c.get_chat_member(
+                chat_id=m.message.chat.id, user_id=m.from_user.id
+            )
+            if member.status not in (
+                ChatMemberStatus.ADMINISTRATOR,
+                ChatMemberStatus.OWNER,
+            ):
+                return
+        except UserNotParticipant:
             return
 
     keyboard = [[(await tld(m, "Main.back_btn"), "setchatlang")]]
@@ -130,6 +133,8 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
             message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
             await asyncio.sleep(5.0)
             return await message.delete()
+        except UserNotParticipant:
+            return
     await reply_text(await tld(m, "Main.select_lang"), reply_markup=ikb(keyboard))
     return
 
@@ -193,66 +198,6 @@ async def logging(c: Smudge, m: Message):
         await asyncio.sleep(e.value)
 
 
-@Smudge.on_callback_query(filters.regex(r"^ssdl_auto"))
-async def ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
-    chat_id = m.message.chat.id
-    reply_text = m.edit_message_text
-
-    try:
-        member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
-        if member.status not in (
-            ChatMemberStatus.ADMINISTRATOR,
-            ChatMemberStatus.OWNER,
-        ):
-            return
-    except AttributeError:
-        message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
-        await asyncio.sleep(5.0)
-        await message.delete()
-        return
-
-    if not await sdl_c(chat_id):
-        await sdl_t(chat_id, True)
-        text = await tld(m, "Misc.sdl_config_auto")
-    else:
-        await sdl_t(chat_id, None)
-        text = await tld(m, "Misc.sdl_config_noauto")
-
-    keyboard = [[(await tld(m, "Main.back_btn"), "config")]]
-    await reply_text(text, reply_markup=ikb(keyboard))
-    return
-
-
-@Smudge.on_callback_query(filters.regex(r"^ssdl_image"))
-async def image_ssdl(c: Smudge, m: Union[Message, CallbackQuery]):
-    chat_id = m.message.chat.id
-    reply_text = m.edit_message_text
-
-    try:
-        member = await c.get_chat_member(chat_id=chat_id, user_id=m.from_user.id)
-        if member.status not in (
-            ChatMemberStatus.ADMINISTRATOR,
-            ChatMemberStatus.OWNER,
-        ):
-            return
-    except AttributeError:
-        message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
-        await asyncio.sleep(5.0)
-        await message.delete()
-        return
-
-    if not await isdl_c(chat_id):
-        await isdl_t(chat_id, True)
-        text = await tld(m, "Misc.sdl_config_auto_images")
-    else:
-        await isdl_t(chat_id, None)
-        text = await tld(m, "Misc.sdl_config_noauto_images")
-
-    keyboard = [[(await tld(m, "Main.back_btn"), "config")]]
-    await reply_text(text, reply_markup=ikb(keyboard))
-    return
-
-
 @Smudge.on_callback_query(filters.regex(r"config"))
 @Smudge.on_message(filters.command("config") & filters.group)
 async def config(c: Smudge, m: Union[Message, CallbackQuery]):
@@ -270,18 +215,11 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
             ChatMemberStatus.OWNER,
         ):
             return
-    except AttributeError:
-        message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
-        await asyncio.sleep(10.0)
-        await message.delete()
+    except UserNotParticipant:
         return
-
-    emoji = "❌" if not await sdl_c(chat_id) else "✅"
-    emoji_image = "❌" if not await isdl_c(chat_id) else "✅"
     keyboard = [
         [
-            (f"SDL Images: {emoji_image}", "ssdl_image"),
-            (f"SDL Auto: {emoji}", "ssdl_auto"),
+            (await tld(m, "Config.videos"), "confsdl"),
         ],
         [
             (
@@ -291,5 +229,61 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
         ],
     ]
 
-    text = await tld(m, "Main.config_text")
+    text = await tld(m, "Config.text")
     await reply_text(text, reply_markup=ikb(keyboard))
+
+
+@Smudge.on_callback_query(filters.regex(r"confsdl"))
+async def confsdl(c: Smudge, m: CallbackQuery):
+    try:
+        member = await c.get_chat_member(
+            chat_id=m.message.chat.id, user_id=m.from_user.id
+        )
+        if member.status not in (
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+        ):
+            return
+    except UserNotParticipant:
+        return
+
+    keyboard = [
+        [
+            (
+                f"{await tld(m, 'Config.btn_image')}: {'☑️' if not await sdl_c('sdl_images', m.message.chat.id) else '✅'}",
+                "setsdl sdl_images",
+            ),
+            (
+                f"{await tld(m, 'Config.btn_auto')}: {'☑️' if not await sdl_c('sdl_auto', m.message.chat.id) else '✅'}",
+                "setsdl sdl_auto",
+            ),
+        ],
+        [(await tld(m, "Main.back_btn"), "config")],
+    ]
+    return await m.edit_message_text(
+        await tld(m, "Config.media_text"), reply_markup=ikb(keyboard)
+    )
+
+
+@Smudge.on_callback_query(filters.regex("^setsdl (?P<code>.+)"))
+async def setsdl(c: Smudge, m: CallbackQuery):
+    method = m.matches[0]["code"]
+    if m.message.chat.type is not ChatType.PRIVATE:
+        member = await c.get_chat_member(
+            chat_id=m.message.chat.id, user_id=m.from_user.id
+        )
+        if member.status not in (
+            ChatMemberStatus.ADMINISTRATOR,
+            ChatMemberStatus.OWNER,
+        ):
+            return
+
+    if not await sdl_c(method, m.message.chat.id):
+        await sdl_t(method, m.message.chat.id, True)
+        text = await tld(m, f"Config.{method}")
+    else:
+        await sdl_t(method, m.message.chat.id, None)
+        text = await tld(m, f"Config.no_{method}")
+
+    keyboard = [[(await tld(m, "Main.back_btn"), "confsdl")]]
+    return await m.edit_message_text(text, reply_markup=ikb(keyboard))

@@ -25,7 +25,6 @@ strings:
     change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens de forma anônima.\n<b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
     help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
     avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
-    config_text: "<b>Configurações.</b>\nClique nos botões abaixo para alterar as configurações em seu grupo.\n\n<b>SDL Auto -</b> <i>Quando ativo (✅) o bot irá baixar videos de redes sociais automaticamente quando alguém enviar um link</i>\n<b>Idioma -</b> <i>Altera o idioma do bot no grupo</i>"
     added: "adicionado"
     updated: "atualizado"
     downloading: "Baixando..."
@@ -59,7 +58,25 @@ strings:
       <b>/twrp [codename] -</b> Obtenha a última versão do TWRP disponível para o device escolhido a partir do codename.
       <b>/whatis [codename] -</b> Obtenha o nome do device a partir do codename.
       <b>/variants [codename] -</b> Obtenha variantes de devices Android a partir do codename.
-  
+
+# Config
+  Config:
+    sdl_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
+    no_sdl_auto: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei baixar automaticamente quando você enviar um link."
+    sdl_images: "<b>Configuração salva.</b>\nAgora eu irei <b>baixar imagens junto com os vídeos</b> automaticamente quando você enviar um link."
+    no_sdl_images: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei <b>baixar imagens junto com os vídeos</b> automaticamente quando você enviar um link."
+    text: "<b>Configurações</b> - Aqui estão as minhas configurações para esse grupo, para saber mais, <b>basta clicar nos botões abaixos.</b>"
+    videos: "Download de mídias"
+    btn_auto: "Downloads automáticos"
+    btn_image: "Download de imagens"
+    media_text: | 
+      <b>Configurações dos downloads de mídias.</b>
+      <i>O download de midias é uma função do plugin <b>utilitários</b>, para saber mais, use o <code>/help</code> no privado do Bot</i>
+
+      
+      <b>Downloads automáticos -</b> Suporte a downloads automáticos de videos de redes sociais quando alguém enviar um link no grupo.
+      <b>Download de imagens -</b> Suporte a downloads de imagens no Download automático (quando ativo) e no /sdl | /mdl.
+
 # LastFM
   LastFM:
     name: "LastFM"
@@ -173,10 +190,6 @@ strings:
     fddd_strings: "📞 <b>DDD - {}</b> \n<b>- Estado:</b> {} - {}\n<b>- Cidades:</b> <code>{}</code>"
     ddd_error: "Este DDD é invalido."
     ddd_cities: "Cidades"
-    sdl_config_noauto: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei baixar automaticamente quando você enviar um link."
-    sdl_config_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
-    sdl_config_noauto_images: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei <b>baixar imagens junto com os vídeos</b> automaticamente quando você enviar um link."
-    sdl_config_auto_images: "<b>Configuração salva.</b>\nAgora eu irei <b>baixar imagens junto com os vídeos</b> automaticamente quando você enviar um link."
     gitr_noreleases: "Não consegui encontrar nenhuma release em <code>{}</code>"
     ytdl_audio_button: "💿 Áudio"
     ytdl_video_button: "📹 Vídeo"

@@ -25,13 +25,18 @@ strings:
     change_lang_uchannel: "Hmm, apparently you are sending messages anonymously.\n<b>Send messages as a normal user so I can help you.</b>"
     help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
     avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
-    config_text: "<b>Settings.</b>\nClick the buttons below to change the settings in your group.\n\n<b>SDL Auto -</b> <i>When enabled (✅) the bot will download videos from social networks automatically when someone sends a link</i>\n<b>Language -</b> <i>Change the language of the bot in the group</i>"
     added: "added"
     updated: "updated"
     downloading: "Downloading..."
     sending: "Sending..."
     loading: "Loading..."
     start: "Start"
+    media_config_text: | 
+      <b>Media download settings.</b>
+      <i>Downloading media is a function of the <b>utility</b> plugin, to learn more, use the <code>/help</code> in the Bot's DM</i>      
+      
+      <b>Download Auto -</b> Support for automatic downloads of videos from social media when someone sends a link in the group.
+      <b>Download Images -</b> Support for image downloads in Auto Download (when active) and /sdl | /mdl.
 
 # Admin
   Admin:
@@ -58,7 +63,24 @@ strings:
       <b>/magisk -</b> Get latest Magisk releases.
       <b>/twrp [codename] -</b> Get the latest TWRP version available for the chosen device from codename.
       <b>/whatis [codename] -</b> Get phone neme from codename.
-      <b>/variants [codename] -</b> Get phone variants from codename..
+      <b>/variants [codename] -</b> Get phone variants from codename.
+
+# Config
+  Config:
+    sdl_auto: "<b>Saved.</b>\nNow <b>I will</b> automatically download when you send a link."
+    no_sdl_auto: "<b>Saved.</b>\nNow I will <b>not</b> automatically download when you send a link."
+    sdl_images: "<b>Saved.</b>\nNow <b>I will download images</b> along with the videos automatically when you send a link"
+    no_sdl_images: "<b>Saved.</b>\nNow <b>I will not download images</b> along with the videos automatically when you send a link"
+    text: "<b>Settings</b> - Here are my settings for this group, to learn more, <b>just click on the buttons below.</b>"
+    videos: "Media Download"
+    btn_auto: "Auto download"
+    btn_image: "Image download"
+    media_text: | 
+      <b>Media download settings.</b>
+      <i>Downloading media is a function of the <b>utility</b> plugin, to learn more, use the <code>/help</code> in the Bot's DM</i>      
+      
+      <b>Auto download -</b> Support for automatic downloads of videos from social media when someone sends a link in the group.
+      <b>Image download -</b> Support for image downloads in Auto Download (when active) and /sdl | /mdl.
 
 # LastFM
   LastFM:
@@ -223,10 +245,6 @@ strings:
     fddd_strings: "📞 <b>DDD - {}</b> \n<b>- State:</b>  {} - {}\n<b>- Cities:</b> <code>{}</code>"
     ddd_error: "This Brazilian Area Code (DDD) is invalid."
     ddd_cities: "Cities"
-    sdl_config_noauto: "<b>Saved.</b>\nNow I will <b>not</b> automatically download when you send a link."
-    sdl_config_auto: "<b>Saved.</b>\nNow <b>I will</b> automatically download when you send a link."
-    sdl_config_noauto_images: "<b>Saved.</b>\nNow <b>I will not download images</b> along with the videos automatically when you send a link"
-    sdl_config_auto_images: "<b>Saved.</b>\nNow <b>I will download images</b> along with the videos automatically when you send a link"
     gitr_noreleases: "Coudn't find any releases on <code>{}</code>"
     ytdl_audio_button: "💿 Audio"
     ytdl_video_button: "📹 Video"

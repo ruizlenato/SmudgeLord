@@ -29,7 +29,7 @@ from pyrogram.errors import (
 from ..bot import Smudge
 from smudge.utils.locales import tld
 from smudge.utils import http, pretty_size, aiowrap
-from smudge.database.videos import sdl_c, isdl_c
+from smudge.database.videos import sdl_c
 
 # Regex to get link
 SDL_REGEX_LINKS = r"^http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.|m.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com|facebook.com)\/(?:\S*)"
@@ -273,7 +273,7 @@ def gallery_down(path, url: str):
 )
 async def sdl(c: Smudge, m: Message):
     if m.matches:
-        if m.chat.type is ChatType.PRIVATE or await sdl_c(m.chat.id):
+        if m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_auto", m.chat.id):
             url = m.matches[0].group(0)
         else:
             return
@@ -282,14 +282,14 @@ async def sdl(c: Smudge, m: Message):
     elif m.reply_to_message and m.reply_to_message.text:
         url = m.reply_to_message.text
     else:
-        await m.reply_text(
+        return await m.reply_text(
             (await tld(m, "Misc.noargs_sdl")).format(m.text.split(None, 1)[0])
         )
-        return
 
     if re.match(SDL_REGEX_LINKS, url, re.M):
         with tempfile.TemporaryDirectory() as tempdir:
             path = os.path.join(tempdir)
+
         try:
             await gallery_down(path, url)
         except gallery_dl.exception.GalleryDLException:
@@ -322,7 +322,9 @@ async def sdl(c: Smudge, m: Message):
             r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
             url,
             re.M,
-        ) and ((m.chat.type is ChatType.PRIVATE or await isdl_c(m.chat.id))):
+        ) and (
+            (m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_image", m.chat.id))
+        ):
             try:
                 files += [
                     InputMediaPhoto(os.path.join(path, photo))
