@@ -126,9 +126,15 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
                 ChatMemberStatus.ADMINISTRATOR,
                 ChatMemberStatus.OWNER,
             ):
-                message = await reply_text(await tld(m, "Admin.not_admin"))
-                await asyncio.sleep(5.0)
-                return await message.delete()
+                if isinstance(m, CallbackQuery):
+                    await m.answer(
+                        await tld(m, "Admin.not_admin"), show_alert=True, cache_time=60
+                    )
+                else:
+                    message = await reply_text(await tld(m, "Admin.not_admin"))
+                    await asyncio.sleep(5.0)
+                    await message.delete()
+                return
         except AttributeError:
             message = await reply_text(await tld(m, "Main.change_lang_uchannel"))
             await asyncio.sleep(5.0)
@@ -214,6 +220,14 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
             ChatMemberStatus.ADMINISTRATOR,
             ChatMemberStatus.OWNER,
         ):
+            if isinstance(m, CallbackQuery):
+                await m.answer(
+                    await tld(m, "Admin.not_admin"), show_alert=True, cache_time=60
+                )
+            else:
+                message = await reply_text(await tld(m, "Admin.not_admin"))
+                await asyncio.sleep(5.0)
+                await message.delete()
             return
     except UserNotParticipant:
         return
@@ -234,56 +248,62 @@ async def config(c: Smudge, m: Union[Message, CallbackQuery]):
 
 
 @Smudge.on_callback_query(filters.regex(r"confsdl"))
-async def confsdl(c: Smudge, m: CallbackQuery):
+async def confsdl(c: Smudge, cq: CallbackQuery):
     try:
         member = await c.get_chat_member(
-            chat_id=m.message.chat.id, user_id=m.from_user.id
+            chat_id=cq.message.chat.id, user_id=cq.from_user.id
         )
         if member.status not in (
             ChatMemberStatus.ADMINISTRATOR,
             ChatMemberStatus.OWNER,
         ):
-            return
+            return await cq.answer(
+                await tld(cq, "Admin.not_admin"),
+                show_alert=True,
+                cache_time=60,
+            )
     except UserNotParticipant:
         return
 
     keyboard = [
         [
             (
-                f"{await tld(m, 'Config.btn_image')}: {'☑️' if not await sdl_c('sdl_images', m.message.chat.id) else '✅'}",
+                f"{await tld(cq, 'Config.btn_image')}: {'☑️' if not await sdl_c('sdl_images', cq.message.chat.id) else '✅'}",
                 "setsdl sdl_images",
             ),
             (
-                f"{await tld(m, 'Config.btn_auto')}: {'☑️' if not await sdl_c('sdl_auto', m.message.chat.id) else '✅'}",
+                f"{await tld(cq, 'Config.btn_auto')}: {'☑️' if not await sdl_c('sdl_auto', cq.message.chat.id) else '✅'}",
                 "setsdl sdl_auto",
             ),
         ],
-        [(await tld(m, "Main.back_btn"), "config")],
+        [(await tld(cq, "Main.back_btn"), "config")],
     ]
-    return await m.edit_message_text(
-        await tld(m, "Config.media_text"), reply_markup=ikb(keyboard)
+    return await cq.edit_message_text(
+        await tld(cq, "Config.media_text"), reply_markup=ikb(keyboard)
     )
 
 
 @Smudge.on_callback_query(filters.regex("^setsdl (?P<code>.+)"))
-async def setsdl(c: Smudge, m: CallbackQuery):
-    method = m.matches[0]["code"]
-    if m.message.chat.type is not ChatType.PRIVATE:
+async def setsdl(c: Smudge, cq: CallbackQuery):
+    method = cq.matches[0]["code"]
+    if cq.message.chat.type is not ChatType.PRIVATE:
         member = await c.get_chat_member(
-            chat_id=m.message.chat.id, user_id=m.from_user.id
+            chat_id=cq.message.chat.id, user_id=cq.from_user.id
         )
         if member.status not in (
             ChatMemberStatus.ADMINISTRATOR,
             ChatMemberStatus.OWNER,
         ):
-            return
+            return await cq.answer(
+                await tld(cq, "Admin.not_admin"), show_alert=True, cache_time=60
+            )
 
-    if not await sdl_c(method, m.message.chat.id):
-        await sdl_t(method, m.message.chat.id, True)
-        text = await tld(m, f"Config.{method}")
+    if not await sdl_c(method, cq.message.chat.id):
+        await sdl_t(method, cq.message.chat.id, True)
+        text = await tld(cq, f"Config.{method}")
     else:
-        await sdl_t(method, m.message.chat.id, None)
-        text = await tld(m, f"Config.no_{method}")
+        await sdl_t(method, cq.message.chat.id, None)
+        text = await tld(cq, f"Config.no_{method}")
 
-    keyboard = [[(await tld(m, "Main.back_btn"), "confsdl")]]
-    return await m.edit_message_text(text, reply_markup=ikb(keyboard))
+    keyboard = [[(await tld(cq, "Main.back_btn"), "confsdl")]]
+    return await cq.edit_message_text(text, reply_markup=ikb(keyboard))
