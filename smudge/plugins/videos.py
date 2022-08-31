@@ -290,6 +290,17 @@ async def sdl(c: Smudge, m: Message):
         with tempfile.TemporaryDirectory() as tempdir:
             path = os.path.join(tempdir)
 
+        if m.chat.type is not ChatType.PRIVATE and re.match(
+            TWITTER_REGEX_LINKS, url, re.M
+        ):
+            try:
+                await m.chat.get_member(
+                    1703426201
+                )  # To avoid conflict with @TwitterGramRobot
+                return
+            except UserNotParticipant:
+                pass
+
         try:
             await gallery_down(path, url)
         except gallery_dl.exception.GalleryDLException:
