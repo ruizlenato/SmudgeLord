@@ -301,8 +301,12 @@ async def sdl(c: Smudge, m: Message):
             except UserNotParticipant:
                 pass
 
+        if re.match(r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)", url, re.M):
+            r = await http.head(url, follow_redirects=True)
+            url = r.url
+
         try:
-            await gallery_down(path, url)
+            await gallery_down(path, str(url))
         except gallery_dl.exception.GalleryDLException:
             ydl_opts = {
                 "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
@@ -310,9 +314,6 @@ async def sdl(c: Smudge, m: Message):
                 "noplaylist": True,
                 "logger": MyLogger(),
             }
-
-            if re.match(r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)", url, re.M):
-                url = (await http.head(url, follow_redirects=True)).url
 
             try:
                 await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
@@ -331,7 +332,7 @@ async def sdl(c: Smudge, m: Message):
 
         if not re.match(
             r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
-            url,
+            str(url),
             re.M,
         ) and (
             (m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_images", m.chat.id))
