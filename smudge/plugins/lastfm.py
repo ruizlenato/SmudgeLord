@@ -47,7 +47,7 @@ async def setuser(c: Smudge, m: Message):
         username = m.text.split(None, 1)[1]
     else:
         await m.reply_text(
-            (await tld(m, "LastFM.no_username_save")).format(m.text.split(None, 1)[0])
+            (await tld(m, "LastFM.no_username_saved")).format(m.text.split(None, 1)[0])
         )
         return
 
@@ -61,7 +61,7 @@ async def setuser(c: Smudge, m: Message):
             return
         else:
             await set_last_user(user_id, username)
-            await m.reply_text((await tld(m, "LastFM.username_save")))
+            await m.reply_text((await tld(m, "LastFM.username_saved")))
     else:
         rep = "Você esquceu do username"
         await m.reply_text(rep)

@@ -11,10 +11,10 @@ core:
 strings:
   Main:
     start_message_private: | 
-      Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns comandos divertidos e uteis para você :3
+      Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns comandos divertidos e úteis para você. :3
       
       📦 <b>Meu código-fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
-      💬 Caso você tenha algum <b>problema</b> <a href='https://t.me/RuizLenato'>clique aqui para falar com o meu desenvolvedor.</a>
+      💬 Caso você tenha algum <b>problema</b>, <a href='https://t.me/RuizLenato'>clique aqui para falar com o meu desenvolvedor.</a>
     start_message: "Oi Gatinha estou vivo, me chama no privado :3"
     lang_saved: "Idioma alterado com sucesso"
     crowdin: "🌎 Ajude-nos com as traduções!"
@@ -25,8 +25,6 @@ strings:
     change_lang_uchannel: "Hmm, aparentemente você está enviando mensagens de forma anônima.\n<b>Envie mensagens como usuario normal para que eu possa ajudar você.</b>"
     help_text: "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
     avaliable_commands: "<b>Comandos disponíveis:</b>\n\n{}"
-    added: "adicionado"
-    updated: "atualizado"
     downloading: "Baixando..."
     sending: "Enviando..."
     loading: "Carregando..."
@@ -34,11 +32,11 @@ strings:
 
 # Admin
   Admin:
-    not_admin: "Você não é um administrador do grupo"
+    not_admin: "Você não é um administrador do grupo."
     botnotadmin: "Eu não sou um administrador do grupo!"
     err_private: "Esse comando não pode ser usado no meu chat privado, use esse comando em um grupo que você administra."
     cleanup_start: "Removendo contas excluídas..."
-    cleanup_start_d: "Contas excluídas: {}"
+    cleanup_start_d: "Contas excluídas: {}."
     cleanup_no_deleted: "Não há contas excluídas no grupo."
 
 # Android
@@ -47,7 +45,7 @@ strings:
     models_nocodename: "<b>Erro.</b>\n<b>Uso do comando:</b> {} (codename)."
     models_variant: "Variantes do <b>{}</b>:\n\n"
     models_list: "<b>Marca:</b> {}\n<b>Nome:</b> {}\n<b>Modelo</b>: <code>{}</code>\n\n"
-    codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename e tente novamente"
+    codename_notfound: "Não pode encontrar o seu dispositivo, verifique o codename e tente novamente."
     magisk_releases: "<b>Últimos lançamentos do magisk</b>\n\n"
     twrp_found: "Última versão do <b>TWRP para o {}</b>\n\n"
     twrp_404: "O TWRP não está atualmente disponível para o <code>{}</code>"
@@ -73,18 +71,16 @@ strings:
       <b>Configurações dos downloads de mídias.</b>
       <i>O download de midias é uma função do plugin <b>utilitários</b>, para saber mais, use o <code>/help</code> no privado do Bot</i>
 
-      
+
       <b>Downloads automáticos -</b> Suporte a downloads automáticos de videos de redes sociais quando alguém enviar um link no grupo.
       <b>Download de imagens -</b> Suporte a downloads de imagens no Download automático (quando ativo) e no /sdl | /mdl.
 
 # LastFM
   LastFM:
     name: "LastFM"
-    spotf_info: "<b>{}</b>\n<b>Artista:</b> {}\n<b>Data de lançamento:</b> <i>{}</i>\n<b>Álbum:</b> {} - {}\n\n"
-    username_save: "<b>Pronto!</b>\nUse <code>/help LastFM</code> para saber mais sobre os comandos.\n<i>(Esse comando só pode ser usado no meu chat privado.)</i>"
+    username_saved: "<b>Pronto!</b>\nUse <code>/help LastFM</code> para saber mais sobre os comandos.\n<i>(Esse comando só pode ser usado no meu chat privado.)</i>"
     username_deleted: "O seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> foi apagado."
-    username_nouser: "Você precisa definir um nome de usuário para usar esse comando."
-    no_username_save: "<b>Erro.</b>\n<b>Uso do comando:</b> {} (nome de usuário)."
+    no_username_saved: "<b>Erro.</b>\n<b>Uso do comando:</b> {} (nome de usuário)."
     no_username_to_clear: "Você não definiu o seu username do <b><a href='https://last.fm/'>LastFM</a></b> para que eu possa deletar do meu banco de dados."
     no_username: "<b>Erro.</b>\nVocê precisa definir o seu nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> para usar esse comando.\n\n<b>Use o comando:</b> /setuser (username)."
     no_username_whl: "<b>Erro.</b>\nA pessoa que você mencionou precisa definir um nome de usuário do <b><a href='https://last.fm/'>LastFM</a></b> para você poder utilizar esse comando."
@@ -143,7 +139,7 @@ strings:
       - "ventilador"
       - "um Nokia 3310"
       - "torradeira"
-      - "Laptop da positivo"
+      - "laptop da positivo"
       - "televisão"
       - "caminhão de cinco toneladas"
       - "piroca"
@@ -159,7 +155,7 @@ strings:
       - "pedaço de terra"
       - "colméia"
       - "pedaço de carne podre"
-      - "Urso"
+      - "urso"
       - "a mãe do admin"
     throw_list:
       - "joga"

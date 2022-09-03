@@ -193,10 +193,10 @@ async def logging(c: Smudge, m: Message):
             await c.send_message(
                 chat_id=m.chat.id,
                 text=(
-                    ":3 (🇧🇷 pt-br) Olá, obrigado por me adicionar aqui!\n"
-                    "Não se esqueça de <b>mudar meu idioma usando /config</b>\n\n"
-                    ":3 (🇺🇸 en-us) Hi, thanks for adding me here!\n"
-                    "Don't forget to <b>change my language using /config</b>\n"
+                    "(🇧🇷) Olá, obrigado por me adicionar em seu grupo!\n"
+                    "<b>Não se esqueça de mudar as configurações de idioma usando o comando /config</b>.\n\n"
+                    "(🇺🇸) Hi, thanks for adding me to your group!\n"
+                    "<b>Don't forget to change the language settings using the /config command.</b>\n"
                 ),
                 disable_notification=True,
             )
