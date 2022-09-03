@@ -23,18 +23,10 @@ strings:
     change_lang_uchannel: "Hmm, apparently you are sending messages anonymously.\n<b>Send messages as a normal user so I can help you.</b>"
     help_text: "Here are all my plugins, to find out more about the plugins, just click on their name."
     avaliable_commands: "<b>Avaliable Commands:</b>\n\n{}"
-    added: "added"
-    updated: "updated"
     downloading: "Downloading..."
     sending: "Sending..."
     loading: "Loading..."
     start: "Start"
-    media_config_text: |
-      <b>Media download settings.</b>
-      <i>Downloading media is a function of the <b>utility</b> plugin, to learn more, use the <code>/help</code> in the Bot's DM</i>
-
-      <b>Download Auto -</b> Support for automatic downloads of videos from social media when someone sends a link in the group.
-      <b>Download Images -</b> Support for image downloads in Auto Download (when active) and /sdl | /mdl.
   #Admin
   Admin:
     not_admin: "You are not a group admin."
@@ -74,15 +66,15 @@ strings:
       <b>Media download settings.</b>
       <i>Downloading media is a function of the <b>utility</b> plugin, to learn more, use the <code>/help</code> in the Bot's DM</i>
 
+
       <b>Auto download -</b> Support for automatic downloads of videos from social media when someone sends a link in the group.
       <b>Image download -</b> Support for image downloads in Auto Download (when active) and /sdl | /mdl.
   #LastFM
   LastFM:
     name: "LastFM"
-    spotf_info: "<b>{}</b>\n<b>Artist:</b> {}\n<b>Release Date:</b> <i>{}</i>\n<b>Album:</b> {} - {}\n\n"
-    username_save: "<b>Done, LastFM user saved!</b>\nUse <code>/help</code> to learn more about the commands.\n<i>(This command can only be used in my private chat.)</i>"
+    username_saved: "<b>Done, LastFM user saved!</b>\nUse <code>/help</code> to learn more about the commands.\n<i>(This command can only be used in my private chat.)</i>"
     username_deleted: "Your <b><a href='https://last.fm/'>LastFM</a></b> username has been successfully deleted."
-    no_username_save: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
+    no_username_saved: "<b>Error</b>\n<b>Command usage:</b> /setuser (username)."
     no_username_to_clear: "You have not set your <b><a href='https://last.fm/'>LastFM</a></b> username so that I can delete it from my database."
     no_username: "<b>Error</b>\nYou have not set your <b><a href='https://last.fm/'>LastFM</a></b> username\n\n<b>Command usage:</b> /setuser (username)."
     no_username_whl: "<b>Error.</b>\nThe person you mentioned needs to define a <b><a href='https://last.fm/'>LastFM</a></b> username for you to be able to use this command."
