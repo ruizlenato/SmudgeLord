@@ -65,8 +65,8 @@ strings:
     no_sdl_images: "<b>Saved.</b>\nNow <b>I will not download images</b> along with the videos automatically when you send a link"
     text: "<b>Settings</b> - Here are my settings for this group, to learn more, <b>just click on the buttons below.</b>"
     videos: "Media Download"
-    btn_auto: "Auto download"
-    btn_image: "Image download"
+    btn_auto: "Auto"
+    btn_image: "Image"
     media_text: | 
       <b>Media download settings.</b>
       <i>Downloading media is a function of the <b>utility</b> plugin, to learn more, use the <code>/help</code> in the Bot's DM</i>      

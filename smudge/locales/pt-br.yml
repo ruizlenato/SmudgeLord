@@ -65,8 +65,8 @@ strings:
     no_sdl_images: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei <b>baixar imagens junto com os vídeos</b> automaticamente quando você enviar um link."
     text: "<b>Configurações</b> - Aqui estão as minhas configurações para esse grupo, para saber mais, <b>basta clicar nos botões abaixos.</b>"
     videos: "Download de mídias"
-    btn_auto: "Downloads automáticos"
-    btn_image: "Download de imagens"
+    btn_auto: "Automáticos"
+    btn_image: "Imagens"
     media_text: | 
       <b>Configurações dos downloads de mídias.</b>
       <i>O download de midias é uma função do plugin <b>utilitários</b>, para saber mais, use o <code>/help</code> no privado do Bot</i>
