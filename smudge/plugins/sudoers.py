@@ -13,7 +13,7 @@ from contextlib import redirect_stdout
 
 from ..bot import Smudge
 from smudge.config import SUDOERS
-from smudge.database.core import database
+from smudge.database import database
 
 # Database connection
 conn = database.get_conn()

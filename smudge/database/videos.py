@@ -2,7 +2,7 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
 from typing import Optional
 
-from .core import database
+from . import database
 
 conn = database.get_conn()
 

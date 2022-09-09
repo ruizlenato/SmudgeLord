@@ -302,8 +302,16 @@ async def artist(c: Smudge, m: Message):
     except IndexError:
         await m.reply_text("Você não parece ter scrobblado(escutado) nenhuma música...")
         return
-    image = first_track["image"][3]["#text"]
     artist = first_track["artist"]["name"]
+    if artist:
+        if found := re.search(
+            'https://lastfm.freetls.fastly.net/i/u/avatar170s/.*?(?=")',
+            (await http.get(f"https://www.last.fm/music/{str(artist)}/+images")).text,
+        ):
+            image = found.group().replace("avatar170s", "770x0") + ".jpg"
+        else:
+            image = first_track["image"][3]["#text"]
+
     loved = int(first_track["loved"])
     fetch = await http.get(
         "http://ws.audioscrobbler.com/2.0"

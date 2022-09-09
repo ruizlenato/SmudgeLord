@@ -5,7 +5,6 @@ import io
 import os
 import re
 import json
-import random
 import shutil
 import asyncio
 import tempfile
@@ -43,6 +42,19 @@ YOUTUBE_REGEX = re.compile(
 TWITTER_REGEX_LINKS = (
     r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)"
 )
+
+
+@aiowrap
+def gallery_down(path, url: str):
+    gallery_dl.config.set(("output",), "mode", "null")
+    gallery_dl.config.set((), "directory", [])
+    gallery_dl.config.set((), "base-directory", [path])
+    gallery_dl.config.set(
+        (),
+        "cookies",
+        "~/instagram.com_cookies.txt",
+    )
+    return gallery_dl.job.DownloadJob(url).run()
 
 
 @aiowrap
@@ -254,20 +266,6 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
-@aiowrap
-def gallery_down(path, url: str):
-    gallery_dl.config.set(("output",), "mode", "null")
-    gallery_dl.config.set((), "directory", [])
-    gallery_dl.config.set((), "base-directory", [path])
-    gallery_dl.config.set(
-        (),
-        "cookies",
-        "~/instagram.com_cookies.txt",
-    )
-    return gallery_dl.job.DownloadJob(url).run()
-
-
-# ToDo: Refactor this
 @Smudge.on_message(
     filters.command(["sdl", "mdl"]) | filters.regex(SDL_REGEX_LINKS), group=1
 )
