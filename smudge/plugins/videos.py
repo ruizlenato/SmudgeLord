@@ -320,11 +320,11 @@ async def sdl(c: Smudge, m: Message):
                 await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
             except BaseException:
                 return
-
+        caption = f"<a href='{str(url)}'>🔗 Link</a> "
         files = []
         try:
             files += [
-                InputMediaVideo(os.path.join(path, video))
+                InputMediaVideo(os.path.join(path, video), caption=caption)
                 for video in os.listdir(path)
                 if video.endswith(".mp4")
             ]
@@ -340,7 +340,7 @@ async def sdl(c: Smudge, m: Message):
         ):
             try:
                 files += [
-                    InputMediaPhoto(os.path.join(path, photo))
+                    InputMediaPhoto(os.path.join(path, photo), caption=caption)
                     for photo in os.listdir(path)
                     if photo.endswith((".jpg", ".png", ".jpeg"))
                 ]
