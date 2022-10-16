@@ -190,7 +190,7 @@ strings:
     ytdl_audio_button: "💿 Áudio"
     ytdl_video_button: "📹 Vídeo"
     ytdl_send_error: "Desculpe! Não pude enviar o vídeo devido a um erro.\n<b>Erro:</b> <code>{}</code>"
-    ytdl_file_too_big: "O Vídeo qual você deseja baixar excede o tamanho de 500MB.\nNão foi possível baixar e enviar, desculpe."
+    ytdl_file_too_big: "O Vídeo qual você deseja baixar excede o tamanho de 2GB.\nNão foi possível baixar e enviar, desculpe."
     ytdl_button_denied: "Este botão não é para você."
     noargs_cep: "<b>Uso do comando:</b> <code>/cep [cep]</code>\nEspecifique o CEP que você quer consultar."
     noargs_ddd: "<b>Uso do comando:</b> <code>/ddd [ddd]</code>\n\nEspecifique o DDD que você quer consultar."

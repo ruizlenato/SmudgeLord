@@ -177,7 +177,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
         return print(cq.data)
     if cq.from_user.id != int(userid):
         return await cq.answer(await tld(cq, "Misc.ytdl_button_denied"), cache_time=60)
-    if int(fsize) > int(500000000):
+    if int(fsize) > int(2147483648):
         return await cq.answer(
             await tld(cq, "Misc.ytdl_file_too_big"),
             show_alert=True,
