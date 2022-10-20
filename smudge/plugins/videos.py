@@ -47,7 +47,7 @@ TWITTER_REGEX_LINKS = (
 @aiowrap
 def gallery_down(path, url: str):
     gallery_dl.config.set(("output",), "mode", "null")
-    gallery_dl.config.set(("o",), "browser", "chromium")
+    gallery_dl.config.set(("o",), "browser", "firefox")
     gallery_dl.config.set((), "directory", [])
     gallery_dl.config.set((), "sleep-request", "15-45")
     gallery_dl.config.set((), "sleep", "2-10")
@@ -55,7 +55,7 @@ def gallery_down(path, url: str):
     gallery_dl.config.set(
         (),
         "cookies",
-        "~/instagram.com_cookies.txt",
+        "~/instagram_cookies.txt",
     )
     return gallery_dl.job.DownloadJob(url).run()
 
