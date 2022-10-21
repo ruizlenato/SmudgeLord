@@ -47,10 +47,7 @@ TWITTER_REGEX_LINKS = (
 @aiowrap
 def gallery_down(path, url: str):
     gallery_dl.config.set(("output",), "mode", "null")
-    gallery_dl.config.set(("o",), "browser", "firefox")
     gallery_dl.config.set((), "directory", [])
-    gallery_dl.config.set((), "sleep-request", "15-45")
-    gallery_dl.config.set((), "sleep", "2-10")
     gallery_dl.config.set((), "base-directory", [path])
     gallery_dl.config.load()
     return gallery_dl.job.DownloadJob(url).run()
