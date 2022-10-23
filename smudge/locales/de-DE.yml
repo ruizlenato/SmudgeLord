@@ -2,8 +2,8 @@
 #Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
 #Core
 core:
-  flag: "🇺🇸"
-  name: "American English"
+  flag: "flag? Flag 🇩🇪 means Flagge"
+  name: "name means Name"
   code: "en-us"
 #Main
 strings:
