@@ -299,8 +299,13 @@ async def sdl(c: Smudge, m: Message):
             r = await http.head(url, follow_redirects=True)
             url = r.url
 
-        await gallery_down(path, str(url))
-        if gallery_dl.exception.ExtractionError:
+        if re.match(
+            r"http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:m.)?(?:instagram.com)\/(?:\S*)",
+            url,
+            re.M,
+        ):
+            bibliogram = re.sub("instagram.com/", "bibliogram.froth.zone/", url)
+            bibliogram = re.sub("www.", "", bibliogram)
             ydl_opts = {
                 "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
                 "wait-for-video": "1",
@@ -308,12 +313,12 @@ async def sdl(c: Smudge, m: Message):
                 "logger": MyLogger(),
             }
             try:
-                url = re.sub("instagram.com/", "bibliogram.froth.zone/", url)
-                url = re.sub("www.", "", url)
-                print(url)
-                await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
+                await extract_info(YoutubeDL(ydl_opts), str(bibliogram), download=True)
             except BaseException:
                 return
+        else:
+            await gallery_down(path, str(url))
+
         caption = f"<a href='{str(url)}'>🔗 Link</a> "
         files = []
         try:
@@ -325,13 +330,7 @@ async def sdl(c: Smudge, m: Message):
         except FileNotFoundError:
             pass
 
-        if not re.match(
-            r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)",
-            str(url),
-            re.M,
-        ) and (
-            (m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_images", m.chat.id))
-        ):
+        if m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_images", m.chat.id):
             try:
                 files += [
                     InputMediaPhoto(os.path.join(path, photo), caption=caption)
