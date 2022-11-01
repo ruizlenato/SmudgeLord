@@ -299,17 +299,18 @@ async def sdl(c: Smudge, m: Message):
             r = await http.head(url, follow_redirects=True)
             url = r.url
 
-        try:
-            await gallery_down(path, str(url))
-        except gallery_dl.exception.GalleryDLException:
+        await gallery_down(path, str(url))
+        if gallery_dl.exception.ExtractionError:
             ydl_opts = {
                 "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
                 "wait-for-video": "1",
                 "noplaylist": True,
                 "logger": MyLogger(),
             }
-
             try:
+                url = re.sub("instagram.com/", "bibliogram.froth.zone/", url)
+                url = re.sub("www.", "", url)
+                print(url)
                 await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
             except BaseException:
                 return
