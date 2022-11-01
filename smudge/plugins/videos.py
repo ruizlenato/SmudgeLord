@@ -294,11 +294,12 @@ async def sdl(c: Smudge, m: Message):
                 return
             except UserNotParticipant:
                 pass
-
-        if re.match(r"https?://(?:vm|vt)\.tiktok\.com/(?P<id>\w+)", url, re.M):
-            r = await http.head(url, follow_redirects=True)
-            url = r.url
-
+        ydl_opts = {
+            "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
+            "wait-for-video": "1",
+            "noplaylist": True,
+            "logger": MyLogger(),
+        }
         if re.match(
             r"http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:m.)?(?:instagram.com)\/(?:\S*)",
             url,
@@ -306,14 +307,17 @@ async def sdl(c: Smudge, m: Message):
         ):
             bibliogram = re.sub("instagram.com/", "bibliogram.froth.zone/", url)
             bibliogram = re.sub("www.", "", bibliogram)
-            ydl_opts = {
-                "outtmpl": f"{path}/%(extractor)s-%(id)s.%(ext)s",
-                "wait-for-video": "1",
-                "noplaylist": True,
-                "logger": MyLogger(),
-            }
             try:
                 await extract_info(YoutubeDL(ydl_opts), str(bibliogram), download=True)
+            except BaseException:
+                return
+        elif re.match(
+            r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com/(?:@\S*)/(?P<id>\w+)", url, re.M
+        ):
+            r = await http.head(url, follow_redirects=True)
+            url = r.url
+            try:
+                await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
             except BaseException:
                 return
         else:
