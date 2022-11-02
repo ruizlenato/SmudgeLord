@@ -12,6 +12,7 @@ import datetime
 import gallery_dl
 
 from yt_dlp import YoutubeDL
+from bs4 import BeautifulSoup
 
 from pyrogram import filters
 from pyrogram.helpers import ikb
@@ -300,6 +301,8 @@ async def sdl(c: Smudge, m: Message):
             "noplaylist": True,
             "logger": MyLogger(),
         }
+        files = []
+        caption = f"<a href='{str(url)}'>🔗 Link</a> "
         if re.match(
             r"http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:m.)?(?:instagram.com)\/(?:\S*)",
             url,
@@ -307,10 +310,22 @@ async def sdl(c: Smudge, m: Message):
         ):
             bibliogram = re.sub("instagram.com/", "bibliogram.froth.zone/", url)
             bibliogram = re.sub("www.", "", bibliogram)
-            try:
-                await extract_info(YoutubeDL(ydl_opts), str(bibliogram), download=True)
-            except BaseException:
-                return
+            r = await http.get(bibliogram, follow_redirects=True)
+            soup = BeautifulSoup(r.text, "html.parser")
+            for images in soup.find_all("img", "sized-image"):
+                files += [
+                    InputMediaPhoto(
+                        "https://bibliogram.froth.zone" + images.get("src"),
+                        caption=caption,
+                    )
+                ]
+            for videos in soup.find_all("video", "sized-video"):
+                files += [
+                    InputMediaVideo(
+                        "https://bibliogram.froth.zone" + videos.get("src"),
+                        caption=caption,
+                    )
+                ]
         elif re.match(r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com(?:\S*)", url, re.M):
             r = await http.head(url, follow_redirects=True)
             url = r.url
@@ -321,8 +336,6 @@ async def sdl(c: Smudge, m: Message):
         else:
             await gallery_down(path, str(url))
 
-        caption = f"<a href='{str(url)}'>🔗 Link</a> "
-        files = []
         try:
             files += [
                 InputMediaVideo(os.path.join(path, video), caption=caption)
