@@ -31,7 +31,7 @@ from smudge.utils import http, pretty_size, aiowrap
 from smudge.database.videos import sdl_c
 
 # Regex to get link
-SDL_REGEX_LINKS = r"^http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.|m.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com|facebook.com)\/(?:\S*)"
+SDL_REGEX_LINKS = r"http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.|m.)?(?:instagram.com|twitter.com|vm.tiktok.com|tiktok.com|facebook.com)\/(?:\S*)"
 
 # Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
@@ -311,9 +311,7 @@ async def sdl(c: Smudge, m: Message):
                 await extract_info(YoutubeDL(ydl_opts), str(bibliogram), download=True)
             except BaseException:
                 return
-        elif re.match(
-            r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com/(?:@\S*)/(?P<id>\w+)", url, re.M
-        ):
+        elif re.match(r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com(?:\S*)", url, re.M):
             r = await http.head(url, follow_redirects=True)
             url = r.url
             try:
