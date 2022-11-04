@@ -227,6 +227,7 @@ strings:
     use_existing_pack: "<code>Using existing sticker pack...</code>"
     info_sticker: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
     invalid_media_string: "<b>Erorr</b>: Invalid media!"
+    animated_unsupported: "Animated stickers are not supported yet!"
     help: |
       <b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b>.
       <b>/kang -</b> reply to a sticker (Animated stickers and videos are supported) to add it to your pack.

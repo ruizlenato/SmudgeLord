@@ -37,12 +37,15 @@ async def getsticker(c: Smudge, m: Message):
     except AttributeError:
         return await m.reply_text(await tld(m, "Stickers.getsticker_no_reply"))
 
-    if sticker.is_animated or sticker.is_video:
+    if sticker.is_video:
         with tempfile.TemporaryDirectory() as tempdir:
             path = os.path.join(tempdir, "getsticker")
         sticker_file = await c.download_media(
             message=m.reply_to_message, file_name=f"{path}/{sticker.set_name}.gif"
         )
+    elif sticker.is_animated:
+        await m.reply_text(await tld(m, "Stickers.animated_unsupported"))
+        return
 
     else:
         with tempfile.TemporaryDirectory() as tempdir:
