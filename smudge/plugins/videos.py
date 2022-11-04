@@ -320,12 +320,13 @@ async def sdl(c: Smudge, m: Message):
                     )
                 ]
             for videos in soup.find_all("video", "sized-video"):
-                files += [
-                    InputMediaVideo(
-                        "https://bibliogram.froth.zone" + videos.get("src"),
-                        caption=caption,
-                    )
-                ]
+                if not re.match(r"\S*url=undefined", videos.get("src"), re.M):
+                    files += [
+                        InputMediaVideo(
+                            "https://bibliogram.froth.zone" + videos.get("src"),
+                            caption=caption,
+                        )
+                    ]
         elif re.match(r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com(?:\S*)", url, re.M):
             r = await http.head(url, follow_redirects=True)
             url = r.url
