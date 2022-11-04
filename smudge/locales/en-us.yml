@@ -59,6 +59,8 @@ strings:
 
 # Config
   Config:
+    sdl_image_help: 'Support for image downloads in the "/dl" command (Also works in automatic downloads).'
+    sdl_auto_help : "*Support for automatic downloads* of social media when a link is sent in the group."
     sdl_auto: "<b>Saved.</b>\nNow <b>I will</b> automatically download when you send a link."
     no_sdl_auto: "<b>Saved.</b>\nNow I will <b>not</b> automatically download when you send a link."
     sdl_images: "<b>Saved.</b>\nNow <b>I will download images</b> along with the videos automatically when you send a link"
@@ -71,9 +73,8 @@ strings:
       <b>Media download settings.</b>
       <i>Downloading media is a function of the <b>utility</b> plugin, to learn more, use the <code>/help</code> in the Bot's DM</i>      
       
+      To find out what each button does, <b>click on the button with the name of the setting.</b>
 
-      <b>Auto download -</b> Support for automatic downloads of videos from social media when someone sends a link in the group.
-      <b>Image download -</b> Support for image downloads in Auto Download (when active) and /sdl | /mdl.
 
 # LastFM
   LastFM:
@@ -230,4 +231,4 @@ strings:
     animated_unsupported: "Animated stickers are not supported yet!"
     help: |
       <b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b>.
-      <b>/kang -</b> reply to a sticker (Animated stickers and videos are supported) to add it to your pack.
+      <b>/kang -</b> reply to a sticker (Video stickers are supported) to add it to your pack.

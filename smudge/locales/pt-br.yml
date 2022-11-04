@@ -59,6 +59,8 @@ strings:
 
 # Config
   Config:
+    sdl_image_help: 'Suporte a downloads de imagens no comando "/dl" (Também funciona nos downloads automáticos).'
+    sdl_auto_help : "*Suporte a downloads automáticos* de mídias de redes sociais quando enviado um link no grupo."
     sdl_auto: "<b>Configuração salva.</b>\nAgora eu irei baixar automaticamente quando você enviar um link."
     no_sdl_auto: "<b>Configuração salva.</b>\nAgora eu <b>não</b> irei baixar automaticamente quando você enviar um link."
     sdl_images: "<b>Configuração salva.</b>\nAgora eu irei <b>baixar imagens junto com os vídeos</b> automaticamente quando você enviar um link."
@@ -71,9 +73,8 @@ strings:
       <b>Configurações dos downloads de mídias.</b>
       <i>O download de midias é uma função do plugin <b>utilitários</b>, para saber mais, use o <code>/help</code> no privado do Bot</i>
 
-
-      <b>Downloads automáticos -</b> Suporte a downloads automáticos de videos de redes sociais quando alguém enviar um link no grupo.
-      <b>Download de imagens -</b> Suporte a downloads de imagens no Download automático (quando ativo) e no /sdl | /mdl.
+      Para saber o que cada botão faz, <b>clique no botão que está o nome da configuração.</b>
+      
 
 # LastFM
   LastFM:

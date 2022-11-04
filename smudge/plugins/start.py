@@ -204,6 +204,14 @@ async def logging(c: Smudge, m: Message):
         await asyncio.sleep(e.value)
 
 
+@Smudge.on_callback_query(filters.regex(r"^show_alert (?P<code>\w+)"))
+async def show_alert(c: Smudge, m: Union[Message, CallbackQuery]):
+    plugin = m.matches[0]["code"]
+    await m.answer(
+        await tld(m, f"Config.{plugin}_help"), show_alert=True, cache_time=60
+    )
+
+
 @Smudge.on_callback_query(filters.regex(r"config"))
 @Smudge.on_message(filters.command("config") & filters.group)
 async def config(c: Smudge, m: Union[Message, CallbackQuery]):
@@ -268,11 +276,21 @@ async def confsdl(c: Smudge, cq: CallbackQuery):
     keyboard = [
         [
             (
-                f"{await tld(cq, 'Config.btn_image')}: {'☑️' if not await sdl_c('sdl_images', cq.message.chat.id) else '✅'}",
-                "setsdl sdl_images",
+                f"{await tld(cq, 'Config.btn_image')}:",
+                "show_alert sdl_image",
             ),
             (
-                f"{await tld(cq, 'Config.btn_auto')}: {'☑️' if not await sdl_c('sdl_auto', cq.message.chat.id) else '✅'}",
+                f"{'☑️' if not await sdl_c('sdl_images', cq.message.chat.id) else '✅'}",
+                "setsdl sdl_images",
+            ),
+        ],
+        [
+            (
+                f"{await tld(cq, 'Config.btn_auto')}:",
+                "show_alert sdl_auto",
+            ),
+            (
+                f"{'☑️' if not await sdl_c('sdl_auto', cq.message.chat.id) else '✅'}",
                 "setsdl sdl_auto",
             ),
         ],
