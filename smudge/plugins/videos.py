@@ -308,11 +308,7 @@ async def sdl(c: Smudge, m: Message):
             url,
             re.M,
         ):
-            if re.match(
-                r"http(?:s)?:\/\/(?:www.|m.)?(?:instagram.com)\/(?:\S*)",
-                url,
-                re.M,
-            ):
+            if re.search(r"instagram.com\/", url, re.M):
                 bibliogram = re.sub(
                     "(?:www.|m.)?instagram.com/", "bibliogram.froth.zone/", url
                 )
@@ -329,18 +325,22 @@ async def sdl(c: Smudge, m: Message):
                     ]
                 for videos in soup.find_all("video", "sized-video"):
                     if not re.match(r"\S*url=undefined", videos.get("src"), re.M):
-                        video_url = f"https://bibliogram.froth.zone{videos.get('src')}"  # Avoid "Telegram says: [400 WEBPAGE_MEDIA_EMPTY]"
+                        os.mkdir(path)
+                        open(f"{path}/insta.mp4", "wb").write(
+                            (
+                                await http.get(
+                                    f"https://bibliogram.froth.zone{videos.get('src')}"
+                                )
+                            ).content
+                        )  # Avoid "Telegram says: [400 WEBPAGE_MEDIA_EMPTY]"
             elif re.match(r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com(?:\S*)", url, re.M):
                 r = await http.head(url, follow_redirects=True)
-                video_url = r.url
+                try:
+                    await extract_info(YoutubeDL(ydl_opts), str(r.url), download=True)
+                except BaseException:
+                    return
             else:
                 await gallery_down(path, str(url))
-
-        if video_url:
-            try:
-                await extract_info(YoutubeDL(ydl_opts), str(video_url), download=True)
-            except BaseException:
-                return
 
         try:
             files += [
