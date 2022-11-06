@@ -32,7 +32,7 @@ from smudge.utils import http, pretty_size, aiowrap
 from smudge.database.videos import sdl_c
 
 # Regex to get link
-SDL_REGEX_LINKS = r"http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.|m.|vm.)?(?:instagram.com|twitter.com|reddit.com|tiktok.com|facebook.com)\/(?:\S*)"
+SDL_REGEX_LINKS = r"http(?:s)?:\/\/(?:www.|mobile.|m.|vm.)?(?:instagram|twitter|reddit|tiktok|facebook).com\/(?:\S*)"
 
 # Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
@@ -304,38 +304,43 @@ async def sdl(c: Smudge, m: Message):
         files = []
         caption = f"<a href='{str(url)}'>🔗 Link</a> "
         if re.match(
-            r"http(?:s)?:\/\/(?:www\.)?(?:v\.)?(?:m.)?(?:instagram.com)\/(?:\S*)",
+            r"http(?:s)?:\/\/(?:www|vm|vt)?.(?:m.)?(?:instagram|tiktok).com\/(?:\S*)",
             url,
             re.M,
         ):
-            bibliogram = re.sub("instagram.com/", "bibliogram.froth.zone/", url)
-            bibliogram = re.sub("www.", "", bibliogram)
-            r = await http.get(bibliogram, follow_redirects=True)
-            soup = BeautifulSoup(r.text, "html.parser")
-            for images in soup.find_all("img", "sized-image"):
-                files += [
-                    InputMediaPhoto(
-                        "https://bibliogram.froth.zone" + images.get("src"),
-                        caption=caption,
-                    )
-                ]
-            for videos in soup.find_all("video", "sized-video"):
-                if not re.match(r"\S*url=undefined", videos.get("src"), re.M):
+            if re.match(
+                r"http(?:s)?:\/\/(?:www.|m.)?(?:instagram.com)\/(?:\S*)",
+                url,
+                re.M,
+            ):
+                bibliogram = re.sub(
+                    "(?:www.|m.)?instagram.com/", "bibliogram.froth.zone/", url
+                )
+                soup = BeautifulSoup(
+                    (await http.get(bibliogram, follow_redirects=True)).text,
+                    "html.parser",
+                )
+                for images in soup.find_all("img", "sized-image"):
                     files += [
-                        InputMediaVideo(
-                            "https://bibliogram.froth.zone" + videos.get("src"),
+                        InputMediaPhoto(
+                            f"https://bibliogram.froth.zone{images.get('src')}",
                             caption=caption,
                         )
                     ]
-        elif re.match(r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com(?:\S*)", url, re.M):
-            r = await http.head(url, follow_redirects=True)
-            url = r.url
+                for videos in soup.find_all("video", "sized-video"):
+                    if not re.match(r"\S*url=undefined", videos.get("src"), re.M):
+                        video_url = f"https://bibliogram.froth.zone{videos.get('src')}"  # Avoid "Telegram says: [400 WEBPAGE_MEDIA_EMPTY]"
+            elif re.match(r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com(?:\S*)", url, re.M):
+                r = await http.head(url, follow_redirects=True)
+                video_url = r.url
+            else:
+                await gallery_down(path, str(url))
+
+        if video_url:
             try:
-                await extract_info(YoutubeDL(ydl_opts), str(url), download=True)
+                await extract_info(YoutubeDL(ydl_opts), str(video_url), download=True)
             except BaseException:
                 return
-        else:
-            await gallery_down(path, str(url))
 
         try:
             files += [
