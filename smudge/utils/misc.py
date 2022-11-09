@@ -63,8 +63,8 @@ async def cssworker_url(target_url: str):
         # Sending a random CSS to make the API to generate a new screenshot.
         "css": f"random-tag: {uuid.uuid4()}",
         "render_when_ready": False,
-        "viewport_width": 900,
-        "viewport_height": 1600,
+        "viewport_width": 1280,
+        "viewport_height": 768,
         "device_scale": 1,
     }
 
