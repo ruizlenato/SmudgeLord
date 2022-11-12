@@ -161,14 +161,12 @@ async def lastfm(c: Smudge, m: Message):
         await m.reply_text("Você não parece ter scrobblado(escutado) nenhuma música...")
         return
 
-    image = first_track["image"][3]["#text"]
     artist = first_track["artist"]["name"]
     song = first_track["name"]
     loved = int(first_track["loved"])
 
     fetch = await http.get(
-        "http://ws.audioscrobbler.com/2.0"
-        + f"?method=track.getinfo&artist={urllib.parse.quote(artist)}"
+        f"http://ws.audioscrobbler.com/2.0?method=track.getinfo&artist={urllib.parse.quote(artist)}"
         + f"&track={urllib.parse.quote(song)}&user={username}"
         + f"&api_key={LASTFM_API_KEY}&format=json"
     )
@@ -180,6 +178,7 @@ async def lastfm(c: Smudge, m: Message):
     except KeyError:
         scrobbles = "none"
 
+    image = first_track["image"][3]["#text"]
     rep = f"<a href='{image}'>\u200c</a>"
     if first_track.get("@attr"):  # Check if track is now playing
         rep += (
@@ -231,13 +230,11 @@ async def album(c: Smudge, m: Message):
     except IndexError:
         await m.reply_text("Você não parece ter scrobblado(escutado) nenhuma música...")
         return
-    image = first_track["image"][3]["#text"]
     artist = first_track["artist"]["name"]
     album = first_track["album"]["#text"]
     loved = int(first_track["loved"])
     fetch = await http.get(
-        "http://ws.audioscrobbler.com/2.0"
-        + f"?method=album.getinfo&artist={urllib.parse.quote(artist)}"
+        f"http://ws.audioscrobbler.com/2.0?method=album.getinfo&artist={urllib.parse.quote(artist)}"
         + f"&album={urllib.parse.quote(album)}&user={username}"
         + f"&api_key={LASTFM_API_KEY}&format=json"
     )
@@ -245,6 +242,7 @@ async def album(c: Smudge, m: Message):
     info = json.loads(fetch.content)
     last_user = info["album"]
     scrobbles = int(last_user.get("userplaycount")) + 1
+    image = first_track["image"][3]["#text"]
     rep = f"<a href='{image}'>\u200c</a>"
 
     if first_track.get("@attr"):  # Check if track is now playing

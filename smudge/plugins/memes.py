@@ -47,12 +47,11 @@ async def framengo(c: Smudge, m: Message):
 @Smudge.on_message(filters.regex(r"paysandu"))
 async def paysandu(c: Smudge, m: Message):
     answer = random.choice(["yes", "no"])
-    if answer == "yes":
-        try:
-            await m.reply_audio(
-                audio="CQACAgEAAx0CUYV5ZQACJEBi1xxZbiuqd3r96dG5RbePA6-hBgACOgIAAqa2uUatB5Ukvjck9R4E"
-            )
-        except ChatWriteForbidden:
-            return
-    else:
+    if answer != "yes":
+        return
+    try:
+        await m.reply_audio(
+            audio="CQACAgEAAx0CUYV5ZQACJEBi1xxZbiuqd3r96dG5RbePA6-hBgACOgIAAqa2uUatB5Ukvjck9R4E"
+        )
+    except ChatWriteForbidden:
         return

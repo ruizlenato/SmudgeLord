@@ -38,7 +38,6 @@ async def get_chat(id, type):
         return row
     elif type in GROUPS:  # groups and supergroups share the same table
         cursor = await conn.execute("SELECT * FROM groups where id = ?", (id,))
-        row = await cursor.fetchone()
-        return row
+        return await cursor.fetchone()
     else:
         return

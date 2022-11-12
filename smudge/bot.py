@@ -79,7 +79,5 @@ class Smudge(Client):
         user_id = m.from_user.id
         return await Smudge.send_message(
             chat_id=CHAT_LOGS,
-            text=(
-                "<b>⚠️ Error</b>\n<b>User:</b>{} (<code>{}</code>)\n<b>Log:</b>\n<code>{}</code></b>"
-            ).format(user_mention, user_id, e),
+            text=f"<b>⚠️ Error</b>\n<b>User:</b>{user_mention} (<code>{user_id}</code>)\n<b>Log:</b>\n<code>{e}</code></b>",
         )

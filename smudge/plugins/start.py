@@ -159,11 +159,9 @@ async def button(c: Smudge, m: Union[Message, CallbackQuery]):
             args = None
 
     if args:
-        try:
+        with contextlib.suppress(KeyError):
             text = await tld(m, str(HELP[args][0]["help"]))
             return await help_menu(m, text)
-        except KeyError:
-            pass
     text = await tld(m, "Main.help_text")
     await reply_text(text, reply_markup=ikb(await help_buttons(m, HELP)))
 
@@ -280,7 +278,7 @@ async def confsdl(c: Smudge, cq: CallbackQuery):
                 "show_alert sdl_image",
             ),
             (
-                f"{'☑️' if not await sdl_c('sdl_images', cq.message.chat.id) else '✅'}",
+                f"{'✅' if await sdl_c('sdl_images', cq.message.chat.id) else '☑️'}",
                 "setsdl sdl_images",
             ),
         ],
@@ -290,12 +288,13 @@ async def confsdl(c: Smudge, cq: CallbackQuery):
                 "show_alert sdl_auto",
             ),
             (
-                f"{'☑️' if not await sdl_c('sdl_auto', cq.message.chat.id) else '✅'}",
+                f"{'✅' if await sdl_c('sdl_auto', cq.message.chat.id) else '☑️'}",
                 "setsdl sdl_auto",
             ),
         ],
         [(await tld(cq, "Main.back_btn"), "config")],
     ]
+
     return await cq.edit_message_text(
         await tld(cq, "Config.media_text"), reply_markup=ikb(keyboard)
     )

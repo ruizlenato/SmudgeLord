@@ -159,16 +159,15 @@ async def cep(c: Smudge, m: Message):
     state_name = json.loads(
         (await http.get(f"https://brasilapi.com.br/api/ibge/uf/v1/{state}")).content
     )["nome"]
+    if res.status_code == 404:
+        return await m.reply_text((await tld(m, "Misc.cep_error")))
     neighborhood = db["neighborhood"]
     street = db["street"]
 
-    if res.status_code == 404:
-        return await m.reply_text((await tld(m, "Misc.cep_error")))
-    else:
-        rep = (await tld(m, "Misc.cep_strings")).format(
-            cep, city, state_name, state, neighborhood, street
-        )
-        await m.reply_text(rep)
+    rep = (await tld(m, "Misc.cep_strings")).format(
+        cep, city, state_name, state, neighborhood, street
+    )
+    await m.reply_text(rep)
 
 
 @Smudge.on_message(filters.command("ddd"))
@@ -243,7 +242,7 @@ async def git(c: Smudge, m: Message, repo, page):
             dls = db["assets"][i]["download_count"]
             size_bytes = db["assets"][i]["size"]
             size = float("{:.2f}".format((size_bytes / 1024) / 1024))
-            text = "{}\n💾 {}MB | 📥 {}".format(file_name, size, dls)
+            text = f"{file_name}\n💾 {size}MB | 📥 {dls}"
             keyboard += [[(text, url, "url")]]
 
         except IndexError:

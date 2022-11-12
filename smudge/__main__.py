@@ -13,8 +13,11 @@ logging.basicConfig(
     format=f"\u001B[33m%(levelname)s | \u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
     datefmt="%m/%d %H:%M:%S",
 )
-logs = "\033[1m\033[35mSmudgeLord\033[0m"
-logs += "\n\033[96mProject maintained by:\033[0m RuizLenato"
+logs = (
+    "\033[1m\033[35mSmudgeLord\033[0m"
+    + "\n\033[96mProject maintained by:\033[0m RuizLenato"
+)
+
 logs += f"\n\033[93mPyrogram Version:\033[0m {pyrogram.__version__}"
 logs += "\n\033[94m------------------------------------------------------\033[0m"
 print(logs)
