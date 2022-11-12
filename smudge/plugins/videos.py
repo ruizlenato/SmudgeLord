@@ -278,13 +278,12 @@ async def sdl(c: Smudge, m: Message):
         return await m.reply_text(
             (await tld(m, "Misc.noargs_sdl")).format(m.text.split(None, 1)[0])
         )
-
     if not re.match(SDL_REGEX_LINKS, url, re.M):
         return await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir)
 
-    if m.chat.type is not ChatType.PRIVATE and re.match(TWITTER_REGEX_LINKS, url, re.M):
+    if re.match(TWITTER_REGEX_LINKS, url, re.M) and m.chat.type is not ChatType.PRIVATE:
         try:
             await m.chat.get_member(
                 1703426201
@@ -292,6 +291,7 @@ async def sdl(c: Smudge, m: Message):
             return
         except UserNotParticipant:
             pass
+
     ydl_opts = {
         "outtmpl": f"{path}/%(extractor)s.%(ext)s",
         "wait-for-video": "1",
@@ -300,6 +300,7 @@ async def sdl(c: Smudge, m: Message):
     }
     files = []
     caption = f"<a href='{str(url)}'>🔗 Link</a> "
+
     if re.match(
         r"http(?:s)?:\/\/(?:www|vm|vt)?.(?:m.)?(?:instagram|tiktok).com\/(?:\S*)",
         url,
@@ -336,8 +337,8 @@ async def sdl(c: Smudge, m: Message):
                 await extract_info(YoutubeDL(ydl_opts), str(r.url), download=True)
             except BaseException:
                 return
-        else:
-            await gallery_down(path, str(url))
+    else:
+        await gallery_down(path, str(url))
 
     try:
         files += [
