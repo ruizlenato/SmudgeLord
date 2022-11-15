@@ -33,7 +33,7 @@ from smudge.utils.locales import tld
 from ..bot import Smudge
 
 # Regex to get link
-SDL_REGEX_LINKS = r"http(?:s)?:\/\/(?:www.|mobile.|m.|vm.)?(?:instagram|twitter|reddit|tiktok|facebook).com\/(?:\S*)"
+REGEX_LINKS = r"http(?:s)?:\/\/(?:www.|mobile.|m.|vm.)?(?:instagram|twitter|reddit|tiktok|facebook).com\/(?:\S*)"
 
 # Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
@@ -41,7 +41,7 @@ YOUTUBE_REGEX = re.compile(
 )
 
 # Twitter regex
-TWITTER_REGEX_LINKS = (
+TWITTER_LINKS = (
     r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)"
 )
 
@@ -175,6 +175,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     vid = re.sub(r"^\_(vid|aud)\.", "", data)
     url = f"https://www.youtube.com/watch?v={vid}"
     await cq.message.edit(await tld(cq, "Main.downloading"))
+
     with tempfile.TemporaryDirectory() as tempdir:
         path = os.path.join(tempdir, "ytdl")
 
@@ -260,9 +261,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
-@Smudge.on_message(
-    filters.command(["dl", "sdl"]) | filters.regex(SDL_REGEX_LINKS), group=1
-)
+@Smudge.on_message(filters.command(["dl", "sdl"]) | filters.regex(REGEX_LINKS), group=1)
 async def sdl(c: Smudge, m: Message):
     if m.matches:
         if m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_auto", m.chat.id):
@@ -274,93 +273,85 @@ async def sdl(c: Smudge, m: Message):
     elif m.reply_to_message and m.reply_to_message.text:
         url = m.reply_to_message.text
     else:
-        return await m.reply_text(
-            (await tld(m, "Misc.noargs_sdl")).format(m.text.split(None, 1)[0])
-        )
-    if not re.match(SDL_REGEX_LINKS, url, re.M):
-        return await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
-    with tempfile.TemporaryDirectory() as tempdir:
-        path = os.path.join(tempdir)
+        return await m.reply_text(await tld(m, "Misc.noargs_sdl"))
 
-    if re.match(TWITTER_REGEX_LINKS, url, re.M) and m.chat.type is not ChatType.PRIVATE:
+    if not re.match(REGEX_LINKS, url, re.M):
+        return await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
+
+    with tempfile.TemporaryDirectory() as tempdir:
+        tmp = os.path.join(tempdir)
+
+    if re.match(TWITTER_LINKS, url, re.M) and m.chat.type is not ChatType.PRIVATE:
         with contextlib.suppress(UserNotParticipant):
-            await m.chat.get_member(
-                1703426201
-            )  # To avoid conflict with @TwitterGramRobot
-            return
-    ydl_opts = {
-        "outtmpl": f"{path}/%(extractor)s.%(ext)s",
-        "wait-for-video": "1",
-        "noplaylist": True,
-        "logger": MyLogger(),
-    }
+            # To avoid conflict with @TwitterGramRobot
+            return await m.chat.get_member(1703426201)
+
     files = []
     caption = f"<a href='{str(url)}'>🔗 Link</a> "
 
-    if re.match(
-        r"http(?:s)?:\/\/(?:www.|vm.|vt.|m.)?(?:instagram|tiktok).com\/(?:\S*)",
-        url,
-        re.M,
-    ):
+    if re.search(r"(instagram|tiktok).com", url, re.M):
         if re.search(r"instagram.com\/", url, re.M):
             link = re.sub(
-                r"(?:www.|m.)?instagram.com/(?:reel|p)(.*)/",
-                r"imginn.com/p\1/",
-                str(url),
+                r"(?:www.|m.)?instagram.com/(?:reel|p)(.*)/", r"imginn.com/p\1/", url
             )
-            my_headers = {
-                "User-Agent": "PostmanRuntime/7.29.2",
-                "Accept-Encoding": "gzip, deflate, br",
-                "Connection": "keep-alive",
+            my_headers = {"User-Agent": "PostmanRuntime/7.29.2"}
+            cors = "https://cors-bypass.amanoteam.com/"
+
+            request = await http.get(f"{cors}{link}", headers=my_headers)
+            soup = BeautifulSoup(request.text, "html.parser")
+            os.mkdir(tmp)
+
+            with contextlib.suppress(TypeError):
+                if swiper := soup.find_all("div", "swiper-slide"):
+                    for i in swiper:
+                        media = f"{cors}{i['data-src']}"
+                        if re.search(r".mp4", media, re.M):
+                            req = (await http.get(media)).content
+                            open(f"{tmp}/{media[100:113]}.mp4", "wb").write(req)
+                        if re.search(r".jpg", media, re.M):
+                            req = (await http.get(media)).content
+                            open(f"{tmp}/{media[100:113]}.jpg", "wb").write(req)
+                else:
+                    media = f"{cors}{soup.find('a', 'download', href=True)['href']}"
+                    if re.search(r".mp4", media, re.M):
+                        req = (await http.get(media)).content
+                        open(f"{tmp}/{media[100:113]}.mp4", "wb").write(req)
+
+                    if re.search(r".jpg", media, re.M):
+                        req = (await http.get(media)).content
+                        open(f"{tmp}/{media[100:113]}.jpg", "wb").write(req)
+
+        elif re.search(r"tiktok.com\/", url, re.M):
+            ydl_opts = {
+                "outtmpl": f"{tmp}/%(extractor)s.%(ext)s",
+                "wait-for-video": "1",
+                "noplaylist": True,
+                "logger": MyLogger(),
             }
-            soup = BeautifulSoup(
-                (
-                    await http.get(
-                        f"https://cors-bypass.amanoteam.com/{link}",
-                        headers=my_headers,
-                        follow_redirects=True,
-                    )
-                ).text,
-                "html.parser",
-            )
-            if soup.find_all("div", "swiper-slide"):
-                for a in soup.find_all("div", "swiper-slide"):
-                    print(a["data-src"])
-                    if re.search(r".mp4", a["data-src"], re.M):
-                        files += [InputMediaVideo(a["data-src"], caption=caption)]
-                    elif re.search(r".jpg", a["data-src"], re.M):
-                        files += [InputMediaPhoto(a["data-src"], caption=caption)]
-            elif soup.find("a", "download", href=True):
-                files += [
-                    InputMediaPhoto(
-                        soup.find("a", "download", href=True)["href"], caption=caption
-                    )
-                ]
-            else:
-                for a in soup.find_all("div", "video-wrap"):
-                    files += [InputMediaVideo(a["data-video"], caption=caption)]
-        elif re.match(r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com(?:\S*)", url, re.M):
-            r = await http.head(url, follow_redirects=True)
+
             try:
+                r = await http.head(url, follow_redirects=True)
                 await extract_info(YoutubeDL(ydl_opts), str(r.url), download=True)
             except BaseException:
                 return
     else:
-        await gallery_down(path, str(url))
+        await gallery_down(tmp, str(url))
 
     with contextlib.suppress(FileNotFoundError):
         files += [
-            InputMediaVideo(os.path.join(path, video), caption=caption)
-            for video in os.listdir(path)
+            InputMediaVideo(os.path.join(tmp, video), caption=caption)
+            for video in os.listdir(tmp)
             if video.endswith(".mp4")
         ]
+
     if m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_images", m.chat.id):
         with contextlib.suppress(FileNotFoundError):
             files += [
-                InputMediaPhoto(os.path.join(path, photo), caption=caption)
-                for photo in os.listdir(path)
+                InputMediaPhoto(os.path.join(tmp, photo), caption=caption)
+                for photo in os.listdir(tmp)
                 if photo.endswith((".jpg", ".png", ".jpeg"))
             ]
+
     if files:
         try:
             await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)

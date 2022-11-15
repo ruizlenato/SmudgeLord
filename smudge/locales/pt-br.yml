@@ -196,7 +196,7 @@ strings:
     noargs_cep: "<b>Uso do comando:</b> <code>/cep [cep]</code>\nEspecifique o CEP que você quer consultar."
     noargs_ddd: "<b>Uso do comando:</b> <code>/ddd [ddd]</code>\n\nEspecifique o DDD que você quer consultar."
     noargs_tr: "<b>Uso do comando:</b> <code>/tr [idioma] [texto para tradução]</code>\n\nTraduzirá a palavra que você digitar para o idioma de sua preferência.\n<i>O comando também funciona através de resposta</i>"
-    noargs_sdl: "<b>Uso do comando:</b> <code>{} [link]</code>\n\nEspecifique um link do Instagram, TikTok ou Twitter para que eu possa baixar o vídeo."
+    noargs_sdl: "<b>Uso do comando:</b> <code>/dl [link]</code>\n\nEspecifique um link do Instagram, TikTok ou Twitter para que eu possa baixar o vídeo."
     noargs_yt: "<b>Uso do comando:</b> <code>/yt [Palavra]</code>\n\nEspecifique uma palavra para que eu possa buscar no YouTube e retornar a lista vídeos."
     noargs_ytdl: "<b>Uso do comando:</b> <code>/ytdl [Palavra ou link]</code>\n\nEspecifique uma palavra ou um link para que eu possa buscar e baixar um vídeo."
     noargs_gitr: "<b>Uso do comando:</b> <code>/gitr [usuário]/[repositório]</code>\n\nEspecifique nome de usuário e repositório para qual você quer buscar releases."

@@ -197,7 +197,7 @@ strings:
     noargs_cep: "<b>Usage:</b> <code> /cep [zip code (Brazilian)]</code>\n\nYou forgot the zip code (Brazilian)."
     noargs_dddd: "<b>Usage:</b> <code> /ddd [Brazilian DDD]</code>\n\n You forgot the DDD (Brazilian)."
     noargs_tr: "<b>Usage:</b> <code> /tr [language] [text for translation]</code>.\n\nIt will translate the word you type into the language of your choice.\n<i>The command also works via reply</i>"
-    noargs_sdl: "<b>Usage:</b> <code>{} [link]</code>\n\nSpecify a link from Instagram, TikTok or Twitter so I can download the video."
+    noargs_sdl: "<b>Usage:</b> <code>/dl [link]</code>\n\nSpecify a link from Instagram, TikTok or Twitter so I can download the video."
     noargs_yt: "<b>Usage:</b> <code>/yt [Word]</code>\n\nSpecify a word so I can search YouTube and return a list of videos."
     noargs_ytdl: "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\nSpecify a word or a link so that I can search and download a video."
     noargs_gitr: "<b>Usage:</b> <code>/gitr [user]/[repo]</code>\n\nSpecify the username and repository for which you want to fetch releases."
