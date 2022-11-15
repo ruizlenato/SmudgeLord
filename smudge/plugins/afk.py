@@ -1,16 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
-import re
-import asyncio
 
 from pyrogram import filters
 from pyrogram.types import Message
 from pyrogram.enums import MessageEntityType
 from pyrogram.errors import (
     FloodWait,
-    UserNotParticipant,
     BadRequest,
-    PeerIdInvalid,
     ChatWriteForbidden,
 )
 
