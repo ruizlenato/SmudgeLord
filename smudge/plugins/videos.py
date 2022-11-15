@@ -325,10 +325,17 @@ async def sdl(c: Smudge, m: Message):
             )
             if soup.find_all("div", "swiper-slide"):
                 for a in soup.find_all("div", "swiper-slide"):
+                    print(a["data-src"])
                     if re.search(r".mp4", a["data-src"], re.M):
                         files += [InputMediaVideo(a["data-src"], caption=caption)]
                     elif re.search(r".jpg", a["data-src"], re.M):
                         files += [InputMediaPhoto(a["data-src"], caption=caption)]
+            elif soup.find("a", "download", href=True):
+                files += [
+                    InputMediaPhoto(
+                        soup.find("a", "download", href=True)["href"], caption=caption
+                    )
+                ]
             else:
                 for a in soup.find_all("div", "video-wrap"):
                     files += [InputMediaVideo(a["data-video"], caption=caption)]
