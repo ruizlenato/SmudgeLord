@@ -83,13 +83,13 @@ async def dicio_def(query):  # sourcery skip: avoid-builtin-shadow
     title = []
     for i in tit:
         a = i.find("a")
-        if a != None:
+        if a is not None:
             title.append(a.get("title"))
     if a is None:
         tit = soup.find_all("h3", "di-blue-link")
     for i in tit:
         a = i.find("a")
-        if a != None:
+        if a is not None:
             title.append(f'você quiz dizer: {a.get("title")}')
     ti = soup.find_all("p", "text-justify")
     tit = []
