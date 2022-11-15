@@ -302,35 +302,40 @@ async def sdl(c: Smudge, m: Message):
     caption = f"<a href='{str(url)}'>🔗 Link</a> "
 
     if re.match(
-        r"http(?:s)?:\/\/(?:www|vm|vt)?.(?:m.)?(?:instagram|tiktok).com\/(?:\S*)",
+        r"http(?:s)?:\/\/(?:www.|vm.|vt.|m.)?(?:instagram|tiktok).com\/(?:\S*)",
         url,
         re.M,
     ):
         if re.search(r"instagram.com\/", url, re.M):
-            bibliogram = re.sub(
-                "(?:www.|m.)?instagram.com/", "bibliogram.froth.zone/", url
+            link = re.sub(
+                r"(?:www.|m.)?instagram.com/(?:reel|p)(.*)/",
+                r"imginn.com/p\1/",
+                str(url),
             )
+            my_headers = {
+                "User-Agent": "PostmanRuntime/7.29.2",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Connection": "keep-alive",
+            }
             soup = BeautifulSoup(
-                (await http.get(bibliogram, follow_redirects=True)).text,
+                (
+                    await http.get(
+                        f"https://cors-bypass.amanoteam.com/{link}",
+                        headers=my_headers,
+                        follow_redirects=True,
+                    )
+                ).text,
                 "html.parser",
             )
-            for images in soup.find_all("img", "sized-image"):
-                files += [
-                    InputMediaPhoto(
-                        f"https://bibliogram.froth.zone{images.get('src')}",
-                        caption=caption,
-                    )
-                ]
-            for videos in soup.find_all("video", "sized-video"):
-                if not re.match(r"\S*url=undefined", videos.get("src"), re.M):
-                    os.mkdir(path)
-                    open(f"{path}/insta.mp4", "wb").write(
-                        (
-                            await http.get(
-                                f"https://bibliogram.froth.zone{videos.get('src')}"
-                            )
-                        ).content
-                    )  # Avoid "Telegram says: [400 WEBPAGE_MEDIA_EMPTY]"
+            if soup.find_all("div", "swiper-slide"):
+                for a in soup.find_all("div", "swiper-slide"):
+                    if re.search(r".mp4", a["data-src"], re.M):
+                        files += [InputMediaVideo(a["data-src"], caption=caption)]
+                    elif re.search(r".jpg", a["data-src"], re.M):
+                        files += [InputMediaPhoto(a["data-src"], caption=caption)]
+            else:
+                for a in soup.find_all("div", "video-wrap"):
+                    files += [InputMediaVideo(a["data-video"], caption=caption)]
         elif re.match(r"http(?:s)?://(?:vm|vt|www)\.tiktok\.com(?:\S*)", url, re.M):
             r = await http.head(url, follow_redirects=True)
             try:
