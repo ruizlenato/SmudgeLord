@@ -298,6 +298,10 @@ async def sdl(c: Smudge, m: Message):
             cors = "https://cors-bypass.amanoteam.com/"
 
             request = await http.get(f"{cors}{link}", headers=my_headers)
+            if request.status_code != 200:
+                link = re.sub(r"imginn.com", r"imginn.org", link)
+                request = await http.get(f"{cors}{link}", headers=my_headers)
+
             soup = BeautifulSoup(request.text, "html.parser")
             os.mkdir(tmp)
 
@@ -307,18 +311,22 @@ async def sdl(c: Smudge, m: Message):
                         media = f"{cors}{i['data-src']}"
                         if re.search(r".mp4", media, re.M):
                             req = (await http.get(media)).content
+                            await asyncio.sleep(0.3)
                             open(f"{tmp}/{media[100:113]}.mp4", "wb").write(req)
                         if re.search(r".jpg", media, re.M):
                             req = (await http.get(media)).content
+                            await asyncio.sleep(0.3)
                             open(f"{tmp}/{media[100:113]}.jpg", "wb").write(req)
                 else:
                     media = f"{cors}{soup.find('a', 'download', href=True)['href']}"
                     if re.search(r".mp4", media, re.M):
                         req = (await http.get(media)).content
+                        await asyncio.sleep(0.3)
                         open(f"{tmp}/{media[100:113]}.mp4", "wb").write(req)
 
                     if re.search(r".jpg", media, re.M):
                         req = (await http.get(media)).content
+                        await asyncio.sleep(0.3)
                         open(f"{tmp}/{media[100:113]}.jpg", "wb").write(req)
 
         elif re.search(r"tiktok.com\/", url, re.M):
