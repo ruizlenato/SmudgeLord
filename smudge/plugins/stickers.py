@@ -89,10 +89,7 @@ async def kang_sticker(c: Smudge, m: Message):
             if "image" in reply.document.mime_type:
                 # mime_type: image/webp
                 resize = True
-            elif (
-                MessageMediaType.VIDEO == reply.document.mime_type
-                or MessageMediaType.ANIMATION == reply.document.mime_type
-            ):
+            elif reply.document.mime_type in (MessageMediaType.VIDEO, MessageMediaType.ANIMATION):
                 # mime_type: application/video
                 videos = True
                 convert = True
