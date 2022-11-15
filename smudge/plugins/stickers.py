@@ -228,11 +228,11 @@ async def kang_sticker(c: Smudge, m: Message):
             )
         else:
             await prog_msg.edit_text(await tld(m, "Stickers.create_new_pack_string"))
-            stkr_title = f"@{m.from_user.username[:32]}'s "
+            stkr_title = f"@{m.from_user.username[:32]}'s SmudgePack"
             if animated:
-                stkr_title += "Smudge AnimPack"
+                stkr_title += " Anim"
             elif videos:
-                stkr_title += "Smudge VidPack"
+                stkr_title += " Vid"
             if packnum != 0:
                 stkr_title += f" v{packnum}"
             try:

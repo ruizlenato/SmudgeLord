@@ -3,9 +3,16 @@
 
 from typing import List
 
+from .utils import (
+    EMOJI_PATTERN,
+    pretty_size,
+    aiowrap,
+    http,
+)
+
 __all__: List[str] = [
-    "http",
-    "pretty_size",
     "EMOJI_PATTERN",
+    "pretty_size",
     "aiowrap",
+    "http",
 ]
