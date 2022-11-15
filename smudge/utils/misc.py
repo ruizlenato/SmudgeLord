@@ -2,8 +2,8 @@
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
 import uuid
 import json
-import sys
 import httpx
+import contextlib
 
 from smudge.utils import http
 
@@ -74,7 +74,7 @@ async def cssworker_url(target_url: str):
         return None
 
 
-async def dicio_def(query):
+async def dicio_def(query):  # sourcery skip: avoid-builtin-shadow
     r = await http.get(dicio_link + query, follow_redirects=True)
     soup = BeautifulSoup(r.text, "html.parser")
     tit = soup.find_all("h3", "di-blue")
@@ -114,7 +114,7 @@ async def dicio_def(query):
     result = []
     max = 0
     for i in title:
-        try:
+        with contextlib.suppress(IndexError):
             b = {
                 "title": i.replace("\t", ""),
                 "tit": tit[max].replace("\t", ""),
@@ -122,7 +122,4 @@ async def dicio_def(query):
             }
             max += 1
             result.append(b)
-        except IndexError:
-            pass
-
     return result

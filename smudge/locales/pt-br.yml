@@ -211,7 +211,7 @@ strings:
       <b>/ddd -</b> <i>Obtém informações sobre o DDD (Brasileiro) especificado.</i>
       <b>/cep -</b> <i>Obtém informações sobre o CEP (Brasileiro) especificado.</i>
 
-      <b>/sdl ou /mdl -</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>
+      <b>/dl -</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>
       <b>/ytdl -</b> <i>Baixa vídeos do YouTube em formato de vídeo ou audio.</i>
       <b>/yt -</b> <i>Faz uma busca no YouTube com a palavra que você escreveu e retorna uma lista com vídeos.</i>
 

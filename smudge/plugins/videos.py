@@ -7,17 +7,14 @@ import re
 import json
 import shutil
 import asyncio
-import tempfile
 import datetime
+import tempfile
+import contextlib
 import gallery_dl
 
-from yt_dlp import YoutubeDL
 from bs4 import BeautifulSoup
-
 from pyrogram import filters
-from pyrogram.helpers import ikb
 from pyrogram.enums import ChatAction, ChatType
-from pyrogram.types import Message, CallbackQuery, InputMediaVideo, InputMediaPhoto
 from pyrogram.errors import (
     BadRequest,
     FloodWait,
@@ -25,11 +22,15 @@ from pyrogram.errors import (
     MediaEmpty,
     UserNotParticipant,
 )
+from pyrogram.helpers import ikb
+from pyrogram.types import CallbackQuery, InputMediaPhoto, InputMediaVideo, Message
+from yt_dlp import YoutubeDL
+
+from smudge.database.videos import sdl_c
+from smudge.utils import aiowrap, http, pretty_size
+from smudge.utils.locales import tld
 
 from ..bot import Smudge
-from smudge.utils.locales import tld
-from smudge.utils import http, pretty_size, aiowrap
-from smudge.database.videos import sdl_c
 
 # Regex to get link
 SDL_REGEX_LINKS = r"http(?:s)?:\/\/(?:www.|mobile.|m.|vm.)?(?:instagram|twitter|reddit|tiktok|facebook).com\/(?:\S*)"
@@ -115,17 +116,15 @@ async def ytdlcmd(c: Smudge, m: Message):
         return
 
     ydl = YoutubeDL({"noplaylist": True, "logger": MyLogger()})
-    rege = YOUTUBE_REGEX.match(url)
+    if rege := YOUTUBE_REGEX.match(url):
+        yt = await extract_info(ydl, rege.group(), download=False)
 
-    if not rege:
+    else:
         yt = await extract_info(ydl, f"ytsearch:{url}", download=False)
         try:
             yt = yt["entries"][0]
         except IndexError:
             return
-    else:
-        yt = await extract_info(ydl, rege.group(), download=False)
-
     for f in yt["formats"]:
         if f["format_id"] == "140":
             afsize = f["filesize"] or 0
@@ -262,7 +261,7 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
 
 
 @Smudge.on_message(
-    filters.command(["sdl", "mdl"]) | filters.regex(SDL_REGEX_LINKS), group=1
+    filters.command(["dl", "sdl"]) | filters.regex(SDL_REGEX_LINKS), group=1
 )
 async def sdl(c: Smudge, m: Message):
     if m.matches:
@@ -284,14 +283,11 @@ async def sdl(c: Smudge, m: Message):
         path = os.path.join(tempdir)
 
     if re.match(TWITTER_REGEX_LINKS, url, re.M) and m.chat.type is not ChatType.PRIVATE:
-        try:
+        with contextlib.suppress(UserNotParticipant):
             await m.chat.get_member(
                 1703426201
             )  # To avoid conflict with @TwitterGramRobot
             return
-        except UserNotParticipant:
-            pass
-
     ydl_opts = {
         "outtmpl": f"{path}/%(extractor)s.%(ext)s",
         "wait-for-video": "1",
@@ -345,25 +341,19 @@ async def sdl(c: Smudge, m: Message):
     else:
         await gallery_down(path, str(url))
 
-    try:
+    with contextlib.suppress(FileNotFoundError):
         files += [
             InputMediaVideo(os.path.join(path, video), caption=caption)
             for video in os.listdir(path)
             if video.endswith(".mp4")
         ]
-    except FileNotFoundError:
-        pass
-
     if m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_images", m.chat.id):
-        try:
+        with contextlib.suppress(FileNotFoundError):
             files += [
                 InputMediaPhoto(os.path.join(path, photo), caption=caption)
                 for photo in os.listdir(path)
                 if photo.endswith((".jpg", ".png", ".jpeg"))
             ]
-        except FileNotFoundError:
-            pass
-
     if files:
         try:
             await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)

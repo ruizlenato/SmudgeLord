@@ -209,7 +209,7 @@ strings:
       <b>/tr -</b> <i>It will translate the word you enter into the language of your choice.</i>
       <b>/ghr -</b> <i>Will fetch the latest releases from the specified github repository.</i>
 
-      <b>/sdl or /mdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>
+      <b>/dl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>
       <b>/ytdl -</b> <i>Download videos from YouTube in video or audio format.</i>
       <b>/yt -</b> <i>It does a YouTube search with the word you wrote and returns a list with videos.</i>
 
