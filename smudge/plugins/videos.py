@@ -13,6 +13,9 @@ import contextlib
 import gallery_dl
 
 from bs4 import BeautifulSoup
+from yt_dlp import YoutubeDL
+from httpx import ReadTimeout
+
 from pyrogram import filters
 from pyrogram.enums import ChatAction, ChatType
 from pyrogram.errors import (
@@ -24,7 +27,6 @@ from pyrogram.errors import (
 )
 from pyrogram.helpers import ikb
 from pyrogram.types import CallbackQuery, InputMediaPhoto, InputMediaVideo, Message
-from yt_dlp import YoutubeDL
 
 from smudge.database.videos import sdl_c
 from smudge.utils import aiowrap, http, pretty_size
@@ -288,60 +290,57 @@ async def sdl(c: Smudge, m: Message):
 
     files = []
     caption = f"<a href='{str(url)}'>🔗 Link</a> "
+    if re.search(r"instagram.com\/", url, re.M):
+        link = re.sub(
+            r"(?:www.|m.)?instagram.com/(?:reel|p)(.*)/", r"imginn.com/p\1/", url
+        )
+        my_headers = {"User-Agent": "PostmanRuntime/7.29.2"}
+        cors = "https://cors-bypass.amanoteam.com/"
 
-    if re.search(r"(instagram|tiktok).com", url, re.M):
-        if re.search(r"instagram.com\/", url, re.M):
-            link = re.sub(
-                r"(?:www.|m.)?instagram.com/(?:reel|p)(.*)/", r"imginn.com/p\1/", url
-            )
-            my_headers = {"User-Agent": "PostmanRuntime/7.29.2"}
-            cors = "https://cors-bypass.amanoteam.com/"
-
+        try:
             request = await http.get(f"{cors}{link}", headers=my_headers)
-            if request.status_code != 200:
-                link = re.sub(r"imginn.com", r"imginn.org", link)
-                request = await http.get(f"{cors}{link}", headers=my_headers)
+        except ReadTimeout:
+            await asyncio.sleep(1.5)
 
-            soup = BeautifulSoup(request.text, "html.parser")
-            os.mkdir(tmp)
+        if request.status_code != 200:
+            link = re.sub(r"imginn.com", r"imginn.org", link)
+            request = await http.get(f"{cors}{link}", headers=my_headers)
 
-            with contextlib.suppress(TypeError):
-                if swiper := soup.find_all("div", "swiper-slide"):
-                    for i in swiper:
-                        media = f"{cors}{i['data-src']}"
-                        if re.search(r".mp4", media, re.M):
-                            req = (await http.get(media)).content
-                            await asyncio.sleep(0.3)
-                            open(f"{tmp}/{media[100:113]}.mp4", "wb").write(req)
-                        if re.search(r".jpg", media, re.M):
-                            req = (await http.get(media)).content
-                            await asyncio.sleep(0.3)
-                            open(f"{tmp}/{media[100:113]}.jpg", "wb").write(req)
-                else:
-                    media = f"{cors}{soup.find('a', 'download', href=True)['href']}"
-                    if re.search(r".mp4", media, re.M):
-                        req = (await http.get(media)).content
-                        await asyncio.sleep(0.3)
-                        open(f"{tmp}/{media[100:113]}.mp4", "wb").write(req)
+        soup = BeautifulSoup(request.text, "html.parser")
+        os.mkdir(tmp)
 
-                    if re.search(r".jpg", media, re.M):
-                        req = (await http.get(media)).content
-                        await asyncio.sleep(0.3)
-                        open(f"{tmp}/{media[100:113]}.jpg", "wb").write(req)
+        with contextlib.suppress(TypeError):
+            if swiper := soup.find_all("div", "swiper-slide"):
+                for i in swiper:
+                    media = f"{cors}{i['data-src']}"
+                    req = (await http.get(media)).content
+                    await asyncio.sleep(0.3)
+                    open(
+                        f"{tmp}/{media[100:113]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}",
+                        "wb",
+                    ).write(req)
+            else:
+                media = f"{cors}{soup.find('a', 'download', href=True)['href']}"
+                req = (await http.get(media)).content
+                await asyncio.sleep(0.3)
+                open(
+                    f"{tmp}/{media[100:113]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}",
+                    "wb",
+                ).write(req)
 
-        elif re.search(r"tiktok.com\/", url, re.M):
-            ydl_opts = {
-                "outtmpl": f"{tmp}/%(extractor)s.%(ext)s",
-                "wait-for-video": "1",
-                "noplaylist": True,
-                "logger": MyLogger(),
-            }
+    elif re.search(r"tiktok.com\/", url, re.M):
+        ydl_opts = {
+            "outtmpl": f"{tmp}/%(extractor)s.%(ext)s",
+            "noplaylist": True,
+            "logger": MyLogger(),
+        }
 
-            try:
-                r = await http.head(url, follow_redirects=True)
-                await extract_info(YoutubeDL(ydl_opts), str(r.url), download=True)
-            except BaseException:
-                return
+        try:
+            r = await http.head(url, follow_redirects=True)
+            await extract_info(YoutubeDL(ydl_opts), str(r.url), download=True)
+        except BaseException:
+            return
+
     else:
         await gallery_down(tmp, str(url))
 
