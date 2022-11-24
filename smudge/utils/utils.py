@@ -11,8 +11,7 @@ from functools import wraps, partial
 
 from pyrogram import emoji
 
-timeout = httpx.Timeout(30, pool=None)
-http = httpx.AsyncClient(http2=True, timeout=timeout)
+http = httpx.AsyncClient(http2=True)
 
 
 def pretty_size(size_bytes):

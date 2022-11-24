@@ -7,6 +7,7 @@ import json
 import httpx
 import base64
 import random
+import contextlib
 import urllib.parse
 
 from ..bot import Smudge
@@ -117,14 +118,11 @@ async def lastfm_info(c: Smudge, m: Message):
 @Smudge.on_message(filters.command(["lastfm", "lmu", "lt", "whl", "whyl"]))
 async def lastfm(c: Smudge, m: Message):
     if m.chat.type is not ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/lt":
-        try:
+        with contextlib.suppress(UserNotParticipant):
             await m.chat.get_member(
                 1993314727
             )  # To avoid conflict with @MyScrobblesbot
             return
-        except UserNotParticipant:
-            pass
-
     if m.text.split(maxsplit=1)[0] in ("/whl", "/whyl"):
         try:
             user = m.reply_to_message.from_user.first_name
@@ -199,13 +197,11 @@ async def lastfm(c: Smudge, m: Message):
 @Smudge.on_message(filters.command(["lalbum", "lalb", "album"]))
 async def album(c: Smudge, m: Message):
     if m.chat.type is not ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "/album":
-        try:
+        with contextlib.suppress(UserNotParticipant):
             await m.chat.get_member(
                 1993314727
             )  # To avoid conflict with @MyScrobblesbot
             return
-        except UserNotParticipant:
-            pass
     user = m.from_user.first_name
     username = await get_last_user(m.from_user.id)
 
@@ -269,13 +265,11 @@ async def album(c: Smudge, m: Message):
 @Smudge.on_message(filters.command(["lartist", "lart", "artist"]))
 async def artist(c: Smudge, m: Message):
     if m.chat.type is not ChatType.PRIVATE and m.text.split(maxsplit=1)[0] == "artist":
-        try:
+        with contextlib.suppress(UserNotParticipant):
             await m.chat.get_member(
                 1993314727
             )  # To avoid conflict with @MyScrobblesbot
             return
-        except UserNotParticipant:
-            pass
     user = m.from_user.first_name
     username = await get_last_user(m.from_user.id)
 

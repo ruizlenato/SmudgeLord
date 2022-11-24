@@ -14,7 +14,6 @@ import gallery_dl
 
 from bs4 import BeautifulSoup
 from yt_dlp import YoutubeDL
-from httpx import ReadTimeout
 
 from pyrogram import filters
 from pyrogram.enums import ChatAction, ChatType
@@ -297,10 +296,7 @@ async def sdl(c: Smudge, m: Message):
         my_headers = {"User-Agent": "PostmanRuntime/7.29.2"}
         cors = "https://cors-bypass.amanoteam.com/"
 
-        try:
-            request = await http.get(f"{cors}{link}", headers=my_headers)
-        except ReadTimeout:
-            await asyncio.sleep(1.5)
+        request = await http.get(f"{cors}{link}", headers=my_headers)
 
         if request.status_code != 200:
             link = re.sub(r"imginn.com", r"imginn.org", link)
@@ -314,7 +310,6 @@ async def sdl(c: Smudge, m: Message):
                 for i in swiper:
                     media = f"{cors}{i['data-src']}"
                     req = (await http.get(media)).content
-                    await asyncio.sleep(0.3)
                     open(
                         f"{tmp}/{media[100:113]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}",
                         "wb",
@@ -322,7 +317,6 @@ async def sdl(c: Smudge, m: Message):
             else:
                 media = f"{cors}{soup.find('a', 'download', href=True)['href']}"
                 req = (await http.get(media)).content
-                await asyncio.sleep(0.3)
                 open(
                     f"{tmp}/{media[100:113]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}",
                     "wb",
@@ -340,13 +334,14 @@ async def sdl(c: Smudge, m: Message):
             await extract_info(YoutubeDL(ydl_opts), str(r.url), download=True)
         except BaseException:
             return
-
     else:
         await gallery_down(tmp, str(url))
 
     with contextlib.suppress(FileNotFoundError):
         files += [
-            InputMediaVideo(os.path.join(tmp, video), caption=caption)
+            InputMediaVideo(
+                os.path.join(tmp, video), supports_streaming=True, caption=caption
+            )
             for video in os.listdir(tmp)
             if video.endswith(".mp4")
         ]

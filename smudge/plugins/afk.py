@@ -30,8 +30,11 @@ async def set_afk(c: Smudge, m: Message):
         reason = "No reason"
         reason_txt = ""
     else:
-        reason = m.text.split(None, 1)[1]
-        reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
+        try:
+            reason = m.text.split(None, 1)[1]
+            reason_txt = (await tld(m, "Misc.afk_reason")).format(reason)
+        except AttributeError:
+            return
     await set_uafk(m.from_user.id, reason)
     try:
         await m.reply_text(afkmsg + reason_txt)
