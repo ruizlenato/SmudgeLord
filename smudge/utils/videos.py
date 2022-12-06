@@ -119,7 +119,7 @@ class DownloadMedia:
 
     async def TikTok(self, url: str):
         caption = f"<a href='{url}'>🔗 Link</a>"
-        x = re.match(".*tiktok.com\/.*?(:?@[A-Za-z0-9]+\/video\/)?([A-Za-z0-9]+)", url)
+        x = re.match(r".*tiktok.com\/.*?(:?@[A-Za-z0-9]+\/video\/)?([A-Za-z0-9]+)", url)
         res = await http.get(f"https://proxitok.marcopisco.com/video/{x[2]}")
         soup = BeautifulSoup(res.text, "html.parser")
         self.files.append(
