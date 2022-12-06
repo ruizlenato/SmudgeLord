@@ -71,6 +71,7 @@ class Smudge(Client):
         await super().stop()
         logger.warning("\033[93mSmudgeLord stopped. Bye!\033[0m")
 
+    @staticmethod
     async def send_logs(self, m, e):
         if isinstance(m, CallbackQuery):
             m = m.message
