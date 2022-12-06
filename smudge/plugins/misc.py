@@ -46,9 +46,7 @@ async def translate(c: Smudge, m: Message):
 
     res = html.escape(text)
     await sent.edit_text(
-        ("<b>{from_lang}</b> -> <b>{to_lang}:</b>\n<code>{translation}</code>").format(
-            from_lang=trres.lang, to_lang=to_lang, translation=res
-        )
+        f"<b>{trres.lang}</b> -> <b>{to_lang}:</b>\n<code>{res}</code>"
     )
 
 

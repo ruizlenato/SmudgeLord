@@ -69,7 +69,7 @@ class Smudge(Client):
         if database.is_connected:
             await database.close()
         await super().stop()
-        logger.warning(f"\033[93mSmudgeLord stopped. Bye!\033[0m")
+        logger.warning("\033[93mSmudgeLord stopped. Bye!\033[0m")
 
     async def send_logs(self, m, e):
         if isinstance(m, CallbackQuery):
