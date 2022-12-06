@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 logging.basicConfig(
     level=logging.INFO,
-    format=f"\u001B[33m%(levelname)s | \u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
+    format="\u001B[33m%(levelname)s | \u001B[35m%(name)s \u001B[31m| %(asctime)s | \u001B[37m%(message)s",
     datefmt="%m/%d %H:%M:%S",
 )
 logs = (
