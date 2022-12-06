@@ -13,6 +13,10 @@ API_HASH: str = ""
 # Get it from https://last.fm/api/account/create
 LASTFM_API_KEY: str = ""
 
+# Get it from https://developer.twitter.com/
+consumer_key: str = ""
+consumer_secret: str = ""
+
 # SUDOERS (to use some special commands)
 SUDOERS: List[int] = [1032274246]
 

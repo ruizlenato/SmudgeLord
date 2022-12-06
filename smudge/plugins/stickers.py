@@ -27,8 +27,6 @@ from pyrogram.raw.types import (
     InputStickerSetShortName,
 )
 
-SUPPORTED_TYPES = ["jpeg", "png", "webp"]
-
 
 @Smudge.on_message(filters.command("getsticker"))
 async def getsticker(c: Smudge, m: Message):

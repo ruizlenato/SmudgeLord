@@ -4,31 +4,23 @@
 import io
 import os
 import re
-import json
 import shutil
 import asyncio
 import datetime
 import tempfile
 import contextlib
-import gallery_dl
 
-from bs4 import BeautifulSoup
 from yt_dlp import YoutubeDL
 
 from pyrogram import filters
-from pyrogram.enums import ChatAction, ChatType
-from pyrogram.errors import (
-    BadRequest,
-    FloodWait,
-    Forbidden,
-    MediaEmpty,
-    UserNotParticipant,
-)
 from pyrogram.helpers import ikb
-from pyrogram.types import CallbackQuery, InputMediaPhoto, InputMediaVideo, Message
+from pyrogram.enums import ChatAction, ChatType
+from pyrogram.types import CallbackQuery, Message
+from pyrogram.errors import BadRequest, FloodWait, Forbidden, UserNotParticipant
 
+from smudge.utils.videos import DownloadMedia, search_yt, extract_info
+from smudge.utils import http, pretty_size
 from smudge.database.videos import sdl_c
-from smudge.utils import aiowrap, http, pretty_size
 from smudge.utils.locales import tld
 
 from ..bot import Smudge
@@ -45,44 +37,6 @@ YOUTUBE_REGEX = re.compile(
 TWITTER_LINKS = (
     r"(http(s)?:\/\/(?:www\.)?(?:v\.)?(?:mobile.)?(?:twitter.com)\/(?:.*?))(?:\s|$)"
 )
-
-
-@aiowrap
-def gallery_down(path, url: str):
-    gallery_dl.config.set(("output",), "mode", "null")
-    gallery_dl.config.set((), "directory", [])
-    gallery_dl.config.set((), "base-directory", [path])
-    gallery_dl.config.load()
-    return gallery_dl.job.DownloadJob(url).run()
-
-
-@aiowrap
-def extract_info(instance: YoutubeDL, url: str, download=True):
-    return instance.extract_info(url, download)
-
-
-async def search_yt(query):
-    page = await http.get(
-        "https://www.youtube.com/results",
-        params=dict(search_query=query, pbj="1"),
-        headers={
-            "x-youtube-Smudge-name": "1",
-            "x-youtube-Smudge-version": "2.20200827",
-        },
-    )
-    page = json.loads(page.content)
-    list_videos = []
-    for video in page[1]["response"]["contents"]["twoColumnSearchResultsRenderer"][
-        "primaryContents"
-    ]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"]:
-        if video.get("videoRenderer"):
-            dic = {
-                "title": video["videoRenderer"]["title"]["runs"][0]["text"],
-                "url": "https://www.youtube.com/watch?v="
-                + video["videoRenderer"]["videoId"],
-            }
-            list_videos.append(dic)
-    return list_videos
 
 
 @Smudge.on_message(filters.command("yt"))
@@ -262,8 +216,11 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
+DownloadMedia = DownloadMedia()
+
+
 @Smudge.on_message(filters.command(["dl", "sdl"]) | filters.regex(REGEX_LINKS), group=1)
-async def sdl(c: Smudge, m: Message):
+async def sdl(c: Smudge, m: Message):  # sourcery skip: avoid-builtin-shadow
     if m.matches:
         if m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_auto", m.chat.id):
             url = m.matches[0].group(0)
@@ -279,94 +236,29 @@ async def sdl(c: Smudge, m: Message):
     if not re.match(REGEX_LINKS, url, re.M):
         return await m.reply_text(await tld(m, "Misc.sdl_invalid_link"))
 
-    with tempfile.TemporaryDirectory() as tempdir:
-        tmp = os.path.join(tempdir)
-
     if re.match(TWITTER_LINKS, url, re.M) and m.chat.type is not ChatType.PRIVATE:
         with contextlib.suppress(UserNotParticipant):
             # To avoid conflict with @TwitterGramRobot
             return await m.chat.get_member(1703426201)
 
-    files = []
-    caption = f"<a href='{str(url)}'>🔗 Link</a> "
-    if re.search(r"instagram.com\/", url, re.M):
-        link = re.sub(
-            r"(?:www.|m.)?instagram.com/(?:reel|p)(.*)/", r"imginn.com/p\1/", url
-        )
-        my_headers = {"User-Agent": "PostmanRuntime/7.29.2"}
-        cors = "https://cors-bypass.amanoteam.com/"
-
-        request = await http.get(f"{cors}{link}", headers=my_headers)
-
-        if request.status_code != 200:
-            link = re.sub(r"imginn.com", r"imginn.org", link)
-            request = await http.get(f"{cors}{link}", headers=my_headers)
-
-        soup = BeautifulSoup(request.text, "html.parser")
-        os.mkdir(tmp)
-
-        with contextlib.suppress(TypeError):
-            if swiper := soup.find_all("div", "swiper-slide"):
-                for i in swiper:
-                    media = f"{cors}{i['data-src']}"
-                    req = (await http.get(media)).content
-                    open(
-                        f"{tmp}/{media[100:113]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}",
-                        "wb",
-                    ).write(req)
-            else:
-                media = f"{cors}{soup.find('a', 'download', href=True)['href']}"
-                req = (await http.get(media)).content
-                open(
-                    f"{tmp}/{media[100:113]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}",
-                    "wb",
-                ).write(req)
-
-    elif re.search(r"tiktok.com\/", url, re.M):
-        ydl_opts = {
-            "outtmpl": f"{tmp}/%(extractor)s.%(ext)s",
-            "noplaylist": True,
-            "logger": MyLogger(),
-        }
-
-        try:
-            r = await http.head(url, follow_redirects=True)
-            await extract_info(YoutubeDL(ydl_opts), str(r.url), download=True)
-        except BaseException:
-            return
-    else:
-        await gallery_down(tmp, str(url))
-
-    with contextlib.suppress(FileNotFoundError):
-        files += [
-            InputMediaVideo(
-                os.path.join(tmp, video), supports_streaming=True, caption=caption
-            )
-            for video in os.listdir(tmp)
-            if video.endswith(".mp4")
-        ]
-
-    if m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_images", m.chat.id):
-        with contextlib.suppress(FileNotFoundError):
-            files += [
-                InputMediaPhoto(os.path.join(tmp, photo), caption=caption)
-                for photo in os.listdir(tmp)
-                if photo.endswith((".jpg", ".png", ".jpeg"))
-            ]
-
+    id = f"{m.chat.id}.{m.id}"
+    files = await DownloadMedia.download(url, id)
+    if (
+        m.media
+        and len(files) == 1
+        and re.search(r"InputMediaPhoto", str(files[0]), re.M)
+    ):
+        return
     if files:
         try:
             await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
             await m.reply_media_group(media=files)
         except FloodWait as e:
             await asyncio.sleep(e.value)
-        except MediaEmpty:
-            return
         except Forbidden:
-            return shutil.rmtree(tempdir, ignore_errors=True)
+            pass
 
-    await asyncio.sleep(2)
-    return shutil.rmtree(tempdir, ignore_errors=True)
+    return shutil.rmtree(f"./downloads/{id}/", ignore_errors=True)
 
 
 class MyLogger:
