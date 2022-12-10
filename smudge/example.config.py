@@ -14,8 +14,7 @@ API_HASH: str = ""
 LASTFM_API_KEY: str = ""
 
 # Get it from https://developer.twitter.com/
-consumer_key: str = ""
-consumer_secret: str = ""
+BARRER_TOKEN: str = ""
 
 # SUDOERS (to use some special commands)
 SUDOERS: List[int] = [1032274246]

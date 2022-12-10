@@ -6,11 +6,12 @@ import gallery_dl
 
 from yt_dlp import YoutubeDL
 from bs4 import BeautifulSoup
+from urllib.parse import unquote
 
 from pyrogram.types import InputMediaPhoto, InputMediaVideo
 
 from smudge.utils import aiowrap, http
-from smudge.config import consumer_key, consumer_secret
+from smudge.config import BARRER_TOKEN
 
 
 @aiowrap
@@ -54,6 +55,7 @@ async def search_yt(query):
 class DownloadMedia:
     def __init__(self):
         self.cors: str = "https://cors-bypass.amanoteam.com/"
+        self.TwitterAPI: str = "https://api.twitter.com/2/"
 
     async def download(self, url: str, id: str):
         self.files: list = []
@@ -62,7 +64,7 @@ class DownloadMedia:
         elif re.search(r"tiktok.com\/", url, re.M):
             await self.TikTok(url)
         elif re.search(r"twitter.com\/", url, re.M):
-            await self.Twitter(url)
+            await self.Twitter(url, id)
         return self.files
 
     async def instagram(self, url: str, id: str):
@@ -77,44 +79,49 @@ class DownloadMedia:
             res = await http.get(f"{url}")
 
         soup = BeautifulSoup(res.text, "html.parser")
-
+        with contextlib.suppress(FileExistsError):
+            os.mkdir(f"./downloads/{id}/")
         if swiper := soup.find_all("div", "swiper-slide"):
             for i in swiper:
-                media = f"{self.cors}{i['data-src']}"
-                await self.downloader(media, caption, id)
+                urlmedia = re.sub(r".*url=", r"", unquote(i["data-src"]))
+                media = f"{self.cors}{urlmedia}"
+                path = f"./downloads/{id}/{media[90:120]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}"
+                await self.downloader(media, caption, path)
         else:
             media = f"{self.cors}{soup.find('a', 'download', href=True)['href']}"
-            await self.downloader(media, caption, id)
+            path = f"./downloads/{id}/{media[90:120]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}"
+            await self.downloader(media, caption, path)
         return self.files
 
-    async def Twitter(self, url: str):
+    async def Twitter(self, url: str, id: str):
         caption = f"<a href='{url}'>🔗 Link</a>"
         x = re.match(".*twitter.com/.+status/([A-Za-z0-9]+)", url)
-        resp = await http.post(
-            "https://api.twitter.com/oauth2/token",
-            auth=(consumer_key, consumer_secret),
-            data={"grant_type": "client_credentials"},
-        )
-        headers = {"Authorization": f"Bearer {resp.json()['access_token']}"}
+        params: str = "?expansions=attachments.media_keys,author_id&media.fields=type,variants,url&tweet.fields=entities"
         res = await http.get(
-            f"https://api.twitter.com/1.1/statuses/show.json?id={x[1]}",
-            headers=headers,
+            f"{self.TwitterAPI}tweets/{x[1]}{params}",
+            headers={"Authorization": f"Bearer {BARRER_TOKEN}"},
         )
-        db = json.loads(res.content)
-        media = db["extended_entities"]["media"]
-        if media[0]["type"] in ("animated_gif", "video"):
-            bitrate = [
-                a["bitrate"]
-                for a in media[0]["video_info"]["variants"]
-                if a["content_type"] == "video/mp4"
-            ]
-            for a in media[0]["video_info"]["variants"]:
-                if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
-                    self.files.append(InputMediaVideo(a["url"], caption=caption))
-        else:
-            self.files.extend(
-                InputMediaPhoto(a["media_url_https"], caption=caption) for a in media
-            )
+        tweet = json.loads(res.content)
+
+        for media in tweet["includes"]["media"]:
+            if media["type"] in ("animated_gif", "video"):
+                key = media["media_key"]
+                bitrate = [
+                    a["bit_rate"]
+                    for a in media["variants"]
+                    if a["content_type"] == "video/mp4"
+                ]
+                for a in media["variants"]:
+                    with contextlib.suppress(FileExistsError):
+                        os.mkdir(f"./downloads/{id}/")
+                    if a["content_type"] == "video/mp4" and a["bit_rate"] == max(
+                        bitrate
+                    ):
+                        path = f"./downloads/{id}/{key}.mp4"
+                        await self.downloader(a["url"], caption, path)
+            else:
+                self.files += [InputMediaPhoto(media["url"], caption=caption)]
+
         return self.files
 
     async def TikTok(self, url: str):
@@ -129,15 +136,13 @@ class DownloadMedia:
         )
         return self.files
 
-    async def downloader(self, url: str, caption: str, id: str):
-        with contextlib.suppress(FileExistsError):
-            os.mkdir(f"./downloads/{id}/")
-        path = f"./downloads/{id}/{url[90:120]}.{'mp4' if re.search(r'.mp4', url, re.M) else 'jpg'}"
+    async def downloader(self, url: str, caption: str, path: str):
         with open(path, "wb") as f:
             f.write((await http.get(url)).content)
         InputType = (
-            InputMediaVideo if re.search(r".mp4", url, re.M) else InputMediaPhoto
+            InputMediaVideo if re.search(r".mp4", path, re.M) else InputMediaPhoto
         )
-        self.files += [
-            InputType(path, caption=caption),
-        ]
+        if len(self.files) > 0:
+            self.files.append(InputType(path))
+        else:
+            self.files.append(InputType(path, caption=caption))
