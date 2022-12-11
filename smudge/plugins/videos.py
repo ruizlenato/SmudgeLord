@@ -5,7 +5,7 @@ import io
 import os
 import re
 import shutil
-import asyncio
+import pyrogram
 import datetime
 import tempfile
 import contextlib
@@ -16,12 +16,12 @@ from pyrogram import filters
 from pyrogram.helpers import ikb
 from pyrogram.enums import ChatAction, ChatType
 from pyrogram.types import CallbackQuery, Message
-from pyrogram.errors import BadRequest, FloodWait, Forbidden, UserNotParticipant
+from pyrogram.errors import BadRequest, UserNotParticipant
 
 from ..utils.videos import DownloadMedia, search_yt, extract_info
 from ..utils import http, pretty_size
 from ..database.videos import sdl_c
-from ..utils.locales import tld
+from ..locales import tld
 
 from ..bot import Smudge
 
@@ -242,22 +242,23 @@ async def sdl(c: Smudge, m: Message):  # sourcery skip: avoid-builtin-shadow
             return await m.chat.get_member(1703426201)
 
     id = f"{m.chat.id}.{m.id}"
+    rawM = await c.invoke(
+        pyrogram.raw.functions.messages.GetMessages(
+            id=[pyrogram.raw.types.InputMessageID(id=(m.id))]
+        )
+    )
     files = await DownloadMedia.download(url, id)
-    if (
-        m.media
-        and len(files) == 1
-        and re.search(r"InputMediaPhoto", str(files[0]), re.M)
-    ):
-        return
-    if files:
-        try:
-            await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
-            await m.reply_media_group(media=files)
-        except FloodWait as e:
-            await asyncio.sleep(e.value)
-        except Forbidden:
-            pass
 
+    if files:
+        if (
+            rawM.messages[0].media
+            and len(files) == 1
+            and re.search(r"InputMediaPhoto", str(files[0]), re.M)
+        ):
+            return
+
+        await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
+        await m.reply_media_group(media=files)
     return shutil.rmtree(f"./downloads/{id}/", ignore_errors=True)
 
 
