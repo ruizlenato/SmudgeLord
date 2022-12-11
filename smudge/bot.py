@@ -10,9 +10,9 @@ from pyrogram import Client
 from pyrogram.enums import ParseMode
 from pyrogram.types import CallbackQuery
 
-from smudge.utils import http
-from smudge.database import database
-from smudge.config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS, IPV6, WORKERS
+from .utils import http
+from .database import database
+from .config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS, IPV6, WORKERS
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 

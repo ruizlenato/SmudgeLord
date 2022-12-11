@@ -11,10 +11,10 @@ import contextlib
 import urllib.parse
 
 from ..bot import Smudge
-from smudge.utils import http
-from smudge.utils.locales import tld
-from smudge.config import LASTFM_API_KEY
-from smudge.database.lastfm import get_last_user, set_last_user, del_last_user
+from ..utils import http
+from ..utils.locales import tld
+from ..config import LASTFM_API_KEY
+from ..database.lastfm import get_last_user, set_last_user, del_last_user
 
 from pyrogram import filters
 from pyrogram.helpers import ikb

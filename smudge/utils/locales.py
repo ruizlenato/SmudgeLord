@@ -10,7 +10,7 @@ from functools import reduce
 from operator import getitem
 from pyrogram.types import CallbackQuery
 
-from smudge.database.locales import get_db_lang
+from ..database.locales import get_db_lang
 
 LANGUAGES = ["pt-br", "en-us"]
 strings = {}

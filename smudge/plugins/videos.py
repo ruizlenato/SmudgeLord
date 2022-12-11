@@ -18,10 +18,10 @@ from pyrogram.enums import ChatAction, ChatType
 from pyrogram.types import CallbackQuery, Message
 from pyrogram.errors import BadRequest, FloodWait, Forbidden, UserNotParticipant
 
-from smudge.utils.videos import DownloadMedia, search_yt, extract_info
-from smudge.utils import http, pretty_size
-from smudge.database.videos import sdl_c
-from smudge.utils.locales import tld
+from ..utils.videos import DownloadMedia, search_yt, extract_info
+from ..utils import http, pretty_size
+from ..database.videos import sdl_c
+from ..utils.locales import tld
 
 from ..bot import Smudge
 

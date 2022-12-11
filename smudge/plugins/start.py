@@ -13,11 +13,11 @@ from pyrogram.enums import ChatType, ChatMemberStatus
 from pyrogram.errors import FloodWait, MessageNotModified, UserNotParticipant
 
 from ..bot import Smudge
-from smudge.plugins import all_plugins
-from smudge.utils.locales import tld, lang_dict
-from smudge.database.locales import set_db_lang
-from smudge.utils.help_menu import help_buttons
-from smudge.database.videos import sdl_c, sdl_t
+from ..plugins import all_plugins
+from ..utils.locales import tld, lang_dict
+from ..database.locales import set_db_lang
+from ..utils.help_menu import help_buttons
+from ..database.videos import sdl_c, sdl_t
 
 # Help plugins
 HELP = {}

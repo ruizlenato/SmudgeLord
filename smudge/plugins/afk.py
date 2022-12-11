@@ -11,8 +11,8 @@ from pyrogram.errors import (
 )
 
 from ..bot import Smudge
-from smudge.utils.locales import tld
-from smudge.database.afk import set_uafk, get_uafk, del_uafk
+from ..utils.locales import tld
+from ..database.afk import set_uafk, get_uafk, del_uafk
 
 
 @Smudge.on_message(filters.command("afk") | filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))

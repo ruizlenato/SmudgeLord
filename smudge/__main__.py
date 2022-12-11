@@ -3,7 +3,7 @@
 import logging
 import pyrogram
 
-from smudge.bot import Smudge
+from .bot import Smudge
 
 # Custom logging format
 logger = logging.getLogger(__name__)

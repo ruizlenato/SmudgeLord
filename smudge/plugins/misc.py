@@ -8,9 +8,9 @@ from typing import Union
 from gpytranslate import Translator
 
 from ..bot import Smudge
-from smudge.utils import http
-from smudge.utils.locales import tld
-from smudge.utils.misc import get_tr_lang, cssworker_url, dicio_def
+from ..utils import http
+from ..utils.locales import tld
+from ..utils.misc import get_tr_lang, cssworker_url, dicio_def
 
 from pyrogram import filters
 from pyrogram.helpers import ikb

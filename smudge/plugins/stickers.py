@@ -8,9 +8,9 @@ import tempfile
 from PIL import Image
 
 from ..bot import Smudge
-from smudge.config import CHAT_LOGS
-from smudge.utils import EMOJI_PATTERN, http
-from smudge.utils.locales import tld
+from ..config import CHAT_LOGS
+from ..utils import EMOJI_PATTERN, http
+from ..utils.locales import tld
 
 from pyrogram import filters
 from pyrogram.helpers import ikb

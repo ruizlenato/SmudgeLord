@@ -4,8 +4,8 @@ from pyrogram.types import Message
 from pyrogram.enums import ChatType
 
 from ..bot import Smudge
-from smudge.utils.locales import LANGUAGES
-from smudge.database.chats import add_chat, get_chat
+from ..utils.locales import LANGUAGES
+from ..database.chats import add_chat, get_chat
 
 # This is the first plugin run to guarantee
 # that the actual chat is initialized in the DB.

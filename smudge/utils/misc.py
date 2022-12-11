@@ -5,7 +5,7 @@ import json
 import httpx
 import contextlib
 
-from smudge.utils import http
+from ..utils import http
 
 from bs4 import BeautifulSoup
 
