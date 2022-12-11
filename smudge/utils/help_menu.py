@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
 from pyrogram.types import InlineKeyboardButton
-from ..utils.locales import tld
+from ..locales import tld
 
 
 class EqInlineKeyboardButton(InlineKeyboardButton):

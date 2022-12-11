@@ -14,7 +14,7 @@ from pyrogram.errors import FloodWait, MessageNotModified, UserNotParticipant
 
 from ..bot import Smudge
 from ..plugins import all_plugins
-from ..utils.locales import tld, lang_dict
+from ..locales import tld, loaded_locales
 from ..database.locales import set_db_lang
 from ..utils.help_menu import help_buttons
 from ..database.videos import sdl_c, sdl_t
@@ -101,10 +101,11 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
         chat_type = m.chat.type
         reply_text = m.reply_text
     langs = sorted(list(lang_dict.keys()))
+    langs = sorted(list(loaded_locales.keys()))
     keyboard = [
         [
             (
-                f'{lang_dict[lang]["core"]["flag"]} {lang_dict[lang]["core"]["name"]} ({lang_dict[lang]["core"]["code"]})',
+                f'{loaded_locales.get(lang)["core"]["flag"]} {loaded_locales.get(lang)["core"]["name"]} ({loaded_locales.get(lang)["core"]["code"]})',
                 f"set_lang {lang}",
             )
             for lang in langs

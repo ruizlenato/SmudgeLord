@@ -10,7 +10,7 @@ from pyrogram.types import Message
 
 from ..bot import Smudge
 from ..utils import http
-from ..utils.locales import tld
+from ..locales import tld
 
 # Port from SamsungGeeksBot.
 DEVICE_DATA: str = "https://raw.githubusercontent.com/androidtrackers/certified-android-devices/master/by_model.json"

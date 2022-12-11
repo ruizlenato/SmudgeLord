@@ -3,7 +3,7 @@
 import random
 
 from ..bot import Smudge
-from ..utils.locales import tld
+from ..locales import tld
 
 from pyrogram import filters
 from pyrogram.types import Message

@@ -11,7 +11,7 @@ from pyrogram.errors import (
 )
 
 from ..bot import Smudge
-from ..utils.locales import tld
+from ..locales import tld
 from ..database.afk import set_uafk, get_uafk, del_uafk
 
 

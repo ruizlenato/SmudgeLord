@@ -10,7 +10,7 @@ from PIL import Image
 from ..bot import Smudge
 from ..config import CHAT_LOGS
 from ..utils import EMOJI_PATTERN, http
-from ..utils.locales import tld
+from ..locales import tld
 
 from pyrogram import filters
 from pyrogram.helpers import ikb

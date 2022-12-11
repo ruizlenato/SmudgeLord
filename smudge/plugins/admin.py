@@ -8,7 +8,7 @@ from pyrogram.errors import BadRequest, Forbidden
 from pyrogram.enums import ChatType, ChatMemberStatus
 
 from ..bot import Smudge
-from ..utils.locales import tld
+from ..locales import tld
 
 
 @Smudge.on_message(filters.command("cleanup"))

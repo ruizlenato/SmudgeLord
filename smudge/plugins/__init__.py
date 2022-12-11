@@ -4,7 +4,7 @@ from pyrogram.types import Message
 from pyrogram.enums import ChatType
 
 from ..bot import Smudge
-from ..utils.locales import LANGUAGES
+from ..locales import locales_name
 from ..database.chats import add_chat, get_chat
 
 # This is the first plugin run to guarantee
@@ -19,7 +19,7 @@ async def check_chat(c: Smudge, m: Message):
     except AttributeError:
         language_code: str = "en-us"
 
-    if language_code not in LANGUAGES:
+    if language_code not in locales_name:
         language_code: str = "en-us"
 
     if user and await get_chat(user.id, ChatType.PRIVATE) is None:
