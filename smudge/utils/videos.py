@@ -1,6 +1,7 @@
 import re
 import os
 import json
+import asyncio
 import contextlib
 import gallery_dl
 
@@ -25,7 +26,25 @@ def gallery_down(path, url: str):
 
 @aiowrap
 def extract_info(instance: YoutubeDL, url: str, download=True):
+    instance.params.update({"logger": MyLogger()})
     return instance.extract_info(url, download)
+
+
+class MyLogger:
+    def debug(self, msg):
+        if not msg.startswith("[debug] "):
+            self.info(msg)
+
+    def info(self, msg):
+        pass
+
+    def warning(self, msg):
+        pass
+
+    @staticmethod
+    def error(msg):
+        if "There's no video" not in msg:
+            print(msg)
 
 
 async def search_yt(query):
@@ -33,8 +52,8 @@ async def search_yt(query):
         "https://www.youtube.com/results",
         params=dict(search_query=query, pbj="1"),
         headers={
-            "x-youtube-Smudge-name": "1",
-            "x-youtube-Smudge-version": "2.20200827",
+            "x-youtube-Client-name": "1",
+            "x-youtube-Client-version": "2.20200827",
         },
     )
     page = json.loads(page.content)
@@ -59,11 +78,11 @@ class DownloadMedia:
 
     async def download(self, url: str, id: str):
         self.files: list = []
-        if re.search(r"instagram.com\/", url, re.M):
+        if re.search(r"instagram.com/", url):
             await self.instagram(url, id)
-        elif re.search(r"tiktok.com\/", url, re.M):
-            await self.TikTok(url)
-        elif re.search(r"twitter.com\/", url, re.M):
+        elif re.search(r"tiktok.com/", url):
+            await self.TikTok(url, id)
+        elif re.search(r"twitter.com/", url):
             await self.Twitter(url, id)
         return self.files
 
@@ -94,23 +113,27 @@ class DownloadMedia:
         return self.files
 
     async def Twitter(self, url: str, id: str):
-        caption = f"<a href='{url}'>🔗 Link</a>"
-        x = re.match(".*twitter.com/.+status/([A-Za-z0-9]+)", url)
+        # Extract the tweet ID from the URL
+        tweet_id = re.match(".*twitter.com/.+status/([A-Za-z0-9]+)", url)[1]
         params: str = "?expansions=attachments.media_keys,author_id&media.fields=type,variants,url&tweet.fields=entities"
+        # Send the request and parse the response as JSON
         res = await http.get(
-            f"{self.TwitterAPI}tweets/{x[1]}{params}",
+            f"{self.TwitterAPI}tweets/{tweet_id}{params}",
             headers={"Authorization": f"Bearer {BARRER_TOKEN}"},
         )
         tweet = json.loads(res.content)
 
+        caption = f"<a href='{url}'>🔗 Link</a>"
+
+        # Iterate over the media attachments in the tweet
         for media in tweet["includes"]["media"]:
             if media["type"] in ("animated_gif", "video"):
-                key = media["media_key"]
                 bitrate = [
                     a["bit_rate"]
                     for a in media["variants"]
                     if a["content_type"] == "video/mp4"
                 ]
+                key = media["media_key"]
                 for a in media["variants"]:
                     with contextlib.suppress(FileExistsError):
                         os.mkdir(f"./downloads/{id}/")
@@ -119,30 +142,42 @@ class DownloadMedia:
                     ):
                         path = f"./downloads/{id}/{key}.mp4"
                         await self.downloader(a["url"], caption, path)
-            else:
+            elif len(self.files) > 0:
                 self.files += [InputMediaPhoto(media["url"], caption=caption)]
+            else:
+                self.files += [InputMediaPhoto(media["url"])]
 
         return self.files
 
-    async def TikTok(self, url: str):
+    async def TikTok(self, url: str, id: int):
         caption = f"<a href='{url}'>🔗 Link</a>"
         x = re.match(r".*tiktok.com\/.*?(:?@[A-Za-z0-9]+\/video\/)?([A-Za-z0-9]+)", url)
-        res = await http.get(f"https://proxitok.marcopisco.com/video/{x[2]}")
-        soup = BeautifulSoup(res.text, "html.parser")
+        ydl = YoutubeDL({"outtmpl": f"./downloads/{id}/{x[2]}.%(ext)s"})
+        await extract_info(ydl, url, download=True)
         self.files.append(
-            InputMediaVideo(
-                str(soup.find("a", string="No watermark")["href"]), caption=caption
-            )
+            InputMediaVideo(f"./downloads/{id}/{x[2]}.mp4", caption=caption)
+        )
+        return self.files
+
+    async def TikTok(self, url: str, id: int):
+        caption = f"<a href='{url}'>🔗 Link</a>"
+        video_id = re.match(
+            r".*tiktok.com\/.*?(:?@[A-Za-z0-9]+\/video\/)?([A-Za-z0-9]+)", url
+        )[2]
+        ydl = YoutubeDL({"outtmpl": f"./downloads/{id}/{video_id}.%(ext)s"})
+        await extract_info(ydl, url, download=True)
+        self.files.append(
+            InputMediaVideo(f"./downloads/{id}/{video_id}.mp4", caption=caption)
         )
         return self.files
 
     async def downloader(self, url: str, caption: str, path: str):
         with open(path, "wb") as f:
             f.write((await http.get(url)).content)
-        InputType = (
+        input_type = (
             InputMediaVideo if re.search(r".mp4", path, re.M) else InputMediaPhoto
         )
         if len(self.files) > 0:
-            self.files.append(InputType(path))
+            self.files.append(input_type(path))
         else:
-            self.files.append(InputType(path, caption=caption))
+            self.files.append(input_type(path, caption=caption))

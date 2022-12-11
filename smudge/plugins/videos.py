@@ -5,7 +5,6 @@ import io
 import os
 import re
 import shutil
-import pyrogram
 import datetime
 import tempfile
 import contextlib
@@ -17,6 +16,8 @@ from pyrogram.helpers import ikb
 from pyrogram.enums import ChatAction, ChatType
 from pyrogram.types import CallbackQuery, Message
 from pyrogram.errors import BadRequest, UserNotParticipant
+from pyrogram.raw.types import InputMessageID
+from pyrogram.raw.functions import channels, messages
 
 from ..utils.videos import DownloadMedia, search_yt, extract_info
 from ..utils import http, pretty_size
@@ -70,7 +71,7 @@ async def ytdlcmd(c: Smudge, m: Message):
         await m.reply_text(await tld(m, "Misc.noargs_ytdl"))
         return
 
-    ydl = YoutubeDL({"noplaylist": True, "logger": MyLogger()})
+    ydl = YoutubeDL({"noplaylist": True})
     if rege := YOUTUBE_REGEX.match(url):
         yt = await extract_info(ydl, rege.group(), download=False)
 
@@ -141,7 +142,6 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
                 "format": f"{vformat}+140",
                 "max_filesize": 500000000,
                 "noplaylist": True,
-                "logger": MyLogger(),
             }
         )
 
@@ -152,7 +152,6 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
                 "format": "bestaudio[ext=m4a]",
                 "max_filesize": 500000000,
                 "noplaylist": True,
-                "logger": MyLogger(),
             }
         )
 
@@ -220,7 +219,7 @@ DownloadMedia = DownloadMedia()
 
 
 @Smudge.on_message(filters.command(["dl", "sdl"]) | filters.regex(REGEX_LINKS), group=1)
-async def sdl(c: Smudge, m: Message):  # sourcery skip: avoid-builtin-shadow
+async def sdl(c: Smudge, m: Message):
     if m.matches:
         if m.chat.type is ChatType.PRIVATE or await sdl_c("sdl_auto", m.chat.id):
             url = m.matches[0].group(0)
@@ -243,23 +242,15 @@ async def sdl(c: Smudge, m: Message):  # sourcery skip: avoid-builtin-shadow
 
     ids = f"{m.chat.id}.{m.id}"
     if m.chat.type == ChatType.PRIVATE:
-        method = pyrogram.raw.functions.messages.GetMessages(
-            id=[pyrogram.raw.types.InputMessageID(id=(m.id))]
-        )
+        method = messages.GetMessages(id=[InputMessageID(id=(m.id))])
     else:
-        method = pyrogram.raw.functions.channels.GetMessages(
-            channel=await c.resolve_peer(m.chat.id),
-            id=[pyrogram.raw.types.InputMessageID(id=(m.id))],
+        method = channels.GetMessages(
+            channel=await c.resolve_peer(m.chat.id), id=[InputMessageID(id=(m.id))]
         )
-
-    rawM = await c.invoke(method)
+    rawM = (await c.invoke(method)).messages[0].media
     files = await DownloadMedia.download(url, ids)
     if files:
-        if (
-            rawM.messages[0].media
-            and len(files) == 1
-            and re.search(r"InputMediaPhoto", str(files[0]), re.M)
-        ):
+        if rawM and len(files) == 1 and "InputMediaPhoto" in str(files[0]):
             return
 
         await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
