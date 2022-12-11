@@ -1,28 +1,19 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2021-2022 Luiz Renato (ruizlenato@proton.me)
-
+import os
 import sys
-import uvloop
-import datetime
-import logging
+import shutil
+
+
+from .utils import http
+from .database import database
+from .config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS
 
 from pyrogram import Client
 from pyrogram.enums import ParseMode
 from pyrogram.types import CallbackQuery
 
-from .utils import http
-from .database import database
-from .config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS, IPV6, WORKERS
-
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-
-# Logging
-log = logging.getLogger(__name__)
-
-# Date
-date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
-
-uvloop.install()
 
 
 class Smudge(Client):
@@ -35,8 +26,7 @@ class Smudge(Client):
             bot_token=BOT_TOKEN,
             api_hash=API_HASH,
             api_id=API_ID,
-            ipv6=IPV6,
-            workers=WORKERS,
+            workers=24,
             parse_mode=ParseMode.HTML,
             workdir="smudge",
             sleep_threshold=180,
@@ -45,20 +35,17 @@ class Smudge(Client):
 
     async def start(self):
         await database.connect()
-        log.info("\033[92mConnected to telegram servers.\033[0m")
+        shutil.rmtree("./downloads/", ignore_errors=True)
+        os.mkdir("./downloads/")
         await super().start()  # Connect to telegram's servers
 
         if "test" not in sys.argv:
-            await self.send_message(
-                CHAT_LOGS, f"<b>{self.me.first_name} started!</b>\n<b>Date:</b> {date}"
-            )
+            await self.send_message(CHAT_LOGS, f"<b>{self.me.first_name} started!</b>")
 
         # Backup the database every 1h
         async def backup() -> None:
             await self.send_document(
-                CHAT_LOGS,
-                "smudge/database/database.db",
-                caption=f"<b>Database backuped!</b>\n<b>- Date:</b> {date}",
+                CHAT_LOGS, "./database/database.db", caption="<b>Database backuped!</b>"
             )
 
         self.scheduler.add_job(backup, "interval", minutes=30)
@@ -69,7 +56,6 @@ class Smudge(Client):
         if database.is_connected:
             await database.close()
         await super().stop()
-        log.warning("\033[93mSmudgeLord stopped. Bye!\033[0m")
 
     @staticmethod
     async def send_logs(self, m, e):
@@ -78,7 +64,7 @@ class Smudge(Client):
 
         user_mention = m.from_user.mention(m.from_user.first_name)
         user_id = m.from_user.id
-        return await Smudge.send_message(
+        return await self.send_message(
             chat_id=CHAT_LOGS,
             text=f"<b>⚠️ Error</b>\n<b>User:</b>{user_mention} (<code>{user_id}</code>)\n<b>Log:</b>\n<code>{e}</code></b>",
         )
