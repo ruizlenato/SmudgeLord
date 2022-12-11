@@ -45,7 +45,9 @@ class Smudge(Client):
         # Backup the database every 1h
         async def backup() -> None:
             await self.send_document(
-                CHAT_LOGS, "./database/database.db", caption="<b>Database backuped!</b>"
+                CHAT_LOGS,
+                "smudge/database/database.db",
+                caption="<b>Database backuped!</b>",
             )
 
         self.scheduler.add_job(backup, "interval", minutes=30)
