@@ -250,32 +250,6 @@ async def sdl(c: Smudge, m: Message):  # sourcery skip: avoid-builtin-shadow
     files = await DownloadMedia.download(url, id)
 
     if files:
-        if (
-            rawM.messages[0].media
-            and len(files) == 1
-            and re.search(r"InputMediaPhoto", str(files[0]), re.M)
-        ):
-            return
-
         await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
         await m.reply_media_group(media=files)
     return shutil.rmtree(f"./downloads/{id}/", ignore_errors=True)
-
-
-class MyLogger:
-    def debug(self, msg):
-        # For compatibility with youtube-dl, both debug and info are passed into debug
-        # You can distinguish them by the prefix '[debug] '
-        if not msg.startswith("[debug] "):
-            self.info(msg)
-
-    def info(self, msg):
-        pass
-
-    def warning(self, msg):
-        pass
-
-    @staticmethod
-    def error(msg):
-        if "There's no video" not in msg:
-            print(msg)
