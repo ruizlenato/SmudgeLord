@@ -17,7 +17,7 @@ from .config import API_HASH, API_ID, BOT_TOKEN, CHAT_LOGS, IPV6, WORKERS
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 # Logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 # Date
 date = datetime.datetime.now().strftime("%H:%M:%S - %d/%m/%Y")
@@ -45,7 +45,7 @@ class Smudge(Client):
 
     async def start(self):
         await database.connect()
-        logger.info("\033[92mConnected to telegram servers.\033[0m")
+        log.info("\033[92mConnected to telegram servers.\033[0m")
         await super().start()  # Connect to telegram's servers
 
         if "test" not in sys.argv:
@@ -69,7 +69,7 @@ class Smudge(Client):
         if database.is_connected:
             await database.close()
         await super().stop()
-        logger.warning("\033[93mSmudgeLord stopped. Bye!\033[0m")
+        log.warning("\033[93mSmudgeLord stopped. Bye!\033[0m")
 
     @staticmethod
     async def send_logs(self, m, e):

@@ -4,7 +4,7 @@ import aiosqlite
 import logging
 
 # Logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 DATABASE_PATH = "./smudge/database/database.db"
 
@@ -49,14 +49,14 @@ class Database:
 
         self.conn = conn
         self.is_connected: bool = True
-        logger.info("\033[92mThe database has been connected.\033[0m")
+        log.info("\033[92mThe database has been connected.\033[0m")
 
     async def close(self):
         # Close the connection
         await self.conn.close()
 
         self.is_connected: bool = False
-        logger.warning("\033[93mThe database was closed.\033[0m")
+        log.warning("\033[93mThe database was closed.\033[0m")
 
     def get_conn(self) -> aiosqlite.Connection:
         if not self.is_connected:

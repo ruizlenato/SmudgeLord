@@ -6,7 +6,7 @@ import pyrogram
 from .bot import Smudge
 
 # Custom logging format
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 logging.basicConfig(
     level=logging.INFO,

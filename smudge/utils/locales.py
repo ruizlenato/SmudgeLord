@@ -16,7 +16,7 @@ LANGUAGES = ["pt-br", "en-us"]
 strings = {}
 
 # Logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 def cache_localizations(files):
@@ -54,5 +54,5 @@ async def tld(m, t):
         return reduce(getitem, m_args, lang_dict)
     except KeyError:
         err = f"Warning: No string found for {t}.\nChatID: {m.chat.id}\nReport it in @ruizlenato."
-        logger.warning(err)
+        log.warning(err)
         return err
