@@ -241,15 +241,27 @@ async def sdl(c: Smudge, m: Message):  # sourcery skip: avoid-builtin-shadow
             # To avoid conflict with @TwitterGramRobot
             return await m.chat.get_member(1703426201)
 
-    id = f"{m.chat.id}.{m.id}"
-    rawM = await c.invoke(
-        pyrogram.raw.functions.messages.GetMessages(
+    ids = f"{m.chat.id}.{m.id}"
+    if m.chat.type == ChatType.PRIVATE:
+        method = pyrogram.raw.functions.messages.GetMessages(
             id=[pyrogram.raw.types.InputMessageID(id=(m.id))]
         )
-    )
-    files = await DownloadMedia.download(url, id)
+    else:
+        method = pyrogram.raw.functions.channels.GetMessages(
+            channel=await c.resolve_peer(m.chat.id),
+            id=[pyrogram.raw.types.InputMessageID(id=(m.id))],
+        )
 
+    rawM = await c.invoke(method)
+    files = await DownloadMedia.download(url, ids)
     if files:
+        if (
+            rawM.messages[0].media
+            and len(files) == 1
+            and re.search(r"InputMediaPhoto", str(files[0]), re.M)
+        ):
+            return
+
         await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
         await m.reply_media_group(media=files)
     return shutil.rmtree(f"./downloads/{id}/", ignore_errors=True)
