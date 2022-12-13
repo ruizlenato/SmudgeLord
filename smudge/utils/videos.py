@@ -1,7 +1,6 @@
 import re
 import os
 import json
-import asyncio
 import contextlib
 import gallery_dl
 
@@ -91,7 +90,11 @@ class DownloadMedia:
         url = re.sub(
             r"(?:www.|m.)?instagram.com/(?:reel|p)(.*)/", r"imginn.com/p\1/", url
         )
-        res = await http.get(f"{self.cors}{url}")
+        headers = {
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0",
+            "Accept": "application/json",
+        }
+        res = await http.get(f"{self.cors}{url}", headers=headers)
 
         if res.status_code != 200:
             url = re.sub(r"imginn.com", r"imginn.org", url)
@@ -107,7 +110,7 @@ class DownloadMedia:
                 path = f"./downloads/{id}/{media[90:120]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}"
                 await self.downloader(media, caption, path)
         else:
-            media = f"{self.cors}{soup.find('a', 'download', href=True)['href']}"
+            media = f"{self.cors}{soup.find('a', string='Download', href=True)['href']}"
             path = f"./downloads/{id}/{media[90:120]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}"
             await self.downloader(media, caption, path)
         return self.files
