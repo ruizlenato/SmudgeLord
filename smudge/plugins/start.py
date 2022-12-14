@@ -100,7 +100,6 @@ async def setlang(c: Smudge, m: Union[Message, CallbackQuery]):
         chat_id = m.chat.id
         chat_type = m.chat.type
         reply_text = m.reply_text
-    langs = sorted(list(lang_dict.keys()))
     langs = sorted(list(loaded_locales.keys()))
     keyboard = [
         [
