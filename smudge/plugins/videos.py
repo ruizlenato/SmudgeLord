@@ -14,10 +14,10 @@ from yt_dlp import YoutubeDL
 from pyrogram import filters
 from pyrogram.helpers import ikb
 from pyrogram.enums import ChatAction, ChatType
-from pyrogram.types import CallbackQuery, Message
 from pyrogram.errors import BadRequest, UserNotParticipant
 from pyrogram.raw.types import InputMessageID
 from pyrogram.raw.functions import channels, messages
+from pyrogram.types import CallbackQuery, Message, InputMediaPhoto, InputMediaVideo
 
 from ..utils.videos import DownloadMedia, search_yt, extract_info
 from ..utils import http, pretty_size
@@ -215,9 +215,6 @@ async def cli_ytdl(c: Smudge, cq: CallbackQuery):
     shutil.rmtree(tempdir, ignore_errors=True)
 
 
-DownloadMedia = DownloadMedia()
-
-
 @Smudge.on_message(filters.command(["dl", "sdl"]) | filters.regex(REGEX_LINKS), group=1)
 async def sdl(c: Smudge, m: Message):
     if m.matches:
@@ -240,7 +237,7 @@ async def sdl(c: Smudge, m: Message):
             # To avoid conflict with @TwitterGramRobot
             return await m.chat.get_member(1703426201)
 
-    ids = f"{m.chat.id}.{m.id}"
+    path = f"{m.chat.id}.{m.id}"
     if m.chat.type == ChatType.PRIVATE:
         method = messages.GetMessages(id=[InputMessageID(id=(m.id))])
     else:
@@ -248,11 +245,38 @@ async def sdl(c: Smudge, m: Message):
             channel=await c.resolve_peer(m.chat.id), id=[InputMessageID(id=(m.id))]
         )
     rawM = (await c.invoke(method)).messages[0].media
-    files = await DownloadMedia.download(url, ids)
-    if files:
-        if rawM and len(files) == 1 and "InputMediaPhoto" in str(files[0]):
+    files, caption = await DownloadMedia().download(url, path)
+
+    medias = []
+    for media in files:
+        if media["path"][-3:] == "mp4" and len(files) == 1:
+            await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_VIDEO)
+            await m.reply_video(
+                video=media["path"],
+                width=media["width"],
+                height=media["height"],
+                caption=caption,
+            )
+            return shutil.rmtree(f"./downloads/{path}/", ignore_errors=True)
+        mType = InputMediaVideo if media["path"][-3:] == "mp4" else InputMediaPhoto
+        if not medias:
+            medias.append(
+                mType(
+                    media["path"],
+                    width=media["width"],
+                    height=media["height"],
+                    caption=caption,
+                )
+            )
+        else:
+            medias.append(
+                mType(media["path"], width=media["width"], height=media["height"])
+            )
+
+    if medias:
+        if rawM and len(medias) == 1 and "InputMediaPhoto" in str(medias[0]):
             return
 
         await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
-        await m.reply_media_group(media=files)
-    return shutil.rmtree(f"./downloads/{id}/", ignore_errors=True)
+        await m.reply_media_group(media=medias)
+    return shutil.rmtree(f"./downloads/{path}/", ignore_errors=True)
