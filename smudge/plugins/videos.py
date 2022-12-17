@@ -258,20 +258,27 @@ async def sdl(c: Smudge, m: Message):
                 caption=caption,
             )
             return shutil.rmtree(f"./downloads/{path}/", ignore_errors=True)
-        mType = InputMediaVideo if media["path"][-3:] == "mp4" else InputMediaPhoto
-        if not medias:
-            medias.append(
-                mType(
-                    media["path"],
-                    width=media["width"],
-                    height=media["height"],
-                    caption=caption,
+
+        if media["path"][-3:] == "mp4":
+            if medias:
+                medias.append(
+                    InputMediaVideo(
+                        media["path"], width=media["width"], height=media["height"]
+                    )
                 )
-            )
+            else:
+                medias.append(
+                    InputMediaVideo(
+                        media["path"],
+                        width=media["width"],
+                        height=media["height"],
+                        caption=caption,
+                    )
+                )
+        elif not medias:
+            medias.append(InputMediaPhoto(media["path"], caption=caption))
         else:
-            medias.append(
-                mType(media["path"], width=media["width"], height=media["height"])
-            )
+            medias.append(InputMediaPhoto(media["path"]))
 
     if medias:
         if rawM and len(medias) == 1 and "InputMediaPhoto" in str(medias[0]):
