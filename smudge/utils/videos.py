@@ -104,16 +104,16 @@ class DownloadMedia:
         if swiper := soup.find_all("div", "swiper-slide"):
             for i in swiper:
                 urlmedia = re.sub(r".*url=", r"", unquote(i["data-src"]))
+                path = f"./downloads/{id}/{urlmedia[90:120]}.{'mp4' if re.search(r'.mp4', urlmedia, re.M) else 'jpg'}"
                 with open(path, "wb") as f:
                     f.write((await http.get(f"{self.cors}{urlmedia}")).content)
+                self.files.append({"path": path, "width": 0, "height": 0})
         else:
             media = f"{self.cors}{soup.find('a', string='Download', href=True)['href']}"
             path = f"./downloads/{id}/{media[90:120]}.{'mp4' if re.search(r'.mp4', media, re.M) else 'jpg'}"
             with open(path, "wb") as f:
                 f.write((await http.get(media)).content)
-
-        self.files.append({"path": path, "width": 0, "height": 0})
-
+            self.files.append({"path": path, "width": 0, "height": 0})
         return
 
     async def Twitter(self, url: str, id: str):
