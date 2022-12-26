@@ -34,7 +34,6 @@ async def tld(m, t):
 
     lang = await get_db_lang(m.chat.id, m.chat.type)
     m_args = t.split(".")
-    print(loaded_locales.get(lang)["core"]["flag"])
 
     try:
         return loaded_locales.get(lang, "en")["strings"][m_args[0]][m_args[1]]
