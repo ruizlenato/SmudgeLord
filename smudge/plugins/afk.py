@@ -15,7 +15,7 @@ from ..locales import tld
 from ..database.afk import set_uafk, get_uafk, del_uafk
 
 
-@Smudge.on_message(filters.command("afk") | filters.regex(r"^(?i)brb(\s(?P<args>.+))?"))
+@Smudge.on_message(filters.command("afk") | filters.regex(r"(?i)^brb(\s(?P<args>.+))?"))
 async def set_afk(c: Smudge, m: Message):
     try:
         user = m.from_user
