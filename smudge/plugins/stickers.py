@@ -14,9 +14,9 @@ from ..locales import tld
 
 from pyrogram import filters
 from pyrogram.helpers import ikb
-from pyrogram.enums import MessageMediaType
-from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
 from pyrogram.errors import PeerIdInvalid, StickersetInvalid
+from pyrogram.enums import MessageMediaType, MessageEntityType
+from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
 from pyrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
 from pyrogram.types import Message
 from pyrogram.raw.types import (
@@ -77,16 +77,16 @@ async def kang_sticker(c: Smudge, m: Message):
     if reply and reply.media:
         if reply.photo:
             resize = True
-        elif reply.animation:
-            videos = True
-            convert = True
-        elif reply.video:
+
+        elif reply.video or reply.animation:
             convert = True
             videos = True
+
         elif reply.document:
             if "image" in reply.document.mime_type:
                 # mime_type: image/webp
                 resize = True
+
             elif reply.document.mime_type in (
                 MessageMediaType.VIDEO,
                 MessageMediaType.ANIMATION,
@@ -133,42 +133,9 @@ async def kang_sticker(c: Smudge, m: Message):
             # Failed to download
             await prog_msg.delete()
             return
-    elif m.entities and len(m.entities) > 1:
-        pack_prefix = "a"
-        filename = "sticker.png"
-        packname = f"c{m.from_user.id}_by_{c.me.username}"
-        img_url = next(
-            (
-                m.text[y.offset : (y.offset + y.length)]
-                for y in m.entities
-                if y.type == "url"
-            ),
-            None,
-        )
-
-        if not img_url:
-            await prog_msg.delete()
-            return
-        try:
-            r = await http.get(img_url)
-            if r.status_code == 200:
-                with open(filename, mode="wb") as f:
-                    f.write(r.read())
-        except Exception as r_e:
-            return await prog_msg.edit_text(f"{r_e.__class__.__name__} : {r_e}")
-        if len(m.command) > 2:
-            # m.command[1] is image_url
-            if m.command[2].isdigit() and int(m.command[2]) > 0:
-                packnum = m.command.pop(2)
-                packname = f"a{packnum}_{m.from_user.id}_by_{c.me.username}"
-            if len(m.command) > 2:
-                sticker_emoji = (
-                    "".join(set(EMOJI_PATTERN.findall("".join(m.command[2:]))))
-                    or sticker_emoji
-                )
-            resize = True
     else:
         return await prog_msg.edit_text(await tld(m, "Stickers.kang_noreply"))
+
     try:
         if resize:
             filename = resize_image(filename)
@@ -226,7 +193,10 @@ async def kang_sticker(c: Smudge, m: Message):
             )
         else:
             await prog_msg.edit_text(await tld(m, "Stickers.create_new_pack_string"))
-            stkr_title = f"@{m.from_user.username[:32]}'s SmudgePack"
+            try:
+                stkr_title = f"@{m.from_user.username[:32]}'s SmudgePack"
+            except TypeError:
+                stkr_title = f"@{m.from_user.first_name[:32]}'s SmudgePack"
             if animated:
                 stkr_title += " Anim"
             elif videos:
