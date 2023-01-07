@@ -281,7 +281,12 @@ async def sdl(c: Smudge, m: Message):
             medias.append(InputMediaPhoto(media["path"]))
 
     if medias:
-        if rawM and len(medias) == 1 and "InputMediaPhoto" in str(medias[0]):
+        if (
+            rawM
+            and not re.search(r"instagram.com/", url)
+            and len(medias) == 1
+            and "InputMediaPhoto" in str(medias[0])
+        ):
             return
 
         await c.send_chat_action(m.chat.id, ChatAction.UPLOAD_DOCUMENT)
