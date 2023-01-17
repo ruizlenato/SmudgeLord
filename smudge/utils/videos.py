@@ -84,7 +84,7 @@ class DownloadMedia:
         return self.files, self.caption
 
     async def instagram(self, url: str, id: str):
-        self.caption = f"<a href='{url}'>🔗 Link</a>"
+        instalink = f"<a href='{url}'>🔗 Link</a>"
         url = re.sub(
             r"(?:www.|m.)?instagram.com/(?:reel|p)(.*)/", r"imginn.com/p\1/", url
         )
@@ -99,6 +99,7 @@ class DownloadMedia:
             res = await http.get(f"{url}")
 
         soup = BeautifulSoup(res.text, "html.parser")
+        self.caption = f"{soup.find('meta', property='og:description')['content']}\n{instalink}"  # TODO: add option to disable the captions.
         with contextlib.suppress(FileExistsError):
             os.mkdir(f"./downloads/{id}/")
         if swiper := soup.find_all("div", "swiper-slide"):
