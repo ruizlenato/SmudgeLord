@@ -9,7 +9,7 @@ aiosqlite==0.17.0
 apscheduler
 beautifulsoup4
 gallery-dl>=1.21.2
-gpytranslate==1.4.0
+gpytranslate==1.5.1
 httpx[http2]>=0.18.1,<1.0.0
 Pillow>=8.4.0
 pyyaml==6.0
