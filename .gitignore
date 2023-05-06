@@ -1,0 +1,14 @@
+# Python cache
+__pycache__/
+
+# VSCode settings
+.vscode
+
+# Config file
+config.py
+
+# Bot session files
+smudge/*.session*
+
+# Database
+*.db*
