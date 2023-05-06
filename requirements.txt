@@ -16,4 +16,4 @@ pyyaml==6.0
 regex
 urllib3
 uvloop
-yt-dlp==2023.2.17
+yt-dlp==2023.3.4
