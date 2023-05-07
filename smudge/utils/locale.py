@@ -25,7 +25,7 @@ async def get_db_lang(id: int, type: str):
         return "en-us"
 
 
-def l10n():
+def locale():
     def decorator(func):
         async def wrapper(
             client: Client, m: Union[CallbackQuery, Message], *args, **kwargs
