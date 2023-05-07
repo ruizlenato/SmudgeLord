@@ -1,0 +1,44 @@
+# Portuguese (Brazil) translations for PROJECT.
+# Copyright (C) 2023 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2023-05-06 22:56-0300\n"
+"PO-Revision-Date: 2023-05-06 22:44-0300\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pt_BR\n"
+"Language-Team: pt_BR <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+#: smudge/plugins/start.py:15
+msgid "Language Button"
+msgstr "🇧🇷 Idioma"
+
+#: smudge/plugins/start.py:16
+msgid "Help Button"
+msgstr "❓ Ajuda"
+
+#: smudge/plugins/start.py:26
+msgid "Start Private"
+msgstr ""
+"Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns "
+"comandos divertidos e úteis para você. :3\n"
+"\n"
+"📦 <b>Meu código-fonte:</b> <a "
+"href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n"
+"💬 Caso você tenha algum <b>problema</b>, <a "
+"href='https://t.me/RuizLenato'>clique aqui para falar com o meu "
+"desenvolvedor.</a>"
+
+#: smudge/plugins/start.py:28
+msgid "Start Group"
+msgstr ""
+
