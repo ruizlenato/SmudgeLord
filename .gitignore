@@ -4,11 +4,8 @@ __pycache__/
 # VSCode settings
 .vscode
 
-# Config file
+# Config's files and useless stuff
 config.py
-
-# Bot session files
 smudge/*.session*
-
-# Database
+locales/*/*/*.mo
 *.db*
