@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-06 22:56-0300\n"
+"POT-Creation-Date: 2023-05-07 20:46-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,8 +17,45 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
 
-#: smudge/plugins/start.py:15
-msgid "Language Button"
+#: smudge/plugins/start.py:38
+msgid "🌐Language"
+msgstr ""
+
+#: smudge/plugins/start.py:39
+msgid "❓Help"
+msgstr ""
+
+#: smudge/plugins/start.py:49
+msgid ""
+"Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun "
+"and useful commands for you :3\n"
+"\n"
+" 📦 <b>My SourceCode:</b> <a "
+"href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n"
+" 💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click "
+"here to talk to my developer.</a>"
+msgstr ""
+
+#: smudge/plugins/start.py:54
+msgid ""
+"Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a "
+"conversation with me."
+msgstr ""
+
+#: smudge/plugins/start.py:75
+msgid ""
+"Here are all my plugins, to find out more about the plugins, <b>just "
+"click on their name.</b>"
+msgstr ""
+
+#: smudge/plugins/start.py:86
+msgid "↩️ Back"
+msgstr ""
+
+#: smudge/plugins/start.py:87
+msgid ""
+"<b>Avaliable Commands:</b>\n"
+"\n"
 msgstr ""
 
 #: smudge/plugins/start.py:16
