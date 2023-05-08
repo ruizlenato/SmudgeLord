@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-07 20:46-0300\n"
+"POT-Creation-Date: 2023-05-07 21:05-0300\n"
 "PO-Revision-Date: 2023-05-07 19:34-0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt_BR\n"
@@ -73,5 +73,38 @@ msgstr ""
 "<b>Comandos disponíveis:</b>\n"
 "\n"
 
+#: smudge/plugins/stickers.py:22
+msgid ""
+"Reply to a sticker using this command so I can send it to you as a <b>png"
+" or gif</b>.\n"
+"<i>It only works with video and static stickers</i>"
 msgstr ""
+"Responda a um sticker usando esse comando para que eu possa enviar ele a "
+"você como <b>png ou gif</b>.\n"
+"<i>Só funciona com figurinhas de vídeos e estáticas</i>"
+
+#: smudge/plugins/stickers.py:34
+msgid "Animated stickers are not supported yet!"
+msgstr "Stickers animados ainda não são suportados!"
+
+#: smudge/plugins/stickers.py:46
+msgid ""
+"<b>Emoji:</b> {}\n"
+"<b>Sticker ID:</b> <code>{}</code>"
+msgstr ""
+"<b>Emoji:</b> {}\n"
+"<b>ID do Sticker:</b> <code>{}</code>"
+
+#: smudge/plugins/stickers.py:53
+msgid "Stickers"
+msgstr ""
+
+#: smudge/plugins/stickers.py:54
+msgid ""
+"<b>/getsticker -</b> reply to a sticker to me to upload the file as a "
+"<b>png or gif</b> (It only works with video and static stickers).\n"
+msgstr ""
+"<b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo"
+" como <b>png ou gif</b> (Só funciona com figurinhas de vídeos e "
+"estáticas)"
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-07 20:46-0300\n"
+"POT-Creation-Date: 2023-05-07 21:05-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -58,15 +58,30 @@ msgid ""
 "\n"
 msgstr ""
 
-#: smudge/plugins/start.py:16
-msgid "Help Button"
+#: smudge/plugins/stickers.py:22
+msgid ""
+"Reply to a sticker using this command so I can send it to you as a <b>png"
+" or gif</b>.\n"
+"<i>It only works with video and static stickers</i>"
 msgstr ""
 
-#: smudge/plugins/start.py:26
-msgid "Start Private"
+#: smudge/plugins/stickers.py:34
+msgid "Animated stickers are not supported yet!"
 msgstr ""
 
-#: smudge/plugins/start.py:28
-msgid "Start Group"
+#: smudge/plugins/stickers.py:46
+msgid ""
+"<b>Emoji:</b> {}\n"
+"<b>Sticker ID:</b> <code>{}</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:53
+msgid "Stickers"
+msgstr ""
+
+#: smudge/plugins/stickers.py:54
+msgid ""
+"<b>/getsticker -</b> reply to a sticker to me to upload the file as a "
+"<b>png or gif</b> (It only works with video and static stickers).\n"
 msgstr ""
 
