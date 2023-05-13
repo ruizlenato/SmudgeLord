@@ -22,15 +22,13 @@ class Database:
             """
         CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY,
-            lang TEXT DEFAULT 'en-us',
+            lang TEXT DEFAULT 'en_US',
             lastfm_username TEXT,
-            spot_access_token TEXT,
-            spot_refresh_token TEXT,
             afk_reason TEXT
         );
         CREATE TABLE IF NOT EXISTS groups(
             id INTEGER PRIMARY KEY,
-            lang TEXT DEFAULT 'en-us',
+            lang TEXT DEFAULT 'en_US',
             sdl_auto INTEGER,
             sdl_images INTEGER
         );

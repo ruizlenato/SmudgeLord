@@ -20,24 +20,25 @@ for f in mod_paths:
         imported_module = importlib.import_module((f)[:-3].replace("/", "."))
         if hasattr(imported_module, "__help_name__"):
             HELPABLE[imported_module.__help_name__] = {
-                "Help": imported_module.__help_text__
+                "__help_text__": imported_module.__help_text__
             }
 
 
 @Smudge.on_message(filters.command("start"))
+@Smudge.on_callback_query(filters.regex(r"start"))
 @locale()
-async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
-    if isinstance(m, CallbackQuery):
-        chat_type = m.message.chat.type
-        reply_text = m.edit_message_text
+async def start_command(client: Smudge, union: Union[Message, CallbackQuery], _):
+    if isinstance(union, CallbackQuery):
+        chat_type = union.message.chat.type
+        reply_text = union.edit_message_text
     else:
-        chat_type = m.chat.type
-        reply_text = m.reply_text
+        chat_type = union.chat.type
+        reply_text = union.reply_text
 
     if chat_type == ChatType.PRIVATE:
         keyboard = [
             [
-                (_("🌐Language"), "setchatlang"),
+                (_("🌐Language"), "language"),
                 (_("❓Help"), "help-menu"),
             ],
             [
@@ -52,7 +53,7 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
             "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3\n\n \
 📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n \
 💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>"
-        ).format(m.from_user.first_name)
+        ).format(union.from_user.first_name)
     else:
         text = _(
             "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
@@ -62,11 +63,11 @@ async def start_command(c: Smudge, m: Union[Message, CallbackQuery]):
 
 @Smudge.on_callback_query(filters.regex(r"^help-menu"))
 @locale()
-async def help_menu(c: Smudge, m: Union[Message, CallbackQuery]):
-    if isinstance(m, CallbackQuery):
-        reply_text = m.edit_message_text
+async def help_menu(client: Smudge, union: Union[Message, CallbackQuery], _):
+    if isinstance(union, CallbackQuery):
+        reply_text = union.edit_message_text
     else:
-        reply_text = m.reply_text
+        reply_text = union.reply_text
     keyboard = [
         [
             (
@@ -86,8 +87,9 @@ async def help_menu(c: Smudge, m: Union[Message, CallbackQuery]):
 
 @Smudge.on_callback_query(filters.regex(pattern="^help-plugin (?P<module>.+)"))
 @locale()
-async def help_plugin(c: Smudge, cq: CallbackQuery):
-    match = cq.matches[0]["module"]
+async def help_plugin(client: Smudge, callback: CallbackQuery, _):
+    match = callback.matches[0]["module"]
     keyboard = [[(_("↩️ Back"), "help-menu")]]
-    text = _("<b>Avaliable Commands:</b>\n\n") + _(HELPABLE[match]["Help"])
-    await cq.edit_message_text(text, reply_markup=ikb(keyboard))
+    help_text = "__help_text__"  # To avoid problems with gettext
+    text = _("<b>Avaliable Commands:</b>\n\n") + _(HELPABLE[match][help_text])
+    await callback.edit_message_text(text, reply_markup=ikb(keyboard))

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-07 21:05-0300\n"
+"POT-Creation-Date: 2023-05-13 20:24-0300\n"
 "PO-Revision-Date: 2023-05-07 19:34-0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt_BR\n"
@@ -18,15 +18,32 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.12.1\n"
 
-#: smudge/plugins/start.py:38
+#: smudge/plugins/locale.py:33
+msgid "🌎 Help us with translations!"
+msgstr "🌎 Ajude-nos com as traduções!"
+
+#: smudge/plugins/locale.py:41 smudge/plugins/locale.py:72
+#: smudge/plugins/start.py:92
+msgid "↩️ Back"
+msgstr "↩️ Voltar"
+
+#: smudge/plugins/locale.py:44
+msgid "Select below the language you want to use the bot."
+msgstr "Selecione abaixo o idioma que você quer utilizar no bot."
+
+#: smudge/plugins/locale.py:74
+msgid "Language changed successfully."
+msgstr "Idioma alterado com sucesso."
+
+#: smudge/plugins/start.py:41
 msgid "🌐Language"
 msgstr "🌐Idioma"
 
-#: smudge/plugins/start.py:39
+#: smudge/plugins/start.py:42
 msgid "❓Help"
 msgstr "❓Ajuda"
 
-#: smudge/plugins/start.py:49
+#: smudge/plugins/start.py:52
 msgid ""
 "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun "
 "and useful commands for you :3\n"
@@ -45,7 +62,7 @@ msgstr ""
 "href='https://t.me/RuizLenato'>clique aqui para falar com o meu "
 "desenvolvedor.</a>"
 
-#: smudge/plugins/start.py:54
+#: smudge/plugins/start.py:58
 msgid ""
 "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a "
 "conversation with me."
@@ -53,7 +70,7 @@ msgstr ""
 "Olá, sou o SmudgeLord.\n"
 "Tenho varias funções, para saber mais, inicie uma conversa comigo."
 
-#: smudge/plugins/start.py:75
+#: smudge/plugins/start.py:81
 msgid ""
 "Here are all my plugins, to find out more about the plugins, <b>just "
 "click on their name.</b>"
@@ -61,11 +78,7 @@ msgstr ""
 "Aqui estão todos os meu plugins, para saber mais sobre os plugins, "
 "<b>basta clicar no nome deles.</b>"
 
-#: smudge/plugins/start.py:86
-msgid "↩️ Back"
-msgstr "↩️ Voltar"
-
-#: smudge/plugins/start.py:87
+#: smudge/plugins/start.py:94
 msgid ""
 "<b>Avaliable Commands:</b>\n"
 "\n"
