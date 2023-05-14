@@ -51,10 +51,8 @@ async def start_command(client: Smudge, union: Union[Message, CallbackQuery], _)
         ]
         text = _(
             "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> \
-I'm a bot with some fun and useful commands for you :3\n\n\
-📦 <b>My SourceCode:</b> \
-<a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n\
-💬 If you have a <b>problem</b> \
+I'm a bot with some fun and useful commands for you :3\n\n📦 <b>My SourceCode:</b> \
+<a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n💬 If you have a <b>problem</b> \
 <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>"
         ).format(union.from_user.first_name)
     else:
