@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-13 20:24-0300\n"
+"POT-Creation-Date: 2023-05-14 11:12-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,7 +22,7 @@ msgid "🌎 Help us with translations!"
 msgstr ""
 
 #: smudge/plugins/locale.py:41 smudge/plugins/locale.py:72
-#: smudge/plugins/start.py:92
+#: smudge/plugins/start.py:94
 msgid "↩️ Back"
 msgstr ""
 
@@ -47,25 +47,25 @@ msgid ""
 "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun "
 "and useful commands for you :3\n"
 "\n"
-" 📦 <b>My SourceCode:</b> <a "
+"📦 <b>My SourceCode:</b> <a "
 "href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n"
-" 💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click "
+"💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click "
 "here to talk to my developer.</a>"
 msgstr ""
 
-#: smudge/plugins/start.py:58
+#: smudge/plugins/start.py:61
 msgid ""
 "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a "
 "conversation with me."
 msgstr ""
 
-#: smudge/plugins/start.py:81
+#: smudge/plugins/start.py:82
 msgid ""
 "Here are all my plugins, to find out more about the plugins, <b>just "
 "click on their name.</b>"
 msgstr ""
 
-#: smudge/plugins/start.py:94
+#: smudge/plugins/start.py:96
 msgid ""
 "<b>Avaliable Commands:</b>\n"
 "\n"
@@ -78,23 +78,23 @@ msgid ""
 "<i>It only works with video and static stickers</i>"
 msgstr ""
 
-#: smudge/plugins/stickers.py:34
+#: smudge/plugins/stickers.py:35
 msgid "Animated stickers are not supported yet!"
 msgstr ""
 
-#: smudge/plugins/stickers.py:46
+#: smudge/plugins/stickers.py:47
 msgid ""
 "<b>Emoji:</b> {}\n"
 "<b>Sticker ID:</b> <code>{}</code>"
 msgstr ""
 
-#: smudge/plugins/stickers.py:53
+#: smudge/plugins/stickers.py:54
 msgid "Stickers"
 msgstr ""
 
-#: smudge/plugins/stickers.py:54
+#: smudge/plugins/stickers.py:55
 msgid ""
 "<b>/getsticker -</b> reply to a sticker to me to upload the file as a "
-"<b>png or gif</b> (It only works with video and static stickers).\n"
+"<b>png or gif</b> <i>(It only works with video and static stickers).</i>"
+"\n"
 msgstr ""
-

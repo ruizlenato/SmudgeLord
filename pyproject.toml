@@ -1,10 +1,11 @@
 [tool.poetry]
 name = "SmudgeLord"
 version = "0.1.0"
-description = ""
+description = "     SmudgeLord is a bot developed in Python with some fun and useful functions."
 authors = ["ruizlenato <ruizlenato@proton.me>"]
 license = "GPL-3.0"
 readme = "README.rst"
+repository = "https://github.com/ruizlenato/SmudgeLord"
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -15,12 +16,21 @@ aiosqlite = "^0.19.0"
 pyyaml = "^6.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.3.0"
-isort = "^5.12.0"
+pre-commit = "^2.6"
 pybabel = "^0.0.0.dev0"
 
-[tool.isort]
-profile = "black"
+[tool.ruff]
+line-length = 99
+show-fixes = true
+target-version = "py310"
+select = ["E", "I", "F", "SIM"]
+
+[tool.black]
+line-length = 99
+target-version = ["py310"]
+
+[tool.ruff.isort]
+known-first-party = ["smudge"]
 
 [build-system]
 requires = ["poetry-core"]

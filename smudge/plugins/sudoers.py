@@ -24,7 +24,7 @@ async def restart(c: Smudge, m: Message):
 @Smudge.on_message(filters.command("exec") & filters.user(SUDOERS))
 async def execs(c: Smudge, m: Message):
     code = m.text.split(maxsplit=1)[1]
-    func = f"async def _aexec_(c: Smudge, m: Message):"
+    func = "async def _aexec_(c: Smudge, m: Message):"
     for line in code.split("\n"):
         func += f"\n    {line}"
     exec(func)

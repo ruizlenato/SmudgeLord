@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-13 20:24-0300\n"
+"POT-Creation-Date: 2023-05-14 11:12-0300\n"
 "PO-Revision-Date: 2023-05-07 19:34-0300\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: pt_BR\n"
@@ -23,7 +23,7 @@ msgid "🌎 Help us with translations!"
 msgstr "🌎 Ajude-nos com as traduções!"
 
 #: smudge/plugins/locale.py:41 smudge/plugins/locale.py:72
-#: smudge/plugins/start.py:92
+#: smudge/plugins/start.py:94
 msgid "↩️ Back"
 msgstr "↩️ Voltar"
 
@@ -44,13 +44,14 @@ msgid "❓Help"
 msgstr "❓Ajuda"
 
 #: smudge/plugins/start.py:52
+#, fuzzy
 msgid ""
 "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun "
 "and useful commands for you :3\n"
 "\n"
-" 📦 <b>My SourceCode:</b> <a "
+"📦 <b>My SourceCode:</b> <a "
 "href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n"
-" 💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click "
+"💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click "
 "here to talk to my developer.</a>"
 msgstr ""
 "Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns "
@@ -62,7 +63,7 @@ msgstr ""
 "href='https://t.me/RuizLenato'>clique aqui para falar com o meu "
 "desenvolvedor.</a>"
 
-#: smudge/plugins/start.py:58
+#: smudge/plugins/start.py:61
 msgid ""
 "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a "
 "conversation with me."
@@ -70,7 +71,7 @@ msgstr ""
 "Olá, sou o SmudgeLord.\n"
 "Tenho varias funções, para saber mais, inicie uma conversa comigo."
 
-#: smudge/plugins/start.py:81
+#: smudge/plugins/start.py:82
 msgid ""
 "Here are all my plugins, to find out more about the plugins, <b>just "
 "click on their name.</b>"
@@ -78,7 +79,7 @@ msgstr ""
 "Aqui estão todos os meu plugins, para saber mais sobre os plugins, "
 "<b>basta clicar no nome deles.</b>"
 
-#: smudge/plugins/start.py:94
+#: smudge/plugins/start.py:96
 msgid ""
 "<b>Avaliable Commands:</b>\n"
 "\n"
@@ -96,11 +97,11 @@ msgstr ""
 "você como <b>png ou gif</b>.\n"
 "<i>Só funciona com figurinhas de vídeos e estáticas</i>"
 
-#: smudge/plugins/stickers.py:34
+#: smudge/plugins/stickers.py:35
 msgid "Animated stickers are not supported yet!"
 msgstr "Stickers animados ainda não são suportados!"
 
-#: smudge/plugins/stickers.py:46
+#: smudge/plugins/stickers.py:47
 msgid ""
 "<b>Emoji:</b> {}\n"
 "<b>Sticker ID:</b> <code>{}</code>"
@@ -108,16 +109,16 @@ msgstr ""
 "<b>Emoji:</b> {}\n"
 "<b>ID do Sticker:</b> <code>{}</code>"
 
-#: smudge/plugins/stickers.py:53
+#: smudge/plugins/stickers.py:54
 msgid "Stickers"
 msgstr ""
 
-#: smudge/plugins/stickers.py:54
+#: smudge/plugins/stickers.py:55
 msgid ""
 "<b>/getsticker -</b> reply to a sticker to me to upload the file as a "
-"<b>png or gif</b> (It only works with video and static stickers).\n"
+"<b>png or gif</b> <i>(It only works with video and static stickers).</i>"
+"\n"
 msgstr ""
 "<b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo"
-" como <b>png ou gif</b> (Só funciona com figurinhas de vídeos e "
-"estáticas)"
-
+" como <b>png ou gif</b> <i>(Só funciona com figurinhas de vídeos e "
+"estáticas)</i>"

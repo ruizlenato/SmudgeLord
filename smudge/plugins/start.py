@@ -14,7 +14,7 @@ from ..utils.locale import locale
 
 HELPABLE = {}
 
-mod_paths = glob.glob(f"smudge/plugins/*.py")
+mod_paths = glob.glob("smudge/plugins/*.py")
 for f in mod_paths:
     if not f.endswith("__init__.py"):
         imported_module = importlib.import_module((f)[:-3].replace("/", "."))
@@ -50,13 +50,17 @@ async def start_command(client: Smudge, union: Union[Message, CallbackQuery], _)
             ],
         ]
         text = _(
-            "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3\n\n \
-📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n \
-💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>"
+            "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> \
+I'm a bot with some fun and useful commands for you :3\n\n\
+📦 <b>My SourceCode:</b> \
+<a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n\
+💬 If you have a <b>problem</b> \
+<a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>"
         ).format(union.from_user.first_name)
     else:
         text = _(
-            "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
+            "Hello!, I'm SmudgeLord. I have a lot of functions, \
+to know more, start a conversation with me."
         )
     await reply_text(text, reply_markup=ikb(keyboard), disable_web_page_preview=True)
 
@@ -64,10 +68,7 @@ async def start_command(client: Smudge, union: Union[Message, CallbackQuery], _)
 @Smudge.on_callback_query(filters.regex(r"^help-menu"))
 @locale()
 async def help_menu(client: Smudge, union: Union[Message, CallbackQuery], _):
-    if isinstance(union, CallbackQuery):
-        reply_text = union.edit_message_text
-    else:
-        reply_text = union.reply_text
+    reply_text = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
     keyboard = [
         [
             (
@@ -79,7 +80,8 @@ async def help_menu(client: Smudge, union: Union[Message, CallbackQuery], _):
     ]
     await reply_text(
         _(
-            "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
+            "Here are all my plugins, to find out more about the plugins, \
+<b>just click on their name.</b>"
         ),
         reply_markup=ikb(keyboard),
     )

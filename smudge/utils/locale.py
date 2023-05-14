@@ -15,13 +15,9 @@ async def get_db_lang(m):
     m = m.message if isinstance(m, CallbackQuery) else m
 
     if m.chat.type == ChatType.PRIVATE:
-        cursor = await conn.execute(
-            "SELECT lang FROM users WHERE id = (?)", (m.chat.id,)
-        )
+        cursor = await conn.execute("SELECT lang FROM users WHERE id = (?)", (m.chat.id,))
     elif m.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
-        cursor = await conn.execute(
-            "SELECT lang FROM groups WHERE id = (?)", (m.chat.id,)
-        )
+        cursor = await conn.execute("SELECT lang FROM groups WHERE id = (?)", (m.chat.id,))
     try:
         row = await cursor.fetchone()
         await cursor.close()
