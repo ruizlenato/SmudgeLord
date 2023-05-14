@@ -17,8 +17,8 @@ This will create a ``bot.pot`` file that contains all the translatable strings i
 
 Create translation files:
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-Once you have the translation template file, you can create a ``.po`` (Portable Object) translation file for each language supported by your bot. \
-Run the following command to create a .po file for the language ``pt_BR`` *(Brazilian Portuguese)*, for example:
+| Once you have the translation template file, you can create a ``.po`` (Portable Object) translation file for each language supported by your bot.
+| Run the following command to create a .po file for the language ``pt_BR`` *(Brazilian Portuguese)*, for example:
 
 - **⚠️ WARNING:** Only do this when there is no ``.po`` file for the chosen language, if you do this with an existing ``.po`` file, you will delete all translations in that file.
 
@@ -30,8 +30,8 @@ This will create a ``.po`` file inside the folder for the chosen language. You c
 
 Update translated translation files:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-When you make changes to the .pot file (whenever you generate the message file), you need to update the corresponding ``.po`` files.
-You can do this by running the following command:
+| When you make changes to the .pot file (whenever you generate the message file), you need to update the corresponding ``.po`` files.
+| You can do this by running the following command:
 
 .. code-block:: bash
 
@@ -41,8 +41,8 @@ This command will update the ``.po`` files in the translations directory with an
 
 Compile the translation files:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-After you have translated the strings, you need to compile the translation files into binary ``.mo`` (Machine Object) format. \
-To do this, running the following command:
+| After you have translated the strings, you need to compile the translation files into binary ``.mo`` (Machine Object) format.
+| To do this, running the following command:
 
 .. code-block:: bash
 
