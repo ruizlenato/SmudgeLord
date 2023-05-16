@@ -7,6 +7,7 @@ from pyrogram.enums import ParseMode
 from config import API_HASH, API_ID, BOT_TOKEN, WORKERS
 
 from .database import database
+from .utils.utils import http
 
 
 class Smudge(Client):
@@ -29,6 +30,7 @@ class Smudge(Client):
         await super().start()
 
     async def stop(self) -> None:
+        await http.aclose()
         if database.is_connected:
             await database.close()
         await super().stop()
