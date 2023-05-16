@@ -8,15 +8,15 @@ repos:
     -   id: check-added-large-files
     -   id: check-toml
 
--   repo: https://github.com/psf/black
-    rev: 23.3.0
-    hooks:
-    -   id: black
-        files: smudge
-
 -   repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.0.265
     hooks:
     -   id: ruff
         files: smudge
         args: [ --fix, --exit-non-zero-on-fix ]
+
+-   repo: https://github.com/psf/black
+    rev: 23.3.0
+    hooks:
+    -   id: black
+        files: smudge
