@@ -46,6 +46,6 @@ Compile the translation files:
 
 .. code-block:: bash
 
-    poetry run pybabel compile -d locales -D bot --statistics
+    poetry run pybabel compile -d locales -D bot --statistics -f
 
 This will create a ``.mo`` file inside the folder for the language you have chosen. With this file, your bot can use it to display the translated strings.

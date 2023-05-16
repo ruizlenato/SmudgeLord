@@ -15,6 +15,27 @@ msgstr ""
 msgid "Language changed successfully."
 msgstr ""
 
+#: smudge/plugins/medias.py:31
+msgid ""
+"<b>System glitch someone disconnected me.</b>\n"
+"The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
+msgstr ""
+
+#: smudge/plugins/medias.py:40
+msgid ""
+"<b>Usage:</b> <code>/dl [link]</code>\n"
+"\n"
+"Specify a link from Instagram, TikTok or Twitter so I can download the video."
+msgstr ""
+
+#: smudge/plugins/medias.py:98
+msgid "Videos"
+msgstr ""
+
+#: smudge/plugins/medias.py:99
+msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
+msgstr ""
+
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
 msgstr ""
@@ -45,47 +66,26 @@ msgid ""
 "\n"
 msgstr ""
 
-#: smudge/plugins/stickers.py:22
-msgid ""
-"Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
-"<i>It only works with video and static stickers</i>"
-msgstr ""
-
-#: smudge/plugins/stickers.py:35
+#: smudge/plugins/stickers.py:19
 msgid "Animated stickers are not supported yet!"
 msgstr ""
 
-#: smudge/plugins/stickers.py:47
+#: smudge/plugins/stickers.py:28
 msgid ""
 "<b>Emoji:</b> {}\n"
 "<b>Sticker ID:</b> <code>{}</code>"
 msgstr ""
 
-#: smudge/plugins/stickers.py:54
+#: smudge/plugins/stickers.py:34
+msgid ""
+"Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
+"<i>It only works with video and static stickers</i>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:41
 msgid "Stickers"
 msgstr ""
 
-#: smudge/plugins/stickers.py:55
+#: smudge/plugins/stickers.py:42
 msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
-msgstr ""
-
-#: smudge/plugins/videos.py:31
-msgid ""
-"<b>System glitch someone disconnected me.</b>\n"
-"The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
-msgstr ""
-
-#: smudge/plugins/videos.py:40
-msgid ""
-"<b>Usage:</b> <code>/dl [link]</code>\n"
-"\n"
-"Specify a link from Instagram, TikTok or Twitter so I can download the video."
-msgstr ""
-
-#: smudge/plugins/videos.py:98
-msgid "Videos"
-msgstr ""
-
-#: smudge/plugins/videos.py:99
-msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
 msgstr ""
