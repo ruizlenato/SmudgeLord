@@ -1,0 +1,3 @@
+files:
+  - source: /locales/bot.pot
+    translation: /locales/%locale_with_underscore%/LC_MESSAGES/bot.po
