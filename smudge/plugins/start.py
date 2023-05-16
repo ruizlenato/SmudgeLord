@@ -2,7 +2,6 @@
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import glob
 import importlib
-from typing import Union
 
 from pyrogram import filters
 from pyrogram.enums import ChatType
@@ -27,7 +26,7 @@ for f in mod_paths:
 @Smudge.on_message(filters.command("start"))
 @Smudge.on_callback_query(filters.regex(r"start"))
 @locale()
-async def start_command(client: Smudge, union: Union[Message, CallbackQuery], _):
+async def start_command(client: Smudge, union: Message | CallbackQuery, _):
     if isinstance(union, CallbackQuery):
         chat_type = union.message.chat.type
         reply_text = union.edit_message_text
@@ -65,7 +64,7 @@ to know more, start a conversation with me."
 
 @Smudge.on_callback_query(filters.regex(r"^help-menu"))
 @locale()
-async def help_menu(client: Smudge, union: Union[Message, CallbackQuery], _):
+async def help_menu(client: Smudge, union: Message | CallbackQuery, _):
     reply_text = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
     keyboard = [
         [

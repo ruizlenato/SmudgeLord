@@ -1,5 +1,4 @@
 from contextlib import suppress
-from typing import Union
 
 from babel import Locale
 from pyrogram import filters
@@ -16,7 +15,7 @@ from . import Languages
 @Smudge.on_message(filters.command(["setlang", "language"]))
 @Smudge.on_callback_query(filters.regex(r"^language"))
 @locale()
-async def language(client: Smudge, union: Union[Message, CallbackQuery], _):
+async def language(client: Smudge, union: Message | CallbackQuery, _):
     if isinstance(union, CallbackQuery):
         reply = union.edit_message_text
         union = union.message
