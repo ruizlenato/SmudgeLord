@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import aiosqlite
-
 from config import DATABASE_PATH
 
 from ..utils.logger import log
