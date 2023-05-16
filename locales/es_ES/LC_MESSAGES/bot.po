@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
-"PO-Revision-Date: 2023-05-16 15:41\n"
+"PO-Revision-Date: 2023-05-16 23:52\n"
 
 #: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
@@ -38,7 +38,7 @@ msgstr "<b>Fallo del sistema alguien me desconectó.</b>\n"
 #: smudge/plugins/medias.py:40
 msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
 "Specify a link from Instagram, TikTok or Twitter so I can download the video."
-msgstr "<b>Uso:</b> <code>/dl [enlace]</code>\n\n"
+msgstr "<b>Uso:</b> <code>/dl [link]</code>\n\n"
 "Especifica un enlace de Instagram, TikTok o Twitter para que pueda descargar el vídeo."
 
 #: smudge/plugins/medias.py:98
@@ -96,3 +96,4 @@ msgstr "Stickers"
 #: smudge/plugins/stickers.py:42
 msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr ""
+
