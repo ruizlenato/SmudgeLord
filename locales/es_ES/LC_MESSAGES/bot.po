@@ -10,50 +10,52 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
-"PO-Revision-Date: 2023-05-16 14:52\n"
+"PO-Revision-Date: 2023-05-16 15:41\n"
 
 #: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
-msgstr ""
+msgstr "🌎 ¡Ayúdanos con las traducciones!"
 
 #: smudge/plugins/locale.py:40 smudge/plugins/locale.py:71
 #: smudge/plugins/start.py:91
 msgid "↩️ Back"
-msgstr ""
+msgstr "↩️ Volver"
 
 #: smudge/plugins/locale.py:43
 msgid "Select below the language you want to use the bot."
-msgstr ""
+msgstr "Selecciona debajo el idioma en el que quieres utilizar el bot."
 
 #: smudge/plugins/locale.py:73
 msgid "Language changed successfully."
-msgstr ""
+msgstr "Idioma cambiado con éxito."
 
 #: smudge/plugins/medias.py:31
 msgid "<b>System glitch someone disconnected me.</b>\n"
 "The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
-msgstr ""
+msgstr "<b>Fallo del sistema alguien me desconectó.</b>\n"
+"El enlace que has enviado no es válido, actualmente solo admito enlaces de TikTok, Twitter e Instagram."
 
 #: smudge/plugins/medias.py:40
 msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
 "Specify a link from Instagram, TikTok or Twitter so I can download the video."
-msgstr ""
+msgstr "<b>Uso:</b> <code>/dl [enlace]</code>\n\n"
+"Especifica un enlace de Instagram, TikTok o Twitter para que pueda descargar el vídeo."
 
 #: smudge/plugins/medias.py:98
 msgid "Videos"
-msgstr ""
+msgstr "Vídeos"
 
 #: smudge/plugins/medias.py:99
 msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
-msgstr ""
+msgstr "<b>/dl|/sdl -</b> <i>Descarga vídeos de <b>Instagram, TikTok y Twitter.</b></i>\n"
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
-msgstr ""
+msgstr "🌐Idioma"
 
 #: smudge/plugins/start.py:41
 msgid "❓Help"
-msgstr ""
+msgstr "❓Ayuda"
 
 #: smudge/plugins/start.py:51
 msgid "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3\n\n"
@@ -71,7 +73,7 @@ msgstr ""
 
 #: smudge/plugins/start.py:93
 msgid "<b>Avaliable Commands:</b>\n\n"
-msgstr ""
+msgstr "<b>Comandos disponibles:</b>\n\n"
 
 #: smudge/plugins/stickers.py:19
 msgid "Animated stickers are not supported yet!"
@@ -89,7 +91,7 @@ msgstr ""
 
 #: smudge/plugins/stickers.py:41
 msgid "Stickers"
-msgstr ""
+msgstr "Stickers"
 
 #: smudge/plugins/stickers.py:42
 msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
