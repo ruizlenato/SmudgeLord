@@ -5,9 +5,8 @@ import re
 from urllib.parse import unquote
 
 import filetype
-from yt_dlp import YoutubeDL
-
 from config import BARRER_TOKEN
+from yt_dlp import YoutubeDL
 
 from .utils import aiowrap, http
 
