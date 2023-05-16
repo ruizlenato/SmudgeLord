@@ -13,17 +13,16 @@ pyrogram = {git = "https://github.com/AmanoTeam/pyrogram.git"}
 TgCrypto = "^1.2.5"
 uvloop = "^0.17.0"
 aiosqlite = "^0.19.0"
-pyyaml = "^6.0"
-
-[tool.poetry.group.dev.dependencies]
-pre-commit = "^2.6"
-pybabel = "^0.0.0.dev0"
+yt-dlp = "^2023.3.4"
+httpx = {extras = ["http2"], version = "^0.24.0"}
+babel = "^2.12.1"
+filetype = "^1.2.0"
 
 [tool.ruff]
 line-length = 99
 show-fixes = true
 target-version = "py310"
-select = ["E", "I", "F", "SIM"]
+select = ["E", "I", "F", "SIM", "UP"]
 
 [tool.black]
 line-length = 99

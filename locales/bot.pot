@@ -1,29 +1,29 @@
-#: smudge/plugins/locale.py:33
+#: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
 msgstr ""
 
-#: smudge/plugins/locale.py:41 smudge/plugins/locale.py:72
-#: smudge/plugins/start.py:92
+#: smudge/plugins/locale.py:40 smudge/plugins/locale.py:71
+#: smudge/plugins/start.py:91
 msgid "↩️ Back"
 msgstr ""
 
-#: smudge/plugins/locale.py:44
+#: smudge/plugins/locale.py:43
 msgid "Select below the language you want to use the bot."
 msgstr ""
 
-#: smudge/plugins/locale.py:74
+#: smudge/plugins/locale.py:73
 msgid "Language changed successfully."
 msgstr ""
 
-#: smudge/plugins/start.py:41
+#: smudge/plugins/start.py:40
 msgid "🌐Language"
 msgstr ""
 
-#: smudge/plugins/start.py:42
+#: smudge/plugins/start.py:41
 msgid "❓Help"
 msgstr ""
 
-#: smudge/plugins/start.py:52
+#: smudge/plugins/start.py:51
 msgid ""
 "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3\n"
 "\n"
@@ -31,15 +31,15 @@ msgid ""
 "💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>"
 msgstr ""
 
-#: smudge/plugins/start.py:59
+#: smudge/plugins/start.py:58
 msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
 msgstr ""
 
-#: smudge/plugins/start.py:80
+#: smudge/plugins/start.py:79
 msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
 msgstr ""
 
-#: smudge/plugins/start.py:94
+#: smudge/plugins/start.py:93
 msgid ""
 "<b>Avaliable Commands:</b>\n"
 "\n"
@@ -67,4 +67,25 @@ msgstr ""
 
 #: smudge/plugins/stickers.py:55
 msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
+msgstr ""
+
+#: smudge/plugins/videos.py:31
+msgid ""
+"<b>System glitch someone disconnected me.</b>\n"
+"The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
+msgstr ""
+
+#: smudge/plugins/videos.py:40
+msgid ""
+"<b>Usage:</b> <code>/dl [link]</code>\n"
+"\n"
+"Specify a link from Instagram, TikTok or Twitter so I can download the video."
+msgstr ""
+
+#: smudge/plugins/videos.py:98
+msgid "Videos"
+msgstr ""
+
+#: smudge/plugins/videos.py:99
+msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
 msgstr ""
