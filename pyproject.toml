@@ -1,14 +1,13 @@
 [tool.poetry]
 name = "SmudgeLord"
-version = "0.1.0"
-description = "     SmudgeLord is a bot developed in Python with some fun and useful functions."
+version = "1.0.0"
+description = "SmudgeLord is a bot developed in Python with some fun and useful functions."
+repository = "https://github.com/ruizlenato/SmudgeLord"
 authors = ["ruizlenato <ruizlenato@proton.me>"]
 license = "GPL-3.0"
-readme = "README.rst"
-repository = "https://github.com/ruizlenato/SmudgeLord"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 pyrogram = {git = "https://github.com/AmanoTeam/pyrogram.git"}
 TgCrypto = "^1.2.5"
 uvloop = "^0.17.0"
@@ -21,12 +20,12 @@ filetype = "^1.2.0"
 [tool.ruff]
 line-length = 99
 show-fixes = true
-target-version = "py310"
+target-version = "py311"
 select = ["E", "I", "F", "SIM", "UP"]
 
 [tool.black]
 line-length = 99
-target-version = ["py310"]
+target-version = ["py311"]
 
 [tool.ruff.isort]
 known-first-party = ["smudge"]
