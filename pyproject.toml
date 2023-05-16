@@ -21,7 +21,16 @@ filetype = "^1.2.0"
 line-length = 99
 show-fixes = true
 target-version = "py311"
-select = ["E", "I", "F", "SIM", "UP"]
+select = [
+  "E", # pycodestyle
+  "I", # isort
+  "F", # pyflakes
+  "UP",  # pyupgrade
+  "C4",  # flake8-comprehensions
+  "SIM", # flake8-simplify
+  "RET", # flake8-return
+  "INT", # flake8-gettext
+]
 
 [tool.black]
 line-length = 99
