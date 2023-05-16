@@ -97,8 +97,6 @@ type,variants,url,height,width&tweet.fields=entities"
                 path = media["url"]
             self.files.append({"p": path, "w": media["width"], "h": media["height"]})
 
-        return
-
     async def TikTok(self, url: str):
         self.caption = f"<a href='{url}'>🔗 Link</a>"
         path = io.BytesIO()
@@ -113,4 +111,3 @@ type,variants,url,height,width&tweet.fields=entities"
                 "h": yt["formats"][0]["height"],
             }
         )
-        return
