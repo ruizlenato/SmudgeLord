@@ -2,6 +2,7 @@ ci:
   autofix_commit_msg: "CI: Auto fixes from pre-commit hooks"
   autofix_prs: true
   autoupdate_commit_msg: "CI: Pre-commit autoupdate"
+  autoupdate_branch: "reworked"
 
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
