@@ -23,7 +23,7 @@ async def sdl(client: Smudge, message: Message, _):
         if message.chat.type is ChatType.PRIVATE or analise:
             url = message.matches[0].group(0)
         else:
-            return
+            return None
     elif not message.matches and len(message.command) > 1:
         url = message.text.split(None, 1)[1]
         if not re.match(REGEX_LINKS, url, re.M):
@@ -89,10 +89,12 @@ or Twitter so I can download the video."
             and len(medias) == 1
             and "InputMediaPhoto" in str(medias[0])
         ):
-            return
+            return None
 
         await client.send_chat_action(message.chat.id, ChatAction.UPLOAD_DOCUMENT)
         await message.reply_media_group(media=medias)
+        return None
+    return None
 
 
 __help_name__ = gettext.gettext("Videos")

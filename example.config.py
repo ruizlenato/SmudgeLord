@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 
-from typing import List
 
 # Telegram Bot token get it from Bot Father
 BOT_TOKEN: str = ""
@@ -11,7 +12,7 @@ API_ID: int = 12345
 API_HASH: str = ""
 
 # SUDOERS (to use some special commands)
-SUDOERS: List[int] = [1032274246]
+SUDOERS: list[int] = [1032274246]
 
 # IPV6 support
 IPV6: bool = True
