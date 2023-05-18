@@ -5,8 +5,8 @@ import gettext
 from pyrogram import filters
 from pyrogram.types import Message
 
-from ..bot import Smudge
-from ..utils.locale import locale
+from smudge.bot import Smudge
+from smudge.utils.locale import locale
 
 
 @Smudge.on_message(filters.command("getsticker"))

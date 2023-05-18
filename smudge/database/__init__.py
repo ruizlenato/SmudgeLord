@@ -3,8 +3,7 @@
 import aiosqlite
 
 from config import DATABASE_PATH
-
-from ..utils.logger import log
+from smudge.utils.logger import log
 
 
 class Database:

@@ -8,8 +8,8 @@ from pyrogram.enums import ChatType
 from pyrogram.helpers import ikb
 from pyrogram.types import CallbackQuery, Message
 
-from ..bot import Smudge
-from ..utils.locale import locale
+from smudge.bot import Smudge
+from smudge.utils.locale import locale
 
 HELPABLE = {}
 

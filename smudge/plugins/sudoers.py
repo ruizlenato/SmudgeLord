@@ -8,8 +8,7 @@ from pyrogram import filters
 from pyrogram.types import Message
 
 from config import SUDOERS
-
-from ..bot import Smudge
+from smudge.bot import Smudge
 
 
 @Smudge.on_message(filters.command("restart") & filters.user(SUDOERS))

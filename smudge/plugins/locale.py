@@ -7,9 +7,9 @@ from pyrogram.errors import MessageNotModified, UserNotParticipant
 from pyrogram.helpers import ikb
 from pyrogram.types import CallbackQuery, Message
 
-from ..bot import Smudge
-from ..utils.locale import locale, set_db_lang
-from . import Languages
+from smudge.bot import Smudge
+from smudge.plugins import Languages
+from smudge.utils.locale import locale, set_db_lang
 
 
 @Smudge.on_message(filters.command(["setlang", "language"]))

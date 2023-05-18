@@ -5,9 +5,8 @@ from pyrogram import Client
 from pyrogram.enums import ParseMode
 
 from config import API_HASH, API_ID, BOT_TOKEN, WORKERS
-
-from .database import database
-from .utils.utils import http
+from smudge.database import database
+from smudge.utils.utils import http
 
 
 class Smudge(Client):

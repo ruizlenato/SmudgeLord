@@ -16,11 +16,11 @@ from pyrogram.raw.types import InputMessageID
 from pyrogram.types import CallbackQuery, InputMediaPhoto, InputMediaVideo, Message
 from yt_dlp import YoutubeDL
 
-from ..bot import Smudge
-from ..database.medias import auto_downloads, captions
-from ..utils.locale import locale
-from ..utils.medias import DownloadMedia, extract_info
-from ..utils.utils import http, pretty_size
+from smudge.bot import Smudge
+from smudge.database.medias import auto_downloads, captions
+from smudge.utils.locale import locale
+from smudge.utils.medias import DownloadMedia, extract_info
+from smudge.utils.utils import http, pretty_size
 
 # Regex to get link
 DL_REGEX = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|tiktok|facebook).com\/(?:\S*)"

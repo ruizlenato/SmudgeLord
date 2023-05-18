@@ -6,8 +6,8 @@ from babel import Locale
 from pyrogram.enums import ChatType
 from pyrogram.types import Message
 
-from ..bot import Smudge
-from ..database.chats import add_chat, get_chat
+from smudge.bot import Smudge
+from smudge.database.chats import add_chat, get_chat
 
 Languages: list[str] = []  # Loaded Locales
 

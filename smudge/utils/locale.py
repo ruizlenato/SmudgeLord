@@ -6,7 +6,7 @@ from functools import wraps
 from pyrogram.enums import ChatType
 from pyrogram.types import CallbackQuery
 
-from ..database import database
+from smudge.database import database
 
 conn = database.get_conn()
 
