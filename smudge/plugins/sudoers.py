@@ -4,10 +4,10 @@ import os
 import sys
 import traceback
 
+from config import SUDOERS
 from pyrogram import filters
 from pyrogram.types import Message
 
-from config import SUDOERS
 from smudge.bot import Smudge
 
 
