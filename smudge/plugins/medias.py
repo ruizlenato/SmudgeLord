@@ -17,11 +17,14 @@ from pyrogram.types import CallbackQuery, InputMediaPhoto, InputMediaVideo, Mess
 from yt_dlp import YoutubeDL
 
 from ..bot import Smudge
+from ..database.medias import auto_downloads, captions
 from ..utils.locale import locale
 from ..utils.medias import DownloadMedia, extract_info
 from ..utils.utils import http, pretty_size
 
-REGEX_LINKS = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|tiktok|facebook).com\/(?:\S*)"
+# Regex to get link
+DL_REGEX = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|tiktok|facebook).com\/(?:\S*)"
+
 # Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
     r"(?m)http(?:s?):\/\/(?:www\.)?(?:music\.)?youtu(?:be\.com\/(watch\?v=|shorts/|embed/)|\.be\/|)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?"
@@ -171,14 +174,18 @@ async def cli_ytdl(client: Smudge, callback: CallbackQuery, _):
     await callback.message.delete()
     return None
 
+
+@Smudge.on_message(filters.command(["dl", "sdl"]) | filters.regex(DL_REGEX), group=1)
+@locale()
+async def medias_download(client: Smudge, message: Message, _):
     if message.matches:
-        if message.chat.type is ChatType.PRIVATE or analise:
+        if message.chat.type is ChatType.PRIVATE or await auto_downloads(message.chat.id):
             url = message.matches[0].group(0)
         else:
             return None
     elif not message.matches and len(message.command) > 1:
         url = message.text.split(None, 1)[1]
-        if not re.match(REGEX_LINKS, url, re.M):
+        if not re.match(DL_REGEX, url, re.M):
             return await message.reply_text(
                 _(
                     "<b>System glitch someone disconnected me.</b>\nThe link you sent is invalid, \
@@ -204,7 +211,7 @@ or Twitter so I can download the video."
         )
 
     rawM = (await client.invoke(method)).messages[0].media
-    files, caption = await DownloadMedia().download(url)
+    files, caption = await DownloadMedia().download(url, await captions(message.chat.id))
 
     medias = []
     for media in files:

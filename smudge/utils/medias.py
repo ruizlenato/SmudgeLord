@@ -40,19 +40,24 @@ class DownloadMedia:
         self.cors: str = "https://cors-bypass.amanoteam.com/"
         self.TwitterAPI: str = "https://api.twitter.com/2/"
 
-    async def download(self, url: str):
+    async def download(self, url: str, captions):
         self.files: list = []
         if re.search(r"instagram.com/", url):
-            await self.instagram(url)
+            await self.instagram(url, captions)
         elif re.search(r"tiktok.com/", url):
-            await self.TikTok(url)
+            await self.TikTok(url, captions)
         elif re.search(r"twitter.com/", url):
-            await self.Twitter(url)
+            await self.Twitter(url, captions)
+
+        if captions is False:
+            self.caption = f"<a href='{url}'>🔗 Link</a>"
+
         return self.files, self.caption
 
-    async def instagram(self, url: str):
+    async def instagram(self, url: str, captions: str):
         res = await http.post("https://igram.world/api/convert", data={"url": url})
         data = res.json()
+
         self.caption = f"\n<a href='{url}'>🔗 Link</a>"
 
         if data:
@@ -69,7 +74,7 @@ class DownloadMedia:
                 self.files.append({"p": file, "w": 0, "h": 0})
             return
 
-    async def Twitter(self, url: str):
+    async def Twitter(self, url: str, captions: str):
         # Extract the tweet ID from the URL
         tweet_id = re.match(".*twitter.com/.+status/([A-Za-z0-9]+)", url)[1]
         params: str = "?expansions=attachments.media_keys,author_id&media.fields=\
@@ -80,7 +85,7 @@ type,variants,url,height,width&tweet.fields=entities"
             headers={"Authorization": f"Bearer {BARRER_TOKEN}"},
         )
         tweet = json.loads(res.content)
-        self.caption = f"<a href='{url}'>🔗 Link</a>"
+        self.caption = f"<b>{tweet['includes']['users'][0]['name']}</b>\n{tweet['data']['text']}"
 
         # Iterate over the media attachments in the tweet
         for media in tweet["includes"]["media"]:
@@ -97,13 +102,13 @@ type,variants,url,height,width&tweet.fields=entities"
                 path = media["url"]
             self.files.append({"p": path, "w": media["width"], "h": media["height"]})
 
-    async def TikTok(self, url: str):
-        self.caption = f"<a href='{url}'>🔗 Link</a>"
+    async def TikTok(self, url: str, captions: str):
         path = io.BytesIO()
         with contextlib.redirect_stdout(path):
             ydl = YoutubeDL({"outtmpl": "-"})
             yt = await extract_info(ydl, url, download=True)
         path.name = yt["title"]
+        self.caption = f"{yt['title']}\n\n<a href='{url}'>🔗 Link</a>"
         self.files.append(
             {
                 "p": path,
