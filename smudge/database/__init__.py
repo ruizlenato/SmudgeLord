@@ -21,21 +21,25 @@ class Database:
         await conn.executescript(
             """
         CREATE TABLE IF NOT EXISTS users(
-            id INTEGER PRIMARY KEY,
-            lang TEXT DEFAULT 'en_US',
-            lastfm_username TEXT,
-            afk_reason TEXT
+            user_id INTEGER PRIMARY KEY,
+            language TEXT DEFAULT 'en_US',
         );
+
         CREATE TABLE IF NOT EXISTS groups(
-            id INTEGER PRIMARY KEY,
-            lang TEXT DEFAULT 'en_US',
-            sdl_auto INTEGER,
-            sdl_images INTEGER
+            chat_id INTEGER PRIMARY KEY,
+            language TEXT DEFAULT 'en_US'
+        );
+
+        CREATE TABLE IF NOT EXISTS medias(
+            chat_id INTEGER,
+            captions INTEGER,
+            auto_downloads INTEGER
         );
         """
         )
 
-        # Enable WAL
+        # Enable VACUUM and WAL
+        await conn.execute("VACUUM")
         await conn.execute("PRAGMA journal_mode=WAL")
 
         # Update the database
