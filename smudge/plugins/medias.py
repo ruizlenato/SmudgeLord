@@ -18,13 +18,13 @@ REGEX_LINKS = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|tiktok|facebook).com\/
 @Smudge.on_message(filters.command(["dl", "sdl"]) | filters.regex(REGEX_LINKS), group=1)
 @locale()
 async def sdl(client: Smudge, message: Message, _):
-    analise = False
     if message.matches:
+        analise = False
         if message.chat.type is ChatType.PRIVATE or analise:
             url = message.matches[0].group(0)
         else:
             return None
-    elif not message.matches and len(message.command) > 1:
+    elif len(message.command) > 1:
         url = message.text.split(None, 1)[1]
         if not re.match(REGEX_LINKS, url, re.M):
             return await message.reply_text(
