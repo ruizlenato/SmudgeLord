@@ -15,7 +15,51 @@ msgstr "Selecione abaixo o idioma que você quer utilizar no bot."
 msgid "Language changed successfully."
 msgstr "Idioma alterado com sucesso."
 
-#: smudge/plugins/medias.py:31
+#: smudge/plugins/medias.py:45
+#, fuzzy
+msgid ""
+"<b>Usage:</b> <code>/ytdl [Word or link]</code>\n"
+"\n"
+"Specify a word or a link so that I can search and download a video."
+msgstr ""
+"<b>Uso do comando:</b> <code>/dl [link]</code>\n"
+"\n"
+"Especifique um link do Instagram, TikTok ou Twitter para que eu possa baixar o vídeo."
+
+#: smudge/plugins/medias.py:71
+msgid "💿 Audio"
+msgstr ""
+
+#: smudge/plugins/medias.py:75
+#, fuzzy
+msgid "📹 Video"
+msgstr "Videos"
+
+#: smudge/plugins/medias.py:103
+msgid "This button is not for you."
+msgstr ""
+
+#: smudge/plugins/medias.py:106
+msgid ""
+"The Video you want to download exceeds 2GB in size.\n"
+"Unable to download and upload, sorry."
+msgstr ""
+
+#: smudge/plugins/medias.py:116
+msgid "Downloading..."
+msgstr ""
+
+#: smudge/plugins/medias.py:127 smudge/plugins/medias.py:169
+msgid ""
+"Sorry! I couldn't send the video because of an error.\n"
+"<b>Error:</b> <code>{}</code>"
+msgstr ""
+
+#: smudge/plugins/medias.py:132
+msgid "Sending..."
+msgstr ""
+
+#: smudge/plugins/medias.py:190
 msgid ""
 "<b>System glitch someone disconnected me.</b>\n"
 "The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
@@ -23,7 +67,7 @@ msgstr ""
 "<b>Pane no sistema alguém me desconfigurou.</b>\n"
 "O link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
 
-#: smudge/plugins/medias.py:40
+#: smudge/plugins/medias.py:199
 msgid ""
 "<b>Usage:</b> <code>/dl [link]</code>\n"
 "\n"
@@ -33,11 +77,11 @@ msgstr ""
 "\n"
 "Especifique um link do Instagram, TikTok ou Twitter para que eu possa baixar o vídeo."
 
-#: smudge/plugins/medias.py:98
+#: smudge/plugins/medias.py:259
 msgid "Videos"
 msgstr "Videos"
 
-#: smudge/plugins/medias.py:99
+#: smudge/plugins/medias.py:260
 msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
 msgstr "<b>/dl|/sdl -</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>"
 
@@ -79,11 +123,11 @@ msgstr ""
 "<b>Comandos disponíveis:</b>\n"
 "\n"
 
-#: smudge/plugins/stickers.py:19
+#: smudge/plugins/stickers.py:18
 msgid "Animated stickers are not supported yet!"
 msgstr "Stickers animados ainda não são suportados!"
 
-#: smudge/plugins/stickers.py:28
+#: smudge/plugins/stickers.py:27
 msgid ""
 "<b>Emoji:</b> {}\n"
 "<b>Sticker ID:</b> <code>{}</code>"
@@ -91,7 +135,7 @@ msgstr ""
 "<b>Emoji:</b> {}\n"
 "<b>ID do Sticker:</b> <code>{}</code>"
 
-#: smudge/plugins/stickers.py:34
+#: smudge/plugins/stickers.py:33
 msgid ""
 "Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
 "<i>It only works with video and static stickers</i>"
@@ -99,10 +143,10 @@ msgstr ""
 "Responda a um sticker usando esse comando para que eu possa enviar ele a você como <b>png ou gif</b>.\n"
 "<i>Só funciona com figurinhas de vídeos e estáticas</i>"
 
-#: smudge/plugins/stickers.py:41
+#: smudge/plugins/stickers.py:40
 msgid "Stickers"
 msgstr "Stickers"
 
-#: smudge/plugins/stickers.py:42
+#: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr "<b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo como <b>png ou gif</b> <i>(Só funciona com figurinhas de vídeos e estáticas)</i>"
