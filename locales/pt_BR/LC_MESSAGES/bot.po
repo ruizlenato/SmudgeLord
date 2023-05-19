@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language-Team: Portuguese, Brazilian\n"
 "Language: pt_BR\n"
-"PO-Revision-Date: 2023-05-19 22:50\n"
+"PO-Revision-Date: 2023-05-19 23:55\n"
 
 #: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
@@ -32,37 +32,40 @@ msgstr "Idioma alterado com sucesso."
 #: smudge/plugins/medias.py:45
 msgid "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\n"
 "Specify a word or a link so that I can search and download a video."
-msgstr ""
+msgstr "<b>Uso do comando:</b> <code>/ytdl [Palavra ou link]</code>\n\n"
+"Especifique uma palavra ou um link para eu poder buscar e baixar um vídeo."
 
 #: smudge/plugins/medias.py:71
 msgid "💿 Audio"
-msgstr ""
+msgstr "💿 Áudio"
 
 #: smudge/plugins/medias.py:75
 msgid "📹 Video"
-msgstr ""
+msgstr "📹 Vídeo"
 
 #: smudge/plugins/medias.py:103
 msgid "This button is not for you."
-msgstr ""
+msgstr "Este botão não é para você."
 
 #: smudge/plugins/medias.py:106
 msgid "The Video you want to download exceeds 2GB in size.\n"
 "Unable to download and upload, sorry."
-msgstr ""
+msgstr "O vídeo que você deseja baixar excede o tamanho de 2 GB.\n"
+"Não é possível baixar e enviar, desculpe."
 
 #: smudge/plugins/medias.py:116
 msgid "Downloading..."
-msgstr ""
+msgstr "Baixando..."
 
 #: smudge/plugins/medias.py:127 smudge/plugins/medias.py:169
 msgid "Sorry! I couldn't send the video because of an error.\n"
 "<b>Error:</b> <code>{}</code>"
-msgstr ""
+msgstr "Desculpe! Não foi possível enviar o vídeo devido a um erro.\n"
+"<b>Erro:</b> <code>{}</code>"
 
 #: smudge/plugins/medias.py:132
 msgid "Sending..."
-msgstr ""
+msgstr "Enviando..."
 
 #: smudge/plugins/medias.py:190
 msgid "<b>System glitch someone disconnected me.</b>\n"
@@ -78,7 +81,7 @@ msgstr "<b>Uso do comando:</b> <code>/dl [link]</code>\n\n"
 
 #: smudge/plugins/medias.py:259
 msgid "Videos"
-msgstr ""
+msgstr "Vídeos"
 
 #: smudge/plugins/medias.py:260
 msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
@@ -131,7 +134,7 @@ msgstr "Responda a um sticker usando esse comando para que eu possa enviar ele a
 
 #: smudge/plugins/stickers.py:40
 msgid "Stickers"
-msgstr ""
+msgstr "Stickers"
 
 #: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
