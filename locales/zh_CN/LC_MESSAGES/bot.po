@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language-Team: Chinese Simplified\n"
 "Language: zh_CN\n"
-"PO-Revision-Date: 2023-05-19 22:19\n"
+"PO-Revision-Date: 2023-05-19 22:43\n"
 
 #: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
@@ -29,21 +29,56 @@ msgstr ""
 msgid "Language changed successfully."
 msgstr ""
 
-#: smudge/plugins/medias.py:31
+#: smudge/plugins/medias.py:45
+msgid "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\n"
+"Specify a word or a link so that I can search and download a video."
+msgstr ""
+
+#: smudge/plugins/medias.py:71
+msgid "💿 Audio"
+msgstr ""
+
+#: smudge/plugins/medias.py:75
+msgid "📹 Video"
+msgstr ""
+
+#: smudge/plugins/medias.py:103
+msgid "This button is not for you."
+msgstr ""
+
+#: smudge/plugins/medias.py:106
+msgid "The Video you want to download exceeds 2GB in size.\n"
+"Unable to download and upload, sorry."
+msgstr ""
+
+#: smudge/plugins/medias.py:116
+msgid "Downloading..."
+msgstr ""
+
+#: smudge/plugins/medias.py:127 smudge/plugins/medias.py:169
+msgid "Sorry! I couldn't send the video because of an error.\n"
+"<b>Error:</b> <code>{}</code>"
+msgstr ""
+
+#: smudge/plugins/medias.py:132
+msgid "Sending..."
+msgstr ""
+
+#: smudge/plugins/medias.py:190
 msgid "<b>System glitch someone disconnected me.</b>\n"
 "The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
 msgstr ""
 
-#: smudge/plugins/medias.py:40
+#: smudge/plugins/medias.py:199
 msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
 "Specify a link from Instagram, TikTok or Twitter so I can download the video."
 msgstr ""
 
-#: smudge/plugins/medias.py:98
+#: smudge/plugins/medias.py:259
 msgid "Videos"
 msgstr ""
 
-#: smudge/plugins/medias.py:99
+#: smudge/plugins/medias.py:260
 msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
 msgstr ""
 
@@ -73,24 +108,25 @@ msgstr ""
 msgid "<b>Avaliable Commands:</b>\n\n"
 msgstr ""
 
-#: smudge/plugins/stickers.py:19
+#: smudge/plugins/stickers.py:18
 msgid "Animated stickers are not supported yet!"
 msgstr ""
 
-#: smudge/plugins/stickers.py:28
+#: smudge/plugins/stickers.py:27
 msgid "<b>Emoji:</b> {}\n"
 "<b>Sticker ID:</b> <code>{}</code>"
 msgstr ""
 
-#: smudge/plugins/stickers.py:34
+#: smudge/plugins/stickers.py:33
 msgid "Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
 "<i>It only works with video and static stickers</i>"
 msgstr ""
 
-#: smudge/plugins/stickers.py:41
+#: smudge/plugins/stickers.py:40
 msgid "Stickers"
 msgstr ""
 
-#: smudge/plugins/stickers.py:42
+#: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr ""
+
