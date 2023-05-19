@@ -10,7 +10,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Language-Team: Spanish\n"
 "Language: es_ES\n"
-"PO-Revision-Date: 2023-05-19 18:57\n"
+"PO-Revision-Date: 2023-05-19 20:21\n"
 
 #: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
@@ -79,12 +79,13 @@ msgstr "<b>Comandos disponibles:</b>\n\n"
 
 #: smudge/plugins/stickers.py:19
 msgid "Animated stickers are not supported yet!"
-msgstr ""
+msgstr "¡Las etiquetas animadas aún no están soportadas!"
 
 #: smudge/plugins/stickers.py:28
 msgid "<b>Emoji:</b> {}\n"
 "<b>Sticker ID:</b> <code>{}</code>"
-msgstr ""
+msgstr "<b>Emoji:</b> {}\n"
+"<b>ID del Sticker:</b> <code>{}</code>"
 
 #: smudge/plugins/stickers.py:34
 msgid "Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
