@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-20 18:30-0300\n"
-"PO-Revision-Date: 2023-05-20 22:33\n"
+"POT-Creation-Date: 2023-05-20 19:17-0300\n"
+"PO-Revision-Date: 2023-05-20 22:34\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -38,8 +38,8 @@ msgstr "Idioma alterado com sucesso."
 #: smudge/plugins/medias.py:45
 msgid "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\n"
 "Specify a word or a link so that I can search and download a video."
-msgstr "<b>Uso do comando:</b> <code>/ytdl [Palavra ou link]</code>\n\n"
-"Especifique uma palavra ou um link para eu poder buscar e baixar um vídeo."
+msgstr "<b>Uso do comando:</b> <code>/dl [link]</code>\n\n"
+"Especifique um link do Instagram, TikTok ou Twitter para que eu possa baixar o vídeo."
 
 #: smudge/plugins/medias.py:71
 msgid "💿 Audio"
@@ -54,7 +54,7 @@ msgid "This button is not for you."
 msgstr "Este botão não é para você."
 
 #: smudge/plugins/medias.py:106
-msgid "The Video you want to download exceeds 2GB in size.\n"
+msgid "The video you want to download exceeds 2GB in size.\n"
 "Unable to download and upload, sorry."
 msgstr "O vídeo que você deseja baixar excede o tamanho de 2 GB.\n"
 "Não é possível baixar e enviar, desculpe."
@@ -90,10 +90,9 @@ msgid "Videos"
 msgstr "Vídeos"
 
 #: smudge/plugins/medias.py:260
-msgid "<b>/dl|/sdl —</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
-"<b>/ytdl —</b> <i>Download videos from YouTube in video or audio format.</i>"
-msgstr "<b>/dl|/sdl —</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>\n"
-"<b>/ytdl —</b> <i>Baixa vídeos do YouTube em formato de vídeo ou áudio.</i>"
+msgid "<b>/dl|/sdl —</b> Downloads videos from <b>Instagram, TikTok and Twitter.</b>\n"
+"<b>/ytdl —</b> Download videos from YouTube in video or audio format."
+msgstr ""
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
@@ -146,4 +145,5 @@ msgstr "Stickers"
 
 #: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
-msgstr "<b>/getsticker —</b> responda a um sticker para fazer o envio do arquivo como <b>png ou gif</b> <i>(Só funciona com stickers de vídeos e estáticos).</i>"
+msgstr "<b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo como <b>png ou gif</b> <i>(Só funciona com figurinhas de vídeos e estáticas)</i>"
+
