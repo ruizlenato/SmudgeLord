@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-20 18:30-0300\n"
-"PO-Revision-Date: 2023-05-20 22:33\n"
+"POT-Creation-Date: 2023-05-20 19:17-0300\n"
+"PO-Revision-Date: 2023-05-20 22:34\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -54,10 +54,9 @@ msgid "This button is not for you."
 msgstr "Este botón no es para ti."
 
 #: smudge/plugins/medias.py:106
-msgid "The Video you want to download exceeds 2GB in size.\n"
+msgid "The video you want to download exceeds 2GB in size.\n"
 "Unable to download and upload, sorry."
-msgstr "El vídeo que desea descargar excede los 2 GB de tamaño.\n"
-"No se puede descargar y cargar, lo sentimos."
+msgstr ""
 
 #: smudge/plugins/medias.py:116
 msgid "Downloading..."
@@ -90,10 +89,9 @@ msgid "Videos"
 msgstr "Vídeos"
 
 #: smudge/plugins/medias.py:260
-msgid "<b>/dl|/sdl —</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
-"<b>/ytdl —</b> <i>Download videos from YouTube in video or audio format.</i>"
-msgstr "<b>/dl|/sdl —</b> Descargue vídeos de <b>Instagram, TikTok y Twitter.</b>\n"
-"<b>/ytdl —</b> Descargar vídeos de YouTube en formato de vídeo o audio."
+msgid "<b>/dl|/sdl —</b> Downloads videos from <b>Instagram, TikTok and Twitter.</b>\n"
+"<b>/ytdl —</b> Download videos from YouTube in video or audio format."
+msgstr ""
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
@@ -146,3 +144,4 @@ msgstr "Stickers"
 #: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr "<b>/getsticker -</b> responde a un sticker para subir el archivo como un <b>png o gif</b> <i>(Solo funciona con stickers de vídeo y estáticas).</i>"
+
