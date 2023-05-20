@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2023-05-20 18:30-0300\n"
-"PO-Revision-Date: 2023-05-20 21:52\n"
+"PO-Revision-Date: 2023-05-20 22:23\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -92,7 +92,8 @@ msgstr "Vídeos"
 #: smudge/plugins/medias.py:260
 msgid "<b>/dl|/sdl —</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
 "<b>/ytdl —</b> <i>Download videos from YouTube in video or audio format.</i>"
-msgstr ""
+msgstr "<b>/dl|/sdl —</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>\n"
+"<b>/ytdl —</b> <i>Baixa vídeos do YouTube em formato de vídeo ou áudio.</i>"
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
@@ -117,7 +118,7 @@ msgstr "Olá, sou o SmudgeLord.\n"
 
 #: smudge/plugins/start.py:79
 msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
-msgstr "Aqui estão todos os meu plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
+msgstr "Aqui estão todos os meus plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
 
 #: smudge/plugins/start.py:93
 msgid "<b>Avaliable Commands:</b>\n\n"
@@ -137,7 +138,7 @@ msgstr "<b>Emoji:</b> {}\n"
 msgid "Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
 "<i>It only works with video and static stickers</i>"
 msgstr "Responda a um sticker usando esse comando para que eu possa enviar ele a você como <b>png ou gif</b>.\n"
-"<i>Só funciona com figurinhas de vídeos e estáticas</i>"
+"<i>Só funciona com stickers de vídeos e estáticas</i>"
 
 #: smudge/plugins/stickers.py:40
 msgid "Stickers"
@@ -146,3 +147,4 @@ msgstr "Stickers"
 #: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr ""
+
