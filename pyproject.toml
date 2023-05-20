@@ -31,7 +31,7 @@ select = [
   "RET", # flake8-return
   "INT", # flake8-gettext
 ]
-exclude = ["smudge/config.py"]
+exclude = ["config.py"]
 
 [tool.black]
 line-length = 99
