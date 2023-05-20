@@ -11,7 +11,7 @@ Run the following command to extract the strings from your source code and gener
 
 .. code-block:: bash
 
-    poetry run pybabel extract --input-dirs=./smudge -o locales/bot.pot --no-wrap --omit-header
+    poetry run pybabel extract --input-dirs=./smudge -o locales/bot.pot --no-wrap
 
 This will create a ``bot.pot`` file that contains all the translatable strings in your application.
 
@@ -35,7 +35,7 @@ Update translated translation files:
 
 .. code-block:: bash
 
-    poetry run pybabel update -i locales/bot.pot -d locales -D bot --omit-header --no-wrap
+    poetry run pybabel update -i locales/bot.pot -d locales -D bot --no-wrap
 
 This command will update the ``.po`` files in the translations directory with any new or changed strings from the bot.pot file.
 

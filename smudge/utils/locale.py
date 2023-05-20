@@ -43,7 +43,7 @@ def locale():
         @wraps(func)
         async def wrapper(client, message):
             translation = gettext.translation(
-                "bot", "locales", languages=[await get_db_lang(message)]
+                "bot", "locales", languages=[await get_db_lang(message)], fallback=True
             )
             translation.install()
             _ = translation.gettext

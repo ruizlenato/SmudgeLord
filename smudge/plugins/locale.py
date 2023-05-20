@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 from contextlib import suppress
 
 from babel import Locale
