@@ -104,7 +104,7 @@ async def cli_ytdl(client: Smudge, callback: CallbackQuery, _):
     if int(fsize) > 2147483648:
         return await callback.answer(
             _(
-                "The Video you want to download exceeds 2GB in size.\
+                "The video you want to download exceeds 2GB in size.\
 \nUnable to download and upload, sorry."
             ),
             show_alert=True,
@@ -258,5 +258,8 @@ or Twitter so I can download the video."
 
 __help_name__ = gettext.gettext("Videos")
 __help_text__ = gettext.gettext(
-    "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
+    """
+<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twitter.</i></b>
+<b>/ytdl —</b> Download videos from YouTube in video or audio format.
+"""
 )

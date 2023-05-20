@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-20 18:30-0300\n"
+"POT-Creation-Date: 2023-05-20 19:17-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,7 +55,7 @@ msgstr ""
 
 #: smudge/plugins/medias.py:106
 msgid ""
-"The Video you want to download exceeds 2GB in size.\n"
+"The video you want to download exceeds 2GB in size.\n"
 "Unable to download and upload, sorry."
 msgstr ""
 
@@ -92,8 +92,8 @@ msgstr ""
 
 #: smudge/plugins/medias.py:260
 msgid ""
-"<b>/dl|/sdl —</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
-"<b>/ytdl —</b> <i>Download videos from YouTube in video or audio format.</i>"
+"<b>/dl|/sdl —</b> Downloads videos from <b>Instagram, TikTok and Twitter.</b>\n"
+"<b>/ytdl —</b> Download videos from YouTube in video or audio format."
 msgstr ""
 
 #: smudge/plugins/start.py:40

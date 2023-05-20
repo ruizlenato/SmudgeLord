@@ -1,22 +1,42 @@
-#: smudge/plugins/locale.py:32
+# Portuguese (Brazil) translations for .
+# Copyright (C) 2023 ORGANIZATION
+# This file is distributed under the same license as the  project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2023.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version:  SmudgeLord\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2023-05-20 19:17-0300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: pt_BR\n"
+"Language-Team: Portuguese, Brazilian\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+
+#: smudge/plugins/locale.py:34
 msgid "🌎 Help us with translations!"
 msgstr "🌎 Ajude-nos com as traduções!"
 
-#: smudge/plugins/locale.py:40 smudge/plugins/locale.py:71
+#: smudge/plugins/locale.py:42 smudge/plugins/locale.py:73
 #: smudge/plugins/start.py:91
 msgid "↩️ Back"
 msgstr "↩️ Voltar"
 
-#: smudge/plugins/locale.py:43
+#: smudge/plugins/locale.py:45
 msgid "Select below the language you want to use the bot."
 msgstr "Selecione abaixo o idioma que você quer utilizar no bot."
 
-#: smudge/plugins/locale.py:73
+#: smudge/plugins/locale.py:75
 msgid "Language changed successfully."
 msgstr "Idioma alterado com sucesso."
 
 #: smudge/plugins/medias.py:45
-#, fuzzy
 msgid ""
 "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n"
 "\n"
@@ -28,36 +48,39 @@ msgstr ""
 
 #: smudge/plugins/medias.py:71
 msgid "💿 Audio"
-msgstr ""
+msgstr "💿 Áudio"
 
 #: smudge/plugins/medias.py:75
-#, fuzzy
 msgid "📹 Video"
-msgstr "Videos"
+msgstr "📹 Vídeo"
 
 #: smudge/plugins/medias.py:103
 msgid "This button is not for you."
-msgstr ""
+msgstr "Este botão não é para você."
 
 #: smudge/plugins/medias.py:106
 msgid ""
-"The Video you want to download exceeds 2GB in size.\n"
+"The video you want to download exceeds 2GB in size.\n"
 "Unable to download and upload, sorry."
 msgstr ""
+"O vídeo que você deseja baixar excede o tamanho de 2 GB.\n"
+"Não é possível baixar e enviar, desculpe."
 
 #: smudge/plugins/medias.py:116
 msgid "Downloading..."
-msgstr ""
+msgstr "Baixando..."
 
 #: smudge/plugins/medias.py:127 smudge/plugins/medias.py:169
 msgid ""
 "Sorry! I couldn't send the video because of an error.\n"
 "<b>Error:</b> <code>{}</code>"
 msgstr ""
+"Desculpe! Não foi possível enviar o vídeo devido a um erro.\n"
+"<b>Erro:</b> <code>{}</code>"
 
 #: smudge/plugins/medias.py:132
 msgid "Sending..."
-msgstr ""
+msgstr "Enviando..."
 
 #: smudge/plugins/medias.py:190
 msgid ""
@@ -82,8 +105,10 @@ msgid "Videos"
 msgstr "Videos"
 
 #: smudge/plugins/medias.py:260
-msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
-msgstr "<b>/dl|/sdl -</b> <i>Baixa vídeos do <b>Instagram, TikTok e Twitter.</b></i>"
+msgid ""
+"<b>/dl|/sdl —</b> Downloads videos from <b>Instagram, TikTok and Twitter.</b>\n"
+"<b>/ytdl —</b> Download videos from YouTube in video or audio format."
+msgstr ""
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
@@ -148,5 +173,5 @@ msgid "Stickers"
 msgstr "Stickers"
 
 #: smudge/plugins/stickers.py:41
-msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
+msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr "<b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo como <b>png ou gif</b> <i>(Só funciona com figurinhas de vídeos e estáticas)</i>"

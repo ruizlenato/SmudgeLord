@@ -39,6 +39,8 @@ async def getsticker(client: Smudge, message: Message, _):
 
 __help_name__ = gettext.gettext("Stickers")
 __help_text__ = gettext.gettext(
-    "<b>/getsticker -</b> reply to a sticker to me to upload the file as a \
-<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
+    """
+<b>/getsticker —</b> reply to a sticker to me to upload the file as a
+<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n
+"""
 )
