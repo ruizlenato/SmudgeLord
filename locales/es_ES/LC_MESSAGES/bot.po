@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2023-05-20 19:17-0300\n"
-"PO-Revision-Date: 2023-05-20 22:34\n"
+"PO-Revision-Date: 2023-05-20 22:39\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -56,7 +56,8 @@ msgstr "Este botón no es para ti."
 #: smudge/plugins/medias.py:106
 msgid "The video you want to download exceeds 2GB in size.\n"
 "Unable to download and upload, sorry."
-msgstr ""
+msgstr "El vídeo que desea descargar excede los 2 GB de tamaño.\n"
+"No se puede descargar y cargar, lo sentimos."
 
 #: smudge/plugins/medias.py:116
 msgid "Downloading..."
@@ -91,7 +92,8 @@ msgstr "Vídeos"
 #: smudge/plugins/medias.py:260
 msgid "<b>/dl|/sdl —</b> Downloads videos from <b>Instagram, TikTok and Twitter.</b>\n"
 "<b>/ytdl —</b> Download videos from YouTube in video or audio format."
-msgstr ""
+msgstr "<b>/dl|/sdl —</b> Descargue vídeos de <b>Instagram, TikTok y Twitter.</b>\n"
+"<b>/ytdl —</b> Descargar vídeos de YouTube en formato de vídeo o audio."
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
