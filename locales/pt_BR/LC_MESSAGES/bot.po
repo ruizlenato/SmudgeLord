@@ -139,4 +139,3 @@ msgstr "Stickers"
 #: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr "<b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo como <b>png ou gif</b> <i>(Só funciona com figurinhas de vídeos e estáticas)</i>"
-
