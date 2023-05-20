@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2023-05-20 19:17-0300\n"
-"PO-Revision-Date: 2023-05-20 22:34\n"
+"PO-Revision-Date: 2023-05-20 22:39\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -92,7 +92,8 @@ msgstr "Vídeos"
 #: smudge/plugins/medias.py:260
 msgid "<b>/dl|/sdl —</b> Downloads videos from <b>Instagram, TikTok and Twitter.</b>\n"
 "<b>/ytdl —</b> Download videos from YouTube in video or audio format."
-msgstr ""
+msgstr "<b>/dl|/sdl —</b> Baixa vídeos do <b>Instagram, TikTok e Twitter.</b>\n"
+"<b>/ytdl —</b> Baixa vídeos do YouTube em formato de vídeo ou áudio."
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
@@ -145,5 +146,5 @@ msgstr "Stickers"
 
 #: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
-msgstr "<b>/getsticker -</b> responda a um sticker para fazer o upload do arquivo como <b>png ou gif</b> <i>(Só funciona com figurinhas de vídeos e estáticas)</i>"
+msgstr "<b>/getsticker —</b> responda a um sticker para fazer o upload do arquivo como <b>png ou gif</b> <i>(Só funciona com stickers de vídeos e estáticas)</i>"
 
