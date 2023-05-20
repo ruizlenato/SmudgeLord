@@ -1,31 +1,37 @@
 msgid ""
 msgstr ""
+"Project-Id-Version: smudgelord\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2023-05-20 18:30-0300\n"
+"PO-Revision-Date: 2023-05-20 21:52\n"
+"Last-Translator: \n"
+"Language-Team: Spanish\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Crowdin-Project: smudgelord\n"
 "X-Crowdin-Project-ID: 499530\n"
 "X-Crowdin-Language: es-ES\n"
 "X-Crowdin-File: /reworked/locales/bot.pot\n"
 "X-Crowdin-File-ID: 27\n"
-"Project-Id-Version: smudgelord\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Language-Team: Spanish\n"
 "Language: es_ES\n"
-"PO-Revision-Date: 2023-05-19 23:55\n"
 
-#: smudge/plugins/locale.py:32
+#: smudge/plugins/locale.py:34
 msgid "🌎 Help us with translations!"
 msgstr "🌎 ¡Ayúdanos con las traducciones!"
 
-#: smudge/plugins/locale.py:40 smudge/plugins/locale.py:71
+#: smudge/plugins/locale.py:42 smudge/plugins/locale.py:73
 #: smudge/plugins/start.py:91
 msgid "↩️ Back"
 msgstr "↩️ Volver"
 
-#: smudge/plugins/locale.py:43
+#: smudge/plugins/locale.py:45
 msgid "Select below the language you want to use the bot."
 msgstr "Selecciona debajo el idioma en el que quieres utilizar el bot."
 
-#: smudge/plugins/locale.py:73
+#: smudge/plugins/locale.py:75
 msgid "Language changed successfully."
 msgstr "Idioma cambiado con éxito."
 
@@ -84,8 +90,9 @@ msgid "Videos"
 msgstr "Vídeos"
 
 #: smudge/plugins/medias.py:260
-msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
-msgstr "<b>/dl|/sdl -</b> <i>Descarga vídeos de <b>Instagram, TikTok y Twitter.</b></i>\n"
+msgid "<b>/dl|/sdl —</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
+"<b>/ytdl —</b> <i>Download videos from YouTube in video or audio format.</i>"
+msgstr ""
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
@@ -136,5 +143,6 @@ msgid "Stickers"
 msgstr "Stickers"
 
 #: smudge/plugins/stickers.py:41
-msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
-msgstr "<b>/getsticker -</b> responde a un sticker para subir el archivo como un <b>png o gif</b> <i>(Solo funciona con video y stickers estáticos).</i>\n"
+msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
+msgstr ""
+
