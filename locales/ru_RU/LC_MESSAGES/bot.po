@@ -1,31 +1,37 @@
 msgid ""
 msgstr ""
+"Project-Id-Version: smudgelord\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2023-05-20 18:30-0300\n"
+"PO-Revision-Date: 2023-05-20 21:52\n"
+"Last-Translator: \n"
+"Language-Team: Russian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
 "Plural-Forms: nplurals=4; plural=((n%10==1 && n%100!=11) ? 0 : ((n%10 >= 2 && n%10 <=4 && (n%100 < 12 || n%100 > 14)) ? 1 : ((n%10 == 0 || (n%10 >= 5 && n%10 <=9)) || (n%100 >= 11 && n%100 <= 14)) ? 2 : 3));\n"
 "X-Crowdin-Project: smudgelord\n"
 "X-Crowdin-Project-ID: 499530\n"
 "X-Crowdin-Language: ru\n"
 "X-Crowdin-File: /reworked/locales/bot.pot\n"
 "X-Crowdin-File-ID: 27\n"
-"Project-Id-Version: smudgelord\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Language-Team: Russian\n"
 "Language: ru_RU\n"
-"PO-Revision-Date: 2023-05-19 22:50\n"
 
-#: smudge/plugins/locale.py:32
+#: smudge/plugins/locale.py:34
 msgid "🌎 Help us with translations!"
 msgstr ""
 
-#: smudge/plugins/locale.py:40 smudge/plugins/locale.py:71
+#: smudge/plugins/locale.py:42 smudge/plugins/locale.py:73
 #: smudge/plugins/start.py:91
 msgid "↩️ Back"
 msgstr ""
 
-#: smudge/plugins/locale.py:43
+#: smudge/plugins/locale.py:45
 msgid "Select below the language you want to use the bot."
 msgstr ""
 
-#: smudge/plugins/locale.py:73
+#: smudge/plugins/locale.py:75
 msgid "Language changed successfully."
 msgstr ""
 
@@ -79,7 +85,8 @@ msgid "Videos"
 msgstr ""
 
 #: smudge/plugins/medias.py:260
-msgid "<b>/dl|/sdl -</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
+msgid "<b>/dl|/sdl —</b> <i>Downloads videos from <b>Instagram, TikTok and Twitter.</b></i>\n"
+"<b>/ytdl —</b> <i>Download videos from YouTube in video or audio format.</i>"
 msgstr ""
 
 #: smudge/plugins/start.py:40
@@ -127,5 +134,6 @@ msgid "Stickers"
 msgstr ""
 
 #: smudge/plugins/stickers.py:41
-msgid "<b>/getsticker -</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
+msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr ""
+
