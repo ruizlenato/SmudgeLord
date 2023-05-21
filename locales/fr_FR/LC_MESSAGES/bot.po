@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-20 19:17-0300\n"
-"PO-Revision-Date: 2023-05-20 22:34\n"
+"POT-Creation-Date: 2023-05-20 20:08-0300\n"
+"PO-Revision-Date: 2023-05-21 01:48\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -18,20 +18,20 @@ msgstr ""
 "X-Crowdin-File-ID: 27\n"
 "Language: fr_FR\n"
 
-#: smudge/plugins/locale.py:34
+#: smudge/plugins/locale.py:37
 msgid "🌎 Help us with translations!"
 msgstr ""
 
-#: smudge/plugins/locale.py:42 smudge/plugins/locale.py:73
+#: smudge/plugins/locale.py:45 smudge/plugins/locale.py:76
 #: smudge/plugins/start.py:91
 msgid "↩️ Back"
 msgstr ""
 
-#: smudge/plugins/locale.py:45
+#: smudge/plugins/locale.py:48
 msgid "Select below the language you want to use the bot."
 msgstr ""
 
-#: smudge/plugins/locale.py:75
+#: smudge/plugins/locale.py:78
 msgid "Language changed successfully."
 msgstr ""
 
@@ -136,3 +136,4 @@ msgstr ""
 #: smudge/plugins/stickers.py:41
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 msgstr ""
+
