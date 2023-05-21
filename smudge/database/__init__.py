@@ -21,7 +21,7 @@ class Database:
             """
         CREATE TABLE IF NOT EXISTS users(
             user_id INTEGER PRIMARY KEY,
-            language TEXT DEFAULT 'en_US',
+            language TEXT DEFAULT 'en_US'
         );
 
         CREATE TABLE IF NOT EXISTS groups(

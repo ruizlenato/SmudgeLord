@@ -10,6 +10,7 @@ from smudge.bot import Smudge
 from smudge.database.chats import add_chat, get_chat
 
 Languages: list[str] = []  # Loaded Locales
+Languages.append("en_US")  # The en_US language doesn't have a file
 
 for file in os.listdir("locales"):
     if not file.endswith(".rst") and not file.endswith(".pot"):

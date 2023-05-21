@@ -1,15 +1,18 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 from contextlib import suppress
 
 from babel import Locale
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.errors import MessageNotModified, UserNotParticipant
-from pyrogram.helpers import ikb
+from pyrogram.helpers import array_chunk, ikb
 from pyrogram.types import CallbackQuery, Message
 
 from smudge.bot import Smudge
+from smudge.database.locale import set_db_lang
 from smudge.plugins import Languages
-from smudge.utils.locale import locale, set_db_lang
+from smudge.utils.locale import locale
 
 
 @Smudge.on_message(filters.command(["setlang", "language"]))
@@ -22,19 +25,21 @@ async def language(client: Smudge, union: Message | CallbackQuery, _):
     else:
         reply = union.reply_text
 
-    keyboard = [
-        [
-            (Locale.parse(lang).display_name.title(), f"lang_set {lang}")
-            for lang in list(Languages)
-        ],
+    buttons: list = []
+    for lang in list(Languages):
+        text, data = (Locale.parse(lang).display_name.title(), f"lang_set {lang}")
+        buttons.append((text, data))
+
+    keyboard = array_chunk(buttons, 2)
+    keyboard.append(
         [
             (
                 _("🌎 Help us with translations!"),
                 "https://crowdin.com/project/smudgelord",
                 "url",
-            ),
-        ],
-    ]
+            )
+        ]
+    )
 
     if isinstance(union, CallbackQuery):
         keyboard += [[(_("↩️ Back"), "start_command")]]
