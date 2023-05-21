@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
-
 from config import API_HASH, API_ID, BOT_TOKEN, WORKERS
 from pyrogram import Client
 from pyrogram.enums import ParseMode
