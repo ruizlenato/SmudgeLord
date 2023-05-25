@@ -5,7 +5,7 @@ from . import database
 conn = database.get_conn()
 
 
-async def auto_downloads(chat_id: int):
+async def auto_downloads(chat_id: int) -> bool:
     cursor = await conn.execute(
         "SELECT auto_downloads FROM medias WHERE chat_id = (?)", (chat_id,)
     )
@@ -16,7 +16,7 @@ async def auto_downloads(chat_id: int):
         return True
 
 
-async def captions(chat_id: int):
+async def captions(chat_id: int) -> bool:
     cursor = await conn.execute("SELECT captions FROM medias WHERE chat_id = (?)", (chat_id,))
     try:
         row = await cursor.fetchone()
