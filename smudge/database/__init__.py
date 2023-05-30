@@ -21,18 +21,21 @@ class Database:
             """
         CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY,
-            language TEXT DEFAULT 'en_US'
+            language TEXT DEFAULT 'en_US',
+            medias_captions INTEGER
         );
 
-        CREATE TABLE IF NOT EXISTS groups(
+        CREATE TABLE IF NOT EXISTS chats(
             id INTEGER PRIMARY KEY,
-            language TEXT DEFAULT 'en_US'
+            language TEXT DEFAULT 'en_US',
+            medias_adownloads INTEGER DEFAULT 1,
+            medias_captions INTEGER
         );
 
-        CREATE TABLE IF NOT EXISTS medias(
-            chat_id INTEGER,
-            captions INTEGER,
-            auto_downloads INTEGER
+        CREATE TABLE IF NOT EXISTS afk(
+            user_id INTEGER,
+            reason TEXT,
+            time INTEGER
         );
         """
         )
