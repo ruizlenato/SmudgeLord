@@ -9,13 +9,12 @@ from smudge.database.locale import get_db_lang
 def locale():
     def decorator(func):
         @wraps(func)
-        async def wrapper(client, message):
+        async def wrapper(client, message, *args, **kwargs):
             translation = gettext.translation(
                 "bot", "locales", languages=[await get_db_lang(message)], fallback=True
             )
-            translation.install()
             _ = translation.gettext
-            return await func(client, message, _)
+            return await func(client, message, _, *args, **kwargs)
 
         return wrapper
 

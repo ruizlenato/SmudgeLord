@@ -7,7 +7,8 @@ from pyrogram.enums import ChatType
 from pyrogram.types import Message
 
 from smudge.bot import Smudge
-from smudge.database.chats import add_chat, get_chat
+from smudge.database.chats import get_chat_data, register_chat
+from smudge.database.users import get_user_data, register_user
 
 Languages: list[str] = []  # Loaded Locales
 Languages.append("en_US")  # The en_US language doesn't have a file
@@ -33,8 +34,8 @@ async def check_chat(client: Smudge, message: Message):
     if language_code not in Languages:
         language_code: str = "en_US"
 
-    if user and await get_chat(user.id, ChatType.PRIVATE) is None:
-        await add_chat(user.id, language_code, ChatType.PRIVATE)
+    if user and await get_user_data(user.id) is None:
+        await register_user(user.id, language_code)
 
-    if await get_chat(chat.id, chat.type) is None:
-        await add_chat(chat.id, language_code, chat.type)
+    if chat.type in (ChatType.GROUP, ChatType.SUPERGROUP) and await get_chat_data(chat.id) is None:
+        await register_chat(chat.id, language_code)

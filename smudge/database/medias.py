@@ -17,9 +17,10 @@ async def auto_downloads(chat_id: int) -> bool:
 
 
 async def captions(chat_id: int) -> bool:
-    cursor = await conn.execute("SELECT captions FROM medias WHERE chat_id = (?)", (chat_id,))
+    cursor = await conn.execute("SELECT captions FROM medias WHERE chat_id = ?", (chat_id,))
     try:
         row = await cursor.fetchone()
+        await cursor.close()
         return row[0]
     except (IndexError, TypeError):
         return False

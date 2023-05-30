@@ -17,7 +17,9 @@ from pyrogram.types import CallbackQuery, InputMediaPhoto, InputMediaVideo, Mess
 from yt_dlp import YoutubeDL
 
 from smudge.bot import Smudge
-from smudge.database.medias import auto_downloads, captions
+from smudge.database.chats import get_chat_data
+from smudge.database.medias import auto_downloads
+from smudge.database.users import get_user_data
 from smudge.utils.locale import locale
 from smudge.utils.medias import DownloadMedia, extract_info
 from smudge.utils.utils import http, pretty_size
@@ -203,15 +205,17 @@ or Twitter so I can download the video."
         )
 
     if message.chat.type == ChatType.PRIVATE:
+        captions = (await get_user_data(message.chat.id))["medias_captions"]
         method = messages.GetMessages(id=[InputMessageID(id=(message.id))])
     else:
+        captions = (await get_chat_data(message.chat.id))["medias_captions"]
         method = channels.GetMessages(
             channel=await client.resolve_peer(message.chat.id),
             id=[InputMessageID(id=(message.id))],
         )
 
     rawM = (await client.invoke(method)).messages[0].media
-    files, caption = await DownloadMedia().download(url, await captions(message.chat.id))
+    files, caption = await DownloadMedia().download(url, captions)
 
     medias = []
     for media in files:
