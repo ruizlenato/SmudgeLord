@@ -17,6 +17,7 @@ httpx = {extras = ["http2"], version = "^0.24.0"}
 babel = "^2.12.1"
 filetype = "^1.2.0"
 humanize = "^4.6.0"
+beautifulsoup4 = "^4.12.2"
 
 [tool.ruff]
 line-length = 99
