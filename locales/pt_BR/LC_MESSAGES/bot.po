@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-05-20 20:08-0300\n"
-"PO-Revision-Date: 2023-05-21 01:48\n"
+"POT-Creation-Date: 2023-06-04 17:10-0300\n"
+"PO-Revision-Date: 2023-06-04 21:17\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -18,12 +18,30 @@ msgstr ""
 "X-Crowdin-File-ID: 27\n"
 "Language: pt_BR\n"
 
+#: smudge/plugins/afk.py:36
+msgid "<b><a href='tg://user?id={}'>{}</a></b> is now unavailable!"
+msgstr ""
+
+#: smudge/plugins/afk.py:77
+msgid "<b><a href='tg://user?id={}'>{}</a></b> is back!"
+msgstr ""
+
+#: smudge/plugins/afk.py:91
+msgid "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b> \n"
+"<i>Last seen<code> {}</code> ago</i>"
+msgstr ""
+
+#: smudge/plugins/afk.py:96
+msgid "<b>\n"
+"Reason:</b> <code>{}</code>"
+msgstr ""
+
 #: smudge/plugins/locale.py:37
 msgid "🌎 Help us with translations!"
 msgstr "🌎 Ajude-nos com as traduções!"
 
 #: smudge/plugins/locale.py:45 smudge/plugins/locale.py:76
-#: smudge/plugins/start.py:91
+#: smudge/plugins/start.py:90
 msgid "↩️ Back"
 msgstr "↩️ Voltar"
 
@@ -35,65 +53,64 @@ msgstr "Selecione abaixo o idioma que você quer utilizar no bot."
 msgid "Language changed successfully."
 msgstr "Idioma alterado com sucesso."
 
-#: smudge/plugins/medias.py:45
+#: smudge/plugins/medias.py:47
 msgid "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\n"
 "Specify a word or a link so that I can search and download a video."
 msgstr "<b>Uso do comando:</b> <code>/dl [link]</code>\n\n"
 "Especifique um link do Instagram, TikTok ou Twitter para que eu possa baixar o vídeo."
 
-#: smudge/plugins/medias.py:71
+#: smudge/plugins/medias.py:73
 msgid "💿 Audio"
 msgstr "💿 Áudio"
 
-#: smudge/plugins/medias.py:75
+#: smudge/plugins/medias.py:77
 msgid "📹 Video"
 msgstr "📹 Vídeo"
 
-#: smudge/plugins/medias.py:103
+#: smudge/plugins/medias.py:105
 msgid "This button is not for you."
 msgstr "Este botão não é para você."
 
-#: smudge/plugins/medias.py:106
+#: smudge/plugins/medias.py:108
 msgid "The video you want to download exceeds 2GB in size.\n"
 "Unable to download and upload, sorry."
 msgstr "O vídeo que você deseja baixar excede o tamanho de 2 GB.\n"
 "Não é possível baixar e enviar, desculpe."
 
-#: smudge/plugins/medias.py:116
+#: smudge/plugins/medias.py:118
 msgid "Downloading..."
 msgstr "Baixando..."
 
-#: smudge/plugins/medias.py:127 smudge/plugins/medias.py:169
+#: smudge/plugins/medias.py:129 smudge/plugins/medias.py:171
 msgid "Sorry! I couldn't send the video because of an error.\n"
 "<b>Error:</b> <code>{}</code>"
 msgstr "Desculpe! Não foi possível enviar o vídeo devido a um erro.\n"
 "<b>Erro:</b> <code>{}</code>"
 
-#: smudge/plugins/medias.py:132
+#: smudge/plugins/medias.py:134
 msgid "Sending..."
 msgstr "Enviando..."
 
-#: smudge/plugins/medias.py:190
+#: smudge/plugins/medias.py:192
 msgid "<b>System glitch someone disconnected me.</b>\n"
 "The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
 msgstr "<b>Pane no sistema alguém me desconfigurou.</b>\n"
 "O link que você enviou é invalido, atualmente eu apenas suporto links do TikTok, Twitter e Instagram."
 
-#: smudge/plugins/medias.py:199
+#: smudge/plugins/medias.py:201
 msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
 "Specify a link from Instagram, TikTok or Twitter so I can download the video."
 msgstr "<b>Uso do comando:</b> <code>/dl [link]</code>\n\n"
 "Especifique um link do Instagram, TikTok ou Twitter para que eu possa baixar o vídeo."
 
-#: smudge/plugins/medias.py:259
+#: smudge/plugins/medias.py:263
 msgid "Videos"
 msgstr "Vídeos"
 
-#: smudge/plugins/medias.py:260
-msgid "<b>/dl|/sdl —</b> Downloads videos from <b>Instagram, TikTok and Twitter.</b>\n"
-"<b>/ytdl —</b> Download videos from YouTube in video or audio format."
-msgstr "<b>/dl|/sdl —</b> Baixa vídeos do <b>Instagram, TikTok e Twitter.</b>\n"
-"<b>/ytdl —</b> Baixa vídeos do YouTube em formato de vídeo ou áudio."
+#: smudge/plugins/medias.py:264
+msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twitter.</i></b>\n"
+"<b>/ytdl —</b> Download videos from YouTube in video or audio format.\n"
+msgstr ""
 
 #: smudge/plugins/start.py:40
 msgid "🌐Language"
@@ -104,23 +121,20 @@ msgid "❓Help"
 msgstr "❓Ajuda"
 
 #: smudge/plugins/start.py:51
-msgid "Hello <b>{}</b>, my name is <b>SmudgeLord,</b> I'm a bot with some fun and useful commands for you :3\n\n"
-"📦 <b>My SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n"
-"💬 If you have a <b>problem</b> <a href='https://t.me/RuizLenato'>click here to talk to my developer.</a>"
-msgstr "Ola! <b>{}</b>, meu nome é <b>SmudgeLord,</b> Sou um bot com alguns comandos divertidos e úteis para você. :3\n\n"
-"📦 <b>Meu código-fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n"
-"💬 Caso você tenha algum <b>problema</b>, <a href='https://t.me/RuizLenato'>clique aqui para falar com o meu desenvolvedor.</a>"
+msgid "Hello <b>{}</b>! — I'm <b>SmudgeLord,</b> a bot with some useful and fun commands for you.\n\n"
+" 📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
+msgstr ""
 
-#: smudge/plugins/start.py:58
+#: smudge/plugins/start.py:57
 msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
 msgstr "Olá, sou o SmudgeLord.\n"
 "Tenho varias funções, para saber mais, inicie uma conversa comigo."
 
-#: smudge/plugins/start.py:79
+#: smudge/plugins/start.py:78
 msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
 msgstr "Aqui estão todos os meus plugins, para saber mais sobre os plugins, <b>basta clicar no nome deles.</b>"
 
-#: smudge/plugins/start.py:93
+#: smudge/plugins/start.py:92
 msgid "<b>Avaliable Commands:</b>\n\n"
 msgstr "<b>Comandos disponíveis:</b>\n\n"
 
@@ -145,5 +159,7 @@ msgid "Stickers"
 msgstr "Stickers"
 
 #: smudge/plugins/stickers.py:41
-msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a <b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
-msgstr "<b>/getsticker —</b> responda a um sticker para fazer o upload do arquivo como <b>png ou gif</b> <i>(Só funciona com stickers de vídeos e estáticas)</i>"
+msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n"
+"<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n\n"
+msgstr ""
+
