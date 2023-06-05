@@ -18,6 +18,7 @@ babel = "^2.12.1"
 filetype = "^1.2.0"
 humanize = "^4.6.0"
 beautifulsoup4 = "^4.12.2"
+esprima = "^4.0.1"
 
 [tool.ruff]
 line-length = 99

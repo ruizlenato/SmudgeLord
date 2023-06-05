@@ -4,8 +4,8 @@ from contextlib import suppress
 
 from babel import Locale
 from pyrogram import filters
-from pyrogram.enums import ChatMemberStatus, ChatType
-from pyrogram.errors import MessageNotModified, UserNotParticipant
+from pyrogram.enums import ChatType
+from pyrogram.errors import MessageNotModified
 from pyrogram.helpers import array_chunk, ikb
 from pyrogram.types import CallbackQuery, Message
 
@@ -19,12 +19,7 @@ from smudge.utils.locale import locale
 @Smudge.on_callback_query(filters.regex(r"^language"))
 @locale()
 async def language(client: Smudge, union: Message | CallbackQuery, _):
-    if isinstance(union, CallbackQuery):
-        reply = union.edit_message_text
-        union = union.message
-    else:
-        reply = union.reply_text
-
+    reply = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
     buttons: list = []
     for lang in list(Languages):
         text, data = (Locale.parse(lang).display_name.title(), f"lang_set {lang}")
@@ -41,7 +36,7 @@ async def language(client: Smudge, union: Message | CallbackQuery, _):
         ]
     )
 
-    if isinstance(union, CallbackQuery):
+    if isinstance(union, CallbackQuery) and union.message.chat.type == ChatType.PRIVATE:
         keyboard += [[(_("↩️ Back"), "start_command")]]
 
     await reply(
@@ -54,26 +49,21 @@ async def language(client: Smudge, union: Message | CallbackQuery, _):
 @locale()
 async def change_language(client: Smudge, callback: CallbackQuery, _):
     lang = callback.matches[0]["code"]
-    if callback.message.chat.type is not ChatType.PRIVATE:
-        try:
-            member = await client.get_chat_member(
-                chat_id=callback.message.chat.id, user_id=callback.from_user.id
-            )
-            if member.status not in (
-                ChatMemberStatus.ADMINISTRATOR,
-                ChatMemberStatus.OWNER,
-            ):
-                return
-        except UserNotParticipant:
-            return
+    if not await filters.admin(client, callback):
+        return await callback.answer(
+            _("You are not a group admin."), show_alert=True, cache_time=60
+        )
 
     await set_db_lang(callback, lang)
     await change_language_edit(client, callback)
+    return None
 
 
 @locale()
 async def change_language_edit(client, callback, _):
-    keyboard = [[(_("↩️ Back"), "start")]]
+    text = _("Language changed successfully.")
+    keyboard = [[(_("↩️ Back"), "start_command")]]
+    if isinstance(callback, CallbackQuery) and callback.message.chat.type != ChatType.PRIVATE:
+        keyboard = [[(_("↩️ Back"), "config")]]
     with suppress(MessageNotModified):
-        text = _("Language changed successfully.")
         await callback.edit_message_text(text, reply_markup=ikb(keyboard))

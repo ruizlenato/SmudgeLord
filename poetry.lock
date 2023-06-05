@@ -285,6 +285,16 @@ files = [
 pycparser = "*"
 
 [[package]]
+name = "esprima"
+version = "4.0.1"
+description = "ECMAScript parsing infrastructure for multipurpose analysis in Python"
+optional = false
+python-versions = "*"
+files = [
+    {file = "esprima-4.0.1.tar.gz", hash = "sha256:08db1a876d3c2910db9cfaeb83108193af5411fc3a3a66ebefacd390d21323ee"},
+]
+
+[[package]]
 name = "filetype"
 version = "1.2.0"
 description = "Infer file type and MIME type of any file/buffer. No external dependencies."
@@ -750,4 +760,4 @@ websockets = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "25ec984dd452e13ee41caf56c96e0e9b462c308acffa1e5800971dfbeb2151fb"
+content-hash = "27c93fef4f1daa8f2fd56b98aa199382b24e29750ee16889dcd10b64ffbe4153"

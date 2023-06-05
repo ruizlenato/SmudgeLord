@@ -13,8 +13,12 @@ def locale():
     def decorator(func):
         @wraps(func)
         async def wrapper(client, message, *args, **kwargs):
-            message = message.message if isinstance(message, CallbackQuery) else message
-            if message.chat.type == ChatType.CHANNEL:
+            ChatTypeLocale = (
+                message.message.chat.type
+                if isinstance(message, CallbackQuery)
+                else message.chat.type
+            )
+            if ChatTypeLocale == ChatType.CHANNEL:
                 return None
 
             translation = gettext.translation(
