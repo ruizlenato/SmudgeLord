@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-06-04 17:10-0300\n"
-"PO-Revision-Date: 2023-06-04 21:17\n"
+"POT-Creation-Date: 2023-06-04 23:02-0300\n"
+"PO-Revision-Date: 2023-06-05 02:05\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -36,20 +36,26 @@ msgid "<b>\n"
 "Reason:</b> <code>{}</code>"
 msgstr ""
 
-#: smudge/plugins/locale.py:37
+#: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
 msgstr "🌎 ¡Ayúdanos con las traducciones!"
 
-#: smudge/plugins/locale.py:45 smudge/plugins/locale.py:76
-#: smudge/plugins/start.py:90
+#: smudge/plugins/locale.py:40 smudge/plugins/locale.py:65
+#: smudge/plugins/locale.py:67 smudge/plugins/medias.py:303
+#: smudge/plugins/start.py:91
 msgid "↩️ Back"
 msgstr "↩️ Volver"
 
-#: smudge/plugins/locale.py:48
+#: smudge/plugins/locale.py:43
 msgid "Select below the language you want to use the bot."
 msgstr "Selecciona debajo el idioma en el que quieres utilizar el bot."
 
-#: smudge/plugins/locale.py:78
+#: smudge/plugins/locale.py:54 smudge/plugins/medias.py:271
+#: smudge/plugins/start.py:105 smudge/plugins/start.py:107
+msgid "You are not a group admin."
+msgstr ""
+
+#: smudge/plugins/locale.py:64
 msgid "Language changed successfully."
 msgstr "Idioma cambiado con éxito."
 
@@ -91,51 +97,73 @@ msgstr "¡Lo siento! No pude enviar el vídeo debido a un error.\n"
 msgid "Sending..."
 msgstr "Enviando..."
 
-#: smudge/plugins/medias.py:192
+#: smudge/plugins/medias.py:195
 msgid "<b>System glitch someone disconnected me.</b>\n"
 "The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
 msgstr "<b>Fallo del sistema alguien me desconectó.</b>\n"
 "El enlace que has enviado no es válido, actualmente solo admito enlaces de TikTok, Twitter e Instagram."
 
-#: smudge/plugins/medias.py:201
+#: smudge/plugins/medias.py:204
 msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
 "Specify a link from Instagram, TikTok or Twitter so I can download the video."
 msgstr "<b>Uso:</b> <code>/dl [link]</code>\n\n"
 "Especifica un enlace de Instagram, TikTok o Twitter para que pueda descargar el vídeo."
 
-#: smudge/plugins/medias.py:263
+#: smudge/plugins/medias.py:285
+msgid "Captions:"
+msgstr ""
+
+#: smudge/plugins/medias.py:298
+msgid "Auto:"
+msgstr ""
+
+#: smudge/plugins/medias.py:305
+msgid "<b>Media Download Settings.</b>\n"
+"<i>To learn more about the <b>'media'</b> module, use <code>/help<code> in my dm.</i>\n\n"
+"To know what each button does, click on the button with the name of the setting."
+msgstr ""
+
+#: smudge/plugins/medias.py:314
 msgid "Videos"
 msgstr "Vídeos"
 
-#: smudge/plugins/medias.py:264
+#: smudge/plugins/medias.py:315
 msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twitter.</i></b>\n"
 "<b>/ytdl —</b> Download videos from YouTube in video or audio format.\n"
 msgstr ""
 
-#: smudge/plugins/start.py:40
+#: smudge/plugins/start.py:41 smudge/plugins/start.py:117
 msgid "🌐Language"
 msgstr "🌐Idioma"
 
-#: smudge/plugins/start.py:41
+#: smudge/plugins/start.py:42
 msgid "❓Help"
 msgstr "❓Ayuda"
 
-#: smudge/plugins/start.py:51
+#: smudge/plugins/start.py:52
 msgid "Hello <b>{}</b>! — I'm <b>SmudgeLord,</b> a bot with some useful and fun commands for you.\n\n"
 " 📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
 msgstr ""
 
-#: smudge/plugins/start.py:57
+#: smudge/plugins/start.py:58
 msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
 msgstr "¡Hola! Soy SmudgeLord. Para descubrir mis funciones comienza una conversación conmigo."
 
-#: smudge/plugins/start.py:78
+#: smudge/plugins/start.py:79
 msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
 msgstr "Aquí están todos mis plug-ins, para saber más sobre los plug-ins, <b>solo tienes que hacer clic en su nombre.</b>"
 
-#: smudge/plugins/start.py:92
+#: smudge/plugins/start.py:93
 msgid "<b>Avaliable Commands:</b>\n\n"
 msgstr "<b>Comandos disponibles:</b>\n\n"
+
+#: smudge/plugins/start.py:114
+msgid "Medias"
+msgstr ""
+
+#: smudge/plugins/start.py:122
+msgid "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
+msgstr ""
 
 #: smudge/plugins/stickers.py:18
 msgid "Animated stickers are not supported yet!"
@@ -161,3 +189,4 @@ msgstr "Stickers"
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n"
 "<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n\n"
 msgstr ""
+
