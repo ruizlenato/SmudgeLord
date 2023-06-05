@@ -18,7 +18,7 @@ from yt_dlp import YoutubeDL
 
 from smudge.bot import Smudge
 from smudge.database.chats import get_chat_data
-from smudge.database.medias import auto_downloads
+from smudge.database.medias import toggle_media
 from smudge.database.users import get_user_data
 from smudge.utils.locale import locale
 from smudge.utils.medias import DownloadMedia, extract_info
@@ -181,7 +181,10 @@ async def cli_ytdl(client: Smudge, callback: CallbackQuery, _):
 @locale()
 async def medias_download(client: Smudge, message: Message, _):
     if message.matches:
-        if message.chat.type is ChatType.PRIVATE or await auto_downloads(message.chat.id):
+        if (
+            message.chat.type is ChatType.PRIVATE
+            or (await get_chat_data(message.chat.id))["medias_adownloads"]
+        ):
             url = message.matches[0].group(0)
         else:
             return None
@@ -258,6 +261,54 @@ or Twitter so I can download the video."
         await message.reply_media_group(media=medias)
         return None
     return None
+
+
+@Smudge.on_callback_query(filters.regex(r"^media_config"))
+@locale()
+async def media_config(client: Smudge, callback: CallbackQuery, _):
+    if not await filters.admin(client, callback):
+        return await callback.answer(
+            _("You are not a group admin."), show_alert=True, cache_time=60
+        )
+
+    state = ["☑️", "✅"]
+    chat = callback.message.chat
+    mode = get_user_data if chat.type == ChatType.PRIVATE else get_chat_data
+
+    if "+" in callback.data and not (await mode(chat.id))["medias_captions"]:
+        await toggle_media(callback, "medias_captions", True)
+    elif "+" in callback.data and (await mode(chat.id))["medias_captions"]:
+        await toggle_media(callback, "medias_captions", False)
+
+    keyboard = [
+        [
+            (_("Captions:"), "media_config"),
+            (state[(await mode(chat.id))["medias_captions"]], "media_config+"),
+        ],
+    ]
+
+    if chat.type != ChatType.PRIVATE:
+        if "-" in callback.data and not (await mode(chat.id))["medias_adownloads"]:
+            await toggle_media(callback, "medias_adownloads", True)
+        elif "-" in callback.data and (await mode(chat.id))["medias_adownloads"]:
+            await toggle_media(callback, "medias_adownloads", False)
+
+        keyboard += [
+            [
+                (_("Auto:"), "media_config"),
+                (state[(await mode(chat.id))["medias_adownloads"]], "media_config-"),
+            ]
+        ]
+
+    keyboard += [[(_("↩️ Back"), "config")]]
+    return await callback.edit_message_text(
+        _(
+            "<b>Media Download Settings.</b>\n<i>To learn more about the <b>'media'</b> \
+module, use <code>/help<code> in my dm.</i>\n\nTo know what each button does, \
+click on the button with the name of the setting."
+        ),
+        reply_markup=ikb(keyboard),
+    )
 
 
 __help_name__ = gettext.gettext("Videos")

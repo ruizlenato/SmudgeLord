@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
+import asyncio
 import glob
 import importlib
 
@@ -91,3 +92,36 @@ async def help_plugin(client: Smudge, callback: CallbackQuery, _):
     help_text = "__help_text__"  # To avoid problems with gettext
     text = _("<b>Avaliable Commands:</b>\n\n") + _(HELPABLE[match][help_text])
     await callback.edit_message_text(text, reply_markup=ikb(keyboard))
+
+
+@Smudge.on_callback_query(filters.regex(r"config"))
+@Smudge.on_message(filters.command("config"))
+@locale()
+async def config(client: Smudge, union: Message | CallbackQuery, _):
+    reply = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
+
+    if not await filters.admin(client, union):
+        if isinstance(union, CallbackQuery):
+            await union.answer(_("You are not a group admin."), show_alert=True, cache_time=60)
+        else:
+            message = await reply(_("You are not a group admin."))
+            await asyncio.sleep(5.0)
+            await message.delete()
+        return
+
+    keyboard = [
+        [
+            (_("Medias"), "media_config"),
+        ],
+        [
+            (_("🌐Language"), "language"),
+        ],
+    ]
+
+    await reply(
+        _(
+            "<b>Settings</b> — Here are my settings for this group, \
+to know more, <b>click on the buttons below.</b>"
+        ),
+        reply_markup=ikb(keyboard),
+    )

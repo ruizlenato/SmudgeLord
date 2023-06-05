@@ -1,26 +1,20 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
+from pyrogram.enums import ChatType
+from pyrogram.types import CallbackQuery
+
 from . import database
 
 conn = database.get_conn()
 
 
-async def auto_downloads(chat_id: int) -> bool:
-    cursor = await conn.execute(
-        "SELECT auto_downloads FROM medias WHERE chat_id = (?)", (chat_id,)
-    )
-    try:
-        row = await cursor.fetchone()
-        return row[0]
-    except (IndexError, TypeError):
-        return True
+async def toggle_media(message, config: str, mode: bool):
+    message = message.message if isinstance(message, CallbackQuery) else message
+    id = message.chat.id
 
+    if message.chat.type == ChatType.PRIVATE:
+        await conn.execute(f"UPDATE users SET {config} = ? WHERE id = ?", (mode, id))
+    else:
+        await conn.execute(f"UPDATE chats SET {config} = ? WHERE id = ?", (mode, id))
 
-async def captions(chat_id: int) -> bool:
-    cursor = await conn.execute("SELECT captions FROM medias WHERE chat_id = ?", (chat_id,))
-    try:
-        row = await cursor.fetchone()
-        await cursor.close()
-        return row[0]
-    except (IndexError, TypeError):
-        return False
+    await conn.commit()

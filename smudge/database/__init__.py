@@ -22,14 +22,14 @@ class Database:
         CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'en_US',
-            medias_captions INTEGER
+            medias_captions INTEGER DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS chats(
             id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'en_US',
             medias_adownloads INTEGER DEFAULT 1,
-            medias_captions INTEGER
+            medias_captions INTEGER DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS afk(
