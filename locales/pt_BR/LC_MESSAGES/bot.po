@@ -237,4 +237,3 @@ msgstr "Stickers"
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n"
 "<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n\n"
 msgstr ""
-
