@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-06-04 23:02-0300\n"
+"POT-Creation-Date: 2023-06-09 22:12-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,6 +35,64 @@ msgstr ""
 msgid ""
 "<b>\n"
 "Reason:</b> <code>{}</code>"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:22
+msgid "<a href='tg://user?id={}'>{}</a>, Send me your last.fm username."
+msgstr ""
+
+#: smudge/plugins/lastfm.py:40
+msgid ""
+"<b>Error</b>\n"
+"Your last.fm username is wrong"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:44
+msgid "<b>Done, last.fm user saved!</b>"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:53 smudge/plugins/lastfm.py:97
+#: smudge/plugins/lastfm.py:139
+msgid ""
+"<b>You have not set your last.fm username.</b>\n"
+"Use the command /setuser to set"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:58 smudge/plugins/lastfm.py:102
+#: smudge/plugins/lastfm.py:144
+msgid ""
+"<b>Apparently you have never scrobbled a song on LastFM.</b>\n"
+"\n"
+"If you are having trouble, go to last.fm/about/trackmymusic and see how to connect your account to your music app."
+msgstr ""
+
+#: smudge/plugins/lastfm.py:66 smudge/plugins/lastfm.py:110
+#: smudge/plugins/lastfm.py:152
+msgid ""
+"<b><a href='https://last.fm/user/{}'>{}</a></b> is listening for the <b>{}nd time</b>:\n"
+"\n"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:75 smudge/plugins/lastfm.py:119
+#: smudge/plugins/lastfm.py:161
+msgid ""
+"<b><a href='https://last.fm/user/{}'>{}</a></b> was listening for the <b>{}nd time</b>:\n"
+"\n"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:175
+msgid "LastFM"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:176
+msgid ""
+"Last.fm is an online service that offers various music-related features. You can record the music you listen to on different streaming platforms and thus create a personalized music profile, providing recommendations of songs and artists based on your tastes.\n"
+"\n"
+"\n"
+"<b>/setuser —</b> Sets your last.fm username.\n"
+"<b>/lastfm|/lt —</b> Shows the song you are scrobbling on last.fm.\n"
+"<b>/lalbum|/lalb -</b> Shows the album you are scrobbling on last.fm.\n"
+"<b>/lartist|/lart —</b> Shows the artist you are scrobbling on last.fm.\n"
 msgstr ""
 
 #: smudge/plugins/locale.py:32
