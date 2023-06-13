@@ -3,6 +3,7 @@ import re
 import urllib.parse
 
 from config import LASTFM_API_KEY
+
 from smudge.database.users import get_user_data, register_lastfm
 from smudge.utils.utils import http
 
