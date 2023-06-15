@@ -98,7 +98,8 @@ class DownloadMedia:
                         for post in jsoninsta["edge_sidecar_to_children"]["edges"]:
                             url = post["node"]["display_url"]
                             if post["node"]["is_video"] is True:
-                                url = post["node"]["video_url"]
+                                with contextlib.suppress(KeyError):
+                                    url = post["node"]["video_url"]
                             dimensions = post["node"]["dimensions"]
                             medias.append(
                                 {"p": url, "w": dimensions["width"], "h": dimensions["height"]}
