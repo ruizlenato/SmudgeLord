@@ -2,15 +2,16 @@ import json
 import re
 import urllib.parse
 
-from config import LASTFM_API_KEY
 from smudge.database.users import get_user_data, register_lastfm
 from smudge.utils.utils import http
+
+from ..config import config
 
 
 class LastFM:
     def __init__(self):
         self.api: str = "http://ws.audioscrobbler.com/2.0"
-        self.api_key: str = LASTFM_API_KEY
+        self.api_key: str = config["LASTFM_API_KEY"]
         self.is_connected: bool = False
 
     async def register_lastfm(self, id: int, username: str):

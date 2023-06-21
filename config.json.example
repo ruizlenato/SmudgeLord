@@ -1,0 +1,12 @@
+{
+    "BOT_TOKEN": "",
+    "API_ID": "",
+    "API_HASH": "",
+    "SUDOERS": [
+        1032274246
+    ],
+    "IPV6": "True",
+    "WORKERS": "24",
+    "DATABASE_PATH": "smudge/database/database.db",
+    "LASTFM_API_KEY": ""
+}

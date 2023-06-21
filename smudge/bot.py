@@ -1,11 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
-from config import API_HASH, API_ID, BOT_TOKEN, WORKERS
 from pyrogram import Client
 from pyrogram.enums import ParseMode
 
 from smudge.database import database
 from smudge.utils.utils import http
+
+from .config import config
 
 
 class Smudge(Client):
@@ -14,10 +15,10 @@ class Smudge(Client):
 
         super().__init__(
             name,
-            api_id=API_ID,
-            api_hash=API_HASH,
-            bot_token=BOT_TOKEN,
-            workers=WORKERS,
+            api_id=config["API_ID"],
+            api_hash=config["API_HASH"],
+            bot_token=config["BOT_TOKEN"],
+            workers=int(config["WORKERS"]),
             parse_mode=ParseMode.HTML,
             plugins={"root": "smudge.plugins"},
             sleep_threshold=180,
