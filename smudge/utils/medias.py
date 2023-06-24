@@ -8,9 +8,9 @@ import re
 import esprima
 import filetype
 from bs4 import BeautifulSoup as bs
-from config import BARRER_TOKEN
 from yt_dlp import YoutubeDL
 
+from ..config import config
 from .utils import aiowrap, http
 
 
@@ -98,7 +98,8 @@ class DownloadMedia:
                         for post in jsoninsta["edge_sidecar_to_children"]["edges"]:
                             url = post["node"]["display_url"]
                             if post["node"]["is_video"] is True:
-                                url = post["node"]["video_url"]
+                                with contextlib.suppress(KeyError):
+                                    url = post["node"]["video_url"]
                             dimensions = post["node"]["dimensions"]
                             medias.append(
                                 {"p": url, "w": dimensions["width"], "h": dimensions["height"]}
@@ -118,7 +119,7 @@ type,variants,url,height,width&tweet.fields=entities"
         # Send the request and parse the response as JSON
         res = await http.get(
             f"{self.TwitterAPI}tweets/{tweet_id}{params}",
-            headers={"Authorization": f"Bearer {BARRER_TOKEN}"},
+            headers={"Authorization": f"Bearer {config['BARRER_TOKEN']}"},
         )
         tweet = json.loads(res.content)
         self.caption = f"<b>{tweet['includes']['users'][0]['name']}</b>\n{tweet['data']['text']}"

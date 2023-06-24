@@ -2,10 +2,12 @@
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import asyncio
 import math
+import re
 from collections.abc import Callable
 from functools import partial, wraps
 
 import httpx
+from pyrogram import emoji
 
 timeout = httpx.Timeout(30, pool=None)
 http = httpx.AsyncClient(http2=True, timeout=timeout)
@@ -30,3 +32,20 @@ def pretty_size(size_bytes):
     p = math.pow(1024, i)
     s = round(size_bytes / p, 2)
     return f"{s} {size_name[i]}"
+
+
+def get_emoji_regex():
+    e_list = [
+        getattr(emoji, e).encode("unicode-escape").decode("ASCII")
+        for e in dir(emoji)
+        if not e.startswith("_")
+    ]
+    # to avoid re.error excluding char that start with '*'
+    e_sort = sorted([x for x in e_list if not x.startswith("*")], reverse=True)
+    # Sort emojis by length to make sure multi-character emojis are
+    # matched first
+    pattern_ = f"({'|'.join(e_sort)})"
+    return re.compile(pattern_)
+
+
+EMOJI_PATTERN = get_emoji_regex()

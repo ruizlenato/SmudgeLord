@@ -4,14 +4,15 @@ import os
 import sys
 import traceback
 
-from config import SUDOERS
 from pyrogram import filters
 from pyrogram.types import Message
 
 from smudge.bot import Smudge
 
+from ..config import config
 
-@Smudge.on_message(filters.command("restart") & filters.user(SUDOERS))
+
+@Smudge.on_message(filters.command("restart") & filters.user(config["SUDOERS"]))
 async def restart(c: Smudge, m: Message):
     await m.reply_text("Restarting...")
     args = [sys.executable, "-m", "smudge"]
@@ -20,7 +21,7 @@ async def restart(c: Smudge, m: Message):
     os.execl(sys.executable, *args)
 
 
-@Smudge.on_message(filters.command("exec") & filters.user(SUDOERS))
+@Smudge.on_message(filters.command("exec") & filters.user(config["SUDOERS"]))
 async def execs(c: Smudge, m: Message):
     code = m.text.split(maxsplit=1)[1]
     func = "async def _aexec_(c: Smudge, m: Message):"

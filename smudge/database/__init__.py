@@ -1,15 +1,16 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import aiosqlite
-from config import DATABASE_PATH
 
 from smudge.utils.logger import log
+
+from ..config import config
 
 
 class Database:
     def __init__(self):
         self.conn: aiosqlite.Connection = None
-        self.path: str = DATABASE_PATH
+        self.path: str = config["DATABASE_PATH"]
         self.is_connected: bool = False
 
     async def connect(self):
@@ -22,6 +23,7 @@ class Database:
         CREATE TABLE IF NOT EXISTS users(
             id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'en_US',
+            lastfm_username TEXT,
             medias_captions INTEGER DEFAULT 0
         );
 

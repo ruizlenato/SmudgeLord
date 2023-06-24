@@ -5,7 +5,7 @@ __pycache__/
 .vscode
 
 # Config's files and useless stuff
-config.py
+config.json
 smudge/*.session*
 locales/*/*/*.mo
 *.db*
