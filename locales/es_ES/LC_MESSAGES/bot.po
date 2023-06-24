@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-06-09 22:12-0300\n"
-"PO-Revision-Date: 2023-06-10 01:51\n"
+"POT-Creation-Date: 2023-06-24 18:38-0300\n"
+"PO-Revision-Date: 2023-06-24 21:44\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -89,7 +89,7 @@ msgstr "🌎 ¡Ayúdanos con las traducciones!"
 
 #: smudge/plugins/locale.py:40 smudge/plugins/locale.py:65
 #: smudge/plugins/locale.py:67 smudge/plugins/medias.py:303
-#: smudge/plugins/start.py:91
+#: smudge/plugins/start.py:92
 msgid "↩️ Back"
 msgstr "↩️ Volver"
 
@@ -98,7 +98,7 @@ msgid "Select below the language you want to use the bot."
 msgstr "Selecciona debajo el idioma en el que quieres utilizar el bot."
 
 #: smudge/plugins/locale.py:54 smudge/plugins/medias.py:271
-#: smudge/plugins/start.py:105 smudge/plugins/start.py:107
+#: smudge/plugins/start.py:106 smudge/plugins/start.py:108
 msgid "You are not a group admin."
 msgstr ""
 
@@ -179,7 +179,7 @@ msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twi
 "<b>/ytdl —</b> Download videos from YouTube in video or audio format.\n"
 msgstr ""
 
-#: smudge/plugins/start.py:41 smudge/plugins/start.py:117
+#: smudge/plugins/start.py:41 smudge/plugins/start.py:118
 msgid "🌐Language"
 msgstr "🌐Idioma"
 
@@ -192,47 +192,91 @@ msgid "Hello <b>{}</b>! — I'm <b>SmudgeLord,</b> a bot with some useful and fu
 " 📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
 msgstr ""
 
-#: smudge/plugins/start.py:58
+#: smudge/plugins/start.py:59
 msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
 msgstr "¡Hola! Soy SmudgeLord. Para descubrir mis funciones comienza una conversación conmigo."
 
-#: smudge/plugins/start.py:79
+#: smudge/plugins/start.py:80
 msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
 msgstr "Aquí están todos mis plug-ins, para saber más sobre los plug-ins, <b>solo tienes que hacer clic en su nombre.</b>"
 
-#: smudge/plugins/start.py:93
+#: smudge/plugins/start.py:94
 msgid "<b>Avaliable Commands:</b>\n\n"
 msgstr "<b>Comandos disponibles:</b>\n\n"
 
-#: smudge/plugins/start.py:114
+#: smudge/plugins/start.py:115
 msgid "Medias"
 msgstr ""
 
-#: smudge/plugins/start.py:122
+#: smudge/plugins/start.py:123
 msgid "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
 msgstr ""
 
-#: smudge/plugins/stickers.py:18
+#: smudge/plugins/stickers.py:37
 msgid "Animated stickers are not supported yet!"
 msgstr "¡Las etiquetas animadas aún no están soportadas!"
 
-#: smudge/plugins/stickers.py:27
+#: smudge/plugins/stickers.py:46
 msgid "<b>Emoji:</b> {}\n"
 "<b>Sticker ID:</b> <code>{}</code>"
 msgstr "<b>Emoji:</b> {}\n"
 "<b>ID del Sticker:</b> <code>{}</code>"
 
-#: smudge/plugins/stickers.py:33
+#: smudge/plugins/stickers.py:52
 msgid "Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
 "<i>It only works with video and static stickers</i>"
 msgstr "Responde a un sticker utilizando este comando para que pueda enviártela como <b>png o gif</b>.\n"
 "<i>Solo funciona con stickers de vídeo y estáticas</i>"
 
-#: smudge/plugins/stickers.py:40
+#: smudge/plugins/stickers.py:62
+msgid "<code>Kanging (Stealing) the sticker...</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:93
+msgid "This sticker doesn't a have filename!"
+msgstr ""
+
+#: smudge/plugins/stickers.py:101
+msgid "<b>Erorr</b>: Invalid media!"
+msgstr ""
+
+#: smudge/plugins/stickers.py:127
+msgid "<b>You need to use this command replying a sticker or a photo.</b>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:139
+msgid "<code>Converting video/gif to sticker...</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:176
+msgid "<code>Using existing sticker pack...</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:191
+msgid "<code>Creating a new sticker package...</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:226
+msgid "Looks like you've never interacted with me on private chat, you need to do that first.\n"
+"Click the button below to send me a message."
+msgstr ""
+
+#: smudge/plugins/stickers.py:231
+msgid "Start"
+msgstr ""
+
+#: smudge/plugins/stickers.py:237
+msgid "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\n"
+"<b>Emoji:</b> {}"
+msgstr ""
+
+#: smudge/plugins/stickers.py:289
 msgid "Stickers"
 msgstr "Stickers"
 
-#: smudge/plugins/stickers.py:41
+#: smudge/plugins/stickers.py:290
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n"
 "<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n\n"
+"<b>/kang —</b> reply to a sticker to add it to your pack created by me.\n"
 msgstr ""
+
