@@ -4,13 +4,13 @@ import contextlib
 import io
 import json
 import re
+import uuid
 
 import esprima
 import filetype
 from bs4 import BeautifulSoup as bs
 from yt_dlp import YoutubeDL
 
-from ..config import config
 from .utils import aiowrap, http
 
 
@@ -112,32 +112,49 @@ class DownloadMedia:
         return
 
     async def Twitter(self, url: str, captions: str):
+        # Twitter Bearer Token
+        bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfb\
+DKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
         # Extract the tweet ID from the URL
         tweet_id = re.match(".*twitter.com/.+status/([A-Za-z0-9]+)", url)[1]
-        params: str = "?expansions=attachments.media_keys,author_id&media.fields=\
-type,variants,url,height,width&tweet.fields=entities"
-        # Send the request and parse the response as JSON
-        res = await http.get(
-            f"{self.TwitterAPI}tweets/{tweet_id}{params}",
-            headers={"Authorization": f"Bearer {config['BARRER_TOKEN']}"},
-        )
-        tweet = json.loads(res.content)
-        self.caption = f"<b>{tweet['includes']['users'][0]['name']}</b>\n{tweet['data']['text']}"
+        params: str = ".json?tweet_mode=extended&cards_platform=Web-12&include_cards=1\
+&include_user_entities=0"
+        csrfToken = str(uuid.uuid4()).replace("-", "")
+        res = (
+            await http.get(
+                f"https://api.twitter.com/1.1/statuses/show/{tweet_id}{params}",
+                headers={
+                    "Authorization": bearer,
+                    "Cookie": f"auth_token=ee4ebd1070835b90a9b8016d1e6c6130ccc89637;\
+ ct0={csrfToken};",
+                    "x-twitter-active-user": "yes",
+                    "x-twitter-auth-type": "OAuth2Session",
+                    "x-csrf-token": csrfToken,
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0)\
+ Gecko/20100101 Firefox/116.0",
+                },
+            )
+        ).json()
 
-        # Iterate over the media attachments in the tweet
-        for media in tweet["includes"]["media"]:
-            if media["type"] in ("animated_gif", "video"):
-                bitrate = [
-                    a["bit_rate"] for a in media["variants"] if a["content_type"] == "video/mp4"
-                ]
-                media["media_key"]
-                for a in media["variants"]:
-                    if a["content_type"] == "video/mp4" and a["bit_rate"] == max(bitrate):
-                        path = io.BytesIO((await http.get(a["url"])).content)
-                        path.name = f"{media['media_key']}.{filetype.guess_extension(path)}"
+        self.caption = f"<b>{res['user']['screen_name']}</b>\n{res['full_text']}"
+        for media in res["extended_entities"]["media"]:
+            width = media["original_info"]["width"]
+            height = media["original_info"]["height"]
+            if media["type"] == "photo":
+                path = io.BytesIO((await http.get(media["media_url_https"])).content)
+                path.name = f"{media['id_str']}.{filetype.guess_extension(path)}"
             else:
-                path = media["url"]
-            self.files.append({"p": path, "w": media["width"], "h": media["height"]})
+                bitrate = [
+                    a["bitrate"]
+                    for a in media["video_info"]["variants"]
+                    if a["content_type"] == "video/mp4"
+                ]
+                for a in media["video_info"]["variants"]:
+                    if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
+                        path = io.BytesIO((await http.get(a["url"])).content)
+                        path.name = f"{media['id_str']}.{filetype.guess_extension(path)}"
+
+        self.files.append({"p": path, "w": width, "h": height})
 
     async def TikTok(self, url: str, captions: str):
         path = io.BytesIO()
