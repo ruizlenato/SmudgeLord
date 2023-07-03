@@ -57,10 +57,22 @@ class DownloadMedia:
         return self.files, self.caption
 
     async def instagram(self, url: str, captions: str):
+        headers = {
+            "authority": "www.instagram.com",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "accept-language": "en-us,en;q=0.5",
+            "cache-control": "max-age=0",
+            "sec-fetch-mode": "cors",
+            "upgrade-insecure-requests": "1",
+            "referer": "https://www.instagram.com/",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0",  # noqa: E501
+            "viewport-width": "1280",
+        }
         post_id = re.findall(r"/(?:reel|p)/([a-zA-Z0-9_-]+)/", url)[0]
         r = await http.get(
             f"https://www.instagram.com/p/{post_id}/embed/captioned",
             follow_redirects=True,
+            headers=headers,
         )
         soup = bs(r.text, "html.parser")
         medias = []
@@ -76,7 +88,6 @@ class DownloadMedia:
             medias.append({"p": file, "w": 0, "h": 0})
 
         data = re.findall(r'<script>(requireLazy\(\["TimeSliceImpl".*)<\/script>', r.text)
-
         if data and "shortcode_media" in data[0]:
             tokenized = esprima.tokenize(data[0])
             for token in tokenized:
@@ -104,6 +115,24 @@ class DownloadMedia:
                             medias.append(
                                 {"p": url, "w": dimensions["width"], "h": dimensions["height"]}
                             )
+        else:
+            r = await http.get(
+                f"https://www.instagram.com/p/{post_id}/",
+                headers=headers,
+            )
+            soup = bs(r.text, "html.parser")
+            data = json.loads(soup.find("script", type="application/ld+json").contents[0])
+
+            if video := data["video"]:
+                if len(video) == 1:
+                    url = video[0]["contentUrl"]
+                    medias.append(
+                        {"p": url, "w": int(video[0]["width"]), "h": int(video[0]["height"])}
+                    )
+                else:
+                    for v in video:
+                        url = v["contentUrl"]
+                        medias.append({"p": url, "w": v["width"], "h": v["height"]})
 
         for m in medias:
             file = io.BytesIO((await http.get(m["p"])).content)
