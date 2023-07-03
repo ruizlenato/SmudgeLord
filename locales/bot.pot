@@ -304,4 +304,3 @@ msgid ""
 "\n"
 "<b>/kang —</b> reply to a sticker to add it to your pack created by me.\n"
 msgstr ""
-
