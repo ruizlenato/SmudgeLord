@@ -294,7 +294,7 @@ async def convert_video(file: str) -> str:
 __help_name__ = gettext.gettext("Stickers")
 __help_text__ = gettext.gettext(
     """<b>/getsticker —</b> reply to a sticker to me to upload the file as a
-<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n
+<b>png or gif</b> <i>(It only works with video and static stickers).</i>
 <b>/kang —</b> reply to a sticker to add it to your pack created by me.
 """
 )

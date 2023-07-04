@@ -83,6 +83,7 @@ Take a screenshot of the specified website"
 __help_name__ = gettext.gettext("Misc")
 __help_text__ = gettext.gettext(
     """<b>/print —</b> Take a screenshot of the specified website.
-<b>/tr —</b> Translates the text into the given language (the default is the user's default language).
-"""  # noqa: E501
+<b>/tr —</b> Translates the text into the given language \
+(the default is the user's default language).
+"""
 )
