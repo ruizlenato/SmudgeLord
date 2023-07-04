@@ -325,4 +325,3 @@ msgstr ""
 #: smudge/plugins/translate.py:82
 msgid "Translating…"
 msgstr ""
-
