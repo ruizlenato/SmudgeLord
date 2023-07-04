@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-06-24 18:38-0300\n"
-"PO-Revision-Date: 2023-06-24 21:44\n"
+"POT-Creation-Date: 2023-07-03 22:21-0300\n"
+"PO-Revision-Date: 2023-07-04 01:48\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -89,7 +89,7 @@ msgstr "🌎 ¡Ayúdanos con las traducciones!"
 
 #: smudge/plugins/locale.py:40 smudge/plugins/locale.py:65
 #: smudge/plugins/locale.py:67 smudge/plugins/medias.py:303
-#: smudge/plugins/start.py:92
+#: smudge/plugins/start.py:88
 msgid "↩️ Back"
 msgstr "↩️ Volver"
 
@@ -98,7 +98,7 @@ msgid "Select below the language you want to use the bot."
 msgstr "Selecciona debajo el idioma en el que quieres utilizar el bot."
 
 #: smudge/plugins/locale.py:54 smudge/plugins/medias.py:271
-#: smudge/plugins/start.py:106 smudge/plugins/start.py:108
+#: smudge/plugins/start.py:102 smudge/plugins/start.py:104
 msgid "You are not a group admin."
 msgstr ""
 
@@ -179,7 +179,28 @@ msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twi
 "<b>/ytdl —</b> Download videos from YouTube in video or audio format.\n"
 msgstr ""
 
-#: smudge/plugins/start.py:41 smudge/plugins/start.py:118
+#: smudge/plugins/misc.py:45 smudge/plugins/misc.py:53
+msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website"
+msgstr ""
+
+#: smudge/plugins/misc.py:60
+msgid "Taking screenshot…"
+msgstr ""
+
+#: smudge/plugins/misc.py:80
+msgid "Couldn't get url value, most probably API is not accessible."
+msgstr ""
+
+#: smudge/plugins/misc.py:83
+msgid "Misc"
+msgstr ""
+
+#: smudge/plugins/misc.py:84
+msgid "<b>/print —</b> Take a screenshot of the specified website.\n"
+"<b>/tr —</b> Take a screenshot of the specified website.\n"
+msgstr ""
+
+#: smudge/plugins/start.py:41 smudge/plugins/start.py:114
 msgid "🌐Language"
 msgstr "🌐Idioma"
 
@@ -196,19 +217,19 @@ msgstr ""
 msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
 msgstr "¡Hola! Soy SmudgeLord. Para descubrir mis funciones comienza una conversación conmigo."
 
-#: smudge/plugins/start.py:80
+#: smudge/plugins/start.py:76
 msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
 msgstr "Aquí están todos mis plug-ins, para saber más sobre los plug-ins, <b>solo tienes que hacer clic en su nombre.</b>"
 
-#: smudge/plugins/start.py:94
+#: smudge/plugins/start.py:90
 msgid "<b>Avaliable Commands:</b>\n\n"
 msgstr "<b>Comandos disponibles:</b>\n\n"
 
-#: smudge/plugins/start.py:115
+#: smudge/plugins/start.py:111
 msgid "Medias"
 msgstr ""
 
-#: smudge/plugins/start.py:123
+#: smudge/plugins/start.py:119
 msgid "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
 msgstr ""
 
@@ -279,3 +300,8 @@ msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n
 "<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n\n"
 "<b>/kang —</b> reply to a sticker to add it to your pack created by me.\n"
 msgstr ""
+
+#: smudge/plugins/translator.py:82
+msgid "Translating…"
+msgstr ""
+
