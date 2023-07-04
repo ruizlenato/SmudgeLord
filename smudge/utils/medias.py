@@ -121,7 +121,10 @@ class DownloadMedia:
                 headers=headers,
             )
             soup = bs(r.text, "html.parser")
-            data = json.loads(soup.find("script", type="application/ld+json").contents[0])
+            if content := soup.find("script", type="application/ld+json"):
+                data = json.loads(content.contents[0])
+            else:
+                return
 
             if video := data["video"]:
                 if len(video) == 1:
