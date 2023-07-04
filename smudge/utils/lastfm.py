@@ -9,6 +9,8 @@ from ..config import config
 
 
 class LastFM:
+    """This class is a Python interface to Last.fm API."""
+
     def __init__(self):
         self.api: str = "http://ws.audioscrobbler.com/2.0"
         self.api_key: str = config["LASTFM_API_KEY"]

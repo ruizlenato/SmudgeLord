@@ -6,7 +6,7 @@ import importlib
 
 from pyrogram import filters
 from pyrogram.enums import ChatType
-from pyrogram.helpers import ikb
+from pyrogram.helpers import array_chunk, ikb
 from pyrogram.types import CallbackQuery, Message
 
 from smudge.bot import Smudge
@@ -55,6 +55,7 @@ and fun commands for you.\n\n \
 📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
         ).format(union.from_user.first_name)
     else:
+        keyboard = [[("Start", f"https://t.me/{client.me.username}?start=start", "url")]]
         text = _(
             "Hello!, I'm SmudgeLord. I have a lot of functions, \
 to know more, start a conversation with me."
@@ -66,15 +67,12 @@ to know more, start a conversation with me."
 @locale()
 async def help_menu(client: Smudge, union: Message | CallbackQuery, _):
     reply_text = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
-    keyboard = [
-        [
-            (
-                _(help),
-                f"help-plugin {help}",
-            )
-            for help in HELPABLE
-        ],
-    ]
+    buttons: list = []
+    for help in HELPABLE:
+        buttons.append((_(help), f"help-plugin {help}"))
+
+    keyboard = array_chunk(buttons, 3)
+    # This will limit the row list to having 3 buttons only.
     await reply_text(
         _(
             "Here are all my plugins, to find out more about the plugins, \

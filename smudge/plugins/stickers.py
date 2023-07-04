@@ -283,6 +283,11 @@ async def convert_video(file: str) -> str:
 
     (stdout, stderr) = await process.communicate()
     os.remove(file)
+    # it is necessary to delete the video because
+    # ffmpeg used a saved file and not bytes,
+    # unfortunately it is not possible to convert
+    # the video or gif to webm in the telegram
+    # sticker video requirements with ffmpeg input in bytes
     return BytesIO(stdout)
 
 
