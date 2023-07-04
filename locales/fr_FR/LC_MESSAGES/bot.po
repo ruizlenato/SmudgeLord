@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-07-03 22:50-0300\n"
-"PO-Revision-Date: 2023-07-04 02:48\n"
+"POT-Creation-Date: 2023-07-03 23:56-0300\n"
+"PO-Revision-Date: 2023-07-04 02:57\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -79,7 +79,7 @@ msgstr ""
 msgid "Last.fm is an online service that offers various music-related features. You can record the music you listen to on different streaming platforms and thus create a personalized music profile, providing recommendations of songs and artists based on your tastes.\n\n\n"
 "<b>/setuser —</b> Sets your last.fm username.\n"
 "<b>/lastfm|/lt —</b> Shows the song you are scrobbling on last.fm.\n"
-"<b>/lalbum|/lalb -</b> Shows the album you are scrobbling on last.fm.\n"
+"<b>/lalbum|/lalb —</b> Shows the album you are scrobbling on last.fm.\n"
 "<b>/lartist|/lart —</b> Shows the artist you are scrobbling on last.fm.\n"
 msgstr ""
 
@@ -165,8 +165,8 @@ msgid "<b>Media Download Settings.</b>\n"
 "To know what each button does, click on the button with the name of the setting."
 msgstr ""
 
-#: smudge/plugins/medias.py:314
-msgid "Videos"
+#: smudge/plugins/medias.py:314 smudge/plugins/start.py:112
+msgid "Medias"
 msgstr ""
 
 #: smudge/plugins/medias.py:315
@@ -175,7 +175,7 @@ msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twi
 msgstr ""
 
 #: smudge/plugins/misc.py:45 smudge/plugins/misc.py:53
-msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website"
+msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website."
 msgstr ""
 
 #: smudge/plugins/misc.py:60
@@ -220,10 +220,6 @@ msgstr ""
 msgid "<b>Avaliable Commands:</b>\n\n"
 msgstr ""
 
-#: smudge/plugins/start.py:112
-msgid "Medias"
-msgstr ""
-
 #: smudge/plugins/start.py:120
 msgid "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
 msgstr ""
@@ -251,7 +247,7 @@ msgid "This sticker doesn't a have filename!"
 msgstr ""
 
 #: smudge/plugins/stickers.py:101
-msgid "<b>Erorr</b>: Invalid media!"
+msgid "<b>Error</b>: Invalid media!"
 msgstr ""
 
 #: smudge/plugins/stickers.py:127
