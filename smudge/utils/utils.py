@@ -3,8 +3,10 @@
 import asyncio
 import math
 import re
+import uuid
 from collections.abc import Callable
 from functools import partial, wraps
+from json import JSONDecodeError
 
 import httpx
 from pyrogram import emoji
@@ -46,6 +48,35 @@ def get_emoji_regex():
     # matched first
     pattern_ = f"({'|'.join(e_sort)})"
     return re.compile(pattern_)
+
+
+async def screenshot_page(target_url: str) -> str:
+    """This function is used to get a screenshot of a website using htmlcsstoimage.com API.
+
+    :param target_url: The URL of the website to get a screenshot of.
+    :return: The URL of the screenshot.
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:108.0) Gecko/20100101 Firefox/108.0",
+    }
+
+    data = {
+        "url": target_url,
+        # Sending a random CSS to make the API to generate a new screenshot.
+        "css": f"random-tag: {uuid.uuid4()}",
+        "render_when_ready": False,
+        "viewport_width": 1366,
+        "viewport_height": 768,
+        "device_scale": 1,
+    }
+
+    try:
+        resp = await http.post("https://htmlcsstoimage.com/demo_run", headers=headers, json=data)
+        return resp.json()["url"]
+    except (JSONDecodeError, KeyError) as e:
+        raise Exception("Screenshot API returned an invalid response.") from e
+    except httpx.HTTPError as e:
+        raise Exception("Screenshot API seems offline. Try again later.") from e
 
 
 EMOJI_PATTERN = get_emoji_regex()

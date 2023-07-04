@@ -20,6 +20,7 @@ humanize = "^4.6.0"
 beautifulsoup4 = "^4.12.2"
 esprima = "^4.0.1"
 pillow = "^9.5.0"
+gpytranslate = "^1.5.1"
 
 [tool.ruff]
 line-length = 99
