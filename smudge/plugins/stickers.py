@@ -98,7 +98,7 @@ async def kang(client: Smudge, message: Message, _):
             if not message.reply_to_message.sticker.file_name.endswith(".tgs"):
                 resize = True
         else:
-            return await progress_mesage.edit_text(_("<b>Erorr</b>: Invalid media!"))
+            return await progress_mesage.edit_text(_("<b>Error</b>: Invalid media!"))
 
         pack_prefix = "anim" if animated else "vid" if videos else "a"
         packname = f"{pack_prefix}_{message.from_user.id}_by_{client.me.username}"

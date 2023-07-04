@@ -179,7 +179,7 @@ __help_text__ = gettext.gettext(
 , providing recommendations of songs and artists based on your tastes.\n\n
 <b>/setuser —</b> Sets your last.fm username.
 <b>/lastfm|/lt —</b> Shows the song you are scrobbling on last.fm.
-<b>/lalbum|/lalb -</b> Shows the album you are scrobbling on last.fm.
+<b>/lalbum|/lalb —</b> Shows the album you are scrobbling on last.fm.
 <b>/lartist|/lart —</b> Shows the artist you are scrobbling on last.fm.
 """
 )

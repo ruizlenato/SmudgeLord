@@ -44,7 +44,7 @@ async def prints(client: Smudge, message: Message, _):
                 await message.reply_text(
                     _(
                         "<b>Usage:</b> <code>/print https://example.com</code> — \
-Take a screenshot of the specified website"
+Take a screenshot of the specified website."
                     )
                 )
                 return
@@ -52,7 +52,7 @@ Take a screenshot of the specified website"
             await message.reply_text(
                 _(
                     "<b>Usage:</b> <code>/print https://example.com</code> — \
-Take a screenshot of the specified website"
+Take a screenshot of the specified website."
                 )
             )
             return

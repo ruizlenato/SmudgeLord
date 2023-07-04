@@ -311,7 +311,7 @@ click on the button with the name of the setting."
     )
 
 
-__help_name__ = gettext.gettext("Videos")
+__help_name__ = gettext.gettext("Medias")
 __help_text__ = gettext.gettext(
     """<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twitter.</i></b>
 <b>/ytdl —</b> Download videos from YouTube in video or audio format.
