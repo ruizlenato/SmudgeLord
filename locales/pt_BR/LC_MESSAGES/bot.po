@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2023-07-03 23:56-0300\n"
-"PO-Revision-Date: 2023-07-04 02:57\n"
+"PO-Revision-Date: 2023-07-04 02:58\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -86,7 +86,11 @@ msgid "Last.fm is an online service that offers various music-related features. 
 "<b>/lastfm|/lt —</b> Shows the song you are scrobbling on last.fm.\n"
 "<b>/lalbum|/lalb —</b> Shows the album you are scrobbling on last.fm.\n"
 "<b>/lartist|/lart —</b> Shows the artist you are scrobbling on last.fm.\n"
-msgstr ""
+msgstr "Last.fm é um serviço on-line que oferece vários recursos relacionados à música. Você pode rastrear a música que você escuta em diferentes plataformas de streaming e assim criar um perfil de música personalizado. dando recomendações de músicas e artistas com base em seus gostos.\n\n\n"
+"<b>/setuser —</b> Configura seu nome de usuario do last.fm.\n"
+"<b>/lastfm|/lt —</b> Mostra a música que você está ou estava scrobblando (escutando) no last.fm.\n"
+"<b>/lalbum|/lalb —</b> O mesmo que o de cima só que com álbum.\n"
+"<b>/lartist|/lart —</b> O mesmo que o de cima só que com artista.\n"
 
 #: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
@@ -189,7 +193,7 @@ msgstr "<b>/dl|/sdl —</b> Baixa vídeos do <b><i>Instagram, TikTok e Twitter.<
 
 #: smudge/plugins/misc.py:45 smudge/plugins/misc.py:53
 msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website."
-msgstr ""
+msgstr "<b>Uso:</b> <code>/print https://example.com</code> — Tira uma captura de tela do site especificado."
 
 #: smudge/plugins/misc.py:60
 msgid "Taking screenshot…"
@@ -266,7 +270,7 @@ msgstr "Este sticker não possui um nome de arquivo!"
 
 #: smudge/plugins/stickers.py:101
 msgid "<b>Error</b>: Invalid media!"
-msgstr ""
+msgstr "<b>Erro</b>: Mídia inválida!"
 
 #: smudge/plugins/stickers.py:127
 msgid "<b>You need to use this command replying a sticker or a photo.</b>"
