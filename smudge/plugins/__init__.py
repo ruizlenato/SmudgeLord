@@ -28,7 +28,7 @@ async def check_chat(client: Smudge, message: Message):
     try:
         language_code = str(Locale.parse(user.language_code, sep="-"))
 
-    except AttributeError:
+    except (AttributeError, TypeError):
         language_code: str = "en_US"
 
     if language_code not in Languages:
