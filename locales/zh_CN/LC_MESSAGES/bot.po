@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-07-03 22:21-0300\n"
-"PO-Revision-Date: 2023-07-04 01:48\n"
+"POT-Creation-Date: 2023-07-03 22:50-0300\n"
+"PO-Revision-Date: 2023-07-04 02:48\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -89,7 +89,7 @@ msgstr ""
 
 #: smudge/plugins/locale.py:40 smudge/plugins/locale.py:65
 #: smudge/plugins/locale.py:67 smudge/plugins/medias.py:303
-#: smudge/plugins/start.py:88
+#: smudge/plugins/start.py:89
 msgid "↩️ Back"
 msgstr ""
 
@@ -98,7 +98,7 @@ msgid "Select below the language you want to use the bot."
 msgstr ""
 
 #: smudge/plugins/locale.py:54 smudge/plugins/medias.py:271
-#: smudge/plugins/start.py:102 smudge/plugins/start.py:104
+#: smudge/plugins/start.py:103 smudge/plugins/start.py:105
 msgid "You are not a group admin."
 msgstr ""
 
@@ -192,10 +192,10 @@ msgstr ""
 
 #: smudge/plugins/misc.py:84
 msgid "<b>/print —</b> Take a screenshot of the specified website.\n"
-"<b>/tr —</b> Take a screenshot of the specified website.\n"
+"<b>/tr —</b> Translates the text into the given language (the default is the user's default language).\n"
 msgstr ""
 
-#: smudge/plugins/start.py:41 smudge/plugins/start.py:114
+#: smudge/plugins/start.py:41 smudge/plugins/start.py:115
 msgid "🌐Language"
 msgstr ""
 
@@ -212,19 +212,19 @@ msgstr ""
 msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
 msgstr ""
 
-#: smudge/plugins/start.py:76
+#: smudge/plugins/start.py:77
 msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
 msgstr ""
 
-#: smudge/plugins/start.py:90
+#: smudge/plugins/start.py:91
 msgid "<b>Avaliable Commands:</b>\n\n"
 msgstr ""
 
-#: smudge/plugins/start.py:111
+#: smudge/plugins/start.py:112
 msgid "Medias"
 msgstr ""
 
-#: smudge/plugins/start.py:119
+#: smudge/plugins/start.py:120
 msgid "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
 msgstr ""
 
@@ -284,17 +284,17 @@ msgid "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check o
 "<b>Emoji:</b> {}"
 msgstr ""
 
-#: smudge/plugins/stickers.py:289
+#: smudge/plugins/stickers.py:294
 msgid "Stickers"
 msgstr ""
 
-#: smudge/plugins/stickers.py:290
+#: smudge/plugins/stickers.py:295
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n"
-"<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n\n"
+"<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 "<b>/kang —</b> reply to a sticker to add it to your pack created by me.\n"
 msgstr ""
 
-#: smudge/plugins/translator.py:82
+#: smudge/plugins/translate.py:82
 msgid "Translating…"
 msgstr ""
 
