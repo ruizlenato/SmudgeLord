@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-07-03 22:50-0300\n"
-"PO-Revision-Date: 2023-07-04 02:48\n"
+"POT-Creation-Date: 2023-07-03 23:56-0300\n"
+"PO-Revision-Date: 2023-07-04 02:57\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -84,13 +84,9 @@ msgstr "LastFM"
 msgid "Last.fm is an online service that offers various music-related features. You can record the music you listen to on different streaming platforms and thus create a personalized music profile, providing recommendations of songs and artists based on your tastes.\n\n\n"
 "<b>/setuser —</b> Sets your last.fm username.\n"
 "<b>/lastfm|/lt —</b> Shows the song you are scrobbling on last.fm.\n"
-"<b>/lalbum|/lalb -</b> Shows the album you are scrobbling on last.fm.\n"
+"<b>/lalbum|/lalb —</b> Shows the album you are scrobbling on last.fm.\n"
 "<b>/lartist|/lart —</b> Shows the artist you are scrobbling on last.fm.\n"
-msgstr "Last.fm é um serviço on-line que oferece vários recursos relacionados à música. Você pode rastrear a música que você escuta em diferentes plataformas de streaming e assim criar um perfil de música personalizado. dando recomendações de músicas e artistas com base em seus gostos.\n\n\n"
-"<b>/setuser —</b> Configura seu nome de usuario do last.fm.\n"
-"<b>/lastfm|/lt —</b> Mostra a música que você está ou estava scrobblando (escutando) no last.fm.\n"
-"<b>/lalbum|/lalb —</b> O mesmo que o de cima só que com álbum.\n"
-"<b>/lartist|/lart —</b> O mesmo que o de cima só que com artista.\n"
+msgstr ""
 
 #: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
@@ -178,12 +174,12 @@ msgid "<b>Media Download Settings.</b>\n"
 "<i>To learn more about the <b>'media'</b> module, use <code>/help<code> in my dm.</i>\n\n"
 "To know what each button does, click on the button with the name of the setting."
 msgstr "<b>Configurações de download de mídia.</b>\n"
-"<i>Para saber mais sobre o módulo <b>'mídias'</b> , use <code>/help<code> em meu chat privado.</i>\n\n"
+"<i>Para saber mais sobre o módulo <b>'mídias'</b>, use <code>/help<code> em meu chat privado.</i>\n\n"
 "Para saber o que cada botão faz, clique no botão com o nome da configuração."
 
-#: smudge/plugins/medias.py:314
-msgid "Videos"
-msgstr "Vídeos"
+#: smudge/plugins/medias.py:314 smudge/plugins/start.py:112
+msgid "Medias"
+msgstr "Mídias"
 
 #: smudge/plugins/medias.py:315
 msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twitter.</i></b>\n"
@@ -192,8 +188,8 @@ msgstr "<b>/dl|/sdl —</b> Baixa vídeos do <b><i>Instagram, TikTok e Twitter.<
 "<b>/ytdl —</b> Baixa vídeos do YouTube em formato de vídeo ou áudio.\n"
 
 #: smudge/plugins/misc.py:45 smudge/plugins/misc.py:53
-msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website"
-msgstr "<b>Uso:</b> <code>/print https://example.com</code> — Tira uma captura de tela do site especificado."
+msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website."
+msgstr ""
 
 #: smudge/plugins/misc.py:60
 msgid "Taking screenshot…"
@@ -224,7 +220,7 @@ msgstr "❓Ajuda"
 #: smudge/plugins/start.py:52
 msgid "Hello <b>{}</b>! — I'm <b>SmudgeLord,</b> a bot with some useful and fun commands for you.\n\n"
 " 📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
-msgstr "Olá <b>{}</b>— Sou <b>SmudgeLord,</b> um bot com alguns comandos úteis e divertidos para você.\n\n"
+msgstr "Olá <b>{}</b>! — Sou <b>SmudgeLord,</b> um bot com alguns comandos úteis e divertidos para você.\n\n"
 " 📦 <b>Código Fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
 
 #: smudge/plugins/start.py:59
@@ -239,10 +235,6 @@ msgstr "Aqui estão todos os meus plugins, para saber mais sobre os plugins, <b>
 #: smudge/plugins/start.py:91
 msgid "<b>Avaliable Commands:</b>\n\n"
 msgstr "<b>Comandos disponíveis:</b>\n\n"
-
-#: smudge/plugins/start.py:112
-msgid "Medias"
-msgstr "Mídias"
 
 #: smudge/plugins/start.py:120
 msgid "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
@@ -273,8 +265,8 @@ msgid "This sticker doesn't a have filename!"
 msgstr "Este sticker não possui um nome de arquivo!"
 
 #: smudge/plugins/stickers.py:101
-msgid "<b>Erorr</b>: Invalid media!"
-msgstr "<b>Erro</b>: Mídia inválida!"
+msgid "<b>Error</b>: Invalid media!"
+msgstr ""
 
 #: smudge/plugins/stickers.py:127
 msgid "<b>You need to use this command replying a sticker or a photo.</b>"
@@ -300,7 +292,7 @@ msgstr "Parece que você nunca interagiu comigo no chat privado, você precisa f
 
 #: smudge/plugins/stickers.py:231
 msgid "Start"
-msgstr "Iníciar"
+msgstr "Iniciar"
 
 #: smudge/plugins/stickers.py:237
 msgid "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\n"
@@ -316,9 +308,11 @@ msgstr "Stickers"
 msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n"
 "<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
 "<b>/kang —</b> reply to a sticker to add it to your pack created by me.\n"
-msgstr ""
+msgstr "<b>/getsticker —</b> responda a um sticker para eu fazer o upload do arquivo como um\n"
+"<b>png ou gif</b> <i>(Funciona apenas com vídeo e adesivos estáticos).</i>\n"
+"<b>/kang —</b> responda a um sticker para adicioná-lo ao seu pacote criado por mim.\n"
 
 #: smudge/plugins/translate.py:82
 msgid "Translating…"
-msgstr ""
+msgstr "Traduzindo…"
 
