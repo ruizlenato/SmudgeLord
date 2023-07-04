@@ -55,6 +55,8 @@ async def reply_afk(client: Smudge, message: Message, _):
                 user = ent.user
             elif ent.type == MessageEntityType.BOT_COMMAND:
                 return None
+            else:
+                return None
 
             await check_afk(message, user.id, user.first_name, _)
 
