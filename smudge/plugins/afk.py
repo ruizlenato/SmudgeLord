@@ -5,12 +5,13 @@ from datetime import datetime
 
 import humanize
 from pyrogram import filters
-from pyrogram.enums import ChatType, MessageEntityType
+from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
 
 from smudge.bot import Smudge
 from smudge.database.afk import is_afk, rm_afk, set_afk
 from smudge.database.locale import get_db_lang
+from smudge.database.users import get_user_data_from_username
 from smudge.utils.locale import locale
 
 
@@ -50,8 +51,13 @@ async def reply_afk(client: Smudge, message: Message, _):
     if message.entities:
         for ent in message.entities:
             if ent.type == MessageEntityType.MENTION:
-                user = await client.get_chat(message.text[ent.offset : ent.offset + ent.length])
-                if user.type != ChatType.PRIVATE:
+                if data := (
+                    await get_user_data_from_username(
+                        message.text[ent.offset : ent.offset + ent.length]
+                    )
+                ):
+                    user = await client.get_chat(data["id"])
+                else:
                     return None
             elif ent.type == MessageEntityType.TEXT_MENTION:
                 user = ent.user

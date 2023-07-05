@@ -12,6 +12,13 @@ async def get_user_data(id: int):
     return row
 
 
+async def get_user_data_from_username(username: str):
+    cursor = await conn.execute("SELECT * FROM users WHERE username = ?", (username,))
+    row = await cursor.fetchone()
+    await cursor.close()
+    return row
+
+
 async def register_user(id: int, language: str, username: str):
     await conn.execute(
         "INSERT INTO users (id, language, username) values (?, ?, ?)", (id, language, username)
