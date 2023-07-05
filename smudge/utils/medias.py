@@ -59,13 +59,15 @@ class DownloadMedia:
     async def instagram(self, url: str, captions: str):
         headers = {
             "authority": "www.instagram.com",
-            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "accept-language": "en-us,en;q=0.5",
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp\
+,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "accept-language": "en-US,en;q=0.9",
             "cache-control": "max-age=0",
-            "sec-fetch-mode": "cors",
+            "sec-fetch-mode": "navigate",
             "upgrade-insecure-requests": "1",
             "referer": "https://www.instagram.com/",
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/114.0",  # noqa: E501
+            "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 \
+(KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36",
             "viewport-width": "1280",
         }
         post_id = re.findall(r"/(?:reel|p)/([a-zA-Z0-9_-]+)/", url)[0]
