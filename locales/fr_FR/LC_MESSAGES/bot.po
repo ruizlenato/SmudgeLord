@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-07-03 23:56-0300\n"
-"PO-Revision-Date: 2023-07-04 02:57\n"
+"POT-Creation-Date: 2023-07-05 19:47-0300\n"
+"PO-Revision-Date: 2023-07-05 22:51\n"
 "Last-Translator: \n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -18,20 +18,20 @@ msgstr ""
 "X-Crowdin-File-ID: 27\n"
 "Language: fr_FR\n"
 
-#: smudge/plugins/afk.py:36
-msgid "<b><a href='tg://user?id={}'>{}</a></b> is now unavailable!"
+#: smudge/plugins/afk.py:38
+msgid "<b>{}</b> is now unavailable!"
 msgstr ""
 
-#: smudge/plugins/afk.py:77
+#: smudge/plugins/afk.py:89
 msgid "<b><a href='tg://user?id={}'>{}</a></b> is back!"
 msgstr ""
 
-#: smudge/plugins/afk.py:91
+#: smudge/plugins/afk.py:103
 msgid "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b> \n"
 "<i>Last seen<code> {}</code> ago</i>"
 msgstr ""
 
-#: smudge/plugins/afk.py:96
+#: smudge/plugins/afk.py:108
 msgid "<b>\n"
 "Reason:</b> <code>{}</code>"
 msgstr ""
@@ -291,6 +291,10 @@ msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n
 msgstr ""
 
 #: smudge/plugins/translate.py:82
+msgid "<b>Usage:</b> <code>/tr language text for translation</code> (Can be also used in reply to a message)."
+msgstr ""
+
+#: smudge/plugins/translate.py:87
 msgid "Translating…"
 msgstr ""
 
