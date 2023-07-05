@@ -95,7 +95,7 @@ async def kang(client: Smudge, message: Message, _):
                 emoji = message.reply_to_message.sticker.emoji
             animated = message.reply_to_message.sticker.is_animated
             videos = message.reply_to_message.sticker.is_video
-            if not message.reply_to_message.sticker.file_name.endswith(".tgs"):
+            if not message.reply_to_message.sticker.file_name.endswith(".tgs") and not videos:
                 resize = True
         else:
             return await progress_mesage.edit_text(_("<b>Error</b>: Invalid media!"))
