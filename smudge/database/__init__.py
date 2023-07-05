@@ -24,7 +24,8 @@ class Database:
             id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'en_US',
             lastfm_username TEXT,
-            medias_captions INTEGER DEFAULT 0
+            medias_captions INTEGER DEFAULT 0,
+            username TEXT
         );
 
         CREATE TABLE IF NOT EXISTS chats(

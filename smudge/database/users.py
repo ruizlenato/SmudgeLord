@@ -12,11 +12,18 @@ async def get_user_data(id: int):
     return row
 
 
-async def register_user(id: int, language: str):
-    await conn.execute("INSERT INTO users (id, language) values (?, ?)", (id, language))
+async def register_user(id: int, language: str, username: str):
+    await conn.execute(
+        "INSERT INTO users (id, language, username) values (?, ?, ?)", (id, language, username)
+    )
     await conn.commit()
 
 
-async def register_lastfm(user_id: int, username: str):
-    await conn.execute("UPDATE users SET lastfm_username = ? WHERE id = ?", (username, user_id))
+async def update_username(id: int, username: str):
+    await conn.execute("UPDATE users SET username = ? WHERE id = ?", (username, id))
+    await conn.commit()
+
+
+async def register_lastfm(id: int, username: str):
+    await conn.execute("UPDATE users SET lastfm_username = ? WHERE id = ?", (username, id))
     await conn.commit()
