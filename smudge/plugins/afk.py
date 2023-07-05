@@ -15,7 +15,7 @@ from smudge.database.users import get_user_data_from_username
 from smudge.utils.locale import locale
 
 
-@Smudge.on_message(filters.command("afk") | filters.regex(r"(?i)^\bbrb\b(\s(?P<args>.+))?"))
+@Smudge.on_message(filters.command("afk") | filters.regex(r"(?i)\bbrb(\s(?P<args>.+))?"))
 @locale()
 async def afk(client: Smudge, message: Message, _):
     if not message.from_user:
@@ -26,7 +26,7 @@ async def afk(client: Smudge, message: Message, _):
         return
 
     if matches := message.matches and message.matches[0]["args"]:
-        reason = matches[0]["args"]
+        reason = matches
     elif len(message.command) > 1:
         reason = message.text.split(None, 1)[1]
     else:
