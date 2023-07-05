@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2023-07-05 19:47-0300\n"
-"PO-Revision-Date: 2023-07-05 22:51\n"
+"PO-Revision-Date: 2023-07-05 22:54\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -20,11 +20,11 @@ msgstr ""
 
 #: smudge/plugins/afk.py:38
 msgid "<b>{}</b> is now unavailable!"
-msgstr ""
+msgstr "<b>{}</b> não está disponível!"
 
 #: smudge/plugins/afk.py:89
 msgid "<b><a href='tg://user?id={}'>{}</a></b> is back!"
-msgstr "<b><a href='tg://user?id={}'>{}</a></b> está volta!"
+msgstr "<b><a href='tg://user?id={}'>{}</a></b> está de volta!"
 
 #: smudge/plugins/afk.py:103
 msgid "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b> \n"
@@ -318,7 +318,7 @@ msgstr "<b>/getsticker —</b> responda a um sticker para eu fazer o upload do a
 
 #: smudge/plugins/translate.py:82
 msgid "<b>Usage:</b> <code>/tr language text for translation</code> (Can be also used in reply to a message)."
-msgstr ""
+msgstr "<b>Uso:</b> <code>/tr idioma texto para tradução</code> (Também pode ser usado em resposta a uma mensagem)."
 
 #: smudge/plugins/translate.py:87
 msgid "Translating…"
