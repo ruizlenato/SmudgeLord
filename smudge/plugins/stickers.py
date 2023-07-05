@@ -160,7 +160,7 @@ sticker or a photo.</b>"
         ufile = await client.save_file(file)
         media = await client.invoke(
             SendMedia(
-                peer=(await client.resolve_peer(config["LOG_CHAT"])),
+                peer=(await client.resolve_peer(int(config["LOG_CHAT"]))),
                 media=InputMediaUploadedDocument(
                     file=ufile,
                     mime_type=filetype.guess_mime(file),

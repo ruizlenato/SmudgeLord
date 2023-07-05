@@ -5,6 +5,7 @@
     "SUDOERS": [
         1032274246
     ],
+    "LOG_CHAT": "",
     "IPV6": "True",
     "WORKERS": "24",
     "DATABASE_PATH": "smudge/database/database.db",
