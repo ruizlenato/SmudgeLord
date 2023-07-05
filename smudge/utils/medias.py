@@ -8,9 +8,11 @@ import uuid
 
 import esprima
 import filetype
+import httpx
 from bs4 import BeautifulSoup as bs
 from yt_dlp import YoutubeDL
 
+from ..config import config
 from .utils import aiowrap, http
 
 
@@ -70,11 +72,22 @@ class DownloadMedia:
 (KHTML, like Gecko) Chrome/100.0.4896.60 Safari/537.36",
             "viewport-width": "1280",
         }
+
         post_id = re.findall(r"/(?:reel|p)/([a-zA-Z0-9_-]+)/", url)[0]
-        r = await http.get(
+
+        if (await http.get("https://www.instagram.com/")).status_code != 200:
+            for proxy in config["PROXIES"]:
+                http_client = httpx.AsyncClient(proxies=proxy)
+                response = await http_client.get("https://www.instagram.com/")
+                if response.status_code == 200:
+                    break
+        else:
+            http_client = http
+
+        r = await http_client.get(
             f"https://www.instagram.com/p/{post_id}/embed/captioned",
-            follow_redirects=True,
             headers=headers,
+            follow_redirects=True,
         )
         soup = bs(r.text, "html.parser")
         medias = []
@@ -118,7 +131,7 @@ class DownloadMedia:
                                 {"p": url, "w": dimensions["width"], "h": dimensions["height"]}
                             )
         else:
-            r = await http.get(
+            r = await http_client.get(
                 f"https://www.instagram.com/p/{post_id}/",
                 headers=headers,
             )
@@ -140,7 +153,7 @@ class DownloadMedia:
                         medias.append({"p": url, "w": v["width"], "h": v["height"]})
 
         for m in medias:
-            file = io.BytesIO((await http.get(m["p"])).content)
+            file = io.BytesIO((await http_client.get(m["p"])).content)
             file.name = f"{m['p'][60:80]}.{filetype.guess_extension(file)}"
             self.files.append({"p": file, "w": m["w"], "h": m["h"]})
         return

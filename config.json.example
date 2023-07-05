@@ -8,5 +8,8 @@
     "IPV6": "True",
     "WORKERS": "24",
     "DATABASE_PATH": "smudge/database/database.db",
-    "LASTFM_API_KEY": ""
+    "LASTFM_API_KEY": "",
+    "PROXIES": [
+        ""
+    ]
 }

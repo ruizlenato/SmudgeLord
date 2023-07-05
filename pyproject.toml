@@ -13,7 +13,7 @@ TgCrypto = "^1.2.5"
 uvloop = "^0.17.0"
 aiosqlite = "^0.19.0"
 yt-dlp = "^2023.3.4"
-httpx = {extras = ["http2"], version = "^0.24.0"}
+httpx = {extras = ["http2", "socks"], version = "^0.24.1"}
 babel = "^2.12.1"
 filetype = "^1.2.0"
 humanize = "^4.6.0"
