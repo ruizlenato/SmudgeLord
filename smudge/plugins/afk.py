@@ -5,7 +5,7 @@ from datetime import datetime
 
 import humanize
 from pyrogram import filters
-from pyrogram.enums import MessageEntityType
+from pyrogram.enums import ChatType, MessageEntityType
 from pyrogram.types import Message
 
 from smudge.bot import Smudge
@@ -50,7 +50,9 @@ async def reply_afk(client: Smudge, message: Message, _):
     if message.entities:
         for ent in message.entities:
             if ent.type == MessageEntityType.MENTION:
-                user = await client.get_users(message.text[ent.offset : ent.offset + ent.length])
+                user = await client.get_chat(message.text[ent.offset : ent.offset + ent.length])
+                if user.type != ChatType.PRIVATE:
+                    return None
             elif ent.type == MessageEntityType.TEXT_MENTION:
                 user = ent.user
             elif ent.type == MessageEntityType.BOT_COMMAND:
