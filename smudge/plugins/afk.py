@@ -6,6 +6,7 @@ from datetime import datetime
 import humanize
 from pyrogram import filters
 from pyrogram.enums import MessageEntityType
+from pyrogram.errors.exceptions import PeerIdInvalid
 from pyrogram.types import Message
 
 from smudge.bot import Smudge
@@ -34,9 +35,7 @@ async def afk(client: Smudge, message: Message, _):
 
     await set_afk(message.from_user.id, reason)
     await message.reply_text(
-        _("<b><a href='tg://user?id={}'>{}</a></b> is now unavailable!").format(
-            message.from_user.id, message.from_user.first_name
-        )
+        _("<b>{}</b> is now unavailable!").format(message.from_user.first_name)
     )
 
 
@@ -56,7 +55,10 @@ async def reply_afk(client: Smudge, message: Message, _):
                         message.text[ent.offset : ent.offset + ent.length]
                     )
                 ):
-                    user = await client.get_chat(data["id"])
+                    try:
+                        user = await client.get_chat(int(data["id"]))
+                    except PeerIdInvalid:
+                        return None
                 else:
                     return None
             elif ent.type == MessageEntityType.TEXT_MENTION:

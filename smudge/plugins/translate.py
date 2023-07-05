@@ -78,7 +78,12 @@ async def translate(client: Smudge, message: Message, _):
         text = message.reply_to_message.text or message.reply_to_message.caption
 
     if not text:
-        return await message.reply_text(_(""))
+        return await message.reply_text(
+            _(
+                "<b>Usage:</b> <code>/tr language text for translation\
+</code> (Can be also used in reply to a message)."
+            )
+        )
     sent = await message.reply_text(_("Translating…"))
     langs = {}
 
