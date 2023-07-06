@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-07-05 19:47-0300\n"
-"PO-Revision-Date: 2023-07-05 23:56\n"
+"POT-Creation-Date: 2023-07-06 12:08-0300\n"
+"PO-Revision-Date: 2023-07-06 15:17\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "MIME-Version: 1.0\n"
@@ -158,15 +158,13 @@ msgstr "Enviando..."
 
 #: smudge/plugins/medias.py:195
 msgid "<b>System glitch someone disconnected me.</b>\n"
-"The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
-msgstr "<b>Fallo del sistema alguien me desconectó.</b>\n"
-"El enlace que has enviado no es válido, actualmente solo admito enlaces de TikTok, Twitter e Instagram."
+"The link you sent is invalid, currently I only support links from TikTok, Threads, Twitter and Instagram."
+msgstr ""
 
 #: smudge/plugins/medias.py:204
 msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
-"Specify a link from Instagram, TikTok or Twitter so I can download the video."
-msgstr "<b>Uso:</b> <code>/dl [link]</code>\n\n"
-"Especifica un enlace de Instagram, TikTok o Twitter para que pueda descargar el vídeo."
+"Specify a link from Instagram, TikTok, Threads or Twitter so I can download the video."
+msgstr ""
 
 #: smudge/plugins/medias.py:285
 msgid "Captions:"
@@ -189,10 +187,9 @@ msgid "Medias"
 msgstr "Multimedia"
 
 #: smudge/plugins/medias.py:315
-msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twitter.</i></b>\n"
+msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok, Threads and Twitter.</i></b>\n"
 "<b>/ytdl —</b> Download videos from YouTube in video or audio format.\n"
-msgstr "<b>/dl|/sdl —</b> Descargue vídeos de <b><i>Instagram, TikTok y Twitter.</i></b>\n"
-"<b>/ytdl —</b> Descargar vídeos de YouTube en formato de vídeo o audio.\n"
+msgstr ""
 
 #: smudge/plugins/misc.py:45 smudge/plugins/misc.py:53
 msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website."
