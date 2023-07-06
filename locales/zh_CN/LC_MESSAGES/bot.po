@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-07-05 19:47-0300\n"
-"PO-Revision-Date: 2023-07-05 22:51\n"
+"POT-Creation-Date: 2023-07-06 12:08-0300\n"
+"PO-Revision-Date: 2023-07-06 15:17\n"
 "Last-Translator: \n"
 "Language-Team: Chinese Simplified\n"
 "MIME-Version: 1.0\n"
@@ -143,12 +143,12 @@ msgstr ""
 
 #: smudge/plugins/medias.py:195
 msgid "<b>System glitch someone disconnected me.</b>\n"
-"The link you sent is invalid, currently I only support links from TikTok, Twitter and Instagram."
+"The link you sent is invalid, currently I only support links from TikTok, Threads, Twitter and Instagram."
 msgstr ""
 
 #: smudge/plugins/medias.py:204
 msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
-"Specify a link from Instagram, TikTok or Twitter so I can download the video."
+"Specify a link from Instagram, TikTok, Threads or Twitter so I can download the video."
 msgstr ""
 
 #: smudge/plugins/medias.py:285
@@ -170,7 +170,7 @@ msgid "Medias"
 msgstr ""
 
 #: smudge/plugins/medias.py:315
-msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twitter.</i></b>\n"
+msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok, Threads and Twitter.</i></b>\n"
 "<b>/ytdl —</b> Download videos from YouTube in video or audio format.\n"
 msgstr ""
 
