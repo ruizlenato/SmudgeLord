@@ -25,7 +25,7 @@ from smudge.utils.medias import DownloadMedia, extract_info
 from smudge.utils.utils import http, pretty_size
 
 # Regex to get link
-DL_REGEX = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|tiktok|facebook|threads).(com|net)\/(?:\S*)"
+DL_REGEX = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|tiktok|threads).(com|net)\/(?:\S*)"
 
 # Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
@@ -194,7 +194,7 @@ async def medias_download(client: Smudge, message: Message, _):
             return await message.reply_text(
                 _(
                     "<b>System glitch someone disconnected me.</b>\nThe link you sent is invalid, \
-currently I only support links from TikTok, Twitter and Instagram."
+currently I only support links from TikTok, Threads, Twitter and Instagram."
                 )
             )
     elif message.reply_to_message and message.reply_to_message.text:
@@ -202,8 +202,8 @@ currently I only support links from TikTok, Twitter and Instagram."
     else:
         return await message.reply_text(
             _(
-                "<b>Usage:</b> <code>/dl [link]</code>\n\nSpecify a link from Instagram, TikTok \
-or Twitter so I can download the video."
+                "<b>Usage:</b> <code>/dl [link]</code>\n\nSpecify a link from Instagram, TikTok, \
+Threads or Twitter so I can download the video."
             )
         )
 
@@ -313,7 +313,8 @@ click on the button with the name of the setting."
 
 __help_name__ = gettext.gettext("Medias")
 __help_text__ = gettext.gettext(
-    """<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok and Twitter.</i></b>
+    """<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok, Threads \
+and Twitter.</i></b>
 <b>/ytdl —</b> Download videos from YouTube in video or audio format.
 """
 )

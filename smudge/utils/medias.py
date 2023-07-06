@@ -8,8 +8,8 @@ import uuid
 
 import esprima
 import filetype
-import httpx
 from bs4 import BeautifulSoup as bs
+from httpx import AsyncClient
 from yt_dlp import YoutubeDL
 
 from ..config import config
@@ -47,7 +47,7 @@ class DownloadMedia:
     async def download(self, url: str, captions: bool):
         self.files: list = []
         if re.search(r"instagram.com/", url):
-            await self.instagram(url, captions)
+            await self.Instagram(url, captions)
         elif re.search(r"tiktok.com/", url):
             await self.TikTok(url, captions)
         elif re.search(r"twitter.com/", url):
@@ -59,7 +59,18 @@ class DownloadMedia:
             self.caption = f"<a href='{url}'>🔗 Link</a>"
         return self.files, self.caption
 
-    async def instagram(self, url: str, captions: str):
+    async def httpx(self, url: str):
+        if (await http.get(url)).status_code != 200:
+            for proxy in config["PROXIES"]:
+                http_client = AsyncClient(proxies=proxy)
+                response = await http_client.get(url)
+                if response.status_code == 200:
+                    break
+            return http_client
+        else:  # noqa: RET505
+            return http
+
+    async def Instagram(self, url: str, captions: str):
         headers = {
             "authority": "www.instagram.com",
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp\
@@ -76,16 +87,9 @@ class DownloadMedia:
 
         post_id = re.findall(r"/(?:reel|p)/([a-zA-Z0-9_-]+)/", url)[0]
 
-        if (await http.get("https://www.instagram.com/")).status_code != 200:
-            for proxy in config["PROXIES"]:
-                http_client = httpx.AsyncClient(proxies=proxy)
-                response = await http_client.get("https://www.instagram.com/")
-                if response.status_code == 200:
-                    break
-        else:
-            http_client = http
+        httpx = await self.httpx("https://www.instagram.com/")
 
-        r = await http_client.get(
+        r = await httpx.get(
             f"https://www.instagram.com/p/{post_id}/embed/captioned",
             headers=headers,
             follow_redirects=True,
@@ -132,7 +136,7 @@ class DownloadMedia:
                                 {"p": url, "w": dimensions["width"], "h": dimensions["height"]}
                             )
         else:
-            r = await http_client.get(
+            r = await httpx.get(
                 f"https://www.instagram.com/p/{post_id}/",
                 headers=headers,
             )
@@ -154,7 +158,7 @@ class DownloadMedia:
                         medias.append({"p": url, "w": v["width"], "h": v["height"]})
 
         for m in medias:
-            file = io.BytesIO((await http_client.get(m["p"])).content)
+            file = io.BytesIO((await httpx.get(m["p"])).content)
             file.name = f"{m['p'][60:80]}.{filetype.guess_extension(file)}"
             self.files.append({"p": file, "w": m["w"], "h": m["h"]})
         return
@@ -220,34 +224,46 @@ DKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
         )
 
     async def Threads(self, url: str, captions: str):
-        if (await http.get("https://www.threads.net/")).status_code != 200:
-            for proxy in config["PROXIES"]:
-                http_client = httpx.AsyncClient(proxies=proxy)
-                response = await http_client.get("https://www.threads.net/")
-                if response.status_code == 200:
-                    break
-        else:
-            http_client = http
+        httpx = await self.httpx("https://www.threads.net/")
 
         post_id = re.findall("/t/([a-zA-Z0-9_-]+)", url)[0]
-        r = await http_client.get(
+        r = await httpx.get(
             f"https://www.threads.net/t/{post_id}/embed/",
             follow_redirects=True,
         )
         soup = bs(r.text, "html.parser")
-        medias = []
 
+        medias = []
         self.caption = f"<a href='{url}'>🔗 Link</a>"
 
-        if div := soup.find("div", {"class": "SingleInnerMediaContainer"}):
+        # Scrapper of the post js to get the Thread caption.
+        pattern = re.compile(r'\[\["__markup.+{"__html".+span>"},1]]')
+        script_tag = soup.find("script", text=re.compile(pattern))
+        if script_tag:
+            matches = re.findall(pattern, script_tag.string)[0]
+            data = json.loads(matches)
+            if comment := re.findall(r"<span.+>(.+)</span>", str(data[0][1])):
+                self.caption = f"{comment[0]}\n<a href='{url}'>🔗 Link</a>"
+
+        # This method is for when a media has more than one media.
+        if find_all := soup.find_all("div", class_="MediaScrollImageContainer"):
+            for div in find_all:
+                if video := div.find("video"):
+                    url = video.find("source").get("src")
+                if image := div.find("img", class_="img"):
+                    url = image.get("src")
+                medias.append({"p": url, "w": 0, "h": 0})
+
+        # This method only works when a "Thread" has only one medium.
+        if div := soup.find("div", class_="SingleInnerMediaContainer"):
             if video := div.find("video"):
                 url = video.find("source").get("src")
-            if image := div.find("img", {"class": "img"}):
+            if image := div.find("img", class_="img"):
                 url = image.get("src")
             medias.append({"p": url, "w": 0, "h": 0})
 
         for m in medias:
-            file = io.BytesIO((await http_client.get(m["p"])).content)
+            file = io.BytesIO((await httpx.get(m["p"])).content)
             file.name = f"{m['p'][60:80]}.{filetype.guess_extension(file)}"
             self.files.append({"p": file, "w": m["w"], "h": m["h"]})
         return
