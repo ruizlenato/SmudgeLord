@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2023-07-03 23:56-0300\n"
-"PO-Revision-Date: 2023-07-04 02:58\n"
+"POT-Creation-Date: 2023-07-05 19:47-0300\n"
+"PO-Revision-Date: 2023-07-06 00:00\n"
 "Last-Translator: \n"
 "Language-Team: Portuguese, Brazilian\n"
 "MIME-Version: 1.0\n"
@@ -18,9 +18,9 @@ msgstr ""
 "X-Crowdin-File-ID: 27\n"
 "Language: pt_BR\n"
 
-#: smudge/plugins/afk.py:36
-msgid "<b><a href='tg://user?id={}'>{}</a></b> is now unavailable!"
-msgstr "<b><a href='tg://user?id={}'>{}</a></b> está indisponível!"
+#: smudge/plugins/afk.py:38
+msgid "<b>{}</b> is now unavailable!"
+msgstr "<b>{}</b> está agora indisponível!"
 
 #: smudge/plugins/afk.py:77
 msgid "<b><a href='tg://user?id={}'>{}</a></b> is back!"
