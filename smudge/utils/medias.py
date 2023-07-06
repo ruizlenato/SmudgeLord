@@ -52,10 +52,11 @@ class DownloadMedia:
             await self.TikTok(url, captions)
         elif re.search(r"twitter.com/", url):
             await self.Twitter(url, captions)
+        elif re.search(r"threads.net/", url):
+            await self.Threads(url, captions)
 
         if not captions:
             self.caption = f"<a href='{url}'>🔗 Link</a>"
-
         return self.files, self.caption
 
     async def instagram(self, url: str, captions: str):
@@ -217,3 +218,36 @@ DKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
                 "h": yt["formats"][0]["height"],
             }
         )
+
+    async def Threads(self, url: str, captions: str):
+        if (await http.get("https://www.threads.net/")).status_code != 200:
+            for proxy in config["PROXIES"]:
+                http_client = httpx.AsyncClient(proxies=proxy)
+                response = await http_client.get("https://www.threads.net/")
+                if response.status_code == 200:
+                    break
+        else:
+            http_client = http
+
+        post_id = re.findall("/t/([a-zA-Z0-9_-]+)", url)[0]
+        r = await http_client.get(
+            f"https://www.threads.net/t/{post_id}/embed/",
+            follow_redirects=True,
+        )
+        soup = bs(r.text, "html.parser")
+        medias = []
+
+        self.caption = f"<a href='{url}'>🔗 Link</a>"
+
+        if div := soup.find("div", {"class": "SingleInnerMediaContainer"}):
+            if video := div.find("video"):
+                url = video.find("source").get("src")
+            if image := div.find("img", {"class": "img"}):
+                url = image.get("src")
+            medias.append({"p": url, "w": 0, "h": 0})
+
+        for m in medias:
+            file = io.BytesIO((await http_client.get(m["p"])).content)
+            file.name = f"{m['p'][60:80]}.{filetype.guess_extension(file)}"
+            self.files.append({"p": file, "w": m["w"], "h": m["h"]})
+        return

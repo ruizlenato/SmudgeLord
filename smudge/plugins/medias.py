@@ -25,7 +25,7 @@ from smudge.utils.medias import DownloadMedia, extract_info
 from smudge.utils.utils import http, pretty_size
 
 # Regex to get link
-DL_REGEX = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|tiktok|facebook).com\/(?:\S*)"
+DL_REGEX = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|tiktok|facebook|threads).(com|net)\/(?:\S*)"
 
 # Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
@@ -251,7 +251,7 @@ or Twitter so I can download the video."
     if medias:
         if (
             rawM
-            and not re.search(r"instagram.com/", url)
+            and not re.search(r"(instagram.com/|threads.net)", url)
             and len(medias) == 1
             and "InputMediaPhoto" in str(medias[0])
         ):
