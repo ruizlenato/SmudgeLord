@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2023-07-06 12:08-0300\n"
-"PO-Revision-Date: 2023-07-07 02:46\n"
+"PO-Revision-Date: 2023-07-07 03:49\n"
 "Last-Translator: \n"
 "Language-Team: Indonesian\n"
 "MIME-Version: 1.0\n"
@@ -20,60 +20,65 @@ msgstr ""
 
 #: smudge/plugins/afk.py:38
 msgid "<b>{}</b> is now unavailable!"
-msgstr ""
+msgstr "<b>{}</b> Sekarang tersedia!"
 
 #: smudge/plugins/afk.py:89
 msgid "<b><a href='tg://user?id={}'>{}</a></b> is back!"
-msgstr ""
+msgstr "<b><a href='tg://user?id={}'>{}</a></b> kembali!"
 
 #: smudge/plugins/afk.py:103
 msgid "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b> \n"
 "<i>Last seen<code> {}</code> ago</i>"
-msgstr ""
+msgstr "<b><a href='tg://user?id={}'>{}</a></b> adalah <b>tidak tersedia!</b> \n"
+"<i>Terakhir terlihat<code> {}</code> yang lalu</i>"
 
 #: smudge/plugins/afk.py:108
 msgid "<b>\n"
 "Reason:</b> <code>{}</code>"
-msgstr ""
+msgstr "<b>\n"
+"Alasan:</b> <code>{}</code>"
 
 #: smudge/plugins/lastfm.py:22
 msgid "<a href='tg://user?id={}'>{}</a>, Send me your last.fm username."
-msgstr ""
+msgstr "<a href='tg://user?id={}'>{}</a>, Kirimkan saya nama pengguna last.fm Anda."
 
 #: smudge/plugins/lastfm.py:40
 msgid "<b>Error</b>\n"
 "Your last.fm username is wrong"
-msgstr ""
+msgstr "<b>Kesalahan</b>\n"
+"Nama pengguna last.fm Anda salah"
 
 #: smudge/plugins/lastfm.py:44
 msgid "<b>Done, last.fm user saved!</b>"
-msgstr ""
+msgstr "<b>Selesai, pengguna last.fm telah disimpan!</b>"
 
 #: smudge/plugins/lastfm.py:53 smudge/plugins/lastfm.py:97
 #: smudge/plugins/lastfm.py:139
 msgid "<b>You have not set your last.fm username.</b>\n"
 "Use the command /setuser to set"
-msgstr ""
+msgstr "<b>Anda belum menyetel nama pengguna last.fm Anda.</b>\n"
+"Gunakan perintah /setuser untuk mengatur"
 
 #: smudge/plugins/lastfm.py:58 smudge/plugins/lastfm.py:102
 #: smudge/plugins/lastfm.py:144
 msgid "<b>Apparently you have never scrobbled a song on LastFM.</b>\n\n"
 "If you are having trouble, go to last.fm/about/trackmymusic and see how to connect your account to your music app."
-msgstr ""
+msgstr "<b>Rupanya Anda belum pernah men-scrobble lagu di LastFM.</b>\n\n"
+"Jika Anda mengalami masalah, buka last.fm/about/trackmymusic dan lihat cara menghubungkan akun Anda ke aplikasi musik Anda."
 
 #: smudge/plugins/lastfm.py:66 smudge/plugins/lastfm.py:110
 #: smudge/plugins/lastfm.py:152
 msgid "<b><a href='https://last.fm/user/{}'>{}</a></b> is listening for the <b>{}nd time</b>:\n\n"
-msgstr ""
+msgstr "<b><a href='https://last.fm/user/{}'>{}</a></b> mendengarkan untuk <b>{}kedua kalinya</b>:\n\n"
 
 #: smudge/plugins/lastfm.py:75 smudge/plugins/lastfm.py:119
 #: smudge/plugins/lastfm.py:161
 msgid "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening for the <b>{}nd time</b>:\n\n"
-msgstr ""
+msgstr "<b><a href='https://last.fm/user/{}'>{}</a></b> sedang mendengarkan untuk <b>{}kedua kalinya</b>:\n\n"
 
 #: smudge/plugins/lastfm.py:175
 msgid "LastFM"
-msgstr ""
+msgstr "LastFM"
 
 #: smudge/plugins/lastfm.py:176
 msgid "Last.fm is an online service that offers various music-related features. You can record the music you listen to on different streaming platforms and thus create a personalized music profile, providing recommendations of songs and artists based on your tastes.\n\n\n"
@@ -81,170 +86,185 @@ msgid "Last.fm is an online service that offers various music-related features. 
 "<b>/lastfm|/lt —</b> Shows the song you are scrobbling on last.fm.\n"
 "<b>/lalbum|/lalb —</b> Shows the album you are scrobbling on last.fm.\n"
 "<b>/lartist|/lart —</b> Shows the artist you are scrobbling on last.fm.\n"
-msgstr ""
+msgstr "Last.fm adalah layanan online yang menawarkan berbagai fitur terkait musik. Anda dapat merekam musik yang Anda dengarkan di berbagai platform streaming dan dengan demikian membuat profil musik yang dipersonalisasi, memberikan rekomendasi lagu dan artis berdasarkan selera Anda. \n\n\n"
+"<b>/setuser —</b> Mengatur nama pengguna last.fm Anda. \n"
+"<b>/lastfm|/lt —</b> Menampilkan lagu yang Anda scrob di last.fm. \n"
+"<b>/lalbum|/lalb —</b> Menampilkan album yang sedang Anda scrob di last.fm. \n"
+"<b>/lartist|/lart —</b> Menampilkan artis yang sedang Anda scrob di last.fm.\n"
 
 #: smudge/plugins/locale.py:32
 msgid "🌎 Help us with translations!"
-msgstr ""
+msgstr "🌎 Bantu kami dengan terjemahan!"
 
 #: smudge/plugins/locale.py:40 smudge/plugins/locale.py:65
 #: smudge/plugins/locale.py:67 smudge/plugins/medias.py:303
 #: smudge/plugins/start.py:89
 msgid "↩️ Back"
-msgstr ""
+msgstr "↩️ Untuk kembali"
 
 #: smudge/plugins/locale.py:43
 msgid "Select below the language you want to use the bot."
-msgstr ""
+msgstr "Pilih di bawah bahasa yang ingin Anda gunakan untuk bot."
 
 #: smudge/plugins/locale.py:54 smudge/plugins/medias.py:271
 #: smudge/plugins/start.py:103 smudge/plugins/start.py:105
 msgid "You are not a group admin."
-msgstr ""
+msgstr "Anda bukan admin grup."
 
 #: smudge/plugins/locale.py:64
 msgid "Language changed successfully."
-msgstr ""
+msgstr "Bahasa berhasil diubah."
 
 #: smudge/plugins/medias.py:47
 msgid "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\n"
 "Specify a word or a link so that I can search and download a video."
-msgstr ""
+msgstr "<b>Penggunaan:</b> <code>/ytdl [Kata atau tautan]</code> \n\n"
+"Tentukan kata atau tautan agar saya dapat mencari dan mengunduh video."
 
 #: smudge/plugins/medias.py:73
 msgid "💿 Audio"
-msgstr ""
+msgstr "💿 Audio"
 
 #: smudge/plugins/medias.py:77
 msgid "📹 Video"
-msgstr ""
+msgstr "📹 Video"
 
 #: smudge/plugins/medias.py:105
 msgid "This button is not for you."
-msgstr ""
+msgstr "Tombol ini bukan untuk Anda."
 
 #: smudge/plugins/medias.py:108
 msgid "The video you want to download exceeds 2GB in size.\n"
 "Unable to download and upload, sorry."
-msgstr ""
+msgstr "Video yang ingin Anda unduh melebihi ukuran 2GB.\n"
+"Tidak dapat mengunduh dan mengunggah, maaf."
 
 #: smudge/plugins/medias.py:118
 msgid "Downloading..."
-msgstr ""
+msgstr "Mengunduh..."
 
 #: smudge/plugins/medias.py:129 smudge/plugins/medias.py:171
 msgid "Sorry! I couldn't send the video because of an error.\n"
 "<b>Error:</b> <code>{}</code>"
-msgstr ""
+msgstr "Maaf! Saya tidak dapat mengirim video karena kesalahan. \n"
+"<b>Kesalahan:</b> <code>{}</code>"
 
 #: smudge/plugins/medias.py:134
 msgid "Sending..."
-msgstr ""
+msgstr "Mengirim..."
 
 #: smudge/plugins/medias.py:195
 msgid "<b>System glitch someone disconnected me.</b>\n"
 "The link you sent is invalid, currently I only support links from TikTok, Threads, Twitter and Instagram."
-msgstr ""
+msgstr "<b>Kesalahan sistem, seseorang memutuskan hubungan saya.</b>\n"
+"Tautan yang Anda kirim tidak valid, saat ini saya hanya mendukung tautan dari TikTok, Utas, Twitter, dan Instagram."
 
 #: smudge/plugins/medias.py:204
 msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
 "Specify a link from Instagram, TikTok, Threads or Twitter so I can download the video."
-msgstr ""
+msgstr "<b>Penggunaan:</b> <code>/dl [link]</code>\n\n"
+"Tentukan tautan dari Instagram, TikTok, Threads atau Twitter agar saya dapat mengunduh videonya."
 
 #: smudge/plugins/medias.py:285
 msgid "Captions:"
-msgstr ""
+msgstr "Teks:"
 
 #: smudge/plugins/medias.py:298
 msgid "Auto:"
-msgstr ""
+msgstr "Auto:"
 
 #: smudge/plugins/medias.py:305
 msgid "<b>Media Download Settings.</b>\n"
 "<i>To learn more about the <b>'media'</b> module, use <code>/help<code> in my dm.</i>\n\n"
 "To know what each button does, click on the button with the name of the setting."
-msgstr ""
+msgstr "<b>Pengaturan Download Media.</b>\n"
+"<i>Untuk mempelajari lebih lanjut tentang modul <b>'media'</b>, gunakan <code>/help<code> di dm saya.</i>\n\n"
+"Untuk mengetahui fungsi setiap tombol, klik tombol dengan nama pengaturan."
 
 #: smudge/plugins/medias.py:314 smudge/plugins/start.py:112
 msgid "Medias"
-msgstr ""
+msgstr "Media"
 
 #: smudge/plugins/medias.py:315
 msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok, Threads and Twitter.</i></b>\n"
 "<b>/ytdl —</b> Download videos from YouTube in video or audio format.\n"
-msgstr ""
+msgstr "<b>/dl|/sdl —</b> Mengunduh video dari <b><i>Instagram, TikTok, Utas, dan Twitter.</i></b>\n"
+"<b>/ytdl —</b> Unduh video dari YouTube dalam format video atau audio.\n"
 
 #: smudge/plugins/misc.py:45 smudge/plugins/misc.py:53
 msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website."
-msgstr ""
+msgstr "<b>Penggunaan:</b> <code>/print https://example.com</code> — Mengambil tangkapan layar dari situs web yang ditentukan."
 
 #: smudge/plugins/misc.py:60
 msgid "Taking screenshot…"
-msgstr ""
+msgstr "Menangkap screenshot…"
 
 #: smudge/plugins/misc.py:80
 msgid "Couldn't get url value, most probably API is not accessible."
-msgstr ""
+msgstr "Tidak bisa mendapatkan nilai url, kemungkinan besar API tidak dapat diakses."
 
 #: smudge/plugins/misc.py:83
 msgid "Misc"
-msgstr ""
+msgstr "Misc"
 
 #: smudge/plugins/misc.py:84
 msgid "<b>/print —</b> Take a screenshot of the specified website.\n"
 "<b>/tr —</b> Translates the text into the given language (the default is the user's default language).\n"
-msgstr ""
+msgstr "<b>/print —</b> Mengambil tangkapan layar dari situs web yang ditentukan.\n"
+"<b>/tr —</b> Menerjemahkan teks ke dalam bahasa tertentu (defaultnya adalah bahasa default pengguna).\n"
 
 #: smudge/plugins/start.py:41 smudge/plugins/start.py:115
 msgid "🌐Language"
-msgstr ""
+msgstr "🌐Bahasa"
 
 #: smudge/plugins/start.py:42
 msgid "❓Help"
-msgstr ""
+msgstr "❓ Membantu"
 
 #: smudge/plugins/start.py:52
 msgid "Hello <b>{}</b>! — I'm <b>SmudgeLord,</b> a bot with some useful and fun commands for you.\n\n"
 " 📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
-msgstr ""
+msgstr "Halo <b>{}</b>! — Saya <b>SmudgeLord,</b> sebuah bot dengan beberapa perintah yang berguna dan menyenangkan untuk Anda. 📦 <b>Kode Sumber:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
 
 #: smudge/plugins/start.py:59
 msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
-msgstr ""
+msgstr "Halo!, saya SmudgeLord. Saya memiliki banyak fungsi, untuk mengetahui lebih banyak, mulailah percakapan dengan saya."
 
 #: smudge/plugins/start.py:77
 msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
-msgstr ""
+msgstr "Ini semua plugin saya, untuk mengetahui lebih lanjut tentang plugin, <b>cukup klik namanya.</b>"
 
 #: smudge/plugins/start.py:91
 msgid "<b>Avaliable Commands:</b>\n\n"
-msgstr ""
+msgstr "<b>Perintah yang Tersedia:</b>\n\n"
 
 #: smudge/plugins/start.py:120
 msgid "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
-msgstr ""
+msgstr "<b>Pengaturan</b> — Ini adalah pengaturan saya untuk grup ini, untuk mengetahui lebih lanjut, <b>klik tombol di bawah.</b>"
 
 #: smudge/plugins/stickers.py:37
 msgid "Animated stickers are not supported yet!"
-msgstr ""
+msgstr "Stiker animasi belum didukung!"
 
 #: smudge/plugins/stickers.py:46
 msgid "<b>Emoji:</b> {}\n"
 "<b>Sticker ID:</b> <code>{}</code>"
-msgstr ""
+msgstr "<b>Emoji:</b> {}\n"
+"<b>ID Stiker:</b> <code>{}</code>"
 
 #: smudge/plugins/stickers.py:52
 msgid "Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
 "<i>It only works with video and static stickers</i>"
-msgstr ""
+msgstr "Balas stiker menggunakan perintah ini agar saya dapat mengirimkannya kepada Anda sebagai <b>png atau gif</b>.\n"
+"<i>Ini hanya bekerja dengan video dan stiker statis</i>"
 
 #: smudge/plugins/stickers.py:62
 msgid "<code>Kanging (Stealing) the sticker...</code>"
-msgstr ""
+msgstr "<code>Kanging (Mencuri) stiker...</code>"
 
 #: smudge/plugins/stickers.py:93
 msgid "This sticker doesn't a have filename!"
-msgstr ""
+msgstr "This sticker doesn't a have filename!"
 
 #: smudge/plugins/stickers.py:101
 msgid "<b>Error</b>: Invalid media!"
