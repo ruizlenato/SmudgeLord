@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: smudgelord\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2023-07-06 12:08-0300\n"
-"PO-Revision-Date: 2023-07-07 03:49\n"
+"PO-Revision-Date: 2023-07-07 17:15\n"
 "Last-Translator: \n"
 "Language-Team: Indonesian\n"
 "MIME-Version: 1.0\n"
@@ -224,7 +224,8 @@ msgstr "❓ Membantu"
 #: smudge/plugins/start.py:52
 msgid "Hello <b>{}</b>! — I'm <b>SmudgeLord,</b> a bot with some useful and fun commands for you.\n\n"
 " 📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
-msgstr "Halo <b>{}</b>! — Saya <b>SmudgeLord,</b> sebuah bot dengan beberapa perintah yang berguna dan menyenangkan untuk Anda. 📦 <b>Kode Sumber:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
+msgstr "Halo <b>{}</b>! — Saya <b>SmudgeLord,</b> sebuah bot dengan beberapa perintah yang berguna dan menyenangkan untuk Anda. \n\n"
+" 📦 <b>Kode Sumber:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
 
 #: smudge/plugins/start.py:59
 msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
@@ -264,7 +265,7 @@ msgstr "<code>Kanging (Mencuri) stiker...</code>"
 
 #: smudge/plugins/stickers.py:93
 msgid "This sticker doesn't a have filename!"
-msgstr "This sticker doesn't a have filename!"
+msgstr "Stiker ini tidak memiliki nama file!"
 
 #: smudge/plugins/stickers.py:101
 msgid "<b>Error</b>: Invalid media!"
