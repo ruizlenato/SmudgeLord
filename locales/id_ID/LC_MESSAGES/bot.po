@@ -1,0 +1,300 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: smudgelord\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2023-07-06 12:08-0300\n"
+"PO-Revision-Date: 2023-07-07 02:46\n"
+"Last-Translator: \n"
+"Language-Team: Indonesian\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.12.1\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: smudgelord\n"
+"X-Crowdin-Project-ID: 499530\n"
+"X-Crowdin-Language: id\n"
+"X-Crowdin-File: /reworked/locales/bot.pot\n"
+"X-Crowdin-File-ID: 27\n"
+"Language: id_ID\n"
+
+#: smudge/plugins/afk.py:38
+msgid "<b>{}</b> is now unavailable!"
+msgstr ""
+
+#: smudge/plugins/afk.py:89
+msgid "<b><a href='tg://user?id={}'>{}</a></b> is back!"
+msgstr ""
+
+#: smudge/plugins/afk.py:103
+msgid "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b> \n"
+"<i>Last seen<code> {}</code> ago</i>"
+msgstr ""
+
+#: smudge/plugins/afk.py:108
+msgid "<b>\n"
+"Reason:</b> <code>{}</code>"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:22
+msgid "<a href='tg://user?id={}'>{}</a>, Send me your last.fm username."
+msgstr ""
+
+#: smudge/plugins/lastfm.py:40
+msgid "<b>Error</b>\n"
+"Your last.fm username is wrong"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:44
+msgid "<b>Done, last.fm user saved!</b>"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:53 smudge/plugins/lastfm.py:97
+#: smudge/plugins/lastfm.py:139
+msgid "<b>You have not set your last.fm username.</b>\n"
+"Use the command /setuser to set"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:58 smudge/plugins/lastfm.py:102
+#: smudge/plugins/lastfm.py:144
+msgid "<b>Apparently you have never scrobbled a song on LastFM.</b>\n\n"
+"If you are having trouble, go to last.fm/about/trackmymusic and see how to connect your account to your music app."
+msgstr ""
+
+#: smudge/plugins/lastfm.py:66 smudge/plugins/lastfm.py:110
+#: smudge/plugins/lastfm.py:152
+msgid "<b><a href='https://last.fm/user/{}'>{}</a></b> is listening for the <b>{}nd time</b>:\n\n"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:75 smudge/plugins/lastfm.py:119
+#: smudge/plugins/lastfm.py:161
+msgid "<b><a href='https://last.fm/user/{}'>{}</a></b> was listening for the <b>{}nd time</b>:\n\n"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:175
+msgid "LastFM"
+msgstr ""
+
+#: smudge/plugins/lastfm.py:176
+msgid "Last.fm is an online service that offers various music-related features. You can record the music you listen to on different streaming platforms and thus create a personalized music profile, providing recommendations of songs and artists based on your tastes.\n\n\n"
+"<b>/setuser —</b> Sets your last.fm username.\n"
+"<b>/lastfm|/lt —</b> Shows the song you are scrobbling on last.fm.\n"
+"<b>/lalbum|/lalb —</b> Shows the album you are scrobbling on last.fm.\n"
+"<b>/lartist|/lart —</b> Shows the artist you are scrobbling on last.fm.\n"
+msgstr ""
+
+#: smudge/plugins/locale.py:32
+msgid "🌎 Help us with translations!"
+msgstr ""
+
+#: smudge/plugins/locale.py:40 smudge/plugins/locale.py:65
+#: smudge/plugins/locale.py:67 smudge/plugins/medias.py:303
+#: smudge/plugins/start.py:89
+msgid "↩️ Back"
+msgstr ""
+
+#: smudge/plugins/locale.py:43
+msgid "Select below the language you want to use the bot."
+msgstr ""
+
+#: smudge/plugins/locale.py:54 smudge/plugins/medias.py:271
+#: smudge/plugins/start.py:103 smudge/plugins/start.py:105
+msgid "You are not a group admin."
+msgstr ""
+
+#: smudge/plugins/locale.py:64
+msgid "Language changed successfully."
+msgstr ""
+
+#: smudge/plugins/medias.py:47
+msgid "<b>Usage:</b> <code>/ytdl [Word or link]</code>\n\n"
+"Specify a word or a link so that I can search and download a video."
+msgstr ""
+
+#: smudge/plugins/medias.py:73
+msgid "💿 Audio"
+msgstr ""
+
+#: smudge/plugins/medias.py:77
+msgid "📹 Video"
+msgstr ""
+
+#: smudge/plugins/medias.py:105
+msgid "This button is not for you."
+msgstr ""
+
+#: smudge/plugins/medias.py:108
+msgid "The video you want to download exceeds 2GB in size.\n"
+"Unable to download and upload, sorry."
+msgstr ""
+
+#: smudge/plugins/medias.py:118
+msgid "Downloading..."
+msgstr ""
+
+#: smudge/plugins/medias.py:129 smudge/plugins/medias.py:171
+msgid "Sorry! I couldn't send the video because of an error.\n"
+"<b>Error:</b> <code>{}</code>"
+msgstr ""
+
+#: smudge/plugins/medias.py:134
+msgid "Sending..."
+msgstr ""
+
+#: smudge/plugins/medias.py:195
+msgid "<b>System glitch someone disconnected me.</b>\n"
+"The link you sent is invalid, currently I only support links from TikTok, Threads, Twitter and Instagram."
+msgstr ""
+
+#: smudge/plugins/medias.py:204
+msgid "<b>Usage:</b> <code>/dl [link]</code>\n\n"
+"Specify a link from Instagram, TikTok, Threads or Twitter so I can download the video."
+msgstr ""
+
+#: smudge/plugins/medias.py:285
+msgid "Captions:"
+msgstr ""
+
+#: smudge/plugins/medias.py:298
+msgid "Auto:"
+msgstr ""
+
+#: smudge/plugins/medias.py:305
+msgid "<b>Media Download Settings.</b>\n"
+"<i>To learn more about the <b>'media'</b> module, use <code>/help<code> in my dm.</i>\n\n"
+"To know what each button does, click on the button with the name of the setting."
+msgstr ""
+
+#: smudge/plugins/medias.py:314 smudge/plugins/start.py:112
+msgid "Medias"
+msgstr ""
+
+#: smudge/plugins/medias.py:315
+msgid "<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok, Threads and Twitter.</i></b>\n"
+"<b>/ytdl —</b> Download videos from YouTube in video or audio format.\n"
+msgstr ""
+
+#: smudge/plugins/misc.py:45 smudge/plugins/misc.py:53
+msgid "<b>Usage:</b> <code>/print https://example.com</code> — Take a screenshot of the specified website."
+msgstr ""
+
+#: smudge/plugins/misc.py:60
+msgid "Taking screenshot…"
+msgstr ""
+
+#: smudge/plugins/misc.py:80
+msgid "Couldn't get url value, most probably API is not accessible."
+msgstr ""
+
+#: smudge/plugins/misc.py:83
+msgid "Misc"
+msgstr ""
+
+#: smudge/plugins/misc.py:84
+msgid "<b>/print —</b> Take a screenshot of the specified website.\n"
+"<b>/tr —</b> Translates the text into the given language (the default is the user's default language).\n"
+msgstr ""
+
+#: smudge/plugins/start.py:41 smudge/plugins/start.py:115
+msgid "🌐Language"
+msgstr ""
+
+#: smudge/plugins/start.py:42
+msgid "❓Help"
+msgstr ""
+
+#: smudge/plugins/start.py:52
+msgid "Hello <b>{}</b>! — I'm <b>SmudgeLord,</b> a bot with some useful and fun commands for you.\n\n"
+" 📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>"
+msgstr ""
+
+#: smudge/plugins/start.py:59
+msgid "Hello!, I'm SmudgeLord. I have a lot of functions, to know more, start a conversation with me."
+msgstr ""
+
+#: smudge/plugins/start.py:77
+msgid "Here are all my plugins, to find out more about the plugins, <b>just click on their name.</b>"
+msgstr ""
+
+#: smudge/plugins/start.py:91
+msgid "<b>Avaliable Commands:</b>\n\n"
+msgstr ""
+
+#: smudge/plugins/start.py:120
+msgid "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:37
+msgid "Animated stickers are not supported yet!"
+msgstr ""
+
+#: smudge/plugins/stickers.py:46
+msgid "<b>Emoji:</b> {}\n"
+"<b>Sticker ID:</b> <code>{}</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:52
+msgid "Reply to a sticker using this command so I can send it to you as a <b>png or gif</b>.\n"
+"<i>It only works with video and static stickers</i>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:62
+msgid "<code>Kanging (Stealing) the sticker...</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:93
+msgid "This sticker doesn't a have filename!"
+msgstr ""
+
+#: smudge/plugins/stickers.py:101
+msgid "<b>Error</b>: Invalid media!"
+msgstr ""
+
+#: smudge/plugins/stickers.py:127
+msgid "<b>You need to use this command replying a sticker or a photo.</b>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:139
+msgid "<code>Converting video/gif to sticker...</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:176
+msgid "<code>Using existing sticker pack...</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:191
+msgid "<code>Creating a new sticker package...</code>"
+msgstr ""
+
+#: smudge/plugins/stickers.py:226
+msgid "Looks like you've never interacted with me on private chat, you need to do that first.\n"
+"Click the button below to send me a message."
+msgstr ""
+
+#: smudge/plugins/stickers.py:231
+msgid "Start"
+msgstr ""
+
+#: smudge/plugins/stickers.py:237
+msgid "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\n"
+"<b>Emoji:</b> {}"
+msgstr ""
+
+#: smudge/plugins/stickers.py:294
+msgid "Stickers"
+msgstr ""
+
+#: smudge/plugins/stickers.py:295
+msgid "<b>/getsticker —</b> reply to a sticker to me to upload the file as a\n"
+"<b>png or gif</b> <i>(It only works with video and static stickers).</i>\n"
+"<b>/kang —</b> reply to a sticker to add it to your pack created by me.\n"
+msgstr ""
+
+#: smudge/plugins/translate.py:82
+msgid "<b>Usage:</b> <code>/tr language text for translation</code> (Can be also used in reply to a message)."
+msgstr ""
+
+#: smudge/plugins/translate.py:87
+msgid "Translating…"
+msgstr ""
+
