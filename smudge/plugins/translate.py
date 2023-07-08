@@ -63,8 +63,8 @@ async def get_tr_lang(text, id):
 
 
 @Smudge.on_message(filters.command(["tr", "tl"]))
-@locale()
-async def translate(client: Smudge, message: Message, _):
+@locale("translate")
+async def translate(client: Smudge, message: Message, strings):
     text = message.text[4:]
     lang = await get_tr_lang(text, message.from_user.id)
 
@@ -78,13 +78,8 @@ async def translate(client: Smudge, message: Message, _):
         text = message.reply_to_message.text or message.reply_to_message.caption
 
     if not text:
-        return await message.reply_text(
-            _(
-                "<b>Usage:</b> <code>/tr language text for translation\
-</code> (Can be also used in reply to a message)."
-            )
-        )
-    sent = await message.reply_text(_("Translating…"))
+        return await message.reply_text(strings["no-args"])
+    sent = await message.reply_text(strings["translating"])
     langs = {}
 
     if len(lang.split("-")) > 1:

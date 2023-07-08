@@ -1,5 +1,3 @@
-import gettext
-
 from pyrogram import filters
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
@@ -10,8 +8,8 @@ from smudge.utils.utils import screenshot_page
 
 
 @Smudge.on_message(filters.command("print"))
-@locale()
-async def prints(client: Smudge, message: Message, _):
+@locale("misc")
+async def prints(client: Smudge, message: Message, strings):
     for entity in message.entities or message.caption_entities:
         if entity.type == MessageEntityType.URL:
             if message.text:
@@ -41,23 +39,13 @@ async def prints(client: Smudge, message: Message, _):
                     target_url = entity.url
                     break
             else:
-                await message.reply_text(
-                    _(
-                        "<b>Usage:</b> <code>/print https://example.com</code> — \
-Take a screenshot of the specified website."
-                    )
-                )
+                await message.reply_text(strings["print-no-args"])
                 return
         else:
-            await message.reply_text(
-                _(
-                    "<b>Usage:</b> <code>/print https://example.com</code> — \
-Take a screenshot of the specified website."
-                )
-            )
+            await message.reply_text(strings["print-no-args"])
             return
 
-    sent = await message.reply_text(_("Taking screenshot…"))
+    sent = await message.reply_text(strings["taking-screenshot"])
 
     try:
         response = await screenshot_page(target_url)
@@ -77,13 +65,7 @@ Take a screenshot of the specified website."
         else:
             await sent.delete()
     else:
-        await message.reply_text(_("Couldn't get url value, most probably API is not accessible."))
+        await message.reply_text(strings["error-api"])
 
 
-__help_name__ = gettext.gettext("Misc")
-__help_text__ = gettext.gettext(
-    """<b>/print —</b> Take a screenshot of the specified website.
-<b>/tr —</b> Translates the text into the given language \
-(the default is the user's default language).
-"""
-)
+__help__ = True

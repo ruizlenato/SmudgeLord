@@ -17,13 +17,13 @@ from smudge.utils.locale import locale
 
 
 @Smudge.on_message(filters.command("afk") | filters.regex(r"(?i)\bbrb\b(\s(?P<args>.+))?"))
-@locale()
-async def afk(client: Smudge, message: Message, _):
+@locale("afk")
+async def afk(client: Smudge, message: Message, strings):
     if not message.from_user:
         return
 
     if await is_afk(message.from_user.id):
-        await stop_afk(message, _)
+        await stop_afk(message, strings)
         return
 
     if matches := message.matches and message.matches[0]["args"]:
@@ -34,19 +34,17 @@ async def afk(client: Smudge, message: Message, _):
         reason = ""
 
     await set_afk(message.from_user.id, reason)
-    await message.reply_text(
-        _("<b>{}</b> is now unavailable!").format(message.from_user.first_name)
-    )
+    await message.reply_text(strings["now-unavailable"].format(message.from_user.first_name))
 
 
 @Smudge.on_message(~filters.private & ~filters.bot & filters.all, group=2)
-@locale()
-async def reply_afk(client: Smudge, message: Message, _):
+@locale("afk")
+async def reply_afk(client: Smudge, message: Message, strings):
     if not message.from_user or message.text and re.findall(r"^\/\bafk\b|^\bbrb\b", message.text):
         return None
 
     if message.from_user and await is_afk(message.from_user.id) is not None:
-        return await stop_afk(message, _)
+        return await stop_afk(message, strings)
     if message.entities:
         for ent in message.entities:
             if ent.type == MessageEntityType.MENTION:
@@ -68,43 +66,41 @@ async def reply_afk(client: Smudge, message: Message, _):
             else:
                 return None
 
-            await check_afk(message, user.id, user.first_name, _)
+            await check_afk(message, user.id, user.first_name, strings)
 
     elif message.reply_to_message and message.reply_to_message.from_user:
         await check_afk(
             message,
             message.reply_to_message.from_user.id,
             message.reply_to_message.from_user.first_name,
-            _,
+            strings,
         )
     return None
 
 
-async def stop_afk(message: Message, _):
+async def stop_afk(message: Message, strings):
     if not message.from_user:
         return
 
     await rm_afk(message.from_user.id)
     await message.reply_text(
-        _("<b><a href='tg://user?id={}'>{}</a></b> is back!").format(
-            message.from_user.id, message.from_user.first_name
-        )
+        strings["user-available"].format(message.from_user.id, message.from_user.first_name)
     )
     return
 
 
-async def check_afk(message: Message, user_id: int, first_name: str, _):
+async def check_afk(message: Message, user_id: int, first_name: str, strings):
     if user := await is_afk(user_id):
         if user_id == message.from_user.id:
             return
 
         humanize.i18n.activate(await get_db_lang(message))
         time = humanize.naturaldelta(datetime.now() - datetime.fromtimestamp(user["time"]))
-        res = _(
-            "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b> \
-\n<i>Last seen<code> {}</code> ago</i>"
-        ).format(user_id, first_name, time)
+        res = strings["user-unavailable"].format(user_id, first_name, time)
         if user["reason"]:
-            res += _("<b>\nReason:</b> <code>{}</code>").format(user["reason"])
+            res += strings["user-reason"].format(user["reason"])
 
         await message.reply_text(res)
+
+
+__help__ = True

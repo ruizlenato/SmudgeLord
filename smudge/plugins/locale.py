@@ -12,13 +12,13 @@ from pyrogram.types import CallbackQuery, Message
 from smudge.bot import Smudge
 from smudge.database.locale import set_db_lang
 from smudge.plugins import Languages
-from smudge.utils.locale import locale
+from smudge.utils.locale import get_string, locale
 
 
 @Smudge.on_message(filters.command(["setlang", "language"]))
 @Smudge.on_callback_query(filters.regex(r"^language"))
-@locale()
-async def language(client: Smudge, union: Message | CallbackQuery, _):
+@locale("locale")
+async def language(client: Smudge, union: Message | CallbackQuery, strings):
     reply = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
     buttons: list = []
     for lang in list(Languages):
@@ -29,7 +29,7 @@ async def language(client: Smudge, union: Message | CallbackQuery, _):
     keyboard.append(
         [
             (
-                _("🌎 Help us with translations!"),
+                strings["crowdin-button"],
                 "https://crowdin.com/project/smudgelord",
                 "url",
             )
@@ -37,21 +37,18 @@ async def language(client: Smudge, union: Message | CallbackQuery, _):
     )
 
     if isinstance(union, CallbackQuery) and union.message.chat.type == ChatType.PRIVATE:
-        keyboard += [[(_("↩️ Back"), "start_command")]]
+        keyboard += [[(await get_string(union, "start", "back-button"), "start_command")]]
 
-    await reply(
-        _("Select below the language you want to use the bot."),
-        reply_markup=ikb(keyboard),
-    )
+    await reply(strings["select-language"], reply_markup=ikb(keyboard))
 
 
 @Smudge.on_callback_query(filters.regex("^lang_set (?P<code>.+)"))
-@locale()
+@locale("locale")
 async def change_language(client: Smudge, callback: CallbackQuery, _):
     lang = callback.matches[0]["code"]
     if not await filters.admin(client, callback):
         return await callback.answer(
-            _("You are not a group admin."), show_alert=True, cache_time=60
+            await get_string(callback, "config", "no-admin"), show_alert=True, cache_time=60
         )
 
     await set_db_lang(callback, lang)
@@ -59,11 +56,10 @@ async def change_language(client: Smudge, callback: CallbackQuery, _):
     return None
 
 
-@locale()
-async def change_language_edit(client, callback, _):
-    text = _("Language changed successfully.")
-    keyboard = [[(_("↩️ Back"), "start_command")]]
+@locale("locale")
+async def change_language_edit(client, callback, strings):
+    keyboard = [[(await get_string(callback, "start", "back-button"), "start_command")]]
     if isinstance(callback, CallbackQuery) and callback.message.chat.type != ChatType.PRIVATE:
-        keyboard = [[(_("↩️ Back"), "config")]]
+        keyboard = [[(await get_string(callback, "start", "back-button"), "config")]]
     with suppress(MessageNotModified):
-        await callback.edit_message_text(text, reply_markup=ikb(keyboard))
+        await callback.edit_message_text(strings["language-changed"], reply_markup=ikb(keyboard))

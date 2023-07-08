@@ -1,7 +1,6 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import asyncio
-import gettext
 import os
 import sys
 from io import BytesIO
@@ -24,17 +23,17 @@ from pyrogram.types import Message
 
 from smudge.bot import Smudge
 from smudge.config import config
-from smudge.utils.locale import locale
+from smudge.utils.locale import get_string, locale
 from smudge.utils.utils import EMOJI_PATTERN
 
 
 @Smudge.on_message(filters.command("getsticker"))
-@locale()
-async def getsticker(client: Smudge, message: Message, _):
+@locale("stickers")
+async def getsticker(client: Smudge, message: Message, strings):
     sticker = message.reply_to_message.sticker
     if sticker:
         if sticker.is_animated:
-            await message.reply_text(_("Animated stickers are not supported yet!"))
+            await message.reply_text(strings["animated-unsupported"])
         else:
             extension = ".png" if not sticker.is_video else ".webm"
             file = await message.reply_to_message.download(
@@ -43,23 +42,16 @@ async def getsticker(client: Smudge, message: Message, _):
 
         await message.reply_to_message.reply_document(
             document=file,
-            caption=(_("<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>")).format(
-                sticker.emoji, sticker.file_id
-            ),
+            caption=(strings["sticker-info"]).format(sticker.emoji, sticker.file_id),
         )
     else:
-        await message.reply_text(
-            _(
-                "Reply to a sticker using this command so I can send it to you as a \
-<b>png or gif</b>.\n<i>It only works with video and static stickers</i>"
-            )
-        )
+        await message.reply_text(strings["getsticker-no-args"])
 
 
 @Smudge.on_message(filters.command("kang"))
-@locale()
-async def kang(client: Smudge, message: Message, _):
-    progress_mesage = await message.reply_text(_("<code>Kanging (Stealing) the sticker...</code>"))
+@locale("stickers")
+async def kang(client: Smudge, message: Message, strings):
+    progress_mesage = await message.reply_text(strings["kanging"])
     emoji = "🤔"
     packnum = 0
     packname_found = False
@@ -90,7 +82,7 @@ async def kang(client: Smudge, message: Message, _):
             videos = True
         elif message.reply_to_message.sticker:
             if not message.reply_to_message.sticker.file_name:
-                return await progress_mesage.edit_text(_("This sticker doesn't a have filename!"))
+                return await progress_mesage.edit_text(strings["file-no-name"])
             if message.reply_to_message.sticker.emoji:
                 emoji = message.reply_to_message.sticker.emoji
             animated = message.reply_to_message.sticker.is_animated
@@ -98,7 +90,7 @@ async def kang(client: Smudge, message: Message, _):
             if not message.reply_to_message.sticker.file_name.endswith(".tgs") and not videos:
                 resize = True
         else:
-            return await progress_mesage.edit_text(_("<b>Error</b>: Invalid media!"))
+            return await progress_mesage.edit_text(strings["media-invalid"])
 
         pack_prefix = "anim" if animated else "vid" if videos else "a"
         packname = f"{pack_prefix}_{message.from_user.id}_by_{client.me.username}"
@@ -123,12 +115,7 @@ async def kang(client: Smudge, message: Message, _):
             await progress_mesage.delete()  # Failed to download
             return None
     else:
-        return await progress_mesage.edit_text(
-            _(
-                "<b>You need to use this command replying a \
-sticker or a photo.</b>"
-            )
-        )
+        return await progress_mesage.edit_text(strings["kang-no-reply"])
 
     try:
         if resize:
@@ -136,7 +123,7 @@ sticker or a photo.</b>"
         elif convert:
             file = await convert_video(file)
             file.name = f"sticker.{filetype.guess_extension(file)}"
-            await progress_mesage.edit_text(_("<code>Converting video/gif to sticker...</code>"))
+            await progress_mesage.edit_text(strings["converting_video"])
             if file is False:
                 return await progress_mesage.edit_text("<b>Error</b>")
         max_stickers = 50 if animated else 120
@@ -173,7 +160,7 @@ sticker or a photo.</b>"
         msg_ = media.updates[-1].message
         stkr_file = msg_.media.document
         if packname_found:
-            await progress_mesage.edit_text(_("<code>Using existing sticker pack...</code>"))
+            await progress_mesage.edit_text(strings["existing_pack"])
             await client.invoke(
                 AddStickerToSet(
                     stickerset=InputStickerSetShortName(short_name=packname),
@@ -188,7 +175,7 @@ sticker or a photo.</b>"
                 )
             )
         else:
-            await progress_mesage.edit_text(_("<code>Creating a new sticker package...</code>"))
+            await progress_mesage.edit_text(strings["new-pack"])
             try:
                 stkr_title = f"@{message.from_user.username[:32]}'s SmudgeLord"
             except TypeError:
@@ -223,22 +210,23 @@ sticker or a photo.</b>"
                 )
             except PeerIdInvalid:
                 return await progress_mesage.edit_text(
-                    _(
-                        "Looks like you've never interacted with me on private chat, you need \
-to do that first.\nClick the button below to send me a message."
-                    ),
+                    strings["never-interacted"],
                     reply_markup=ikb(
-                        [[(_("Start"), f"https://t.me/{client.me.username}?start", "url")]]
+                        [
+                            [
+                                (
+                                    get_string(message, "start", "start-button"),
+                                    f"https://t.me/{client.me.username}?start",
+                                    "url",
+                                )
+                            ]
+                        ]
                     ),
                 )
     except Exception as all_e:
         await progress_mesage.edit_text(f"{all_e.__class__.__name__} : {all_e}")
     else:
-        kanged_success_msg = _(
-            "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\
-\n<b>Emoji:</b> {}"
-        )
-        await progress_mesage.edit_text(kanged_success_msg.format(packname, emoji))
+        await progress_mesage.edit_text(strings["sticker-stoled"].format(packname, emoji))
         await client.delete_messages(chat_id=config["LOG_CHAT"], message_ids=msg_.id, revoke=True)
 
 
@@ -291,10 +279,4 @@ async def convert_video(file: str) -> str:
     return BytesIO(stdout)
 
 
-__help_name__ = gettext.gettext("Stickers")
-__help_text__ = gettext.gettext(
-    """<b>/getsticker —</b> reply to a sticker to me to upload the file as a
-<b>png or gif</b> <i>(It only works with video and static stickers).</i>
-<b>/kang —</b> reply to a sticker to add it to your pack created by me.
-"""
-)
+__help__ = True

@@ -2,7 +2,6 @@
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import contextlib
 import datetime
-import gettext
 import io
 import re
 
@@ -20,7 +19,7 @@ from smudge.bot import Smudge
 from smudge.database.chats import get_chat_data
 from smudge.database.medias import toggle_media
 from smudge.database.users import get_user_data
-from smudge.utils.locale import locale
+from smudge.utils.locale import get_string, locale
 from smudge.utils.medias import DownloadMedia, extract_info
 from smudge.utils.utils import http, pretty_size
 
@@ -34,8 +33,8 @@ YOUTUBE_REGEX = re.compile(
 
 
 @Smudge.on_message(filters.command("ytdl"))
-@locale()
-async def ytdlcmd(client: Smudge, message: Message, _):
+@locale("medias")
+async def ytdlcmd(client: Smudge, message: Message, strings):
     user = message.from_user.id
 
     if message.reply_to_message and message.reply_to_message.text:
@@ -43,12 +42,7 @@ async def ytdlcmd(client: Smudge, message: Message, _):
     elif len(message.command) > 1:
         url = message.text.split(None, 1)[1]
     else:
-        await message.reply_text(
-            _(
-                "<b>Usage:</b> <code>/ytdl [Word or link]</code>\
-\n\nSpecify a word or a link so that I can search and download a video."
-            )
-        )
+        await message.reply_text(strings["ytdl-no-args"])
         return
 
     ydl = YoutubeDL({"noplaylist": True})
@@ -70,11 +64,11 @@ async def ytdlcmd(client: Smudge, message: Message, _):
     keyboard = [
         [
             (
-                _("💿 Audio"),
+                strings["audio-button"],
                 f'_aud.{yt["id"]}|{afsize}|{vformat}|{user}|{message.id}',
             ),
             (
-                _("📹 Video"),
+                strings["video-button"],
                 f'_vid.{yt["id"]}|{vfsize}|{vformat}|{user}|{message.id}',
             ),
         ]
@@ -95,27 +89,24 @@ async def ytdlcmd(client: Smudge, message: Message, _):
 
 
 @Smudge.on_callback_query(filters.regex("^(_(vid|aud))"))
-@locale()
-async def cli_ytdl(client: Smudge, callback: CallbackQuery, _):
+@locale("media")
+async def cli_ytdl(client: Smudge, callback: CallbackQuery, strings):
     try:
         data, fsize, vformat, userid, mid = callback.data.split("|")
     except ValueError:
         return print(callback.data)
     if callback.from_user.id != int(userid):
-        return await callback.answer(_("This button is not for you."), cache_time=60)
+        return await callback.answer(strings["button-answer"], cache_time=60)
     if int(fsize) > 2147483648:
         return await callback.answer(
-            _(
-                "The video you want to download exceeds 2GB in size.\
-\nUnable to download and upload, sorry."
-            ),
+            strings["big-file"],
             show_alert=True,
             cache_time=60,
         )
 
     vid = re.sub(r"^\_(vid|aud)\.", "", data)
     url = f"https://www.youtube.com/watch?v={vid}"
-    await callback.message.edit(_("Downloading..."))
+    await callback.message.edit(strings["downloading"])
 
     try:  # Downloader
         file = io.BytesIO()
@@ -125,13 +116,8 @@ async def cli_ytdl(client: Smudge, callback: CallbackQuery, _):
             yt = await extract_info(ydl, url, download=True)
         file.name = yt["title"]
     except BaseException as e:
-        return await callback.message.edit_text(
-            _(
-                "Sorry! I couldn't send the video because of an error.\
-\n<b>Error:</b> <code>{}</code>"
-            ).format(errmsg=e)
-        )
-    await callback.message.edit(_("Sending..."))
+        return await callback.message.edit_text(strings["sending-error"].format(errmsg=e))
+    await callback.message.edit(strings["sending"])
     await client.send_chat_action(callback.message.chat.id, ChatAction.UPLOAD_VIDEO)
 
     thumb = io.BytesIO((await http.get(yt["thumbnail"])).content)
@@ -167,19 +153,14 @@ async def cli_ytdl(client: Smudge, callback: CallbackQuery, _):
                     reply_to_message_id=int(mid),
                 )
     except BadRequest as e:
-        await callback.message.edit_text(
-            _(
-                "Sorry! I couldn't send the video because of an error.\
-\n<b>Error:</b> <code>{}</code>"
-            ).format(errmsg=e)
-        )
+        await callback.message.edit_text(strings["sending-error"].format(errmsg=e))
     await callback.message.delete()
     return None
 
 
 @Smudge.on_message(filters.command(["dl", "sdl"]) | filters.regex(DL_REGEX), group=1)
-@locale()
-async def medias_download(client: Smudge, message: Message, _):
+@locale("media")
+async def medias_download(client: Smudge, message: Message, strings):
     if message.matches:
         if (
             message.chat.type is ChatType.PRIVATE
@@ -191,21 +172,11 @@ async def medias_download(client: Smudge, message: Message, _):
     elif not message.matches and len(message.command) > 1:
         url = message.text.split(None, 1)[1]
         if not re.match(DL_REGEX, url, re.M):
-            return await message.reply_text(
-                _(
-                    "<b>System glitch someone disconnected me.</b>\nThe link you sent is invalid, \
-currently I only support links from TikTok, Threads, Twitter and Instagram."
-                )
-            )
+            return await message.reply_text(strings["unsupported-link"])
     elif message.reply_to_message and message.reply_to_message.text:
         url = message.reply_to_message.text
     else:
-        return await message.reply_text(
-            _(
-                "<b>Usage:</b> <code>/dl [link]</code>\n\nSpecify a link from Instagram, TikTok, \
-Threads or Twitter so I can download the video."
-            )
-        )
+        return await message.reply_text(strings["sdl-no-args"])
 
     if message.chat.type == ChatType.PRIVATE:
         captions = (await get_user_data(message.chat.id))["medias_captions"]
@@ -264,11 +235,11 @@ Threads or Twitter so I can download the video."
 
 
 @Smudge.on_callback_query(filters.regex(r"^media_config"))
-@locale()
-async def media_config(client: Smudge, callback: CallbackQuery, _):
+@locale("config")
+async def media_config(client: Smudge, callback: CallbackQuery, strings):
     if not await filters.admin(client, callback):
         return await callback.answer(
-            _("You are not a group admin."), show_alert=True, cache_time=60
+            await get_string(callback, "config", "no-admin"), show_alert=True, cache_time=60
         )
 
     state = ["☑️", "✅"]
@@ -282,7 +253,7 @@ async def media_config(client: Smudge, callback: CallbackQuery, _):
 
     keyboard = [
         [
-            (_("Captions:"), "media_config"),
+            (strings["medias-captions-button"], "media_config"),
             (state[(await mode(chat.id))["medias_captions"]], "media_config+"),
         ],
     ]
@@ -295,26 +266,15 @@ async def media_config(client: Smudge, callback: CallbackQuery, _):
 
         keyboard += [
             [
-                (_("Auto:"), "media_config"),
+                (strings["medias-auto-button"], "media_config"),
                 (state[(await mode(chat.id))["medias_adownloads"]], "media_config-"),
             ]
         ]
 
-    keyboard += [[(_("↩️ Back"), "config")]]
+    keyboard += [[(await get_string(callback, "start", "back-button"), "config")]]
     return await callback.edit_message_text(
-        _(
-            "<b>Media Download Settings.</b>\n<i>To learn more about the <b>'media'</b> \
-module, use <code>/help<code> in my dm.</i>\n\nTo know what each button does, \
-click on the button with the name of the setting."
-        ),
-        reply_markup=ikb(keyboard),
+        strings["medias-config-text"], reply_markup=ikb(keyboard)
     )
 
 
-__help_name__ = gettext.gettext("Medias")
-__help_text__ = gettext.gettext(
-    """<b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok, Threads \
-and Twitter.</i></b>
-<b>/ytdl —</b> Download videos from YouTube in video or audio format.
-"""
-)
+__help__ = True

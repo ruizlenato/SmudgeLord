@@ -189,22 +189,25 @@ DKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
         ).json()
 
         self.caption = f"<b>{res['user']['screen_name']}</b>\n{res['full_text']}"
-        for media in res["extended_entities"]["media"]:
-            width = media["original_info"]["width"]
-            height = media["original_info"]["height"]
-            if media["type"] == "photo":
-                path = io.BytesIO((await http.get(media["media_url_https"])).content)
-                path.name = f"{media['id_str']}.{filetype.guess_extension(path)}"
-            else:
-                bitrate = [
-                    a["bitrate"]
-                    for a in media["video_info"]["variants"]
-                    if a["content_type"] == "video/mp4"
-                ]
-                for a in media["video_info"]["variants"]:
-                    if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
-                        path = io.BytesIO((await http.get(a["url"])).content)
-                        path.name = f"{media['id_str']}.{filetype.guess_extension(path)}"
+        try:
+            for media in res["extended_entities"]["media"]:
+                width = media["original_info"]["width"]
+                height = media["original_info"]["height"]
+                if media["type"] == "photo":
+                    path = io.BytesIO((await http.get(media["media_url_https"])).content)
+                    path.name = f"{media['id_str']}.{filetype.guess_extension(path)}"
+                else:
+                    bitrate = [
+                        a["bitrate"]
+                        for a in media["video_info"]["variants"]
+                        if a["content_type"] == "video/mp4"
+                    ]
+                    for a in media["video_info"]["variants"]:
+                        if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
+                            path = io.BytesIO((await http.get(a["url"])).content)
+                            path.name = f"{media['id_str']}.{filetype.guess_extension(path)}"
+        except KeyError:
+            return
 
         self.files.append({"p": path, "w": width, "h": height})
 

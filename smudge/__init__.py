@@ -3,6 +3,11 @@
 from subprocess import run
 
 __version__ = (
+    run(["git", "rev-list", "--count", "HEAD"], capture_output=True).stdout.decode("utf-8").strip()
+)
+
+
+__commit__ = (
     run(["git", "rev-parse", "--short", "HEAD"], capture_output=True)
     .stdout.decode("utf-8")
     .strip()

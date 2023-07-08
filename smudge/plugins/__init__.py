@@ -11,11 +11,9 @@ from smudge.database.chats import get_chat_data, register_chat
 from smudge.database.users import get_user_data, register_user, update_username
 
 Languages: list[str] = []  # Loaded Locales
-Languages.append("en_US")  # The en_US language doesn't have a file
 
 for file in os.listdir("locales"):
-    if not file.endswith(".rst") and not file.endswith(".pot"):
-        Languages.append(file)
+    Languages.append(file.replace(".yaml", ""))
 
 
 @Smudge.on_message(group=-1)

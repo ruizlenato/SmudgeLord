@@ -21,6 +21,7 @@ beautifulsoup4 = "^4.12.2"
 esprima = "^4.0.1"
 pillow = "^9.5.0"
 gpytranslate = "^1.5.1"
+pyaml = "^23.7.0"
 
 [tool.ruff]
 line-length = 99
@@ -34,7 +35,6 @@ select = [
   "C4",  # flake8-comprehensions
   "SIM", # flake8-simplify
   "RET", # flake8-return
-  "INT", # flake8-gettext
 ]
 exclude = ["config.py"]
 
