@@ -89,7 +89,7 @@ async def ytdlcmd(client: Smudge, message: Message, strings):
 
 
 @Smudge.on_callback_query(filters.regex("^(_(vid|aud))"))
-@locale("media")
+@locale("medias")
 async def cli_ytdl(client: Smudge, callback: CallbackQuery, strings):
     try:
         data, fsize, vformat, userid, mid = callback.data.split("|")
@@ -159,7 +159,7 @@ async def cli_ytdl(client: Smudge, callback: CallbackQuery, strings):
 
 
 @Smudge.on_message(filters.command(["dl", "sdl"]) | filters.regex(DL_REGEX), group=1)
-@locale("media")
+@locale("medias")
 async def medias_download(client: Smudge, message: Message, strings):
     if message.matches:
         if (
