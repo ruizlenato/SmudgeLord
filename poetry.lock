@@ -923,13 +923,13 @@ files = [
 
 [[package]]
 name = "yt-dlp"
-version = "2023.3.4"
+version = "2023.7.6"
 description = "A youtube-dl fork with additional features and patches"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "yt-dlp-2023.3.4.tar.gz", hash = "sha256:265d5da97a76c15d7d9a4088a67b78acd5dcf6f8cfd8257c52f581ff996ff515"},
-    {file = "yt_dlp-2023.3.4-py2.py3-none-any.whl", hash = "sha256:40ca421407ce07c8fd700854fd978d58526ec6fff3468caa34ff1c7333b8dc34"},
+    {file = "yt-dlp-2023.7.6.tar.gz", hash = "sha256:cb58373869c8ccb5034746f91cfccd6d25ea697090dfd6f93e9034d51eb4aed2"},
+    {file = "yt_dlp-2023.7.6-py2.py3-none-any.whl", hash = "sha256:b33b3f68751f33dd8290f1f61f7a011679b3b512aa223df3bff496688bc0bd19"},
 ]
 
 [package.dependencies]
@@ -943,4 +943,4 @@ websockets = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "694e1a6ef341e64b7d3c40ed1836494f7e277816742179503c538cc7602d1c72"
+content-hash = "a17782a93b04899fedc1fb19385f1bae9b47c506e56c685c857150dcc4e7f47d"
