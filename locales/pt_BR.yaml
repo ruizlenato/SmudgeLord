@@ -1,9 +1,8 @@
-# Core
+#Core
 metada:
   flag: "🇧🇷"
   name: "Português (Brasil)"
-
-# Strings
+#Strings
 strings:
   afk:
     name: "Afk"
@@ -22,7 +21,7 @@ strings:
   config:
     no-admin: "Você não é um administrador do grupo."
     medias-button: "Mídias"
-    config-text: "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
+    config-text: "<b>Configurações</b> — Aqui estão as minhas configurações para esse grupo, para saber mais, <b>clique nos botões abaixo.</b>"
     medias-captions-button: "Legendas:"
     medias-auto-button: "Automático:"
     medias-config-text: |
@@ -31,7 +30,6 @@ strings:
 
 
       Para saber o que cada botão faz, clique no botão com o nome da configuração.
-
   lastfm:
     name: "LastFM"
     ask-username: "<a href='tg://user?id={}'>{}</a>, Me envie seu nome de usuário do last.fm."
