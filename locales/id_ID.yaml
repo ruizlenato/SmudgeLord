@@ -1,6 +1,6 @@
 #Core
 metada:
-  flag: "🇺🇸"
+  flag: "🇮🇩"
   name: "English (United States)"
 #Strings
 strings:
@@ -115,7 +115,7 @@ strings:
     existing_pack: "<code>Using existing sticker pack...</code>"
     new-pack: "<code>Creating a new sticker pack...</code>"
     never-interacted: "Looks like you've never interacted with me on private chat, you need to do that first.\nClick the button below to send me a message."
-    sticker-stoled: "Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/{}'>confira.</a>\n<b>Emoji:</b>{}"
+    sticker-stoled: "Sticker stolen <b>successfully</b>, <a href='t.me/adstickers/{}'>check out.</a>\n<b>Emoji:</b>{}"
     help: |
       <b>/getsticker —</b> reply to a sticker to me to upload the file as a
       <b>png or gif</b> <i>(It only works with video and static stickers).</i>
