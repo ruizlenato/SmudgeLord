@@ -41,8 +41,8 @@ class MyLogger:
 
 class DownloadMedia:
     def __init__(self):
-        self.cors: str = "https://cors-bypass.amanoteam.com/"
         self.TwitterAPI: str = "https://api.twitter.com/2/"
+        self.ThreadsAPI: str = "https://www.threads.net/api/graphql"
 
     async def download(self, url: str, captions: bool):
         self.files: list = []
@@ -228,42 +228,60 @@ DKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
 
     async def Threads(self, url: str, captions: str):
         httpx = await self.httpx("https://www.threads.net/")
+        """
+        Get the post media.
 
-        post_id = re.findall("/t/([a-zA-Z0-9_-]+)", url)[0]
-        r = await httpx.get(
-            f"https://www.threads.net/t/{post_id}/embed/",
-            follow_redirects=True,
+        Arguments:
+            url (str): The URL of the post.
+        """
+        post_id = re.findall(r'{"post_id":"(\d+)"}', (await httpx.get(url)).text)[0]
+
+        response = await httpx.post(
+            self.ThreadsAPI,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-IG-App-ID": "238260118697367",
+                "X-FB-LSD": "LFEwwEJ6qDWEUM-79Hlmgq",
+                "Sec-Fetch-Site": "same-origin",
+            },
+            data={
+                "lsd": "LFEwwEJ6qDWEUM-79Hlmgq",
+                "variables": json.dumps(
+                    {
+                        "postID": post_id,
+                    }
+                ),
+                "doc_id": "5587632691339264",
+            },
         )
-        soup = bs(r.text, "html.parser")
+        r = response.json()
+        thread = r["data"]["data"]["containing_thread"]["thread_items"][0]["post"]
+
+        if thread["caption"] is not None:
+            self.caption = f"{thread['caption']['text']}\n<a href='{url}'>🔗 Link</a>"
 
         medias = []
-        self.caption = f"<a href='{url}'>🔗 Link</a>"
-
-        # Scrapper of the post js to get the Thread caption.
-        pattern = re.compile(r'\[\["__markup.+{"__html".+span>"},1]]')
-        script_tag = soup.find("script", text=re.compile(pattern))
-        if script_tag:
-            matches = re.findall(pattern, script_tag.string)[0]
-            data = json.loads(matches)
-            if comment := re.findall(r"<span.+>(.+)</span>", str(data[0][1])):
-                self.caption = f"{comment[0]}\n<a href='{url}'>🔗 Link</a>"
-
-        # This method is for when a media has more than one media.
-        if find_all := soup.find_all("div", class_="MediaScrollImageContainer"):
-            for div in find_all:
-                if video := div.find("video"):
-                    url = video.find("source").get("src")
-                if image := div.find("img", class_="img"):
-                    url = image.get("src")
-                medias.append({"p": url, "w": 0, "h": 0})
-
-        # This method only works when a "Thread" has only one medium.
-        if div := soup.find("div", class_="SingleInnerMediaContainer"):
-            if video := div.find("video"):
-                url = video.find("source").get("src")
-            if image := div.find("img", class_="img"):
-                url = image.get("src")
-            medias.append({"p": url, "w": 0, "h": 0})
+        if len(thread["video_versions"]) == 0:
+            if thread["carousel_media"] is not None:
+                for media in thread["carousel_media"]:
+                    if len(media["video_versions"]) == 0:
+                        url = media["image_versions2"]["candidates"][0]["url"]
+                        medias.append(
+                            {"p": url, "w": media["original_width"], "h": media["original_height"]}
+                        )
+                    else:
+                        url = media["video_versions"][0]["url"]
+                        medias.append(
+                            {"p": url, "w": media["original_width"], "h": media["original_height"]}
+                        )
+            else:
+                info = thread["image_versions2"]["candidates"][0]
+                medias.append({"p": info["url"], "w": info["width"], "h": info["height"]})
+        else:
+            url = thread["video_versions"][0]["url"]
+            medias.append(
+                {"p": url, "w": thread["original_width"], "h": thread["original_height"]}
+            )
 
         for m in medias:
             file = io.BytesIO((await httpx.get(m["p"])).content)
