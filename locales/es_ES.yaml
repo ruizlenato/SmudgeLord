@@ -1,0 +1,124 @@
+#Core
+metada:
+  flag: "🇪🇸"
+  name: "Español (España)"
+#Strings
+strings:
+  afk:
+    name: "Afk"
+    now-unavailable: "<b>{}</b> ahora no está disponible!"
+    user-available: "¡<b><a href='tg://user?id={}'>{}</a></b> ha vuelto!"
+    user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> is <b>no está disponible!</b>\n<i>Visto por última vez hace<code> {}</code></i>"
+    user-reason: "\n<b>Motivo:</b> <code>{}</code>"
+    help: |
+      AFK significa “away from keyboard”  que traducido al español, significa “Lejos del teclado”.
+      Es básicamente la jerga de Internet para decir que estás ausente.
+
+      <b>/afk <i>(motivo)</i> —</b> Defínase a sí mismo como ausente.
+      <b>brb <i>(motivo)</i> —</b> Hace lo mismo que el comando afk pero sin tener que usar el <code>/</code>.
+
+      Cuando estés a distancia, cualquier mención tuya será respondida con un mensaje de que estás ausente.
+  config:
+    no-admin: "No eres un administrador de grupo."
+    medias-button: "Multimedia"
+    config-text: "<b>Configuración</b> — Aquí están mis configuraciones para este grupo, para saber más, <b>haga clic en los botones de abajo.</b>"
+    medias-captions-button: "Subtítulos:"
+    medias-auto-button: "Automático:"
+    medias-config-text: |
+      <b>Ajustes de descarga multimedia.</b>
+      <i>Para obtener más información sobre el módulo <b>'media'</b>, utilice <code>/help<code> en mi dm.</i>
+
+
+      Para saber qué hace cada botón, haga clic en el botón con el nombre de la configuración.
+  lastfm:
+    name: "LastFM"
+    ask-username: "<a href='tg://user?id={}'>{}</a>, Envíame tu nombre de usuario de last.fm."
+    wrong-username: "<b>Error</b>\nTu nombre de usuario de last.fm está incorrecto"
+    saved-username: "<b>¡Hecho, usuario de last.fm guardado!</b>"
+    no-username: "<b>No ha establecido su nombre de usuario de last.fm.</b>\nUtilice el comando /setuser para configurar"
+    no-scrobbles: "<b>Parece que nunca has hecho scrobbling de una canción en LastFM.</b>\n\nSi tienes problemas, ve a last.fm/about/trackmymusic y mira cómo conectar tu cuenta a tu aplicación de música."
+    is-listening: "<b><a href='https://last.fm/user/{}'>{}</a></b> está escuchando por la <b>{}ª vez</b>:\n\n"
+    was-listening: "<b><a href='https://last.fm/user/{}'>{}</a></b> estaba escuchando por <b>{}ª vez</b>:\n\n"
+    help: |
+      Last.fm es un servicio en línea que ofrece diversas funciones relacionadas con la música. Puedes registrar la música que escuchas en diferentes plataformas de streaming y crear así un perfil musical personalizado, que ofrece recomendaciones de canciones y artistas en función de tus gustos.
+
+      <b>/setuser —</b> Define tu nombre de usuario en last.fm.
+      <b>/lastfm|/lt —</b> Muestra la canción que estás escuchando en last.fm.
+      <b>/lalbum|/lalb —</b> Muestra el álbum que estás escuchando en last.fm.
+      <b>/lartist|/lart —</b> Muestra el artista al que estás escuchando en last.fm.
+  locale:
+    crowdin-button: "🌎 ¡Ayúdanos con las traducciones!"
+    select-language: "Selecciona debajo el idioma en el que quieres utilizar el bot."
+    language-changed: "Idioma cambiado con éxito."
+  medias:
+    name: Multimedia
+    ytdl-no-args: "<b>Usage:</b> <code>/ytdl [Palabra o enlace]</code>\n\nEspecifique una palabra o un enlace de youtube para que pueda buscar y descargar un vídeo"
+    audio-button: "💿 Audio"
+    video-button: "📹 Vídeo"
+    button-answer: "Este botón no es para ti."
+    big-file: "El vídeo que desea descargar supera los 2 GB de tamaño.\nNo se puede descargar y cargar, perdón."
+    downloading: "Descargando..."
+    sending-error: "¡Lo siento! No pude enviar el vídeo debido a un error.\n<b>Error:</b> <code>{}</code>"
+    sending: "Enviando..."
+    unsupported-link: "<b>El enlace que has enviado no es válido,</b> actualmente solo admito enlaces desde TikTok, Threads, Twitter e Instagram."
+    sdl-no-args: "<b>Uso:</b> <code>/dl [enlace]</code>\n\nEspecifica un enlace de Instagram, TikTok, Threads o Twitter para que pueda descargar el vídeo."
+    help: |
+      <b>/dl|/sdl —</b> Descargue vídeos de <b><i>Instagram, TikTok, Threads y Twitter.</i></b>
+      <b>/ytdl —</b> Descargar vídeos de YouTube en formato de vídeo o audio.
+  misc:
+    name: "Diversos"
+    print-no-args: "<b>Uso:</b> <code>/print https://example.com</code> — Captura de pantalla de la página web especificada."
+    taking-screenshot: "Capturando pantalla..."
+    error-api: "No se pudo obtener el valor de la url, probablemente la API no sea accesible."
+    help: |
+      <b>/print —</b> Captura de pantalla del sitio web especificado
+      <b>/tr —</b> Traduce el texto al idioma dado (el idioma por defecto es el idioma por defecto del usuario).
+  start:
+    start-text: |
+      ¡Hola <b>{}</b>! — Soy <b>SmudgeLord,</b> un bot con algunos comandos útiles y divertidos para ti
+
+      📦 <b>Código Fuente:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+    start-button: "Iniciar una conversación"
+    help-button: "❓ Ayuda"
+    language-button: "🌐 Idioma"
+    about-button: "ℹ️ Sobre"
+    back-button: "↩️ Volver"
+    donate-button: "💵 Donation"
+    start-text-privae: |
+      ¡Hola!, <b>Soy SmudgeLord.</b>
+      Tengo muchas funciones, para saber más, inicia una conversación conmigo
+    help-menu-text: "Aquí están todos mis plug-ins, para saber más sobre los plug-ins, <b>solo tienes que hacer clic en su nombre.</b>"
+    help-commands-text: "<b>Comandos disponibles:</b>\n\n"
+    about-text: |
+      <b> — SmudgeLord</b>
+
+      <b>- Número de versión:</b> {} (<code>{}</code>)
+      <b>- Código Fuente</b>: <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+      <b>- Programador:</b> @ruizlenato
+
+      <b>💸 Donación:</b>
+      Ayude a mantener el bot en línea, haga una donación a través de PIX o PayPal.
+      <b>Clave Pix y correo electrónico de PayPal:</b> <code>ruizlenato@proton.me</code>
+
+      Si desea contribuir de otra forma, con una tarjeta por ejemplo, haga clic en el botón de abajo y será redirigido al enlace de donaciones de Ko-Fi.
+  stickers:
+    name: "Stickers"
+    animated-unsupported: "¡Las etiquetas animadas aún no están soportadas!"
+    sticker-info: "<b>Emoji:</b> {}\n<b>ID del Sticker:</b> <code>{}</code>"
+    getsticker-no-args: "Responde a un sticker utilizando este comando para que pueda enviártela como <b>png o gif</b>.\n<i>Solo funciona con stickers de vídeo y estáticas</i>"
+    kanging: "<code>Kangando (Robando) la sticker...</code>"
+    file-no-name: "¡Esta etiqueta no tiene nombre de archivo!"
+    media-invalid: "<b>Error</b>: ¡Multimedia inválida!"
+    kang-no-reply: "<b>Necesitas usar este comando para responder a una pegatina o una foto.</b>"
+    converting_video: "<code>Convirtiendo video/gif a pegatina...</code>"
+    existing_pack: "<code>Utilizando el paquete de sticker existente...</code>"
+    new-pack: "<code>Creando un nuevo paquete de stickers...</code>"
+    never-interacted: "Parece que nunca has interactuado conmigo en un chat privado, tienes que hacerlo primero.\nHaga clic en el botón de abajo para enviarme un mensaje."
+    sticker-stoled: "Sticker robado <b>con éxito</b>, <a href='t.me/addstickers/{}'>compruébalo.</a>\n<b>Emoji:</b>{}"
+    help: |
+      <b>/getsticker —</b> responde a un sticker para subir el archivo como un
+      <b>png o gif</b> <i>(Solo funciona con video y stickers estáticos).</i>
+      <b>/kang —</b> responde a un sticker (pegatina) para añadirlo a tu paquete creado por mí.
+  translate:
+    no-args: "<b>Uso:</b> <code>/tr idioma texto para traducir</code> (También se puede utilizar en respuesta a un mensaje)."
+    translating: "Traduciendo…"
