@@ -1,9 +1,8 @@
-# Core
+#Core
 metada:
   flag: "🇪🇸"
   name: "Español (España)"
-
-# Strings
+#Strings
 strings:
   afk:
     name: "Afk"
@@ -31,7 +30,6 @@ strings:
 
 
       Para saber qué hace cada botón, haga clic en el botón con el nombre de la configuración.
-
   lastfm:
     name: "LastFM"
     ask-username: "<a href='tg://user?id={}'>{}</a>, Envíame tu nombre de usuario de last.fm."
@@ -53,7 +51,7 @@ strings:
     select-language: "Selecciona debajo el idioma en el que quieres utilizar el bot."
     language-changed: "Idioma cambiado con éxito."
   medias:
-    name: Medias
+    name: Multimedia
     ytdl-no-args: "<b>Usage:</b> <code>/ytdl [Palabra o enlace]</code>\n\nEspecifique una palabra o un enlace de youtube para que pueda buscar y descargar un vídeo"
     audio-button: "💿 Audio"
     video-button: "📹 Vídeo"
@@ -68,7 +66,7 @@ strings:
       <b>/dl|/sdl —</b> Descargue vídeos de <b><i>Instagram, TikTok, Threads y Twitter.</i></b>
       <b>/ytdl —</b> Descargar vídeos de YouTube en formato de vídeo o audio.
   misc:
-    name: "Misc"
+    name: "Diversos"
     print-no-args: "<b>Uso:</b> <code>/print https://example.com</code> — Captura de pantalla de la página web especificada."
     taking-screenshot: "Capturando pantalla..."
     error-api: "No se pudo obtener el valor de la url, probablemente la API no sea accesible."
@@ -84,7 +82,7 @@ strings:
     help-button: "❓ Ayuda"
     language-button: "🌐 Idioma"
     about-button: "ℹ️ Sobre"
-    back-button: "↩️ Back"
+    back-button: "↩️ Volver"
     donate-button: "💵 Donation"
     start-text-privae: |
       ¡Hola!, <b>Soy SmudgeLord.</b>
@@ -106,7 +104,7 @@ strings:
   stickers:
     name: "Stickers"
     animated-unsupported: "¡Las etiquetas animadas aún no están soportadas!"
-    sticker-info: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
+    sticker-info: "<b>Emoji:</b> {}\n<b>ID del Sticker:</b> <code>{}</code>"
     getsticker-no-args: "Responde a un sticker utilizando este comando para que pueda enviártela como <b>png o gif</b>.\n<i>Solo funciona con stickers de vídeo y estáticas</i>"
     kanging: "<code>Kangando (Robando) la sticker...</code>"
     file-no-name: "¡Esta etiqueta no tiene nombre de archivo!"
