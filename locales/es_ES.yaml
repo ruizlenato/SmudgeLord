@@ -1,15 +1,14 @@
-# Core
+#Core
 metada:
   flag: "🇪🇸"
   name: "Español (España)"
-
-# Strings
+#Strings
 strings:
   afk:
     name: "Afk"
-    now-unavailable: "<b>{}</b> ahora no está disponible!"
+    now-unavailable: "<b>¡{}</b> ahora no está disponible!"
     user-available: "¡<b><a href='tg://user?id={}'>{}</a></b> ha vuelto!"
-    user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> is <b>no está disponible!</b>\n<i>Visto por última vez hace<code> {}</code></i>"
+    user-unavailable: "¡<b><a href='tg://user?id={}'>{}</a></b> <b>no está disponible!</b>\n<i>Visto por última vez hace<code> {}</code></i>"
     user-reason: "\n<b>Motivo:</b> <code>{}</code>"
     help: |
       AFK significa “away from keyboard”  que traducido al español, significa “Lejos del teclado”.
@@ -31,7 +30,6 @@ strings:
 
 
       Para saber qué hace cada botón, haga clic en el botón con el nombre de la configuración.
-
   lastfm:
     name: "LastFM"
     ask-username: "<a href='tg://user?id={}'>{}</a>, Envíame tu nombre de usuario de last.fm."
@@ -53,7 +51,7 @@ strings:
     select-language: "Selecciona debajo el idioma en el que quieres utilizar el bot."
     language-changed: "Idioma cambiado con éxito."
   medias:
-    name: Medias
+    name: Multimedia
     ytdl-no-args: "<b>Usage:</b> <code>/ytdl [Palabra o enlace]</code>\n\nEspecifique una palabra o un enlace de youtube para que pueda buscar y descargar un vídeo"
     audio-button: "💿 Audio"
     video-button: "📹 Vídeo"
@@ -68,7 +66,7 @@ strings:
       <b>/dl|/sdl —</b> Descargue vídeos de <b><i>Instagram, TikTok, Threads y Twitter.</i></b>
       <b>/ytdl —</b> Descargar vídeos de YouTube en formato de vídeo o audio.
   misc:
-    name: "Misc"
+    name: "Diversos"
     print-no-args: "<b>Uso:</b> <code>/print https://example.com</code> — Captura de pantalla de la página web especificada."
     taking-screenshot: "Capturando pantalla..."
     error-api: "No se pudo obtener el valor de la url, probablemente la API no sea accesible."
@@ -84,8 +82,8 @@ strings:
     help-button: "❓ Ayuda"
     language-button: "🌐 Idioma"
     about-button: "ℹ️ Sobre"
-    back-button: "↩️ Back"
-    donate-button: "💵 Donation"
+    back-button: "↩️ Volver"
+    donate-button: "💵 Donación"
     start-text-privae: |
       ¡Hola!, <b>Soy SmudgeLord.</b>
       Tengo muchas funciones, para saber más, inicia una conversación conmigo
@@ -106,7 +104,7 @@ strings:
   stickers:
     name: "Stickers"
     animated-unsupported: "¡Las etiquetas animadas aún no están soportadas!"
-    sticker-info: "<b>Emoji:</b> {}\n<b>Sticker ID:</b> <code>{}</code>"
+    sticker-info: "<b>Emoji:</b> {}\n<b>ID del Sticker:</b> <code>{}</code>"
     getsticker-no-args: "Responde a un sticker utilizando este comando para que pueda enviártela como <b>png o gif</b>.\n<i>Solo funciona con stickers de vídeo y estáticas</i>"
     kanging: "<code>Kangando (Robando) la sticker...</code>"
     file-no-name: "¡Esta etiqueta no tiene nombre de archivo!"
