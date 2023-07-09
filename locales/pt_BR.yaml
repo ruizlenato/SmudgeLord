@@ -115,7 +115,7 @@ strings:
     existing_pack: "<code>Usando um pacote de sticker existente...</code>"
     new-pack: "<code>Criando um novo pacote de sticker...</code>"
     never-interacted: "Parece que você nunca interagiu comigo no chat privado, você precisa fazer isso primeiro.\nClique no botão abaixo para me enviar uma mensagem."
-    sticker-stoled: "Sticker stolen <b>successfully</b>, <a href='t.me/adstickers/{}'>check out.</a>\n<b>Emoji:</b>{}"
+    sticker-stoled: "Sticker roubado <b>com sucesso</b>, <a href='t.me/adstickers/{}'>confira.</a>\n<b>Emoji:</b>{}"
     help: |
       <b>/getsticker —</b> responda a um sticker para eu fazer o upload do arquivo como um png ou gif (Funciona apenas com vídeo e adesivos estáticos).
       <b>/kang —</b> responda a um sticker para adicioná-lo ao seu pacote criado por mim.
