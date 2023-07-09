@@ -1,0 +1,125 @@
+#Core
+metada:
+  flag: "🇺🇸"
+  name: "English (United States)"
+#Strings
+strings:
+  afk:
+    name: "Afk"
+    now-unavailable: "<b>{}</b> Sekarang tersedia!"
+    user-available: "<b><a href='tg://user?id={}'>{}</a></b> kembali!"
+    user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b>\n<i>Last seen<code> {}</code> ago</i>"
+    user-reason: "\n<b>Reason:</b> <code>{}</code>"
+    help: |
+      AFK stands for "<i>away from keyboard</i>".
+      It is basically Internet slang to say that you are away.
+
+      <b>/afk <i>(reason)</i> —</b> Define yourself as away.
+      <b>brb <i>(reason)</i> —</b> Does the same as the afk command but without having to use the <code>/</code>.
+
+      When you are set as afk, any mention of you will be answered with a message that you are away!
+  config:
+    no-admin: "Anda bukan admin grup."
+    medias-button: "Media"
+    config-text: "<b>Pengaturan</b> — Ini adalah pengaturan saya untuk grup ini, untuk mengetahui lebih lanjut, <b>klik tombol di bawah.</b>"
+    medias-captions-button: "Teks:"
+    medias-auto-button: "Auto:"
+    medias-config-text: |
+      <b>Media Download Settings.</b>
+      <i>To learn more about the <b>'media'</b> module, use <code>/help<code> in my dm.</i>
+
+
+      To know what each button does, click on the button with the name of the setting.
+  lastfm:
+    name: "LastFM"
+    ask-username: "<a href='tg://user?id={}'>{}</a>, Kirimkan saya nama pengguna last.fm Anda."
+    wrong-username: "<b>Kesalahan</b>\nNama pengguna last.fm Anda salah"
+    saved-username: "<b>Selesai, pengguna last.fm telah disimpan!</b>"
+    no-username: "<b>Anda belum menyetel nama pengguna last.fm Anda.</b>\nGunakan perintah /setuser untuk mengatur"
+    no-scrobbles: "<b>Apparently you have never scrobbled a song on LastFM.</b>\n\nSe você está tendo problemas, vá para last.fm/about/trackmymusic e veja como conectar sua conta ao seu aplicativo de música."
+    is-listening: "<b><a href='https://last.fm/user/{}'>{}</a></b> mendengarkan untuk <b>{}kedua kalinya</b>:\n\n"
+    was-listening: "<b><a href='https://last.fm/user/{}'>{}</a></b> sedang mendengarkan untuk <b>{}kedua kalinya</b>:\n\n"
+    help: |
+      Last.fm is an online service that offers various music-related features. You can record the music you listen to on different streaming platforms and thus create a personalized music profile, providing recommendations of songs and artists based on your tastes.
+
+
+      <b>/setuser —</b> Sets your last.fm username.
+      <b>/lastfm|/lt —</b> Shows the song you are scrobbling on last.fm.
+      <b>/lalbum|/lalb —</b> Shows the album you are scrobbling on last.fm.
+      <b>/lartist|/lart —</b> Shows the artist you are scrobbling on last.fm.
+  locale:
+    crowdin-button: "🌎 Bantu kami dengan terjemahan!"
+    select-language: "Pilih di bawah bahasa yang ingin Anda gunakan untuk bot."
+    language-changed: "Bahasa berhasil diubah."
+  medias:
+    name: Media
+    ytdl-no-args: "<b>Usage:</b> <code>/ytdl [word or link]</code>\n\nSpecify a word or a youtube link so that I can search and download a video"
+    audio-button: "💿 Audio"
+    video-button: "📹 Video"
+    button-answer: "Tombol ini bukan untuk Anda."
+    big-file: "Video yang ingin Anda unduh melebihi ukuran 2GB.\nTidak dapat mengunduh dan mengunggah, maaf."
+    downloading: "Mengunduh..."
+    sending-error: "Maaf! Saya tidak dapat mengirim video karena kesalahan. \n<b>Kesalahan:</b> <code>{}</code>"
+    sending: "Mengirim..."
+    unsupported-link: "<b>The link you sent is invalid,</b> currently I only support links from TikTok, Threads, Twitter and Instagram."
+    sdl-no-args: "<b>Penggunaan:</b> <code>/dl [link]</code>\n\nTentukan tautan dari Instagram, TikTok, Threads atau Twitter agar saya dapat mengunduh videonya."
+    help: |
+      <b>/dl|/sdl —</b> Downloads videos from <b><i>Instagram, TikTok, Threads and Twitter.</i></b>
+      <b>/ytdl —</b> Download videos from YouTube in video or audio format.
+  misc:
+    name: "Misc"
+    print-no-args: "<b>Penggunaan:</b> <code>/print https://example.com</code> — Mengambil tangkapan layar dari situs web yang ditentukan."
+    taking-screenshot: "Taking screenshot..."
+    error-api: "Tidak bisa mendapatkan nilai url, kemungkinan besar API tidak dapat diakses."
+    help: |
+      <b>/print —</b> Take a screenshot of the specified website.
+      <b>/tr —</b> Translates the text into the given language (the default is the user's default language).
+  start:
+    start-text: |
+      Hello <b>{}</b>! — I'm <b>SmudgeLord,</b> a bot with some useful and fun commands for you.
+
+      📦 <b>SourceCode:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+    start-button: "Start a chat"
+    help-button: "❓ Help"
+    language-button: "🌐 Language"
+    about-button: "ℹ️ About"
+    back-button: "↩️ Untuk kembali"
+    donate-button: "💵 Donation"
+    start-text-privae: |
+      Hello!, <b>I'm SmudgeLord.</b>
+      I have a lot of functions, to know more, start a conversation with me
+    help-menu-text: "Ini semua plugin saya, untuk mengetahui lebih lanjut tentang plugin, <b>cukup klik namanya.</b>"
+    help-commands-text: "<b>Perintah yang Tersedia:</b>\n\n"
+    about-text: |
+      <b> — SmudgeLord</b>
+
+      <b>- Version number:</b> {} (<code>{}</code>)
+      <b>- SourceCode</b>: <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+      <b>- Developer:</b> @ruizlenato
+
+      <b>💸 Donate:</b>
+      Help keep the bot online, make a donation via PIX or PayPal.
+      <b>Pix Key and PayPal Email:</b> <code>ruizlenato@proton.me</code>
+
+      If you want to contribute in another way, with a card for example, click on the button below and you will be redirected to the Ko-Fi donation link.
+  stickers:
+    name: "Stickers"
+    animated-unsupported: "Stiker animasi belum didukung!"
+    sticker-info: "<b>Emoji:</b> {}\n<b>ID Stiker:</b> <code>{}</code>"
+    getsticker-no-args: "Balas stiker menggunakan perintah ini agar saya dapat mengirimkannya kepada Anda sebagai <b>png atau gif</b>.\n<i>Ini hanya bekerja dengan video dan stiker statis</i>"
+    kanging: "<code>Kanging (Mencuri) stiker...</code>"
+    file-no-name: "Stiker ini tidak memiliki nama file!"
+    media-invalid: "<b>Error</b>: Invalid media!"
+    kang-no-reply: "<b>You need to use this command replying a sticker or a photo.</b>"
+    converting_video: "<code>Converting video/gif to sticker...</code>"
+    existing_pack: "<code>Using existing sticker pack...</code>"
+    new-pack: "<code>Creating a new sticker pack...</code>"
+    never-interacted: "Looks like you've never interacted with me on private chat, you need to do that first.\nClick the button below to send me a message."
+    sticker-stoled: "Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/{}'>confira.</a>\n<b>Emoji:</b>{}"
+    help: |
+      <b>/getsticker —</b> reply to a sticker to me to upload the file as a
+      <b>png or gif</b> <i>(It only works with video and static stickers).</i>
+      <b>/kang —</b> reply to a sticker to add it to your pack created by me.
+  translate:
+    no-args: "<b>Usage:</b> <code>/tr language text for translation</code> (Can be also used in reply to a message)."
+    translating: "Translating..."
