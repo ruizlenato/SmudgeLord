@@ -9,7 +9,7 @@ strings:
     name: "Afk"
     now-unavailable: "<b>{}</b> está agora indisponível!"
     user-available: "<b><a href='tg://user?id={}'>{}</a></b> está de volta!"
-    user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> está <b>indisponível!</b>\n<i>Visto pela última vez<code> {}</code> atrás</i>"
+    user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> está <b>indisponível!</b>\nVisto pela última vez à <code>{}</code> atrás"
     user-reason: "\n<b>Motivo:</b> <code>{}</code>"
     help: |
       AFK significa “<i>away from keyboard</i>” que traduzido para o português, significa  “Longe do teclado”.
