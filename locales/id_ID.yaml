@@ -8,7 +8,7 @@ strings:
     name: "Afk"
     now-unavailable: "<b>{}</b> Sekarang tersedia!"
     user-available: "<b><a href='tg://user?id={}'>{}</a></b> kembali!"
-    user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b>\n<i>Last seen<code> {}</code> ago</i>"
+    user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b>\nLast seen <code>{}</code> ago"
     user-reason: "\n<b>Reason:</b> <code>{}</code>"
     help: |
       AFK stands for "<i>away from keyboard</i>".
@@ -115,7 +115,7 @@ strings:
     existing_pack: "<code>Using existing sticker pack...</code>"
     new-pack: "<code>Creating a new sticker pack...</code>"
     never-interacted: "Looks like you've never interacted with me on private chat, you need to do that first.\nClick the button below to send me a message."
-    sticker-stoled: "Sticker stolen <b>successfully</b>, <a href='t.me/adstickers/{}'>check out.</a>\n<b>Emoji:</b>{}"
+    sticker-stoled: "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/{}'>check out.</a>\n<b>Emoji:</b>{}"
     help: |
       <b>/getsticker —</b> reply to a sticker to me to upload the file as a
       <b>png or gif</b> <i>(It only works with video and static stickers).</i>
