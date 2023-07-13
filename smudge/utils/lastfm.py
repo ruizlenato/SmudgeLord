@@ -1,6 +1,5 @@
 import json
 import re
-import urllib.parse
 
 from smudge.database.users import get_user_data, register_lastfm
 from smudge.utils.utils import http
@@ -46,8 +45,8 @@ class LastFM:
     async def track_playcount(self, artist: str, track: str, username: str):
         r = await http.get(
             self.api
-            + f"?method=track.getinfo&artist={urllib.parse.quote(artist)}"
-            + f"&track={urllib.parse.quote(track)}"
+            + f"?method=track.getinfo&artist={artist}"
+            + f"&track={track}"
             + f"&user={username}&api_key={self.api_key}&format=json"
         )
         res = json.loads(r.content)
@@ -89,8 +88,8 @@ class LastFM:
     async def album_playcount(self, artist: str, album: str, username: str):
         r = await http.get(
             self.api
-            + f"?method=album.getinfo&artist={urllib.parse.quote(artist)}"
-            + f"&album={urllib.parse.quote(album)}"
+            + f"?method=album.getinfo&artist={artist}"
+            + f"&album={album}"
             + f"&user={username}&api_key={self.api_key}&format=json"
         )
         res = json.loads(r.content)
@@ -132,7 +131,7 @@ class LastFM:
     async def artist_playcount(self, artist: str, username: str):
         r = await http.get(
             self.api
-            + f"?method=artist.getInfo&artist={urllib.parse.quote(artist)}"
+            + f"?method=artist.getInfo&artist={artist}"
             + f"&user={username}&api_key={self.api_key}&format=json"
         )
         res = json.loads(r.content)

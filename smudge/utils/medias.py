@@ -85,7 +85,10 @@ class DownloadMedia:
             "viewport-width": "1280",
         }
 
-        post_id = re.findall(r"/(?:reel|p)/([a-zA-Z0-9_-]+)/", url)[0]
+        if regex := re.search(r"(?:reel|p)/([A-Za-z0-9_-]+)", url):
+            post_id = regex.group(1)
+        else:
+            return
 
         httpx = await self.httpx("https://www.instagram.com/")
 
