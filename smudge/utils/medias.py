@@ -46,6 +46,7 @@ class DownloadMedia:
 
     async def download(self, url: str, captions: bool):
         self.files: list = []
+        self.caption = f"<a href='{url}'>🔗 Link</a>"
         if re.search(r"instagram.com/", url):
             await self.Instagram(url, captions)
         elif re.search(r"tiktok.com/", url):
@@ -240,9 +241,13 @@ _limited_actions_policy_enabled": True,
                 headers=headers,
             )
         ).json()
-        tweet = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][0][
-            "entries"
-        ][0]["content"]["itemContent"]["tweet_results"]["result"]
+
+        try:
+            tweet = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][0][
+                "entries"
+            ][0]["content"]["itemContent"]["tweet_results"]["result"]
+        except KeyError:
+            return
         user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
         self.caption = f"<b>{user_name}</b>: {tweet['legacy']['full_text']}"
 
