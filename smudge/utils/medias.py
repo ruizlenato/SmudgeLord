@@ -70,6 +70,20 @@ class DownloadMedia:
         else:  # noqa: RET505
             return http
 
+    async def downloader(self, url: str, weight: int, height: int):
+        """
+        Get the media from URL.
+
+        Arguments:
+            url (str): The URL of the post and res info.
+
+        Returns:
+            Dict: Media url and res info.
+        """
+        file = io.BytesIO((await http.get(url)).content)
+        file.name = f"{url[60:80]}.{filetype.guess_extension(file)}"
+        self.files.append({"p": file, "w": weight, "h": height})
+
     async def Instagram(self, url: str, captions: str):
         headers = {
             "authority": "www.instagram.com",
@@ -98,7 +112,6 @@ class DownloadMedia:
             follow_redirects=True,
         )
         soup = bs(r.text, "html.parser")
-        medias = []
 
         if soup.find("div", {"data-media-type": "GraphImage"}):
             caption = re.sub(
@@ -108,7 +121,7 @@ class DownloadMedia:
             ).replace("<br/>", "\n")
             self.caption = f"{caption}\n<a href='{url}'>🔗 Link</a>"
             file = soup.find("img", {"class": "EmbeddedMediaImage"}).get("src")
-            medias.append({"p": file, "w": 0, "h": 0})
+            await self.downloader(file, 0, 0)
 
         data = re.findall(r'<script>(requireLazy\(\["TimeSliceImpl".*)<\/script>', r.text)
         if data and "shortcode_media" in data[0]:
@@ -123,10 +136,10 @@ class DownloadMedia:
                         self.caption = f"\n<a href='{url}'>🔗 Link</a>"
 
                     if jsoninsta["__typename"] == "GraphVideo":
-                        url = jsoninsta["video_url"]
-                        dimensions = jsoninsta["dimensions"]
-                        medias.append(
-                            {"p": url, "w": dimensions["width"], "h": dimensions["height"]}
+                        await self.downloader(
+                            jsoninsta["video_url"],
+                            jsoninsta["dimensions"]["width"],
+                            jsoninsta["dimensions"]["height"],
                         )
                     else:
                         for post in jsoninsta["edge_sidecar_to_children"]["edges"]:
@@ -135,8 +148,10 @@ class DownloadMedia:
                                 with contextlib.suppress(KeyError):
                                     url = post["node"]["video_url"]
                             dimensions = post["node"]["dimensions"]
-                            medias.append(
-                                {"p": url, "w": dimensions["width"], "h": dimensions["height"]}
+                            await self.downloader(
+                                url,
+                                dimensions["width"],
+                                dimensions["height"],
                             )
         else:
             r = await httpx.get(
@@ -151,31 +166,14 @@ class DownloadMedia:
 
             if video := data["video"]:
                 if len(video) == 1:
-                    url = video[0]["contentUrl"]
-                    medias.append(
-                        {"p": url, "w": int(video[0]["width"]), "h": int(video[0]["height"])}
+                    await self.downloader(
+                        video[0]["contentUrl"], int(video[0]["width"]), int(video[0]["height"])
                     )
                 else:
                     for v in video:
-                        url = v["contentUrl"]
-                        medias.append({"p": url, "w": v["width"], "h": v["height"]})
-
-        for m in medias:
-            file = io.BytesIO((await httpx.get(m["p"])).content)
-            file.name = f"{m['p'][60:80]}.{filetype.guess_extension(file)}"
-            self.files.append({"p": file, "w": m["w"], "h": m["h"]})
-        return
+                        await self.downloader(v["contentUrl"], v["width"], v["height"])
 
     async def Twitter(self, url: str, captions: str):
-        """
-        Get the media from the twitter post.
-
-        Arguments:
-            url (str): The URL of the post.
-
-        Returns:
-            Dict: Media files, size information and post caption.
-        """
         bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\
 fk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"  # Twitter Bearer Token
         # Extract the tweet ID from the URL
@@ -248,7 +246,6 @@ _limited_actions_policy_enabled": True,
         user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
         self.caption = f"<b>{user_name}</b>: {tweet['legacy']['full_text']}"
 
-        medias = []
         for media in tweet["legacy"]["extended_entities"]["media"]:
             if media["type"] in ("animated_gif", "video"):
                 bitrate = [
@@ -260,27 +257,17 @@ _limited_actions_policy_enabled": True,
                     if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
                         url = a["url"]
 
-                medias.append(
-                    {
-                        "p": url,
-                        "w": media["original_info"]["width"],
-                        "h": media["original_info"]["height"],
-                    }
+                await self.downloader(
+                    url,
+                    media["original_info"]["width"],
+                    media["original_info"]["height"],
                 )
             else:
-                medias.append(
-                    {
-                        "p": media["media_url_https"],
-                        "w": media["original_info"]["width"],
-                        "h": media["original_info"]["height"],
-                    }
+                await self.downloader(
+                    media["media_url_https"],
+                    media["original_info"]["width"],
+                    media["original_info"]["height"],
                 )
-
-        for m in medias:
-            file = io.BytesIO((await http.get(m["p"])).content)
-            file.name = f"{m['p'][60:80]}.{filetype.guess_extension(file)}"
-            self.files.append({"p": file, "w": m["w"], "h": m["h"]})
-        return
 
     async def TikTok(self, url: str, captions: str):
         path = io.BytesIO()
@@ -299,12 +286,6 @@ _limited_actions_policy_enabled": True,
 
     async def Threads(self, url: str, captions: str):
         httpx = await self.httpx("https://www.threads.net/")
-        """
-        Get the post media.
-
-        Arguments:
-            url (str): The URL of the post.
-        """
         post_id = re.findall(r'{"post_id":"(\d+)"}', (await httpx.get(url)).text)[0]
 
         response = await httpx.post(
@@ -331,31 +312,24 @@ _limited_actions_policy_enabled": True,
         if thread["caption"] is not None:
             self.caption = f"{thread['caption']['text']}\n<a href='{url}'>🔗 Link</a>"
 
-        medias = []
         if len(thread["video_versions"]) == 0:
             if thread["carousel_media"] is not None:
                 for media in thread["carousel_media"]:
                     if len(media["video_versions"]) == 0:
-                        url = media["image_versions2"]["candidates"][0]["url"]
-                        medias.append(
-                            {"p": url, "w": media["original_width"], "h": media["original_height"]}
+                        await self.downloader(
+                            media["image_versions2"]["candidates"][0]["url"],
+                            thread["original_width"],
+                            thread["original_height"],
                         )
                     else:
-                        url = media["video_versions"][0]["url"]
-                        medias.append(
-                            {"p": url, "w": media["original_width"], "h": media["original_height"]}
+                        await self.downloader(
+                            media["video_versions"][0]["url"],
+                            thread["original_width"],
+                            thread["original_height"],
                         )
             else:
                 info = thread["image_versions2"]["candidates"][0]
-                medias.append({"p": info["url"], "w": info["width"], "h": info["height"]})
+                await self.downloader(info["url"], info["width"], info["height"])
         else:
             url = thread["video_versions"][0]["url"]
-            medias.append(
-                {"p": url, "w": thread["original_width"], "h": thread["original_height"]}
-            )
-
-        for m in medias:
-            file = io.BytesIO((await httpx.get(m["p"])).content)
-            file.name = f"{m['p'][60:80]}.{filetype.guess_extension(file)}"
-            self.files.append({"p": file, "w": m["w"], "h": m["h"]})
-        return
+            await self.downloader(url, thread["original_width"], thread["original_height"])
