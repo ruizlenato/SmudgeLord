@@ -165,7 +165,8 @@ class DownloadMedia:
             else:
                 return
 
-            if video := data["video"]:
+            if "video" in data:
+                video = data["videp"]
                 if len(video) == 1:
                     await self.downloader(
                         video[0]["contentUrl"], int(video[0]["width"]), int(video[0]["height"])
