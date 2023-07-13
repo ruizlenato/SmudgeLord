@@ -167,52 +167,120 @@ class DownloadMedia:
         return
 
     async def Twitter(self, url: str, captions: str):
-        # Twitter Bearer Token
-        bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfb\
-DKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw"
+        """
+        Get the media from the twitter post.
+
+        Arguments:
+            url (str): The URL of the post.
+
+        Returns:
+            Dict: Media files, size information and post caption.
+        """
+        bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\
+fk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"  # Twitter Bearer Token
         # Extract the tweet ID from the URL
         tweet_id = re.match(".*twitter.com/.+status/([A-Za-z0-9]+)", url)[1]
-        params: str = ".json?tweet_mode=extended&cards_platform=Web-12&include_cards=1\
-&include_user_entities=0"
         csrfToken = str(uuid.uuid4()).replace("-", "")
-        res = (
+        headers = {
+            "Authorization": bearer,
+            "Cookie": f"auth_token=ee4ebd1070835b90a9b8016d1e6c6130ccc89637; ct0={csrfToken}; ",
+            "x-twitter-active-user": "yes",
+            "x-twitter-auth-type": "OAuth2Session",
+            "x-twitter-client-language": "en",
+            "x-csrf-token": csrfToken,
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 \
+Firefox/116.0",
+        }
+
+        params = {
+            "variables": json.dumps(
+                {
+                    "focalTweetId": tweet_id,
+                    "referrer": "messages",
+                    "includePromotedContent": True,
+                    "withCommunity": True,
+                    "withQuickPromoteEligibilityTweetFields": True,
+                    "withBirdwatchNotes": True,
+                    "withVoice": False,
+                    "withV2Timeline": True,
+                }
+            ),
+            "features": json.dumps(
+                {
+                    "rweb_lists_timeline_redesign_enabled": True,
+                    "responsive_web_graphql_exclude_directive_enabled": True,
+                    "verified_phone_label_enabled": False,
+                    "creator_subscriptions_tweet_preview_api_enabled": True,
+                    "responsive_web_graphql_timeline_navigation_enabled": True,
+                    "responsive_web_graphql_skip_user_profile_image_extensions_enabled": False,
+                    "tweetypie_unmention_optimization_enabled": True,
+                    "responsive_web_edit_tweet_api_enabled": True,
+                    "graphql_is_translatable_rweb_tweet_is_translatable_enabled": False,
+                    "view_counts_everywhere_api_enabled": True,
+                    "longform_notetweets_consumption_enabled": True,
+                    "responsive_web_twitter_article_tweet_consumption_enabled": False,
+                    "tweet_awards_web_tipping_enabled": False,
+                    "freedom_of_speech_not_reach_fetch_enabled": True,
+                    "standardized_nudges_misinfo": True,
+                    "tweet_with_visibility_results_prefer_gql\
+_limited_actions_policy_enabled": True,
+                    "longform_notetweets_rich_text_read_enabled": True,
+                    "longform_notetweets_inline_media_enabled": True,
+                    "responsive_web_media_download_video_enabled": False,
+                    "responsive_web_enhance_cards_enabled": False,
+                }
+            ),
+            "fieldToggles": json.dumps(
+                {"withAuxiliaryUserLabels": False, "withArticleRichContentState": False}
+            ),
+        }
+
+        r = (
             await http.get(
-                f"https://api.twitter.com/1.1/statuses/show/{tweet_id}{params}",
-                headers={
-                    "Authorization": bearer,
-                    "Cookie": f"auth_token=ee4ebd1070835b90a9b8016d1e6c6130ccc89637;\
- ct0={csrfToken};",
-                    "x-twitter-active-user": "yes",
-                    "x-twitter-auth-type": "OAuth2Session",
-                    "x-csrf-token": csrfToken,
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0)\
- Gecko/20100101 Firefox/116.0",
-                },
+                "https://twitter.com/i/api/graphql/NmCeCgkVlsRGS1cAwqtgmw/TweetDetail",
+                params=params,
+                headers=headers,
             )
         ).json()
+        tweet = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][0][
+            "entries"
+        ][0]["content"]["itemContent"]["tweet_results"]["result"]
+        user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
+        self.caption = f"<b>{user_name}</b>: {tweet['legacy']['full_text']}"
 
-        self.caption = f"<b>{res['user']['screen_name']}</b>\n{res['full_text']}"
-        try:
-            for media in res["extended_entities"]["media"]:
-                width = media["original_info"]["width"]
-                height = media["original_info"]["height"]
-                if media["type"] == "photo":
-                    path = io.BytesIO((await http.get(media["media_url_https"])).content)
-                    path.name = f"{media['id_str']}.{filetype.guess_extension(path)}"
-                else:
-                    bitrate = [
-                        a["bitrate"]
-                        for a in media["video_info"]["variants"]
-                        if a["content_type"] == "video/mp4"
-                    ]
-                    for a in media["video_info"]["variants"]:
-                        if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
-                            path = io.BytesIO((await http.get(a["url"])).content)
-                            path.name = f"{media['id_str']}.{filetype.guess_extension(path)}"
-        except KeyError:
-            return
+        medias = []
+        for media in tweet["legacy"]["extended_entities"]["media"]:
+            if media["type"] in ("animated_gif", "video"):
+                bitrate = [
+                    a["bitrate"]
+                    for a in media["video_info"]["variants"]
+                    if a["content_type"] == "video/mp4"
+                ]
+                for a in media["video_info"]["variants"]:
+                    if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
+                        url = a["url"]
 
-        self.files.append({"p": path, "w": width, "h": height})
+                medias.append(
+                    {
+                        "p": url,
+                        "w": media["original_info"]["width"],
+                        "h": media["original_info"]["height"],
+                    }
+                )
+            else:
+                medias.append(
+                    {
+                        "p": media["media_url_https"],
+                        "w": media["original_info"]["width"],
+                        "h": media["original_info"]["height"],
+                    }
+                )
+
+        for m in medias:
+            file = io.BytesIO((await http.get(m["p"])).content)
+            file.name = f"{m['p'][60:80]}.{filetype.guess_extension(file)}"
+            self.files.append({"p": file, "w": m["w"], "h": m["h"]})
+        return
 
     async def TikTok(self, url: str, captions: str):
         path = io.BytesIO()
