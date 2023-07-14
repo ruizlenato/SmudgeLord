@@ -215,7 +215,7 @@ async def kang(client: Smudge, message: Message, strings):
                         [
                             [
                                 (
-                                    get_string(message, "start", "start-button"),
+                                    await get_string(message, "start", "start-button"),
                                     f"https://t.me/{client.me.username}?start",
                                     "url",
                                 )
