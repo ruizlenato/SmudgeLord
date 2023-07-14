@@ -201,7 +201,7 @@ Firefox/116.0",
                     "withCommunity": True,
                     "withQuickPromoteEligibilityTweetFields": True,
                     "withBirdwatchNotes": True,
-                    "withVoice": False,
+                    "withVoice": True,
                     "withV2Timeline": True,
                 }
             ),
@@ -244,12 +244,16 @@ _limited_actions_policy_enabled": True,
         ).json()
 
         try:
-            tweet = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][0][
+            res = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][0][
                 "entries"
-            ][0]["content"]["itemContent"]["tweet_results"]["result"]
+            ]
+
+            for entries in res:
+                if tweet_id in entries["entryId"]:
+                    tweet = entries["content"]["itemContent"]["tweet_results"]["result"]
 
             user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
-            self.caption = f"<b>{user_name}</b>: {tweet['legacy']['full_text']}"
+            self.caption = f"<b>{user_name}</b>\n{tweet['legacy']['full_text']}"
 
             for media in tweet["legacy"]["extended_entities"]["media"]:
                 if media["type"] in ("animated_gif", "video"):
