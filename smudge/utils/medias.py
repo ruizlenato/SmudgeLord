@@ -71,7 +71,7 @@ class DownloadMedia:
         else:  # noqa: RET505
             return http
 
-    async def downloader(self, url: str, weight: int, height: int):
+    async def downloader(self, url: str, width: int, height: int):
         """
         Get the media from URL.
 
@@ -83,7 +83,7 @@ class DownloadMedia:
         """
         file = io.BytesIO((await http.get(url)).content)
         file.name = f"{url[60:80]}.{filetype.guess_extension(file)}"
-        self.files.append({"p": file, "w": weight, "h": height})
+        self.files.append({"p": file, "w": width, "h": height})
 
     async def Instagram(self, url: str, captions: str):
         headers = {
@@ -247,33 +247,34 @@ _limited_actions_policy_enabled": True,
             tweet = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][0][
                 "entries"
             ][0]["content"]["itemContent"]["tweet_results"]["result"]
+
+            user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
+            self.caption = f"<b>{user_name}</b>: {tweet['legacy']['full_text']}"
+
+            for media in tweet["legacy"]["extended_entities"]["media"]:
+                if media["type"] in ("animated_gif", "video"):
+                    bitrate = [
+                        a["bitrate"]
+                        for a in media["video_info"]["variants"]
+                        if a["content_type"] == "video/mp4"
+                    ]
+                    for a in media["video_info"]["variants"]:
+                        if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
+                            url = a["url"]
+
+                    await self.downloader(
+                        url,
+                        media["original_info"]["width"],
+                        media["original_info"]["height"],
+                    )
+                else:
+                    await self.downloader(
+                        media["media_url_https"],
+                        media["original_info"]["width"],
+                        media["original_info"]["height"],
+                    )
         except KeyError:
             return
-        user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
-        self.caption = f"<b>{user_name}</b>: {tweet['legacy']['full_text']}"
-
-        for media in tweet["legacy"]["extended_entities"]["media"]:
-            if media["type"] in ("animated_gif", "video"):
-                bitrate = [
-                    a["bitrate"]
-                    for a in media["video_info"]["variants"]
-                    if a["content_type"] == "video/mp4"
-                ]
-                for a in media["video_info"]["variants"]:
-                    if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
-                        url = a["url"]
-
-                await self.downloader(
-                    url,
-                    media["original_info"]["width"],
-                    media["original_info"]["height"],
-                )
-            else:
-                await self.downloader(
-                    media["media_url_https"],
-                    media["original_info"]["width"],
-                    media["original_info"]["height"],
-                )
 
     async def TikTok(self, url: str, captions: str):
         path = io.BytesIO()
