@@ -93,8 +93,8 @@ async def check_afk(message: Message, user_id: int, first_name: str, strings):
     if user := await is_afk(user_id):
         if user_id == message.from_user.id:
             return
-
-        humanize.i18n.activate(await get_db_lang(message))
+        if (lang := await get_db_lang(message)) != "en_US":
+            humanize.i18n.activate(lang)
         time = humanize.naturaldelta(datetime.now() - datetime.fromtimestamp(user["time"]))
         res = strings["user-unavailable"].format(user_id, first_name, time)
         if user["reason"]:
