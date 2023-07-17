@@ -16,5 +16,7 @@ async def get_chat_data(chat_id: int):
 
 
 async def register_chat(chat_id: int, language: str):
-    await conn.execute("INSERT INTO chats (id, language) values (?, ?)", (chat_id, language))
+    await conn.execute(
+        "INSERT OR IGNORE INTO chats (id, language) values (?, ?)", (chat_id, language)
+    )
     await conn.commit()

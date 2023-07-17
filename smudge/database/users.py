@@ -21,7 +21,8 @@ async def get_user_data_from_username(username: str):
 
 async def register_user(id: int, language: str, username: str):
     await conn.execute(
-        "INSERT INTO users (id, language, username) values (?, ?, ?)", (id, language, username)
+        "INSERT OR IGNORE INTO users (id, language, username) values (?, ?, ?)",
+        (id, language, username),
     )
     await conn.commit()
 

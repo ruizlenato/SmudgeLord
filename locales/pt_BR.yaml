@@ -22,7 +22,7 @@ strings:
   config:
     no-admin: "Você não é um administrador do grupo."
     medias-button: "Mídias"
-    config-text: "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>"
+    config-text: "<b>Configurações</b> — Aqui estão minhas configurações para esse grupo. Para saber mais, <b>clique nos botões abaixo.</b>"
     medias-captions-button: "Legendas:"
     medias-auto-button: "Automático:"
     medias-config-text: |
