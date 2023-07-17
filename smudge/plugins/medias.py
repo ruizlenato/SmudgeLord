@@ -190,6 +190,8 @@ async def medias_download(client: Smudge, message: Message, strings):
 
     rawM = (await client.invoke(method)).messages[0].media
     files, caption = await DownloadMedia().download(url, captions)
+    if len(caption) > 1024:
+        caption = caption[:1021] + "..."
 
     medias = []
     for media in files:
