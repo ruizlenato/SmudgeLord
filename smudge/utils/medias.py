@@ -252,6 +252,9 @@ _limited_actions_policy_enabled": True,
                 if tweet_id in entries["entryId"]:
                     tweet = entries["content"]["itemContent"]["tweet_results"]["result"]
 
+            if tweet["__typename"] == "TweetWithVisibilityResults":
+                tweet = tweet["tweet"]
+
             user_name = tweet["core"]["user_results"]["result"]["legacy"]["name"]
             self.caption = f"<b>{user_name}</b>\n{tweet['legacy']['full_text']}"
 
