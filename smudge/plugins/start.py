@@ -59,8 +59,11 @@ async def help_menu(client: Smudge, union: Message | CallbackQuery, strings):
     for help in sorted(HELPABLE):
         buttons.append((await get_string(union, help, "name"), f"help-plugin {help}"))
 
+    # This will limit the row list to having 3 buttons only
     keyboard = array_chunk(buttons, 3)
-    # This will limit the row list to having 3 buttons only.
+    
+    keyboard += [[(strings["back-button"], "start")]]
+    
     await reply_text(
         strings["help-menu-text"],
         reply_markup=ikb(keyboard),
