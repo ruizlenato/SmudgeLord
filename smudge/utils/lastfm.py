@@ -50,7 +50,12 @@ class LastFM:
             + f"&user={username}&api_key={self.api_key}&format=json"
         )
         res = json.loads(r.content)
-        return int(res["track"]["userplaycount"]) + 1
+
+        try:
+            scrobbles = int(res["track"]["userplaycount"]) + 1
+        except KeyError:
+            scrobbles = 1
+        return scrobbles
 
     async def track(self, id: int):
         if not await self.check_user(await self.get_username(id)):
@@ -93,7 +98,12 @@ class LastFM:
             + f"&user={username}&api_key={self.api_key}&format=json"
         )
         res = json.loads(r.content)
-        return int(res["album"]["userplaycount"]) + 1
+
+        try:
+            scrobbles = int(res["album"]["userplaycount"]) + 1
+        except KeyError:
+            scrobbles = 1
+        return scrobbles
 
     async def album(self, id: int):
         if not await self.check_user(await self.get_username(id)):
@@ -135,7 +145,11 @@ class LastFM:
             + f"&user={username}&api_key={self.api_key}&format=json"
         )
         res = json.loads(r.content)
-        return int(res["artist"]["stats"]["userplaycount"]) + 1
+        try:
+            scrobbles = int(res["artist"]["stats"]["userplaycount"]) + 1
+        except KeyError:
+            scrobbles = 1
+        return scrobbles
 
     async def artist(self, id: int):
         if not await self.check_user(await self.get_username(id)):
