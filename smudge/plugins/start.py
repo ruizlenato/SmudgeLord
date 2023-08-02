@@ -52,6 +52,7 @@ async def start_command(client: Smudge, union: Message | CallbackQuery, strings)
 
 
 @Smudge.on_callback_query(filters.regex(r"^help-menu"))
+@Smudge.on_message(filters.command("help") & filters.private)
 @locale("start")
 async def help_menu(client: Smudge, union: Message | CallbackQuery, strings):
     reply_text = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
@@ -61,9 +62,11 @@ async def help_menu(client: Smudge, union: Message | CallbackQuery, strings):
 
     # This will limit the row list to having 3 buttons only
     keyboard = array_chunk(buttons, 3)
-    #Add a back button
-    keyboard += [[(strings["back-button"], "start")]]
-    
+
+    # Adds back button if it is a callback
+    if isinstance(union, CallbackQuery):
+        keyboard += [[(strings["back-button"], "start")]]
+
     await reply_text(
         strings["help-menu-text"],
         reply_markup=ikb(keyboard),
