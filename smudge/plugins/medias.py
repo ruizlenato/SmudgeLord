@@ -56,11 +56,12 @@ async def ytdlcmd(client: Smudge, message: Message, strings):
         except IndexError:
             return
     for f in yt["formats"]:
-        if f["format_id"] == "140":
-            afsize = f["filesize"] or 0
-        if f["ext"] == "mp4" and f["filesize"] is not None:
-            vfsize = f["filesize"] or 0
-            vformat = f["format_id"]
+        with contextlib.suppress(KeyError):
+            if f["format_id"] == "140":
+                afsize = f["filesize"] or 0
+            if f["ext"] == "mp4" and f["filesize"] is not None:
+                vfsize = f["filesize"] or 0
+                vformat = f["format_id"]
     keyboard = [
         [
             (
@@ -116,7 +117,7 @@ async def cli_ytdl(client: Smudge, callback: CallbackQuery, strings):
             yt = await extract_info(ydl, url, download=True)
         file.name = yt["title"]
     except BaseException as e:
-        return await callback.message.edit_text(strings["sending-error"].format(errmsg=e))
+        return await callback.message.edit_text(strings["sending-error"].format(e))
     await callback.message.edit(strings["sending"])
     await client.send_chat_action(callback.message.chat.id, ChatAction.UPLOAD_VIDEO)
 

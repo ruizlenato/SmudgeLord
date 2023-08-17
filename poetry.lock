@@ -635,9 +635,9 @@ pysocks = "1.7.1"
 
 [package.source]
 type = "git"
-url = "https://github.com/AmanoTeam/pyrogram.git"
-reference = "HEAD"
-resolved_reference = "fb7689589d50ef4868b778ff7f34b92c41abc209"
+url = "https://github.com/AmanoTeam/pyrogram"
+reference = "235235a6e095713b65fe8539ea4bbd6a60a4046d"
+resolved_reference = "235235a6e095713b65fe8539ea4bbd6a60a4046d"
 
 [[package]]
 name = "pysocks"
@@ -943,4 +943,4 @@ websockets = "*"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "694e1a6ef341e64b7d3c40ed1836494f7e277816742179503c538cc7602d1c72"
+content-hash = "279927527ca37be0c950ff149fa68a48dbca0421c0dd418c71b2361832de0c12"
