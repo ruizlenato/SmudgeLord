@@ -14,7 +14,7 @@ repos:
     -   id: check-toml
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.0.280
+    rev: v0.0.284
     hooks:
     -   id: ruff
         files: smudge
