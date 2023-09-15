@@ -85,6 +85,7 @@ strings:
     about-button: "ℹ️ About"
     back-button: "↩️ Back"
     donate-button: "💵 Donation"
+    channel-button: "📬 News channel"
     start-text-privae: |
       Hello!, <b>I'm SmudgeLord.</b>
       I have a lot of functions, to know more, start a conversation with me
