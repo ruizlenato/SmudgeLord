@@ -112,6 +112,13 @@ async def config(client: Smudge, union: Message | CallbackQuery, strings):
 @Smudge.on_callback_query(filters.regex(r"about-menu"))
 @locale("start")
 async def about_menu(client: Smudge, union: Message | CallbackQuery, strings):
-    keyboard = [[((strings["donate-button"]), "https://ko-fi.com/ruizlenato", "url")]]
+    keyboard = [
+        [
+            ((strings["donate-button"]), "https://ko-fi.com/ruizlenato", "url"),
+        ],
+        [
+            ((strings["channel-button"]), "https://t.me/SmudgeNews", "url"),
+        ],
+    ]
     text = strings["about-text"].format(__version__, __commit__)
     await union.edit_message_text(text, reply_markup=ikb(keyboard), disable_web_page_preview=True)
