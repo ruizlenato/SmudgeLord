@@ -51,7 +51,7 @@ class DownloadMedia:
             await self.Instagram(url, captions)
         elif re.search(r"tiktok.com/", url):
             await self.TikTok(url, captions)
-        elif re.search(r"twitter.com/", url):
+        elif re.search(r"(twitter|x).com/", url):
             await self.Twitter(url, captions)
         elif re.search(r"threads.net/", url):
             await self.Threads(url, captions)
@@ -179,7 +179,7 @@ class DownloadMedia:
         bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\
 fk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"  # Twitter Bearer Token
         # Extract the tweet ID from the URL
-        tweet_id = re.match(".*twitter.com/.+status/([A-Za-z0-9]+)", url)[1]
+        tweet_id = re.match(".*(twitter|x).com/.+status/([A-Za-z0-9]+)", url)[2]
         csrfToken = str(uuid.uuid4()).replace("-", "")
         headers = {
             "Authorization": bearer,
