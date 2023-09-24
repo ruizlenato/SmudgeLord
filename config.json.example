@@ -10,6 +10,7 @@
     "WORKERS": "24",
     "DATABASE_PATH": "smudge/database/database.db",
     "LASTFM_API_KEY": "",
+    "SENTRY_KEY": "",
     "PROXIES": [
         ""
     ]
