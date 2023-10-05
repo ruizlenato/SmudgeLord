@@ -9,24 +9,27 @@ from smudge.utils.locale import locale
 @Smudge.on_message(filters.command(["setuser", "setlast"]))
 @locale("lastfm")
 async def setuser(client: Smudge, message: Message, strings):
-    if message.reply_to_message and message.reply_to_message.text:
-        username = message.reply_to_message.text
-        mesid = message.id
-    elif len(message.command) > 1:
-        username = message.text.split(None, 1)[1]
-        mesid = message.id
-    else:
-        answer = await message.chat.ask(
-            strings["ask-username"].format(message.from_user.id, message.from_user.first_name),
-            filters=filters.user(message.from_user.id) & filters.incoming,
-            reply_markup=ForceReply(selective=True),
-        )
+    try:
+        if message.reply_to_message and message.reply_to_message.text:
+            username = message.reply_to_message.text
+            mesid = message.id
+        elif len(message.command) > 1:
+            username = message.text.split(None, 1)[1]
+            mesid = message.id
+        else:
+            answer = await message.chat.ask(
+                strings["ask-username"].format(message.from_user.id, message.from_user.first_name),
+                filters=filters.user(message.from_user.id) & filters.incoming,
+                reply_markup=ForceReply(selective=True),
+            )
 
-        if not answer.reply_to_message:
-            return
+            if not answer.reply_to_message:
+                return
 
-        username = answer.text
-        mesid = answer.id
+            username = answer.text
+            mesid = answer.id
+    except TypeError:
+        return
 
     if username:
         LastAPI = await LastFM().register_lastfm(message.from_user.id, username)

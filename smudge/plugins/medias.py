@@ -8,7 +8,7 @@ import re
 import filetype
 from pyrogram import filters
 from pyrogram.enums import ChatAction, ChatType
-from pyrogram.errors import BadRequest
+from pyrogram.errors import BadRequest, ChannelInvalid
 from pyrogram.helpers import ikb
 from pyrogram.raw.functions import channels, messages
 from pyrogram.raw.types import InputMessageID
@@ -189,7 +189,10 @@ async def medias_download(client: Smudge, message: Message, strings):
             id=[InputMessageID(id=(message.id))],
         )
 
-    rawM = (await client.invoke(method)).messages[0].media
+    try:
+        rawM = (await client.invoke(method)).messages[0].media
+    except ChannelInvalid:
+        return None
     files, caption = await DownloadMedia().download(url, captions)
     if len(caption) > 1024:
         caption = caption[:1021] + "..."
@@ -231,9 +234,11 @@ async def medias_download(client: Smudge, message: Message, strings):
         ):
             return None
 
-        await client.send_chat_action(message.chat.id, ChatAction.UPLOAD_DOCUMENT)
-        await message.reply_media_group(media=medias)
-        return None
+        try:
+            await client.send_chat_action(message.chat.id, ChatAction.UPLOAD_DOCUMENT)
+            await message.reply_media_group(media=medias)
+        except ValueError:
+            pass
     return None
 
 

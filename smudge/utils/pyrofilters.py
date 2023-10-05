@@ -1,5 +1,6 @@
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus, ChatType
+from pyrogram.errors import ChatAdminRequired
 from pyrogram.types import CallbackQuery, Message
 
 
@@ -14,7 +15,10 @@ async def FilterAdmin(_, bot, union: CallbackQuery | Message) -> bool:
     if not user:
         return False
 
-    member = await bot.get_chat_member(chat.id, user.id)
+    try:
+        member = await bot.get_chat_member(chat.id, user.id)
+    except ChatAdminRequired:
+        return False
     return member.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER)
 
 
