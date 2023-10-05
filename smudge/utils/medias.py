@@ -87,11 +87,11 @@ class DownloadMedia:
 
     async def Instagram(self, url: str, captions: str):
         headers = {
-            "authority": "www.instagram.com",
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp\
 ,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
             "accept-language": "en-US,en;q=0.9",
             "cache-control": "max-age=0",
+            "connection": "close",
             "sec-fetch-mode": "navigate",
             "upgrade-insecure-requests": "1",
             "referer": "https://www.instagram.com/",
@@ -179,7 +179,10 @@ class DownloadMedia:
         bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\
 fk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"  # Twitter Bearer Token
         # Extract the tweet ID from the URL
-        tweet_id = re.match(".*(twitter|x).com/.+status/([A-Za-z0-9]+)", url)[2]
+        try:
+            tweet_id = re.match(".*(twitter|x).com/.+status/([A-Za-z0-9]+)", url)[2]
+        except TypeError:
+            return
         csrfToken = str(uuid.uuid4()).replace("-", "")
         headers = {
             "Authorization": bearer,
