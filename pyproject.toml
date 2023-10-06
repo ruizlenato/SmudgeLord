@@ -8,7 +8,7 @@ license = "GPL-3.0"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-pyrogram = {git = "https://github.com/AmanoTeam/pyrogram", rev = "235235a6e095713b65fe8539ea4bbd6a60a4046d"}
+pyrogram = {git = "https://github.com/AmanoTeam/pyrogram"}
 TgCrypto = "^1.2.5"
 uvloop = "^0.17.0"
 aiosqlite = "^0.19.0"

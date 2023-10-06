@@ -56,12 +56,11 @@ async def ytdlcmd(client: Smudge, message: Message, strings):
         except IndexError:
             return
     for f in yt["formats"]:
-        with contextlib.suppress(KeyError):
-            if f["format_id"] == "140":
-                afsize = f["filesize"] or 0
-            if f["ext"] == "mp4" and f["filesize"] is not None:
-                vfsize = f["filesize"] or 0
-                vformat = f["format_id"]
+        if f["format_id"] == "140" and f.get("filesize") is not None:
+            afsize = f["filesize"] or 0
+        if f["ext"] == "mp4" and f.get("filesize") is not None:
+            vfsize = f["filesize"] or 0
+            vformat = f["format_id"]
     keyboard = [
         [
             (
