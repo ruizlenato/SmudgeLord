@@ -154,17 +154,12 @@ class DownloadMedia:
                                 dimensions["width"],
                                 dimensions["height"],
                             )
-        else:
-            r = await httpx.get(
-                f"https://www.instagram.com/p/{post_id}/",
-                headers=headers,
-            )
-            soup = bs(r.text, "html.parser")
-            if content := soup.find("script", type="application/ld+json"):
-                data = json.loads(content.contents[0])
-            else:
-                return
+            return
 
+        r = await httpx.get(f"https://www.instagram.com/p/{post_id}/", headers=headers)
+        soup = bs(r.text, "html.parser")
+        if content := soup.find("script", type="application/ld+json"):
+            data = json.loads(content.contents[0])
             if "video" in data[0]:
                 video = data[0]["video"]
                 if len(video) == 1:
@@ -174,6 +169,25 @@ class DownloadMedia:
                 else:
                     for v in video:
                         await self.downloader(v["contentUrl"], v["width"], v["height"])
+            return
+
+        params = {
+            "query_hash": "b3055c01b4b222b8a47dc12b090e4e64",
+            "variables": json.dumps({"shortcode": post_id}),
+        }
+        r = await httpx.get(
+            "https://corsbypass-5jyi.onrender.com/https://www.instagram.com/graphql/query/",
+            params=params,
+        )
+        if r.json()["status"] != "ok":
+            return
+
+        if r.json()["data"]["shortcode_media"]["__typename"] == "GraphVideo":
+            vinf = r.json()["data"]["shortcode_media"]
+            await self.downloader(
+                vinf["video_url"], vinf["dimensions"]["width"], vinf["dimensions"]["height"]
+            )
+        return
 
     async def Twitter(self, url: str, captions: str):
         bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\

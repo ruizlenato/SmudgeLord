@@ -152,8 +152,8 @@ async def cli_ytdl(client: Smudge, callback: CallbackQuery, strings):
                     thumb=thumb,
                     reply_to_message_id=int(mid),
                 )
-    except BadRequest as e:
-        await callback.message.edit_text(strings["sending-error"].format(errmsg=e))
+    except (BadRequest, ValueError) as e:
+        await callback.message.edit_text(strings["sending-error"].format(e))
     await callback.message.delete()
     return None
 
