@@ -1,11 +1,24 @@
-# Python cache
+# cache
 __pycache__/
+.ruff_cache/
 
-# VSCode settings
+# vscode
 .vscode
 
-# Config's files and useless stuff
+# venv
+.venv/
+venv/
+
+# smudge files
 config.json
 smudge/*.session*
 locales/*/*/*.mo
-*.db*
+smudge/database/*.db*
+
+# rye
+requirements.lock
+requirements-dev.lock
+.python-version
+
+# logs
+unknown_errors.txt
