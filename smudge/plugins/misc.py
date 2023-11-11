@@ -15,7 +15,9 @@ async def prints(client: Smudge, message: Message, strings):
             if message.text:
                 target_url = message.text[entity.offset : entity.offset + entity.length]
             else:
-                target_url = message.caption[entity.offset : entity.offset + entity.length]
+                target_url = message.caption[
+                    entity.offset : entity.offset + entity.length
+                ]
             break
         if entity.type == MessageEntityType.TEXT_LINK:
             target_url = entity.url
@@ -23,7 +25,8 @@ async def prints(client: Smudge, message: Message, strings):
     else:
         if message.reply_to_message:
             for entity in (
-                message.reply_to_message.entities or message.reply_to_message.caption_entities
+                message.reply_to_message.entities
+                or message.reply_to_message.caption_entities
             ):
                 if entity.type == MessageEntityType.URL:
                     if message.reply_to_message.text:

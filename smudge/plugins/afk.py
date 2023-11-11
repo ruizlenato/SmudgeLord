@@ -16,7 +16,9 @@ from smudge.database.users import get_user_data_from_username
 from smudge.utils.locale import locale
 
 
-@Smudge.on_message(filters.command("afk") | filters.regex(r"(?i)\bbrb\b(\s(?P<args>.+))?"))
+@Smudge.on_message(
+    filters.command("afk") | filters.regex(r"(?i)\bbrb\b(\s(?P<args>.+))?")
+)
 @locale("afk")
 async def afk(client: Smudge, message: Message, strings):
     if not message.from_user:
@@ -34,13 +36,19 @@ async def afk(client: Smudge, message: Message, strings):
         reason = ""
 
     await set_afk(message.from_user.id, reason)
-    await message.reply_text(strings["now-unavailable"].format(message.from_user.first_name))
+    await message.reply_text(
+        strings["now-unavailable"].format(message.from_user.first_name)
+    )
 
 
 @Smudge.on_message(~filters.private & ~filters.bot & filters.all, group=2)
 @locale("afk")
 async def reply_afk(client: Smudge, message: Message, strings):
-    if not message.from_user or message.text and re.findall(r"^\/\bafk\b|^\bbrb\b", message.text):
+    if (
+        not message.from_user
+        or message.text
+        and re.findall(r"^\/\bafk\b|^\bbrb\b", message.text)
+    ):
         return None
 
     if message.from_user and await is_afk(message.from_user.id) is not None:
@@ -84,7 +92,9 @@ async def stop_afk(message: Message, strings):
 
     await rm_afk(message.from_user.id)
     await message.reply_text(
-        strings["user-available"].format(message.from_user.id, message.from_user.first_name)
+        strings["user-available"].format(
+            message.from_user.id, message.from_user.first_name
+        )
     )
     return
 
@@ -95,7 +105,9 @@ async def check_afk(message: Message, user_id: int, first_name: str, strings):
             return
         if (lang := await get_db_lang(message)) != "en_US":
             humanize.i18n.activate(lang)
-        time = humanize.naturaldelta(datetime.now() - datetime.fromtimestamp(user["time"]))
+        time = humanize.naturaldelta(
+            datetime.now() - datetime.fromtimestamp(user["time"])
+        )
         res = strings["user-unavailable"].format(user_id, first_name, time)
         if user["reason"]:
             res += strings["user-reason"].format(user["reason"])

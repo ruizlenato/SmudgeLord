@@ -39,5 +39,8 @@ async def check_chat(client: Smudge, message: Message):
     if user and (await get_user_data(user.id))["username"] != username:
         await update_username(user.id, username)
 
-    if chat.type in (ChatType.GROUP, ChatType.SUPERGROUP) and await get_chat_data(chat.id) is None:
+    if (
+        chat.type in (ChatType.GROUP, ChatType.SUPERGROUP)
+        and await get_chat_data(chat.id) is None
+    ):
         await register_chat(chat.id, language_code)

@@ -18,7 +18,9 @@ async def setuser(client: Smudge, message: Message, strings):
             mesid = message.id
         else:
             answer = await message.chat.ask(
-                strings["ask-username"].format(message.from_user.id, message.from_user.first_name),
+                strings["ask-username"].format(
+                    message.from_user.id, message.from_user.first_name
+                ),
                 filters=filters.user(message.from_user.id) & filters.incoming,
                 reply_markup=ForceReply(selective=True),
             )
@@ -35,7 +37,9 @@ async def setuser(client: Smudge, message: Message, strings):
         LastAPI = await LastFM().register_lastfm(message.from_user.id, username)
 
         if not LastAPI:
-            await message.reply_text(strings["wrong-username"], reply_to_message_id=mesid)
+            await message.reply_text(
+                strings["wrong-username"], reply_to_message_id=mesid
+            )
             return
 
         await message.reply_text(strings["saved-username"], reply_to_message_id=mesid)

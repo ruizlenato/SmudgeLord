@@ -3,7 +3,9 @@
 from subprocess import run
 
 __version__ = (
-    run(["git", "rev-list", "--count", "HEAD"], capture_output=True).stdout.decode("utf-8").strip()
+    run(["git", "rev-list", "--count", "HEAD"], capture_output=True)
+    .stdout.decode("utf-8")
+    .strip()
 )
 
 

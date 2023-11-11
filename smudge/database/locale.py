@@ -29,7 +29,11 @@ async def set_db_lang(message, code: str):
     message = message.message if isinstance(message, CallbackQuery) else message
 
     if message.chat.type == ChatType.PRIVATE:
-        await conn.execute("UPDATE users SET language = ? WHERE id = ?", (code, message.chat.id))
+        await conn.execute(
+            "UPDATE users SET language = ? WHERE id = ?", (code, message.chat.id)
+        )
     elif message.chat.type in (ChatType.GROUP, ChatType.SUPERGROUP):
-        await conn.execute("UPDATE chats SET language = ? WHERE id = ?", (code, message.chat.id))
+        await conn.execute(
+            "UPDATE chats SET language = ? WHERE id = ?", (code, message.chat.id)
+        )
     await conn.commit()

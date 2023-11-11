@@ -33,5 +33,7 @@ async def update_username(id: int, username: str):
 
 
 async def register_lastfm(id: int, username: str):
-    await conn.execute("UPDATE users SET lastfm_username = ? WHERE id = ?", (username, id))
+    await conn.execute(
+        "UPDATE users SET lastfm_username = ? WHERE id = ?", (username, id)
+    )
     await conn.commit()

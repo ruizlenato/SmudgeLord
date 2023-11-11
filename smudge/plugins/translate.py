@@ -92,5 +92,7 @@ async def translate(client: Smudge, message: Message, strings):
     text = trres.text
 
     res = html.escape(text)
-    await sent.edit_text(f"<b>{trres.lang}</b> -> <b>{to_lang}:</b>\n<code>{res}</code>")
+    await sent.edit_text(
+        f"<b>{trres.lang}</b> -> <b>{to_lang}:</b>\n<code>{res}</code>"
+    )
     return None

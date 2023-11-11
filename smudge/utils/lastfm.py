@@ -126,7 +126,9 @@ class LastFM:
             return "No Scrobbles"
 
         playcount = await self.album_playcount(
-            ftrack["artist"]["name"], ftrack["album"]["#text"], await self.get_username(id)
+            ftrack["artist"]["name"],
+            ftrack["album"]["#text"],
+            await self.get_username(id),
         )
 
         return {
@@ -175,7 +177,7 @@ class LastFM:
             'https://lastfm.freetls.fastly.net/i/u/avatar170s/.*?(?=")',
             (
                 await http.get(
-                    f"https://www.last.fm/music/{str(ftrack['artist']['name'])}/+images"
+                    f"https://www.last.fm/music/{ftrack['artist']['name']!s}/+images"
                 )
             ).text,
         ):

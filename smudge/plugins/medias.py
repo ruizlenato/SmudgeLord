@@ -24,7 +24,9 @@ from smudge.utils.medias import DownloadMedia, extract_info
 from smudge.utils.utils import http, pretty_size
 
 # Regex to get link
-DL_REGEX = r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|x|tiktok|threads).(com|net)\/(?:\S*)"
+DL_REGEX = (
+    r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|x|tiktok|threads).(com|net)\/(?:\S*)"
+)
 
 # Regex to get the video ID from the URL
 YOUTUBE_REGEX = re.compile(
@@ -209,7 +211,9 @@ async def medias_download(client: Smudge, message: Message, strings):
 
         if filetype.is_video(media["p"]):
             if medias:
-                medias.append(InputMediaVideo(media["p"], width=media["w"], height=media["h"]))
+                medias.append(
+                    InputMediaVideo(media["p"], width=media["w"], height=media["h"])
+                )
             else:
                 medias.append(
                     InputMediaVideo(
@@ -246,7 +250,9 @@ async def medias_download(client: Smudge, message: Message, strings):
 async def media_config(client: Smudge, callback: CallbackQuery, strings):
     if not await filters.admin(client, callback):
         return await callback.answer(
-            await get_string(callback, "config", "no-admin"), show_alert=True, cache_time=60
+            await get_string(callback, "config", "no-admin"),
+            show_alert=True,
+            cache_time=60,
         )
 
     state = ["☑️", "✅"]
