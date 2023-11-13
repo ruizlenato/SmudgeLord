@@ -9,8 +9,9 @@ import uuid
 import esprima
 import filetype
 from bs4 import BeautifulSoup as bs
-from httpx import AsyncClient
+from httpx import AsyncClient, ReadTimeout
 from yt_dlp import YoutubeDL
+from yt_dlp.networking.exceptions import NoSupportingHandlers
 
 from ..config import config
 from .utils import aiowrap, http
@@ -21,10 +22,9 @@ def extract_info(instance: YoutubeDL, url: str, download=True):
     instance.params.update({"logger": MyLogger()})
     return instance.extract_info(url, download)
 
-
 class MyLogger:
     def debug(self, msg):
-        if not msg.startswith("[debug] "):
+        if not msg.startswith('[debug] '):
             self.info(msg)
 
     def info(self, msg):
@@ -33,10 +33,8 @@ class MyLogger:
     def warning(self, msg):
         pass
 
-    @staticmethod
-    def error(msg):
-        if "There's no video" not in msg:
-            print(msg)
+    def error(self, msg):
+        print(msg)
 
 
 class DownloadMedia:
@@ -107,11 +105,10 @@ class DownloadMedia:
 
         httpx = await self.httpx("https://www.instagram.com/")
 
-        r = await httpx.get(
-            f"https://www.instagram.com/p/{post_id}/embed/captioned",
-            headers=headers,
-            follow_redirects=True,
-        )
+        try:
+            r = await httpx.get(f"https://www.instagram.com/p/{post_id}/embed/captioned", headers=headers, follow_redirects=True)
+        except ReadTimeout:
+            return
         soup = bs(r.text, "html.parser")
 
         if soup.find("div", {"data-media-type": "GraphImage"}):
@@ -162,7 +159,10 @@ class DownloadMedia:
                             )
             return
 
-        r = await httpx.get(f"https://www.instagram.com/p/{post_id}/", headers=headers)
+        try:
+            r = await httpx.get(f"https://www.instagram.com/p/{post_id}/", headers=headers)
+        except ReadTimeout:
+            return
         soup = bs(r.text, "html.parser")
         if content := soup.find("script", type="application/ld+json"):
             data = json.loads(content.contents[0])
@@ -183,10 +183,13 @@ class DownloadMedia:
             "query_hash": "b3055c01b4b222b8a47dc12b090e4e64",
             "variables": json.dumps({"shortcode": post_id}),
         }
-        r = await httpx.get(
-            "https://corsbypass-5jyi.onrender.com/https://www.instagram.com/graphql/query/",
+        try:
+            r = await httpx.get(
+            "https://cors-bypass.amanoteam.com/https://www.instagram.com/graphql/query/",
             params=params,
         )
+        except ReadTimeout:
+            return
         if r.json()["status"] != "ok":
             return
 
@@ -315,8 +318,11 @@ _limited_actions_policy_enabled": True,
     async def TikTok(self, url: str, captions: str):
         path = io.BytesIO()
         with contextlib.redirect_stdout(path):
-            ydl = YoutubeDL({"outtmpl": "-"})
-            yt = await extract_info(ydl, url, download=True)
+            ydl = YoutubeDL({"noplaylist": True, "outtmpl": "-"})
+            try:
+                yt = await extract_info(ydl, url, download=True)
+            except NoSupportingHandlers:
+                return
         path.name = yt["title"]
         self.caption = f"{yt['title']}\n\n<a href='{url}'>🔗 Link</a>"
         self.files.append(

@@ -25,7 +25,7 @@ from smudge.utils.utils import http, pretty_size
 
 # Regex to get link
 DL_REGEX = (
-    r"(?:htt.+?//)?(?:.+?)?(?:instagram|twitter|x|tiktok|threads).(com|net)\/(?:\S*)"
+    r"(?:htt.*?//)?(:?.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)"
 )
 
 # Regex to get the video ID from the URL
