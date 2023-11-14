@@ -17,7 +17,7 @@ from smudge.utils.locale import locale
 
 
 @Smudge.on_message(
-    filters.command("afk") | filters.regex(r"(?i)\bbrb\b(\s(?P<args>.+))?")
+    filters.command("afk") | filters.regex(r"(?i)\b^brb\b(\s(?P<args>.+))?")
 )
 @locale("afk")
 async def afk(client: Smudge, message: Message, strings):
