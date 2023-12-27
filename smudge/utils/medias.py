@@ -22,9 +22,10 @@ def extract_info(instance: YoutubeDL, url: str, download=True):
     instance.params.update({"logger": MyLogger()})
     return instance.extract_info(url, download)
 
+
 class MyLogger:
     def debug(self, msg):
-        if not msg.startswith('[debug] '):
+        if not msg.startswith("[debug] "):
             self.info(msg)
 
     def info(self, msg):
@@ -106,7 +107,11 @@ class DownloadMedia:
         httpx = await self.httpx("https://www.instagram.com/")
 
         try:
-            r = await httpx.get(f"https://www.instagram.com/p/{post_id}/embed/captioned", headers=headers, follow_redirects=True)
+            r = await httpx.get(
+                f"https://www.instagram.com/p/{post_id}/embed/captioned",
+                headers=headers,
+                follow_redirects=True,
+            )
         except ReadTimeout:
             return
         soup = bs(r.text, "html.parser")
@@ -160,7 +165,9 @@ class DownloadMedia:
             return
 
         try:
-            r = await httpx.get(f"https://www.instagram.com/p/{post_id}/", headers=headers)
+            r = await httpx.get(
+                f"https://www.instagram.com/p/{post_id}/", headers=headers
+            )
         except ReadTimeout:
             return
         soup = bs(r.text, "html.parser")
@@ -185,9 +192,9 @@ class DownloadMedia:
         }
         try:
             r = await httpx.get(
-            "https://cors-bypass.amanoteam.com/https://www.instagram.com/graphql/query/",
-            params=params,
-        )
+                "https://cors-bypass.amanoteam.com/https://www.instagram.com/graphql/query/",
+                params=params,
+            )
         except ReadTimeout:
             return
         if r.json()["status"] != "ok":
