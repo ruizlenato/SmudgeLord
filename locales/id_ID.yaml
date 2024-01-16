@@ -5,7 +5,7 @@ metada:
 #Strings
 strings:
   afk:
-    name: "Afk"
+    name: "AFK"
     now-unavailable: "<b>{}</b> Sekarang tersedia!"
     user-available: "<b><a href='tg://user?id={}'>{}</a></b> kembali!"
     user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b>\nLast seen <code>{}</code> ago"
@@ -33,7 +33,7 @@ strings:
   lastfm:
     name: "LastFM"
     ask-username: "<a href='tg://user?id={}'>{}</a>, Kirimkan saya nama pengguna last.fm Anda."
-    wrong-username: "<b>Kesalahan</b>\nNama pengguna last.fm Anda salah"
+    wrong-username: "<b>Error</b>: Your last.fm username is wrong"
     saved-username: "<b>Selesai, pengguna last.fm telah disimpan!</b>"
     no-username: "<b>Anda belum menyetel nama pengguna last.fm Anda.</b>\nGunakan perintah /setuser untuk mengatur"
     no-scrobbles: "<b>Apparently you have never scrobbled a song on LastFM.</b>\n\nSe você está tendo problemas, vá para last.fm/about/trackmymusic e veja como conectar sua conta ao seu aplicativo de música."
