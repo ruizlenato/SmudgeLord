@@ -26,6 +26,9 @@ async def setuser(client: Smudge, message: Message, strings):
             )
 
             if not answer.reply_to_message:
+                await message.delete()
+                await answer.sent_message.delete()
+                await answer.delete()
                 return
 
             username = answer.text
