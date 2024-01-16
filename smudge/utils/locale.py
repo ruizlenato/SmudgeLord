@@ -17,7 +17,7 @@ for file in os.listdir("locales"):
     if file not in ("__init__.py", "__pycache__"):
         log.info("\033[90m[!] - Language %s loadded.\033[0m", file)
         with Path.open("locales/" + file, encoding="utf8") as f:
-            content = yaml.load(f, Loader=yaml.CLoader)
+            content = yaml.load(f, Loader=yaml.SafeLoader)
             LANGUAGES[file.replace(".yaml", "")] = content
 
 
