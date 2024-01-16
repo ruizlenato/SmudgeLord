@@ -4,10 +4,10 @@ import re
 from datetime import datetime
 
 import humanize
-from pyrogram import filters
-from pyrogram.enums import MessageEntityType
-from pyrogram.errors.exceptions import PeerIdInvalid
-from pyrogram.types import Message
+from hydrogram import filters
+from hydrogram.enums import MessageEntityType
+from hydrogram.errors.exceptions import PeerIdInvalid
+from hydrogram.types import Message
 
 from smudge.bot import Smudge
 from smudge.database.afk import is_afk, rm_afk, set_afk

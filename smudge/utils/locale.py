@@ -4,8 +4,8 @@ import os
 from functools import wraps
 
 import yaml
-from pyrogram.enums import ChatType
-from pyrogram.types import CallbackQuery
+from hydrogram.enums import ChatType
+from hydrogram.types import CallbackQuery
 
 from smudge.database.locale import get_db_lang
 from smudge.utils.logger import log

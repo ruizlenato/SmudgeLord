@@ -4,10 +4,10 @@ import asyncio
 import glob
 from importlib import import_module
 
-from pyrogram import filters
-from pyrogram.enums import ChatType
-from pyrogram.helpers import array_chunk, ikb
-from pyrogram.types import CallbackQuery, Message
+from hydrogram import filters
+from hydrogram.enums import ChatType
+from hydrogram.helpers import array_chunk, ikb
+from hydrogram.types import CallbackQuery, Message
 
 from smudge import __commit__, __version__
 from smudge.bot import Smudge

@@ -9,7 +9,7 @@ from functools import partial, wraps
 from json import JSONDecodeError
 
 import httpx
-from pyrogram import emoji
+from hydrogram import emoji
 
 timeout = httpx.Timeout(30, pool=None)
 http = httpx.AsyncClient(http2=True, timeout=timeout)

@@ -23,9 +23,9 @@ Features
 
 Requirements
 ~~~~~~~~~~~~
-- Python 3.11+
+- Python 3.12+
 - An Unix-like operating system (Windows is not supported).
-- A `Telegram API key <//docs.pyrogram.org/intro/setup#api-keys>`_.
+- A `Telegram API key <//docs.hydrogram.org/en/latest/start/setup.html#api-key>`_.
 - A `Telegram bot token <//t.me/botfather>`_.
 
 License

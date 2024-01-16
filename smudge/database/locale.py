@@ -1,5 +1,5 @@
-from pyrogram.enums import ChatType
-from pyrogram.types import CallbackQuery
+from hydrogram.enums import ChatType
+from hydrogram.types import CallbackQuery
 
 from smudge.database import database
 

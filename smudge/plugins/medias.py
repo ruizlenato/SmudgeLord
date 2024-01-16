@@ -6,13 +6,13 @@ import io
 import re
 
 import filetype
-from pyrogram import filters
-from pyrogram.enums import ChatAction, ChatType
-from pyrogram.errors import BadRequest, ChannelInvalid
-from pyrogram.helpers import ikb
-from pyrogram.raw.functions import channels, messages
-from pyrogram.raw.types import InputMessageID
-from pyrogram.types import CallbackQuery, InputMediaPhoto, InputMediaVideo, Message
+from hydrogram import filters
+from hydrogram.enums import ChatAction, ChatType
+from hydrogram.errors import BadRequest, ChannelInvalid
+from hydrogram.helpers import ikb
+from hydrogram.raw.functions import channels, messages
+from hydrogram.raw.types import InputMessageID
+from hydrogram.types import CallbackQuery, InputMediaPhoto, InputMediaVideo, Message
 from yt_dlp import YoutubeDL
 
 from smudge.bot import Smudge

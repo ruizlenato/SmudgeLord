@@ -3,11 +3,11 @@
 from contextlib import suppress
 
 from babel import Locale
-from pyrogram import filters
-from pyrogram.enums import ChatType
-from pyrogram.errors import MessageNotModified
-from pyrogram.helpers import array_chunk, ikb
-from pyrogram.types import CallbackQuery, Message
+from hydrogram import filters
+from hydrogram.enums import ChatType
+from hydrogram.errors import MessageNotModified
+from hydrogram.helpers import array_chunk, ikb
+from hydrogram.types import CallbackQuery, Message
 
 from smudge.bot import Smudge
 from smudge.database.locale import set_db_lang

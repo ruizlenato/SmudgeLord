@@ -1,6 +1,8 @@
-from pyrogram import filters
-from pyrogram.enums import MessageEntityType
-from pyrogram.types import Message
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
+from hydrogram import filters
+from hydrogram.enums import MessageEntityType
+from hydrogram.types import Message
 
 from smudge.bot import Smudge
 from smudge.utils.locale import locale

@@ -3,8 +3,8 @@
 import os
 
 from babel import Locale
-from pyrogram.enums import ChatType
-from pyrogram.types import Message
+from hydrogram.enums import ChatType
+from hydrogram.types import Message
 
 from smudge.bot import Smudge
 from smudge.database.chats import get_chat_data, register_chat

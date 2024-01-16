@@ -2,20 +2,20 @@
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import asyncio
 
-import pyrogram
+import hydrogram 
 import uvloop
 
 from .bot import Smudge
 from .utils.logger import log
 
-uvloop.install()  # https://docs.pyrogram.org/topics/speedups
+uvloop.install()  # https://docs.hydrogram.org/en/latest/topics/speedups.html
 
 
 async def main():
     client = Smudge()
     await client.start()
     log.info("\033[92m[🚀] - Bot started.\033[0m")
-    await pyrogram.idle()
+    await hydrogram .idle()
     await client.stop()
     log.warning("\033[93m[⚠️] - Bye!\033[0m")
 

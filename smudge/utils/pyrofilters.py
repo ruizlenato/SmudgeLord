@@ -1,7 +1,7 @@
-from pyrogram import filters
-from pyrogram.enums import ChatMemberStatus, ChatType
-from pyrogram.errors import ChatAdminRequired
-from pyrogram.types import CallbackQuery, Message
+from hydrogram import filters
+from hydrogram.enums import ChatMemberStatus, ChatType
+from hydrogram.errors import ChatAdminRequired
+from hydrogram.types import CallbackQuery, Message
 
 
 async def FilterAdmin(_, bot, union: CallbackQuery | Message) -> bool:

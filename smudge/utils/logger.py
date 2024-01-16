@@ -9,7 +9,7 @@ logging.basicConfig(
 )
 
 # To avoid some annoying log
-logging.getLogger("pyrogram").setLevel(logging.WARNING)
+logging.getLogger("hydrogram ").setLevel(logging.WARNING)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 log: logging.Logger = logging.getLogger(__name__)

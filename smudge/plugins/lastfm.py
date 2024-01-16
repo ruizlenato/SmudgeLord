@@ -1,5 +1,5 @@
-from pyrogram import filters
-from pyrogram.types import ForceReply, Message
+from hydrogram import filters
+from hydrogram.types import ForceReply, Message
 
 from smudge.bot import Smudge
 from smudge.utils.lastfm import LastFM

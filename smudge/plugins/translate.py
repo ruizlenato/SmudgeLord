@@ -1,8 +1,10 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import html
 
 from gpytranslate import Translator
-from pyrogram import filters
-from pyrogram.types import Message
+from hydrogram import filters
+from hydrogram.types import Message
 
 from smudge.bot import Smudge
 from smudge.database.users import get_user_data

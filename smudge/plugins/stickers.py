@@ -7,19 +7,19 @@ from io import BytesIO
 
 import filetype
 from PIL import Image, ImageOps
-from pyrogram import filters
-from pyrogram.errors import PeerIdInvalid, StickersetInvalid
-from pyrogram.helpers import ikb
-from pyrogram.raw.functions.messages import GetStickerSet, SendMedia
-from pyrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
-from pyrogram.raw.types import (
+from hydrogram import filters
+from hydrogram.errors import PeerIdInvalid, StickersetInvalid
+from hydrogram.helpers import ikb
+from hydrogram.raw.functions.messages import GetStickerSet, SendMedia
+from hydrogram.raw.functions.stickers import AddStickerToSet, CreateStickerSet
+from hydrogram.raw.types import (
     DocumentAttributeFilename,
     InputDocument,
     InputMediaUploadedDocument,
     InputStickerSetItem,
     InputStickerSetShortName,
 )
-from pyrogram.types import Message
+from hydrogram.types import Message
 
 from smudge.bot import Smudge
 from smudge.config import config

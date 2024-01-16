@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import sentry_sdk
-from pyrogram import Client
-from pyrogram.enums import ParseMode
+from hydrogram import Client
+from hydrogram.enums import ParseMode
 
 from smudge.database import database
 from smudge.utils.utils import http
