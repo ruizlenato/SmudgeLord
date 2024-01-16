@@ -2,6 +2,7 @@
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import os
 from functools import wraps
+from pathlib import Path
 
 import yaml
 from hydrogram.enums import ChatType
@@ -15,7 +16,7 @@ LANGUAGES: dict[str] = {}
 for file in os.listdir("locales"):
     if file not in ("__init__.py", "__pycache__"):
         log.info("\033[90m[!] - Language %s loadded.\033[0m", file)
-        with open("locales/" + file, encoding="utf8") as f:
+        with Path.open("locales/" + file, encoding="utf8") as f:
             content = yaml.load(f, Loader=yaml.CLoader)
             LANGUAGES[file.replace(".yaml", "")] = content
 

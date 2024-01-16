@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import asyncio
-import glob
 from importlib import import_module
+from pathlib import Path
 
 from hydrogram import filters
 from hydrogram.enums import ChatType
@@ -15,7 +15,7 @@ from smudge.utils.locale import get_string, locale
 
 HELPABLE: list[str] = []
 
-for modules in glob.glob("smudge/plugins/*.py"):
+for modules in Path.glob("smudge/plugins/*.py"):
     imported_module = import_module((modules)[:-3].replace("/", "."))
     if hasattr(imported_module, "__help__"):
         HELPABLE.append((modules.replace("/", ".")).split(".")[-2])
@@ -61,11 +61,7 @@ async def start_command(client: Smudge, union: Message | CallbackQuery, strings)
 @Smudge.on_message(filters.command("help") & filters.private)
 @locale("start")
 async def help_menu(client: Smudge, union: Message | CallbackQuery, strings):
-    reply_text = (
-        union.edit_message_text
-        if isinstance(union, CallbackQuery)
-        else union.reply_text
-    )
+    reply_text = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
     buttons: list = []
     for help in sorted(HELPABLE):
         buttons.append((await get_string(union, help, "name"), f"help-plugin {help}"))
@@ -96,11 +92,7 @@ async def help_plugin(client: Smudge, callback: CallbackQuery, strings):
 @Smudge.on_message(filters.command("config"))
 @locale("config")
 async def config(client: Smudge, union: Message | CallbackQuery, strings):
-    reply = (
-        union.edit_message_text
-        if isinstance(union, CallbackQuery)
-        else union.reply_text
-    )
+    reply = union.edit_message_text if isinstance(union, CallbackQuery) else union.reply_text
 
     if not await filters.admin(client, union):
         if isinstance(union, CallbackQuery):
@@ -135,6 +127,4 @@ async def about_menu(client: Smudge, union: Message | CallbackQuery, strings):
         ],
     ]
     text = strings["about-text"].format(__version__, __commit__)
-    await union.edit_message_text(
-        text, reply_markup=ikb(keyboard), disable_web_page_preview=True
-    )
+    await union.edit_message_text(text, reply_markup=ikb(keyboard), disable_web_page_preview=True)

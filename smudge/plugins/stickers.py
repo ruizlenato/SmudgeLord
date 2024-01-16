@@ -1,12 +1,11 @@
 # SPDX-License-Identifier: GPL-3.0
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import asyncio
-import os
 import sys
 from io import BytesIO
+from pathlib import Path
 
 import filetype
-from PIL import Image, ImageOps
 from hydrogram import filters
 from hydrogram.errors import PeerIdInvalid, StickersetInvalid
 from hydrogram.helpers import ikb
@@ -20,6 +19,7 @@ from hydrogram.raw.types import (
     InputStickerSetShortName,
 )
 from hydrogram.types import Message
+from PIL import Image, ImageOps
 
 from smudge.bot import Smudge
 from smudge.config import config
@@ -87,10 +87,7 @@ async def kang(client: Smudge, message: Message, strings):
                 emoji = message.reply_to_message.sticker.emoji
             animated = message.reply_to_message.sticker.is_animated
             videos = message.reply_to_message.sticker.is_video
-            if (
-                not message.reply_to_message.sticker.file_name.endswith(".tgs")
-                and not videos
-            ):
+            if not message.reply_to_message.sticker.file_name.endswith(".tgs") and not videos:
                 resize = True
         else:
             return await progress_mesage.edit_text(strings["media-invalid"])
@@ -105,15 +102,10 @@ async def kang(client: Smudge, message: Message, strings):
         ):
             # provide pack number to kang in desired pack
             packnum = message.command.pop(1)
-            packname = (
-                f"{pack_prefix}{packnum}_{message.from_user.id}_by_{client.me.username}"
-            )
+            packname = f"{pack_prefix}{packnum}_{message.from_user.id}_by_{client.me.username}"
         if len(message.command) > 1:
             # matches all valid emojis in input
-            emoji = (
-                "".join(set(EMOJI_PATTERN.findall("".join(message.command[1:]))))
-                or emoji
-            )
+            emoji = "".join(set(EMOJI_PATTERN.findall("".join(message.command[1:])))) or emoji
 
         if convert:
             file = await client.download_media(message.reply_to_message)
@@ -233,12 +225,8 @@ async def kang(client: Smudge, message: Message, strings):
     except Exception as all_e:
         await progress_mesage.edit_text(f"{all_e.__class__.__name__} : {all_e}")
     else:
-        await progress_mesage.edit_text(
-            strings["sticker-stoled"].format(packname, emoji)
-        )
-        await client.delete_messages(
-            chat_id=config["LOG_CHAT"], message_ids=msg_.id, revoke=True
-        )
+        await progress_mesage.edit_text(strings["sticker-stoled"].format(packname, emoji))
+        await client.delete_messages(chat_id=config["LOG_CHAT"], message_ids=msg_.id, revoke=True)
 
 
 def resize_image(file: str) -> BytesIO:
@@ -281,7 +269,7 @@ async def convert_video(file: str) -> str:
     )
 
     (stdout, stderr) = await process.communicate()
-    os.remove(file)
+    Path.unlink(file)
     # it is necessary to delete the video because
     # ffmpeg used a saved file and not bytes,
     # unfortunately it is not possible to convert

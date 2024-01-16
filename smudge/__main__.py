@@ -2,7 +2,7 @@
 # Copyright (c) 2023 Luiz Renato (ruizlenato@proton.me)
 import asyncio
 
-import hydrogram 
+import hydrogram
 import uvloop
 
 from .bot import Smudge
@@ -15,7 +15,7 @@ async def main():
     client = Smudge()
     await client.start()
     log.info("\033[92m[🚀] - Bot started.\033[0m")
-    await hydrogram .idle()
+    await hydrogram.idle()
     await client.stop()
     log.warning("\033[93m[⚠️] - Bye!\033[0m")
 
