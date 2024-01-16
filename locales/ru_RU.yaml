@@ -5,7 +5,7 @@ metada:
 #Strings
 strings:
   afk:
-    name: "Afk"
+    name: "AFK"
     now-unavailable: "<b>{}</b> is now unavailable!"
     user-available: "<b><a href='tg://user?id={}'>{}</a></b> is back!"
     user-unavailable: "<b><a href='tg://user?id={}'>{}</a></b> is <b>unavailable!</b>\nLast seen <code>{}</code> ago"
@@ -33,7 +33,7 @@ strings:
   lastfm:
     name: "LastFM"
     ask-username: "<a href='tg://user?id={}'>{}</a>, Send me your last.fm username."
-    wrong-username: "<b>Error</b>\nYour last.fm username is wrong"
+    wrong-username: "<b>Error</b>: Your last.fm username is wrong"
     saved-username: "<b>Done, last.fm user saved!</b>"
     no-username: "<b>You have not set your last.fm username.</b>\nUse the command /setuser to set"
     no-scrobbles: "<b>Apparently you have never scrobbled a song on LastFM.</b>\n\nSe você está tendo problemas, vá para last.fm/about/trackmymusic e veja como conectar sua conta ao seu aplicativo de música."
