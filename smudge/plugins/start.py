@@ -15,10 +15,10 @@ from smudge.utils.locale import get_string, locale
 
 HELPABLE: list[str] = []
 
-for modules in Path.glob("smudge/plugins/*.py"):
-    imported_module = import_module((modules)[:-3].replace("/", "."))
+for modules in list(Path("smudge/plugins").glob("*.py")):
+    imported_module = import_module((str(modules))[:-3].replace("/", "."))
     if hasattr(imported_module, "__help__"):
-        HELPABLE.append((modules.replace("/", ".")).split(".")[-2])
+        HELPABLE.append((str(modules).replace("/", ".")).split(".")[-2])
 
 
 @Smudge.on_message(filters.command("start"))
