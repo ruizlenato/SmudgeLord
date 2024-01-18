@@ -243,7 +243,7 @@ async def kang(client: Smudge, message: Message, strings):
 
 def resize_image(file: str) -> BytesIO:
     im = Image.open(file)
-    im = ImageOps.contain(im, (512, 512), method=Image.ANTIALIAS)
+    im = ImageOps.contain(im, (512, 512), method=Image.LANCZOS)
     image = BytesIO()
     image.name = "sticker.png"
     im.save(image, "PNG")
