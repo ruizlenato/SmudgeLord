@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"smudgelord/smudgelord"
+	"smudgelord/smudgelord/database"
 	"syscall"
 
 	"github.com/caarlos0/env/v10"
@@ -54,6 +55,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// Open a new SQLite database file
+	if err := database.Open(cfg.DatabaseFile); err != nil {
+		log.Fatal(err)
+	}
+
+	// Define the tables
+	if err := database.CreateTables(); err != nil {
+		log.Fatal("Error creating table:", err)
+		return
+	}
+
 	go func() {
 		// Wait for stop signal
 		<-sigs
@@ -64,6 +76,9 @@ func main() {
 
 		bh.Stop()
 		fmt.Println("Bot handler stopped")
+
+		// Close the database connection
+		database.Close()
 
 		done <- struct{}{}
 	}()
