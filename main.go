@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"smudgelord/smudgelord"
 	"smudgelord/smudgelord/database"
+	"smudgelord/smudgelord/localization"
 	"syscall"
 
 	"github.com/caarlos0/env/v10"
@@ -53,6 +54,11 @@ func main() {
 	botUser, err := bot.GetMe()
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if err := localization.LoadLanguages(); err != nil {
+		fmt.Println("Error:", err)
+		return
 	}
 
 	// Open a new SQLite database file
