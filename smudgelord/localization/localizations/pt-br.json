@@ -1,1 +1,5 @@
-{}
+{
+    "start_message_private": "Olá <b>%s</b> — Sou <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.\n\n<b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>",
+    "start_message_group": "Olá, sou o <b>%s</b>\nTenho varias funções, para saber mais, clique no botão abaixo e inicie uma conversa comigo.",
+    "start_button": "Iniciar uma conversa"
+}
