@@ -70,6 +70,7 @@ func CreateTables() error {
         CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'en-us',
+			username TEXT,
 			lastfm_username TEXT
         );
 		CREATE TABLE IF NOT EXISTS groups (
@@ -106,6 +107,8 @@ func Close() {
 // - Ensure that the DB variable is correctly initialized before calling this function.
 func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler) {
 	message := update.Message
+	var username string
+
 	if message == nil {
 		if update.CallbackQuery == nil {
 			return
@@ -122,19 +125,34 @@ func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler
 		query := "INSERT OR IGNORE INTO groups (id) VALUES (?);"
 		_, err := DB.Exec(query, message.Chat.ID)
 		if err != nil {
-			log.Print("Error inserting group:", err)
+			log.Print("Error inserting group: ", err)
 		}
 	}
 
 	// Inserts user information into the 'users' table, including the user's ID and language code.
-	query := "INSERT OR IGNORE INTO users (id, language) VALUES (?, ?);"
+	query := "INSERT OR IGNORE INTO users (id, language, username) VALUES (?, ?, ?);"
 	lang := message.From.LanguageCode
+	if message.From.Username != "" {
+		username = "@" + message.From.Username
+	}
+
 	if !slices.Contains(AvailableLocales, lang) {
 		lang = "en-us"
 	}
-	_, err := DB.Exec(query, message.From.ID, lang)
+	_, err := DB.Exec(query, message.From.ID, lang, username)
 	if err != nil {
-		log.Print("Error inserting user:", err)
+		log.Print("Error inserting user: ", err)
+	}
+
+	row := DB.QueryRow("SELECT username FROM users WHERE id = ?;", message.From.ID)
+	var dbUsername string
+	row.Scan(&dbUsername)
+
+	if dbUsername != username && username != "" {
+		_, err := DB.Exec("UPDATE users SET username = ? WHERE id = ?;", username, message.From.ID)
+		if err != nil {
+			log.Print("Error updating username: ", err)
+		}
 	}
 
 	// Call the next handler in the processing chain.
