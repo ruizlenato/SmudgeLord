@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"smudgelord/smudgelord/database"
 	"strings"
+	"time"
 
 	"github.com/mymmrac/telego"
 )
@@ -143,4 +144,57 @@ func getStringFromNestedMap(langMap map[string]interface{}, key string) string {
 
 	return "KEY_NOT_FOUND"
 }
+
+// HumanizeTimeSince returns a human-readable representation of the time duration since a given duration.
+// It takes a duration and a chat as input parameters and returns a string.
+// Parameters:
+//   - duration: The time duration since a specific event.
+//   - chat: Used to determine the localization settings for the returned string.
+//
+// Returns:
+//   - string: A human-readable representation of the time duration since a specific event.
+func HumanizeTimeSince(duration time.Duration, chat telego.Chat) string {
+	// Get the i18n function for the chat
+	i18n := Get(chat)
+
+	var timeDuration int
+	var stringKey string
+
+	switch {
+	case duration < time.Minute:
+		timeDuration = int(duration.Seconds())
+		stringKey = "relativeDuration.%s.s"
+	case duration < time.Hour:
+		timeDuration = int(duration.Minutes())
+		stringKey = "relativeDuration.%s.m"
+	case duration < 24*time.Hour:
+		timeDuration = int(duration.Hours())
+		stringKey = "relativeDuration.%s.h"
+	case duration < 7*24*time.Hour:
+		timeDuration = int(duration.Hours() / 24)
+		stringKey = "relativeDuration.%s.d"
+	case duration < 30*24*time.Hour:
+		timeDuration = int(duration.Hours() / (24 * 7))
+		stringKey = "relativeDuration.%s.w"
+	default:
+		timeDuration = int(duration.Hours() / (24 * 30))
+		stringKey = "relativeDuration.%s.M"
+	}
+
+	// Use a helper function to get the translated string based on the string key and time duration
+	timeSince := getTranslatedTimeSince(i18n, stringKey, timeDuration)
+	return timeSince
+}
+
+// Helper function to get the translated time since string
+func getTranslatedTimeSince(i18n func(string) string, stringKey string, timeDuration int) string {
+	singularKey := fmt.Sprintf(stringKey, "singular")
+	pluralKey := fmt.Sprintf(stringKey, "plural")
+
+	timeSince := fmt.Sprintf("%d %s", timeDuration, i18n(singularKey))
+	if timeDuration > 1 {
+		timeSince = fmt.Sprintf("%d %s", timeDuration, i18n(pluralKey))
+	}
+
+	return timeSince
 }
