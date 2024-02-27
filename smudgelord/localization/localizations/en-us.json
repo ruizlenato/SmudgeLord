@@ -2,6 +2,12 @@
     "start_message_private": "Hello <b>%s</b> — I'm <b>%s</b>, a bot with some useful and fun commands for you.\n\n<b>SourceCode:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>",
     "start_message_group": "Hello, I'm <b>%s</b>\nI have a lot of cool features. To find out more, click on the button below and start a conversation with me.",
     "start_button": "Start a chat",
+    "afk": {
+        "now-unavailable": "<b>%s</b> is now unavailable!",
+        "unavailable": "<b><a href='tg://user?id=%d'>%s</a></b> is <b>unavailable!</b>\nLast seen <code>%s</code> ago",
+        "reason": "\n<b>Reason:</b> %s",
+        "now-available": "<b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away."
+    },
     "relativeDuration": {
         "singular": {
             "s": "second",
@@ -9,8 +15,7 @@
             "h": "hour",
             "d": "day",
             "w": "week",
-            "M": "mouth",
-            "y": "year"
+            "M": "mouth"
         },
         "plural": {
             "s": "seconds",
@@ -18,8 +23,7 @@
             "h": "hours",
             "d": "days",
             "w": "weeks",
-            "M": "mounths",
-            "y": "years"
+            "M": "mounths"
         }
     }
 }

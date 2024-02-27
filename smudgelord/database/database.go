@@ -77,6 +77,11 @@ func CreateTables() error {
             id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'en-us'
         );
+		CREATE TABLE IF NOT EXISTS afk (
+			id INTEGER PRIMARY KEY,
+			reason TEXT,
+			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
     `
 	_, err := DB.Exec(query)
 	return err

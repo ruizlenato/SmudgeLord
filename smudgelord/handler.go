@@ -1,6 +1,7 @@
 package smudgelord
 
 import (
+	"regexp"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/modules"
 
@@ -22,5 +23,8 @@ func NewHandler(bot *telego.Bot, bh *th.BotHandler) *Handler {
 
 func (h *Handler) RegisterHandlers() {
 	h.bh.Use(database.SaveUsers)
+	h.bh.Use(modules.CheckAFK)
+	h.bh.HandleMessage(modules.SetAFK, th.CommandEqual("afk"))
+	h.bh.HandleMessage(modules.SetAFK, th.TextMatches(regexp.MustCompile(`^(?:brb)(\s.+)?`)))
 	h.bh.Handle(modules.Start, th.CommandEqual("start"))
 }

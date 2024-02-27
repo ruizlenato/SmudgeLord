@@ -2,6 +2,12 @@
     "start_message_private": "Olá <b>%s</b> — Sou <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.\n\n<b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>",
     "start_message_group": "Olá, sou o <b>%s</b>\nTenho varias funções, para saber mais, clique no botão abaixo e inicie uma conversa comigo.",
     "start_button": "Iniciar uma conversa",
+    "afk": {
+        "now-unavailable": "<b>%s</b> está agora indisponível!",
+        "unavailable": "<b><a href='tg://user?id=%s'>%s</a></b> está <b>indisponível!</b>\nVisto pela última vez à <code>%s</code> atrás",
+        "reason": "\n<b>Motivo:</b> <code>%s</code>",
+        "now-available": "<b><a href='tg://user?id=%s'>%s</a></b> está de volta após <code>%s</code> de ausência!"
+    },
     "relativeDuration": {
         "singular": {
             "s": "segundo",
