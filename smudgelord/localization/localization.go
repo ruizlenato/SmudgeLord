@@ -14,7 +14,7 @@ import (
 
 const defaultLanguage = "en-us"
 
-var LangCache = make(map[string]map[string]string)
+var LangCache = make(map[string]map[string]interface{})
 
 // LoadLanguages loads language files from the localtizations directory and populates the global cache.
 // Each file in the directory should be a JSON file representing translations for a specific language.
@@ -47,7 +47,7 @@ func LoadLanguages() error {
 			}
 
 			// Unmarshal the language JSON data and store it in the cache
-			langMap := make(map[string]string)
+			langMap := make(map[string]interface{})
 			err = json.Unmarshal(data, &langMap)
 			if err != nil {
 				return err
@@ -97,6 +97,7 @@ func getChatLanguage(chat telego.Chat) (string, error) {
 //
 // Returns:
 //   - func(string) string: A function that, given a message key, returns the translated message.
+
 func Get(chat telego.Chat) func(string) string {
 	return func(key string) string {
 		language, err := getChatLanguage(chat)
@@ -114,11 +115,32 @@ func Get(chat telego.Chat) func(string) string {
 			}
 		}
 
-		value, ok := langMap[key]
-		if !ok {
-			// Return "KEY_NOT_FOUND" if the input key doesn't have a valid translation.
-			return "KEY_NOT_FOUND"
-		}
+		// Use a helper function to traverse the nested structure and get the final string
+		value := getStringFromNestedMap(langMap, key)
 		return value
 	}
+}
+
+// Helper function to traverse nested map and get the final string value
+func getStringFromNestedMap(langMap map[string]interface{}, key string) string {
+	keys := strings.Split(key, ".")
+	currentMap := langMap
+
+	for _, k := range keys {
+		value, ok := currentMap[k]
+		if !ok {
+			return "KEY_NOT_FOUND"
+		}
+
+		if nestedMap, isMap := value.(map[string]interface{}); isMap {
+			currentMap = nestedMap
+		} else if strValue, isString := value.(string); isString {
+			return strValue
+		} else {
+			return "KEY_NOT_FOUND"
+		}
+	}
+
+	return "KEY_NOT_FOUND"
+}
 }
