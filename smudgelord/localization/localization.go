@@ -31,7 +31,7 @@ var LangCache = make(map[string]map[string]interface{})
 //     Otherwise, it returns nil, indicating successful loading of languages.
 func LoadLanguages() error {
 	database.AvailableLocales = nil
-	dir := "smudgelord/localization/localizations"
+	dir := "locales"
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
