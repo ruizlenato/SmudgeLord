@@ -6,33 +6,20 @@ import (
 	"os"
 	"os/signal"
 	"smudgelord/smudgelord"
+	"smudgelord/smudgelord/config"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
 	"syscall"
 
-	"github.com/caarlos0/env/v10"
 	"github.com/fasthttp/router"
-	_ "github.com/joho/godotenv/autoload"
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
 	"github.com/valyala/fasthttp"
 )
 
-type config struct {
-	TelegramToken string `env:"TELEGRAM_TOKEN" validate:"required"`
-	DatabaseFile  string `env:"DATABASE_FILE" validate:"required"`
-	WebhookURL    string `env:"WEBHOOK_URL"`
-}
-
 func main() {
-	// Get Bot from environment variables (.env)
-	cfg := config{}
-	if err := env.Parse(&cfg); err != nil {
-		log.Fatalf("%+v\n", err)
-	}
-
 	// Create bot
-	bot, err := telego.NewBot(cfg.TelegramToken)
+	bot, err := telego.NewBot(config.TelegramToken)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,7 +33,7 @@ func main() {
 
 	// Check if the webhook URL is empty.
 	// If the webhook URL is empty, the bot will get the updates via long polling
-	if cfg.WebhookURL == "" {
+	if config.WebhookURL == "" {
 		// Delete the webhook for the Telegram bot, specifying that any pending updates should be dropped.
 		err = bot.DeleteWebhook(&telego.DeleteWebhookParams{
 			DropPendingUpdates: true,
@@ -60,7 +47,7 @@ func main() {
 		}, telego.WithLongPollingUpdateInterval(0))
 	} else {
 		err = bot.SetWebhook(&telego.SetWebhookParams{
-			URL: cfg.WebhookURL + bot.Token(),
+			URL: config.WebhookURL + bot.Token(),
 		})
 		if err != nil {
 			log.Fatal("Set webhook:", err)
@@ -99,7 +86,7 @@ func main() {
 	}
 
 	// Open a new SQLite database file
-	if err := database.Open(cfg.DatabaseFile); err != nil {
+	if err := database.Open(config.DatabaseFile); err != nil {
 		log.Fatal(err)
 	}
 
@@ -115,7 +102,7 @@ func main() {
 		fmt.Println("\033[0;31mStopping...\033[0m")
 
 		bot.StopLongPolling()
-		if cfg.WebhookURL == "" {
+		if config.WebhookURL == "" {
 			bot.StopLongPolling()
 		} else {
 			err = bot.StopWebhook()
@@ -139,7 +126,7 @@ func main() {
 	fmt.Printf("\033[0;36mBot Info:\033[0m %v - @%v\n", botUser.FirstName, botUser.Username)
 
 	// Start server for receiving requests from the Telegram
-	if cfg.WebhookURL != "" {
+	if config.WebhookURL != "" {
 		go func() {
 			err = bot.StartWebhook("0.0.0.0:8080")
 			if err != nil {

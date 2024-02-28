@@ -3,7 +3,6 @@ module smudgelord
 go 1.21.6
 
 require (
-	github.com/caarlos0/env/v10 v10.0.0
 	github.com/fasthttp/router v1.4.22
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
