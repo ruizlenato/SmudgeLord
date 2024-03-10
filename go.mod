@@ -4,6 +4,7 @@ go 1.21.6
 
 require (
 	github.com/fasthttp/router v1.4.22
+	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/mymmrac/telego v0.28.1-0.20240124110136-fd57753533fb
