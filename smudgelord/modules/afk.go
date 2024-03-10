@@ -43,52 +43,60 @@ func unsetAFK(userID int64) error {
 }
 
 func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler) {
-	if !strings.Contains(update.Message.Chat.Type, "group") || update.Message.From == nil {
+	message := update.Message
+	if message == nil {
+		if update.CallbackQuery == nil {
+			return
+		}
+		message = update.CallbackQuery.Message.(*telego.Message)
+	}
+
+	if !strings.Contains(message.Chat.Type, "group") || message.From == nil {
 		next(bot, update)
 		return
 	}
-	i18n := localization.Get(update.Message.Chat)
-	userID := update.Message.From.ID
+	i18n := localization.Get(message.Chat)
+	userID := message.From.ID
 
-	if update.Message.Entities != nil {
-		for _, entity := range update.Message.Entities {
+	if message.Entities != nil {
+		for _, entity := range message.Entities {
 			if strings.Contains(entity.Type, "mention") {
 				if entity.Type == "text_mention" {
 					userID = entity.User.ID
 					break
 				}
-				row := database.DB.QueryRow(`SELECT id FROM users WHERE username = $1`, update.Message.Text[entity.Offset:entity.Offset+entity.Length])
+				row := database.DB.QueryRow(`SELECT id FROM users WHERE username = $1`, message.Text[entity.Offset:entity.Offset+entity.Length])
 				if row.Scan(&userID); row.Err() != nil {
 					panic(row.Err())
 				}
 				break
 			}
 		}
-	} else if update.Message.ReplyToMessage != nil && update.Message.ReplyToMessage.From != nil {
-		userID = update.Message.ReplyToMessage.From.ID
+	} else if message.ReplyToMessage != nil && message.ReplyToMessage.From != nil {
+		userID = message.ReplyToMessage.From.ID
 	}
 
 	id, reason, duration, err := getAFK(userID)
 	if err != nil {
 		log.Panic(err)
 	}
-	humanizedDuration := localization.HumanizeTimeSince(duration, update.Message.Chat)
+	humanizedDuration := localization.HumanizeTimeSince(duration, message.Chat)
 
 	switch {
-	case id == update.Message.From.ID:
+	case id == message.From.ID:
 		err = unsetAFK(id)
 		if err != nil {
 			log.Panic(err)
 		}
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(update.Message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("afk.now-available"), update.Message.From.ID, update.Message.From.FirstName, humanizedDuration),
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      fmt.Sprintf(i18n("afk.now-available"), message.From.ID, message.From.FirstName, humanizedDuration),
 			ParseMode: "HTML",
 			LinkPreviewOptions: &telego.LinkPreviewOptions{
 				IsDisabled: true,
 			},
 			ReplyParameters: &telego.ReplyParameters{
-				MessageID: update.Message.MessageID,
+				MessageID: message.MessageID,
 			},
 		})
 	case id != 0:
@@ -103,14 +111,14 @@ func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 		}
 
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(update.Message.Chat.ID),
+			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      text,
 			ParseMode: "HTML",
 			LinkPreviewOptions: &telego.LinkPreviewOptions{
 				IsDisabled: true,
 			},
 			ReplyParameters: &telego.ReplyParameters{
-				MessageID: update.Message.MessageID,
+				MessageID: message.MessageID,
 			},
 		})
 	}
