@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"smudgelord/smudgelord/utils/helpers"
+	"smudgelord/smudgelord/utils"
 	"strings"
 
 	"github.com/mymmrac/telego/telegoutil"
@@ -87,7 +87,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 		"viewport-width":            "1280",
 	}
 
-	body := helpers.RequestGET(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), helpers.RequestGETParams{Headers: headers}).Body()
+	body := utils.RequestGET(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestGETParams{Headers: headers}).Body()
 	match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body)
 	if len(match) == 2 {
 		s := strings.ReplaceAll(string(match[1]), `\"`, `"`)
@@ -184,7 +184,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 			`doc_id=10015901848480474`,
 		}
 
-		body := helpers.RequestPOST("https://www.instagram.com/api/graphql", helpers.RequestPOSTParams{Headers: headers, BodyString: params}).Body()
+		body := utils.RequestPOST("https://www.instagram.com/api/graphql", utils.RequestPOSTParams{Headers: headers, BodyString: params}).Body()
 		err := json.Unmarshal(body, &instagramData)
 		if err != nil {
 			log.Println(err)

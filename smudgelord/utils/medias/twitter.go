@@ -6,7 +6,7 @@ import (
 	"log"
 	"regexp"
 	"slices"
-	"smudgelord/smudgelord/utils/helpers"
+	"smudgelord/smudgelord/utils"
 	"sort"
 	"strings"
 
@@ -158,7 +158,7 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 		"fieldToggles": string(jsonMarshal(fieldtoggles)),
 	}
 
-	body := helpers.RequestGET("https://twitter.com/i/api/graphql/NmCeCgkVlsRGS1cAwqtgmw/TweetDetail", helpers.RequestGETParams{Query: query, Headers: headers}).Body()
+	body := utils.RequestGET("https://twitter.com/i/api/graphql/NmCeCgkVlsRGS1cAwqtgmw/TweetDetail", utils.RequestGETParams{Query: query, Headers: headers}).Body()
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {

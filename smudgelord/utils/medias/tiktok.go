@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
-	"smudgelord/smudgelord/utils/helpers"
+	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego/telegoutil"
 )
@@ -111,7 +111,7 @@ func (dm *DownloadMedia) TikTok(url string) {
 		"aid":      "1128",
 	}
 
-	body := helpers.RequestGET("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", helpers.RequestGETParams{Query: query, Headers: headers}).Body()
+	body := utils.RequestGET("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestGETParams{Query: query, Headers: headers}).Body()
 	var tikTokData TikTokData
 	err := json.Unmarshal(body, &tikTokData)
 	if err != nil {
