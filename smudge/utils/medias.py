@@ -126,21 +126,15 @@ class DownloadMedia:
             file = soup.find("img", {"class": "EmbeddedMediaImage"}).get("src")
             await self.downloader(file, 0, 0)
 
-        data = re.findall(
-            r'<script>(requireLazy\(\["TimeSliceImpl".*)<\/script>', r.text
-        )
+        data = re.findall(r'<script>(requireLazy\(\["TimeSliceImpl".*)<\/script>', r.text)
         if data and "shortcode_media" in data[0]:
             tokenized = esprima.tokenize(data[0])
             for token in tokenized:
                 if "shortcode_media" in token.value:
-                    jsoninsta = json.loads(json.loads(token.value))["gql_data"][
-                        "shortcode_media"
-                    ]
+                    jsoninsta = json.loads(json.loads(token.value))["gql_data"]["shortcode_media"]
 
                     if caption := jsoninsta["edge_media_to_caption"]["edges"]:
-                        self.caption = (
-                            f"{caption[0]['node']['text']}\n<a href='{url}'>🔗 Link</a>"
-                        )
+                        self.caption = f"{caption[0]['node']['text']}\n<a href='{url}'>🔗 Link</a>"
                     else:
                         self.caption = f"\n<a href='{url}'>🔗 Link</a>"
 
@@ -165,9 +159,7 @@ class DownloadMedia:
             return
 
         try:
-            r = await httpx.get(
-                f"https://www.instagram.com/p/{post_id}/", headers=headers
-            )
+            r = await httpx.get(f"https://www.instagram.com/p/{post_id}/", headers=headers)
         except ReadTimeout:
             return
         soup = bs(r.text, "html.parser")
@@ -186,13 +178,65 @@ class DownloadMedia:
                         await self.downloader(v["contentUrl"], v["width"], v["height"])
             return
 
-        params = {
-            "query_hash": "b3055c01b4b222b8a47dc12b090e4e64",
-            "variables": json.dumps({"shortcode": post_id}),
-        }
         try:
-            r = await httpx.get(
-                "https://cors-bypass.amanoteam.com/https://www.instagram.com/graphql/query/",
+            params = {
+                "av": "0",
+                "__d": "www",
+                "__user": "0",
+                "__a": "1",
+                "__req": "3",
+                "__hs": "19734.HYP:instagram_web_pkg.2.1..0.0",
+                "dpr": "1",
+                "__ccg": "UNKNOWN",
+                "__rev": "1010782723",
+                "__s": "qg5qgx:efei15:ng6310",
+                "__hsi": "7323030086241513400",
+                "__dyn": "7xeUjG1mxu1syUbFp60DU98nwgU29zEdEc8co2qwJw5ux609vCwjE1xoswIwuo2awlU-cw5Mx62G3i1ywOwv89k2C1Fwc60AEC7U2czXwae4UaEW2G1NwwwNwKwHw8Xxm16wUxO1px-0iS2S3qazo7u1xwIwbS1LwTwKG1pg661pwr86C1mwrd6goK68jxe6V8",
+                "__csr": "gps8cIy8WTDAqjWDrpda9SoLHhaVeVEgvhaJzVQ8hF-qEPBV8O4EhGmciDBQh1mVuF9V9d2FHGicAVu8GAmfZiHzk9IxlhV94aKC5oOq6Uhx-Ku4Kaw04Jrx64-0oCdw0MXw1lm0EE2Ixcjg2Fg1JEko0N8U421tw62wq8989EMw1QpV60CE02BIw",
+                "__comet_req": "7",
+                "lsd": "AVp2LurCmJw",
+                "jazoest": "2989",
+                "__spin_r": "1010782723",
+                "__spin_b": "trunk",
+                "__spin_t": "1705025808",
+                "fb_api_caller_class": "RelayModern",
+                "fb_api_req_friendly_name": "PolarisPostActionLoadPostQueryQuery",
+                "variables": json.dumps(
+                    {
+                        "shortcode": post_id,
+                        "fetch_comment_count": "2",
+                        "fetch_related_profile_media_count": "0",
+                        "parent_comment_count": "0",
+                        "child_comment_count": "0",
+                        "fetch_like_count": "10",
+                        "fetch_tagged_user_count": "null",
+                        "fetch_preview_comment_count": "2",
+                        "has_threaded_comments": "true",
+                        "hoisted_comment_id": "null",
+                        "hoisted_reply_id": "null",
+                    }
+                ),
+                "server_timestamps": "true",
+                "doc_id": "10015901848480474",
+            }
+            headers = {
+                "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0",
+                "Accept": "*/*",
+                "Accept-Language": "pt-BR,pt;q=0.8,en-US;q=0.5,en;q=0.3",
+                "Content-Type": "application/x-www-form-urlencoded",
+                "X-FB-Friendly-Name": "PolarisPostActionLoadPostQueryQuery",
+                "X-CSRFToken": "-m5n6c-w1Z9RmrGqkoGTMq",
+                "X-IG-App-ID": "936619743392459",
+                "X-FB-LSD": "AVp2LurCmJw",
+                "X-ASBD-ID": "129477",
+                "DNT": "1",
+                "Sec-Fetch-Dest": "empty",
+                "Sec-Fetch-Mode": "cors",
+                "Sec-Fetch-Site": "same-origin",
+            }
+            r = await httpx.post(
+                "https://www.instagram.com/graphql/query/",
+                headers=headers,
                 params=params,
             )
         except ReadTimeout:
@@ -210,10 +254,8 @@ class DownloadMedia:
         return
 
     async def Twitter(self, url: str, captions: str):
-        bearer: str = (
-            "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\
+        bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\
 fk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"  # Twitter Bearer Token
-        )
         # Extract the tweet ID from the URL
         try:
             tweet_id = re.match(".*(twitter|x).com/.+status/([A-Za-z0-9]+)", url)[2]
@@ -283,9 +325,9 @@ _limited_actions_policy_enabled": True,
         ).json()
 
         try:
-            res = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][
-                0
-            ]["entries"]
+            res = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][0][
+                "entries"
+            ]
 
             for entries in res:
                 if tweet_id in entries["entryId"]:
@@ -305,9 +347,7 @@ _limited_actions_policy_enabled": True,
                         if a["content_type"] == "video/mp4"
                     ]
                     for a in media["video_info"]["variants"]:
-                        if a["content_type"] == "video/mp4" and a["bitrate"] == max(
-                            bitrate
-                        ):
+                        if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
                             url = a["url"]
 
                     await self.downloader(
@@ -390,6 +430,4 @@ _limited_actions_policy_enabled": True,
                 await self.downloader(info["url"], info["width"], info["height"])
         else:
             url = thread["video_versions"][0]["url"]
-            await self.downloader(
-                url, thread["original_width"], thread["original_height"]
-            )
+            await self.downloader(url, thread["original_width"], thread["original_height"])
