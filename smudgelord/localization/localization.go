@@ -117,13 +117,13 @@ func Get(chat telego.Chat) func(string) string {
 		}
 
 		// Use a helper function to traverse the nested structure and get the final string
-		value := getStringFromNestedMap(langMap, key)
+		value := GetStringFromNestedMap(langMap, key)
 		return value
 	}
 }
 
 // Helper function to traverse nested map and get the final string value
-func getStringFromNestedMap(langMap map[string]interface{}, key string) string {
+func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 	keys := strings.Split(key, ".")
 	currentMap := langMap
 

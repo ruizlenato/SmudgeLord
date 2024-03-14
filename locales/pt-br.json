@@ -1,7 +1,17 @@
 {
+    "language": {
+        "name": "Português (BR)",
+        "flag": "🇧🇷"
+    },
     "start_message_private": "Olá <b>%s</b> — Sou <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.\n\n<b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>",
     "start_message_group": "Olá, sou o <b>%s</b>\nTenho varias funções, para saber mais, clique no botão abaixo e inicie uma conversa comigo.",
     "start_button": "Iniciar uma conversa",
+    "button": {
+        "language": "🌐 Idioma",
+        "back": "↩️ Voltar"
+    },
+    "language_menu_mesage": "<b>Idioma atual:</b> %s %s\n\n<b>Selecione abaixo o idioma que você quer utilizar no bot.</b>",
+    "language_changed_successfully": "O idioma foi alterado com sucesso.",
     "afk": {
         "now-unavailable": "<b>%s</b> está agora indisponível!",
         "unavailable": "<b><a href='tg://user?id=%s'>%s</a></b> está <b>indisponível!</b>\nVisto pela última vez à <code>%s</code> atrás",
