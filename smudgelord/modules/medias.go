@@ -2,6 +2,7 @@ package modules
 
 import (
 	"regexp"
+	"smudgelord/smudgelord/utils/helpers"
 	"smudgelord/smudgelord/utils/medias"
 
 	"github.com/mymmrac/telego"
@@ -50,5 +51,6 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 }
 
 func LoadMediaDownloader(bh *telegohandler.BotHandler, bot *telego.Bot) {
+	helpers.Store("medias")
 	bh.HandleMessage(mediaDownloader, telegohandler.TextMatches(regexp.MustCompile(`(?:htt.*?//)?(:?.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)`)))
 }

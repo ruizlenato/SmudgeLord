@@ -8,15 +8,23 @@
     "start_button": "Iniciar uma conversa",
     "button": {
         "language": "🌐 Idioma",
+        "help": "❓ Ajuda",
         "back": "↩️ Voltar"
     },
+    "help_menu_message": "Aqui estão todos os meus plugins.\n<b>Para saber mais sobre os plugins, basta clicar no nome deles.</b>",
     "language_menu_mesage": "<b>Idioma atual:</b> %s %s\n\n<b>Selecione abaixo o idioma que você quer utilizar no bot.</b>",
     "language_changed_successfully": "O idioma foi alterado com sucesso.",
     "afk": {
+        "name": "AFK",
         "now-unavailable": "<b>%s</b> está agora indisponível!",
         "unavailable": "<b><a href='tg://user?id=%s'>%s</a></b> está <b>indisponível!</b>\nVisto pela última vez à <code>%s</code> atrás",
         "reason": "\n<b>Motivo:</b> <code>%s</code>",
-        "now-available": "<b><a href='tg://user?id=%s'>%s</a></b> está de volta após <code>%s</code> de ausência!"
+        "now-available": "<b><a href='tg://user?id=%s'>%s</a></b> está de volta após <code>%s</code> de ausência!",
+        "help": "<b>AFK significa:</b> <i>“away from keyboard”</i> que traduzido para o português, significa <b>“Longe do teclado”</b>.\nÉ basicamente uma giria internetês para dizer que você está ausente.\n\n<b>/afk</b> (motivo) — Define você mesmo como ausente."
+    },
+    "medias": {
+        "name": "Mídias",
+        "help": ""
     },
     "relativeDuration": {
         "singular": {

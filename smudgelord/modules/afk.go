@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
+	"smudgelord/smudgelord/utils/helpers"
 	"strings"
 	"time"
 
@@ -155,6 +156,7 @@ func setAFK(bot *telego.Bot, message telego.Message) {
 }
 
 func LoadAFK(bh *telegohandler.BotHandler, bot *telego.Bot) {
+	helpers.Store("afk")
 	bh.HandleMessage(setAFK, telegohandler.CommandEqual("afk"))
 	bh.HandleMessage(setAFK, telegohandler.TextMatches(regexp.MustCompile(`^(?:brb)(\s.+)?`)))
 }

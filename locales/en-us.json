@@ -8,15 +8,23 @@
     "start_button": "Start a chat",
     "button": {
         "language": "🌐 Language",
+        "help": "❓ Help",
         "back": "↩️ Back"
     },
+    "help_menu_message": "Here are all my plugins.\n<b>To find out more about the plugins, just click on their name.</b>",
     "language_menu_mesage": "<b>Current language:</b> %s %s\n\nSelect below the language you want to use the bot.",
     "language_changed_successfully": "The language has been changed successfully.",
     "afk": {
+        "name": "AFK",
         "now-unavailable": "<b>%s</b> is now unavailable!",
         "unavailable": "<b><a href='tg://user?id=%d'>%s</a></b> is <b>unavailable!</b>\nLast seen <code>%s</code> ago",
         "reason": "\n<b>Reason:</b> %s",
-        "now-available": "<b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away."
+        "now-available": "<b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.",
+        "help": "<b>AFK stands for:</b> <i>“away from keyboard”</i>\nIt is basically Internet slang to say that you are away.\n\n<b>/afk</b> (motivo) — Define yourself as away."
+    },
+    "medias": {
+        "name": "Medias",
+        "help": ""
     },
     "relativeDuration": {
         "singular": {

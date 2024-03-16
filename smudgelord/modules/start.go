@@ -36,6 +36,10 @@ func start(bot *telego.Bot, update telego.Update) {
 						Text:         i18n("button.language"),
 						CallbackData: "languageMenu",
 					},
+					telego.InlineKeyboardButton{
+						Text:         i18n("button.help"),
+						CallbackData: "HelpMenu",
+					},
 				),
 			),
 		})
@@ -71,16 +75,10 @@ func start(bot *telego.Bot, update telego.Update) {
 					Text:         i18n("button.language"),
 					CallbackData: "languageMenu",
 				},
-	} else {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(update.Message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("start_message_private"), update.Message.From.FirstName, botUser.FirstName),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-		})
-	}
+				telego.InlineKeyboardButton{
+					Text:         i18n("button.help"),
+					CallbackData: "helpMenu",
+				},
 			),
 		),
 	})
@@ -174,10 +172,48 @@ func languageSet(bot *telego.Bot, update telego.Update) {
 	})
 }
 
+// helpMenu displays the help menu in response to a callback query.
+// It edits the original message with the updated help menu text and inline keyboard.
+func helpMenu(bot *telego.Bot, update telego.Update) {
+	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
+	i18n := localization.Get(chat)
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:      telegoutil.ID(chat.ID),
+		MessageID:   update.CallbackQuery.Message.GetMessageID(),
+		Text:        i18n("help_menu_message"),
+		ParseMode:   "HTML",
+		ReplyMarkup: telegoutil.InlineKeyboard(helpers.GetHelpKeyboard(i18n)...),
+	})
+}
+
+func helpMessage(bot *telego.Bot, update telego.Update) {
+	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
+	i18n := localization.Get(chat)
+	module := strings.ReplaceAll(update.CallbackQuery.Data, "helpMessage ", "")
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text:      i18n(fmt.Sprintf("%s.help", module)),
+		ParseMode: "HTML",
+		ReplyMarkup: telegoutil.InlineKeyboard(
+			telegoutil.InlineKeyboardRow(
+				telego.InlineKeyboardButton{
+					Text:         i18n("button.back"),
+					CallbackData: "helpMenu",
+				},
+			),
+		),
+	})
+}
+
 func LoadStart(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	bh.Handle(start, telegohandler.CommandEqual("start"))
 	bh.Handle(start, telegohandler.CallbackDataEqual("start"))
 	bh.Handle(languageMenu, telegohandler.CommandEqual("lang"), helpers.IsAdmin(bot))
 	bh.Handle(languageMenu, telegohandler.CallbackDataEqual("languageMenu"))
 	bh.Handle(languageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
+	bh.Handle(helpMenu, telegohandler.CallbackDataEqual("helpMenu"))
+	bh.Handle(helpMessage, telegohandler.CallbackDataPrefix("helpMessage"))
 }
