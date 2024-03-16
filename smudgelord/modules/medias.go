@@ -2,6 +2,7 @@ package modules
 
 import (
 	"regexp"
+	"smudgelord/smudgelord/localization"
 	"smudgelord/smudgelord/utils/helpers"
 	"smudgelord/smudgelord/utils/medias"
 
@@ -50,7 +51,33 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 	))
 }
 
+func mediaConfig(bot *telego.Bot, update telego.Update) {
+	message := update.Message
+	if message == nil {
+		message = update.CallbackQuery.Message.(*telego.Message)
+	}
+
+	chat := message.GetChat()
+	i18n := localization.Get(chat)
+
+	if update.Message == nil {
+		bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:    telegoutil.ID(chat.ID),
+			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			Text:      i18n("medias.config"),
+			ParseMode: "HTML",
+		})
+	} else {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(update.Message.Chat.ID),
+			Text:      i18n("medias.config"),
+			ParseMode: "HTML",
+		})
+	}
+}
+
 func LoadMediaDownloader(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("medias")
 	bh.HandleMessage(mediaDownloader, telegohandler.TextMatches(regexp.MustCompile(`(?:htt.*?//)?(:?.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)`)))
+	bh.Handle(mediaConfig, telegohandler.CallbackDataEqual("mediaConfig"), helpers.IsAdmin(bot))
 }

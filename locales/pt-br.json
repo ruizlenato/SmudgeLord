@@ -12,6 +12,7 @@
         "back": "↩️ Voltar"
     },
     "help_menu_message": "Aqui estão todos os meus plugins.\n<b>Para saber mais sobre os plugins, basta clicar no nome deles.</b>",
+    "config_menu_message": "<b>Configurações —</b> Aqui estão minhas configurações para esse grupo.\nPara saber mais, <b>clique nos botões abaixo.</b>",
     "language_menu_mesage": "<b>Idioma atual:</b> %s %s\n\n<b>Selecione abaixo o idioma que você quer utilizar no bot.</b>",
     "language_changed_successfully": "O idioma foi alterado com sucesso.",
     "afk": {
@@ -24,6 +25,7 @@
     },
     "medias": {
         "name": "Mídias",
+        "config": "<b>Configurações de Mídias</b>\nPara saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.",
         "help": ""
     },
     "relativeDuration": {

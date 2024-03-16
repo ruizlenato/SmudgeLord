@@ -208,12 +208,57 @@ func helpMessage(bot *telego.Bot, update telego.Update) {
 	})
 }
 
+func configMenu(bot *telego.Bot, update telego.Update) {
+	message := update.Message
+	if message == nil {
+		message = update.CallbackQuery.Message.(*telego.Message)
+	}
+
+	chat := message.GetChat()
+	i18n := localization.Get(chat)
+
+	keyboard := telegoutil.InlineKeyboard(
+		telegoutil.InlineKeyboardRow(
+			telego.InlineKeyboardButton{
+				Text:         i18n("medias.name"),
+				CallbackData: "mediaConfig",
+			},
+		),
+		telegoutil.InlineKeyboardRow(
+			telego.InlineKeyboardButton{
+				Text:         i18n("button.language"),
+				CallbackData: "languageMenu",
+			},
+		),
+	)
+
+	if update.Message == nil {
+		bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:      telegoutil.ID(chat.ID),
+			MessageID:   update.CallbackQuery.Message.GetMessageID(),
+			Text:        i18n("config_menu_message"),
+			ParseMode:   "HTML",
+			ReplyMarkup: keyboard,
+		})
+	} else {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:      telegoutil.ID(update.Message.Chat.ID),
+			Text:        i18n("config_menu_message"),
+			ParseMode:   "HTML",
+			ReplyMarkup: keyboard,
+		})
+	}
+}
+
 func LoadStart(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	bh.Handle(start, telegohandler.CommandEqual("start"))
 	bh.Handle(start, telegohandler.CallbackDataEqual("start"))
 	bh.Handle(languageMenu, telegohandler.CommandEqual("lang"), helpers.IsAdmin(bot))
-	bh.Handle(languageMenu, telegohandler.CallbackDataEqual("languageMenu"))
+	bh.Handle(languageMenu, telegohandler.CallbackDataEqual("languageMenu"), helpers.IsAdmin(bot))
 	bh.Handle(languageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
 	bh.Handle(helpMenu, telegohandler.CallbackDataEqual("helpMenu"))
 	bh.Handle(helpMessage, telegohandler.CallbackDataPrefix("helpMessage"))
+	bh.Handle(configMenu, telegohandler.CommandEqual("config"), helpers.IsAdmin(bot), helpers.IsGroup)
+	bh.Handle(configMenu, telegohandler.CallbackDataEqual("configMenu"), helpers.IsAdmin(bot))
+
 }
