@@ -127,7 +127,7 @@ func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 	next(bot, update)
 }
 
-func SetAFK(bot *telego.Bot, message telego.Message) {
+func setAFK(bot *telego.Bot, message telego.Message) {
 	var reason string
 
 	matches := regexp.MustCompile(`^(?:brb|\/afk)\s(.+)$`).FindStringSubmatch(message.Text)
@@ -152,4 +152,9 @@ func SetAFK(bot *telego.Bot, message telego.Message) {
 			MessageID: message.MessageID,
 		},
 	})
+}
+
+func LoadAFK(bh *telegohandler.BotHandler, bot *telego.Bot) {
+	bh.HandleMessage(setAFK, telegohandler.CommandEqual("afk"))
+	bh.HandleMessage(setAFK, telegohandler.TextMatches(regexp.MustCompile(`^(?:brb)(\s.+)?`)))
 }

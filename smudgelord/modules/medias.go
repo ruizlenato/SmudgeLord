@@ -5,10 +5,11 @@ import (
 	"smudgelord/smudgelord/utils/medias"
 
 	"github.com/mymmrac/telego"
+	"github.com/mymmrac/telego/telegohandler"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-func MediaDownloader(bot *telego.Bot, message telego.Message) {
+func mediaDownloader(bot *telego.Bot, message telego.Message) {
 	// Extract URL from the message text using regex
 	url := regexp.MustCompile(`(?:htt.*?//)?(:?.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)`).FindStringSubmatch(message.Text)
 	if len(url) < 1 {
@@ -46,4 +47,8 @@ func MediaDownloader(bot *telego.Bot, message telego.Message) {
 		telegoutil.ID(message.Chat.ID),
 		mediaItems...,
 	))
+}
+
+func LoadMediaDownloader(bh *telegohandler.BotHandler, bot *telego.Bot) {
+	bh.HandleMessage(mediaDownloader, telegohandler.TextMatches(regexp.MustCompile(`(?:htt.*?//)?(:?.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)`)))
 }

@@ -5,13 +5,15 @@ import (
 	"log"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
+	"smudgelord/smudgelord/utils/helpers"
 	"strings"
 
 	"github.com/mymmrac/telego"
+	"github.com/mymmrac/telego/telegohandler"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-func Start(bot *telego.Bot, update telego.Update) {
+func start(bot *telego.Bot, update telego.Update) {
 	botUser, err := bot.GetMe()
 	if err != nil {
 		log.Fatal(err)
@@ -32,7 +34,7 @@ func Start(bot *telego.Bot, update telego.Update) {
 				telegoutil.InlineKeyboardRow(
 					telego.InlineKeyboardButton{
 						Text:         i18n("button.language"),
-						CallbackData: "LanguageMenu",
+						CallbackData: "languageMenu",
 					},
 				),
 			),
@@ -67,7 +69,7 @@ func Start(bot *telego.Bot, update telego.Update) {
 			telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
 					Text:         i18n("button.language"),
-					CallbackData: "LanguageMenu",
+					CallbackData: "languageMenu",
 				},
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
@@ -85,7 +87,7 @@ func Start(bot *telego.Bot, update telego.Update) {
 
 }
 
-func LanguageMenu(bot *telego.Bot, update telego.Update) {
+func languageMenu(bot *telego.Bot, update telego.Update) {
 	message := update.Message
 	if message == nil {
 		message = update.CallbackQuery.Message.(*telego.Message)
@@ -137,10 +139,10 @@ func LanguageMenu(bot *telego.Bot, update telego.Update) {
 	}
 }
 
-// LanguageSet updates the language preference for a user or a group based on the provided CallbackQuery.
+// languageSet updates the language preference for a user or a group based on the provided CallbackQuery.
 // It retrieves the language information from the CallbackQuery data, determines the appropriate database table (users or groups),
 // and updates the language for the corresponding user or group in the database.
-func LanguageSet(bot *telego.Bot, update telego.Update) {
+func languageSet(bot *telego.Bot, update telego.Update) {
 	i18n := localization.Get(update.CallbackQuery.Message.GetChat())
 	lang := strings.ReplaceAll(update.CallbackQuery.Data, "setLang ", "")
 
@@ -170,4 +172,12 @@ func LanguageSet(bot *telego.Bot, update telego.Update) {
 		ParseMode:   "HTML",
 		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 	})
+}
+
+func LoadStart(bh *telegohandler.BotHandler, bot *telego.Bot) {
+	bh.Handle(start, telegohandler.CommandEqual("start"))
+	bh.Handle(start, telegohandler.CallbackDataEqual("start"))
+	bh.Handle(languageMenu, telegohandler.CommandEqual("lang"), helpers.IsAdmin(bot))
+	bh.Handle(languageMenu, telegohandler.CallbackDataEqual("languageMenu"))
+	bh.Handle(languageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
 }
