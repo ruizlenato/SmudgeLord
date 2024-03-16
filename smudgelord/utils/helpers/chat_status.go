@@ -50,3 +50,15 @@ func IsAdmin(bot *telego.Bot) telegohandler.Predicate {
 		return false
 	}
 }
+
+func IsGroup(update telego.Update) bool {
+	message := update.Message
+	if message == nil {
+		if update.CallbackQuery == nil {
+			return false
+		}
+		message = update.CallbackQuery.Message.(*telego.Message)
+	}
+
+	return message.Chat.Type == telego.ChatTypeGroup || message.Chat.Type == telego.ChatTypeSupergroup
+}
