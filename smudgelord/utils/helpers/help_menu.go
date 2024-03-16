@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/mymmrac/telego"
 )
@@ -23,25 +24,29 @@ func Store(name string) {
 }
 
 func GetHelpKeyboard(i18n func(string) string) [][]telego.InlineKeyboardButton {
-	buttons := make([][]telego.InlineKeyboardButton, 0, len(helpModule))
-	i := 0
-	var row []telego.InlineKeyboardButton
-
+	var moduleNames []string
 	for name := range helpModule {
-		if i == 2 {
+		moduleNames = append(moduleNames, name)
+	}
+
+	sort.Strings(moduleNames)
+
+	buttons := make([][]telego.InlineKeyboardButton, 0, len(moduleNames)/2+1)
+	var row []telego.InlineKeyboardButton
+	for _, name := range moduleNames {
+		if len(row) == 2 {
 			buttons = append(buttons, row)
-			row = []telego.InlineKeyboardButton{}
-			i = 0
+			row = nil
 		}
 		row = append(row, telego.InlineKeyboardButton{
 			Text:         i18n(fmt.Sprintf("%s.name", name)),
 			CallbackData: fmt.Sprintf("helpMessage %s", name),
 		})
-		i++
 	}
 	if len(row) > 0 {
 		buttons = append(buttons, row)
 	}
+
 	buttons = append(buttons, []telego.InlineKeyboardButton{{
 		Text:         i18n("button.back"),
 		CallbackData: "start",
