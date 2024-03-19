@@ -5,11 +5,12 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
+
 	"smudgelord/smudgelord"
 	"smudgelord/smudgelord/config"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
-	"syscall"
 
 	"github.com/fasthttp/router"
 	"github.com/mymmrac/telego"

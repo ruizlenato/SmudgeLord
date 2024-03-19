@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
+	"time"
+
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
 	"smudgelord/smudgelord/utils/helpers"
-	"strings"
-	"time"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"

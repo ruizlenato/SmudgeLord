@@ -3,10 +3,11 @@ package modules
 import (
 	"fmt"
 	"log"
+	"strings"
+
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
 	"smudgelord/smudgelord/utils/helpers"
-	"strings"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
@@ -82,7 +83,6 @@ func start(bot *telego.Bot, update telego.Update) {
 			),
 		),
 	})
-
 }
 
 func languageMenu(bot *telego.Bot, update telego.Update) {
@@ -260,5 +260,4 @@ func LoadStart(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	bh.Handle(helpMessage, telegohandler.CallbackDataPrefix("helpMessage"))
 	bh.Handle(configMenu, telegohandler.CommandEqual("config"), helpers.IsAdmin(bot), helpers.IsGroup)
 	bh.Handle(configMenu, telegohandler.CallbackDataEqual("configMenu"), helpers.IsAdmin(bot))
-
 }

@@ -6,9 +6,10 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"smudgelord/smudgelord/database"
 	"strings"
 	"time"
+
+	"smudgelord/smudgelord/database"
 
 	"github.com/mymmrac/telego"
 )
