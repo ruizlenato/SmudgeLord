@@ -126,15 +126,21 @@ class DownloadMedia:
             file = soup.find("img", {"class": "EmbeddedMediaImage"}).get("src")
             await self.downloader(file, 0, 0)
 
-        data = re.findall(r'<script>(requireLazy\(\["TimeSliceImpl".*)<\/script>', r.text)
+        data = re.findall(
+            r'<script>(requireLazy\(\["TimeSliceImpl".*)<\/script>', r.text
+        )
         if data and "shortcode_media" in data[0]:
             tokenized = esprima.tokenize(data[0])
             for token in tokenized:
                 if "shortcode_media" in token.value:
-                    jsoninsta = json.loads(json.loads(token.value))["gql_data"]["shortcode_media"]
+                    jsoninsta = json.loads(json.loads(token.value))["gql_data"][
+                        "shortcode_media"
+                    ]
 
                     if caption := jsoninsta["edge_media_to_caption"]["edges"]:
-                        self.caption = f"{caption[0]['node']['text']}\n<a href='{url}'>🔗 Link</a>"
+                        self.caption = (
+                            f"{caption[0]['node']['text']}\n<a href='{url}'>🔗 Link</a>"
+                        )
                     else:
                         self.caption = f"\n<a href='{url}'>🔗 Link</a>"
 
@@ -159,7 +165,9 @@ class DownloadMedia:
             return
 
         try:
-            r = await httpx.get(f"https://www.instagram.com/p/{post_id}/", headers=headers)
+            r = await httpx.get(
+                f"https://www.instagram.com/p/{post_id}/", headers=headers
+            )
         except ReadTimeout:
             return
         soup = bs(r.text, "html.parser")
@@ -254,8 +262,10 @@ class DownloadMedia:
         return
 
     async def Twitter(self, url: str, captions: str):
-        bearer: str = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\
+        bearer: str = (
+            "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7tt\
 fk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"  # Twitter Bearer Token
+        )
         # Extract the tweet ID from the URL
         try:
             tweet_id = re.match(".*(twitter|x).com/.+status/([A-Za-z0-9]+)", url)[2]
@@ -325,9 +335,9 @@ _limited_actions_policy_enabled": True,
         ).json()
 
         try:
-            res = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][0][
-                "entries"
-            ]
+            res = r["data"]["threaded_conversation_with_injections_v2"]["instructions"][
+                0
+            ]["entries"]
 
             for entries in res:
                 if tweet_id in entries["entryId"]:
@@ -347,7 +357,9 @@ _limited_actions_policy_enabled": True,
                         if a["content_type"] == "video/mp4"
                     ]
                     for a in media["video_info"]["variants"]:
-                        if a["content_type"] == "video/mp4" and a["bitrate"] == max(bitrate):
+                        if a["content_type"] == "video/mp4" and a["bitrate"] == max(
+                            bitrate
+                        ):
                             url = a["url"]
 
                     await self.downloader(
@@ -430,4 +442,6 @@ _limited_actions_policy_enabled": True,
                 await self.downloader(info["url"], info["width"], info["height"])
         else:
             url = thread["video_versions"][0]["url"]
-            await self.downloader(url, thread["original_width"], thread["original_height"])
+            await self.downloader(
+                url, thread["original_width"], thread["original_height"]
+            )
