@@ -21,12 +21,25 @@
         "unavailable": "<b><a href='tg://user?id=%d'>%s</a></b> is <b>unavailable!</b>\nLast seen <code>%s</code> ago",
         "reason": "\n<b>Reason:</b> %s",
         "now-available": "<b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.",
-        "help": "<b>AFK stands for:</b> <i>“away from keyboard”</i>\nIt is basically Internet slang to say that you are away.\n\n<b>/afk</b> (motivo) — Define yourself as away."
+        "help": "<b>AFK stands for:</b> <i>“away from keyboard”</i>\nIt is basically Internet slang to say that you are away.\n\n<b>/afk (reason) — </b>Define yourself as away."
     },
     "medias": {
         "name": "Medias",
         "config": "<b>Medias settings</b>\nTo know more about the <b><i>medias</i></b> module, use /help in my private chat.",
         "help": ""
+    },
+    "stickers": {
+        "name": "Stickers",
+        "kanging": "<code>Kanging (Stealing) the sticker...</code>",
+        "converting": "<code>Converting video/gif to video sticker...</code>",
+        "pack_exists": "<code>Using existing sticker pack...</code>",
+        "new_pack": "<code>Creating a new sticker pack...</code>",
+        "invalid_type": "The file you replied to is not valid, reply to a valid <i><b>sticker</b> or <b>video</b> or <b>photo</b></i>.",
+        "sticker_stoled": "Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/%s'>check out.</a>\n<b>Emoji:</b> %s",
+        "kang_not_reply": "You need to use this command by replying to <i><b>a sticker</b> or <b>a video</b> or <b>a photo</b></i>.",
+        "get_not_reply": "You need to use this command by replying to <i><b>a sticker</b> or <b>a video</b> or <b>a photo</b></i>.",
+        "error": "<b>An error occurred while processing the sticker, try again later.</b>\nIf the problem persists, contact the developer.",
+        "help": "<b>/kang —</b> reply to a sticker to add it to your sticker pack created by me.\n<b><i>Works with all types of stickers: static, video and animated.</i></b>\n\n<b>/getsticker —</b> reply to a sticker so I can send it to you as a <i>.png</i> or <i>.gif</i> file.\n<b><i>Only works with static stickers or video stickers.</i></b>"
     },
     "relativeDuration": {
         "singular": {

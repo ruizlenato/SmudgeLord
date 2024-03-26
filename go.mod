@@ -3,6 +3,7 @@ module smudgelord
 go 1.21.6
 
 require (
+	github.com/disintegration/imaging v1.6.2
 	github.com/fasthttp/router v1.5.0
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
@@ -24,5 +25,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
 	golang.org/x/arch v0.7.0 // indirect
+	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/sys v0.18.0 // indirect
 )

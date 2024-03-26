@@ -21,12 +21,25 @@
         "unavailable": "<b><a href='tg://user?id=%s'>%s</a></b> está <b>indisponível!</b>\nVisto pela última vez à <code>%s</code> atrás",
         "reason": "\n<b>Motivo:</b> <code>%s</code>",
         "now-available": "<b><a href='tg://user?id=%s'>%s</a></b> está de volta após <code>%s</code> de ausência!",
-        "help": "<b>AFK significa:</b> <i>“away from keyboard”</i> que traduzido para o português, significa <b>“Longe do teclado”</b>.\nÉ basicamente uma giria internetês para dizer que você está ausente.\n\n<b>/afk</b> (motivo) — Define você mesmo como ausente."
+        "help": "<b>AFK significa:</b> <i>“away from keyboard”</i> que traduzido para o português, significa <b>“Longe do teclado”</b>.\nÉ basicamente uma giria internetês para dizer que você está ausente.\n\n<b>/afk (motivo) —</b> Define você mesmo como ausente."
     },
     "medias": {
         "name": "Mídias",
         "config": "<b>Configurações de Mídias</b>\nPara saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.",
         "help": ""
+    },
+    "stickers": {
+        "name": "Figurinhas",
+        "kanging": "<code>Kangando (roubando) o sticker...</code>",
+        "converting": "<code>Convertendo vídeo/gif para sticker de vídeo...</code>",
+        "pack_exists": "<code>Usando um pacote de sticker existente...</code>",
+        "new_pack": "<code>Criando um novo pacote de sticker...</code>",
+        "invalid_type": "O arquivo que você respondeu não é valido, responda a uma <i><b>uma figurinha</b> (sticker) ou <b>um vídeo</b> ou <b>uma foto</b></i> valida.",
+        "sticker_stoled": "Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/%s'>confira.</a>\n<b>Emoji:</b> %s",
+        "kang_not_reply": "Você precisa usar este comando respondendo <i><b>uma figurinha</b> (sticker) ou <b>um vídeo</b> ou <b>uma foto</b></i>.",
+        "get_not_reply": "Você precisa responder a uma figurinha para usar esse comando, assim eu posso enviar a figurinha respondida como <i><b>png ou gif</b></i>.\n<i>Só funciona com figurinhas estáticas ou vídeos</i>",
+        "error": "<b>Ocorreu um erro ao processar o sticker, tente novamente.</b>\nSe o erro persistir, entre em contato com o desenvolvedor.",
+        "help": "<b>/kang —</b> responda a uma figurinha para adicioná-lo ao seu pacote de stickers criado por mim.\n<b><i>Funciona com todos os tipos de stickers (figurinhas): Estáticas e vídeos e animadas.</i></b>\n\n<b>/getsticker —</b> responda a uma figurinha para que possa lhe enviar como arquivo <i>.png</i> ou <i>.gif</i>.\n<b><i>Só funciona com figurinhas de vídeos ou estáticas.</i></b>"
     },
     "relativeDuration": {
         "singular": {
