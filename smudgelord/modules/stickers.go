@@ -1,9 +1,7 @@
 package modules
 
 import (
-	"bytes"
 	"fmt"
-	"image/jpeg"
 	"log"
 	"os"
 	"os/exec"
@@ -13,7 +11,7 @@ import (
 	"smudgelord/smudgelord/localization"
 	"smudgelord/smudgelord/utils/helpers"
 
-	"github.com/disintegration/imaging"
+	"github.com/h2non/bimg"
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
 	"github.com/mymmrac/telego/telegoutil"
@@ -302,28 +300,32 @@ func bytesToFile(data []byte) (*os.File, error) {
 }
 
 func resizeImage(input []byte) (*os.File, error) {
-	// Decode the input byte slice to an image
-	img, err := imaging.Decode(bytes.NewReader(input))
+	// Create a new vips Image object from the input byte slice
+	resizedImg, err := bimg.Resize(input, bimg.Options{
+		Width:   512,
+		Height:  512,
+		Quality: 100,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	// Resize the image to 512x512 pixels
-	resizedImg := imaging.Resize(img, 512, 512, imaging.Lanczos)
+	// Create a temporary file with a .png extension
 	tempFile, err := os.CreateTemp("", "*.png")
 	if err != nil {
 		tempFile.Close()
 		return nil, err
 	}
 
-	// Encode the resized image to the temporary file
-	err = jpeg.Encode(tempFile, resizedImg, nil)
+	// Write the resized image data to the temporary file
+	_, err = tempFile.Write(resizedImg)
 	if err != nil {
 		tempFile.Close()
 		return nil, err
 	}
 
-	_, err = tempFile.Seek(0, 0) // Seek back to the beginning of the file
+	// Seek back to the beginning of the file
+	_, err = tempFile.Seek(0, 0)
 	if err != nil {
 		tempFile.Close()
 		return nil, err
