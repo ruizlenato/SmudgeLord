@@ -75,7 +75,8 @@ func CreateTables() error {
         );
 		CREATE TABLE IF NOT EXISTS groups (
             id INTEGER PRIMARY KEY,
-            language TEXT DEFAULT 'en-us'
+            language TEXT DEFAULT 'en-us',
+			mediasCaption BOOLEAN DEFAULT 1
         );
 		CREATE TABLE IF NOT EXISTS afk (
 			id INTEGER PRIMARY KEY,

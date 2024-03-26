@@ -1,8 +1,11 @@
 package modules
 
 import (
+	"fmt"
 	"regexp"
+	"strings"
 
+	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
 	"smudgelord/smudgelord/utils/helpers"
 	"smudgelord/smudgelord/utils/medias"
@@ -25,6 +28,13 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 
 	dm := medias.NewDownloadMedia()
 	mediaItems, caption := dm.Download(url[0])
+	if strings.Contains(message.Chat.Type, "group") {
+		row := database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", message.Chat.ID)
+		var mediasCaption bool
+		if row.Scan(&mediasCaption); !mediasCaption {
+			caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
+		}
+	}
 
 	// Check if only one photo is present and link preview is enabled, then return
 	if len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" && !message.LinkPreviewOptions.IsDisabled {
