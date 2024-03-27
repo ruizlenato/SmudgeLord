@@ -9,7 +9,9 @@
     "button": {
         "language": "🌐 Idioma",
         "help": "❓ Ajuda",
-        "back": "↩️ Voltar"
+        "back": "↩️ Voltar",
+        "caption": "Legendas:",
+        "automatic": "Automático:"
     },
     "help_menu_message": "Aqui estão todos os meus plugins.\n<b>Para saber mais sobre os plugins, basta clicar no nome deles.</b>",
     "config_menu_message": "<b>Configurações —</b> Aqui estão minhas configurações para esse grupo.\nPara saber mais, <b>clique nos botões abaixo.</b>",
@@ -25,7 +27,9 @@
     },
     "medias": {
         "name": "Mídias",
-        "config": "<b>Configurações de Mídias</b>\nPara saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.",
+        "config": "<b>Configurações de Mídias</b>\nPara saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.\n\n<b>Para saber um pouco sobre cada configuração, clique no nome dela.</b>\n<i>Essas configurações é somente para esse grupo, não servem para outros ou chat privado.</i>",
+        "AutoHelp": "Quando ativada, essa opção permite que você baixe mídias de algumas redes sociais automaticamente ao enviar um link sem precisar do comando /dl.",
+        "CaptionHelp": "Quando ativada, essa opção envia a legenda das mídias que você baixar usando o bot.",
         "help": ""
     },
     "stickers": {

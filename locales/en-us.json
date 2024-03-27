@@ -9,7 +9,9 @@
     "button": {
         "language": "🌐 Language",
         "help": "❓ Help",
-        "back": "↩️ Back"
+        "back": "↩️ Back",
+        "caption": "Caption:",
+        "automatic": "Auto:"
     },
     "help_menu_message": "Here are all my plugins.\n<b>To find out more about the plugins, just click on their name.</b>",
     "config_menu_message": "<b>Settings</b> — Here are my settings for this group, to know more, <b>click on the buttons below.</b>",
@@ -25,7 +27,9 @@
     },
     "medias": {
         "name": "Medias",
-        "config": "<b>Medias settings</b>\nTo know more about the <b><i>medias</i></b> module, use /help in my private chat.",
+        "config": "<b>Medias settings</b>\nTo know more about the <b><i>medias</i></b> module, use /help in my private chat.\n\n<b>To know more about each configuration, click on its name.</b>\n<i>These settings are for this group only, not for other groups or private chats.</i>",
+        "autoHelp": "When enabled, this option allows you to download media from some social networks automatically when you send a link without needing the /dl command.",
+        "captionHelp": "When activated, this option sends the subtitles of the media you download using the bot.",
         "help": ""
     },
     "stickers": {
