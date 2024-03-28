@@ -10,6 +10,7 @@ import (
 
 var (
 	TelegramToken string
+	LastFMKey     string
 	DatabaseFile  string
 	WebhookURL    string
 	SOCKS5URL     string
@@ -26,6 +27,8 @@ func init() {
 	if TelegramToken == "" {
 		log.Fatalf(`You need to set the "TELEGRAM_TOKEN" in the .env file!`)
 	}
+
+	LastFMKey = os.Getenv("LASTFM_API_KEY")
 
 	DatabaseFile = os.Getenv("DATABASE_FILE")
 	if DatabaseFile == "" {
