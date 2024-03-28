@@ -68,7 +68,11 @@ func getSticker(bot *telego.Bot, message telego.Message) {
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("stickers.get_not_reply"),
 			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
 		})
+
 		return
 	}
 
@@ -90,6 +94,9 @@ func getSticker(bot *telego.Bot, message telego.Message) {
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				Text:      i18n("stickers.error"),
 				ParseMode: "HTML",
+				ReplyParameters: &telego.ReplyParameters{
+					MessageID: message.MessageID,
+				},
 			})
 			return
 		}
@@ -109,6 +116,9 @@ func kang(bot *telego.Bot, message telego.Message) {
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("stickers.kang_not_reply"),
 			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
 		})
 		return
 	}
@@ -116,6 +126,9 @@ func kang(bot *telego.Bot, message telego.Message) {
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      i18n("stickers.kanging"),
 		ParseMode: "HTML",
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
 	})
 
 	stickerAction, stickerType, fileID := getFileIDAndType(message.ReplyToMessage)

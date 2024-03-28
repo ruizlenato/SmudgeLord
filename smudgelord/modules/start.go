@@ -54,6 +54,9 @@ func start(bot *telego.Bot, update telego.Update) {
 			ChatID:    telegoutil.ID(update.Message.Chat.ID),
 			Text:      fmt.Sprintf(i18n("start_message_group"), botUser.FirstName),
 			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: update.Message.MessageID,
+			},
 			ReplyMarkup: telegoutil.InlineKeyboard(telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
 					Text: i18n("start_button"),
@@ -133,6 +136,9 @@ func languageMenu(bot *telego.Bot, update telego.Update) {
 			Text:        fmt.Sprintf(i18n("language_menu_mesage"), i18n("language.flag"), i18n("language.name")),
 			ParseMode:   "HTML",
 			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
 		})
 	}
 }
@@ -246,6 +252,9 @@ func configMenu(bot *telego.Bot, update telego.Update) {
 			Text:        i18n("config_menu_message"),
 			ParseMode:   "HTML",
 			ReplyMarkup: keyboard,
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
 		})
 	}
 }
