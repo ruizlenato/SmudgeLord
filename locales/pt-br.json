@@ -25,6 +25,16 @@
         "now-available": "<b><a href='tg://user?id=%s'>%s</a></b> está de volta após <code>%s</code> de ausência!",
         "help": "<b>AFK significa:</b> <i>“away from keyboard”</i> que traduzido para o português, significa <b>“Longe do teclado”</b>.\nÉ basicamente uma giria internetês para dizer que você está ausente.\n\n<b>/afk (motivo) —</b> Define você mesmo como ausente."
     },
+    "lastfm": {
+        "name": "Last.fm",
+        "provide-username": "Forneça seu nome de usuário do last.fm\n<b>Exemplo:</b> <code>/setuser maozedong</code>.",
+        "invalid-username": "<b>Usuário do last.fm inválido</b>\nVerifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.",
+        "no-username": "<b>Você ainda não definiu seu nome de usuário do last.fm</b>\nUse o comando /setuser para definir",
+        "username-set": "<b>Pronto, nome de usuário do last.fm foi salvo!</b>",
+        "now-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:\n\n",
+        "was-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:\n\n",
+        "help": "Aqui estão alguns comandos relacionados ao <i><b>scrobbling</b></i> do last.fm\n<i><b>Scrobbling</b></i> é um recurso do last.fm que envia automaticamente informações sobre as músicas que você está ouvindo para o serviço.\n<b>Para saber mais, <a href='https://www.last.fm/pt/about/trackmymusic'>clique aqui</a></b>.\n\n<b>/setuser —</b> Configura seu nome de usuario do last.fm.\n<b>/lastfm | /lp —</b> Mostra a música você está ou estava ouvindo.\n<b>/album | /alb —</b> Mostra o álbum você está ou estava ouvindo.\n<b>/artist | /art —</b> Mostra o artista você está ou estava ouvindo."
+    },
     "medias": {
         "name": "Mídias",
         "config": "<b>Configurações de Mídias</b>\nPara saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.\n\n<b>Para saber um pouco sobre cada configuração, clique no nome dela.</b>\n<i>Essas configurações é somente para esse grupo, não servem para outros ou chat privado.</i>",

@@ -25,6 +25,16 @@
         "now-available": "<b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.",
         "help": "<b>AFK stands for:</b> <i>“away from keyboard”</i>\nIt is basically Internet slang to say that you are away.\n\n<b>/afk (reason) — </b>Define yourself as away."
     },
+    "lastfm": {
+        "name": "Last.fm",
+        "provide-username": "Provide your last.fm username\n<b>Example:</b> <code>/setuser maozedong</code>.",
+        "invalid-username": "<b>Invalid last.fm username</b>\nCheck that you have correctly typed your last.FM username and try again.",
+        "no-username": "<b>You haven't set your last.fm username yet.</b>\nUse the command /setuser to set",
+        "username-set": "<b>Done, last.fm user saved!</b>",
+        "now-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:\n\n",
+        "was-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:\n\n",
+        "help": "Here are some commands related to last.fm <i><b>scrobbling</b></i> \n<i><b>Scrobbling</b></i> is a feature of last.fm that automatically sends information about the music you're listening to to the service.\n<b>To know more <a href='https://www.last.fm/pt/about/trackmymusic'>click here</a></b>.\n\n<b>/setuser —</b> Set your last.fm username.\n<b>/lastfm | /np —</b> Shows the music you are or were listening to.\n<b>/album | /alb —</b> Shows the album you are or were listening to.\n<b>/artist | /art —</b> Shows the artist you are or were listening to."
+    },
     "medias": {
         "name": "Medias",
         "config": "<b>Medias settings</b>\nTo know more about the <b><i>medias</i></b> module, use /help in my private chat.\n\n<b>To know more about each configuration, click on its name.</b>\n<i>These settings are for this group only, not for other groups or private chats.</i>",
