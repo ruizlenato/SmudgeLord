@@ -9,10 +9,14 @@
     "button": {
         "language": "🌐 Idioma",
         "help": "❓ Ajuda",
+        "about": "ℹ️ Sobre",
+        "donation": "💵 Doação",
+        "news-channel": "📢 Canal de Notícias",
         "back": "↩️ Voltar",
         "caption": "Legendas:",
         "automatic": "Automático:"
     },
+    "about-message": "<b>— SmudgeLord</b>\nSmugeLord (Smudge The Cat) é um gato que se tornou um meme na Internet. A sua fama surgiu a partir de uma imagem em que é visto ao lado de uma mulher a gritar com raiva\n\n<b>- Código Fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>\n<b>- Desenvolvedor:</b> @ruizlenato\n<i>Este projeto não tem qualquer ligação com Smudge The Cat, estou apenas a usar o seu nome e imagem porque sou um grande fã.</i>\n\n<b>💸 Contribua: Ajude a manter o bot no ar, faça uma doação via PIX ou PayPal.</b>\n• Chave Pix e Email do PayPal: <code>ruizlenato@proton.me</code>\n\nCaso queira contribuir de outra maneira, com cartão de crédito ou debito por exemplo, clique no botão abaixo e seja redirecionado ao link de doação do Ko-Fi.",
     "help_menu_message": "Aqui estão todos os meus plugins.\n<b>Para saber mais sobre os plugins, basta clicar no nome deles.</b>",
     "config_menu_message": "<b>Configurações —</b> Aqui estão minhas configurações para esse grupo.\nPara saber mais, <b>clique nos botões abaixo.</b>",
     "language_menu_mesage": "<b>Idioma atual:</b> %s %s\n\n<b>Selecione abaixo o idioma que você quer utilizar no bot.</b>",

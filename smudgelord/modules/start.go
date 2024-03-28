@@ -42,6 +42,10 @@ func start(bot *telego.Bot, update telego.Update) {
 						CallbackData: "HelpMenu",
 					},
 				),
+				telegoutil.InlineKeyboardRow(telego.InlineKeyboardButton{
+					Text:         i18n("button.about"),
+					CallbackData: "aboutMenu",
+				}),
 			),
 		})
 		return
@@ -84,6 +88,10 @@ func start(bot *telego.Bot, update telego.Update) {
 					CallbackData: "helpMenu",
 				},
 			),
+			telegoutil.InlineKeyboardRow(telego.InlineKeyboardButton{
+				Text:         i18n("button.about"),
+				CallbackData: "aboutMenu",
+			}),
 		),
 	})
 }
@@ -193,6 +201,36 @@ func helpMenu(bot *telego.Bot, update telego.Update) {
 	})
 }
 
+// aboutMenu displays the about menu in response to a callback query.
+func aboutMenu(bot *telego.Bot, update telego.Update) {
+	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
+	i18n := localization.Get(chat)
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text:      i18n("about-message"),
+		ParseMode: "HTML",
+		LinkPreviewOptions: &telego.LinkPreviewOptions{
+			IsDisabled: true,
+		},
+		ReplyMarkup: telegoutil.InlineKeyboard(
+			telegoutil.InlineKeyboardRow(
+				telego.InlineKeyboardButton{
+					Text: i18n("button.donation"),
+					URL:  "https://ko-fi.com/ruizlenato",
+				},
+			),
+			telegoutil.InlineKeyboardRow(
+				telego.InlineKeyboardButton{
+					Text: i18n("button.news-channel"),
+					URL:  "https://t.me/SmudgeNews",
+				},
+			),
+		),
+	})
+}
+
 func helpMessage(bot *telego.Bot, update telego.Update) {
 	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
 	i18n := localization.Get(chat)
@@ -266,6 +304,7 @@ func LoadStart(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	bh.Handle(languageMenu, telegohandler.CallbackDataEqual("languageMenu"), helpers.IsAdmin(bot))
 	bh.Handle(languageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
 	bh.Handle(helpMenu, telegohandler.CallbackDataEqual("helpMenu"))
+	bh.Handle(aboutMenu, telegohandler.CallbackDataEqual("aboutMenu"))
 	bh.Handle(helpMessage, telegohandler.CallbackDataPrefix("helpMessage"))
 	bh.Handle(configMenu, telegohandler.CommandEqual("config"), helpers.IsAdmin(bot), helpers.IsGroup)
 	bh.Handle(configMenu, telegohandler.CallbackDataEqual("configMenu"), helpers.IsAdmin(bot))
