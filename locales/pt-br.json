@@ -28,9 +28,10 @@
     "medias": {
         "name": "Mídias",
         "config": "<b>Configurações de Mídias</b>\nPara saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.\n\n<b>Para saber um pouco sobre cada configuração, clique no nome dela.</b>\n<i>Essas configurações é somente para esse grupo, não servem para outros ou chat privado.</i>",
+        "noURL": "<b>Você não especificou um link ou especificou um link invalido.</b>\nEspecifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b> ou <b><i>Twitter/X</i></b> para que eu possa baixar a(s) mídia(s).",
         "AutoHelp": "Quando ativada, essa opção permite que você baixe mídias de algumas redes sociais automaticamente ao enviar um link sem precisar do comando /dl.",
         "CaptionHelp": "Quando ativada, essa opção envia a legenda das mídias que você baixar usando o bot.",
-        "help": ""
+        "help": "<b>/dl|/sdl —</b> Baixa mídias (fotos e vídeos) do <b><i>Instagram, TikTok e Twitter/X.</i></b>"
     },
     "stickers": {
         "name": "Figurinhas",

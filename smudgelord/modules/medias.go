@@ -17,13 +17,24 @@ import (
 )
 
 func mediaDownloader(bot *telego.Bot, message telego.Message) {
+	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text) && strings.Contains(message.Chat.Type, "group") {
+		row := database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", message.Chat.ID)
+		var mediasAuto bool
+		if row.Scan(&mediasAuto); !mediasAuto {
+			return
+		}
+	}
+
+	i18n := localization.Get(message.GetChat())
+
 	// Extract URL from the message text using regex
-	url := regexp.MustCompile(`(?:htt.*?//)?(:?.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)`).FindStringSubmatch(message.Text)
+	url := regexp.MustCompile(`(?:htt.*?//)?(?:.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)`).FindStringSubmatch(message.Text)
 	if len(url) < 1 {
-		bot.SendMessage(telegoutil.Message(
-			telegoutil.ID(message.Chat.ID),
-			"No URL found",
-		))
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("medias.noURL"),
+			ParseMode: "HTML",
+		})
 		return
 	}
 
@@ -152,7 +163,9 @@ func explainConfig(bot *telego.Bot, update telego.Update) {
 
 func LoadMediaDownloader(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("medias")
-	bh.HandleMessage(mediaDownloader, telegohandler.TextMatches(regexp.MustCompile(`(?:htt.*?//)?(:?.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)`)))
+	bh.HandleMessage(mediaDownloader, telegohandler.CommandEqual("dl"))
+	bh.HandleMessage(mediaDownloader, telegohandler.CommandEqual("sdl"))
+	bh.HandleMessage(mediaDownloader, telegohandler.TextMatches(regexp.MustCompile(`^(?:htt.*?//)?(:?.*)?(?:instagram|twitter|x|tiktok|threads)\.(?:com|net)\/(?:\S*)`)))
 	bh.Handle(mediaConfig, telegohandler.CallbackDataPrefix("mediaConfig"), helpers.IsAdmin(bot))
 	bh.Handle(explainConfig, telegohandler.CallbackDataPrefix("ieConfig"), helpers.IsAdmin(bot))
 }
