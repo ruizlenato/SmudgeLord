@@ -18,7 +18,7 @@ type TikTokData *struct {
 
 type Aweme struct {
 	AwemeID       string        `json:"aweme_id"`
-	Desc          string        `json:"desc"`
+	Desc          *string       `json:"desc"`
 	Author        Author        `json:"author,omitempty"`
 	Music         Music         `json:"music,omitempty"`
 	Video         Video         `json:"video,omitempty"`
@@ -95,7 +95,6 @@ type Cover struct {
 	URLPrefix any      `json:"url_prefix"`
 }
 
-// ToDo: Add support for TikTok photo posts and captions
 func (dm *DownloadMedia) TikTok(url string) {
 	var VideoID string
 
@@ -129,6 +128,10 @@ func (dm *DownloadMedia) TikTok(url string) {
 
 	if tikTokData == nil {
 		return
+	}
+
+	if tikTokData.AwemeList[0].Desc != nil {
+		dm.Caption = *tikTokData.AwemeList[0].Desc
 	}
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
