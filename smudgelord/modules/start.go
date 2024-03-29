@@ -39,7 +39,7 @@ func start(bot *telego.Bot, update telego.Update) {
 					},
 					telego.InlineKeyboardButton{
 						Text:         i18n("button.help"),
-						CallbackData: "HelpMenu",
+						CallbackData: "helpMenu",
 					},
 				),
 				telegoutil.InlineKeyboardRow(telego.InlineKeyboardButton{
