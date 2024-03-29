@@ -138,7 +138,9 @@ func (dm *DownloadMedia) Instagram(url string) {
 	}
 
 	if instagramData := getEmbed(postID); instagramData != nil {
-		dm.Caption = instagramData.ShortcodeMedia.EdgeMediaToCaption.Edges[0].Node.Text
+		if len(instagramData.ShortcodeMedia.EdgeMediaToCaption.Edges) > 0 {
+			dm.Caption = instagramData.ShortcodeMedia.EdgeMediaToCaption.Edges[0].Node.Text
+		}
 		switch instagramData.ShortcodeMedia.Typename {
 		case "GraphVideo":
 			file, err := downloader(instagramData.ShortcodeMedia.VideoURL)
@@ -238,7 +240,10 @@ func (dm *DownloadMedia) Instagram(url string) {
 			return
 		}
 		result := instagramData.Data.XDTShortcodeMedia
-		dm.Caption = result.EdgeMediaToCaption.Edges[0].Node.Text
+		if len(result.EdgeMediaToCaption.Edges) > 0 {
+			dm.Caption = result.EdgeMediaToCaption.Edges[0].Node.Text
+		}
+
 		if strings.Contains(result.Typename, "Video") {
 			file, err := downloader(result.VideoURL)
 			if err != nil {
