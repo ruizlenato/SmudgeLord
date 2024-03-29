@@ -12,7 +12,7 @@ import (
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-type InstagramData struct {
+type InstagramData *struct {
 	ShortcodeMedia ShortcodeMedia `json:"shortcode_media"`
 	Data           struct {
 		XDTShortcodeMedia ShortcodeMedia `json:"xdt_shortcode_media"`
@@ -99,6 +99,11 @@ func (dm *DownloadMedia) Instagram(url string) {
 		if err != nil {
 			log.Println(err)
 		}
+
+		if instagramData == nil {
+			return
+		}
+
 		dm.Caption = instagramData.ShortcodeMedia.EdgeMediaToCaption.Edges[0].Node.Text
 
 		switch instagramData.ShortcodeMedia.Typename {
