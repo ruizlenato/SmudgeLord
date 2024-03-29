@@ -15,7 +15,7 @@ import (
 type InstagramData *struct {
 	ShortcodeMedia ShortcodeMedia `json:"shortcode_media"`
 	Data           struct {
-		XDTShortcodeMedia ShortcodeMedia `json:"xdt_shortcode_media"`
+		XDTShortcodeMedia *ShortcodeMedia `json:"xdt_shortcode_media"`
 	} `json:"data,omitempty"`
 }
 
@@ -28,6 +28,7 @@ type ShortcodeMedia struct {
 	IsVideo               bool                  `json:"is_video"`
 	Title                 string                `json:"title"`
 	VideoURL              string                `json:"video_url"`
+	DisplayURL            string                `json:"display_url"`
 	EdgeMediaToCaption    EdgeMediaToCaption    `json:"edge_media_to_caption"`
 	EdgeSidecarToChildren EdgeSidecarToChildren `json:"edge_sidecar_to_children"`
 }
@@ -66,15 +67,8 @@ type EdgeSidecarToChildren struct {
 	} `json:"edges"`
 }
 
-func (dm *DownloadMedia) Instagram(url string) {
+func getEmbed(postID string) InstagramData {
 	var instagramData InstagramData
-	var postID string
-
-	if matches := (regexp.MustCompile((`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`))).FindStringSubmatch(url); len(matches) == 2 {
-		postID = matches[1]
-	} else {
-		return
-	}
 
 	headers := map[string]string{
 		"accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -87,7 +81,6 @@ func (dm *DownloadMedia) Instagram(url string) {
 		"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
 		"viewport-width":            "1280",
 	}
-
 	body := utils.RequestGET(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestGETParams{Headers: headers}).Body()
 	match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body)
 	if len(match) == 2 {
@@ -99,13 +92,53 @@ func (dm *DownloadMedia) Instagram(url string) {
 		if err != nil {
 			log.Println(err)
 		}
+	}
 
-		if instagramData == nil {
-			return
+	mediaTypeData := regexp.MustCompile(`(?s)data-media-type="(.*?)"`).FindAllStringSubmatch(string(body), -1)
+	if instagramData == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
+		// Get the main media
+		re := regexp.MustCompile(`class="Content(.*?)src="(.*?)"`)
+		mainMediaData := re.FindAllStringSubmatch(string(body), -1)
+		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
+
+		// Get the caption
+		var caption string
+		re = regexp.MustCompile(`(?s)class="Caption"(.*?)class="CaptionUsername"(.*?)<\/a>(.*?)<div`)
+		captionData := re.FindAllStringSubmatch(string(body), -1)
+		if len(captionData) > 0 && len(captionData[0]) > 2 {
+			re = regexp.MustCompile(`<[^>]*>`)
+			caption = strings.TrimSpace(re.ReplaceAllString(captionData[0][3], ""))
 		}
 
-		dm.Caption = instagramData.ShortcodeMedia.EdgeMediaToCaption.Edges[0].Node.Text
+		dataJson := `{
+				"shortcode_media":{
+					"__typename":"GraphImage",
+					"display_url":"` + mainMediaURL + `",
+					"edge_media_to_caption":{"edges":[{"node":{"text":"` + caption + `"}}]
+					}}
+			}`
 
+		err := json.Unmarshal([]byte(dataJson), &instagramData)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return instagramData
+}
+
+func (dm *DownloadMedia) Instagram(url string) {
+	var instagramData InstagramData
+	var postID string
+
+	if matches := (regexp.MustCompile((`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`))).FindStringSubmatch(url); len(matches) == 2 {
+		postID = matches[1]
+	} else {
+		return
+	}
+
+	if instagramData := getEmbed(postID); instagramData != nil {
+		dm.Caption = instagramData.ShortcodeMedia.EdgeMediaToCaption.Edges[0].Node.Text
 		switch instagramData.ShortcodeMedia.Typename {
 		case "GraphVideo":
 			file, err := downloader(instagramData.ShortcodeMedia.VideoURL)
@@ -115,6 +148,15 @@ func (dm *DownloadMedia) Instagram(url string) {
 			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
 				telegoutil.File(file)).WithWidth(instagramData.ShortcodeMedia.Dimensions.Width).WithHeight(instagramData.ShortcodeMedia.Dimensions.Height),
+			)
+		case "GraphImage":
+			file, err := downloader(instagramData.ShortcodeMedia.DisplayURL)
+			if err != nil {
+				log.Println(err)
+				return
+			}
+			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
+				telegoutil.File(file)),
 			)
 		case "GraphSidecar":
 			for _, results := range instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges {
@@ -139,32 +181,6 @@ func (dm *DownloadMedia) Instagram(url string) {
 				}
 			}
 		}
-	}
-
-	mediaTypeData := regexp.MustCompile(`(?s)data-media-type="(.*?)"`).FindAllStringSubmatch(string(body), -1)
-	if len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
-		// Get the main media
-		re := regexp.MustCompile(`class="Content(.*?)src="(.*?)"`)
-		mainMediaData := re.FindAllStringSubmatch(string(body), -1)
-		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
-
-		// Get the caption
-		re = regexp.MustCompile(`(?s)class="Caption"(.*?)class="CaptionUsername"(.*?)<\/a>(.*?)<div`)
-		captionData := re.FindAllStringSubmatch(string(body), -1)
-		if len(captionData) > 0 && len(captionData[0]) > 2 {
-			re = regexp.MustCompile(`<[^>]*>`)
-			dm.Caption = strings.TrimSpace(re.ReplaceAllString(captionData[0][3], ""))
-		}
-
-		file, err := downloader(mainMediaURL)
-		if err != nil {
-			log.Println(err)
-			return
-		}
-
-		dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
-			telegoutil.File(file)),
-		)
 	}
 
 	if len(dm.MediaItems) == 0 {
@@ -206,6 +222,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 			`__spin_t=1705025808`,
 			`fb_api_caller_class=RelayModern`,
 			`fb_api_req_friendly_name=PolarisPostActionLoadPostQueryQuery`,
+			`query_hash=b3055c01b4b222b8a47dc12b090e4e64`,
 			fmt.Sprintf(`variables={"shortcode": "%v","fetch_comment_count":2,"fetch_related_profile_media_count":0,"parent_comment_count":0,"child_comment_count":0,"fetch_like_count":10,"fetch_tagged_user_count":null,"fetch_preview_comment_count":2,"has_threaded_comments":true,"hoisted_comment_id":null,"hoisted_reply_id":null}`, postID),
 			`server_timestamps=true`,
 			`doc_id=10015901848480474`,
@@ -215,6 +232,9 @@ func (dm *DownloadMedia) Instagram(url string) {
 		err := json.Unmarshal(body, &instagramData)
 		if err != nil {
 			log.Printf("Error unmarshalling Instagram data: %v", err)
+			return
+		}
+		if instagramData.Data.XDTShortcodeMedia == nil {
 			return
 		}
 		result := instagramData.Data.XDTShortcodeMedia
