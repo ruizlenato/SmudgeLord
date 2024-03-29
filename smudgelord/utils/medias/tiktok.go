@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
+
 	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-type TikTokData struct {
+type TikTokData *struct {
 	AwemeList []Aweme `json:"aweme_list"`
 }
 
@@ -107,15 +108,25 @@ func (dm *DownloadMedia) TikTok(url string) {
 
 	headers := map[string]string{"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0"}
 	query := map[string]string{
-		"aweme_id": string(VideoID),
-		"aid":      "1128",
+		"iid":             "7318518857994389254",
+		"device_id":       "7318517321748022790",
+		"channel":         "googleplay",
+		"version_code":    "300904",
+		"device_platform": "android",
+		"device_type":     "ASUS_Z01QD",
+		"os_version":      "9",
+		"aweme_id":        string(VideoID),
 	}
 
 	body := utils.RequestGET("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestGETParams{Query: query, Headers: headers}).Body()
 	var tikTokData TikTokData
 	err := json.Unmarshal(body, &tikTokData)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error unmarshalling TikTok data: %v", err)
+	}
+
+	if tikTokData == nil {
+		return
 	}
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {

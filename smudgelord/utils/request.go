@@ -77,8 +77,10 @@ func RequestPOST(Link string, params RequestPOSTParams) *fasthttp.Response {
 	request := fasthttp.AcquireRequest()
 	response := fasthttp.AcquireResponse()
 
-	client := &fasthttp.Client{ReadBufferSize: 16 * 1024,
-		MaxConnsPerHost: 1024}
+	client := &fasthttp.Client{
+		ReadBufferSize:  16 * 1024,
+		MaxConnsPerHost: 1024,
+	}
 
 	request.Header.SetMethod(fasthttp.MethodPost)
 	for key, value := range params.Headers {
