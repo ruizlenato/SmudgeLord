@@ -123,6 +123,7 @@ func (dm *DownloadMedia) TikTok(url string) {
 	err := json.Unmarshal(body, &tikTokData)
 	if err != nil {
 		log.Printf("Error unmarshalling TikTok data: %v", err)
+		return
 	}
 
 	if tikTokData == nil {

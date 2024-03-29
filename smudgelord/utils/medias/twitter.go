@@ -6,9 +6,10 @@ import (
 	"log"
 	"regexp"
 	"slices"
-	"smudgelord/smudgelord/utils"
 	"sort"
 	"strings"
+
+	"smudgelord/smudgelord/utils"
 
 	"github.com/google/uuid"
 	"github.com/mymmrac/telego/telegoutil"
@@ -162,7 +163,8 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error unmarshalling Twitter data: %v", err)
+		return nil
 	}
 
 	return twitterAPIData

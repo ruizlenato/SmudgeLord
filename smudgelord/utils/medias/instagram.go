@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"smudgelord/smudgelord/utils"
 	"strings"
+
+	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego/telegoutil"
 )
@@ -187,7 +188,8 @@ func (dm *DownloadMedia) Instagram(url string) {
 		body := utils.RequestPOST("https://www.instagram.com/api/graphql", utils.RequestPOSTParams{Headers: headers, BodyString: params}).Body()
 		err := json.Unmarshal(body, &instagramData)
 		if err != nil {
-			log.Println(err)
+			log.Printf("Error unmarshalling Instagram data: %v", err)
+			return
 		}
 		result := instagramData.Data.XDTShortcodeMedia
 		dm.Caption = result.EdgeMediaToCaption.Edges[0].Node.Text
