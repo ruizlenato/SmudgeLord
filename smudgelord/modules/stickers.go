@@ -144,8 +144,8 @@ func kang(bot *telego.Bot, message telego.Message) {
 
 	var (
 		emoji           []string
-		stickerSetName  string
 		stickerSetTitle string // 1-64 characters
+		packPrefix      string
 		stickerFile     *os.File
 	)
 
@@ -221,15 +221,36 @@ func kang(bot *telego.Bot, message telego.Message) {
 	}
 	stickerSetTitle = nameTitle + "'s SmudgeLord"
 
+	checkStickerSetCount := func(stickerSetName string) bool {
+		stickerSet, err := bot.GetStickerSet(&telego.GetStickerSetParams{
+			Name: stickerSetName,
+		})
+		if err != nil {
+			return false
+		}
+
+		if len(stickerSet.Stickers) > 120 {
+			return true
+		}
+		return false
+	}
+
+	packSuffix := fmt.Sprintf("%d_by_%s", message.From.ID, botUser.Username)
+
 	switch stickerType {
 	case "video":
-		stickerSetName = fmt.Sprintf("vid%d_by_%s", message.From.ID, botUser.Username)
+		packPrefix = "vid_"
 		stickerSetTitle += " Video"
 	case "animated":
-		stickerSetName = fmt.Sprintf("anim%d_by_%s", message.From.ID, botUser.Username)
+		packPrefix = "anim_"
 		stickerSetTitle += " Animated"
 	case "static":
-		stickerSetName = fmt.Sprintf("a%d_by_%s", message.From.ID, botUser.Username)
+		packPrefix = "a_"
+	}
+
+	stickerSetName := packPrefix + packSuffix
+	for i := 0; checkStickerSetCount(stickerSetName); i++ {
+		stickerSetName = fmt.Sprintf("%s%d_%s", packPrefix, i, packSuffix)
 	}
 
 	reEmoji := regexp.MustCompile(`[\x{1F600}-\x{1F64F}]|[\x{2694}-\x{2697}]|[\x{2702}-\x{27B0}]|[\x{1F926}-\x{1F937}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{26FF}]`)
