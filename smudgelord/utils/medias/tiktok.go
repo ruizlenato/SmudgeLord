@@ -100,7 +100,8 @@ func (dm *DownloadMedia) TikTok(url string) {
 	var VideoID string
 
 	res, _ := http.Get(url)
-	if matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(res.Request.URL.String()); len(matches) == 2 {
+	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(res.Request.URL.String())
+	if len(matches) == 2 {
 		VideoID = matches[1]
 	} else {
 		return
@@ -132,13 +133,23 @@ func (dm *DownloadMedia) TikTok(url string) {
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
 		for _, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
+			file, err := downloader(media.DisplayImage.URLList[1])
+			if err != nil {
+				log.Println(err)
+				return
+			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
-				telegoutil.FileFromURL(media.DisplayImage.URLList[1])),
+				telegoutil.File(file)),
 			)
 		}
 	} else {
+		file, err := downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
+		if err != nil {
+			log.Println(err)
+			return
+		}
 		dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
-			telegoutil.FileFromURL(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])).WithWidth(tikTokData.AwemeList[0].Video.PlayAddr.Width).WithHeight(tikTokData.AwemeList[0].Video.PlayAddr.Height),
+			telegoutil.File(file)).WithWidth(tikTokData.AwemeList[0].Video.PlayAddr.Width).WithHeight(tikTokData.AwemeList[0].Video.PlayAddr.Height),
 		)
 	}
 }

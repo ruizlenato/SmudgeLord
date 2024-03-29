@@ -108,18 +108,33 @@ func (dm *DownloadMedia) Instagram(url string) {
 
 		switch instagramData.ShortcodeMedia.Typename {
 		case "GraphVideo":
+			file, err := downloader(instagramData.ShortcodeMedia.VideoURL)
+			if err != nil {
+				log.Println(err)
+				return
+			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
-				telegoutil.FileFromURL(instagramData.ShortcodeMedia.VideoURL)).WithWidth(instagramData.ShortcodeMedia.Dimensions.Width).WithHeight(instagramData.ShortcodeMedia.Dimensions.Height),
+				telegoutil.File(file)).WithWidth(instagramData.ShortcodeMedia.Dimensions.Width).WithHeight(instagramData.ShortcodeMedia.Dimensions.Height),
 			)
 		case "GraphSidecar":
 			for _, results := range instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges {
 				if !results.Node.IsVideo {
+					file, err := downloader(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].Src)
+					if err != nil {
+						log.Println(err)
+						return
+					}
 					dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
-						telegoutil.FileFromURL(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].Src)),
+						telegoutil.File(file)),
 					)
 				} else {
+					file, err := downloader(results.Node.VideoURL)
+					if err != nil {
+						log.Println(err)
+						return
+					}
 					dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
-						telegoutil.FileFromURL(results.Node.VideoURL)).WithWidth(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].ConfigWidth).WithHeight(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].ConfigHeight),
+						telegoutil.File(file)).WithWidth(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].ConfigWidth).WithHeight(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].ConfigHeight),
 					)
 				}
 			}
@@ -141,8 +156,14 @@ func (dm *DownloadMedia) Instagram(url string) {
 			dm.Caption = strings.TrimSpace(re.ReplaceAllString(captionData[0][3], ""))
 		}
 
+		file, err := downloader(mainMediaURL)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
 		dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
-			telegoutil.FileFromURL(mainMediaURL)),
+			telegoutil.File(file)),
 		)
 	}
 
@@ -199,8 +220,13 @@ func (dm *DownloadMedia) Instagram(url string) {
 		result := instagramData.Data.XDTShortcodeMedia
 		dm.Caption = result.EdgeMediaToCaption.Edges[0].Node.Text
 		if strings.Contains(result.Typename, "Video") {
+			file, err := downloader(result.VideoURL)
+			if err != nil {
+				log.Println(err)
+				return
+			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
-				telegoutil.FileFromURL(result.VideoURL)).WithWidth(result.Dimensions.Width).WithHeight(result.Dimensions.Height),
+				telegoutil.File(file)).WithWidth(result.Dimensions.Width).WithHeight(result.Dimensions.Height),
 			)
 		}
 	}

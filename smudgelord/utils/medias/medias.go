@@ -2,8 +2,11 @@ package medias
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"unicode/utf8"
+
+	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego"
 )
@@ -37,6 +40,28 @@ func (dm *DownloadMedia) Download(url string) ([]telego.InputMedia, string) {
 	}
 
 	return dm.MediaItems, dm.Caption
+}
+
+func downloader(media string) (*os.File, error) {
+	body := utils.RequestGET(media, utils.RequestGETParams{}).Body()
+	file, err := os.CreateTemp("", "temp*")
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = file.Write(body) // Write the byte slice to the file
+	if err != nil {
+		file.Close()
+		return nil, err
+	}
+
+	_, err = file.Seek(0, 0) // Seek back to the beginning of the file
+	if err != nil {
+		file.Close()
+		return nil, err
+	}
+
+	return file, err
 }
 
 func truncateUTF8Caption(s, url string) string {

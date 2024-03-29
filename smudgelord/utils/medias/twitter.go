@@ -205,15 +205,25 @@ func (dm *DownloadMedia) Twitter(url string) {
 			videoType = "video"
 		}
 		if videoType != "video" {
+			file, err := downloader(media.MediaURLHTTPS)
+			if err != nil {
+				log.Println(err)
+				return
+			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
-				telegoutil.FileFromURL(media.MediaURLHTTPS)),
+				telegoutil.File(file)),
 			)
 		} else {
 			sort.Slice(media.VideoInfo.Variants, func(i, j int) bool {
 				return media.VideoInfo.Variants[i].Bitrate < media.VideoInfo.Variants[j].Bitrate
 			})
+			file, err := downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
+			if err != nil {
+				log.Println(err)
+				return
+			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
-				telegoutil.FileFromURL(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)).WithWidth(media.OriginalInfo.Width).WithHeight(media.OriginalInfo.Height),
+				telegoutil.File(file)).WithWidth(media.OriginalInfo.Width).WithHeight(media.OriginalInfo.Height),
 			)
 		}
 		if tweet, ok := tweetResult.(Legacy); ok {
