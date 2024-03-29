@@ -68,10 +68,13 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 		}
 	}
 
-	bot.SendMediaGroup(telegoutil.MediaGroup(
-		telegoutil.ID(message.Chat.ID),
-		mediaItems...,
-	))
+	bot.SendMediaGroup(&telego.SendMediaGroupParams{
+		ChatID: telegoutil.ID(message.Chat.ID),
+		Media:  mediaItems,
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
+	})
 }
 
 func mediaConfig(bot *telego.Bot, update telego.Update) {
