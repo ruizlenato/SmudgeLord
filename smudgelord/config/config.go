@@ -29,6 +29,9 @@ func init() {
 	}
 
 	LastFMKey = os.Getenv("LASTFM_API_KEY")
+	if LastFMKey == "" {
+		log.Fatalf(`You need to set the "LASTFM_API_KEY" in the .env file!`)
+	}
 
 	DatabaseFile = os.Getenv("DATABASE_FILE")
 	if DatabaseFile == "" {
