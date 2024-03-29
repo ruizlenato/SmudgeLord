@@ -31,10 +31,10 @@ func GetHelpKeyboard(i18n func(string) string) [][]telego.InlineKeyboardButton {
 
 	sort.Strings(moduleNames)
 
-	buttons := make([][]telego.InlineKeyboardButton, 0, len(moduleNames)/2+1)
+	buttons := make([][]telego.InlineKeyboardButton, 0, len(moduleNames))
 	var row []telego.InlineKeyboardButton
 	for _, name := range moduleNames {
-		if len(row) == 2 {
+		if len(row) == 3 {
 			buttons = append(buttons, row)
 			row = nil
 		}
