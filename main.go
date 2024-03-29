@@ -48,7 +48,8 @@ func main() {
 		}, telego.WithLongPollingUpdateInterval(0))
 	} else {
 		err = bot.SetWebhook(&telego.SetWebhookParams{
-			URL: config.WebhookURL + bot.Token(),
+			DropPendingUpdates: true,
+			URL:                config.WebhookURL + bot.Token(),
 		})
 		if err != nil {
 			log.Fatal("Set webhook:", err)
