@@ -30,5 +30,6 @@ func (h *Handler) RegisterHandlers() {
 	modules.LoadAFK(h.bh, h.bot)
 	modules.LoadLastFM(h.bh, h.bot)
 	modules.LoadMediaDownloader(h.bh, h.bot)
+	modules.LoadMisc(h.bh, h.bot)
 	modules.LoadStickers(h.bh, h.bot)
 }

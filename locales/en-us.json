@@ -47,6 +47,10 @@
         "captionHelp": "When activated, this option sends the subtitles of the media you download using the bot.",
         "help": "<b>/dl|/sdl —</b> Downloads medias (photos and videos) from <b><i>Instagram, TikTok and Twitter/X.</i></b>"
     },
+    "misc": {
+        "name": "Miscellaneous",
+        "help": "<b>/weather (cidade) —</b> Shows the current climate of a specific city."
+    },
     "stickers": {
         "name": "Stickers",
         "kanging": "<code>Kanging (Stealing) the sticker...</code>",
@@ -59,6 +63,12 @@
         "get_not_reply": "You need to use this command by replying to <i><b>a sticker</b> or <b>a video</b> or <b>a photo</b></i>.",
         "error": "<b>An error occurred while processing the sticker, try again later.</b>\nIf the problem persists, contact the developer.",
         "help": "<b>/kang —</b> reply to a sticker to add it to your sticker pack created by me.\n<b><i>Works with all types of stickers: static, video and animated.</i></b>\n\n<b>/getsticker —</b> reply to a sticker so I can send it to you as a <i>.png</i> or <i>.gif</i> file.\n<b><i>Only works with static stickers or video stickers.</i></b>"
+    },
+    "weather": {
+        "location-unknown": "Location not found.",
+        "no-location": "You haven't specified a location.\n<b>Example:</b> <code>/weather Belém</code>.",
+        "measurement-unit": "m",
+        "details": "<b>%s</b>:\n\nTemperature: <code>%d °C</code>\nTemperature feels like: <code>%d °C</code>\nAir humidity: <code>%d%%</code>\nWind speed: <code>%d km/h</code>"
     },
     "relativeDuration": {
         "singular": {

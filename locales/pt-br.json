@@ -47,6 +47,10 @@
         "CaptionHelp": "Quando ativada, essa opção envia a legenda das mídias que você baixar usando o bot.",
         "help": "<b>/dl|/sdl —</b> Baixa mídias (fotos e vídeos) do <b><i>Instagram, TikTok e Twitter/X.</i></b>"
     },
+    "misc": {
+        "name": "Diversos",
+        "help": "<b>/clima (cidade) —</b> Mostra o clima atual de uma cidade especifica."
+    },
     "stickers": {
         "name": "Figurinhas",
         "kanging": "<code>Kangando (roubando) o sticker...</code>",
@@ -59,6 +63,12 @@
         "get_not_reply": "Você precisa responder a uma figurinha para usar esse comando, assim eu posso enviar a figurinha respondida como <i><b>png ou gif</b></i>.\n<i>Só funciona com figurinhas estáticas ou vídeos</i>",
         "error": "<b>Ocorreu um erro ao processar o sticker, tente novamente.</b>\nSe o erro persistir, entre em contato com o desenvolvedor.",
         "help": "<b>/kang —</b> responda a uma figurinha para adicioná-lo ao seu pacote de stickers criado por mim.\n<b><i>Funciona com todos os tipos de stickers (figurinhas): Estáticas e vídeos e animadas.</i></b>\n\n<b>/getsticker —</b> responda a uma figurinha para que possa lhe enviar como arquivo <i>.png</i> ou <i>.gif</i>.\n<b><i>Só funciona com figurinhas de vídeos ou estáticas.</i></b>"
+    },
+    "weather": {
+        "location-unknown": "Localização não encontrada.",
+        "no-location": "Você não especificou uma localização.\n<b>Exemplo:</b> <code>/clima Belém</code>.",
+        "measurement-unit": "m",
+        "details": "<b>%s</b>:\n\nTemperatura: <code>%d °C</code>\nSensação térmica: <code>%d °C</code>\nUmidade do ar: <code>%d%%</code>\nVento: <code>%d km/h</code>"
     },
     "relativeDuration": {
         "singular": {

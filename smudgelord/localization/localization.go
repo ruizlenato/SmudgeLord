@@ -75,7 +75,7 @@ func LoadLanguages() error {
 // Returns:
 //   - string: The language code for the chat.
 //   - error: An error if there is any issue retrieving the language from the database.
-func getChatLanguage(chat telego.Chat) (string, error) {
+func GetChatLanguage(chat telego.Chat) (string, error) {
 	var tableName, idColumn string
 	if strings.Contains(chat.Type, "group") {
 		tableName = "groups"
@@ -102,7 +102,7 @@ func getChatLanguage(chat telego.Chat) (string, error) {
 
 func Get(chat telego.Chat) func(string) string {
 	return func(key string) string {
-		language, err := getChatLanguage(chat)
+		language, err := GetChatLanguage(chat)
 		if err != nil {
 			log.Printf("Error retrieving language for chat %v: %v", chat.ID, err)
 			return "KEY_NOT_FOUND"
