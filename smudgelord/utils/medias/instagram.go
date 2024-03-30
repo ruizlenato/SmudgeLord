@@ -67,6 +67,10 @@ type EdgeSidecarToChildren struct {
 	} `json:"edges"`
 }
 
+type StoriesData struct {
+	URL string `json:"url"`
+}
+
 func getEmbed(postID string) InstagramData {
 	var instagramData InstagramData
 
@@ -128,15 +132,36 @@ func getEmbed(postID string) InstagramData {
 }
 
 func (dm *DownloadMedia) Instagram(url string) {
-	var instagramData InstagramData
 	var postID string
 
-	if matches := (regexp.MustCompile((`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`))).FindStringSubmatch(url); len(matches) == 2 {
+	if regexp.MustCompile(`(?:stories)/`).MatchString(url) {
+		var storiesData StoriesData
+		body := utils.RequestGET("https://scrapper.ruizlenato.workers.dev/"+url, utils.RequestGETParams{}).Body()
+		if err := json.Unmarshal(body, &storiesData); err != nil {
+			log.Printf("Error unmarshalling instagram stories data: %v", err)
+			return
+		}
+
+		if file, err := downloader(storiesData.URL); err == nil {
+			if strings.Contains(storiesData.URL, ".mp4?") {
+				dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(telegoutil.File(file)))
+			}
+			if strings.Contains(storiesData.URL, ".jpg?") || strings.Contains(storiesData.URL, ".png?") {
+				dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(telegoutil.File(file)))
+			}
+		} else {
+			log.Println(err)
+		}
+		return
+	}
+
+	if matches := regexp.MustCompile(`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`).FindStringSubmatch(url); len(matches) == 2 {
 		postID = matches[1]
 	} else {
 		return
 	}
 
+	var instagramData InstagramData
 	if instagramData := getEmbed(postID); instagramData != nil {
 		if len(instagramData.ShortcodeMedia.EdgeMediaToCaption.Edges) > 0 {
 			dm.Caption = instagramData.ShortcodeMedia.EdgeMediaToCaption.Edges[0].Node.Text
