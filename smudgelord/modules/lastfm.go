@@ -43,7 +43,7 @@ func setUser(bot *telego.Bot, message telego.Message) {
 
 	if lastFM.GetUser(lastFMUsername) != nil {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
+			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.invalid-username"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
@@ -59,7 +59,7 @@ func setUser(bot *telego.Bot, message telego.Message) {
 		return
 	}
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.From.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      i18n("lastfm.username-set"),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
@@ -78,7 +78,7 @@ func music(bot *telego.Bot, message telego.Message) {
 	row := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID)
 	if row.Scan(&lastFMUsername); lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
+			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-username"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
@@ -106,9 +106,12 @@ func music(bot *telego.Bot, message telego.Message) {
 	}
 
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.From.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      text,
 		ParseMode: "HTML",
+		LinkPreviewOptions: &telego.LinkPreviewOptions{
+			PreferLargeMedia: true,
+		},
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
@@ -125,7 +128,7 @@ func album(bot *telego.Bot, message telego.Message) {
 	row := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID)
 	if row.Scan(&lastFMUsername); lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
+			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-username"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
@@ -153,9 +156,12 @@ func album(bot *telego.Bot, message telego.Message) {
 	}
 
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.From.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      text,
 		ParseMode: "HTML",
+		LinkPreviewOptions: &telego.LinkPreviewOptions{
+			PreferLargeMedia: true,
+		},
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
@@ -172,7 +178,7 @@ func artist(bot *telego.Bot, message telego.Message) {
 	row := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID)
 	if row.Scan(&lastFMUsername); lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
+			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-username"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
@@ -203,9 +209,12 @@ func artist(bot *telego.Bot, message telego.Message) {
 	text += fmt.Sprintf("🎙<b>%s</b>", recentTracks.RecentTracks.Track[0].Artist.Name)
 
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.From.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      text,
 		ParseMode: "HTML",
+		LinkPreviewOptions: &telego.LinkPreviewOptions{
+			PreferLargeMedia: true,
+		},
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
