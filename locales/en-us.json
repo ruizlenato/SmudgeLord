@@ -42,10 +42,10 @@
     "medias": {
         "name": "Medias",
         "config": "<b>Medias settings</b>\nTo know more about the <b><i>medias</i></b> module, use /help in my private chat.\n\n<b>To know more about each configuration, click on its name.</b>\n<i>These settings are for this group only, not for other groups or private chats.</i>",
-        "noURL": "<b>You didn't specify a link or you specified an invalid link.</b>\nSpecify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b> or <b><i>Twitter/X</i></b> link so I can download the media(s).",
+        "noURL": "<b>You didn't specify a link or you specified an invalid link.</b>\nSpecify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b> or <b><i>Twitter/X</i></b> link so I can download the media(s).",
         "autoHelp": "When enabled, this option allows you to download media from some social networks automatically when you send a link without needing the /dl command.",
         "captionHelp": "When activated, this option sends the subtitles of the media you download using the bot.",
-        "help": "<b>/dl|/sdl —</b> Downloads medias (photos and videos) from <b><i>Instagram, TikTok and Twitter/X.</i></b>"
+        "help": "<b>/dl|/sdl —</b> Downloads medias (photos and videos) from <b><i>Instagram, TikTok, Reddit and Twitter/X.</i></b>"
     },
     "misc": {
         "name": "Miscellaneous",

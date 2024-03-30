@@ -29,6 +29,8 @@ func (dm *DownloadMedia) Download(url string) ([]telego.InputMedia, string) {
 		dm.Instagram(url)
 	} else if match, _ := regexp.MatchString("tiktok.com/", url); match {
 		dm.TikTok(url)
+	} else if match, _ := regexp.MatchString("reddit.com/", url); match {
+		dm.Reddit(url)
 	}
 
 	if dm.MediaItems != nil && dm.Caption == "" {
