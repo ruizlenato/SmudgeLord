@@ -89,6 +89,9 @@ func music(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
+	if recentTracks == nil {
+		return
+	}
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track[0].Image)[3].Text)
 
 	if recentTracks.RecentTracks.Track[0].Attr.Nowplaying != "" {
@@ -133,6 +136,9 @@ func album(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
+	if recentTracks == nil {
+		return
+	}
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track[0].Image)[3].Text)
 
 	if recentTracks.RecentTracks.Track[0].Attr.Nowplaying != "" {
@@ -177,6 +183,9 @@ func artist(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
+	if recentTracks == nil {
+		return
+	}
 	body := utils.RequestGET(fmt.Sprintf("https://www.last.fm/music/%s/+images", recentTracks.RecentTracks.Track[0].Artist.Name), utils.RequestGETParams{}).String()
 	imageFound := regexp.MustCompile(`https://lastfm.freetls.fastly.net/i/u/avatar170s/[^"]*`).FindStringSubmatch(body)
 
