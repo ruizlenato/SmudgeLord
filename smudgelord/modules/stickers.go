@@ -122,7 +122,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 		})
 		return
 	}
-	progMSG, _ := bot.SendMessage(&telego.SendMessageParams{
+	progMSG, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      i18n("stickers.kanging"),
 		ParseMode: "HTML",
@@ -130,6 +130,10 @@ func kang(bot *telego.Bot, message telego.Message) {
 			MessageID: message.MessageID,
 		},
 	})
+	if err != nil {
+		log.Println(err)
+		return
+	}
 
 	stickerAction, stickerType, fileID := getFileIDAndType(message.ReplyToMessage)
 	if stickerType == "" {
