@@ -9,20 +9,20 @@ import (
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-type RedditData struct {
+type GenericData struct {
 	URL string `json:"url"`
 }
 
-func (dm *DownloadMedia) Reddit(url string) {
-	var redditData RedditData
+func (dm *DownloadMedia) Generic(url string) {
+	var genericData GenericData
 	body := utils.RequestGET("https://scrapper.ruizlenato.workers.dev/"+url, utils.RequestGETParams{}).Body()
-	err := json.Unmarshal(body, &redditData)
+	err := json.Unmarshal(body, &genericData)
 	if err != nil {
-		log.Printf("Error unmarshalling Reddit data: %v", err)
+		log.Printf("Error unmarshalling Generic Data: %v", err)
 		return
 	}
 
-	file, err := downloader(redditData.URL)
+	file, err := downloader(genericData.URL)
 	if err != nil {
 		log.Println(err)
 		return
