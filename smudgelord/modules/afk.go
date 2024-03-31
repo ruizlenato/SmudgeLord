@@ -80,7 +80,11 @@ func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 
 	id, reason, duration, err := getAFK(userID)
 	if err != nil {
-		log.Panic(err)
+		if strings.Contains(err.Error(), "Bad Request: chat not found") {
+			return
+		}
+		log.Printf("[AFK] Error getting user: %v", err)
+		return
 	}
 	humanizedDuration := localization.HumanizeTimeSince(duration, message.Chat)
 
@@ -88,7 +92,8 @@ func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 	case id == message.From.ID:
 		err = unsetAFK(id)
 		if err != nil {
-			log.Panic(err)
+			log.Printf("[AFK] Error unsetting user: %v", err)
+			return
 		}
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
@@ -104,7 +109,8 @@ func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 	case id != 0:
 		user, err := bot.GetChat(&telego.GetChatParams{ChatID: telegoutil.ID(id)})
 		if err != nil {
-			log.Panic(err)
+			log.Printf("[AFK] Error getting user: %v", err)
+			return
 		}
 
 		text := fmt.Sprintf(i18n("afk.unavailable"), id, user.FirstName, humanizedDuration)
