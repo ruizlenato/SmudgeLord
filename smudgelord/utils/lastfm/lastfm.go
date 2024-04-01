@@ -22,9 +22,13 @@ func Init() *LastFM {
 }
 
 func (lfm *LastFM) GetUser(username string) error {
-	body := utils.RequestGET(lastFMAPI, utils.RequestGETParams{Query: map[string]string{"method": "user.getinfo", "user": username, "api_key": lfm.apiKey, "format": "json"}}).Body()
+	body := utils.RequestGET(lastFMAPI, utils.RequestGETParams{Query: map[string]string{"method": "user.getinfo", "user": username, "api_key": lfm.apiKey, "format": "json"}})
+	if body.StatusCode() != 200 {
+		return nil
+	}
+
 	var userInfo userInfo
-	err := json.Unmarshal(body, &userInfo)
+	err := json.Unmarshal(body.Body(), &userInfo)
 	if err != nil {
 		log.Println(err)
 	}
@@ -36,9 +40,13 @@ func (lfm *LastFM) GetUser(username string) error {
 }
 
 func (lfm *LastFM) GetRecentTrack(username string) *recentTracks {
-	body := utils.RequestGET(lastFMAPI, utils.RequestGETParams{Query: map[string]string{"method": "user.getrecenttracks", "user": username, "api_key": lfm.apiKey, "limit": "3", "extended": "1", "format": "json"}}).Body()
+	body := utils.RequestGET(lastFMAPI, utils.RequestGETParams{Query: map[string]string{"method": "user.getrecenttracks", "user": username, "api_key": lfm.apiKey, "limit": "3", "extended": "1", "format": "json"}})
+	if body.StatusCode() != 200 {
+		return nil
+	}
+
 	var recentTracks recentTracks
-	err := json.Unmarshal(body, &recentTracks)
+	err := json.Unmarshal(body.Body(), &recentTracks)
 	if err != nil {
 		log.Println(err)
 	}

@@ -75,8 +75,8 @@ func music(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.Chat)
 
 	var lastFMUsername string
-	row := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID)
-	if row.Scan(&lastFMUsername); lastFMUsername == "" {
+	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID).Scan(&lastFMUsername)
+	if err != nil && lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-username"),
@@ -125,8 +125,8 @@ func album(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.Chat)
 
 	var lastFMUsername string
-	row := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID)
-	if row.Scan(&lastFMUsername); lastFMUsername == "" {
+	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID).Scan(&lastFMUsername)
+	if err != nil && lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-username"),
@@ -143,6 +143,7 @@ func album(bot *telego.Bot, message telego.Message) {
 		return
 	}
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track[0].Image)[3].Text)
+	fmt.Printf("%s - %s", recentTracks.RecentTracks.Track[0].Artist.Name, recentTracks.RecentTracks.Track[0].Album.Text)
 
 	if recentTracks.RecentTracks.Track[0].Attr.Nowplaying != "" {
 		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "album"))
@@ -175,8 +176,8 @@ func artist(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.Chat)
 
 	var lastFMUsername string
-	row := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID)
-	if row.Scan(&lastFMUsername); lastFMUsername == "" {
+	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID).Scan(&lastFMUsername)
+	if err != nil && lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-username"),
