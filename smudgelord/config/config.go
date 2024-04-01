@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -14,6 +15,7 @@ var (
 	DatabaseFile  string
 	WebhookURL    string
 	SOCKS5URL     string
+	OWNER_ID      int64
 )
 
 // init initializes the config variables.
@@ -40,4 +42,9 @@ func init() {
 
 	WebhookURL = os.Getenv("WEBHOOK_URL")
 	SOCKS5URL = os.Getenv("SOCKS5URL")
+
+	OWNER_ID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
+	if OWNER_ID == 0 {
+		log.Fatalf(`You need to set the "OWNER_ID" in the .env file!`)
+	}
 }
