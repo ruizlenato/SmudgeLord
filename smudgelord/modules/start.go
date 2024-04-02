@@ -227,6 +227,12 @@ func aboutMenu(bot *telego.Bot, update telego.Update) {
 					URL:  "https://t.me/SmudgeNews",
 				},
 			),
+			telegoutil.InlineKeyboardRow(
+				telego.InlineKeyboardButton{
+					Text:         i18n("button.back"),
+					CallbackData: "start",
+				},
+			),
 		),
 	})
 }
