@@ -16,6 +16,8 @@ import (
 	"github.com/mymmrac/telego/telegoutil"
 )
 
+const regexMedia = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:instagram|twitter|x|tiktok|reddit|twitch).(?:com|net|tv)/(?:\S*)`
+
 func mediaDownloader(bot *telego.Bot, message telego.Message) {
 	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text) && strings.Contains(message.Chat.Type, "group") {
 		row := database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", message.Chat.ID)
@@ -28,7 +30,7 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.GetChat())
 
 	// Extract URL from the message text using regex
-	url := regexp.MustCompile(`(?:htt.*?//).+(?:instagram|twitter|x|tiktok|reddit|twitch)\.(?:com|net|tv)\/(?:\S*)`).FindStringSubmatch(message.Text)
+	url := regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text)
 	if len(url) < 1 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
@@ -168,7 +170,7 @@ func LoadMediaDownloader(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("medias")
 	bh.HandleMessage(mediaDownloader, telegohandler.CommandEqual("dl"))
 	bh.HandleMessage(mediaDownloader, telegohandler.CommandEqual("sdl"))
-	bh.HandleMessage(mediaDownloader, telegohandler.TextMatches(regexp.MustCompile(`(?:htt.*?//).+(?:instagram|twitter|x|tiktok|reddit|twitch)\.(?:com|net|tv)\/(?:\S*)`)))
+	bh.HandleMessage(mediaDownloader, telegohandler.TextMatches(regexp.MustCompile(regexMedia)))
 	bh.Handle(mediaConfig, telegohandler.CallbackDataPrefix("mediaConfig"), helpers.IsAdmin(bot))
 	bh.Handle(explainConfig, telegohandler.CallbackDataPrefix("ieConfig"), helpers.IsAdmin(bot))
 }
