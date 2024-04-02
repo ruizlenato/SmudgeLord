@@ -46,20 +46,26 @@ func (dm *DownloadMedia) Download(url string) ([]telego.InputMedia, string) {
 
 func downloader(media string) (*os.File, error) {
 	body := utils.RequestGET(media, utils.RequestGETParams{}).Body()
-	file, err := os.CreateTemp("", "temp*")
+	file, err := os.CreateTemp("", "smudge*")
 	if err != nil {
 		return nil, err
 	}
 
+	// Defer a function to close and remove the file in case of error
+	defer func() {
+		if err != nil {
+			file.Close()
+			os.Remove(file.Name())
+		}
+	}()
+
 	_, err = file.Write(body) // Write the byte slice to the file
 	if err != nil {
-		file.Close()
 		return nil, err
 	}
 
 	_, err = file.Seek(0, 0) // Seek back to the beginning of the file
 	if err != nil {
-		file.Close()
 		return nil, err
 	}
 

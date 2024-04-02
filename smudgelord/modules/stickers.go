@@ -321,17 +321,22 @@ func bytesToFile(data []byte) (*os.File, error) {
 		return nil, err
 	}
 
+	// Defer a function to close and remove the file in case of error
+	defer func() {
+		if err != nil {
+			tempFile.Close()
+			os.Remove(tempFile.Name())
+		}
+	}()
+
 	_, err = tempFile.Write(data) // Write the byte slice to the file
 	if err != nil {
-		tempFile.Close()
 		return nil, err
 	}
 
 	_, err = tempFile.Seek(0, 0) // Seek back to the beginning of the file
 	if err != nil {
-		tempFile.Close()
 		return nil, err
-
 	}
 
 	return tempFile, nil // Return the file
@@ -358,14 +363,20 @@ func resizeImage(input []byte) (*os.File, error) {
 	// Write the resized image data to the temporary file
 	_, err = tempFile.Write(resizedImg)
 	if err != nil {
-		tempFile.Close()
 		return nil, err
 	}
+
+	// Defer a function to close and remove the file in case of error
+	defer func() {
+		if err != nil {
+			tempFile.Close()
+			os.Remove(tempFile.Name())
+		}
+	}()
 
 	// Seek back to the beginning of the file
 	_, err = tempFile.Seek(0, 0)
 	if err != nil {
-		tempFile.Close()
 		return nil, err
 	}
 

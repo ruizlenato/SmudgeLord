@@ -3,6 +3,7 @@ package modules
 import (
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 
@@ -17,6 +18,21 @@ import (
 )
 
 const regexMedia = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:instagram|twitter|x|tiktok|reddit|twitch).(?:com|net|tv)/(?:\S*)`
+
+func removeMediaFiles(mediaItems []telego.InputMedia) {
+	for _, media := range mediaItems {
+		switch media.MediaType() {
+		case "photo":
+			if photo, ok := media.(*telego.InputMediaPhoto); ok {
+				os.Remove(photo.Media.String())
+			}
+		case "video":
+			if video, ok := media.(*telego.InputMediaVideo); ok {
+				os.Remove(video.Media.String())
+			}
+		}
+	}
+}
 
 func mediaDownloader(bot *telego.Bot, message telego.Message) {
 	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text) && strings.Contains(message.Chat.Type, "group") {
@@ -77,6 +93,8 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 			MessageID: message.MessageID,
 		},
 	})
+
+	removeMediaFiles(mediaItems)
 }
 
 func mediaConfig(bot *telego.Bot, update telego.Update) {
