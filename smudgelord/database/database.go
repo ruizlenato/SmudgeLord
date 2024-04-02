@@ -132,7 +132,7 @@ func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler
 		query := "INSERT OR IGNORE INTO groups (id) VALUES (?);"
 		_, err := DB.Exec(query, message.Chat.ID)
 		if err != nil {
-			log.Print("Error inserting group: ", err)
+			log.Print("[database/SaveUsers] Error inserting group: ", err)
 		}
 	}
 
@@ -148,7 +148,7 @@ func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler
 	}
 	_, err := DB.Exec(query, message.From.ID, lang, username)
 	if err != nil {
-		log.Print("Error inserting user: ", err)
+		log.Print("[database/SaveUsers] Error inserting user: ", err)
 	}
 
 	row := DB.QueryRow("SELECT username FROM users WHERE id = ?;", message.From.ID)
@@ -158,7 +158,7 @@ func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler
 	if dbUsername != username && username != "" {
 		_, err := DB.Exec("UPDATE users SET username = ? WHERE id = ?;", username, message.From.ID)
 		if err != nil {
-			log.Print("Error updating username: ", err)
+			log.Print("[database/SaveUsers] Error updating username: ", err)
 		}
 	}
 

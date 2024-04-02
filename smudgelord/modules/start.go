@@ -127,7 +127,7 @@ func languageMenu(bot *telego.Bot, update telego.Update) {
 	var language string        // Variable to store the language information retrieved from the database.
 	err := row.Scan(&language) // Scan method to retrieve the value of the "language" column from the query result.
 	if err != nil {
-		log.Print(err)
+		log.Print("[start/languageMenu] Error querying user:", err)
 	}
 
 	if update.Message == nil {
@@ -165,7 +165,7 @@ func languageSet(bot *telego.Bot, update telego.Update) {
 	}
 	_, err := database.DB.Exec(dbQuery, lang, update.CallbackQuery.Message.GetChat().ID)
 	if err != nil {
-		log.Print("Error inserting user:", err)
+		log.Print("[start/languageSet] Error updating language:", err)
 	}
 
 	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))

@@ -79,17 +79,17 @@ func getSticker(bot *telego.Bot, message telego.Message) {
 	if replySticker := message.ReplyToMessage.Sticker; replySticker != nil && !replySticker.IsAnimated {
 		file, err := bot.GetFile(&telego.GetFileParams{FileID: replySticker.FileID})
 		if err != nil {
-			log.Println(err)
+			log.Print("[stickers/getSticker] Error getting file: ", err)
 			return
 		}
 		fileData, err := telegoutil.DownloadFile(bot.FileDownloadURL(file.FilePath))
 		if err != nil {
-			log.Println(err)
+			log.Print("[stickers/getSticker] Error downloading file: ", err)
 			return
 		}
 		stickerFile, err := bytesToFile(fileData)
 		if err != nil {
-			log.Println(err)
+			log.Print("[stickers/getSticker] Error creating file: ", err)
 			bot.SendMessage(&telego.SendMessageParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				Text:      i18n("stickers.error"),
@@ -131,7 +131,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 		},
 	})
 	if err != nil {
-		log.Println(err)
+		log.Print("[stickers/kang] Error sending message: ", err)
 		return
 	}
 
@@ -155,20 +155,20 @@ func kang(bot *telego.Bot, message telego.Message) {
 
 	file, err := bot.GetFile(&telego.GetFileParams{FileID: fileID})
 	if err != nil {
-		log.Println(err)
+		log.Print("[stickers/kang] Error getting file: ", err)
 		return
 	}
 
 	fileData, err := telegoutil.DownloadFile(bot.FileDownloadURL(file.FilePath))
 	if err != nil {
-		log.Println(err)
+		log.Print("[stickers/kang] Error downloading file: ", err)
 		return
 	}
 
 	if stickerAction == "resize" {
 		stickerFile, err = resizeImage(fileData)
 		if err != nil {
-			log.Println(err)
+			log.Print("[stickers/kang] Error resizing image: ", err)
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
@@ -186,7 +186,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 		})
 		stickerFile, err = convertVideo(fileData)
 		if err != nil {
-			log.Println(err)
+			log.Print("[stickers/kang] Error converting video: ", err)
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
@@ -198,7 +198,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 	} else {
 		stickerFile, err = bytesToFile(fileData)
 		if err != nil {
-			log.Println(err)
+			log.Print("[stickers/kang] Error creating file: ", err)
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),

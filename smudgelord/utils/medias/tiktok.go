@@ -2,6 +2,7 @@ package medias
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"regexp"
@@ -98,7 +99,11 @@ type Cover struct {
 func (dm *DownloadMedia) TikTok(url string) {
 	var VideoID string
 
-	res, _ := http.Get(url)
+	res, err := http.Get(url)
+	if err != nil {
+		log.Print("[tiktok/TikTok] Error getting TikTok URL:", err)
+		return
+	}
 	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(res.Request.URL.String())
 	if len(matches) == 2 {
 		VideoID = matches[1]
@@ -116,13 +121,14 @@ func (dm *DownloadMedia) TikTok(url string) {
 		"device_type":     "ASUS_Z01QD",
 		"os_version":      "9",
 		"aweme_id":        string(VideoID),
+		"aid":             "1128",
 	}
 
 	body := utils.RequestGET("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestGETParams{Query: query, Headers: headers}).Body()
 	var tikTokData TikTokData
-	err := json.Unmarshal(body, &tikTokData)
+	err = json.Unmarshal(body, &tikTokData)
 	if err != nil {
-		log.Printf("Error unmarshalling TikTok data: %v", err)
+		log.Printf("[tiktok/TikTok] Error unmarshalling TikTok data: %v", err)
 		return
 	}
 
@@ -136,19 +142,18 @@ func (dm *DownloadMedia) TikTok(url string) {
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
 		for _, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
+			fmt.Println(media.DisplayImage.URLList[1])
 			file, err := downloader(media.DisplayImage.URLList[1])
 			if err != nil {
-				log.Println(err)
+				log.Print("[tiktok/TikTok] Error downloading photo:", err)
 				return
 			}
-			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
-				telegoutil.File(file)),
-			)
+			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(telegoutil.File(file)))
 		}
 	} else {
 		file, err := downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 		if err != nil {
-			log.Println(err)
+			log.Print("[tiktok/TikTok] Error downloading video:", err)
 			return
 		}
 		dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(

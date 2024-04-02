@@ -51,7 +51,7 @@ func RequestGET(Link string, params RequestGETParams) *fasthttp.Response {
 
 	err := client.Do(request, response)
 	if err != nil {
-		log.Println(err)
+		log.Print("[request/RequestGET] Error:", err)
 	}
 
 	return response
@@ -92,7 +92,7 @@ func RequestPOST(Link string, params RequestPOSTParams) *fasthttp.Response {
 
 	err := client.Do(request, response)
 	if err != nil {
-		log.Println(err)
+		log.Print("[request/RequestPOST] Error:", err)
 	}
 
 	return response

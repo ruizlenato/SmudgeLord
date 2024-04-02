@@ -79,7 +79,7 @@ func weather(bot *telego.Bot, message telego.Message) {
 	var weatherResult weatherResult
 	err = json.Unmarshal(body, &weatherResult)
 	if err != nil {
-		log.Print(err)
+		log.Print("[misc/weather] Error unmarshalling weather data:", err)
 		return
 	}
 

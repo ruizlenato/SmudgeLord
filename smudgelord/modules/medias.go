@@ -144,7 +144,7 @@ func mediaConfig(bot *telego.Bot, update telego.Update) {
 			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 		})
 		if err != nil {
-			log.Print("Error edit mediaConfig: ", err)
+			log.Print("[medias/mediaConfig] Error edit mediaConfig: ", err)
 		}
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{

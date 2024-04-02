@@ -94,7 +94,7 @@ func getEmbed(postID string) InstagramData {
 
 		err := json.Unmarshal([]byte(s), &instagramData)
 		if err != nil {
-			log.Println(err)
+			log.Print("[instagram/getEmbed] Error unmarshalling Instagram data:", err)
 		}
 	}
 
@@ -138,7 +138,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 		var storiesData StoriesData
 		body := utils.RequestGET("https://scrapper.ruizlenato.workers.dev/"+url, utils.RequestGETParams{}).Body()
 		if err := json.Unmarshal(body, &storiesData); err != nil {
-			log.Printf("Error unmarshalling instagram stories data: %v", err)
+			log.Printf("[instagram/Instagram] Error unmarshalling instagram stories data: %v", err)
 			return
 		}
 
@@ -150,7 +150,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 				dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(telegoutil.File(file)))
 			}
 		} else {
-			log.Println(err)
+			log.Print("[instagram/Instagram] Error downloading file:", err)
 		}
 		return
 	}
@@ -170,7 +170,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 		case "GraphVideo":
 			file, err := downloader(instagramData.ShortcodeMedia.VideoURL)
 			if err != nil {
-				log.Println(err)
+				log.Print("[instagram/Instagram] Error downloading video:", err)
 				return
 			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
@@ -179,7 +179,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 		case "GraphImage":
 			file, err := downloader(instagramData.ShortcodeMedia.DisplayURL)
 			if err != nil {
-				log.Println(err)
+				log.Print("[instagram/Instagram] Error downloading image:", err)
 				return
 			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
@@ -190,7 +190,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 				if !results.Node.IsVideo {
 					file, err := downloader(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].Src)
 					if err != nil {
-						log.Println(err)
+						log.Print("[instagram/Instagram] Error downloading image:", err)
 						return
 					}
 					dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
@@ -199,7 +199,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 				} else {
 					file, err := downloader(results.Node.VideoURL)
 					if err != nil {
-						log.Println(err)
+						log.Print("[instagram/Instagram] Error downloading video:", err)
 						return
 					}
 					dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
@@ -258,7 +258,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 		body := utils.RequestPOST("https://www.instagram.com/api/graphql", utils.RequestPOSTParams{Headers: headers, BodyString: params}).Body()
 		err := json.Unmarshal(body, &instagramData)
 		if err != nil {
-			log.Printf("Error unmarshalling Instagram data: %v", err)
+			log.Printf("[instagram/Instagram] Error unmarshalling Instagram data: %v", err)
 			return
 		}
 		if instagramData.Data.XDTShortcodeMedia == nil {
@@ -272,7 +272,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 		if strings.Contains(result.Typename, "Video") {
 			file, err := downloader(result.VideoURL)
 			if err != nil {
-				log.Println(err)
+				log.Print("[instagram/Instagram] Error downloading video:", err)
 				return
 			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(

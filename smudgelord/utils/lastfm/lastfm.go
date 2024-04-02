@@ -30,7 +30,7 @@ func (lfm *LastFM) GetUser(username string) error {
 	var userInfo userInfo
 	err := json.Unmarshal(body.Body(), &userInfo)
 	if err != nil {
-		log.Println(err)
+		log.Print("[lastfm/GetUser] Error unmarshalling user info:", err)
 	}
 
 	if userInfo.User == nil {
@@ -48,7 +48,7 @@ func (lfm *LastFM) GetRecentTrack(username string) *recentTracks {
 	var recentTracks recentTracks
 	err := json.Unmarshal(body.Body(), &recentTracks)
 	if err != nil {
-		log.Println(err)
+		log.Print("[lastfm/GetRecentTrack] Error unmarshalling recent tracks:", err)
 	}
 	return &recentTracks
 }
@@ -69,13 +69,8 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 	var getInfo getInfo
 	err := json.Unmarshal(body, &getInfo)
 	if err != nil {
-		log.Println(err)
+		log.Print("[lastfm/PlayCount] Error unmarshalling get info:", err)
 	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	var userPlaycount int
 	switch method {
 	case "track":

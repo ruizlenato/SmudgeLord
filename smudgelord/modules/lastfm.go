@@ -55,7 +55,7 @@ func setUser(bot *telego.Bot, message telego.Message) {
 
 	_, err := database.DB.Exec("UPDATE users SET lastfm_username = ? WHERE id = ?;", lastFMUsername, message.From.ID)
 	if err != nil {
-		log.Println("Error setting user last.fm username:", err)
+		log.Print("[lastfm/setUser] Error setting user last.fm username:", err)
 		return
 	}
 	bot.SendMessage(&telego.SendMessageParams{

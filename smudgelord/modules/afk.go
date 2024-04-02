@@ -83,7 +83,7 @@ func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 		if strings.Contains(err.Error(), "Bad Request: chat not found") {
 			return
 		}
-		log.Printf("[AFK] Error getting user: %v", err)
+		log.Print("[afk/CheckAFK] Error getting user: ", err)
 		return
 	}
 	humanizedDuration := localization.HumanizeTimeSince(duration, message.Chat)
@@ -92,7 +92,7 @@ func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 	case id == message.From.ID:
 		err = unsetAFK(id)
 		if err != nil {
-			log.Printf("[AFK] Error unsetting user: %v", err)
+			log.Print("[afk/CheckAFK] Error unsetting user: ", err)
 			return
 		}
 		bot.SendMessage(&telego.SendMessageParams{
@@ -109,7 +109,7 @@ func CheckAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 	case id != 0:
 		user, err := bot.GetChat(&telego.GetChatParams{ChatID: telegoutil.ID(id)})
 		if err != nil {
-			log.Printf("[AFK] Error getting user: %v", err)
+			log.Print("[afk/CheckAFK] Error getting user: ", err)
 			return
 		}
 
@@ -146,7 +146,7 @@ func setAFK(bot *telego.Bot, message telego.Message) {
 	query := "INSERT OR IGNORE INTO afk (id, reason, time) VALUES (?, ?, ?);"
 	_, err := database.DB.Exec(query, message.From.ID, reason, time.Now().UTC())
 	if err != nil {
-		log.Print("Error inserting user:", err)
+		log.Print("[afk/setAFK]Error inserting user:", err)
 		return
 	}
 

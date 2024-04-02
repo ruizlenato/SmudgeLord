@@ -104,7 +104,7 @@ func Get(chat telego.Chat) func(string) string {
 	return func(key string) string {
 		language, err := GetChatLanguage(chat)
 		if err != nil {
-			log.Printf("Error retrieving language for chat %v: %v", chat.ID, err)
+			log.Printf("[localization/Get]: Error retrieving language for chat %v: %v", chat.ID, err)
 			return "KEY_NOT_FOUND"
 		}
 

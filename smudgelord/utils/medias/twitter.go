@@ -163,7 +163,7 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {
-		log.Printf("Error unmarshalling Twitter data: %v", err)
+		log.Printf("[twitter/TweetExtract] Error unmarshalling Twitter data: %v", err)
 		return nil
 	}
 
@@ -207,7 +207,7 @@ func (dm *DownloadMedia) Twitter(url string) {
 		if videoType != "video" {
 			file, err := downloader(media.MediaURLHTTPS)
 			if err != nil {
-				log.Println(err)
+				log.Print("[twitter/Twitter] Error downloading photo:", err)
 				return
 			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
@@ -219,7 +219,7 @@ func (dm *DownloadMedia) Twitter(url string) {
 			})
 			file, err := downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
 			if err != nil {
-				log.Println(err)
+				log.Print("[twitter/Twitter] Error downloading video:", err)
 				return
 			}
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(

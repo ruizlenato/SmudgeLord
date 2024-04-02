@@ -39,7 +39,7 @@ func IsAdmin(bot *telego.Bot) telegohandler.Predicate {
 			UserID: userID,
 		})
 		if err != nil {
-			log.Println(err)
+			log.Print("[helpers/IsAdmin] Error getting chat member:", err)
 			return false
 		}
 
