@@ -278,6 +278,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 	sticker := &telego.InputSticker{
 		Sticker:   telegoutil.File(stickerFile),
 		EmojiList: emoji,
+		Format:    stickerType,
 	}
 
 	err = bot.AddStickerToSet(&telego.AddStickerToSetParams{
@@ -295,11 +296,10 @@ func kang(bot *telego.Bot, message telego.Message) {
 			})
 			stickerFile.Seek(0, 0)
 			bot.CreateNewStickerSet(&telego.CreateNewStickerSetParams{
-				UserID:        message.From.ID,
-				Name:          stickerSetName,
-				Title:         stickerSetTitle,
-				Stickers:      []telego.InputSticker{*sticker},
-				StickerFormat: stickerType,
+				UserID:   message.From.ID,
+				Name:     stickerSetName,
+				Title:    stickerSetTitle,
+				Stickers: []telego.InputSticker{*sticker},
 			})
 		}
 	}

@@ -8,7 +8,7 @@ require (
 	github.com/h2non/bimg v1.1.9
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/mymmrac/telego v0.29.1
+	github.com/mymmrac/telego v0.29.2
 	github.com/valyala/fasthttp v1.52.0
 )
 

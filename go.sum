@@ -34,6 +34,8 @@ github.com/mattn/go-sqlite3 v1.14.22 h1:2gZY6PC6kBnID23Tichd1K+Z0oS6nE/XwU+Vz/5o
 github.com/mattn/go-sqlite3 v1.14.22/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
 github.com/mymmrac/telego v0.29.1 h1:nsNnK0mS18OL+unoDjDI6BVfafJBbT8Wtj7rCzEWoM8=
 github.com/mymmrac/telego v0.29.1/go.mod h1:ZLD1+L2TQRr97NPOCoN1V2w8y9kmFov33OfZ3qT8cF4=
+github.com/mymmrac/telego v0.29.2 h1:5+fQ/b8d8Ld6ihCJ0OLe1CwUdT3t1sIUl3RaSaSvRJs=
+github.com/mymmrac/telego v0.29.2/go.mod h1:BsKr+GF9BHqaVaLBwsZeDnfuJcJx2olWuDEtKm4zHMc=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/savsgio/gotils v0.0.0-20240303185622-093b76447511 h1:KanIMPX0QdEdB4R3CiimCAbxFrhB3j7h0/OvpYGVQa8=
