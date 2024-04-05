@@ -28,16 +28,16 @@ type track struct {
 	Attr struct {
 		Nowplaying string `json:"nowplaying"`
 	} `json:"@attr,omitempty"`
-	Artist        artist   `json:"artist"`
-	Album         album    `json:"album"`
-	Image         *[]image `json:"image"`
-	UserPlaycount string   `json:"userplaycount"`
-	Loved         string   `json:"loved"`
+	Artist        artist  `json:"artist"`
+	Album         album   `json:"album"`
+	Image         []image `json:"image"`
+	UserPlaycount string  `json:"userplaycount"`
+	Loved         string  `json:"loved"`
 }
 
 type recentTracks struct {
 	RecentTracks struct {
-		Track []track `json:"track"`
+		Track *[]track `json:"track"`
 		Attr  struct {
 			User  *string `json:"user"`
 			Total string  `json:"total"`

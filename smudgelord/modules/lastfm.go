@@ -89,19 +89,19 @@ func music(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if recentTracks == nil {
+	if recentTracks.RecentTracks.Track == nil {
 		return
 	}
-	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track[0].Image)[3].Text)
+	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track)[0].Image[3].Text)
 
-	if recentTracks.RecentTracks.Track[0].Attr.Nowplaying != "" {
+	if (*recentTracks.RecentTracks.Track)[0].Attr.Nowplaying != "" {
 		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "track"))
 	} else {
 		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "track"))
 	}
 
-	text += fmt.Sprintf("<b>%s</b> - %s", recentTracks.RecentTracks.Track[0].Artist.Name, recentTracks.RecentTracks.Track[0].Name)
-	if recentTracks.RecentTracks.Track[0].Loved == "1" {
+	text += fmt.Sprintf("<b>%s</b> - %s", (*recentTracks.RecentTracks.Track)[0].Artist.Name, (*recentTracks.RecentTracks.Track)[0].Name)
+	if (*recentTracks.RecentTracks.Track)[0].Loved == "1" {
 		text += " ❤️"
 	}
 
@@ -142,17 +142,16 @@ func album(bot *telego.Bot, message telego.Message) {
 	if recentTracks == nil {
 		return
 	}
-	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track[0].Image)[3].Text)
-	fmt.Printf("%s - %s", recentTracks.RecentTracks.Track[0].Artist.Name, recentTracks.RecentTracks.Track[0].Album.Text)
+	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track)[0].Image[3].Text)
 
-	if recentTracks.RecentTracks.Track[0].Attr.Nowplaying != "" {
+	if (*recentTracks.RecentTracks.Track)[0].Attr.Nowplaying != "" {
 		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "album"))
 	} else {
 		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "album"))
 	}
 
-	text += fmt.Sprintf("<b>%s</b> - %s", recentTracks.RecentTracks.Track[0].Artist.Name, recentTracks.RecentTracks.Track[0].Album.Text)
-	if recentTracks.RecentTracks.Track[0].Loved == "1" {
+	text += fmt.Sprintf("<b>%s</b> - %s", (*recentTracks.RecentTracks.Track)[0].Artist.Name, (*recentTracks.RecentTracks.Track)[0].Album.Text)
+	if (*recentTracks.RecentTracks.Track)[0].Loved == "1" {
 		text += " ❤️"
 	}
 
@@ -193,21 +192,21 @@ func artist(bot *telego.Bot, message telego.Message) {
 	if recentTracks == nil {
 		return
 	}
-	body := utils.RequestGET(fmt.Sprintf("https://www.last.fm/music/%s/+images", recentTracks.RecentTracks.Track[0].Artist.Name), utils.RequestGETParams{}).String()
+	body := utils.RequestGET(fmt.Sprintf("https://www.last.fm/music/%s/+images", (*recentTracks.RecentTracks.Track)[0].Artist.Name), utils.RequestGETParams{}).String()
 	imageFound := regexp.MustCompile(`https://lastfm.freetls.fastly.net/i/u/avatar170s/[^"]*`).FindStringSubmatch(body)
 
-	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track[0].Image)[3].Text)
+	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track)[0].Image[3].Text)
 	if len(imageFound) > 0 {
 		text = fmt.Sprintf("<a href='%s'>\u200c</a>", strings.ReplaceAll(imageFound[0], "avatar170s", "770x0")+".jpg")
 	}
 
-	if recentTracks.RecentTracks.Track[0].Attr.Nowplaying != "" {
+	if (*recentTracks.RecentTracks.Track)[0].Attr.Nowplaying != "" {
 		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "artist"))
 	} else {
 		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "artist"))
 	}
 
-	text += fmt.Sprintf("🎙<b>%s</b>", recentTracks.RecentTracks.Track[0].Artist.Name)
+	text += fmt.Sprintf("🎙<b>%s</b>", (*recentTracks.RecentTracks.Track)[0].Artist.Name)
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),

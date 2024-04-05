@@ -56,13 +56,13 @@ func (lfm *LastFM) GetRecentTrack(username string) *recentTracks {
 func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 	var methodValue string
 	username := *recentTracks.RecentTracks.Attr.User // Dereference the pointer to get the string value
-	artist := recentTracks.RecentTracks.Track[0].Artist.Name
+	artist := (*recentTracks.RecentTracks.Track)[0].Artist.Name
 	if method == "track" {
-		methodValue = recentTracks.RecentTracks.Track[0].Name
+		methodValue = (*recentTracks.RecentTracks.Track)[0].Name
 	} else if method == "album" {
-		methodValue = recentTracks.RecentTracks.Track[0].Album.Text
+		methodValue = (*recentTracks.RecentTracks.Track)[0].Album.Text
 	} else if method == "artist" {
-		methodValue = recentTracks.RecentTracks.Track[0].Artist.Name
+		methodValue = (*recentTracks.RecentTracks.Track)[0].Artist.Name
 	}
 
 	body := utils.RequestGET(lastFMAPI, utils.RequestGETParams{Query: map[string]string{"method": fmt.Sprintf("%s.getinfo", method), "user": username, "api_key": lfm.apiKey, "artist": artist, method: methodValue, "format": "json"}}).Body()
