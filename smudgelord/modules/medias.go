@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
@@ -20,18 +21,28 @@ import (
 const regexMedia = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:instagram|twitter|x|tiktok|reddit|twitch).(?:com|net|tv)/(?:\S*)`
 
 func removeMediaFiles(mediaItems []telego.InputMedia) {
+	var wg sync.WaitGroup
+
 	for _, media := range mediaItems {
-		switch media.MediaType() {
-		case "photo":
-			if photo, ok := media.(*telego.InputMediaPhoto); ok {
-				os.Remove(photo.Media.String())
+		wg.Add(1)
+
+		go func(media telego.InputMedia) {
+			defer wg.Done()
+
+			switch media.MediaType() {
+			case "photo":
+				if photo, ok := media.(*telego.InputMediaPhoto); ok {
+					os.Remove(photo.Media.String())
+				}
+			case "video":
+				if video, ok := media.(*telego.InputMediaVideo); ok {
+					os.Remove(video.Media.String())
+				}
 			}
-		case "video":
-			if video, ok := media.(*telego.InputMediaVideo); ok {
-				os.Remove(video.Media.String())
-			}
-		}
+		}(media)
 	}
+
+	wg.Wait()
 }
 
 func mediaDownloader(bot *telego.Bot, message telego.Message) {
