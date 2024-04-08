@@ -95,17 +95,21 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 				}
 			}
 		}
+
+		bot.SendChatAction(&telego.SendChatActionParams{
+			ChatID: telegoutil.ID(message.Chat.ID),
+			Action: telego.ChatActionUploadDocument,
+		})
+
+		bot.SendMediaGroup(&telego.SendMediaGroupParams{
+			ChatID: telegoutil.ID(message.Chat.ID),
+			Media:  mediaItems,
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
+		removeMediaFiles(mediaItems)
 	}
-
-	bot.SendMediaGroup(&telego.SendMediaGroupParams{
-		ChatID: telegoutil.ID(message.Chat.ID),
-		Media:  mediaItems,
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
-
-	removeMediaFiles(mediaItems)
 }
 
 func mediaConfig(bot *telego.Bot, update telego.Update) {
