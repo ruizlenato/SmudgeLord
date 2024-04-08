@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"slices"
 	"sort"
 	"strings"
+	"sync"
 
 	"smudgelord/smudgelord/utils"
 
 	"github.com/google/uuid"
+	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
@@ -47,38 +50,40 @@ type Result struct {
 	Legacy Legacy `json:"legacy"`
 }
 
+type Media struct {
+	DisplayURL           string `json:"display_url"`
+	ExpandedURL          string `json:"expanded_url"`
+	Indices              []int  `json:"indices"`
+	MediaURLHTTPS        string `json:"media_url_https"`
+	Type                 string `json:"type"`
+	URL                  string `json:"url"`
+	ExtMediaAvailability struct {
+		Status string `json:"status"`
+	} `json:"ext_media_availability"`
+	Sizes struct {
+		Large size `json:"large"`
+		Thumb size `json:"thumb"`
+	} `json:"sizes"`
+	OriginalInfo struct {
+		Height     int   `json:"height"`
+		Width      int   `json:"width"`
+		FocusRects []any `json:"focus_rects"`
+	} `json:"original_info"`
+	VideoInfo struct {
+		AspectRatio    []int `json:"aspect_ratio"`
+		DurationMillis int   `json:"duration_millis"`
+		Variants       []struct {
+			Bitrate     int    `json:"bitrate,omitempty"`
+			ContentType string `json:"content_type"`
+			URL         string `json:"url"`
+		} `json:"variants"`
+	} `json:"video_info"`
+}
+
 type Legacy *struct {
 	FullText         string `json:"full_text"`
 	ExtendedEntities struct {
-		Media []struct {
-			DisplayURL           string `json:"display_url"`
-			ExpandedURL          string `json:"expanded_url"`
-			Indices              []int  `json:"indices"`
-			MediaURLHTTPS        string `json:"media_url_https"`
-			Type                 string `json:"type"`
-			URL                  string `json:"url"`
-			ExtMediaAvailability struct {
-				Status string `json:"status"`
-			} `json:"ext_media_availability"`
-			Sizes struct {
-				Large size `json:"large"`
-				Thumb size `json:"thumb"`
-			} `json:"sizes"`
-			OriginalInfo struct {
-				Height     int   `json:"height"`
-				Width      int   `json:"width"`
-				FocusRects []any `json:"focus_rects"`
-			} `json:"original_info"`
-			VideoInfo struct {
-				AspectRatio    []int `json:"aspect_ratio"`
-				DurationMillis int   `json:"duration_millis"`
-				Variants       []struct {
-					Bitrate     int    `json:"bitrate,omitempty"`
-					ContentType string `json:"content_type"`
-					URL         string `json:"url"`
-				} `json:"variants"`
-			} `json:"video_info"`
-		} `json:"media"`
+		Media []Media `json:"media"`
 	} `json:"extended_entities"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
@@ -199,35 +204,57 @@ func (dm *DownloadMedia) Twitter(url string) {
 		return
 	}
 
-	for _, media := range tweetResult.(Legacy).ExtendedEntities.Media {
-		var videoType string
-		if slices.Contains([]string{"animated_gif", "video"}, media.Type) {
-			videoType = "video"
-		}
-		if videoType != "video" {
-			file, err := downloader(media.MediaURLHTTPS)
+	var wg sync.WaitGroup
+	wg.Add(len(tweetResult.(Legacy).ExtendedEntities.Media))
+	dm.MediaItems = make([]telego.InputMedia, len(tweetResult.(Legacy).ExtendedEntities.Media))
+
+	medias := make(map[int]*os.File)
+
+	for i, media := range tweetResult.(Legacy).ExtendedEntities.Media {
+		go func(index int, media Media) {
+			defer wg.Done()
+			var file *os.File
+			var err error
+			var videoType string
+
+			if slices.Contains([]string{"animated_gif", "video"}, media.Type) {
+				videoType = "video"
+			}
+			if videoType != "video" {
+				file, err = downloader(media.MediaURLHTTPS)
+			} else {
+				sort.Slice(media.VideoInfo.Variants, func(i, j int) bool {
+					return media.VideoInfo.Variants[i].Bitrate < media.VideoInfo.Variants[j].Bitrate
+				})
+				file, err = downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
+			}
 			if err != nil {
-				log.Print("[twitter/Twitter] Error downloading photo:", err)
+				log.Print("[twitter/Twitter] Error downloading media:", err)
+				// Use index as key to store nil for failed downloads
+				medias[index] = nil
 				return
 			}
-			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
-				telegoutil.File(file)),
-			)
-		} else {
-			sort.Slice(media.VideoInfo.Variants, func(i, j int) bool {
-				return media.VideoInfo.Variants[i].Bitrate < media.VideoInfo.Variants[j].Bitrate
-			})
-			file, err := downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
-			if err != nil {
-				log.Print("[twitter/Twitter] Error downloading video:", err)
-				return
+			// Use index as key to store downloaded file
+			medias[index] = file
+		}(i, media)
+	}
+
+	wg.Wait()
+
+	// Process medias after all downloads are complete
+	for index, file := range medias {
+		if file != nil {
+			var mediaItem telego.InputMedia
+			if tweetResult.(Legacy).ExtendedEntities.Media[index].Type == "photo" {
+				mediaItem = telegoutil.MediaPhoto(telegoutil.File(file))
+			} else {
+				mediaItem = telegoutil.MediaVideo(telegoutil.File(file)).WithWidth((tweetResult.(Legacy).ExtendedEntities.Media)[index].OriginalInfo.Width).WithHeight((tweetResult.(Legacy).ExtendedEntities.Media)[index].OriginalInfo.Height)
 			}
-			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
-				telegoutil.File(file)).WithWidth(media.OriginalInfo.Width).WithHeight(media.OriginalInfo.Height),
-			)
+			dm.MediaItems[index] = mediaItem
 		}
-		if tweet, ok := tweetResult.(Legacy); ok {
-			dm.Caption = tweet.FullText
-		}
+	}
+
+	if tweet, ok := tweetResult.(Legacy); ok {
+		dm.Caption = tweet.FullText
 	}
 }

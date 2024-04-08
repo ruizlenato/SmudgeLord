@@ -4,11 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
+	"sync"
 
 	"smudgelord/smudgelord/utils"
 
+	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
@@ -45,26 +48,25 @@ type DisplayResources struct {
 }
 
 type EdgeMediaToCaption struct {
-	Edges []struct {
-		Node struct {
-			Text string `json:"text"`
-		} `json:"node"`
-	} `json:"edges"`
+	Edges []Edges `json:"edges"`
 }
+type Edges struct {
+	Node struct {
+		Typename         string             `json:"__typename"`
+		Text             string             `json:"text"`
+		ID               string             `json:"id"`
+		Shortcode        string             `json:"shortcode"`
+		CommenterCount   int                `json:"commenter_count"`
+		Dimensions       Dimensions         `json:"dimensions"`
+		DisplayResources []DisplayResources `json:"display_resources"`
+		IsVideo          bool               `json:"is_video"`
+		VideoURL         string             `json:"video_url,omitempty"`
+		DisplayURL       string             `json:"display_url"`
+	} `json:"node"`
+}
+
 type EdgeSidecarToChildren struct {
-	Edges []struct {
-		Node struct {
-			Typename         string             `json:"__typename"`
-			ID               string             `json:"id"`
-			Shortcode        string             `json:"shortcode"`
-			CommenterCount   int                `json:"commenter_count"`
-			Dimensions       Dimensions         `json:"dimensions"`
-			DisplayResources []DisplayResources `json:"display_resources"`
-			IsVideo          bool               `json:"is_video"`
-			VideoURL         string             `json:"video_url,omitempty"`
-			DisplayURL       string             `json:"display_url"`
-		} `json:"node"`
-	} `json:"edges"`
+	Edges []Edges `json:"edges"`
 }
 
 type StoriesData struct {
@@ -142,15 +144,18 @@ func (dm *DownloadMedia) Instagram(url string) {
 			return
 		}
 
-		if file, err := downloader(storiesData.URL); err == nil {
-			if strings.Contains(storiesData.URL, ".mp4?") {
-				dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(telegoutil.File(file)))
-			}
-			if strings.Contains(storiesData.URL, ".jpg?") || strings.Contains(storiesData.URL, ".png?") {
-				dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(telegoutil.File(file)))
-			}
-		} else {
+		file, err := downloader(storiesData.URL)
+		if err != nil {
 			log.Print("[instagram/Instagram] Error downloading file:", err)
+			return
+		}
+		defer file.Close()
+
+		if strings.Contains(storiesData.URL, ".mp4?") {
+			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(telegoutil.File(file)))
+		}
+		if strings.Contains(storiesData.URL, ".jpg?") || strings.Contains(storiesData.URL, ".png?") {
+			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(telegoutil.File(file)))
 		}
 		return
 	}
@@ -186,25 +191,41 @@ func (dm *DownloadMedia) Instagram(url string) {
 				telegoutil.File(file)),
 			)
 		case "GraphSidecar":
-			for _, results := range instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges {
-				if !results.Node.IsVideo {
-					file, err := downloader(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].Src)
+			var wg sync.WaitGroup
+			medias := make(map[int]*os.File)
+
+			for i, results := range instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges {
+				wg.Add(1)
+				go func(index int, result Edges) {
+					defer wg.Done()
+					var file *os.File
+					var err error
+					if !result.Node.IsVideo {
+						file, err = downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
+					} else {
+						file, err = downloader(result.Node.VideoURL)
+					}
 					if err != nil {
-						log.Print("[instagram/Instagram] Error downloading image:", err)
+						log.Print("[instagram/Instagram] Error downloading media:", err)
+						// Use index as key to store nil for failed downloads
+						medias[index] = nil
 						return
 					}
-					dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(
-						telegoutil.File(file)),
-					)
-				} else {
-					file, err := downloader(results.Node.VideoURL)
-					if err != nil {
-						log.Print("[instagram/Instagram] Error downloading video:", err)
-						return
+					// Use index as key to store downloaded file
+					medias[index] = file
+				}(i, results)
+			}
+
+			wg.Wait()
+			dm.MediaItems = make([]telego.InputMedia, len(medias))
+			// Process results after all downloads are complete
+			for index, file := range medias {
+				if file != nil {
+					if !instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges[index].Node.IsVideo {
+						dm.MediaItems[index] = telegoutil.MediaPhoto(telegoutil.File(file))
+					} else {
+						dm.MediaItems[index] = telegoutil.MediaVideo(telegoutil.File(file)).WithWidth(instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigWidth).WithHeight(instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.ShortcodeMedia.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigHeight)
 					}
-					dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(
-						telegoutil.File(file)).WithWidth(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].ConfigWidth).WithHeight(results.Node.DisplayResources[len(results.Node.DisplayResources)-1].ConfigHeight),
-					)
 				}
 			}
 		}

@@ -2,14 +2,16 @@ package medias
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"regexp"
 	"slices"
+	"sync"
 
 	"smudgelord/smudgelord/utils"
 
+	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
@@ -141,14 +143,33 @@ func (dm *DownloadMedia) TikTok(url string) {
 	}
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
-		for _, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
-			fmt.Println(media.DisplayImage.URLList[1])
-			file, err := downloader(media.DisplayImage.URLList[1])
-			if err != nil {
-				log.Print("[tiktok/TikTok] Error downloading photo:", err)
-				return
+		var wg sync.WaitGroup
+		wg.Add(len(tikTokData.AwemeList[0].ImagePostInfo.Images))
+
+		medias := make(map[int]*os.File)
+		for i, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
+			go func(index int, media Image) {
+				defer wg.Done()
+				file, err := downloader(media.DisplayImage.URLList[1])
+				if err != nil {
+					log.Print("[tiktok/TikTok] Error downloading photo:", err)
+					// Use index as key to store nil for failed downloads
+					medias[index] = nil
+					return
+				}
+				// Use index as key to store downloaded file
+				medias[index] = file
+			}(i, media)
+		}
+
+		wg.Wait()
+		dm.MediaItems = make([]telego.InputMedia, len(medias))
+
+		// Process medias after all downloads are complete
+		for index, file := range medias {
+			if file != nil {
+				dm.MediaItems[index] = telegoutil.MediaPhoto(telegoutil.File(file))
 			}
-			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaPhoto(telegoutil.File(file)))
 		}
 	} else {
 		file, err := downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
