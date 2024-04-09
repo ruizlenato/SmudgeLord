@@ -35,6 +35,7 @@
         "invalid-username": "<b>Usuário do last.fm inválido</b>\nVerifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.",
         "no-username": "<b>Você ainda não definiu seu nome de usuário do last.fm</b>\nUse o comando /setuser para definir",
         "username-set": "<b>Pronto, nome de usuário do last.fm foi salvo!</b>",
+        "no-scrobbles": "<b>Aparentemente você nunca scrobblou uma música no LastFM.</b>.\n\n<b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.",
         "now-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:\n\n",
         "was-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:\n\n",
         "help": "Aqui estão alguns comandos relacionados ao <i><b>scrobbling</b></i> do last.fm\n<i><b>Scrobbling</b></i> é um recurso do last.fm que envia automaticamente informações sobre as músicas que você está ouvindo para o serviço.\n<b>Para saber mais, <a href='https://www.last.fm/pt/about/trackmymusic'>clique aqui</a></b>.\n\n<b>/setuser —</b> Configura seu nome de usuario do last.fm.\n<b>/lastfm | /lp —</b> Mostra a música você está ou estava ouvindo.\n<b>/album | /alb —</b> Mostra o álbum você está ou estava ouvindo.\n<b>/artist | /art —</b> Mostra o artista você está ou estava ouvindo."

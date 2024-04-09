@@ -89,7 +89,18 @@ func music(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if recentTracks.RecentTracks.Track == nil {
+	if len(*recentTracks.RecentTracks.Track) < 1 || recentTracks.RecentTracks.Track == nil {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("lastfm.no-scrobbles"),
+			ParseMode: "HTML",
+			LinkPreviewOptions: &telego.LinkPreviewOptions{
+				IsDisabled: true,
+			},
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
 		return
 	}
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track)[0].Image[3].Text)
@@ -139,7 +150,18 @@ func album(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if recentTracks == nil {
+	if len(*recentTracks.RecentTracks.Track) < 1 || recentTracks.RecentTracks.Track == nil {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("lastfm.no-scrobbles"),
+			ParseMode: "HTML",
+			LinkPreviewOptions: &telego.LinkPreviewOptions{
+				IsDisabled: true,
+			},
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
 		return
 	}
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track)[0].Image[3].Text)
@@ -189,7 +211,18 @@ func artist(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if recentTracks == nil {
+	if len(*recentTracks.RecentTracks.Track) < 1 || recentTracks.RecentTracks.Track == nil {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("lastfm.no-scrobbles"),
+			ParseMode: "HTML",
+			LinkPreviewOptions: &telego.LinkPreviewOptions{
+				IsDisabled: true,
+			},
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
 		return
 	}
 	body := utils.RequestGET(fmt.Sprintf("https://www.last.fm/music/%s/+images", (*recentTracks.RecentTracks.Track)[0].Artist.Name), utils.RequestGETParams{}).String()
