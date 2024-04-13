@@ -178,7 +178,7 @@ func (dm *DownloadMedia) Twitter(url string) {
 
 	twitterAPIData := TweetExtract(tweetID)
 
-	if twitterAPIData == nil || twitterAPIData.Data.TweetResults == nil {
+	if twitterAPIData == nil || twitterAPIData.Data.TweetResults.Legacy == nil {
 		return
 	}
 
