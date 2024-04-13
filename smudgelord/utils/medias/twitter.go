@@ -8,37 +8,19 @@ import (
 	"regexp"
 	"slices"
 	"sort"
-	"strings"
 	"sync"
 
 	"smudgelord/smudgelord/utils"
 
-	"github.com/google/uuid"
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
 type TwitterAPIData struct {
 	Data *struct {
-		ThreadedConversationWithInjectionsV2 *struct {
-			Instructions []struct {
-				Entries []struct {
-					EntryID string `json:"entryId"`
-					Content struct {
-						ItemContent struct {
-							TweetResults struct {
-								Result `json:"result"`
-							} `json:"tweet_results"`
-						} `json:"itemContent"`
-					} `json:"content"`
-				} `json:"entries,omitempty"`
-			} `json:"instructions"`
-		} `json:"threaded_conversation_with_injections_v2"`
-		User *struct {
-			Result struct {
-				Legacy Legacy `json:"legacy"`
-			} `json:"result"`
-		} `json:"user,omitempty"`
+		TweetResults *struct {
+			Result `json:"result"`
+		} `json:"tweetResult"`
 	} `json:"data"`
 }
 
@@ -48,36 +30,6 @@ type Result struct {
 		Legacy Legacy `json:"legacy"`
 	} `json:"tweet"`
 	Legacy Legacy `json:"legacy"`
-}
-
-type Media struct {
-	DisplayURL           string `json:"display_url"`
-	ExpandedURL          string `json:"expanded_url"`
-	Indices              []int  `json:"indices"`
-	MediaURLHTTPS        string `json:"media_url_https"`
-	Type                 string `json:"type"`
-	URL                  string `json:"url"`
-	ExtMediaAvailability struct {
-		Status string `json:"status"`
-	} `json:"ext_media_availability"`
-	Sizes struct {
-		Large size `json:"large"`
-		Thumb size `json:"thumb"`
-	} `json:"sizes"`
-	OriginalInfo struct {
-		Height     int   `json:"height"`
-		Width      int   `json:"width"`
-		FocusRects []any `json:"focus_rects"`
-	} `json:"original_info"`
-	VideoInfo struct {
-		AspectRatio    []int `json:"aspect_ratio"`
-		DurationMillis int   `json:"duration_millis"`
-		Variants       []struct {
-			Bitrate     int    `json:"bitrate,omitempty"`
-			ContentType string `json:"content_type"`
-			URL         string `json:"url"`
-		} `json:"variants"`
-	} `json:"video_info"`
 }
 
 type Legacy *struct {
@@ -99,25 +51,69 @@ type Legacy *struct {
 	Location       string `json:"location"`
 }
 
-type size struct {
+type Media struct {
+	DisplayURL           string `json:"display_url"`
+	ExpandedURL          string `json:"expanded_url"`
+	Indices              []int  `json:"indices"`
+	MediaURLHTTPS        string `json:"media_url_https"`
+	Type                 string `json:"type"`
+	URL                  string `json:"url"`
+	ExtMediaAvailability struct {
+		Status string `json:"status"`
+	} `json:"ext_media_availability"`
+	Sizes struct {
+		Large Size `json:"large"`
+		Thumb Size `json:"thumb"`
+	} `json:"sizes"`
+	OriginalInfo struct {
+		Height     int   `json:"height"`
+		Width      int   `json:"width"`
+		FocusRects []any `json:"focus_rects"`
+	} `json:"original_info"`
+	VideoInfo struct {
+		AspectRatio    []int `json:"aspect_ratio"`
+		DurationMillis int   `json:"duration_millis"`
+		Variants       []struct {
+			Bitrate     int    `json:"bitrate,omitempty"`
+			ContentType string `json:"content_type"`
+			URL         string `json:"url"`
+		} `json:"variants"`
+	} `json:"video_info"`
+}
+type Size struct {
 	H      int    `json:"h"`
 	W      int    `json:"w"`
 	Resize string `json:"resize"`
 }
 
-func TweetExtract(tweetID string) *TwitterAPIData {
-	csrfToken := strings.ReplaceAll(uuid.New().String(), "-", "")
-	headers := map[string]string{
-		"Authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
-		"Cookie":                    fmt.Sprintf("auth_token=ee4ebd1070835b90a9b8016d1e6c6130ccc89637; ct0=%v; ", csrfToken),
-		"x-twitter-active-user":     "yes",
-		"x-twitter-auth-type":       "OAuth2Session",
-		"x-twitter-client-language": "en",
-		"x-csrf-token":              csrfToken,
-		"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+var headers = map[string]string{
+	"Authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
+	"x-twitter-client-language": "en",
+	"x-twitter-active-user":     "yes",
+	"Accept-language":           "en",
+	"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+	"content-type":              "application/json",
+}
+
+func getGuestToken() string {
+	type guestToken struct {
+		GuestToken string `json:"guest_token"`
 	}
+
+	body := utils.RequestPOST("https://api.twitter.com/1.1/guest/activate.json", utils.RequestPOSTParams{Headers: headers}).Body()
+	var res guestToken
+	err := json.Unmarshal(body, &res)
+	if err != nil {
+		log.Print(err)
+	}
+	return res.GuestToken
+}
+
+func TweetExtract(tweetID string) *TwitterAPIData {
+	headers["x-guest-token"] = getGuestToken()
+	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", getGuestToken())
 	variables := map[string]interface{}{
-		"focalTweetId":                           tweetID,
+		"tweetId":                                tweetID,
 		"referrer":                               "messages",
 		"includePromotedContent":                 true,
 		"withCommunity":                          true,
@@ -127,30 +123,27 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 		"withV2Timeline":                         true,
 	}
 	features := map[string]interface{}{
-		"rweb_lists_timeline_redesign_enabled":                                    true,
-		"responsive_web_graphql_exclude_directive_enabled":                        true,
-		"verified_phone_label_enabled":                                            false,
 		"creator_subscriptions_tweet_preview_api_enabled":                         true,
-		"responsive_web_graphql_timeline_navigation_enabled":                      true,
-		"responsive_web_graphql_skip_user_profile_image_extensions_enabled":       false,
+		"c9s_tweet_anatomy_moderator_badge_enabled":                               true,
 		"tweetypie_unmention_optimization_enabled":                                true,
 		"responsive_web_edit_tweet_api_enabled":                                   true,
-		"graphql_is_translatable_rweb_tweet_is_translatable_enabled":              false,
+		"graphql_is_translatable_rweb_tweet_is_translatable_enabled":              true,
 		"view_counts_everywhere_api_enabled":                                      true,
 		"longform_notetweets_consumption_enabled":                                 true,
 		"responsive_web_twitter_article_tweet_consumption_enabled":                false,
 		"tweet_awards_web_tipping_enabled":                                        false,
+		"responsive_web_home_pinned_timelines_enabled":                            true,
 		"freedom_of_speech_not_reach_fetch_enabled":                               true,
 		"standardized_nudges_misinfo":                                             true,
 		"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled": true,
 		"longform_notetweets_rich_text_read_enabled":                              true,
 		"longform_notetweets_inline_media_enabled":                                true,
+		"responsive_web_graphql_exclude_directive_enabled":                        true,
+		"verified_phone_label_enabled":                                            false,
 		"responsive_web_media_download_video_enabled":                             false,
+		"responsive_web_graphql_skip_user_profile_image_extensions_enabled":       false,
+		"responsive_web_graphql_timeline_navigation_enabled":                      true,
 		"responsive_web_enhance_cards_enabled":                                    false,
-	}
-	fieldtoggles := map[string]interface{}{
-		"withAuxiliaryUserLabels":     false,
-		"withArticleRichContentState": false,
 	}
 
 	jsonMarshal := func(data interface{}) []byte {
@@ -159,12 +152,11 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 	}
 
 	query := map[string]string{
-		"variables":    string(jsonMarshal(variables)),
-		"features":     string(jsonMarshal(features)),
-		"fieldToggles": string(jsonMarshal(fieldtoggles)),
+		"variables": string(jsonMarshal(variables)),
+		"features":  string(jsonMarshal(features)),
 	}
 
-	body := utils.RequestGET("https://twitter.com/i/api/graphql/NmCeCgkVlsRGS1cAwqtgmw/TweetDetail", utils.RequestGETParams{Query: query, Headers: headers}).Body()
+	body := utils.RequestGET("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestGETParams{Query: query, Headers: headers}).Body()
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {
@@ -186,31 +178,17 @@ func (dm *DownloadMedia) Twitter(url string) {
 
 	twitterAPIData := TweetExtract(tweetID)
 
-	var tweetResult interface{}
-	if twitterAPIData.Data.ThreadedConversationWithInjectionsV2 == nil {
-		return
-	}
-	for _, entry := range twitterAPIData.Data.ThreadedConversationWithInjectionsV2.Instructions[0].Entries {
-		if entry.EntryID == fmt.Sprintf("tweet-%v", tweetID) {
-			if entry.Content.ItemContent.TweetResults.Result.Typename == "TweetWithVisibilityResults" {
-				tweetResult = entry.Content.ItemContent.TweetResults.Result.Tweet.Legacy
-			} else {
-				tweetResult = entry.Content.ItemContent.TweetResults.Result.Legacy
-			}
-			break
-		}
-	}
-	if tweetResult.(Legacy) == nil {
+	if twitterAPIData == nil || twitterAPIData.Data.TweetResults == nil {
 		return
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(len(tweetResult.(Legacy).ExtendedEntities.Media))
-	dm.MediaItems = make([]telego.InputMedia, len(tweetResult.(Legacy).ExtendedEntities.Media))
+	wg.Add(len(twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
+	dm.MediaItems = make([]telego.InputMedia, len(twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
 
 	medias := make(map[int]*os.File)
 
-	for i, media := range tweetResult.(Legacy).ExtendedEntities.Media {
+	for i, media := range twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
 		go func(index int, media Media) {
 			defer wg.Done()
 			var file *os.File
@@ -245,16 +223,16 @@ func (dm *DownloadMedia) Twitter(url string) {
 	for index, file := range medias {
 		if file != nil {
 			var mediaItem telego.InputMedia
-			if tweetResult.(Legacy).ExtendedEntities.Media[index].Type == "photo" {
+			if twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index].Type == "photo" {
 				mediaItem = telegoutil.MediaPhoto(telegoutil.File(file))
 			} else {
-				mediaItem = telegoutil.MediaVideo(telegoutil.File(file)).WithWidth((tweetResult.(Legacy).ExtendedEntities.Media)[index].OriginalInfo.Width).WithHeight((tweetResult.(Legacy).ExtendedEntities.Media)[index].OriginalInfo.Height)
+				mediaItem = telegoutil.MediaVideo(telegoutil.File(file)).WithWidth((twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width).WithHeight((twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height)
 			}
 			dm.MediaItems[index] = mediaItem
 		}
 	}
 
-	if tweet, ok := tweetResult.(Legacy); ok {
+	if tweet := twitterAPIData.Data.TweetResults.Result.Legacy; tweet != nil {
 		dm.Caption = tweet.FullText
 	}
 }
