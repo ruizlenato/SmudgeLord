@@ -304,10 +304,8 @@ func configMenu(bot *telego.Bot, update telego.Update) {
 }
 
 func LoadStart(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	bh.Handle(start, telegohandler.CommandEqual("start"))
-	bh.Handle(start, telegohandler.CallbackDataEqual("start"))
-	bh.Handle(languageMenu, telegohandler.CommandEqual("lang"), helpers.IsAdmin(bot))
-	bh.Handle(languageMenu, telegohandler.CallbackDataEqual("languageMenu"), helpers.IsAdmin(bot))
+	bh.Handle(start, telegohandler.Or(telegohandler.CommandEqual("start"), telegohandler.CallbackDataEqual("start")))
+	bh.Handle(languageMenu, telegohandler.Or(telegohandler.CallbackDataEqual("languageMenu"), telegohandler.CommandEqual("lang")), helpers.IsAdmin(bot))
 	bh.Handle(languageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
 	bh.Handle(helpMenu, telegohandler.CallbackDataEqual("helpMenu"))
 	bh.Handle(aboutMenu, telegohandler.CallbackDataEqual("aboutMenu"))

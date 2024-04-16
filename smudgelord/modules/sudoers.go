@@ -118,6 +118,8 @@ func announce(bot *telego.Bot, update telego.Update) {
 }
 
 func LoadSudoers(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	bh.Handle(announce, telegohandler.CommandEqual("announce"))
-	bh.Handle(announce, telegohandler.CallbackDataPrefix("announce"))
+	bh.Handle(announce, telegohandler.Or(
+		telegohandler.CommandEqual("announce"),
+		telegohandler.CallbackDataPrefix("announce"),
+	))
 }

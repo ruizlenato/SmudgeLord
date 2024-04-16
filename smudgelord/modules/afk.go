@@ -164,6 +164,8 @@ func setAFK(bot *telego.Bot, message telego.Message) {
 
 func LoadAFK(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("afk")
-	bh.HandleMessage(setAFK, telegohandler.CommandEqual("afk"))
-	bh.HandleMessage(setAFK, telegohandler.TextMatches(regexp.MustCompile(`^(?:brb)(\s.+)?`)))
+	bh.HandleMessage(setAFK, telegohandler.Or(
+		telegohandler.CommandEqual("afk"),
+		telegohandler.TextMatches(regexp.MustCompile(`^(?:brb)(\s.+)?`)),
+	))
 }

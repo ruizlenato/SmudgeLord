@@ -201,9 +201,11 @@ func explainConfig(bot *telego.Bot, update telego.Update) {
 
 func LoadMediaDownloader(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("medias")
-	bh.HandleMessage(mediaDownloader, telegohandler.CommandEqual("dl"))
-	bh.HandleMessage(mediaDownloader, telegohandler.CommandEqual("sdl"))
-	bh.HandleMessage(mediaDownloader, telegohandler.TextMatches(regexp.MustCompile(regexMedia)))
+	bh.HandleMessage(mediaDownloader, telegohandler.Or(
+		telegohandler.CommandEqual("dl"),
+		telegohandler.CommandEqual("sdl"),
+		telegohandler.TextMatches(regexp.MustCompile(regexMedia)),
+	))
 	bh.Handle(mediaConfig, telegohandler.CallbackDataPrefix("mediaConfig"), helpers.IsAdmin(bot))
 	bh.Handle(explainConfig, telegohandler.CallbackDataPrefix("ieConfig"), helpers.IsAdmin(bot))
 }

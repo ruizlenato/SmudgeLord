@@ -299,14 +299,20 @@ func artist(bot *telego.Bot, message telego.Message) {
 func LoadLastFM(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("lastfm")
 	bh.HandleMessage(setUser, telegohandler.CommandEqual("setuser"))
-	bh.HandleMessage(music, telegohandler.CommandEqual("lastfm"))
-	bh.HandleMessage(music, telegohandler.CommandEqual("lt"))
-	bh.HandleMessage(music, telegohandler.CommandEqual("np"))
-	bh.HandleMessage(music, telegohandler.CommandEqual("lmu"))
-	bh.HandleMessage(album, telegohandler.CommandEqual("album"))
-	bh.HandleMessage(album, telegohandler.CommandEqual("alb"))
-	bh.HandleMessage(album, telegohandler.CommandEqual("lalb"))
-	bh.HandleMessage(artist, telegohandler.CommandEqual("artist"))
-	bh.HandleMessage(artist, telegohandler.CommandEqual("art"))
-	bh.HandleMessage(artist, telegohandler.CommandEqual("lart"))
+	bh.HandleMessage(music, telegohandler.Or(
+		telegohandler.CommandEqual("lastfm"),
+		telegohandler.CommandEqual("lt"),
+		telegohandler.CommandEqual("np"),
+		telegohandler.CommandEqual("lmu"),
+	))
+	bh.HandleMessage(album, telegohandler.Or(
+		telegohandler.CommandEqual("album"),
+		telegohandler.CommandEqual("alb"),
+		telegohandler.CommandEqual("lalb"),
+	))
+	bh.HandleMessage(artist, telegohandler.Or(
+		telegohandler.CommandEqual("artist"),
+		telegohandler.CommandEqual("art"),
+		telegohandler.CommandEqual("lart")),
+	)
 }
