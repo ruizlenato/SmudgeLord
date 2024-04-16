@@ -36,7 +36,7 @@ type track struct {
 }
 
 type recentTracks struct {
-	RecentTracks struct {
+	RecentTracks *struct {
 		Track *[]track `json:"track"`
 		Attr  struct {
 			User  *string `json:"user"`

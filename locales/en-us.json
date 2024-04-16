@@ -35,6 +35,7 @@
         "invalid-username": "<b>Invalid last.fm username</b>\nCheck that you have correctly typed your last.FM username and try again.",
         "no-username": "<b>You haven't set your last.fm username yet.</b>\nUse the command /setuser to set",
         "username-set": "<b>Done, last.fm user saved!</b>",
+        "error": "<b>An error seems to have occurred.</b>\nLast.fm might be temporarily unavailable.\n\nTry again in a few minutes, if the error persists, contact my developer.",
         "no-scrobbles": "<b>It seems you haven't scrobbled any tracks on Last.fm yet.</b>.\n\n<b>If you're having trouble using Last.fm,</b> go to last.fm/about/trackmymusic and learn how to connect your account to your music app.",
         "now-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:\n\n",
         "was-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:\n\n",

@@ -89,7 +89,21 @@ func music(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if len(*recentTracks.RecentTracks.Track) < 1 || recentTracks.RecentTracks.Track == nil {
+	if recentTracks == nil {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("lastfm.error"),
+			ParseMode: "HTML",
+			LinkPreviewOptions: &telego.LinkPreviewOptions{
+				IsDisabled: true,
+			},
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
+		return
+	}
+	if recentTracks.RecentTracks == nil || len(*recentTracks.RecentTracks.Track) < 1 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-scrobbles"),
@@ -150,7 +164,21 @@ func album(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if len(*recentTracks.RecentTracks.Track) < 1 || recentTracks.RecentTracks.Track == nil {
+	if recentTracks == nil {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("lastfm.error"),
+			ParseMode: "HTML",
+			LinkPreviewOptions: &telego.LinkPreviewOptions{
+				IsDisabled: true,
+			},
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
+		return
+	}
+	if recentTracks.RecentTracks == nil || len(*recentTracks.RecentTracks.Track) < 1 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-scrobbles"),
@@ -211,7 +239,21 @@ func artist(bot *telego.Bot, message telego.Message) {
 	}
 
 	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if len(*recentTracks.RecentTracks.Track) < 1 || recentTracks.RecentTracks.Track == nil {
+	if recentTracks == nil {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("lastfm.error"),
+			ParseMode: "HTML",
+			LinkPreviewOptions: &telego.LinkPreviewOptions{
+				IsDisabled: true,
+			},
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
+		return
+	}
+	if recentTracks.RecentTracks == nil || len(*recentTracks.RecentTracks.Track) < 1 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-scrobbles"),
