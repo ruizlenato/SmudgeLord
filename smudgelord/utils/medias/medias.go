@@ -44,9 +44,29 @@ func (dm *DownloadMedia) Download(url string) ([]telego.InputMedia, string) {
 	return dm.MediaItems, dm.Caption
 }
 
+var mimeExtensions = map[string]string{
+	"image/jpeg":      "jpg",
+	"image/png":       "png",
+	"image/gif":       "gif",
+	"image/webp":      "webp",
+	"video/mp4":       "mp4",
+	"video/webm":      "webm",
+	"video/quicktime": "mov",
+	"video/x-msvideo": "avi",
+}
+
 func downloader(media string) (*os.File, error) {
-	body := utils.RequestGET(media, utils.RequestGETParams{}).Body()
-	file, err := os.CreateTemp("", "smudge*")
+	body := utils.RequestGET(media, utils.RequestGETParams{})
+
+	extension := func(contentType []byte) string {
+		extension, ok := mimeExtensions[string(contentType)]
+		if !ok {
+			return ""
+		}
+		return extension
+	}
+
+	file, err := os.CreateTemp("", fmt.Sprintf("smudge*.%s", extension(body.Header.ContentType())))
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +79,7 @@ func downloader(media string) (*os.File, error) {
 		}
 	}()
 
-	_, err = file.Write(body) // Write the byte slice to the file
+	_, err = file.Write(body.Body()) // Write the byte slice to the file
 	if err != nil {
 		return nil, err
 	}
