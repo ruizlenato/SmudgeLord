@@ -7,15 +7,15 @@ require (
 	github.com/h2non/bimg v1.1.9
 	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-sqlite3 v1.14.22
-	github.com/mymmrac/telego v0.29.2
+	github.com/mymmrac/telego v0.29.3-0.20240416071312-2735ffa835d8
 	github.com/valyala/fasthttp v1.52.0
 )
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
-	github.com/bytedance/sonic v1.11.3 // indirect
-	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
-	github.com/chenzhuoyu/iasm v0.9.1 // indirect
+	github.com/bytedance/sonic v1.11.4 // indirect
+	github.com/cloudwego/base64x v0.1.0 // indirect
+	github.com/cloudwego/iasm v0.0.9 // indirect
 	github.com/grbit/go-json v0.11.0 // indirect
 	github.com/klauspost/compress v1.17.7 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect
