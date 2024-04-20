@@ -19,8 +19,15 @@ import (
 )
 
 func main() {
+	var bot *telego.Bot
+	var err error
+
 	// Create bot
-	bot, err := telego.NewBot(config.TelegramToken)
+	if config.BotAPIURL != "" {
+		bot, err = telego.NewBot(config.TelegramToken, telego.WithAPIServer(config.BotAPIURL))
+	} else {
+		bot, err = telego.NewBot(config.TelegramToken)
+	}
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -34,19 +41,7 @@ func main() {
 
 	// Check if the webhook URL is empty.
 	// If the webhook URL is empty, the bot will get the updates via long polling
-	if config.WebhookURL == "" {
-		// Delete the webhook for the Telegram bot, specifying that any pending updates should be dropped.
-		err = bot.DeleteWebhook(&telego.DeleteWebhookParams{
-			DropPendingUpdates: true,
-		})
-		if err != nil {
-			log.Fatal("Delete webhook:", err)
-		}
-		// Get updates using long polling.
-		updates, err = bot.UpdatesViaLongPolling(&telego.GetUpdatesParams{
-			Timeout: 4,
-		}, telego.WithLongPollingUpdateInterval(0))
-	} else {
+	if config.WebhookURL != "" {
 		err = bot.SetWebhook(&telego.SetWebhookParams{
 			DropPendingUpdates: true,
 			URL:                config.WebhookURL + bot.Token(),
@@ -63,7 +58,20 @@ func main() {
 				Router: router.New(),
 			}),
 		)
+	} else {
+		// Delete the webhook for the Telegram bot, specifying that any pending updates should be dropped.
+		err = bot.DeleteWebhook(&telego.DeleteWebhookParams{
+			DropPendingUpdates: true,
+		})
+		if err != nil {
+			log.Fatal("Delete webhook:", err)
+		}
+		// Get updates using long polling.
+		updates, err = bot.UpdatesViaLongPolling(&telego.GetUpdatesParams{
+			Timeout: 4,
+		}, telego.WithLongPollingUpdateInterval(0))
 	}
+
 	if err != nil {
 		log.Fatal("Get updates:", err)
 	}

@@ -13,6 +13,7 @@ var (
 	TelegramToken string
 	LastFMKey     string
 	DatabaseFile  string
+	BotAPIURL     string
 	WebhookURL    string
 	SOCKS5URL     string
 	OWNER_ID      int64
@@ -41,6 +42,7 @@ func init() {
 	}
 
 	WebhookURL = os.Getenv("WEBHOOK_URL")
+	BotAPIURL = os.Getenv("BOTAPI_URL")
 	SOCKS5URL = os.Getenv("SOCKS5URL")
 
 	OWNER_ID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
