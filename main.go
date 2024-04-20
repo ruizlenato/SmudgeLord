@@ -138,7 +138,7 @@ func main() {
 	// Start server for receiving requests from the Telegram
 	if config.WebhookURL != "" {
 		go func() {
-			err = bot.StartWebhook("0.0.0.0:8080")
+			err = bot.StartWebhook(fmt.Sprintf("0.0.0.0:%d", config.WebhookPort))
 			if err != nil {
 				log.Fatal(err)
 			}

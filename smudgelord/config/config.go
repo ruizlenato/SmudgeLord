@@ -3,7 +3,6 @@ package config
 import (
 	"log"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/joho/godotenv"
@@ -15,6 +14,7 @@ var (
 	DatabaseFile  string
 	BotAPIURL     string
 	WebhookURL    string
+	WebhookPort   int
 	SOCKS5URL     string
 	OWNER_ID      int64
 )
@@ -37,8 +37,10 @@ func init() {
 	}
 
 	DatabaseFile = os.Getenv("DATABASE_FILE")
-	if DatabaseFile == "" {
-		DatabaseFile = filepath.Join(".", "smudgelord", "database", "database.sql")
+
+	WebhookPort, _ = strconv.Atoi(os.Getenv("WEBHOOK_PORT"))
+	if WebhookPort == 0 {
+		WebhookPort = 8080
 	}
 
 	WebhookURL = os.Getenv("WEBHOOK_URL")
