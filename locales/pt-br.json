@@ -39,6 +39,7 @@
         "no-scrobbles": "<b>Aparentemente você nunca scrobblou uma música no last.fm.</b>.\n\n<b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.",
         "now-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:\n\n",
         "was-playing": "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:\n\n",
+        "config-help": "<b>Configurações do LastFM em seu grupo:</b>\nUse o botão abaixo para configurar se o bot deve responder aos comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.\n\nSe quiser evitar conflitos com outros bots você pode desativar a opção abaixo para que o bot não responda aos comandos mencionados acima.",
         "help": "Aqui estão alguns comandos relacionados ao <i><b>scrobbling</b></i> do last.fm\n<i><b>Scrobbling</b></i> é um recurso do last.fm que envia automaticamente informações sobre as músicas que você está ouvindo para o serviço.\n<b>Para saber mais, <a href='https://www.last.fm/pt/about/trackmymusic'>clique aqui</a></b>.\n\n<b>/setuser —</b> Configura seu nome de usuario do last.fm.\n<b>/lastfm | /lp —</b> Mostra a música você está ou estava ouvindo.\n<b>/album | /alb —</b> Mostra o álbum você está ou estava ouvindo.\n<b>/artist | /art —</b> Mostra o artista você está ou estava ouvindo."
     },
     "medias": {

@@ -77,7 +77,8 @@ func CreateTables() error {
             id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'en-us',
 			mediasAuto BOOLEAN DEFAULT 1,
-			mediasCaption BOOLEAN DEFAULT 1
+			mediasCaption BOOLEAN DEFAULT 1,
+			lastFMCommands BOOLEAN DEFAULT 1
         );
 		CREATE TABLE IF NOT EXISTS afk (
 			id INTEGER PRIMARY KEY,

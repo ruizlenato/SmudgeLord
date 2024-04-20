@@ -276,6 +276,12 @@ func configMenu(bot *telego.Bot, update telego.Update) {
 		),
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
+				Text:         "LastFM",
+				CallbackData: "lastFMConfig",
+			},
+		),
+		telegoutil.InlineKeyboardRow(
+			telego.InlineKeyboardButton{
 				Text:         i18n("button.language"),
 				CallbackData: "languageMenu",
 			},

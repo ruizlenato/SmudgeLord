@@ -296,6 +296,49 @@ func artist(bot *telego.Bot, message telego.Message) {
 	})
 }
 
+func lastFMConfig(bot *telego.Bot, update telego.Update) {
+	var lastFMCommands bool
+	message := update.CallbackQuery.Message.(*telego.Message)
+	database.DB.QueryRow("SELECT lastFMCommands FROM groups WHERE id = ?;", message.Chat.ID).Scan(&lastFMCommands)
+	chat := message.GetChat()
+	i18n := localization.Get(chat)
+
+	configType := strings.ReplaceAll(update.CallbackQuery.Data, "lastFMConfig ", "")
+	if configType != "lastFMConfig" {
+		lastFMCommands = !lastFMCommands
+		_, err := database.DB.Exec("UPDATE groups SET lastFMCommands = ? WHERE id = ?;", lastFMCommands, message.Chat.ID)
+		if err != nil {
+			return
+		}
+	}
+
+	state := func(state bool) string {
+		if state {
+			return "✅"
+		}
+		return "☑️"
+	}
+
+	buttons := [][]telego.InlineKeyboardButton{
+		{
+			{Text: state(lastFMCommands), CallbackData: "lastFMConfig update"},
+		},
+	}
+
+	buttons = append(buttons, []telego.InlineKeyboardButton{{
+		Text:         i18n("button.back"),
+		CallbackData: "configMenu",
+	}})
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:      telegoutil.ID(chat.ID),
+		MessageID:   update.CallbackQuery.Message.GetMessageID(),
+		Text:        i18n("lastfm.config-help"),
+		ParseMode:   "HTML",
+		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+	})
+}
+
 func LoadLastFM(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("lastfm")
 	bh.HandleMessage(setUser, telegohandler.CommandEqual("setuser"))
@@ -315,4 +358,5 @@ func LoadLastFM(bh *telegohandler.BotHandler, bot *telego.Bot) {
 		telegohandler.CommandEqual("art"),
 		telegohandler.CommandEqual("lart")),
 	)
+	bh.Handle(lastFMConfig, telegohandler.CallbackDataPrefix("lastFMConfig"), helpers.IsAdmin(bot))
 }
