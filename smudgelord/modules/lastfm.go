@@ -339,24 +339,34 @@ func lastFMConfig(bot *telego.Bot, update telego.Update) {
 	})
 }
 
+func lastFMDisabled(update telego.Update) bool {
+	var lastFMCommands bool = true
+	message := update.Message
+	if message.Chat.Type == telego.ChatTypePrivate {
+		return lastFMCommands
+	}
+
+	database.DB.QueryRow("SELECT lastFMCommands FROM groups WHERE id = ?;", message.Chat.ID).Scan(&lastFMCommands)
+	return lastFMCommands
+}
+
 func LoadLastFM(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("lastfm")
 	bh.HandleMessage(setUser, telegohandler.CommandEqual("setuser"))
 	bh.HandleMessage(music, telegohandler.Or(
 		telegohandler.CommandEqual("lastfm"),
-		telegohandler.CommandEqual("lt"),
-		telegohandler.CommandEqual("np"),
 		telegohandler.CommandEqual("lmu"),
 	))
+	bh.HandleMessage(music, telegohandler.Or(telegohandler.CommandEqual("lt"), telegohandler.CommandEqual("np")), lastFMDisabled)
 	bh.HandleMessage(album, telegohandler.Or(
 		telegohandler.CommandEqual("album"),
-		telegohandler.CommandEqual("alb"),
 		telegohandler.CommandEqual("lalb"),
 	))
+	bh.HandleMessage(album, telegohandler.CommandEqual("alb"), lastFMDisabled)
 	bh.HandleMessage(artist, telegohandler.Or(
 		telegohandler.CommandEqual("artist"),
-		telegohandler.CommandEqual("art"),
 		telegohandler.CommandEqual("lart")),
 	)
+	bh.HandleMessage(artist, telegohandler.CommandEqual("art"), lastFMDisabled)
 	bh.Handle(lastFMConfig, telegohandler.CallbackDataPrefix("lastFMConfig"), helpers.IsAdmin(bot))
 }
