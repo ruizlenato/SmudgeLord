@@ -47,12 +47,13 @@
         "config": "<b>Medias settings</b>\nTo know more about the <b><i>medias</i></b> module, use /help in my private chat.\n\n<b>To know more about each configuration, click on its name.</b>\n<i>These settings are for this group only, not for other groups or private chats.</i>",
         "noURL": "<b>You didn't specify a link or you specified an invalid link.</b>\nSpecify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b> <b><i>Twitter/X</i></b> or <b><i>Twitch Clips</i></b> link so I can download the media(s).",
         "autoHelp": "When enabled, this option allows you to download media from some social networks automatically when you send a link without needing the /dl command.",
-        "captionHelp": "When activated, this option sends the subtitles of the media you download using the bot.",
+        "captionHelp": "When activated, this option sends the subtitlzzzes of the media you download using the bot.",
         "help": "<b>/dl|/sdl —</b> Downloads medias (photos and videos) from <b><i>Instagram, TikTok, Reddit, Twitter/X, and Twitch Clips.</i></b>"
     },
     "misc": {
         "name": "Miscellaneous",
-        "help": "<b>/weather (cidade) —</b> Shows the current climate of a specific city."
+        "tr-noargs": "<b>Usage:</b> <code>/tr (language) (text for translation)</code>\n\nYou need to specify the text you want to translate or reply to a text message, or a photo with a caption.",
+        "help": "<b>/weather (cidade) —</b> Shows the current climate of a specific city.\n<b>/tr (language) (text) —</b> Translates the text to the specified language."
     },
     "stickers": {
         "name": "Stickers",

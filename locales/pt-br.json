@@ -52,7 +52,8 @@
     },
     "misc": {
         "name": "Diversos",
-        "help": "<b>/clima (cidade) —</b> Mostra o clima atual de uma cidade especifica."
+        "tr-noargs": "<b>Uso:</b> <code>/tr (idioma) (texto para tradução)</code>\n\nVocê precisa especificar o texto que deseja traduzir ou responder a uma mensagem de texto, ou uma foto com legenda.",
+        "help": "<b>/clima (cidade) —</b> Mostra o clima atual de uma cidade especifica.\n<b>/tr (idioma) (texto) —</b> Traduz um texto para o idioma especificado."
     },
     "stickers": {
         "name": "Figurinhas",

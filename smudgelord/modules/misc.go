@@ -157,7 +157,33 @@ func getTrLang(text string, chat telego.Chat) string {
 }
 
 func gTranslate(bot *telego.Bot, message telego.Message) {
-	text := message.Text[4:]
+	var text string
+	i18n := localization.Get(message.Chat)
+
+	if message.ReplyToMessage != nil {
+		replyText := ""
+		if messageText := message.ReplyToMessage.Text; messageText != "" {
+			replyText = messageText
+		} else if caption := message.ReplyToMessage.Caption; caption != "" {
+			replyText = caption
+		}
+		text = message.Text[4:] + " " + replyText
+	} else if len(message.Text) > 4 {
+		text = message.Text[4:]
+	}
+
+	if text == "" {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.From.ID),
+			Text:      i18n("misc.tr-noargs"),
+			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
+		return
+	}
+
 	if messageFields := strings.Fields(message.Text); messageFields[0] == "/translate" {
 		text = message.Text[11:]
 	}
@@ -232,6 +258,9 @@ func gTranslate(bot *telego.Bot, message telego.Message) {
 		ChatID:    telegoutil.ID(message.From.ID),
 		Text:      fmt.Sprintf("<b>%s</b> -> <b>%s</b>\n<code>%s</code>", translation.Source, targetLang, textUnescaped),
 		ParseMode: "HTML",
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
 	})
 }
 
