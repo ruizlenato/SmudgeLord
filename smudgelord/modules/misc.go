@@ -167,7 +167,10 @@ func gTranslate(bot *telego.Bot, message telego.Message) {
 		} else if caption := message.ReplyToMessage.Caption; caption != "" {
 			replyText = caption
 		}
-		text = message.Text[4:] + " " + replyText
+		text = replyText
+		if len(message.Text) > 4 {
+			text = message.Text[4:] + " " + replyText
+		}
 	} else if len(message.Text) > 4 {
 		text = message.Text[4:]
 	}
@@ -194,6 +197,18 @@ func gTranslate(bot *telego.Bot, message telego.Message) {
 	if strings.HasPrefix(text, language) {
 		text = strings.Replace(text, language, "", 1)
 		text = strings.TrimSpace(text)
+	}
+
+	if text == "" {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.From.ID),
+			Text:      i18n("misc.tr-noargs"),
+			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
+		return
 	}
 
 	if langParts := strings.Split(language, "-"); len(langParts) > 1 {
