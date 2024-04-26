@@ -88,6 +88,9 @@ func getEmbed(postID string) InstagramData {
 		"viewport-width":            "1280",
 	}
 	body := utils.RequestGET(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestGETParams{Headers: headers}).Body()
+	if body == nil {
+		return nil
+	}
 	match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body)
 	if len(match) == 2 {
 		s := strings.ReplaceAll(string(match[1]), `\"`, `"`)
@@ -139,6 +142,9 @@ func (dm *DownloadMedia) Instagram(url string) {
 	if regexp.MustCompile(`(?:stories)/`).MatchString(url) {
 		var storiesData StoriesData
 		body := utils.RequestGET("https://scrapper.ruizlenato.workers.dev/"+url, utils.RequestGETParams{}).Body()
+		if body == nil {
+			return
+		}
 		if err := json.Unmarshal(body, &storiesData); err != nil {
 			log.Printf("[instagram/Instagram] Error unmarshalling instagram stories data: %v", err)
 			return
@@ -282,7 +288,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 			log.Printf("[instagram/Instagram] Error unmarshalling Instagram data: %v", err)
 			return
 		}
-		if instagramData.Data.XDTShortcodeMedia == nil {
+		if instagramData != nil || instagramData.Data.XDTShortcodeMedia == nil {
 			return
 		}
 		result := instagramData.Data.XDTShortcodeMedia

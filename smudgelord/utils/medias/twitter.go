@@ -157,6 +157,9 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 	}
 
 	body := utils.RequestGET("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestGETParams{Query: query, Headers: headers}).Body()
+	if body == nil {
+		return nil
+	}
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {

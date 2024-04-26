@@ -1,6 +1,7 @@
 package medias
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -57,6 +58,9 @@ var mimeExtensions = map[string]string{
 
 func downloader(media string) (*os.File, error) {
 	body := utils.RequestGET(media, utils.RequestGETParams{})
+	if body == nil {
+		return nil, errors.New("get error")
+	}
 
 	extension := func(contentType []byte) string {
 		extension, ok := mimeExtensions[string(contentType)]

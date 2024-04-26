@@ -51,7 +51,10 @@ func RequestGET(Link string, params RequestGETParams) *fasthttp.Response {
 
 	err := client.Do(request, response)
 	if err != nil {
-		log.Print("[request/RequestGET] Error:", err)
+		if strings.Contains(err.Error(), "missing port in address") {
+			return response
+		}
+		log.Print("[request/RequestGET] Error: ", err)
 	}
 
 	return response
@@ -92,8 +95,10 @@ func RequestPOST(Link string, params RequestPOSTParams) *fasthttp.Response {
 
 	err := client.Do(request, response)
 	if err != nil {
-		log.Print("[request/RequestPOST] Error:", err)
+		if strings.Contains(err.Error(), "missing port in address") {
+			return response
+		}
+		log.Print("[request/RequestPOST] Error: ", err)
 	}
-
 	return response
 }

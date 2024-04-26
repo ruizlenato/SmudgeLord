@@ -127,6 +127,9 @@ func (dm *DownloadMedia) TikTok(url string) {
 	}
 
 	body := utils.RequestGET("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestGETParams{Query: query, Headers: headers}).Body()
+	if body == nil {
+		return
+	}
 	var tikTokData TikTokData
 	err = json.Unmarshal(body, &tikTokData)
 	if err != nil {
