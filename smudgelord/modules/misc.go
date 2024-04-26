@@ -260,7 +260,7 @@ func gTranslate(bot *telego.Bot, message telego.Message) {
 
 	err := json.Unmarshal(body, &translation)
 	if err != nil {
-		fmt.Println("[Misc/gTranslate] Error unmarshalling translation data:", err)
+		log.Println("[Misc/gTranslate] Error unmarshalling translation data:", err)
 	}
 
 	var translations []string
