@@ -2,9 +2,11 @@ package modules
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -13,6 +15,7 @@ import (
 	"smudgelord/smudgelord/utils/helpers"
 	"smudgelord/smudgelord/utils/medias"
 
+	"github.com/kkdai/youtube/v2"
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
 	"github.com/mymmrac/telego/telegoutil"
@@ -199,13 +202,164 @@ func explainConfig(bot *telego.Bot, update telego.Update) {
 	})
 }
 
+func cliYTDL(bot *telego.Bot, update telego.Update) {
+	callbackData := strings.Split(update.CallbackQuery.Data, "|")
+	itag, _ := strconv.Atoi(callbackData[2])
+	var err error
+	var outputFile *os.File
+
+	client := youtube.Client{}
+	video, err := client.GetVideo(callbackData[1])
+	if err != nil {
+		return
+	}
+	format := video.Formats.Itag(itag)[0]
+
+	switch callbackData[0] {
+	case "_aud":
+		outputFile, err = os.CreateTemp("", "smudge*.mp3")
+	case "_vid":
+		outputFile, err = os.CreateTemp("", "smudge*.mp4")
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	defer outputFile.Close()
+
+	stream, _, err := client.GetStream(video, &format)
+	if err != nil {
+		panic(err)
+	}
+
+	defer stream.Close()
+
+	_, err = io.Copy(outputFile, stream)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = outputFile.Seek(0, 0) // Seek back to the beginning of the file
+	if err != nil {
+		panic(err)
+	}
+
+	chatID := update.CallbackQuery.Message.GetChat().ID
+	bot.DeleteMessage(&telego.DeleteMessageParams{
+		ChatID:    telegoutil.ID(chatID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+	})
+	switch callbackData[0] {
+	case "_aud":
+		bot.SendChatAction(&telego.SendChatActionParams{
+			ChatID: telegoutil.ID(chatID),
+			Action: telego.ChatActionUploadVoice,
+		})
+		bot.SendAudio(&telego.SendAudioParams{
+			ChatID: telegoutil.ID(chatID),
+			Audio:  telegoutil.File(outputFile),
+			Title:  video.Title,
+		})
+	case "_vid":
+		bot.SendChatAction(&telego.SendChatActionParams{
+			ChatID: telegoutil.ID(chatID),
+			Action: telego.ChatActionUploadVideo,
+		})
+		bot.SendVideo(&telego.SendVideoParams{
+			ChatID:  telegoutil.ID(chatID),
+			Video:   telegoutil.File(outputFile),
+			Width:   format.Width,
+			Height:  format.Height,
+			Caption: video.Title,
+		})
+	}
+	// Remove the temporary file
+	os.Remove(outputFile.Name())
+}
+
+func youtubeDL(bot *telego.Bot, message telego.Message) {
+	fmt.Println(message.Text)
+	if len(strings.Fields(message.Text)) < 2 {
+		return
+	}
+	videoURL := strings.Fields(message.Text)[1]
+	ytClient := youtube.Client{}
+	video, err := ytClient.GetVideo(videoURL)
+	if err != nil {
+		log.Println("[medias/youtubeDL] Error getting video: ", err)
+		return
+	}
+
+	desiredQualityLabels := func(qualityLabel string) bool {
+		supportedQualities := []string{"1080p", "720p", "480p", "360p", "240p", "144p"}
+		for _, supported := range supportedQualities {
+			if strings.Contains(qualityLabel, supported) {
+				return true
+			}
+		}
+		return false
+	}
+
+	var maxBitrate int
+	var maxBitrateIndex int
+	for i, format := range video.Formats.Type("video/mp4") {
+		if format.Bitrate > maxBitrate && desiredQualityLabels(format.QualityLabel) {
+			maxBitrate = format.Bitrate
+			maxBitrateIndex = i
+		}
+	}
+	videoStream := video.Formats.Type("video/mp4")[maxBitrateIndex]
+	videoSize := videoStream.ContentLength
+
+	var audioStream youtube.Format
+	if len(video.Formats.Itag(140)) > 0 {
+		audioStream = video.Formats.Itag(140)[0]
+	} else {
+		audioStream = video.Formats.WithAudioChannels().Type("audio/mp4")[1]
+	}
+	audioSize := audioStream.ContentLength
+
+	text := fmt.Sprintf("📹 <b>%s</b> - <i>%s</i>", video.Author, video.Title)
+	text += fmt.Sprintf("\n💾 <code>%.2f MB</code> (audio) | <code>%.2f MB</code> (video)", float64(audioSize)/(1024*1024), float64(videoSize)/(1024*1024))
+	text += fmt.Sprintf("\n⏳ <code>%s</code>", video.Duration.String())
+
+	keyboard := telegoutil.InlineKeyboard(
+		telegoutil.InlineKeyboardRow(
+			telego.InlineKeyboardButton{
+				Text:         "💿 Áudio",
+				CallbackData: fmt.Sprintf("_aud|%s|%d", video.ID, audioStream.ItagNo),
+			},
+			telego.InlineKeyboardButton{
+				Text:         "🎬 Vídeo",
+				CallbackData: fmt.Sprintf("_vid|%s|%d", video.ID, videoStream.ItagNo),
+			},
+		),
+	)
+
+	bot.SendMessage(&telego.SendMessageParams{
+		ChatID:    telegoutil.ID(message.Chat.ID),
+		Text:      text,
+		ParseMode: "HTML",
+		LinkPreviewOptions: &telego.LinkPreviewOptions{
+			PreferLargeMedia: true,
+		},
+		ReplyMarkup: keyboard,
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
+	})
+}
+
 func LoadMediaDownloader(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("medias")
+	bh.HandleMessage(youtubeDL, telegohandler.CommandEqual("ytdl"))
 	bh.HandleMessage(mediaDownloader, telegohandler.Or(
 		telegohandler.CommandEqual("dl"),
 		telegohandler.CommandEqual("sdl"),
 		telegohandler.TextMatches(regexp.MustCompile(regexMedia)),
 	))
+	bh.Handle(cliYTDL, telegohandler.CallbackDataMatches(regexp.MustCompile(`^(_(vid|aud))`)))
 	bh.Handle(mediaConfig, telegohandler.CallbackDataPrefix("mediaConfig"), helpers.IsAdmin(bot))
 	bh.Handle(explainConfig, telegohandler.CallbackDataPrefix("ieConfig"), helpers.IsAdmin(bot))
 }
