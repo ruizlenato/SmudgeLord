@@ -171,8 +171,12 @@ func gTranslate(bot *telego.Bot, message telego.Message) {
 		if len(message.Text) > 4 {
 			text = message.Text[4:] + " " + replyText
 		}
-	} else if len(message.Text) > 4 {
+	} else if len(message.Text) > 4 && strings.Fields(message.Text)[0] == "/tr" {
 		text = message.Text[4:]
+	}
+
+	if messageFields := strings.Fields(message.Text); messageFields[0] == "/translate" && len(message.Text) > 11 {
+		text = message.Text[11:]
 	}
 
 	if text == "" {
@@ -187,9 +191,6 @@ func gTranslate(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	if messageFields := strings.Fields(message.Text); messageFields[0] == "/translate" {
-		text = message.Text[11:]
-	}
 	var sourceLang string
 	var targetLang string
 
