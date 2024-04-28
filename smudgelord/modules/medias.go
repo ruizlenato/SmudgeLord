@@ -205,8 +205,10 @@ func explainConfig(bot *telego.Bot, update telego.Update) {
 func cliYTDL(bot *telego.Bot, update telego.Update) {
 	callbackData := strings.Split(update.CallbackQuery.Data, "|")
 	itag, _ := strconv.Atoi(callbackData[2])
+
 	var err error
 	var outputFile *os.File
+	var action string
 
 	client := youtube.Client{}
 	video, err := client.GetVideo(callbackData[1])
@@ -215,34 +217,51 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 	}
 	format := video.Formats.Itag(itag)[0]
 
+	// Create temporary audio/video file and set the chat action.
 	switch callbackData[0] {
 	case "_aud":
-		outputFile, err = os.CreateTemp("", "smudge*.mp3")
+		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.mp3")
+		action = telego.ChatActionUploadVoice
 	case "_vid":
-		outputFile, err = os.CreateTemp("", "smudge*.mp4")
+		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.mp4")
+		action = telego.ChatActionUploadVideo
 	}
-
 	if err != nil {
-		panic(err)
+		log.Println("[medias/cliYTDL] Error creating temporary file: ", err)
+		return
 	}
-
-	defer outputFile.Close()
 
 	stream, _, err := client.GetStream(video, &format)
 	if err != nil {
-		panic(err)
+		log.Println("[medias/cliYTDL] Error getting stream: ", err)
+		return
 	}
-
-	defer stream.Close()
 
 	_, err = io.Copy(outputFile, stream)
+	stream.Close()
 	if err != nil {
-		panic(err)
+		log.Println("[medias/cliYTDL] Error seeking outputFile: ", err)
+		return
 	}
+	if callbackData[0] == "_vid" {
+		stream, _, err := client.GetStream(video, &video.Formats.Itag(140)[0])
+		if err != nil {
+			log.Println("[medias/cliYTDL] Error getting audio stream: ", err)
+			return
+		}
+		audioFile, err := os.CreateTemp("", "youtube_*.m4a")
+		if err != nil {
+			log.Println("[medias/cliYTDL] Error creating temporary audioFile: ", err)
+			return
+		}
+		_, err = io.Copy(audioFile, stream)
+		stream.Close()
+		if err != nil {
+			log.Println("[medias/cliYTDL] Error seeking audioFile: ", err)
+			return
+		}
 
-	_, err = outputFile.Seek(0, 0) // Seek back to the beginning of the file
-	if err != nil {
-		panic(err)
+		outputFile = medias.MergeAudioVideo(outputFile, audioFile)
 	}
 
 	chatID := update.CallbackQuery.Message.GetChat().ID
@@ -250,22 +269,21 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 		ChatID:    telegoutil.ID(chatID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 	})
+
+	bot.SendChatAction(&telego.SendChatActionParams{
+		ChatID: telegoutil.ID(chatID),
+		Action: action,
+	})
+
+	outputFile.Seek(0, 0) // Seek back to the beginning of the file
 	switch callbackData[0] {
 	case "_aud":
-		bot.SendChatAction(&telego.SendChatActionParams{
-			ChatID: telegoutil.ID(chatID),
-			Action: telego.ChatActionUploadVoice,
-		})
 		bot.SendAudio(&telego.SendAudioParams{
 			ChatID: telegoutil.ID(chatID),
 			Audio:  telegoutil.File(outputFile),
 			Title:  video.Title,
 		})
 	case "_vid":
-		bot.SendChatAction(&telego.SendChatActionParams{
-			ChatID: telegoutil.ID(chatID),
-			Action: telego.ChatActionUploadVideo,
-		})
 		bot.SendVideo(&telego.SendVideoParams{
 			ChatID:  telegoutil.ID(chatID),
 			Video:   telegoutil.File(outputFile),
@@ -279,7 +297,6 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 }
 
 func youtubeDL(bot *telego.Bot, message telego.Message) {
-	fmt.Println(message.Text)
 	if len(strings.Fields(message.Text)) < 2 {
 		return
 	}
@@ -321,7 +338,7 @@ func youtubeDL(bot *telego.Bot, message telego.Message) {
 	audioSize := audioStream.ContentLength
 
 	text := fmt.Sprintf("📹 <b>%s</b> - <i>%s</i>", video.Author, video.Title)
-	text += fmt.Sprintf("\n💾 <code>%.2f MB</code> (audio) | <code>%.2f MB</code> (video)", float64(audioSize)/(1024*1024), float64(videoSize)/(1024*1024))
+	text += fmt.Sprintf("\n💾 <code>%.2f MB</code> (audio) | <code>%.2f MB</code> (video)", float64(audioSize)/(1024*1024), float64(audioSize)/(1024*1024)+float64(videoSize)/(1024*1024))
 	text += fmt.Sprintf("\n⏳ <code>%s</code>", video.Duration.String())
 
 	keyboard := telegoutil.InlineKeyboard(
