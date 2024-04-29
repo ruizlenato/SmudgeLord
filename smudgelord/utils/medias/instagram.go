@@ -150,7 +150,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 			return
 		}
 
-		file, err := downloader(storiesData.URL)
+		file, err := Downloader(storiesData.URL)
 		if err != nil {
 			log.Print("[instagram/Instagram] Error downloading file:", err)
 			return
@@ -179,7 +179,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 		}
 		switch instagramData.ShortcodeMedia.Typename {
 		case "GraphVideo":
-			file, err := downloader(instagramData.ShortcodeMedia.VideoURL)
+			file, err := Downloader(instagramData.ShortcodeMedia.VideoURL)
 			if err != nil {
 				log.Print("[instagram/Instagram] Error downloading video:", err)
 				return
@@ -188,7 +188,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 				telegoutil.File(file)).WithWidth(instagramData.ShortcodeMedia.Dimensions.Width).WithHeight(instagramData.ShortcodeMedia.Dimensions.Height),
 			)
 		case "GraphImage":
-			file, err := downloader(instagramData.ShortcodeMedia.DisplayURL)
+			file, err := Downloader(instagramData.ShortcodeMedia.DisplayURL)
 			if err != nil {
 				log.Print("[instagram/Instagram] Error downloading image:", err)
 				return
@@ -207,9 +207,9 @@ func (dm *DownloadMedia) Instagram(url string) {
 					var file *os.File
 					var err error
 					if !result.Node.IsVideo {
-						file, err = downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
+						file, err = Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
 					} else {
-						file, err = downloader(result.Node.VideoURL)
+						file, err = Downloader(result.Node.VideoURL)
 					}
 					if err != nil {
 						log.Print("[instagram/Instagram] Error downloading media:", err)
@@ -297,7 +297,7 @@ func (dm *DownloadMedia) Instagram(url string) {
 		}
 
 		if strings.Contains(result.Typename, "Video") {
-			file, err := downloader(result.VideoURL)
+			file, err := Downloader(result.VideoURL)
 			if err != nil {
 				log.Print("[instagram/Instagram] Error downloading video:", err)
 				return

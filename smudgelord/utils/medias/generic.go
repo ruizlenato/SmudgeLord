@@ -30,7 +30,7 @@ func (dm *DownloadMedia) Generic(url string) {
 		return
 	}
 
-	file, err := downloader(genericData.URL)
+	file, err := Downloader(genericData.URL)
 	if err != nil {
 		log.Print("[generic/Generic] Error downloading file:", err)
 		return

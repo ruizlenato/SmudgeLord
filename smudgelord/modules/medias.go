@@ -209,6 +209,7 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 
 	callbackData := strings.Split(update.CallbackQuery.Data, "|")
 	itag, _ := strconv.Atoi(callbackData[2])
+	messageID, _ := strconv.Atoi(callbackData[3])
 
 	var err error
 	var outputFile *os.File
@@ -303,29 +304,41 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 	})
 
 	outputFile.Seek(0, 0) // Seek back to the beginning of the file
+	thumbnail, _ := medias.Downloader(video.Thumbnails[len(video.Thumbnails)-1].URL)
 	switch callbackData[0] {
 	case "_aud":
 		bot.SendAudio(&telego.SendAudioParams{
-			ChatID: telegoutil.ID(chat.ID),
-			Audio:  telegoutil.File(outputFile),
-			Title:  video.Title,
+			ChatID:    telegoutil.ID(chat.ID),
+			Audio:     telegoutil.File(outputFile),
+			Thumbnail: &telego.InputFile{File: thumbnail},
+			Performer: video.Author,
+			Title:     video.Title,
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: messageID,
+			},
 		})
 	case "_vid":
 		bot.SendVideo(&telego.SendVideoParams{
 			ChatID:            telegoutil.ID(chat.ID),
 			Video:             telegoutil.File(outputFile),
+			Thumbnail:         &telego.InputFile{File: thumbnail},
 			SupportsStreaming: true,
 			Width:             format.Width,
 			Height:            format.Height,
 			Caption:           video.Title,
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: messageID,
+			},
 		})
 	}
 	bot.DeleteMessage(&telego.DeleteMessageParams{
 		ChatID:    telegoutil.ID(chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 	})
-	// Remove the temporary file
+
+	// Remove temporary files
 	os.Remove(outputFile.Name())
+	os.Remove(thumbnail.Name())
 }
 
 func youtubeDL(bot *telego.Bot, message telego.Message) {
@@ -387,11 +400,11 @@ func youtubeDL(bot *telego.Bot, message telego.Message) {
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
 				Text:         "💿 Áudio",
-				CallbackData: fmt.Sprintf("_aud|%s|%d", video.ID, audioStream.ItagNo),
+				CallbackData: fmt.Sprintf("_aud|%s|%d|%d", video.ID, audioStream.ItagNo, message.MessageID),
 			},
 			telego.InlineKeyboardButton{
 				Text:         "🎬 Vídeo",
-				CallbackData: fmt.Sprintf("_vid|%s|%d", video.ID, videoStream.ItagNo),
+				CallbackData: fmt.Sprintf("_vid|%s|%d|%d", video.ID, videoStream.ItagNo, message.MessageID),
 			},
 		),
 	)

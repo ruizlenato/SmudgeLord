@@ -153,7 +153,7 @@ func (dm *DownloadMedia) TikTok(url string) {
 		for i, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
 			go func(index int, media Image) {
 				defer wg.Done()
-				file, err := downloader(media.DisplayImage.URLList[1])
+				file, err := Downloader(media.DisplayImage.URLList[1])
 				if err != nil {
 					log.Print("[tiktok/TikTok] Error downloading photo:", err)
 					// Use index as key to store nil for failed downloads
@@ -175,7 +175,7 @@ func (dm *DownloadMedia) TikTok(url string) {
 			}
 		}
 	} else {
-		file, err := downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
+		file, err := Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 		if err != nil {
 			log.Print("[tiktok/TikTok] Error downloading video:", err)
 			return

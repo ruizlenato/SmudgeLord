@@ -58,7 +58,7 @@ var mimeExtensions = map[string]string{
 	"video/x-msvideo": "avi",
 }
 
-func downloader(media string) (*os.File, error) {
+func Downloader(media string) (*os.File, error) {
 	body := utils.RequestGET(media, utils.RequestGETParams{})
 	if body == nil {
 		return nil, errors.New("get error")

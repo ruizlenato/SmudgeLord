@@ -202,12 +202,12 @@ func (dm *DownloadMedia) Twitter(url string) {
 				videoType = "video"
 			}
 			if videoType != "video" {
-				file, err = downloader(media.MediaURLHTTPS)
+				file, err = Downloader(media.MediaURLHTTPS)
 			} else {
 				sort.Slice(media.VideoInfo.Variants, func(i, j int) bool {
 					return media.VideoInfo.Variants[i].Bitrate < media.VideoInfo.Variants[j].Bitrate
 				})
-				file, err = downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
+				file, err = Downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
 			}
 			if err != nil {
 				log.Print("[twitter/Twitter] Error downloading media:", err)
