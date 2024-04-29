@@ -206,11 +206,6 @@ func explainConfig(bot *telego.Bot, update telego.Update) {
 func cliYTDL(bot *telego.Bot, update telego.Update) {
 	chat := update.CallbackQuery.Message.GetChat()
 	i18n := localization.Get(chat)
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(chat.ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("medias.downloading"),
-	})
 
 	callbackData := strings.Split(update.CallbackQuery.Data, "|")
 	itag, _ := strconv.Atoi(callbackData[2])
@@ -244,6 +239,12 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 		})
 		return
 	}
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text:      i18n("medias.downloading"),
+	})
 
 	// Create temporary audio/video file and set the chat action.
 	switch callbackData[0] {
