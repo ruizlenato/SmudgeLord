@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"smudgelord/smudgelord/config"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
 	"smudgelord/smudgelord/utils/helpers"
@@ -203,6 +204,14 @@ func explainConfig(bot *telego.Bot, update telego.Update) {
 }
 
 func cliYTDL(bot *telego.Bot, update telego.Update) {
+	chat := update.CallbackQuery.Message.GetChat()
+	i18n := localization.Get(chat)
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text:      i18n("medias.downloading"),
+	})
+
 	callbackData := strings.Split(update.CallbackQuery.Data, "|")
 	itag, _ := strconv.Atoi(callbackData[2])
 
@@ -216,6 +225,25 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 		return
 	}
 	format := video.Formats.Itag(itag)[0]
+
+	size := 1572864000 // 1,5 GB
+	if config.BotAPIURL == "" {
+		size = 52428800 // 50 B
+	}
+
+	mediaSize := format.ContentLength
+	if callbackData[0] == "_vid" {
+		mediaSize += video.Formats.Itag(140)[0].ContentLength
+	}
+
+	if mediaSize > int64(size) {
+		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            i18n("medias.youtubeBigFile"),
+			ShowAlert:       true,
+		})
+		return
+	}
 
 	// Create temporary audio/video file and set the chat action.
 	switch callbackData[0] {
@@ -263,15 +291,13 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 
 		outputFile = medias.MergeAudioVideo(outputFile, audioFile)
 	}
-
-	chatID := update.CallbackQuery.Message.GetChat().ID
-	bot.DeleteMessage(&telego.DeleteMessageParams{
-		ChatID:    telegoutil.ID(chatID),
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text:      i18n("medias.uploading"),
 	})
-
 	bot.SendChatAction(&telego.SendChatActionParams{
-		ChatID: telegoutil.ID(chatID),
+		ChatID: telegoutil.ID(chat.ID),
 		Action: action,
 	})
 
@@ -279,32 +305,47 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 	switch callbackData[0] {
 	case "_aud":
 		bot.SendAudio(&telego.SendAudioParams{
-			ChatID: telegoutil.ID(chatID),
+			ChatID: telegoutil.ID(chat.ID),
 			Audio:  telegoutil.File(outputFile),
 			Title:  video.Title,
 		})
 	case "_vid":
 		bot.SendVideo(&telego.SendVideoParams{
-			ChatID:  telegoutil.ID(chatID),
-			Video:   telegoutil.File(outputFile),
-			Width:   format.Width,
-			Height:  format.Height,
-			Caption: video.Title,
+			ChatID:            telegoutil.ID(chat.ID),
+			Video:             telegoutil.File(outputFile),
+			SupportsStreaming: true,
+			Width:             format.Width,
+			Height:            format.Height,
+			Caption:           video.Title,
 		})
 	}
+	bot.DeleteMessage(&telego.DeleteMessageParams{
+		ChatID:    telegoutil.ID(chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+	})
 	// Remove the temporary file
 	os.Remove(outputFile.Name())
 }
 
 func youtubeDL(bot *telego.Bot, message telego.Message) {
+	i18n := localization.Get(message.GetChat())
 	if len(strings.Fields(message.Text)) < 2 {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("medias.youtubeNoURL"),
+			ParseMode: "HTML",
+		})
 		return
 	}
 	videoURL := strings.Fields(message.Text)[1]
 	ytClient := youtube.Client{}
 	video, err := ytClient.GetVideo(videoURL)
 	if err != nil {
-		log.Println("[medias/youtubeDL] Error getting video: ", err)
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("medias.youtubeInvalidURL"),
+			ParseMode: "HTML",
+		})
 		return
 	}
 

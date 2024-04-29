@@ -46,9 +46,12 @@
         "name": "Mídias",
         "config": "<b>Configurações de Mídias</b>\nPara saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.\n\n<b>Para saber um pouco sobre cada configuração, clique no nome dela.</b>\n<i>Essas configurações é somente para esse grupo, não servem para outros ou chat privado.</i>",
         "noURL": "<b>Você não especificou um link ou especificou um link invalido.</b>\nEspecifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Clipe da Twitch</i></b> para que eu possa baixar a(s) mídia(s).",
-        "AutoHelp": "Quando ativada, essa opção permite que você baixe mídias de algumas redes sociais automaticamente ao enviar um link sem precisar do comando /dl.",
-        "CaptionHelp": "Quando ativada, essa opção envia a legenda das mídias que você baixar usando o bot.",
-        "help": "<b>/dl|/sdl —</b> Baixa mídias (fotos e vídeos) do <b><i>Instagram, TikTok, Reddit, Twitter/X e Clips da Twitch.</i></b>"
+        "youtubeNoURL": "Forneça um link do YouTube para que eu possa fazer o download.\n<b>Exemplo:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>",
+        "youtubeInvalidURL": "Essa link do YouTube não existe ou é de um vídeo privado.",
+        "youtubeBigFile": "O vídeo ultrapassa o tamanho de 1,5GB, que é o meu limite máximo.",
+        "downloading": "Baixando...",
+        "uploading": "Enviando...",
+        "help": "<b>/dl|/sdl —</b> Baixa mídias (fotos e vídeos) do <b>Instagram, TikTok, Reddit, Twitter/X e Clips da Twitch.</b>\n\n<b>/ytdl (link) —</b> Baixa vídeos do <b>YouTube</b>.\nA qualidade máxima dos downloads dos vídeos é 1080p. Você também pode baixar apenas o áudio do vídeo com esse comando."
     },
     "misc": {
         "name": "Diversos",

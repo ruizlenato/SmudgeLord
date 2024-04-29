@@ -48,7 +48,12 @@
         "noURL": "<b>You didn't specify a link or you specified an invalid link.</b>\nSpecify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b> <b><i>Twitter/X</i></b> or <b><i>Twitch Clips</i></b> link so I can download the media(s).",
         "autoHelp": "When enabled, this option allows you to download media from some social networks automatically when you send a link without needing the /dl command.",
         "captionHelp": "When activated, this option sends the subtitlzzzes of the media you download using the bot.",
-        "help": "<b>/dl|/sdl —</b> Downloads medias (photos and videos) from <b><i>Instagram, TikTok, Reddit, Twitter/X, and Twitch Clips.</i></b>"
+        "youtubeNoURL": "Please provide a YouTube link so I can download it.\n<b>Example:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>",
+        "youtubeInvalidURL": "That YouTube link doesn't exist or it's a private video.",
+        "youtubeBigFile": "The video exceeds the size of 1,5GB, which is my maximum limit.",
+        "downloading": "Downloading...",
+        "uploading": "Uploading...",
+        "help": "<b>/dl|/sdl —</b> Downloads medias (photos and videos) from <b>Instagram, TikTok, Reddit, Twitter/X, and Twitch Clips.</b>\n<b>/ytdl (link) —</b> Downloads videos from <b>YouTube</b>\nThe maximum quality of video downloads is 1080p. You can also download just the audio of the video with this command."
     },
     "misc": {
         "name": "Miscellaneous",
