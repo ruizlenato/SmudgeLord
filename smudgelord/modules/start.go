@@ -224,7 +224,7 @@ func aboutMenu(bot *telego.Bot, update telego.Update) {
 			telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
 					Text: i18n("button.news-channel"),
-					URL:  "https://t.me/SmudgeNews",
+					URL:  "https://t.me/SmudgeLordChannel",
 				},
 			),
 			telegoutil.InlineKeyboardRow(
