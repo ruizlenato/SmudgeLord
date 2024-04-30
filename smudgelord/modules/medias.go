@@ -208,6 +208,14 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 	i18n := localization.Get(chat)
 
 	callbackData := strings.Split(update.CallbackQuery.Data, "|")
+	if userID, _ := strconv.Atoi(callbackData[4]); update.CallbackQuery.From.ID != int64(userID) {
+		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            i18n("medias.youtubeDenied"),
+			ShowAlert:       true,
+		})
+		return
+	}
 	itag, _ := strconv.Atoi(callbackData[2])
 	messageID, _ := strconv.Atoi(callbackData[3])
 
@@ -401,11 +409,11 @@ func youtubeDL(bot *telego.Bot, message telego.Message) {
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
 				Text:         "💿 Áudio",
-				CallbackData: fmt.Sprintf("_aud|%s|%d|%d", video.ID, audioStream.ItagNo, message.MessageID),
+				CallbackData: fmt.Sprintf("_aud|%s|%d|%d|%d", video.ID, audioStream.ItagNo, message.MessageID, message.From.ID),
 			},
 			telego.InlineKeyboardButton{
 				Text:         "🎬 Vídeo",
-				CallbackData: fmt.Sprintf("_vid|%s|%d|%d", video.ID, videoStream.ItagNo, message.MessageID),
+				CallbackData: fmt.Sprintf("_vid|%s|%d|%d|%d", video.ID, videoStream.ItagNo, message.MessageID, message.From.ID),
 			},
 		),
 	)
