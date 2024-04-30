@@ -304,7 +304,8 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 	})
 
 	outputFile.Seek(0, 0) // Seek back to the beginning of the file
-	thumbnail, _ := medias.Downloader(video.Thumbnails[len(video.Thumbnails)-1].URL)
+	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "hqdefault", "maxresdefault", 1)
+	thumbnail, _ := medias.Downloader(thumbURL)
 	switch callbackData[0] {
 	case "_aud":
 		bot.SendAudio(&telego.SendAudioParams{

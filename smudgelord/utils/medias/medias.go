@@ -120,7 +120,7 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 	videoFile.Seek(0, 0)
 	audioFile.Seek(0, 0)
 
-	outputFile, err := os.CreateTemp("", "youtube_*.m4a")
+	outputFile, err := os.CreateTemp("", "youtube_*.mp4")
 	if err != nil {
 		log.Println("[MergeAudioVideo] Error creating temp file:", err)
 		return nil
@@ -140,7 +140,6 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 		log.Println("[MergeAudioVideo] Error running ffmpeg:", err)
 		return nil
 	}
-	outputFile.Seek(0, 0)
 	os.Remove(videoFile.Name())
 	os.Remove(audioFile.Name())
 	return outputFile
