@@ -8,13 +8,14 @@ import (
 	"smudgelord/smudgelord/config"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
+	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-var announceMessageText string // Variável global para armazenar o texto da mensagem
+var announceMessageText string // Global variable to store the message text
 
 func announce(bot *telego.Bot, update telego.Update) {
 	var lang string
@@ -51,7 +52,7 @@ func announce(bot *telego.Bot, update telego.Update) {
 			ParseMode:   "HTML",
 			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 		})
-		announceMessageText = message.Text
+		announceMessageText = utils.FormatText(message.Text, message.Entities)
 		return
 	}
 
@@ -61,20 +62,18 @@ func announce(bot *telego.Bot, update telego.Update) {
 	}
 
 	announceType := messageFields[1]
-	announceText := strings.Join(messageFields[2:], " ")
+	announceMessageText = strings.Replace(announceMessageText, messageFields[0], "", 1)
 	var query string
 
 	switch announceType {
 	case "groups":
+		announceMessageText = strings.Replace(announceMessageText, announceType, "", 1)
 		query = fmt.Sprintf("SELECT id FROM groups WHERE language = '%s';", lang)
 	case "users":
+		announceMessageText = strings.Replace(announceMessageText, announceType, "", 1)
 		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s';", lang)
 	default:
 		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s' UNION ALL SELECT id FROM groups WHERE language = '%s';", lang, lang)
-		announceText = strings.Join(messageFields[1:], " ")
-		if len(messageFields) > 2 {
-			announceText = strings.Join(messageFields[2:], " ")
-		}
 	}
 
 	rows, err := database.DB.Query(query)
@@ -90,10 +89,9 @@ func announce(bot *telego.Bot, update telego.Update) {
 		if err := rows.Scan(&chatID); err != nil {
 			continue
 		}
-
 		_, err := bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(chatID),
-			Text:      announceText,
+			Text:      announceMessageText,
 			ParseMode: "HTML",
 		})
 		if err != nil {
