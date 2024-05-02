@@ -13,7 +13,8 @@ SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His 
 
 ## Requirements
 - Go 1.22+
-- FFMPEG (is needed to convert videos into videos stickers).
+- [FFmpeg](//ffmpeg.org)
+- [libvips](//github.com/libvips/libvips)
 - [Telegram bot token](//t.me/botfather)
 
 ## Donate — Help keep the project alive and up-to-date
