@@ -87,7 +87,15 @@ func getSticker(bot *telego.Bot, message telego.Message) {
 			log.Print("[stickers/getSticker] Error downloading file: ", err)
 			return
 		}
-		stickerFile, err := bytesToFile(fileData)
+		var extension string
+		switch replySticker.IsVideo {
+		case true:
+			extension = ".mp4"
+		case false:
+			extension = ".png"
+		}
+
+		stickerFile, err := bytesToFile(fileData, extension)
 		if err != nil {
 			log.Print("[stickers/getSticker] Error creating file: ", err)
 			bot.SendMessage(&telego.SendMessageParams{
@@ -102,8 +110,10 @@ func getSticker(bot *telego.Bot, message telego.Message) {
 		}
 
 		bot.SendDocument(&telego.SendDocumentParams{
-			ChatID:   telegoutil.ID(message.Chat.ID),
-			Document: telegoutil.File(stickerFile),
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Document:  telegoutil.File(stickerFile),
+			Caption:   fmt.Sprintf("<b>Emoji: %s</b>\n<b>ID:</b> <code>%s</code>", replySticker.Emoji, replySticker.FileID),
+			ParseMode: "HTML",
 		})
 		defer stickerFile.Close()
 	}
@@ -165,7 +175,8 @@ func kang(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	if stickerAction == "resize" {
+	switch stickerAction {
+	case "resize":
 		stickerFile, err = resizeImage(fileData)
 		if err != nil {
 			log.Print("[stickers/kang] Error resizing image: ", err)
@@ -177,7 +188,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 			})
 			return
 		}
-	} else if stickerAction == "convert" {
+	case "convert":
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: progMSG.GetMessageID(),
@@ -195,8 +206,16 @@ func kang(bot *telego.Bot, message telego.Message) {
 			})
 			return
 		}
-	} else {
-		stickerFile, err = bytesToFile(fileData)
+	default:
+		var extension string
+		switch stickerType {
+		case "video":
+			extension = ".webm"
+		case "photo":
+			extension = ".png"
+		}
+
+		stickerFile, err = bytesToFile(fileData, extension)
 		if err != nil {
 			log.Print("[stickers/kang] Error creating file: ", err)
 			bot.EditMessageText(&telego.EditMessageTextParams{
@@ -207,7 +226,6 @@ func kang(bot *telego.Bot, message telego.Message) {
 			})
 			return
 		}
-
 	}
 
 	botUser, err := bot.GetMe()
@@ -313,9 +331,9 @@ func kang(bot *telego.Bot, message telego.Message) {
 	})
 }
 
-func bytesToFile(data []byte) (*os.File, error) {
+func bytesToFile(data []byte, extension string) (*os.File, error) {
 	// Create a new temporary file with the .png extension
-	tempFile, err := os.CreateTemp("", "*.png")
+	tempFile, err := os.CreateTemp("", fmt.Sprintf("*.%s", extension))
 	if err != nil {
 		log.Panic(err)
 		return nil, err
