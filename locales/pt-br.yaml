@@ -1,0 +1,203 @@
+language:
+  name: Português (BR)
+  flag: 🇧🇷
+
+start:
+  message-private: |
+    Olá <b>%s</b> — Sou o <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.
+
+    <b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
+  message-group: |
+    Olá, sou o <b>%s</b>
+    Tenho varias funções, para saber mais, clique no botão abaixo e inicie uma conversa comigo.
+
+button:
+  start: Inciar uma conversa
+  language: 🌐 Idioma
+  help: ❓ Ajuda
+  about: ℹ️  Sobre
+  donation: 💵 Doação
+  news-channel: 📢 Canal de Notícias
+  back: ↩️ Voltar
+  caption: "Legendas:" # Precisa das aspas porque a string termina com dois pontos
+  automatic: "Automático:" # Precisa das aspas porque a string termina com dois pontos
+
+menu:
+  help-message: |
+    Aqui estão todos os meus plugins.
+    <b>Para saber mais sobre os plugins, basta clicar no nome deles.</b>
+  config-message: |
+    <b>Configurações —</b> Aqui estão minhas configurações para esse grupo.
+    Para saber mais, <b>clique nos botões abaixo.</b>
+  language-mesage: |
+    <b>Idioma atual:</b> %s %s
+
+    <b>Selecione abaixo o idioma que você quer utilizar no bot.</b>
+  language-changed-successfully: O idioma foi alterado com sucesso.
+  about-message: |-
+    <b>— SmudgeLord</b>
+    SmugeLord (Smudge The Cat) é um gato que se tornou um meme na Internet. A sua fama surgiu a partir de uma imagem em que é visto ao lado de uma mulher a gritar com raiva
+
+    <b>- Código Fonte:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
+    <b>- Desenvolvedor:</b> @ruizlenato
+    <i>Este projeto não tem qualquer ligação com Smudge The Cat, estou apenas a usar o seu nome e imagem porque sou um grande fã.</i>
+
+    <b>💸 Contribua: Ajude a manter o bot no ar, faça uma doação via PIX ou PayPal.</b>
+    • Chave Pix e Email do PayPal: <code>ruizlenato@proton.me</code>
+
+    Caso queira contribuir de outra maneira, com cartão de crédito ou debito por exemplo, clique no botão abaixo e seja redirecionado ao link de doação do Ko-Fi.
+
+afk:
+  name: AFK
+  now-unavailable: <b>%s</b> está agora indisponível!
+  unavailable: |-
+    <b><a href='tg://user?id=%s'>%s</a></b> está <b>indisponível!</b>
+    Visto pela última vez à <code>%s</code> atrás
+  reason: <b>Motivo:</b> <code>%s</code>
+  now-available: <b><a href='tg://user?id=%s'>%s</a></b> está de volta após <code>%s</code> de ausência!
+  help: |
+    <b>AFK significa:</b> <i>“away from keyboard”</i> que traduzido para o português, significa <b>“Longe do teclado”</b>.
+    É basicamente uma giria internetês para dizer que você está ausente.
+
+    <b>/afk &lt;motivo&gt; —</b> Define você mesmo como ausente.
+    <b>brb &lt;motivo&gt;  —</b> O mesmo que o comando afk, mas não é um comando, não é preciso usar /
+lastfm:
+  name: Last.fm
+  provide-username: |
+    Forneça seu nome de usuário do last.fm
+    <b>Exemplo:</b> <code>/setuser maozedong</code>.
+  invalid-username: |
+    <b>Usuário do last.fm inválido</b>
+    Verifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.
+  no-username: |
+    <b>Você ainda não definiu seu nome de usuário do last.fm</b>
+    Use o comando /setuser para definir
+  username-set: <b>Pronto, nome de usuário do last.fm foi salvo!</b>
+  error: |
+    <b>Parece que ocorreu um erro.</b>
+    O last.fm pode estar temporariamente indisponível.
+
+    Tente novamente em alguns minutos, se o erro persistir, entre em contato com o meu desenvolvedor.
+  no-scrobbles: |
+    <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>.
+
+    <b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.
+  now-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  was-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  config-help: |
+    <b>Configurações do LastFM em seu grupo:</b>
+    Use o botão abaixo para configurar se o bot deve responder aos comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
+
+    Se quiser evitar conflitos com outros bots você pode desativar a opção abaixo para que o bot não responda aos comandos mencionados acima.
+  help: |
+    Aqui estão alguns comandos relacionados ao <i><b>scrobbling</b></i> do last.fm
+    <i><b>Scrobbling</b></i> é um recurso do last.fm que envia automaticamente informações sobre as músicas que você está ouvindo para o serviço.
+    <b>Para saber mais, <a href='https://www.last.fm/pt/about/trackmymusic'>clique aqui</a></b>.
+
+    <b>/setuser &lt;nome de usuário&gt; —</b> Configura seu nome de usuário do last.fm.
+    <b>/lastfm | /lp —</b> Mostra a música você está ou estava ouvindo.
+    <b>/album | /alb —</b> Mostra o álbum você está ou estava ouvindo.
+    <b>/artist | /art —</b> Mostra o artista você está ou estava ouvindo.
+
+    <b>⚙️ Esse módulo contem configurações adicionais para grupos.</b> Você pode desativar os comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
+    Para saber mais, envie <code>/config</code> em um grupo no qual você é administrador.
+
+medias:
+  name: Mídias
+  config: |
+    <b>Configurações de Mídias</b>
+    Para saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.
+
+    <b>Para saber um pouco sobre cada configuração, clique no nome dela.</b>
+    <i>Essas configurações é somente para esse grupo, não servem para outros ou chat privado.</i>
+  noURL: |
+    <b>Você não especificou um link ou especificou um link invalido.</b>
+    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Clipe da Twitch</i></b> para que eu possa baixar a(s) mídia(s).
+  autoHelp: Quando essa opção está ativa, o bot fará o download de fotos e vídeos de algumas redes sociais automaticamente ao ver um link, dispensando a necessidade do comando /sdl ou /dl.
+  captionHelp: Quando essa opção está ativa, as legendas das mídias que você baixar usando o bot serão enviadas junto com elas.
+  youtubeNoURL: |
+    Forneça um link do YouTube para que eu possa fazer o download.
+    <b>Exemplo:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
+  youtubeInvalidURL: Esse link do YouTube não existe ou é de um vídeo privado.
+  youtubeBigFile: O vídeo ultrapassa o tamanho de 1,5GB, que é o meu limite máximo.
+  youtubeDenied: Este botão não é para você.
+  downloading: Baixando...
+  uploading: Enviando...
+  help: |
+    <b>/dl|/sdl —</b> Baixa mídias (fotos e vídeos) do <b>Instagram, TikTok, Reddit, Twitter/X e Clips da Twitch.</b>
+
+    <b>/ytdl &lt;link&gt; —</b> Baixa vídeos do <b>YouTube</b>.
+    A qualidade máxima dos downloads dos vídeos é 1080p. Você também pode baixar apenas o áudio do vídeo com esse comando.
+
+    <b>⚙️ Esse módulo contem configurações adicionais para grupos.</b> Você pode desativar os downloads automáticos e as legendas nos grupos.
+    Para saber mais, envie <code>/config</code> em um grupo no qual você é administrador.
+
+misc:
+  name: Diversos
+  tr-noargs: |
+    <b>Uso:</b> <code>/tr &lt;idioma&gt; &lt;texto para tradução&gt;</code>
+
+    Você precisa especificar o texto que deseja traduzir ou responder a uma mensagem de texto, ou uma foto com legenda.
+  help: |
+    <b>/clima &lt;cidade&gt; —</b> Mostra o clima atual de uma cidade especifica.
+
+    <b>/tr &lt;origem&gt;-&lt;destino&gt; &lt;texto&gt; —</b> Traduz um texto do idioma de origem para o idioma de destino especificado.
+    <i>Caso você não especifique o idioma de origem, o bot irá identificar automaticamente.</i>
+
+    <b>Notas:</b>
+    Você pode traduzir mensagens respondendo a elas com /tr.
+    Ambos os comandos /tr e /translate funcionam da mesma forma.
+
+stickers:
+  name: Figurinhas
+  kanging: <code>Kangando (roubando) o sticker...</code>
+  converting: <code>Convertendo vídeo/gif para sticker de vídeo...</code>
+  pack-exists: <code>Usando um pacote de sticker existente...</code>
+  new-pack: <code>Criando um novo pacote de sticker...</code>
+  invalid-type: O arquivo que você respondeu não é valido, responda a uma <i><b>uma figurinha</b></i> (sticker) ou um <i><b>vídeo</b></i> ou <i><b>uma foto</b></i> valida.
+  sticker-stoled: |
+    Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/%s'>confira.</a>
+    <b>Emoji:</b> %s
+  kang-not-reply: Você precisa usar este comando respondendo <i><b>uma figurinha</b></i> (sticker) ou <i><b>um vídeo</b></i> ou <i><b>uma foto</b></i>.
+  get-not-reply: |
+    Você precisa responder a uma figurinha para usar esse comando, assim eu posso enviar a figurinha respondida como <i><b>png</b></i> ou <i><b>gif</b></i>.
+    <i>Só funciona com figurinhas estáticas ou vídeos</i>
+  error: |
+    <b>Ocorreu um erro ao processar o sticker, tente novamente.</b>
+    Se o erro persistir, entre em contato com o desenvolvedor.
+  help: |-
+    <b>/kang &lt;emoji&gt; —</b> responda a uma figurinha para adicioná-lo ao seu pacote de stickers criado por mim.
+    <b><i>Funciona com todos os tipos de stickers (figurinhas): Estáticas e vídeos e animadas.</i></b>
+
+    <b>/getsticker —</b> responda a uma figurinha para que possa lhe enviar como arquivo <i>.png</i> ou <i>.gif</i>.
+    <b><i>Só funciona com figurinhas de vídeos ou estáticas.</i></b>
+
+weather:
+  location-unknown: Localização não encontrada.
+  no-location: |
+    Você não especificou uma localização.
+    <b>Exemplo:</b> <code>/clima Belém</code>.
+  measurement-unit: m
+  details: |-
+    <b>%s</b>:
+
+    Temperatura: <code>%d °C</code>
+    Sensação térmica: <code>%d °C</code>
+    Umidade do ar: <code>%d%%</code>
+    Vento: <code>%d km/h</code>
+
+relativeDuration:
+  singular:
+    s: segundo
+    m: minuto
+    h: hora
+    d: dia
+    w: semana
+    M: mês
+  plural:
+    s: segundos
+    m: minutos
+    h: horas
+    d: dias
+    w: semanas
+    M: meses

@@ -125,7 +125,7 @@ func music(bot *telego.Bot, message telego.Message) {
 		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "track"))
 	}
 
-	text += fmt.Sprintf("<b>%s</b> - %s", (*recentTracks.RecentTracks.Track)[0].Artist.Name, (*recentTracks.RecentTracks.Track)[0].Name)
+	text += fmt.Sprintf("\n\n<b>%s</b> - %s", (*recentTracks.RecentTracks.Track)[0].Artist.Name, (*recentTracks.RecentTracks.Track)[0].Name)
 	if (*recentTracks.RecentTracks.Track)[0].Loved == "1" {
 		text += " ❤️"
 	}
@@ -200,7 +200,7 @@ func album(bot *telego.Bot, message telego.Message) {
 		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "album"))
 	}
 
-	text += fmt.Sprintf("<b>%s</b> - %s", (*recentTracks.RecentTracks.Track)[0].Artist.Name, (*recentTracks.RecentTracks.Track)[0].Album.Text)
+	text += fmt.Sprintf("\n\n<b>%s</b> - %s", (*recentTracks.RecentTracks.Track)[0].Artist.Name, (*recentTracks.RecentTracks.Track)[0].Album.Text)
 	if (*recentTracks.RecentTracks.Track)[0].Loved == "1" {
 		text += " ❤️"
 	}
@@ -281,7 +281,7 @@ func artist(bot *telego.Bot, message telego.Message) {
 		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "artist"))
 	}
 
-	text += fmt.Sprintf("🎙<b>%s</b>", (*recentTracks.RecentTracks.Track)[0].Artist.Name)
+	text += fmt.Sprintf("\n\n🎙<b>%s</b>", (*recentTracks.RecentTracks.Track)[0].Artist.Name)
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),

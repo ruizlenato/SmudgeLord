@@ -66,7 +66,7 @@ func getSticker(bot *telego.Bot, message telego.Message) {
 	if message.ReplyToMessage == nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("stickers.get_not_reply"),
+			Text:      i18n("stickers.get-not-reply"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -124,7 +124,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 	if message.ReplyToMessage == nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("stickers.kang_not_reply"),
+			Text:      i18n("stickers.kang-not-reply"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -150,7 +150,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: progMSG.GetMessageID(),
-			Text:      i18n("stickers.invalid_type"),
+			Text:      i18n("stickers.invalid-type"),
 			ParseMode: "HTML",
 		})
 		return
@@ -289,7 +289,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: progMSG.GetMessageID(),
-		Text:      i18n("stickers.pack_exists"),
+		Text:      i18n("stickers.pack-exists"),
 		ParseMode: "HTML",
 	})
 
@@ -309,7 +309,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("stickers.new_pack"),
+				Text:      i18n("stickers.new-pack"),
 				ParseMode: "HTML",
 			})
 			stickerFile.Seek(0, 0)
@@ -326,7 +326,7 @@ func kang(bot *telego.Bot, message telego.Message) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: progMSG.GetMessageID(),
-		Text:      fmt.Sprintf(i18n("stickers.sticker_stoled"), stickerSetName, strings.Join(emoji, "")),
+		Text:      fmt.Sprintf(i18n("stickers.sticker-stoled"), stickerSetName, strings.Join(emoji, "")),
 		ParseMode: "HTML",
 	})
 }

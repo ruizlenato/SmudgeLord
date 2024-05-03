@@ -26,7 +26,7 @@ func start(bot *telego.Bot, update telego.Update) {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
 			MessageID: update.CallbackQuery.Message.GetMessageID(),
-			Text:      fmt.Sprintf(i18n("start_message_private"), Message.Chat.FirstName, botUser.FirstName),
+			Text:      fmt.Sprintf(i18n("start.message-private"), Message.Chat.FirstName, botUser.FirstName),
 			ParseMode: "HTML",
 			LinkPreviewOptions: &telego.LinkPreviewOptions{
 				IsDisabled: true,
@@ -56,14 +56,14 @@ func start(bot *telego.Bot, update telego.Update) {
 	if strings.Contains(update.Message.Chat.Type, "group") {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(update.Message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("start_message_group"), botUser.FirstName),
+			Text:      fmt.Sprintf(i18n("start.message-group"), botUser.FirstName),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: update.Message.MessageID,
 			},
 			ReplyMarkup: telegoutil.InlineKeyboard(telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
-					Text: i18n("start_button"),
+					Text: i18n("button.start"),
 					URL:  fmt.Sprintf("https://t.me/%s?start=start", botUser.Username),
 				})),
 		})
@@ -72,7 +72,7 @@ func start(bot *telego.Bot, update telego.Update) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(update.Message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("start_message_private"), update.Message.From.FirstName, botUser.FirstName),
+		Text:      fmt.Sprintf(i18n("start.message-private"), update.Message.From.FirstName, botUser.FirstName),
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			IsDisabled: true,
@@ -134,14 +134,14 @@ func languageMenu(bot *telego.Bot, update telego.Update) {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      telegoutil.ID(chat.ID),
 			MessageID:   update.CallbackQuery.Message.GetMessageID(),
-			Text:        fmt.Sprintf(i18n("language_menu_mesage"), i18n("language.flag"), i18n("language.name")),
+			Text:        fmt.Sprintf(i18n("menu.language-mesage"), i18n("language.flag"), i18n("language.name")),
 			ParseMode:   "HTML",
 			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 		})
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:      telegoutil.ID(update.Message.Chat.ID),
-			Text:        fmt.Sprintf(i18n("language_menu_mesage"), i18n("language.flag"), i18n("language.name")),
+			Text:        fmt.Sprintf(i18n("menu.language-mesage"), i18n("language.flag"), i18n("language.name")),
 			ParseMode:   "HTML",
 			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 			ReplyParameters: &telego.ReplyParameters{
@@ -180,7 +180,7 @@ func languageSet(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("language_changed_successfully"),
+		Text:        i18n("menu.language-changed-successfully"),
 		ParseMode:   "HTML",
 		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 	})
@@ -195,7 +195,7 @@ func helpMenu(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:      telegoutil.ID(chat.ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("help_menu_message"),
+		Text:        i18n("menu.help-message"),
 		ParseMode:   "HTML",
 		ReplyMarkup: telegoutil.InlineKeyboard(helpers.GetHelpKeyboard(i18n)...),
 	})
@@ -209,7 +209,7 @@ func aboutMenu(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("about-message"),
+		Text:      i18n("menu.about-message"),
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			IsDisabled: true,
@@ -292,14 +292,14 @@ func configMenu(bot *telego.Bot, update telego.Update) {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:      telegoutil.ID(chat.ID),
 			MessageID:   update.CallbackQuery.Message.GetMessageID(),
-			Text:        i18n("config_menu_message"),
+			Text:        i18n("menu.config-message"),
 			ParseMode:   "HTML",
 			ReplyMarkup: keyboard,
 		})
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:      telegoutil.ID(update.Message.Chat.ID),
-			Text:        i18n("config_menu_message"),
+			Text:        i18n("menu.config-message"),
 			ParseMode:   "HTML",
 			ReplyMarkup: keyboard,
 			ReplyParameters: &telego.ReplyParameters{

@@ -1,7 +1,6 @@
 package localization
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +10,7 @@ import (
 
 	"smudgelord/smudgelord/database"
 
+	"github.com/goccy/go-yaml"
 	"github.com/mymmrac/telego"
 )
 
@@ -39,7 +39,7 @@ func LoadLanguages() error {
 			return err
 		}
 
-		if !info.IsDir() && filepath.Ext(path) == ".json" {
+		if !info.IsDir() && filepath.Ext(path) == ".yaml" {
 			// Extract the language code from the file name without the extension
 			langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 
@@ -48,9 +48,9 @@ func LoadLanguages() error {
 				return err
 			}
 
-			// Unmarshal the language JSON data and store it in the cache
+			// Unmarshal the language YAML data and store it in the cache
 			langMap := make(map[string]interface{})
-			err = json.Unmarshal(data, &langMap)
+			err = yaml.Unmarshal(data, &langMap)
 			if err != nil {
 				return err
 			}
