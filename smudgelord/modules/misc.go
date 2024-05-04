@@ -86,7 +86,7 @@ func weather(bot *telego.Bot, message telego.Message) {
 	}
 
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.From.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      fmt.Sprintf(i18n("weather.details"), weatherData.Location.Address[0], weatherResult.V3WxObservationsCurrent.Temperature, weatherResult.V3WxObservationsCurrent.TemperatureFeelsLike, weatherResult.V3WxObservationsCurrent.RelativeHumidity, weatherResult.V3WxObservationsCurrent.WindSpeed),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
@@ -271,7 +271,7 @@ func gTranslate(bot *telego.Bot, message telego.Message) {
 	textUnescaped, _ := (url.QueryUnescape(strings.Join(translations, "")))
 
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.From.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      fmt.Sprintf("<b>%s</b> -> <b>%s</b>\n<code>%s</code>", translation.Source, targetLang, textUnescaped),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
