@@ -153,9 +153,9 @@ func (dm *DownloadMedia) Instagram(url string) {
 		file, err := Downloader(storiesData.URL)
 		if err != nil {
 			log.Print("[instagram/Instagram] Error downloading file:", err)
+			defer file.Close()
 			return
 		}
-		defer file.Close()
 
 		if strings.Contains(storiesData.URL, ".mp4?") {
 			dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(telegoutil.File(file)))
