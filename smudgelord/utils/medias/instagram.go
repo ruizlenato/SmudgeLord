@@ -288,9 +288,11 @@ func (dm *DownloadMedia) Instagram(url string) {
 			log.Printf("[instagram/Instagram] Error unmarshalling Instagram data: %v", err)
 			return
 		}
-		if instagramData != nil || instagramData.Data.XDTShortcodeMedia == nil {
+
+		if instagramData == nil || instagramData.Data.XDTShortcodeMedia == nil {
 			return
 		}
+
 		result := instagramData.Data.XDTShortcodeMedia
 		if len(result.EdgeMediaToCaption.Edges) > 0 {
 			dm.Caption = result.EdgeMediaToCaption.Edges[0].Node.Text
