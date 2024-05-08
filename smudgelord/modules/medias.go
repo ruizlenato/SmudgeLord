@@ -258,7 +258,7 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 	// Create temporary audio/video file and set the chat action.
 	switch callbackData[0] {
 	case "_aud":
-		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.mp3")
+		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.m4a")
 		action = telego.ChatActionUploadVoice
 	case "_vid":
 		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.mp4")
