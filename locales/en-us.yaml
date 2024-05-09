@@ -106,7 +106,7 @@ medias:
     <b>Medias settings</b>
     To know more about the <b><i>medias</i></b> module, use /help in my private chat.
 
-    <b>To know more about each configuration, click on its name.</b></b>
+    <b>To know more about each configuration, click on its name.</b>
     <i>These settings are for this group only, not for other groups or private chats.</i>
   noURL: |
     <b>You didn't specify a link or you specified an invalid link.</b>
