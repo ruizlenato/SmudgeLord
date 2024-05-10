@@ -34,17 +34,17 @@ func start(bot *telego.Bot, update telego.Update) {
 			ReplyMarkup: telegoutil.InlineKeyboard(
 				telegoutil.InlineKeyboardRow(
 					telego.InlineKeyboardButton{
-						Text:         i18n("button.language"),
-						CallbackData: "languageMenu",
+						Text:         i18n("button.about"),
+						CallbackData: "aboutMenu",
 					},
 					telego.InlineKeyboardButton{
-						Text:         i18n("button.help"),
-						CallbackData: "helpMenu",
+						Text:         i18n("language.flag") + i18n("button.language"),
+						CallbackData: "languageMenu",
 					},
 				),
 				telegoutil.InlineKeyboardRow(telego.InlineKeyboardButton{
-					Text:         i18n("button.about"),
-					CallbackData: "aboutMenu",
+					Text:         i18n("button.help"),
+					CallbackData: "helpMenu",
 				}),
 			),
 		})
@@ -80,17 +80,17 @@ func start(bot *telego.Bot, update telego.Update) {
 		ReplyMarkup: telegoutil.InlineKeyboard(
 			telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
-					Text:         i18n("button.language"),
-					CallbackData: "languageMenu",
+					Text:         i18n("button.about"),
+					CallbackData: "aboutMenu",
 				},
 				telego.InlineKeyboardButton{
-					Text:         i18n("button.help"),
-					CallbackData: "helpMenu",
+					Text:         i18n("language.flag") + i18n("button.language"),
+					CallbackData: "languageMenu",
 				},
 			),
 			telegoutil.InlineKeyboardRow(telego.InlineKeyboardButton{
-				Text:         i18n("button.about"),
-				CallbackData: "aboutMenu",
+				Text:         i18n("button.help"),
+				CallbackData: "helpMenu",
 			}),
 		),
 	})
@@ -220,8 +220,6 @@ func aboutMenu(bot *telego.Bot, update telego.Update) {
 					Text: i18n("button.donation"),
 					URL:  "https://ko-fi.com/ruizlenato",
 				},
-			),
-			telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
 					Text: i18n("button.news-channel"),
 					URL:  "https://t.me/SmudgeLordChannel",
@@ -247,6 +245,9 @@ func helpMessage(bot *telego.Bot, update telego.Update) {
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 		Text:      i18n(fmt.Sprintf("%s.help", module)),
 		ParseMode: "HTML",
+		LinkPreviewOptions: &telego.LinkPreviewOptions{
+			IsDisabled: true,
+		},
 		ReplyMarkup: telegoutil.InlineKeyboard(
 			telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
@@ -282,7 +283,7 @@ func configMenu(bot *telego.Bot, update telego.Update) {
 		),
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
-				Text:         i18n("button.language"),
+				Text:         i18n("language.flag") + i18n("button.language"),
 				CallbackData: "languageMenu",
 			},
 		),

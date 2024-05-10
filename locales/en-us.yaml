@@ -13,19 +13,23 @@ start:
 
 button:
   start: Inciar uma conversa
-  language: 🌐 Language
-  help: ❓ Help
-  about: ℹ️  About
+  language: Language
+  help: ❔Help
+  about: ℹ️ About
   donation: 💵 Donation
-  news-channel: 📢 News channel
+  news-channel: 📢 Channel
   back: ↩️  Back
   caption: "Captions:" # Need the quotes because string ends with a colon
   automatic: "Auto:" # Need the quotes because string ends with a colon
 
 menu:
   help-message: |
-    Here are all my plugins.
-    <b>To find out more about the plugins, just click on their name.</b>
+    Here are all my modules.
+    <b>To learn more about the modules, simply click on their names.</b>
+
+    <b>Note:</b>
+    Some modules have additional settings in groups.
+    To learn more, send <code>/config</code> in a group where you're an administrator.
   config-message: |
     <b>Settings —</b> Here are my settings for this group.
     To know more, <b>click on the buttons below.</b>
@@ -56,14 +60,16 @@ afk:
   reason: <b>Reason:</b> <code>%s</code>
   now-available: <b><a href='tg://user?id=%s'>%s</a></b> is back after <code>%s</code> away.!
   help: |
-    <b>AFK stands for:</b> <i>“away from keyboard”</i>
-    It is basically Internet slang to say that you are away.
+    <b>AFK — <i>Away from Keyboard</i></b>
 
-    <b>/afk &lt;reason&gt; —</b> Define yourself as away.
-    <b>brb &lt;reason&gt;  —</b> The same as the afk command but it's not a command, you don't need to use /
+    <b>AFK stands for</b> <i>“away from keyboard”</i>. It is basically Internet slang to say that you are away.
+
+    <b>Commands:</b>
+    - /afk &lt;reason&gt; — Define yourself as away.
+    - brb &lt;reason&gt;  — Same as the afk command, but not a command; no need to use <code>/</code>.
 
 lastfm:
-  name: Last.fm
+  name: Last.FM
   provide-username: |
     Provide your last.fm username.
     <b>Example:</b> <code>/setuser maozedong</code>.
@@ -91,14 +97,20 @@ lastfm:
 
     If you want to avoid conflicts with other bots, you can disable the option below so that the bot doesn't respond to the commands mentioned above.
   help: |
-    Here are some commands related to last.fm <i><b>scrobbling</b></i>
-    <i><b>Scrobbling</b></i> is a feature of last.fm that automatically sends information about the music you're listening to to the service.
+    <b>Last.FM Scobbles</b>
+
+    <b>Scrobble</b> is a feature of last.fm that automatically sends information about the music you're listening to to the service.
     <b>To know more <a href='https://www.last.fm/pt/about/trackmymusic'>click here</a></b>.
 
-    <b>/setuser &lt;lastfm username&gt; —</b> Set your last.fm username.
-    <b>/lastfm | /lp —</b> Shows the music you are or were listening to.
-    <b>/album | /alb —</b> Shows the album you are or were listening to.
-    <b>/artist | /art —</b> Shows the artist you are or were listening to.
+    <b>Commands:</b>
+    - /setuser &lt;lastfm username&gt; — Set your last.fm username.
+    - /lastfm | /lp — Shows the music you are or were listening to.
+    - /album | /alb — Shows the album you are or were listening to.
+    - /artist | /art — Shows the artist you are or were listening to.
+
+    <b>Note:</b> 
+    This module has additional settings for groups.
+    You can disable the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in groups.
 
 medias:
   name: Medias
@@ -122,13 +134,18 @@ medias:
   downloading: Downloading...
   uploading: Uploading...
   help: |
-    <b>/dl|/sdl —</b> Downloads medias (photos and videos) from <b>Instagram, TikTok, Reddit, Twitter/X, and Twitch Clips.</b>
+    <b>Media Downloader</b>
 
-    <b>/ytdl &lt;link&gt; —</b> Downloads videos from <b>YouTube</b>
+    When sharing links on Telegram, some sites don't display an image or video preview. This module enables Smudge to automatically detect links from supported sites and send the videos and images contained within them.
+
+    <b>Note:</b> 
+    This module contains additional settings for groups. 
+    You can disable automatic downloads and captions in the groups.
+
+    <b>Commands:</b> 
+    - /dl | /sdl &lt;link&gt; — This command is for when you disable automatic downloads in groups.
+    - /ytdl &lt;link&gt; — Downloads videos from <b>YouTube</b>
     The maximum quality of video downloads is 1080p. You can also download just the audio of the video with this command.
-
-    <b>⚙️ This module contains additional settings for groups.</b> You can disable automatic downloads and captions in the groups.
-    To know more, send <code>/config</code> in a group in which you are an administrator.
 
 misc:
   name: Miscellaneous
@@ -137,15 +154,18 @@ misc:
 
     You need to specify the text you want to translate or reply to a text message, or a photo with a caption.
   help: |
-    <b>/clima &lt;city&gt; —</b> Shows the current climate of a specific city.
+    <b>Miscellaneous</b>
+    
+    This module combines some useful commands that don't fit into other specific categories.
+    
+    <b>Commands:</b> 
+    - /weather &lt;city&gt; — Displays the current weather of the specified city.
+    - /tr &lt;source&gt;-&lt;destination&gt; &lt;text&gt; — Translates a text from the source language to the specified destination language.
+    <i>If you don't specify the source language, Smudge will automatically detect it.</i>
 
-    <b>/tr &lt;language&gt; &lt;text&gt; —</b> Translates the text to the specified language.
-    <b>/tr &lt;source&gt;-&lt;target&gt; &lt;text&gt; —</b> Translates a text from the source language into the specified target language..
-    <i>If you don't specify the source language, the bot will identify it automatically.</i>
-
-    <b>Notes:</b>
-    You can translate messages by replying to them with /translate.
-    Both the /tr and /translate commands work in the same way.
+    <b>Note:</b>
+    You can translate messages by replying to them with <code>/translate</code>.
+    Both <code>/tr</code> and <code>/translate</code> commands work the same way.
 
 stickers:
   name: Stickers
@@ -165,14 +185,16 @@ stickers:
     <b>An error occurred while processing the sticker, try again later.</b>
     If the problem persists, contact the developer.
   help: |-
-    <b>/kang &lt;emoji&gt; —</b> reply to a sticker to add it to your sticker pack created by me.
-    <b><i>Works with all types of stickers: static, video and animated.</i></b>
+    <b>Stickers</b>
 
-    <b>/getsticker —</b> reply to a sticker so I can send it to you as a <i>.png</i> or <i>.gif</i> file.
-    <b><i>Only works with static stickers or video stickers.</i></b>
+    This module contains some useful functions for you to manage stickers.
+
+    <b>Commands:</b>
+    - /kang &lt;emoji&gt; — Reply to any sticker to add it to your sticker pack created by me. <b>Works with <i>static, video, and animated</i> stickers.</b>
+    - /getsticker — Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
 
 weather:
-  location-unknown: Localização não encontrada.
+  location-unknown: Location not found.
   no-location: |
     You haven't specified a location.
     <b>Example:</b> <code>/weather Belém</code>.

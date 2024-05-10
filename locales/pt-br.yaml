@@ -13,19 +13,23 @@ start:
 
 button:
   start: Inciar uma conversa
-  language: 🌐 Idioma
-  help: ❓ Ajuda
-  about: ℹ️  Sobre
+  language: Idioma
+  help: ❔Ajuda
+  about: ℹ️Sobre
   donation: 💵 Doação
-  news-channel: 📢 Canal de Notícias
+  news-channel: 📢 Canal
   back: ↩️ Voltar
   caption: "Legendas:" # Precisa das aspas porque a string termina com dois pontos
   automatic: "Automático:" # Precisa das aspas porque a string termina com dois pontos
 
 menu:
   help-message: |
-    Aqui estão todos os meus plugins.
-    <b>Para saber mais sobre os plugins, basta clicar no nome deles.</b>
+    Aqui estão todos os meus módulos.
+    <b>Para saber mais sobre os módulos, basta clicar no nome deles.</b>
+
+    <b>Nota:</b>
+    Alguns módulos tem configurações adicionais em grupos.
+    Para saber mais, envie <code>/config</code> em um grupo no qual você é administrador.
   config-message: |
     <b>Configurações —</b> Aqui estão minhas configurações para esse grupo.
     Para saber mais, <b>clique nos botões abaixo.</b>
@@ -56,13 +60,16 @@ afk:
   reason: <b>Motivo:</b> <code>%s</code>
   now-available: <b><a href='tg://user?id=%s'>%s</a></b> está de volta após <code>%s</code> de ausência!
   help: |
-    <b>AFK significa:</b> <i>“away from keyboard”</i> que traduzido para o português, significa <b>“Longe do teclado”</b>.
-    É basicamente uma giria internetês para dizer que você está ausente.
+    <b>AFK — <i>Away from Keyboard</i></b>
 
-    <b>/afk &lt;motivo&gt; —</b> Define você mesmo como ausente.
-    <b>brb &lt;motivo&gt;  —</b> O mesmo que o comando afk, mas não é um comando, não é preciso usar /
+    <b>AFK</b> em uma tradução para o português, significa <b>“Longe do teclado”</b>.
+    É uma gíria da internet usada para indicar que você está ausente.
+
+    <b>Comandos:</b>
+    - /afk &lt;motivo&gt; — Define você mesmo como ausente.
+    - brb &lt;motivo&gt; — Igual ao comando afk, mas não é um comando; não é necessário usar <code>/</code>.
 lastfm:
-  name: Last.fm
+  name: Last.FM
   provide-username: |
     Forneça seu nome de usuário do last.fm
     <b>Exemplo:</b> <code>/setuser maozedong</code>.
@@ -90,17 +97,20 @@ lastfm:
 
     Se quiser evitar conflitos com outros bots você pode desativar a opção abaixo para que o bot não responda aos comandos mencionados acima.
   help: |
-    Aqui estão alguns comandos relacionados ao <i><b>scrobbling</b></i> do last.fm
-    <i><b>Scrobbling</b></i> é um recurso do last.fm que envia automaticamente informações sobre as músicas que você está ouvindo para o serviço.
-    <b>Para saber mais, <a href='https://www.last.fm/pt/about/trackmymusic'>clique aqui</a></b>.
+    <b>Last.FM Scobbles</b>
 
-    <b>/setuser &lt;nome de usuário&gt; —</b> Configura seu nome de usuário do last.fm.
-    <b>/lastfm | /lp —</b> Mostra a música você está ou estava ouvindo.
-    <b>/album | /alb —</b> Mostra o álbum você está ou estava ouvindo.
-    <b>/artist | /art —</b> Mostra o artista você está ou estava ouvindo.
+    <b>Scrobble</b> é um recurso do Last.fm que envia automaticamente informações sobre as músicas que você está ou estava ouvindo para o serviço.
+    <b>Para saber mais, <a href='https://www.last.fm/pt/about/trackmymusic'>clique aqui</a>.</b>
 
-    <b>⚙️ Esse módulo contem configurações adicionais para grupos.</b> Você pode desativar os comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
-    Para saber mais, envie <code>/config</code> em um grupo no qual você é administrador.
+    <b>Comandos:</b>
+    - /setuser &lt;nome de usuário&gt; — Configura seu nome de usuário do last.fm.
+    - /lastfm | /lp — Mostra a música você está ou estava ouvindo.
+    - /album | /alb — Mostra o álbum você está ou estava ouvindo.
+    - /artist | /art — Mostra o artista você está ou estava ouvindo.
+
+    <b>Nota:</b> 
+    Esse módulo contém configurações adicionais para grupos.
+    Você pode desativar os comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> em grupos.
 
 medias:
   name: Mídias
@@ -124,13 +134,20 @@ medias:
   downloading: Baixando...
   uploading: Enviando...
   help: |
-    <b>/dl|/sdl —</b> Baixa mídias (fotos e vídeos) do <b>Instagram, TikTok, Reddit, Twitter/X e Clips da Twitch.</b>
+    <b>Media Downloader</b>
 
-    <b>/ytdl &lt;link&gt; —</b> Baixa vídeos do <b>YouTube</b>.
-    A qualidade máxima dos downloads dos vídeos é 1080p. Você também pode baixar apenas o áudio do vídeo com esse comando.
+    Ao compartilhar links no Telegram, alguns sites não exibem uma pré-visualização de imagem ou vídeo. Esse módulo faz com que o Smudge detecte automaticamente os links dos sites suportados e envie os vídeos e imagens que estão presentes no mesmo.
 
-    <b>⚙️ Esse módulo contem configurações adicionais para grupos.</b> Você pode desativar os downloads automáticos e as legendas nos grupos.
-    Para saber mais, envie <code>/config</code> em um grupo no qual você é administrador.
+    <b>Sites atualmente suportados:</b> <i>Instagram</i>, <i>TikTok</i>, <i>Reddit</i>, <i>Twitter/X</i> e <i>Clips da Twitch</i>.
+    
+    <b>Nota:</b> 
+    Esse módulo contém configurações adicionais para grupos. 
+    Você pode desativar os downloads automáticos e as legendas em grupos.
+
+    <b>Comandos:</b>
+    - /dl|/sdl &lt;link&gt; — Esse comando é para quando você desativa os downloads automáticos nos grupos.
+    - /ytdl &lt;link&gt; — Baixa vídeos do <b>YouTube</b>.
+    A qualidade máxima dos downloads dos vídeos do YouTube é 1080p. Você também pode baixar apenas o áudio do vídeo com esse comando.
 
 misc:
   name: Diversos
@@ -139,14 +156,18 @@ misc:
 
     Você precisa especificar o texto que deseja traduzir ou responder a uma mensagem de texto, ou uma foto com legenda.
   help: |
-    <b>/clima &lt;cidade&gt; —</b> Mostra o clima atual de uma cidade especifica.
+    <b>Diversos</b>
+    
+    Esse módulo reúne alguns comandos úteis que não se encaixam em outras categorias específicas.
 
-    <b>/tr &lt;origem&gt;-&lt;destino&gt; &lt;texto&gt; —</b> Traduz um texto do idioma de origem para o idioma de destino especificado.
-    <i>Caso você não especifique o idioma de origem, o bot irá identificar automaticamente.</i>
+    <b>Comandos:</b>
+    - /clima &lt;cidade&gt; — Mostra o clima atual da cidade especifica.
+    - /tr &lt;origem&gt;-&lt;destino&gt; &lt;texto&gt; — Traduz um texto do idioma de origem para o idioma de destino especificado.
+    <i>Caso você não especifique o idioma de origem, o Smudge irá identificar automaticamente.</i>
 
-    <b>Notas:</b>
-    Você pode traduzir mensagens respondendo a elas com /tr.
-    Ambos os comandos /tr e /translate funcionam da mesma forma.
+    <b>Nota:</b>
+    Você pode traduzir mensagens respondendo a elas com <code>/tr</code>.
+    Ambos os comandos <code>/tr</code> e <code>/translate</code> funcionam da mesma forma.
 
 stickers:
   name: Figurinhas
@@ -166,11 +187,13 @@ stickers:
     <b>Ocorreu um erro ao processar o sticker, tente novamente.</b>
     Se o erro persistir, entre em contato com o desenvolvedor.
   help: |-
-    <b>/kang &lt;emoji&gt; —</b> responda a uma figurinha para adicioná-lo ao seu pacote de stickers criado por mim.
-    <b><i>Funciona com todos os tipos de stickers (figurinhas): Estáticas e vídeos e animadas.</i></b>
+    <b>Stickers — Figurinhas</b>
 
-    <b>/getsticker —</b> responda a uma figurinha para que possa lhe enviar como arquivo <i>.png</i> ou <i>.gif</i>.
-    <b><i>Só funciona com figurinhas de vídeos ou estáticas.</i></b>
+    Esse módulo contém algumas funções úteis para você gerenciar stickers (figurinhas).
+    
+    <b>Comandos:</b>
+    - /kang &lt;emoji&gt; — Responda a qualquer sticker para adicioná-lo ao seu pacote de stickers criado por mim. <b>Funciona com stickers <i>estáticos, de vídeos e animados.</i></b>
+    - /getsticker — Responda a um sticker para que possa enviar-lo como arquivo <i>.png</i> ou <i>.gif</i>. <b>Só funciona com figurinhas <i>de vídeos ou estáticas.</i></b>
 
 weather:
   location-unknown: Localização não encontrada.
