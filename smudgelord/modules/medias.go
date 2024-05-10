@@ -228,6 +228,10 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 	if err != nil {
 		return
 	}
+
+	if len(video.Formats.Itag(itag)) == 0 {
+		return
+	}
 	format := video.Formats.Itag(itag)[0]
 
 	size := 1572864000 // 1,5 GB
