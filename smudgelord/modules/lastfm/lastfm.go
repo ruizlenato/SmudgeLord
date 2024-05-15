@@ -1,4 +1,4 @@
-package modules
+package lastfm
 
 import (
 	"fmt"
@@ -8,16 +8,16 @@ import (
 
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
+	lastFMAPI "smudgelord/smudgelord/modules/lastfm/api"
 	"smudgelord/smudgelord/utils"
 	"smudgelord/smudgelord/utils/helpers"
-	"smudgelord/smudgelord/utils/lastfm"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-var lastFM = lastfm.Init()
+var lastFM = lastFMAPI.Init()
 
 func setUser(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
@@ -68,15 +68,31 @@ func setUser(bot *telego.Bot, message telego.Message) {
 	})
 }
 
+func getUserLastFMUsername(userID int64) (string, error) {
+	var lastFMUsername string
+	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", userID).Scan(&lastFMUsername)
+	return lastFMUsername, err
+}
+
+func getErrorMessage(err error, i18n func(string) string) string {
+	switch {
+	case strings.Contains(err.Error(), "no recent tracks"):
+		return i18n("lastfm.no-scrobbles")
+	case strings.Contains(err.Error(), "lastFM error"):
+		return i18n("lastfm.error")
+	default:
+		return ""
+	}
+}
+
 func music(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
 		return
 	}
 	i18n := localization.Get(message.Chat)
 
-	var lastFMUsername string
-	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID).Scan(&lastFMUsername)
-	if err != nil && lastFMUsername == "" {
+	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
+	if err != nil || lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.no-username"),
@@ -88,45 +104,35 @@ func music(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if recentTracks == nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.error"),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
+	recentTracks, err := lastFM.GetRecentTrack("track", lastFMUsername)
+	if err != nil {
+		errorMessage := getErrorMessage(err, i18n)
+		if errorMessage != "" {
+			bot.SendMessage(&telego.SendMessageParams{
+				ChatID:    telegoutil.ID(message.Chat.ID),
+				Text:      errorMessage,
+				ParseMode: "HTML",
+				LinkPreviewOptions: &telego.LinkPreviewOptions{
+					IsDisabled: true,
+				},
+				ReplyParameters: &telego.ReplyParameters{
+					MessageID: message.MessageID,
+				},
+			})
+		}
 		return
 	}
-	if recentTracks.RecentTracks == nil || len(*recentTracks.RecentTracks.Track) < 1 {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-scrobbles"),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track)[0].Image[3].Text)
 
-	if (*recentTracks.RecentTracks.Track)[0].Attr.Nowplaying != "" {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "track"))
+	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (recentTracks.Image))
+
+	if recentTracks.Nowplaying {
+		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "track"))
+		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	}
 
-	text += fmt.Sprintf("\n\n<b>%s</b> - %s", (*recentTracks.RecentTracks.Track)[0].Artist.Name, (*recentTracks.RecentTracks.Track)[0].Name)
-	if (*recentTracks.RecentTracks.Track)[0].Loved == "1" {
+	text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Track)
+	if recentTracks.Trackloved {
 		text += " ❤️"
 	}
 
@@ -163,45 +169,35 @@ func album(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if recentTracks == nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.error"),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
+	recentTracks, err := lastFM.GetRecentTrack("album", lastFMUsername)
+	if err != nil {
+		errorMessage := getErrorMessage(err, i18n)
+		if errorMessage != "" {
+			bot.SendMessage(&telego.SendMessageParams{
+				ChatID:    telegoutil.ID(message.Chat.ID),
+				Text:      errorMessage,
+				ParseMode: "HTML",
+				LinkPreviewOptions: &telego.LinkPreviewOptions{
+					IsDisabled: true,
+				},
+				ReplyParameters: &telego.ReplyParameters{
+					MessageID: message.MessageID,
+				},
+			})
+		}
 		return
 	}
-	if recentTracks.RecentTracks == nil || len(*recentTracks.RecentTracks.Track) < 1 {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-scrobbles"),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track)[0].Image[3].Text)
 
-	if (*recentTracks.RecentTracks.Track)[0].Attr.Nowplaying != "" {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "album"))
+	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
+
+	if recentTracks.Nowplaying {
+		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "album"))
+		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	}
 
-	text += fmt.Sprintf("\n\n<b>%s</b> - %s", (*recentTracks.RecentTracks.Track)[0].Artist.Name, (*recentTracks.RecentTracks.Track)[0].Album.Text)
-	if (*recentTracks.RecentTracks.Track)[0].Loved == "1" {
+	text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Album)
+	if recentTracks.Trackloved {
 		text += " ❤️"
 	}
 
@@ -238,50 +234,40 @@ func artist(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	recentTracks := lastFM.GetRecentTrack(lastFMUsername)
-	if recentTracks == nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.error"),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
+	recentTracks, err := lastFM.GetRecentTrack("artist", lastFMUsername)
+	if err != nil {
+		errorMessage := getErrorMessage(err, i18n)
+		if errorMessage != "" {
+			bot.SendMessage(&telego.SendMessageParams{
+				ChatID:    telegoutil.ID(message.Chat.ID),
+				Text:      errorMessage,
+				ParseMode: "HTML",
+				LinkPreviewOptions: &telego.LinkPreviewOptions{
+					IsDisabled: true,
+				},
+				ReplyParameters: &telego.ReplyParameters{
+					MessageID: message.MessageID,
+				},
+			})
+		}
 		return
 	}
-	if recentTracks.RecentTracks == nil || len(*recentTracks.RecentTracks.Track) < 1 {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-scrobbles"),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-	body := utils.RequestGET(fmt.Sprintf("https://www.last.fm/music/%s/+images", (*recentTracks.RecentTracks.Track)[0].Artist.Name), utils.RequestGETParams{}).String()
+
+	body := utils.RequestGET(fmt.Sprintf("https://www.last.fm/music/%s/+images", recentTracks.Artist), utils.RequestGETParams{}).String()
 	imageFound := regexp.MustCompile(`https://lastfm.freetls.fastly.net/i/u/avatar170s/[^"]*`).FindStringSubmatch(body)
 
-	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (*recentTracks.RecentTracks.Track)[0].Image[3].Text)
+	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
 	if len(imageFound) > 0 {
 		text = fmt.Sprintf("<a href='%s'>\u200c</a>", strings.ReplaceAll(imageFound[0], "avatar170s", "770x0")+".jpg")
 	}
 
-	if (*recentTracks.RecentTracks.Track)[0].Attr.Nowplaying != "" {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "artist"))
+	if recentTracks.Nowplaying {
+		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, lastFM.PlayCount(recentTracks, "artist"))
+		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	}
 
-	text += fmt.Sprintf("\n\n🎙<b>%s</b>", (*recentTracks.RecentTracks.Track)[0].Artist.Name)
+	text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),

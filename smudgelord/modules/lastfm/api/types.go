@@ -1,4 +1,8 @@
-package lastfm
+package lastFMAPI
+
+type LastFM struct {
+	apiKey string
+}
 
 type image struct {
 	Size string `json:"size"`

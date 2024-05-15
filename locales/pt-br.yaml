@@ -86,7 +86,7 @@ lastfm:
 
     Tente novamente em alguns minutos, se o erro persistir, entre em contato com o meu desenvolvedor.
   no-scrobbles: |
-    <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>.
+    <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>
 
     <b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.
   now-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
