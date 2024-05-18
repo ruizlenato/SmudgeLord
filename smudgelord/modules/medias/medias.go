@@ -1,20 +1,23 @@
-package modules
+package medias
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
+	"unicode/utf8"
 
-	"smudgelord/smudgelord/config"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
+	"smudgelord/smudgelord/modules/medias/downloader"
+	"smudgelord/smudgelord/modules/medias/downloader/generic"
+	"smudgelord/smudgelord/modules/medias/downloader/instagram"
+	"smudgelord/smudgelord/modules/medias/downloader/tiktok"
+	"smudgelord/smudgelord/modules/medias/downloader/twitter"
+	yt "smudgelord/smudgelord/modules/medias/downloader/youtube"
 	"smudgelord/smudgelord/utils/helpers"
-	"smudgelord/smudgelord/utils/medias"
 
 	"github.com/kkdai/youtube/v2"
 	"github.com/mymmrac/telego"
@@ -22,38 +25,15 @@ import (
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-const regexMedia = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:instagram|twitter|x|tiktok|reddit|twitch).(?:com|net|tv)/(?:\S*)`
+const (
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:instagram|twitter|x|tiktok|reddit|twitch).(?:com|net|tv)/(?:\S*)`
+	maxSizeCaption = 1024
+)
 
-func removeMediaFiles(mediaItems []telego.InputMedia) {
-	var wg sync.WaitGroup
-
-	for _, media := range mediaItems {
-		wg.Add(1)
-
-		go func(media telego.InputMedia) {
-			defer wg.Done()
-
-			switch media.MediaType() {
-			case "photo":
-				if photo, ok := media.(*telego.InputMediaPhoto); ok {
-					os.Remove(photo.Media.String())
-				}
-			case "video":
-				if video, ok := media.(*telego.InputMediaVideo); ok {
-					os.Remove(video.Media.String())
-				}
-			}
-		}(media)
-	}
-
-	wg.Wait()
-}
-
-func mediaDownloader(bot *telego.Bot, message telego.Message) {
+func mediasDownloader(bot *telego.Bot, message telego.Message) {
 	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text) && strings.Contains(message.Chat.Type, "group") {
-		row := database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", message.Chat.ID)
 		var mediasAuto bool
-		if row.Scan(&mediasAuto); !mediasAuto {
+		if err := database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto); err != nil || !mediasAuto {
 			return
 		}
 	}
@@ -71,14 +51,12 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	dm := medias.NewDownloadMedia()
-	mediaItems, caption := dm.Download(url[0])
-	if strings.Contains(message.Chat.Type, "group") {
-		row := database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", message.Chat.ID)
-		var mediasCaption bool
-		if row.Scan(&mediasCaption); !mediasCaption {
-			caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
-		}
+	mediaItems, caption := downloadMediaFromURL(url[0])
+
+	row := database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", message.Chat.ID)
+	var mediasCaption bool
+	if row.Scan(&mediasCaption); !mediasCaption {
+		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
 	}
 
 	// Check if only one photo is present and link preview is enabled, then return
@@ -112,8 +90,33 @@ func mediaDownloader(bot *telego.Bot, message telego.Message) {
 				MessageID: message.MessageID,
 			},
 		})
-		removeMediaFiles(mediaItems)
+		downloader.RemoveMediaFiles(mediaItems)
 	}
+}
+
+func downloadMediaFromURL(url string) ([]telego.InputMedia, string) {
+	var mediaItems []telego.InputMedia
+	var caption string
+
+	if match, _ := regexp.MatchString("(twitter|x).com/", url); match {
+		mediaItems, caption = twitter.Twitter(url)
+	} else if match, _ := regexp.MatchString("instagram.com/", url); match {
+		mediaItems, caption = instagram.Instagram(url)
+	} else if match, _ := regexp.MatchString("tiktok.com/", url); match {
+		mediaItems, caption = tiktok.TikTok(url)
+	} else if match, _ := regexp.MatchString("(?:reddit|twitch).(?:com|tv)", url); match {
+		mediaItems, caption = generic.Generic(url)
+	}
+
+	if mediaItems != nil && caption == "" {
+		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url)
+	}
+
+	if utf8.RuneCountInString(caption) > maxSizeCaption {
+		caption = downloader.TruncateUTF8Caption(caption, url)
+	}
+
+	return mediaItems, caption
 }
 
 func mediaConfig(bot *telego.Bot, update telego.Update) {
@@ -216,42 +219,22 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 		})
 		return
 	}
-	itag, _ := strconv.Atoi(callbackData[2])
-	messageID, _ := strconv.Atoi(callbackData[3])
 
-	var err error
-	var outputFile *os.File
-	var action string
-
-	client := youtube.Client{}
-	video, err := client.GetVideo(callbackData[1])
+	outputFile, video, err := yt.Downloader(callbackData)
 	if err != nil {
+		if err.Error() == "file size is too large" {
+			bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+				CallbackQueryID: update.CallbackQuery.ID,
+				Text:            i18n("medias.youtubeBigFile"),
+				ShowAlert:       true,
+			})
+			return
+		}
 		return
 	}
 
-	if len(video.Formats.Itag(itag)) == 0 {
-		return
-	}
-	format := video.Formats.Itag(itag)[0]
-
-	size := 1572864000 // 1,5 GB
-	if config.BotAPIURL == "" {
-		size = 52428800 // 50 B
-	}
-
-	mediaSize := format.ContentLength
-	if callbackData[0] == "_vid" {
-		mediaSize += video.Formats.Itag(140)[0].ContentLength
-	}
-
-	if mediaSize > int64(size) {
-		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-			CallbackQueryID: update.CallbackQuery.ID,
-			Text:            i18n("medias.youtubeBigFile"),
-			ShowAlert:       true,
-		})
-		return
-	}
+	messageID, _ := strconv.Atoi(callbackData[3])
+	itag, _ := strconv.Atoi(callbackData[2])
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(chat.ID),
@@ -260,51 +243,14 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 	})
 
 	// Create temporary audio/video file and set the chat action.
+	var action string
 	switch callbackData[0] {
 	case "_aud":
-		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.m4a")
 		action = telego.ChatActionUploadVoice
 	case "_vid":
-		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.mp4")
 		action = telego.ChatActionUploadVideo
 	}
-	if err != nil {
-		log.Println("[medias/cliYTDL] Error creating temporary file: ", err)
-		return
-	}
 
-	stream, _, err := client.GetStream(video, &format)
-	if err != nil {
-		log.Println("[medias/cliYTDL] Error getting stream: ", err)
-		return
-	}
-
-	_, err = io.Copy(outputFile, stream)
-	stream.Close()
-	if err != nil {
-		log.Println("[medias/cliYTDL] Error seeking outputFile: ", err)
-		return
-	}
-	if callbackData[0] == "_vid" {
-		stream, _, err := client.GetStream(video, &video.Formats.Itag(140)[0])
-		if err != nil {
-			log.Println("[medias/cliYTDL] Error getting audio stream: ", err)
-			return
-		}
-		audioFile, err := os.CreateTemp("", "youtube_*.m4a")
-		if err != nil {
-			log.Println("[medias/cliYTDL] Error creating temporary audioFile: ", err)
-			return
-		}
-		_, err = io.Copy(audioFile, stream)
-		stream.Close()
-		if err != nil {
-			log.Println("[medias/cliYTDL] Error seeking audioFile: ", err)
-			return
-		}
-
-		outputFile = medias.MergeAudioVideo(outputFile, audioFile)
-	}
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
@@ -317,7 +263,8 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 
 	outputFile.Seek(0, 0) // Seek back to the beginning of the file
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "hqdefault", "maxresdefault", 1)
-	thumbnail, _ := medias.Downloader(thumbURL)
+	thumbnail, _ := downloader.Downloader(thumbURL)
+
 	switch callbackData[0] {
 	case "_aud":
 		bot.SendAudio(&telego.SendAudioParams{
@@ -336,8 +283,8 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 			Video:             telegoutil.File(outputFile),
 			Thumbnail:         &telego.InputFile{File: thumbnail},
 			SupportsStreaming: true,
-			Width:             format.Width,
-			Height:            format.Height,
+			Width:             video.Formats.Itag(itag)[0].Width,
+			Height:            video.Formats.Itag(itag)[0].Width,
 			Caption:           video.Title,
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: messageID,
@@ -356,15 +303,24 @@ func cliYTDL(bot *telego.Bot, update telego.Update) {
 
 func youtubeDL(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.GetChat())
-	if len(strings.Fields(message.Text)) < 2 {
+	var videoURL string
+
+	if replyText := message.ReplyToMessage.Text; message.ReplyToMessage != nil && replyText != "" {
+		videoURL = replyText
+	} else if len(strings.Fields(message.Text)) > 1 {
+		videoURL = strings.Fields(message.Text)[1]
+	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("medias.youtubeNoURL"),
 			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
 		})
 		return
 	}
-	videoURL := strings.Fields(message.Text)[1]
+
 	ytClient := youtube.Client{}
 	video, err := ytClient.GetVideo(videoURL)
 	if err != nil {
@@ -439,7 +395,7 @@ func youtubeDL(bot *telego.Bot, message telego.Message) {
 func LoadMediaDownloader(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("medias")
 	bh.HandleMessage(youtubeDL, telegohandler.CommandEqual("ytdl"))
-	bh.HandleMessage(mediaDownloader, telegohandler.Or(
+	bh.HandleMessage(mediasDownloader, telegohandler.Or(
 		telegohandler.CommandEqual("dl"),
 		telegohandler.CommandEqual("sdl"),
 		telegohandler.TextMatches(regexp.MustCompile(regexMedia)),

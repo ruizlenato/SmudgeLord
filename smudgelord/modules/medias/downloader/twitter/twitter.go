@@ -1,4 +1,4 @@
-package medias
+package twitter
 
 import (
 	"encoding/json"
@@ -10,81 +10,12 @@ import (
 	"sort"
 	"sync"
 
+	"smudgelord/smudgelord/modules/medias/downloader"
 	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegoutil"
 )
-
-type TwitterAPIData struct {
-	Data *struct {
-		TweetResults *struct {
-			Result `json:"result"`
-		} `json:"tweetResult"`
-	} `json:"data"`
-}
-
-type Result struct {
-	Typename string `json:"__typename"`
-	Tweet    struct {
-		Legacy Legacy `json:"legacy"`
-	} `json:"tweet"`
-	Legacy Legacy `json:"legacy"`
-}
-
-type Legacy *struct {
-	FullText         string `json:"full_text"`
-	ExtendedEntities struct {
-		Media []Media `json:"media"`
-	} `json:"extended_entities"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Entities    struct {
-		Description struct {
-			Urls []interface{} `json:"urls"`
-		} `json:"description"`
-	} `json:"entities"`
-	Verified       bool   `json:"verified"`
-	FollowersCount int    `json:"followers_count"`
-	FriendsCount   int    `json:"friends_count"`
-	StatusesCount  int    `json:"statuses_count"`
-	Location       string `json:"location"`
-}
-
-type Media struct {
-	DisplayURL           string `json:"display_url"`
-	ExpandedURL          string `json:"expanded_url"`
-	Indices              []int  `json:"indices"`
-	MediaURLHTTPS        string `json:"media_url_https"`
-	Type                 string `json:"type"`
-	URL                  string `json:"url"`
-	ExtMediaAvailability struct {
-		Status string `json:"status"`
-	} `json:"ext_media_availability"`
-	Sizes struct {
-		Large Size `json:"large"`
-		Thumb Size `json:"thumb"`
-	} `json:"sizes"`
-	OriginalInfo struct {
-		Height     int   `json:"height"`
-		Width      int   `json:"width"`
-		FocusRects []any `json:"focus_rects"`
-	} `json:"original_info"`
-	VideoInfo struct {
-		AspectRatio    []int `json:"aspect_ratio"`
-		DurationMillis int   `json:"duration_millis"`
-		Variants       []struct {
-			Bitrate     int    `json:"bitrate,omitempty"`
-			ContentType string `json:"content_type"`
-			URL         string `json:"url"`
-		} `json:"variants"`
-	} `json:"video_info"`
-}
-type Size struct {
-	H      int    `json:"h"`
-	W      int    `json:"w"`
-	Resize string `json:"resize"`
-}
 
 var headers = map[string]string{
 	"Authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
@@ -170,28 +101,30 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 	return twitterAPIData
 }
 
-func (dm *DownloadMedia) Twitter(url string) {
+func Twitter(url string) ([]telego.InputMedia, string) {
+	var mediaItems []telego.InputMedia
+	var caption string
 	var tweetID string
 
 	if matches := regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`).FindStringSubmatch(url); len(matches) == 2 {
 		tweetID = matches[1]
 	} else {
-		return
+		return nil, ""
 	}
 
 	twitterAPIData := TweetExtract(tweetID)
 
-	if twitterAPIData == nil || twitterAPIData.Data.TweetResults.Legacy == nil {
-		return
+	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {
+		return nil, ""
 	}
 
 	var wg sync.WaitGroup
-	wg.Add(len(twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
-	dm.MediaItems = make([]telego.InputMedia, len(twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
+	wg.Add(len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
+	mediaItems = make([]telego.InputMedia, len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
 
 	medias := make(map[int]*os.File)
 
-	for i, media := range twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
+	for i, media := range (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
 		go func(index int, media Media) {
 			defer wg.Done()
 			var file *os.File
@@ -202,12 +135,12 @@ func (dm *DownloadMedia) Twitter(url string) {
 				videoType = "video"
 			}
 			if videoType != "video" {
-				file, err = Downloader(media.MediaURLHTTPS)
+				file, err = downloader.Downloader(media.MediaURLHTTPS)
 			} else {
 				sort.Slice(media.VideoInfo.Variants, func(i, j int) bool {
 					return media.VideoInfo.Variants[i].Bitrate < media.VideoInfo.Variants[j].Bitrate
 				})
-				file, err = Downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
+				file, err = downloader.Downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
 			}
 			if err != nil {
 				log.Print("[twitter/Twitter] Error downloading media:", err)
@@ -226,16 +159,18 @@ func (dm *DownloadMedia) Twitter(url string) {
 	for index, file := range medias {
 		if file != nil {
 			var mediaItem telego.InputMedia
-			if twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index].Type == "photo" {
+			if (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index].Type == "photo" {
 				mediaItem = telegoutil.MediaPhoto(telegoutil.File(file))
 			} else {
-				mediaItem = telegoutil.MediaVideo(telegoutil.File(file)).WithWidth((twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width).WithHeight((twitterAPIData.Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height)
+				mediaItem = telegoutil.MediaVideo(telegoutil.File(file)).WithWidth(((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width).WithHeight(((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height)
 			}
-			dm.MediaItems[index] = mediaItem
+			mediaItems[index] = mediaItem
 		}
 	}
 
-	if tweet := twitterAPIData.Data.TweetResults.Result.Legacy; tweet != nil {
-		dm.Caption = tweet.FullText
+	if tweet := (*twitterAPIData).Data.TweetResults.Result.Legacy; tweet != nil {
+		caption = tweet.FullText
 	}
+
+	return mediaItems, caption
 }

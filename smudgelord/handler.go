@@ -4,6 +4,7 @@ import (
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/modules"
 	"smudgelord/smudgelord/modules/lastfm"
+	"smudgelord/smudgelord/modules/medias"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -30,7 +31,7 @@ func (h *Handler) RegisterHandlers() {
 	modules.LoadStart(h.bh, h.bot)
 	modules.LoadAFK(h.bh, h.bot)
 	lastfm.LoadLastFM(h.bh, h.bot)
-	modules.LoadMediaDownloader(h.bh, h.bot)
+	medias.LoadMediaDownloader(h.bh, h.bot)
 	modules.LoadMisc(h.bh, h.bot)
 	modules.LoadStickers(h.bh, h.bot)
 	modules.LoadSudoers(h.bh, h.bot)

@@ -1,40 +1,42 @@
-package medias
+package generic
 
 import (
 	"encoding/json"
 	"log"
 
+	"smudgelord/smudgelord/modules/medias/downloader"
 	"smudgelord/smudgelord/utils"
 
+	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-type GenericData struct {
-	URL     string  `json:"url"`
-	Message *string `json:"message"`
-}
-
-func (dm *DownloadMedia) Generic(url string) {
+func Generic(url string) ([]telego.InputMedia, string) {
 	var genericData GenericData
+	var mediaItems []telego.InputMedia
+	var caption string
+
 	body := utils.RequestGET("https://scrapper.ruizlenato.workers.dev/"+url, utils.RequestGETParams{}).Body()
 	if body == nil {
-		return
+		return nil, caption
 	}
+
 	err := json.Unmarshal(body, &genericData)
 	if err != nil {
 		log.Printf("[generic/Generic] Error unmarshalling Generic Data: %v", err)
-		return
+		return nil, caption
 	}
 
 	if genericData.Message != nil && *genericData.Message == "Invalid link" {
-		return
+		return nil, caption
 	}
 
-	file, err := Downloader(genericData.URL)
+	file, err := downloader.Downloader(genericData.URL)
 	if err != nil {
 		log.Print("[generic/Generic] Error downloading file:", err)
-		return
+		return nil, caption
 	}
 
-	dm.MediaItems = append(dm.MediaItems, telegoutil.MediaVideo(telegoutil.File(file)))
+	mediaItems = append(mediaItems, telegoutil.MediaVideo(telegoutil.File(file)))
+	return mediaItems, caption
 }
