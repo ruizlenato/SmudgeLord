@@ -305,8 +305,8 @@ func youtubeDL(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.GetChat())
 	var videoURL string
 
-	if replyText := message.ReplyToMessage.Text; message.ReplyToMessage != nil && replyText != "" {
-		videoURL = replyText
+	if message.ReplyToMessage != nil && message.ReplyToMessage.Text != "" {
+		videoURL = message.ReplyToMessage.Text
 	} else if len(strings.Fields(message.Text)) > 1 {
 		videoURL = strings.Fields(message.Text)[1]
 	} else {
