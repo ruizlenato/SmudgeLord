@@ -16,7 +16,7 @@ func Generic(url string) ([]telego.InputMedia, string) {
 	var mediaItems []telego.InputMedia
 	var caption string
 
-	body := utils.RequestGET("https://scrapper.ruizlenato.workers.dev/"+url, utils.RequestGETParams{}).Body()
+	body := utils.RequestGET("https://scrapper.ruizlenato.workers.dev/", utils.RequestGETParams{Query: map[string]string{"url": url}}).Body()
 	if body == nil {
 		return nil, caption
 	}
