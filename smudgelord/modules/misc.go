@@ -48,7 +48,8 @@ func weather(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.Chat)
 
 	if len(strings.Fields(message.Text)) > 1 {
-		weatherQuery = strings.Fields(message.Text)[1]
+		_, _, args := telegoutil.ParseCommand(message.Text)
+		weatherQuery = strings.Join(args, " ")
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.From.ID),
