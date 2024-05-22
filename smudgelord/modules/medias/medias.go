@@ -60,7 +60,7 @@ func mediasDownloader(bot *telego.Bot, message telego.Message) {
 	}
 
 	// Check if only one photo is present and link preview is enabled, then return
-	if mediaItems == nil || len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" && !message.LinkPreviewOptions.IsDisabled {
+	if mediaItems == nil || len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" && message.LinkPreviewOptions != nil && !message.LinkPreviewOptions.IsDisabled {
 		return
 	}
 
