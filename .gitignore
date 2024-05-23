@@ -1,2 +1,2 @@
 .env
-smudgelord/database/database*[.sql, .db]*
+smudgelord/database/database*[.sql,.db]
