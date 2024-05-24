@@ -138,29 +138,24 @@ func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler
 	}
 
 	// Inserts user information into the 'users' table, including the user's ID and language code.
-	query := "INSERT OR IGNORE INTO users (id, language, username) VALUES (?, ?, ?);"
-	lang := message.From.LanguageCode
+	query := `
+		INSERT INTO users (id, language, username)
+    	VALUES (?, ?, ?)
+    	ON CONFLICT(id) DO UPDATE SET 
+			username = excluded.username;
+	`
+
 	if message.From.Username != "" {
 		username = "@" + message.From.Username
 	}
 
+	lang := message.From.LanguageCode
 	if !slices.Contains(AvailableLocales, lang) {
 		lang = "en-us"
 	}
 	_, err := DB.Exec(query, message.From.ID, lang, username)
 	if err != nil {
-		log.Print("[database/SaveUsers] Error inserting user: ", err)
-	}
-
-	row := DB.QueryRow("SELECT username FROM users WHERE id = ?;", message.From.ID)
-	var dbUsername string
-	row.Scan(&dbUsername)
-
-	if dbUsername != username && username != "" {
-		_, err := DB.Exec("UPDATE users SET username = ? WHERE id = ?;", username, message.From.ID)
-		if err != nil {
-			log.Print("[database/SaveUsers] Error updating username: ", err)
-		}
+		log.Print("[database/SaveUsers] Error upserting user: ", err)
 	}
 
 	// Call the next handler in the processing chain.
