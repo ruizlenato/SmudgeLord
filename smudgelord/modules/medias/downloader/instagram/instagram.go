@@ -51,12 +51,15 @@ func getEmbedData(post_id string) InstagramData {
 		mainMediaData := re.FindAllStringSubmatch(string(body), -1)
 		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
 
-		// Get the caption
+		// Get the caption and owner
 		var caption string
+		var owner string
 		re = regexp.MustCompile(`(?s)class="Caption"(.*?)class="CaptionUsername"(.*?)<\/a>(.*?)<div`)
 		captionData := re.FindAllStringSubmatch(string(body), -1)
+
 		if len(captionData) > 0 && len(captionData[0]) > 2 {
 			re = regexp.MustCompile(`<[^>]*>`)
+			owner = strings.TrimSpace(re.ReplaceAllString(captionData[0][2], ""))
 			caption = strings.TrimSpace(re.ReplaceAllString(captionData[0][3], ""))
 		}
 
@@ -65,6 +68,7 @@ func getEmbedData(post_id string) InstagramData {
 					"__typename":"GraphImage",
 					"display_url":"` + mainMediaURL + `",
 					"edge_media_to_caption":{"edges":[{"node":{"text":"` + caption + `"}}]
+					"owner":{"username":"` + owner + `"},
 					}}
 			}`
 
@@ -185,7 +189,27 @@ func Instagram(url string) ([]telego.InputMedia, string) {
 	}
 
 	if len(instagramData.EdgeMediaToCaption.Edges) > 0 {
-		caption = instagramData.EdgeMediaToCaption.Edges[0].Node.Text
+		var sb strings.Builder
+
+		if username := instagramData.Owner.Username; username != "" {
+			sb.WriteString(fmt.Sprintf("<b>%v</b>", username))
+		}
+
+		if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
+			for i, coauthor := range *coauthors {
+				if i > 0 {
+					sb.WriteString(" <b>&</b> ")
+				}
+				sb.WriteString(fmt.Sprintf("<b>%v</b>", coauthor.Username))
+			}
+		}
+
+		if sb.Len() > 0 {
+			sb.WriteString("<b>:</b>\n")
+		}
+		sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
+
+		caption = sb.String()
 	}
 
 	switch instagramData.Typename {

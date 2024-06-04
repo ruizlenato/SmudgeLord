@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"slices"
 	"sort"
+	"strings"
 	"sync"
 
 	"smudgelord/smudgelord/modules/medias/downloader"
@@ -169,7 +170,13 @@ func Twitter(url string) ([]telego.InputMedia, string) {
 	}
 
 	if tweet := (*twitterAPIData).Data.TweetResults.Result.Legacy; tweet != nil {
-		caption = tweet.FullText
+		caption = fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n",
+			(*twitterAPIData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.Name,
+			(*twitterAPIData).Data.TweetResults.Core.UserResults.Result.Legacy.ScreenName)
+
+		if idx := strings.LastIndex(tweet.FullText, " https://t.co/"); idx != -1 {
+			caption += tweet.FullText[:idx]
+		}
 	}
 
 	return mediaItems, caption

@@ -16,9 +16,19 @@ type ShortcodeMedia struct {
 	IsVideo               bool                  `json:"is_video"`
 	Title                 string                `json:"title"`
 	VideoURL              string                `json:"video_url"`
+	Owner                 Owner                 `json:"owner"`
 	DisplayURL            string                `json:"display_url"`
 	EdgeMediaToCaption    EdgeMediaToCaption    `json:"edge_media_to_caption"`
 	EdgeSidecarToChildren EdgeSidecarToChildren `json:"edge_sidecar_to_children"`
+	CoauthorProducers     *[]CoauthorProducers  `json:"coauthor_producers"`
+}
+
+type Owner struct {
+	Username string `json:"username"`
+}
+
+type CoauthorProducers struct {
+	Username string `json:"username"`
 }
 
 type Dimensions struct {
