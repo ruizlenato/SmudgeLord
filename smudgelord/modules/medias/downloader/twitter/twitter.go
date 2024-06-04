@@ -35,7 +35,7 @@ func getGuestToken() string {
 	var res guestToken
 	err := json.Unmarshal(body, &res)
 	if err != nil {
-		log.Print(err)
+		log.Printf("Error unmarshalling guest token: %v", err)
 	}
 	return res.GuestToken
 }
@@ -94,7 +94,7 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {
-		log.Printf("[twitter/TweetExtract] Error unmarshalling Twitter data: %v", err)
+		log.Printf("Error unmarshalling Twitter data: %v", err)
 		return nil
 	}
 
