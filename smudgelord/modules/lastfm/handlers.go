@@ -8,18 +8,76 @@ import (
 
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
-	lastFMAPI "smudgelord/smudgelord/modules/lastfm/api"
 	"smudgelord/smudgelord/utils"
 	"smudgelord/smudgelord/utils/helpers"
+
+	lastFMAPI "smudgelord/smudgelord/modules/lastfm/api"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
 	"github.com/mymmrac/telego/telegoutil"
 )
 
+func getErrorMessage(err error, i18n func(string) string) string {
+	switch {
+	case strings.Contains(err.Error(), "no recent tracks"):
+		return i18n("lastfm.no-scrobbles")
+	case strings.Contains(err.Error(), "lastFM error"):
+		return i18n("lastfm.error")
+	default:
+		return ""
+	}
+}
+
 var lastFM = lastFMAPI.Init()
 
-func setUser(bot *telego.Bot, message telego.Message) {
+func handleLastFMConfig(bot *telego.Bot, update telego.Update) {
+	message := update.CallbackQuery.Message.(*telego.Message)
+	lastFMCommands, err := getLastFMCommands(message.Chat.ID)
+	if err != nil {
+		log.Printf("Error getting lastFMCommands: %v", err)
+		return
+	}
+	chat := message.GetChat()
+	i18n := localization.Get(chat)
+
+	configType := strings.ReplaceAll(update.CallbackQuery.Data, "lastFMConfig ", "")
+	if configType != "lastFMConfig" {
+		lastFMCommands = !lastFMCommands
+		_, err := database.DB.Exec("UPDATE groups SET lastFMCommands = ? WHERE id = ?;", lastFMCommands, message.Chat.ID)
+		if err != nil {
+			return
+		}
+	}
+
+	state := func(state bool) string {
+		if state {
+			return "✅"
+		}
+		return "☑️"
+	}
+
+	buttons := [][]telego.InlineKeyboardButton{
+		{
+			{Text: state(lastFMCommands), CallbackData: "lastFMConfig update"},
+		},
+	}
+
+	buttons = append(buttons, []telego.InlineKeyboardButton{{
+		Text:         i18n("button.back"),
+		CallbackData: "configMenu",
+	}})
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:      telegoutil.ID(chat.ID),
+		MessageID:   update.CallbackQuery.Message.GetMessageID(),
+		Text:        i18n("lastfm.config-help"),
+		ParseMode:   "HTML",
+		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+	})
+}
+
+func handleSetUser(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
 		return
 	}
@@ -53,11 +111,11 @@ func setUser(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	_, err := database.DB.Exec("UPDATE users SET lastfm_username = ? WHERE id = ?;", lastFMUsername, message.From.ID)
-	if err != nil {
-		log.Print("[lastfm/setUser] Error setting user last.fm username:", err)
+	if err := setLastFMUsername(message.From.ID, lastFMUsername); err != nil {
+		log.Printf("Error setting lastFM username: %v", err)
 		return
 	}
+
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		Text:      i18n("lastfm.username-set"),
@@ -68,24 +126,7 @@ func setUser(bot *telego.Bot, message telego.Message) {
 	})
 }
 
-func getUserLastFMUsername(userID int64) (string, error) {
-	var lastFMUsername string
-	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", userID).Scan(&lastFMUsername)
-	return lastFMUsername, err
-}
-
-func getErrorMessage(err error, i18n func(string) string) string {
-	switch {
-	case strings.Contains(err.Error(), "no recent tracks"):
-		return i18n("lastfm.no-scrobbles")
-	case strings.Contains(err.Error(), "lastFM error"):
-		return i18n("lastfm.error")
-	default:
-		return ""
-	}
-}
-
-func music(bot *telego.Bot, message telego.Message) {
+func handleMusic(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
 		return
 	}
@@ -149,14 +190,13 @@ func music(bot *telego.Bot, message telego.Message) {
 	})
 }
 
-func album(bot *telego.Bot, message telego.Message) {
+func handleAlbum(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
 		return
 	}
 	i18n := localization.Get(message.Chat)
 
-	var lastFMUsername string
-	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID).Scan(&lastFMUsername)
+	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
 	if err != nil && lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
@@ -214,14 +254,13 @@ func album(bot *telego.Bot, message telego.Message) {
 	})
 }
 
-func artist(bot *telego.Bot, message telego.Message) {
+func handleArtist(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
 		return
 	}
 	i18n := localization.Get(message.Chat)
 
-	var lastFMUsername string
-	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", message.From.ID).Scan(&lastFMUsername)
+	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
 	if err != nil && lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
@@ -282,77 +321,23 @@ func artist(bot *telego.Bot, message telego.Message) {
 	})
 }
 
-func lastFMConfig(bot *telego.Bot, update telego.Update) {
-	var lastFMCommands bool
-	message := update.CallbackQuery.Message.(*telego.Message)
-	database.DB.QueryRow("SELECT lastFMCommands FROM groups WHERE id = ?;", message.Chat.ID).Scan(&lastFMCommands)
-	chat := message.GetChat()
-	i18n := localization.Get(chat)
-
-	configType := strings.ReplaceAll(update.CallbackQuery.Data, "lastFMConfig ", "")
-	if configType != "lastFMConfig" {
-		lastFMCommands = !lastFMCommands
-		_, err := database.DB.Exec("UPDATE groups SET lastFMCommands = ? WHERE id = ?;", lastFMCommands, message.Chat.ID)
-		if err != nil {
-			return
-		}
-	}
-
-	state := func(state bool) string {
-		if state {
-			return "✅"
-		}
-		return "☑️"
-	}
-
-	buttons := [][]telego.InlineKeyboardButton{
-		{
-			{Text: state(lastFMCommands), CallbackData: "lastFMConfig update"},
-		},
-	}
-
-	buttons = append(buttons, []telego.InlineKeyboardButton{{
-		Text:         i18n("button.back"),
-		CallbackData: "configMenu",
-	}})
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(chat.ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("lastfm.config-help"),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
-	})
-}
-
-func lastFMDisabled(update telego.Update) bool {
-	var lastFMCommands bool = true
-	message := update.Message
-	if message.Chat.Type == telego.ChatTypePrivate {
-		return lastFMCommands
-	}
-
-	database.DB.QueryRow("SELECT lastFMCommands FROM groups WHERE id = ?;", message.Chat.ID).Scan(&lastFMCommands)
-	return lastFMCommands
-}
-
-func LoadLastFM(bh *telegohandler.BotHandler, bot *telego.Bot) {
+func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("lastfm")
-	bh.HandleMessage(setUser, telegohandler.CommandEqual("setuser"))
-	bh.HandleMessage(music, telegohandler.Or(
+	bh.HandleMessage(handleSetUser, telegohandler.CommandEqual("setuser"))
+	bh.HandleMessage(handleMusic, telegohandler.Or(
 		telegohandler.CommandEqual("lastfm"),
 		telegohandler.CommandEqual("lmu"),
 	))
-	bh.HandleMessage(music, telegohandler.Or(telegohandler.CommandEqual("lt"), telegohandler.CommandEqual("np")), lastFMDisabled)
-	bh.HandleMessage(album, telegohandler.Or(
+	bh.HandleMessage(handleMusic, telegohandler.Or(telegohandler.CommandEqual("lt"), telegohandler.CommandEqual("np")), lastFMDisabled)
+	bh.HandleMessage(handleAlbum, telegohandler.Or(
 		telegohandler.CommandEqual("album"),
 		telegohandler.CommandEqual("lalb"),
 	))
-	bh.HandleMessage(album, telegohandler.CommandEqual("alb"), lastFMDisabled)
-	bh.HandleMessage(artist, telegohandler.Or(
+	bh.HandleMessage(handleAlbum, telegohandler.CommandEqual("alb"), lastFMDisabled)
+	bh.HandleMessage(handleArtist, telegohandler.Or(
 		telegohandler.CommandEqual("artist"),
 		telegohandler.CommandEqual("lart")),
 	)
-	bh.HandleMessage(artist, telegohandler.CommandEqual("art"), lastFMDisabled)
-	bh.Handle(lastFMConfig, telegohandler.CallbackDataPrefix("lastFMConfig"), helpers.IsAdmin(bot))
+	bh.HandleMessage(handleArtist, telegohandler.CommandEqual("art"), lastFMDisabled)
+	bh.Handle(handleLastFMConfig, telegohandler.CallbackDataPrefix("lastFMConfig"), helpers.IsAdmin(bot))
 }

@@ -2,9 +2,13 @@ package smudgelord
 
 import (
 	"smudgelord/smudgelord/database"
-	"smudgelord/smudgelord/modules"
+	"smudgelord/smudgelord/modules/afk"
 	"smudgelord/smudgelord/modules/lastfm"
 	"smudgelord/smudgelord/modules/medias"
+	"smudgelord/smudgelord/modules/menu"
+	"smudgelord/smudgelord/modules/misc"
+	"smudgelord/smudgelord/modules/stickers"
+	"smudgelord/smudgelord/modules/sudoers"
 
 	"github.com/mymmrac/telego"
 	th "github.com/mymmrac/telego/telegohandler"
@@ -28,11 +32,10 @@ func (h *Handler) RegisterHandlers() {
 	h.bh.Use(modules.CheckAFK)
 
 	// Add module handlers
-	modules.LoadStart(h.bh, h.bot)
-	modules.LoadAFK(h.bh, h.bot)
-	lastfm.LoadLastFM(h.bh, h.bot)
-	medias.LoadMediaDownloader(h.bh, h.bot)
-	modules.LoadMisc(h.bh, h.bot)
-	modules.LoadStickers(h.bh, h.bot)
-	modules.LoadSudoers(h.bh, h.bot)
+	afk.Load(h.bh, h.bot)
+	lastfm.Load(h.bh, h.bot)
+	menu.Load(h.bh, h.bot)
+	misc.Load(h.bh, h.bot)
+	stickers.Load(h.bh, h.bot)
+	sudoers.Load(h.bh, h.bot)
 }

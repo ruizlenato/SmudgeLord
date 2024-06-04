@@ -1,4 +1,4 @@
-package modules
+package sudoers
 
 import (
 	"fmt"
@@ -115,7 +115,7 @@ func announce(bot *telego.Bot, update telego.Update) {
 	announceMessageText = ""
 }
 
-func LoadSudoers(bh *telegohandler.BotHandler, bot *telego.Bot) {
+func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	bh.Handle(announce, telegohandler.Or(
 		telegohandler.CommandEqual("announce"),
 		telegohandler.CallbackDataPrefix("announce"),

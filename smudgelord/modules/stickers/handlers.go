@@ -1,4 +1,4 @@
-package modules
+package stickers
 
 import (
 	"fmt"
@@ -17,51 +17,7 @@ import (
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-func getFileIDAndType(reply *telego.Message) (stickerAction string, stickerType string, fileID string) {
-	if document := reply.Document; document != nil {
-		fileID = document.FileID
-		switch {
-		case strings.Contains(document.MimeType, "image"):
-			stickerType = "static"
-			stickerAction = "resize"
-		case strings.Contains(document.MimeType, "tgsticker"):
-			stickerType = "animated"
-		case strings.Contains(document.MimeType, "video"):
-			stickerType = "video"
-			stickerAction = "convert"
-		}
-	} else {
-		switch {
-		case reply.Photo != nil:
-			stickerType = "static"
-			stickerAction = "resize"
-			fileID = reply.Photo[len(reply.Photo)-1].FileID
-		case reply.Video != nil:
-			stickerType = "video"
-			stickerAction = "convert"
-			fileID = reply.Video.FileID
-		case reply.Animation != nil:
-			stickerType = "video"
-			stickerAction = "convert"
-			fileID = reply.Animation.FileID
-		}
-	}
-
-	if replySticker := reply.Sticker; replySticker != nil {
-		if replySticker.IsAnimated {
-			stickerType = "animated"
-		} else if replySticker.IsVideo {
-			stickerType = "video"
-		} else {
-			stickerType = "static"
-		}
-		fileID = replySticker.FileID
-	}
-
-	return stickerAction, stickerType, fileID
-}
-
-func getSticker(bot *telego.Bot, message telego.Message) {
+func handleGetSticker(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.Chat)
 	if message.ReplyToMessage == nil {
 		bot.SendMessage(&telego.SendMessageParams{
@@ -119,7 +75,7 @@ func getSticker(bot *telego.Bot, message telego.Message) {
 	}
 }
 
-func kang(bot *telego.Bot, message telego.Message) {
+func handleKangSticker(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message.Chat)
 	if message.ReplyToMessage == nil {
 		bot.SendMessage(&telego.SendMessageParams{
@@ -331,6 +287,50 @@ func kang(bot *telego.Bot, message telego.Message) {
 	})
 }
 
+func getFileIDAndType(reply *telego.Message) (stickerAction string, stickerType string, fileID string) {
+	if document := reply.Document; document != nil {
+		fileID = document.FileID
+		switch {
+		case strings.Contains(document.MimeType, "image"):
+			stickerType = "static"
+			stickerAction = "resize"
+		case strings.Contains(document.MimeType, "tgsticker"):
+			stickerType = "animated"
+		case strings.Contains(document.MimeType, "video"):
+			stickerType = "video"
+			stickerAction = "convert"
+		}
+	} else {
+		switch {
+		case reply.Photo != nil:
+			stickerType = "static"
+			stickerAction = "resize"
+			fileID = reply.Photo[len(reply.Photo)-1].FileID
+		case reply.Video != nil:
+			stickerType = "video"
+			stickerAction = "convert"
+			fileID = reply.Video.FileID
+		case reply.Animation != nil:
+			stickerType = "video"
+			stickerAction = "convert"
+			fileID = reply.Animation.FileID
+		}
+	}
+
+	if replySticker := reply.Sticker; replySticker != nil {
+		if replySticker.IsAnimated {
+			stickerType = "animated"
+		} else if replySticker.IsVideo {
+			stickerType = "video"
+		} else {
+			stickerType = "static"
+		}
+		fileID = replySticker.FileID
+	}
+
+	return stickerAction, stickerType, fileID
+}
+
 func bytesToFile(data []byte, extension string) (*os.File, error) {
 	// Create a new temporary file with the .png extension
 	tempFile, err := os.CreateTemp("", fmt.Sprintf("*.%s", extension))
@@ -446,8 +446,8 @@ func convertVideo(input []byte) (*os.File, error) {
 	return outputFile, nil // Return the converted video file
 }
 
-func LoadStickers(bh *telegohandler.BotHandler, bot *telego.Bot) {
+func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("stickers")
-	bh.HandleMessage(getSticker, telegohandler.CommandEqual("getsticker"))
-	bh.HandleMessage(kang, telegohandler.CommandEqual("kang"))
+	bh.HandleMessage(handleGetSticker, telegohandler.CommandEqual("getsticker"))
+	bh.HandleMessage(handleKangSticker, telegohandler.CommandEqual("kang"))
 }
