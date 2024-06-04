@@ -31,6 +31,7 @@ func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format 
 
 	_, err = io.Copy(outputFile, stream)
 	if err != nil {
+		os.Remove(outputFile.Name())
 		log.Println("[youtube/Downloader] Error copying stream to file: ", err)
 		return err
 	}
