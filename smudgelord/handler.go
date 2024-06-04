@@ -27,11 +27,10 @@ func NewHandler(bot *telego.Bot, bh *th.BotHandler) *Handler {
 }
 
 func (h *Handler) RegisterHandlers() {
-	// Add middleware
-	h.bh.Use(database.SaveUsers)
-	h.bh.Use(modules.CheckAFK)
+	h.bh.Use(database.SaveUsers) // Save users to the database
 
 	// Add module handlers
+	// #ToDo: Refactor Handler
 	afk.Load(h.bh, h.bot)
 	lastfm.Load(h.bh, h.bot)
 	medias.Load(h.bh, h.bot)
