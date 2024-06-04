@@ -34,6 +34,7 @@ func (h *Handler) RegisterHandlers() {
 	// Add module handlers
 	afk.Load(h.bh, h.bot)
 	lastfm.Load(h.bh, h.bot)
+	medias.Load(h.bh, h.bot)
 	menu.Load(h.bh, h.bot)
 	misc.Load(h.bh, h.bot)
 	stickers.Load(h.bh, h.bot)
