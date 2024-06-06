@@ -183,6 +183,7 @@ func handleMusic(bot *telego.Bot, message telego.Message) {
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			PreferLargeMedia: true,
+			ShowAboveText:    true,
 		},
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -247,6 +248,7 @@ func handleAlbum(bot *telego.Bot, message telego.Message) {
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			PreferLargeMedia: true,
+			ShowAboveText:    true,
 		},
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -314,6 +316,7 @@ func handleArtist(bot *telego.Bot, message telego.Message) {
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			PreferLargeMedia: true,
+			ShowAboveText:    true,
 		},
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
