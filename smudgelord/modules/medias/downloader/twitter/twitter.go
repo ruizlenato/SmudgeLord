@@ -115,7 +115,7 @@ func Twitter(url string) ([]telego.InputMedia, string) {
 
 	twitterAPIData := TweetExtract(tweetID)
 
-	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {
+	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {
 		return nil, ""
 	}
 
