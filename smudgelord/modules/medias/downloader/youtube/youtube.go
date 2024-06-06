@@ -73,9 +73,9 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	var outputFile *os.File
 	switch callbackData[0] {
 	case "_aud":
-		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.m4a")
+		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.m4a")
 	case "_vid":
-		outputFile, err = os.CreateTemp("", "youtubeSmudge_*.mp4")
+		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.mp4")
 	}
 	if err != nil {
 		log.Println("[youtube/Downloader] Error creating temporary file: ", err)
@@ -92,7 +92,7 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 		if err != nil {
 			return nil, video, err
 		}
-		audioFile, err := os.CreateTemp("", "youtubeSmudge_*.m4a")
+		audioFile, err := os.CreateTemp("", "SmudgeYoutube_*.m4a")
 		if err != nil {
 			log.Println("[youtube/Downloader] Error creating temporary audio file: ", err)
 			return nil, video, err

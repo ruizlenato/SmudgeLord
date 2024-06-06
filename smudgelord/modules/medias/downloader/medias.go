@@ -39,7 +39,7 @@ func Downloader(media string) (*os.File, error) {
 		return extension
 	}
 
-	file, err := os.CreateTemp("", fmt.Sprintf("smudge*.%s", extension(body.Header.ContentType())))
+	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension(body.Header.ContentType())))
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +87,10 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 	videoFile.Seek(0, 0)
 	audioFile.Seek(0, 0)
 
-	outputFile, err := os.CreateTemp("", "youtube_*.mp4")
+	defer os.Remove(videoFile.Name())
+	defer os.Remove(audioFile.Name())
+
+	outputFile, err := os.CreateTemp("", "SmudgeYoutube_*.mp4")
 	if err != nil {
 		log.Println("[MergeAudioVideo] Error creating temp file:", err)
 		return nil
@@ -105,10 +108,10 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 	err = ffmpegCMD.Run()
 	if err != nil {
 		log.Println("[MergeAudioVideo] Error running ffmpeg:", err)
+		os.Remove(outputFile.Name())
 		return nil
 	}
-	os.Remove(videoFile.Name())
-	os.Remove(audioFile.Name())
+
 	return outputFile
 }
 

@@ -65,13 +65,15 @@ func handleGetSticker(bot *telego.Bot, message telego.Message) {
 			return
 		}
 
+		defer stickerFile.Close()
+		defer os.Remove(stickerFile.Name())
+
 		bot.SendDocument(&telego.SendDocumentParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Document:  telegoutil.File(stickerFile),
 			Caption:   fmt.Sprintf("<b>Emoji: %s</b>\n<b>ID:</b> <code>%s</code>", replySticker.Emoji, replySticker.FileID),
 			ParseMode: "HTML",
 		})
-		defer stickerFile.Close()
 	}
 }
 
@@ -183,6 +185,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 			return
 		}
 	}
+	defer os.Remove(stickerFile.Name())
 
 	botUser, err := bot.GetMe()
 	if err != nil {
@@ -284,6 +287,9 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 		MessageID: progMSG.GetMessageID(),
 		Text:      fmt.Sprintf(i18n("stickers.sticker-stoled"), stickerSetName, strings.Join(emoji, "")),
 		ParseMode: "HTML",
+		LinkPreviewOptions: &telego.LinkPreviewOptions{
+			IsDisabled: true,
+		},
 	})
 }
 
@@ -333,7 +339,7 @@ func getFileIDAndType(reply *telego.Message) (stickerAction string, stickerType 
 
 func bytesToFile(data []byte, extension string) (*os.File, error) {
 	// Create a new temporary file with the .png extension
-	tempFile, err := os.CreateTemp("", fmt.Sprintf("*.%s", extension))
+	tempFile, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension))
 	if err != nil {
 		log.Panic(err)
 		return nil, err
@@ -372,7 +378,7 @@ func resizeImage(input []byte) (*os.File, error) {
 	}
 
 	// Create a temporary file with a .png extension
-	tempFile, err := os.CreateTemp("", "*.png")
+	tempFile, err := os.CreateTemp("", "Smudge*.png")
 	if err != nil {
 		tempFile.Close()
 		return nil, err
@@ -405,7 +411,7 @@ func resizeImage(input []byte) (*os.File, error) {
 // It returns an *os.File containing the converted video and an error, if any.
 func convertVideo(input []byte) (*os.File, error) {
 	// Create a temporary file for the input video
-	inputFile, err := os.CreateTemp("", "input_*.mp4")
+	inputFile, err := os.CreateTemp("", "Smudgeinput_*.mp4")
 	if err != nil {
 		return nil, err
 	}
@@ -417,7 +423,7 @@ func convertVideo(input []byte) (*os.File, error) {
 	}
 
 	// Create a temporary file for the output video
-	outputFile, err := os.CreateTemp("", "*.webm")
+	outputFile, err := os.CreateTemp("", "Smudge*.webm")
 	if err != nil {
 		return nil, err
 	}

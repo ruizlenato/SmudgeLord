@@ -178,9 +178,11 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "hqdefault", "maxresdefault", 1)
 	thumbnail, _ := downloader.Downloader(thumbURL)
 
+	defer os.Remove(thumbnail.Name())
+
 	switch callbackData[0] {
 	case "_aud":
-		bot.SendAudio(&telego.SendAudioParams{
+		_, err = bot.SendAudio(&telego.SendAudioParams{
 			ChatID:    telegoutil.ID(chat.ID),
 			Audio:     telegoutil.File(outputFile),
 			Thumbnail: &telego.InputFile{File: thumbnail},
@@ -191,7 +193,7 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 			},
 		})
 	case "_vid":
-		bot.SendVideo(&telego.SendVideoParams{
+		_, err = bot.SendVideo(&telego.SendVideoParams{
 			ChatID:            telegoutil.ID(chat.ID),
 			Video:             telegoutil.File(outputFile),
 			Thumbnail:         &telego.InputFile{File: thumbnail},
@@ -204,19 +206,17 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 			},
 		})
 	}
+	if err != nil {
+		log.Printf("Failed to send video: %v", err)
+		return
+	}
+
+	defer os.Remove(outputFile.Name())
+
 	bot.DeleteMessage(&telego.DeleteMessageParams{
 		ChatID:    telegoutil.ID(chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 	})
-
-	// Remove temporary files
-	if err := os.Remove(outputFile.Name()); err != nil {
-		log.Printf("Failed to remove %s: %v", outputFile.Name(), err)
-	}
-
-	if err := os.Remove(thumbnail.Name()); err != nil {
-		log.Printf("Failed to remove %s: %v", outputFile.Name(), err)
-	}
 }
 
 func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
