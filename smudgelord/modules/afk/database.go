@@ -84,7 +84,7 @@ func getIDFromUsername(username string) (int64, error) {
 	err := row.Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return 0, &AFKError{fmt.Sprintf("User '%s' not found", username)}
+			return 0, nil
 		}
 		return 0, &AFKError{fmt.Sprintf("Error getting user ID: %v", err)}
 	}
