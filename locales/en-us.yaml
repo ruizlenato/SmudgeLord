@@ -18,7 +18,7 @@ button:
   about: ℹ️ About
   donation: 💵 Donation
   news-channel: 📢 Channel
-  back: ↩️  Back
+  back: ↩️ Back
   caption: "Captions:" # Need the quotes because string ends with a colon
   automatic: "Auto:" # Need the quotes because string ends with a colon
 
@@ -131,6 +131,13 @@ medias:
   youtubeInvalidURL: That YouTube link doesn't exist or it's a private video.
   youtubeBigFile: "The video exceeds the size of 1,5GB, which is my maximum limit."
   youtubeDenied: This button is not for you.
+  youtubeVideoInfo: |
+    <b>Título:</b> %s
+    <b>Autor:</b> %s
+    <b>Tamanho:</b> <code>%.2f</code> (Vídeo) | <code>%.2f</code> (Áudio)
+    <b>Duração:</b> %s
+  youtubeDownloadVideo: 🎬 Download video
+  youtubeDownloadAudio: 💿 Download audio
   downloading: Downloading...
   uploading: Uploading...
   help: |

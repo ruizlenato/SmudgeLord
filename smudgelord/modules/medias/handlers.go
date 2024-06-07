@@ -175,7 +175,7 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 	})
 
 	outputFile.Seek(0, 0) // Seek back to the beginning of the file
-	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "hqdefault", "maxresdefault", 1)
+	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
 	thumbnail, _ := downloader.Downloader(thumbURL)
 
 	defer os.Remove(thumbnail.Name())
@@ -199,7 +199,7 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 			Thumbnail:         &telego.InputFile{File: thumbnail},
 			SupportsStreaming: true,
 			Width:             video.Formats.Itag(itag)[0].Width,
-			Height:            video.Formats.Itag(itag)[0].Width,
+			Height:            video.Formats.Itag(itag)[0].Height,
 			Caption:           video.Title,
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: messageID,
@@ -279,18 +279,20 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 	}
 	audioSize := audioStream.ContentLength
 
-	text := fmt.Sprintf("📹 <b>%s</b> - <i>%s</i>", video.Author, video.Title)
-	text += fmt.Sprintf("\n💾 <code>%.2f MB</code> (audio) | <code>%.2f MB</code> (video)", float64(audioSize)/(1024*1024), float64(audioSize)/(1024*1024)+float64(videoSize)/(1024*1024))
-	text += fmt.Sprintf("\n⏳ <code>%s</code>", video.Duration.String())
+	text := fmt.Sprintf(i18n("medias.youtubeVideoInfo"),
+		video.Title, video.Author,
+		float64(audioSize)/(1024*1024),
+		float64(audioSize)/(1024*1024)+float64(videoSize)/(1024*1024),
+		video.Duration.String())
 
 	keyboard := telegoutil.InlineKeyboard(
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
-				Text:         "💿 Áudio",
+				Text:         i18n("medias.youtubeDownloadAudio"),
 				CallbackData: fmt.Sprintf("_aud|%s|%d|%d|%d", video.ID, audioStream.ItagNo, message.MessageID, message.From.ID),
 			},
 			telego.InlineKeyboardButton{
-				Text:         "🎬 Vídeo",
+				Text:         i18n("medias.youtubeDownloadVideo"),
 				CallbackData: fmt.Sprintf("_vid|%s|%d|%d|%d", video.ID, videoStream.ItagNo, message.MessageID, message.From.ID),
 			},
 		),

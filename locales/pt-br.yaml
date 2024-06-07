@@ -15,7 +15,7 @@ button:
   start: Inciar uma conversa
   language: Idioma
   help: ❔Ajuda
-  about: ℹ️Sobre
+  about: ℹ️ Sobre
   donation: 💵 Doação
   news-channel: 📢 Canal
   back: ↩️ Voltar
@@ -131,6 +131,13 @@ medias:
   youtubeInvalidURL: Esse link do YouTube não existe ou é de um vídeo privado.
   youtubeBigFile: O vídeo ultrapassa o tamanho de 1,5GB, que é o meu limite máximo.
   youtubeDenied: Este botão não é para você.
+  youtubeVideoInfo: |
+    <b>Título:</b> %s
+    <b>Autor:</b> %s
+    <b>Tamanho:</b> <code>%.2f</code> (Vídeo) | <code>%.2f</code> (Áudio)
+    <b>Duração:</b> %s
+  youtubeDownloadVideo: 🎬 Baixar vídeo
+  youtubeDownloadAudio: 💿 Baixar áudio
   downloading: Baixando...
   uploading: Enviando...
   help: |
