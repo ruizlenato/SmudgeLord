@@ -28,19 +28,9 @@ type AvatarLarger struct {
 }
 
 type Music struct {
-	Title      string     `json:"title"`
-	Author     string     `json:"author"`
-	Album      string     `json:"album"`
-	CoverLarge CoverLarge `json:"cover_large"`
-	PlayURL    PlayURL    `json:"play_url"`
-}
-
-type CoverLarge struct {
-	URI       string   `json:"uri"`
-	URLList   []string `json:"url_list"`
-	Width     int      `json:"width"`
-	Height    int      `json:"height"`
-	URLPrefix any      `json:"url_prefix"`
+	Title  string `json:"title"`
+	Author string `json:"author"`
+	Album  string `json:"album"`
 }
 
 type PlayURL struct {
