@@ -15,7 +15,6 @@ import (
 	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegoutil"
 )
 
 var headers = map[string]string{
@@ -128,47 +127,73 @@ func Twitter(url string) ([]telego.InputMedia, string) {
 	wg.Add(len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
 	mediaItems = make([]telego.InputMedia, len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
 
-	medias := make(map[int]*os.File)
+	type InputMedia struct {
+		File      *os.File
+		Thumbnail *os.File
+	}
+	medias := make(map[int]*InputMedia)
 
 	for i, media := range (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
-		go func(index int, media Media) {
+		go func(index int, twitterMedia Media) {
 			defer wg.Done()
-			var file *os.File
+
+			var media InputMedia
 			var err error
 			var videoType string
 
-			if slices.Contains([]string{"animated_gif", "video"}, media.Type) {
+			if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
 				videoType = "video"
 			}
 			if videoType != "video" {
-				file, err = downloader.Downloader(media.MediaURLHTTPS)
+				media.File, err = downloader.Downloader(twitterMedia.MediaURLHTTPS)
 			} else {
-				sort.Slice(media.VideoInfo.Variants, func(i, j int) bool {
-					return media.VideoInfo.Variants[i].Bitrate < media.VideoInfo.Variants[j].Bitrate
+				sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
+					return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
 				})
-				file, err = downloader.Downloader(media.VideoInfo.Variants[len(media.VideoInfo.Variants)-1].URL)
+				media.File, err = downloader.Downloader(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
+				if err == nil {
+					media.Thumbnail, _ = downloader.Downloader(twitterMedia.MediaURLHTTPS)
+				}
 			}
 			if err != nil {
 				log.Print("[twitter/Twitter] Error downloading media:", err)
 				// Use index as key to store nil for failed downloads
-				medias[index] = nil
+				medias[index] = &InputMedia{File: nil, Thumbnail: nil}
 				return
 			}
 			// Use index as key to store downloaded file
-			medias[index] = file
+			medias[index] = &media
 		}(i, media)
 	}
 
 	wg.Wait()
 
 	// Process medias after all downloads are complete
-	for index, file := range medias {
-		if file != nil {
+	for index, media := range medias {
+		if media.File != nil {
 			var mediaItem telego.InputMedia
 			if (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index].Type == "photo" {
-				mediaItem = telegoutil.MediaPhoto(telegoutil.File(file))
+				mediaItem = &telego.InputMediaPhoto{
+					Type:  telego.MediaTypePhoto,
+					Media: telego.InputFile{File: media.File},
+				}
 			} else {
-				mediaItem = telegoutil.MediaVideo(telegoutil.File(file)).WithWidth(((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width).WithHeight(((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height)
+				if media.Thumbnail != nil {
+					mediaItem = &telego.InputMediaVideo{
+						Type:      telego.MediaTypeVideo,
+						Media:     telego.InputFile{File: media.File},
+						Thumbnail: &telego.InputFile{File: media.Thumbnail},
+						Width:     ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
+						Height:    ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
+					}
+				} else {
+					mediaItem = &telego.InputMediaVideo{
+						Type:   telego.MediaTypeVideo,
+						Media:  telego.InputFile{File: media.File},
+						Width:  ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
+						Height: ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
+					}
+				}
 			}
 			mediaItems[index] = mediaItem
 		}

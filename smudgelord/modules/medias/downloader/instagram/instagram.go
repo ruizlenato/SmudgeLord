@@ -131,6 +131,7 @@ func getGQLData(post_id string) InstagramData {
 			`doc_id=10015901848480474`,
 		},
 	}).Body()
+
 	err := json.Unmarshal(body, &instagramData)
 	if err != nil {
 		log.Printf("[instagram/Instagram] Error unmarshalling Instagram data: %v", err)
@@ -218,13 +219,18 @@ func Instagram(url string) ([]telego.InputMedia, string) {
 	switch instagramData.Typename {
 	case "GraphVideo", "XDTGraphVideo":
 		file, err := downloader.Downloader(instagramData.VideoURL)
+		thumbnail, _ := downloader.Downloader(instagramData.DisplayResources[len(instagramData.DisplayResources)-1].Src)
 		if err != nil {
 			log.Print("[instagram/Instagram] Error downloading video:", err)
 			return nil, caption
 		}
-		mediaItems = append(mediaItems, telegoutil.MediaVideo(
-			telegoutil.File(file)).WithWidth(instagramData.Dimensions.Width).WithHeight(instagramData.Dimensions.Height),
-		)
+		mediaItems = append(mediaItems, &telego.InputMediaVideo{
+			Type:      telego.MediaTypeVideo,
+			Media:     telego.InputFile{File: file},
+			Thumbnail: &telego.InputFile{File: thumbnail},
+			Width:     instagramData.Dimensions.Width,
+			Height:    instagramData.Dimensions.Height,
+		})
 	case "GraphImage", "XDTGraphImage":
 		file, err := downloader.Downloader(instagramData.DisplayURL)
 		if err != nil {
@@ -236,39 +242,66 @@ func Instagram(url string) ([]telego.InputMedia, string) {
 		)
 	case "GraphSidecar", "XDTGraphSidecar":
 		var wg sync.WaitGroup
-		medias := make(map[int]*os.File)
+
+		type InputMedia struct {
+			File      *os.File
+			Thumbnail *os.File
+		}
+		medias := make(map[int]*InputMedia)
 
 		for i, results := range instagramData.EdgeSidecarToChildren.Edges {
 			wg.Add(1)
 			go func(index int, result Edges) {
 				defer wg.Done()
-				var file *os.File
+
+				var media InputMedia
 				var err error
+
 				if !result.Node.IsVideo {
-					file, err = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
+					media.File, err = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
 				} else {
-					file, err = downloader.Downloader(result.Node.VideoURL)
+					media.File, err = downloader.Downloader(result.Node.VideoURL)
+					if err == nil {
+						media.Thumbnail, _ = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
+					}
 				}
 				if err != nil {
 					log.Print("[instagram/Instagram] Error downloading media:", err)
 					// Use index as key to store nil for failed downloads
-					medias[index] = nil
+					medias[index] = &InputMedia{File: nil, Thumbnail: nil}
 					return
 				}
 				// Use index as key to store downloaded file
-				medias[index] = file
+				medias[index] = &media
 			}(i, results)
 		}
 
 		wg.Wait()
 		mediaItems = make([]telego.InputMedia, len(medias))
+
 		// Process results after all downloads are complete
-		for index, file := range medias {
-			if file != nil {
+		for index, media := range medias {
+			if media.File != nil {
 				if !instagramData.EdgeSidecarToChildren.Edges[index].Node.IsVideo {
-					mediaItems[index] = telegoutil.MediaPhoto(telegoutil.File(file))
+					mediaItems[index] = telegoutil.MediaPhoto(telegoutil.File(media.File))
 				} else {
-					mediaItems[index] = telegoutil.MediaVideo(telegoutil.File(file)).WithWidth(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigWidth).WithHeight(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigHeight)
+					if media.Thumbnail != nil {
+						mediaItems[index] = &telego.InputMediaVideo{
+							Type:      telego.MediaTypeVideo,
+							Media:     telego.InputFile{File: media.File},
+							Thumbnail: &telego.InputFile{File: media.Thumbnail},
+							Width:     instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigWidth,
+							Height:    instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigHeight,
+						}
+					} else {
+						// Proceed without thumbnail
+						mediaItems[index] = &telego.InputMediaVideo{
+							Type:   telego.MediaTypeVideo,
+							Media:  telego.InputFile{File: media.File},
+							Width:  instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigWidth,
+							Height: instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigHeight,
+						}
+					}
 				}
 			}
 		}

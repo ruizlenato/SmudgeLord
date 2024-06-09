@@ -14,7 +14,6 @@ import (
 	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegoutil"
 )
 
 func TikTok(url string) ([]telego.InputMedia, string) {
@@ -99,7 +98,10 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 		// Process medias after all downloads are complete
 		for index, file := range medias {
 			if file != nil {
-				mediaItems[index] = telegoutil.MediaPhoto(telegoutil.File(file))
+				mediaItems[index] = &telego.InputMediaPhoto{
+					Type:  telego.MediaTypePhoto,
+					Media: telego.InputFile{File: file},
+				}
 			}
 		}
 	} else {
@@ -108,9 +110,20 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 			log.Print("[tiktok/TikTok] Error downloading video:", err)
 			return nil, caption
 		}
-		mediaItems = append(mediaItems, telegoutil.MediaVideo(
-			telegoutil.File(file)).WithWidth(tikTokData.AwemeList[0].Video.PlayAddr.Width).WithHeight(tikTokData.AwemeList[0].Video.PlayAddr.Height),
-		)
+
+		thumbnail, err := downloader.Downloader(tikTokData.AwemeList[0].Video.Cover.URLList[0])
+		if err != nil {
+			log.Print("[tiktok/TikTok] Error downloading thumbnail:", err)
+			return nil, caption
+		}
+
+		mediaItems = append(mediaItems, &telego.InputMediaVideo{
+			Type:      telego.MediaTypeVideo,
+			Media:     telego.InputFile{File: file},
+			Thumbnail: &telego.InputFile{File: thumbnail},
+			Width:     tikTokData.AwemeList[0].Video.PlayAddr.Width,
+			Height:    tikTokData.AwemeList[0].Video.PlayAddr.Height,
+		})
 	}
 
 	return mediaItems, caption
