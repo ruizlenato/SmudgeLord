@@ -88,7 +88,7 @@ func getGQLData(post_id string) InstagramData {
 
 	body := utils.Request("https://www.instagram.com/api/graphql", utils.RequestParams{
 		Method: "POST",
-		Query: map[string]string{
+		Headers: map[string]string{
 			`User-Agent`:         `Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0`,
 			`Accept`:             `*/*`,
 			`Accept-Language`:    `en-US;q=0.5,en;q=0.3`,
