@@ -26,7 +26,9 @@ var mimeExtensions = map[string]string{
 }
 
 func Downloader(media string) (*os.File, error) {
-	body := utils.RequestGET(media, utils.RequestGETParams{})
+	body := utils.Request(media, utils.RequestParams{
+		Method: "GET",
+	})
 	if body == nil {
 		return nil, errors.New("get error")
 	}

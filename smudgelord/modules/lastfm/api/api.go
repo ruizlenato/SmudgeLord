@@ -28,7 +28,16 @@ func Init() *LastFM {
 }
 
 func (lfm *LastFM) GetUser(username string) error {
-	body := utils.RequestGET(lastFMAPI, utils.RequestGETParams{Query: map[string]string{"method": "user.getinfo", "user": username, "api_key": lfm.apiKey, "format": "json"}})
+	body := utils.Request(lastFMAPI, utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"method":  "user.getinfo",
+			"user":    username,
+			"api_key": lfm.apiKey,
+			"format":  "json",
+		},
+	})
+
 	if body.StatusCode() != 200 {
 		return nil
 	}
@@ -46,7 +55,8 @@ func (lfm *LastFM) GetUser(username string) error {
 }
 
 func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
-	body := utils.RequestGET(lastFMAPI, utils.RequestGETParams{
+	body := utils.Request(lastFMAPI, utils.RequestParams{
+		Method: "GET",
 		Query: map[string]string{
 			"method":   "user.getrecenttracks",
 			"user":     username,
@@ -121,7 +131,8 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 		methodValue = (*recentTracks.RecentTracks.Track)[0].Artist.Name
 	}
 
-	body := utils.RequestGET(lastFMAPI, utils.RequestGETParams{
+	body := utils.Request(lastFMAPI, utils.RequestParams{
+		Method: "GET",
 		Query: map[string]string{
 			"method":  fmt.Sprintf("%s.getinfo", method),
 			"user":    username,

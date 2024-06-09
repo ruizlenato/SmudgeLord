@@ -7,24 +7,22 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type RequestGETParams struct {
-	Headers map[string]string
-	Query   map[string]string
+type RequestParams struct {
+	Method     string            // "GET", "OPTIONS" or "POST"
+	Headers    map[string]string // Common headers for both GET and POST
+	Query      map[string]string // Query parameters for GET
+	BodyString []string          // Body of the request for POST
 }
 
-type RequestPOSTParams struct {
-	Headers    map[string]string
-	BodyString []string
-}
-
-// RequestGET sends a GET request to the specified link with the provided parameters and returns the response.
-// The Link parameter specifies the URL to send the request to.
-// The params parameter contains additional parameters for the request, such as headers and query parameters.
-// The function returns a pointer to a fasthttp.Response object representing the response received from the server.
+// Request sends a GET, OPTIONS or POST request to the specified link with the provided parameters and returns the response.
+// The Link specifies the URL to send the request to.
+// The params contain additional parameters for the request, such as headers, query parameters, and body.
+// The Method field in params should be "GET" or "POST" to indicate the type of request.
 //
-// Exemple usage:
+// Example usage:
 //
-//	response := helpers.RequestGET("https://api.example.com/users", helpers.RequestGETParams{
+//	response := Request("https://api.example.com/users", RequestParams{
+//		Method: "GET",
 //		Headers: map[string]string{
 //			"Authorization": "Bearer your-token",
 //		},
@@ -33,50 +31,18 @@ type RequestPOSTParams struct {
 //			"limit": "10",
 //		},
 //	})
-func RequestGET(Link string, params RequestGETParams) *fasthttp.Response {
-	request := fasthttp.AcquireRequest()
-	response := fasthttp.AcquireResponse()
-
-	client := &fasthttp.Client{ReadBufferSize: 16 * 1024}
-
-	request.Header.SetMethod(fasthttp.MethodGet)
-	for key, value := range params.Headers {
-		request.Header.Set(key, value)
-	}
-
-	request.SetRequestURI(Link)
-	for key, value := range params.Query {
-		request.URI().QueryArgs().Add(key, value)
-	}
-
-	err := client.Do(request, response)
-	if err != nil {
-		if strings.Contains(err.Error(), "missing port in address") {
-			return response
-		}
-		log.Print("[request/RequestGET] Error: ", err)
-	}
-
-	return response
-}
-
-// RequestPOST sends a POST request to the specified link with the given parameters and returns the response.
-// It takes a `Link` string parameter representing the URL to send the request to, and a `params` parameter of type `RequestPOSTParams`
-// which contains the headers and body string for the request.
-// The function returns a pointer to a `fasthttp.Response` object representing the response received from the server.
 //
-// Example usage:
-//
-//	response := RequestPOST("https://example.com/api", RequestPOSTParams{
-//	  Headers: map[string]string{
-//	    "Content-Type": "application/json",
-//	  },
-//	  BodyString: []string{
-//	    "param1=value1",
-//	    "param2=value2",
-//	  },
+//	response := Request("https://example.com/api", RequestParams{
+//		Method: "POST",
+//		Headers: map[string]string{
+//			"Content-Type": "application/json",
+//		},
+//		BodyString: []string{
+//			"param1=value1",
+//			"param2=value2",
+//		},
 //	})
-func RequestPOST(Link string, params RequestPOSTParams) *fasthttp.Response {
+func Request(Link string, params RequestParams) *fasthttp.Response {
 	request := fasthttp.AcquireRequest()
 	response := fasthttp.AcquireResponse()
 
@@ -85,20 +51,36 @@ func RequestPOST(Link string, params RequestPOSTParams) *fasthttp.Response {
 		MaxConnsPerHost: 1024,
 	}
 
-	request.Header.SetMethod(fasthttp.MethodPost)
+	request.Header.SetMethod(params.Method)
 	for key, value := range params.Headers {
 		request.Header.Set(key, value)
 	}
 
-	request.SetBodyString(strings.Join(params.BodyString, "&"))
-	request.SetRequestURI(Link)
+	if params.Method == fasthttp.MethodGet {
+		request.SetRequestURI(Link)
+		for key, value := range params.Query {
+			request.URI().QueryArgs().Add(key, value)
+		}
+	} else if params.Method == fasthttp.MethodOptions {
+		request.SetRequestURI(Link)
+		for key, value := range params.Query {
+			request.URI().QueryArgs().Add(key, value)
+		}
+	} else if params.Method == fasthttp.MethodPost {
+		request.SetBodyString(strings.Join(params.BodyString, "&"))
+		request.SetRequestURI(Link)
+	} else {
+		log.Print("[request/Request] Error: Unsupported method ", params.Method)
+		return response
+	}
 
 	err := client.Do(request, response)
 	if err != nil {
 		if strings.Contains(err.Error(), "missing port in address") {
 			return response
 		}
-		log.Print("[request/RequestPOST] Error: ", err)
+		log.Print("[request/Request] Error: ", err)
 	}
+
 	return response
 }

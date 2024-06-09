@@ -294,7 +294,10 @@ func handleArtist(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	body := utils.RequestGET(fmt.Sprintf("https://www.last.fm/music/%s/+images", recentTracks.Artist), utils.RequestGETParams{}).String()
+	body := utils.Request(fmt.Sprintf("https://www.last.fm/music/%s/+images", recentTracks.Artist), utils.RequestParams{
+		Method: "GET",
+	}).String()
+
 	imageFound := regexp.MustCompile(`https://lastfm.freetls.fastly.net/i/u/avatar170s/[^"]*`).FindStringSubmatch(body)
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)

@@ -32,7 +32,10 @@ func getGuestToken() string {
 		GuestToken string `json:"guest_token"`
 	}
 
-	body := utils.RequestPOST("https://api.twitter.com/1.1/guest/activate.json", utils.RequestPOSTParams{Headers: headers}).Body()
+	body := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
+		Method:  "POST",
+		Headers: headers,
+	}).Body()
 	var res guestToken
 	err := json.Unmarshal(body, &res)
 	if err != nil {
@@ -83,12 +86,14 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 		return result
 	}
 
-	query := map[string]string{
-		"variables": string(jsonMarshal(variables)),
-		"features":  string(jsonMarshal(features)),
-	}
-
-	body := utils.RequestGET("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestGETParams{Query: query, Headers: headers}).Body()
+	body := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"variables": string(jsonMarshal(variables)),
+			"features":  string(jsonMarshal(features)),
+		},
+		Headers: headers,
+	}).Body()
 	if body == nil {
 		return nil
 	}

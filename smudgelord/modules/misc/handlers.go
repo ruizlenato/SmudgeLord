@@ -111,14 +111,14 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 		"Linux; U; Android 12; Pixel 6 Pro",
 	}
 
-	headers := map[string]string{
-		`User-Agent`:   fmt.Sprintf(`GoogleTranslate/6.28.0.05.421483610 (%s)`, devices[rand.Intn(len(devices))]),
-		`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
-	}
-
-	body := utils.RequestPOST(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
-		sourceLang, targetLang, url.QueryEscape(text)),
-		utils.RequestPOSTParams{Headers: headers}).Body()
+	body := utils.Request(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
+		sourceLang, targetLang, url.QueryEscape(text)), utils.RequestParams{
+		Method: "POST",
+		Headers: map[string]string{
+			`User-Agent`:   fmt.Sprintf(`GoogleTranslate/6.28.0.05.421483610 (%s)`, devices[rand.Intn(len(devices))]),
+			`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
+		},
+	}).Body()
 
 	err := json.Unmarshal(body, &translation)
 	if err != nil {
@@ -249,7 +249,16 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 
 	var weatherData weatherSearch
 
-	body := utils.RequestGET("https://api.weather.com/v3/location/search", utils.RequestGETParams{Query: map[string]string{"apiKey": weatherAPIKey, "query": weatherQuery, "language": strings.Split(lang, "-")[0], "format": "json"}}).Body()
+	body := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"apiKey":   weatherAPIKey,
+			"query":    weatherQuery,
+			"language": strings.Split(lang, "-")[0],
+			"format":   "json",
+		},
+	}).Body()
+
 	err := json.Unmarshal(body, &weatherData)
 	if err != nil || len(weatherData.Location.Address) == 0 {
 		bot.SendMessage(&telego.SendMessageParams{
@@ -264,8 +273,9 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 	}
 
 	var weatherResult weatherResult
-	body = utils.RequestGET("https://api.weather.com/v3/aggcommon/v3-wx-observations-current",
-		utils.RequestGETParams{
+	body = utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current",
+		utils.RequestParams{
+			Method: "GET",
 			Query: map[string]string{
 				"apiKey":   weatherAPIKey,
 				"geocode":  fmt.Sprintf("%.3f,%.3f", weatherData.Location.Latitude[0], weatherData.Location.Longitude[0]),
