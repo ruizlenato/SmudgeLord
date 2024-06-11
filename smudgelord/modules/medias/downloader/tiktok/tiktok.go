@@ -29,7 +29,6 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 
 	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(res.Request.URL.String())
 	if len(matches) != 2 {
-		log.Printf("[tiktok/TikTok] No video ID found in URL: %s", res.Request.URL.String())
 		return nil, caption
 	}
 	videoID := matches[1]
