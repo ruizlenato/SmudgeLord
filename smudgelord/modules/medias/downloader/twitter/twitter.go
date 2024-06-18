@@ -180,18 +180,20 @@ func Twitter(url string) ([]telego.InputMedia, string) {
 			} else {
 				if media.Thumbnail != nil {
 					mediaItem = &telego.InputMediaVideo{
-						Type:      telego.MediaTypeVideo,
-						Media:     telego.InputFile{File: media.File},
-						Thumbnail: &telego.InputFile{File: media.Thumbnail},
-						Width:     ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
-						Height:    ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
+						Type:              telego.MediaTypeVideo,
+						Media:             telego.InputFile{File: media.File},
+						Thumbnail:         &telego.InputFile{File: media.Thumbnail},
+						Width:             ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
+						Height:            ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
+						SupportsStreaming: true,
 					}
 				} else {
 					mediaItem = &telego.InputMediaVideo{
-						Type:   telego.MediaTypeVideo,
-						Media:  telego.InputFile{File: media.File},
-						Width:  ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
-						Height: ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
+						Type:              telego.MediaTypeVideo,
+						Media:             telego.InputFile{File: media.File},
+						Width:             ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
+						Height:            ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
+						SupportsStreaming: true,
 					}
 				}
 			}

@@ -225,11 +225,12 @@ func Instagram(url string) ([]telego.InputMedia, string) {
 			return nil, caption
 		}
 		mediaItems = append(mediaItems, &telego.InputMediaVideo{
-			Type:      telego.MediaTypeVideo,
-			Media:     telego.InputFile{File: file},
-			Thumbnail: &telego.InputFile{File: thumbnail},
-			Width:     instagramData.Dimensions.Width,
-			Height:    instagramData.Dimensions.Height,
+			Type:              telego.MediaTypeVideo,
+			Media:             telego.InputFile{File: file},
+			Thumbnail:         &telego.InputFile{File: thumbnail},
+			Width:             instagramData.Dimensions.Width,
+			Height:            instagramData.Dimensions.Height,
+			SupportsStreaming: true,
 		})
 	case "GraphImage", "XDTGraphImage":
 		file, err := downloader.Downloader(instagramData.DisplayURL)
@@ -287,19 +288,21 @@ func Instagram(url string) ([]telego.InputMedia, string) {
 				} else {
 					if media.Thumbnail != nil {
 						mediaItems[index] = &telego.InputMediaVideo{
-							Type:      telego.MediaTypeVideo,
-							Media:     telego.InputFile{File: media.File},
-							Thumbnail: &telego.InputFile{File: media.Thumbnail},
-							Width:     instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigWidth,
-							Height:    instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigHeight,
+							Type:              telego.MediaTypeVideo,
+							Media:             telego.InputFile{File: media.File},
+							Thumbnail:         &telego.InputFile{File: media.Thumbnail},
+							Width:             instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigWidth,
+							Height:            instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigHeight,
+							SupportsStreaming: true,
 						}
 					} else {
 						// Proceed without thumbnail
 						mediaItems[index] = &telego.InputMediaVideo{
-							Type:   telego.MediaTypeVideo,
-							Media:  telego.InputFile{File: media.File},
-							Width:  instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigWidth,
-							Height: instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigHeight,
+							Type:              telego.MediaTypeVideo,
+							Media:             telego.InputFile{File: media.File},
+							Width:             instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigWidth,
+							Height:            instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[index].Node.DisplayResources)-1].ConfigHeight,
+							SupportsStreaming: true,
 						}
 					}
 				}

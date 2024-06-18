@@ -8,7 +8,6 @@ import (
 	"smudgelord/smudgelord/utils"
 
 	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegoutil"
 )
 
 func Generic(url string) ([]telego.InputMedia, string) {
@@ -42,6 +41,10 @@ func Generic(url string) ([]telego.InputMedia, string) {
 		return nil, caption
 	}
 
-	mediaItems = append(mediaItems, telegoutil.MediaVideo(telegoutil.File(file)))
+	mediaItems = append(mediaItems, &telego.InputMediaVideo{
+		Type:              telego.MediaTypeVideo,
+		Media:             telego.InputFile{File: file},
+		SupportsStreaming: true,
+	})
 	return mediaItems, caption
 }

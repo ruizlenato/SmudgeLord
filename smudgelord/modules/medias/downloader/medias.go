@@ -46,7 +46,6 @@ func Downloader(media string) (*os.File, error) {
 		return nil, err
 	}
 
-	// Defer a function to close and remove the file in case of error
 	defer func() {
 		if err != nil {
 			file.Close()
@@ -54,13 +53,11 @@ func Downloader(media string) (*os.File, error) {
 		}
 	}()
 
-	_, err = file.Write(body.Body()) // Write the byte slice to the file
-	if err != nil {
+	if _, err = file.Write(body.Body()); err != nil {
 		return nil, err
 	}
 
-	_, err = file.Seek(0, 0) // Seek back to the beginning of the file
-	if err != nil {
+	if _, err = file.Seek(0, 0); err != nil {
 		return nil, err
 	}
 

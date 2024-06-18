@@ -117,11 +117,12 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 		}
 
 		mediaItems = append(mediaItems, &telego.InputMediaVideo{
-			Type:      telego.MediaTypeVideo,
-			Media:     telego.InputFile{File: file},
-			Thumbnail: &telego.InputFile{File: thumbnail},
-			Width:     tikTokData.AwemeList[0].Video.PlayAddr.Width,
-			Height:    tikTokData.AwemeList[0].Video.PlayAddr.Height,
+			Type:              telego.MediaTypeVideo,
+			Media:             telego.InputFile{File: file},
+			Thumbnail:         &telego.InputFile{File: thumbnail},
+			Width:             tikTokData.AwemeList[0].Video.PlayAddr.Width,
+			Height:            tikTokData.AwemeList[0].Video.PlayAddr.Height,
+			SupportsStreaming: true,
 		})
 	}
 
