@@ -99,7 +99,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	if lastFM.GetUser(lastFMUsername) != nil {
+	if lastFM.GetUser(lastFMUsername) == nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      i18n("lastfm.invalid-username"),
