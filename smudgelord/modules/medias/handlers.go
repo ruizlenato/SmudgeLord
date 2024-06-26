@@ -178,7 +178,11 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
 	thumbnail, _ := downloader.Downloader(thumbURL)
 
-	defer os.Remove(thumbnail.Name())
+	defer func() {
+		if err := os.Remove(thumbnail.Name()); err != nil {
+			log.Printf("Failed to remove thumbnail: %v", err)
+		}
+	}()
 
 	switch callbackData[0] {
 	case "_aud":
@@ -211,7 +215,11 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	defer os.Remove(outputFile.Name())
+	defer func() {
+		if err := os.Remove(outputFile.Name()); err != nil {
+			log.Printf("Failed to remove outputFile: %v", err)
+		}
+	}()
 
 	bot.DeleteMessage(&telego.DeleteMessageParams{
 		ChatID:    telegoutil.ID(chat.ID),
