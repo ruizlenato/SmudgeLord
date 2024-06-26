@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -15,7 +16,7 @@ var (
 	BotAPIURL     string
 	WebhookURL    string
 	WebhookPort   int
-	SOCKS5URL     string
+	SOCKS5URLs    []string
 	OWNER_ID      int64
 )
 
@@ -45,7 +46,12 @@ func init() {
 
 	WebhookURL = os.Getenv("WEBHOOK_URL")
 	BotAPIURL = os.Getenv("BOTAPI_URL")
-	SOCKS5URL = os.Getenv("SOCKS5URL")
+
+	// Split the SOCKS5URL into a list of URLs
+	SOCKS5URLString := os.Getenv("SOCKS5URL")
+	if SOCKS5URLString != "" {
+		SOCKS5URLs = strings.Split(SOCKS5URLString, ",")
+	}
 
 	OWNER_ID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
 	if OWNER_ID == 0 {
