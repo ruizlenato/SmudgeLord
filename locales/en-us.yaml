@@ -16,11 +16,13 @@ button:
   language: Language
   help: ❔Help
   about: ℹ️ About
+  privacy: 🔒 Privacy
   donation: 💵 Donation
   news-channel: 📢 Channel
   back: ↩️ Back
   caption: "Captions:" # Need the quotes because string ends with a colon
   automatic: "Auto:" # Need the quotes because string ends with a colon
+  about-your-data: About your data
 
 menu:
   help-message: |
@@ -38,6 +40,32 @@ menu:
 
     <b>Select below the language you want to use the bot.</b>
   language-changed-successfully: The language has been changed successfully.
+  privacy-message: |
+    <b>SmudgeLord's Privacy Policy.</b>
+
+    SmudgeLord is built to provide users with transparency and trust. 
+    Thank you for trusting me and I am fully dedicated to protect your privacy.
+
+    <i>This privacy policy may be updated and changes will be communicated through SmudgeLord's Channel - @SmudgeLordChannel.</i>
+  yourData-message: |-
+    <b>About your data.</b>
+
+    <b>1. Data collection.</b>
+    bot collects only essential information to provide a personalized experience.
+    <b>The data collected includes:</b>
+    - <b>User information on Telegram:</b> User ID, first name, idioma and username.
+    - <b>Your bot settings:</b> Settings that you have set in the bot, like, your language and LastFM username, all as provided by the user themselves.
+
+    <b>2. Data usage.</b>
+    The data collected by bot is used exclusively to improve the user experience and offer a more efficient service
+    - <b>User Information on Telegram</b> is used for identification and communication with the user.
+    - <b>Your bot settings</b> are used to integrate and personalize the bot services.
+
+    <b>3. Data Sharing.</b>
+    The data collected by the bot is not shared with third parties, except where required by law. 
+    All your data is stored securely.
+    
+    <b>Note:</b> Your user information on Telegram is public information of the platform. We don't know your "real" data.
   about-message: |-
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily

@@ -14,13 +14,15 @@ start:
 button:
   start: Inciar uma conversa
   language: Idioma
-  help: ❔Ajuda
+  help: ❔ Ajuda
   about: ℹ️ Sobre
+  privacy: 🔒 Privacidade
   donation: 💵 Doação
   news-channel: 📢 Canal
   back: ↩️ Voltar
   caption: "Legendas:" # Precisa das aspas porque a string termina com dois pontos
   automatic: "Automático:" # Precisa das aspas porque a string termina com dois pontos
+  about-your-data: Sobre seus dados
 
 menu:
   help-message: |
@@ -38,6 +40,32 @@ menu:
 
     <b>Selecione abaixo o idioma que você quer utilizar no bot.</b>
   language-changed-successfully: O idioma foi alterado com sucesso.
+  privacy-message: |
+    <b>Política de Privacidade do SmudgeLord.</b>
+
+    O SmudgeLord foi elaborado para garantir a transparência e a confiança aos usuários. 
+    Agradeço sua confiança e estarei comprometido em proteger sua privacidade.
+
+    <i>Essa política de privacidade pode ser atualizada e as alterações serão comunicadas através Canal do SmudgeLord - @SmudgeLordChannel.</i>
+  yourData-message: |-
+    <b>Sobre seus dados.</b>
+
+    <b>1. Coleta de Dados.</b>
+    O bot coleta apenas informações essenciais para proporcionar uma experiência personalizada.
+    <b>Os dados coletados incluem:</b>
+    - <b>Informações do usuário no Telegram:</b> ID do usuário, primeiro nome, idioma e nome de usuário.
+    - <b>Suas configurações no SmudgeLord:</b> Configurações que você definiu no bot, tipo, seu idioma e nome nome de usuário no LastFM tudo conforme fornecido pelo próprio usuário.
+
+    <b>2. Uso de Dados.</b>
+    Os dados coletados pelo bot são utilizados exclusivamente para melhorar a experiência do usuário e oferecer um serviço mais eficiente.
+    - As <b>Informações do usuário</b> no Telegram são usadas para identificação e comunicação com o usuário. 
+    - <b>Suas configurações no SmudgeLord</b> são utilizadas para integrar e personalizar os serviços do bot.
+
+    <b>3. Compartilhamento de Dados.</b>
+    Os dados coletados pelo bot não são compartilhados com terceiros, exceto quando exigido por lei. 
+    Todos os seus dados são armazenados de forma segura.
+
+    <b>Nota:</b> Suas informações do usuário no telegram são informações públicas da plataforma. Não sabemos os seus dados "reais".
   about-message: |-
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) é um gato que se tornou um meme na Internet. A sua fama surgiu a partir de uma imagem em que é visto ao lado de uma mulher a gritar com raiva

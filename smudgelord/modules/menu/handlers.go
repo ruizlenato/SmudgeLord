@@ -25,6 +25,10 @@ func handleStart(bot *telego.Bot, update telego.Update) {
 		message = update.CallbackQuery.Message.(*telego.Message)
 	}
 
+	if messageFields := strings.Fields(message.Text); len(messageFields) > 1 && messageFields[1] == "privacy" {
+		handlePrivacy(bot, update)
+		return
+	}
 
 	i18n := localization.Get(message.Chat)
 
@@ -40,6 +44,10 @@ func handleStart(bot *telego.Bot, update telego.Update) {
 			},
 		),
 		telegoutil.InlineKeyboardRow(
+			telego.InlineKeyboardButton{
+				Text:         i18n("button.privacy"),
+				CallbackData: "privacy",
+			},
 			telego.InlineKeyboardButton{
 				Text:         i18n("button.help"),
 				CallbackData: "helpMenu",
@@ -89,17 +97,67 @@ func handleStart(bot *telego.Bot, update telego.Update) {
 	})
 }
 
-func handleCallbackStart(bot *telego.Bot, update telego.Update) {
+// handlePrivacy displays the Privacy Policy menu in response to a callback query or command.
+func handlePrivacy(bot *telego.Bot, update telego.Update) {
 	botUser, err := bot.GetMe()
 	if err != nil {
 		log.Fatal(err)
 	}
-	message := update.CallbackQuery.Message.(*telego.Message)
+
+	message := update.Message
+	if update.CallbackQuery != nil {
+		message = update.CallbackQuery.Message.(*telego.Message)
+	}
+
 	i18n := localization.Get(message.Chat)
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      fmt.Sprintf(i18n("start.message-private"), message.Chat.FirstName, botUser.FirstName),
+
+	if update.CallbackQuery != nil {
+		bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
+			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			Text:      i18n("menu.privacy-message"),
+			ParseMode: "HTML",
+			LinkPreviewOptions: &telego.LinkPreviewOptions{
+				IsDisabled: true,
+			},
+			ReplyMarkup: telegoutil.InlineKeyboard(
+				telegoutil.InlineKeyboardRow(
+					telego.InlineKeyboardButton{
+						Text:         i18n("button.about-your-data"),
+						CallbackData: "aboutYourData",
+					},
+				),
+				telegoutil.InlineKeyboardRow(
+					telego.InlineKeyboardButton{
+						Text:         i18n("button.back"),
+						CallbackData: "start",
+					},
+				),
+			),
+		})
+		return
+	}
+
+	if strings.Contains(message.Chat.Type, "group") {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      fmt.Sprintf(i18n("start.privacy-message"), botUser.FirstName),
+			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+			ReplyMarkup: telegoutil.InlineKeyboard(telegoutil.InlineKeyboardRow(
+				telego.InlineKeyboardButton{
+					Text: i18n("button.start"),
+					URL:  fmt.Sprintf("https://t.me/%s?start=privacy", botUser.Username),
+				})),
+		})
+		return
+	}
+
+	bot.SendMessage(&telego.SendMessageParams{
+		ChatID:    telegoutil.ID(message.Chat.ID),
+		Text:      i18n("menu.privacy-message"),
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			IsDisabled: true,
@@ -107,18 +165,33 @@ func handleCallbackStart(bot *telego.Bot, update telego.Update) {
 		ReplyMarkup: telegoutil.InlineKeyboard(
 			telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
-					Text:         i18n("button.about"),
-					CallbackData: "aboutMenu",
-				},
-				telego.InlineKeyboardButton{
-					Text:         i18n("language.flag") + i18n("button.language"),
-					CallbackData: "languageMenu",
+					Text:         i18n("button.about-your-data"),
+					CallbackData: "aboutYourData",
 				},
 			),
-			telegoutil.InlineKeyboardRow(telego.InlineKeyboardButton{
-				Text:         i18n("button.help"),
-				CallbackData: "helpMenu",
-			}),
+		),
+	})
+}
+
+func handleAboutYourData(bot *telego.Bot, update telego.Update) {
+	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
+	i18n := localization.Get(chat)
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text:      i18n("menu.yourData-message"),
+		ParseMode: "HTML",
+		LinkPreviewOptions: &telego.LinkPreviewOptions{
+			IsDisabled: true,
+		},
+		ReplyMarkup: telegoutil.InlineKeyboard(
+			telegoutil.InlineKeyboardRow(
+				telego.InlineKeyboardButton{
+					Text:         i18n("button.back"),
+					CallbackData: "privacy",
+				},
+			),
 		),
 	})
 }
@@ -341,9 +414,13 @@ func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	bh.Handle(handleStart, telegohandler.Or(
 		telegohandler.CommandEqual("start"),
 		telegohandler.CallbackDataEqual("start")))
+	bh.Handle(handlePrivacy, telegohandler.Or(
+		telegohandler.CommandEqual("privacy"),
+		telegohandler.CallbackDataEqual("privacy")))
 	bh.Handle(handleLanguageMenu, telegohandler.Or(
 		telegohandler.CallbackDataEqual("languageMenu"),
 		telegohandler.CommandEqual("lang")), helpers.IsAdmin(bot))
+	bh.Handle(handleAboutYourData, telegohandler.CallbackDataEqual("aboutYourData"))
 	bh.Handle(handleLanguageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
 	bh.Handle(handleHelpMenu, telegohandler.CallbackDataEqual("helpMenu"))
 	bh.Handle(handleAboutMenu, telegohandler.CallbackDataEqual("aboutMenu"))
