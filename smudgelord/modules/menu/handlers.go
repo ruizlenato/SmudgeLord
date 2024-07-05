@@ -14,13 +14,52 @@ import (
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-func handleStart(bot *telego.Bot, message telego.Message) {
+func handleStart(bot *telego.Bot, update telego.Update) {
 	botUser, err := bot.GetMe()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	message := update.Message
+	if update.CallbackQuery != nil {
+		message = update.CallbackQuery.Message.(*telego.Message)
+	}
+
+
 	i18n := localization.Get(message.Chat)
+
+	keyboard := telegoutil.InlineKeyboard(
+		telegoutil.InlineKeyboardRow(
+			telego.InlineKeyboardButton{
+				Text:         i18n("button.about"),
+				CallbackData: "aboutMenu",
+			},
+			telego.InlineKeyboardButton{
+				Text:         fmt.Sprintf("%s %s", i18n("language.flag"), i18n("button.language")),
+				CallbackData: "languageMenu",
+			},
+		),
+		telegoutil.InlineKeyboardRow(
+			telego.InlineKeyboardButton{
+				Text:         i18n("button.help"),
+				CallbackData: "helpMenu",
+			},
+		),
+	)
+
+	if update.CallbackQuery != nil {
+		bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
+			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			Text:      fmt.Sprintf(i18n("start.message-private"), message.Chat.FirstName, botUser.FirstName),
+			ParseMode: "HTML",
+			LinkPreviewOptions: &telego.LinkPreviewOptions{
+				IsDisabled: true,
+			},
+			ReplyMarkup: keyboard,
+		})
+		return
+	}
 
 	if strings.Contains(message.Chat.Type, "group") {
 		bot.SendMessage(&telego.SendMessageParams{
@@ -46,22 +85,7 @@ func handleStart(bot *telego.Bot, message telego.Message) {
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			IsDisabled: true,
 		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("button.about"),
-					CallbackData: "aboutMenu",
-				},
-				telego.InlineKeyboardButton{
-					Text:         i18n("language.flag") + i18n("button.language"),
-					CallbackData: "languageMenu",
-				},
-			),
-			telegoutil.InlineKeyboardRow(telego.InlineKeyboardButton{
-				Text:         i18n("button.help"),
-				CallbackData: "helpMenu",
-			}),
-		),
+		ReplyMarkup: keyboard,
 	})
 }
 
@@ -314,8 +338,9 @@ func handleLanguageSet(bot *telego.Bot, update telego.Update) {
 }
 
 func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	bh.HandleMessage(handleStart, telegohandler.CommandEqual("start"))
-	bh.Handle(handleCallbackStart, telegohandler.CallbackDataEqual("start"))
+	bh.Handle(handleStart, telegohandler.Or(
+		telegohandler.CommandEqual("start"),
+		telegohandler.CallbackDataEqual("start")))
 	bh.Handle(handleLanguageMenu, telegohandler.Or(
 		telegohandler.CallbackDataEqual("languageMenu"),
 		telegohandler.CommandEqual("lang")), helpers.IsAdmin(bot))
