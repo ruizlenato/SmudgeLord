@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"smudgelord/smudgelord/database"
@@ -33,6 +34,7 @@ var LangCache = make(map[string]map[string]interface{})
 func LoadLanguages() error {
 	database.AvailableLocales = nil
 	dir := "locales"
+	var wg sync.WaitGroup
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -40,30 +42,37 @@ func LoadLanguages() error {
 		}
 
 		if !info.IsDir() && filepath.Ext(path) == ".yaml" {
-			// Extract the language code from the file name without the extension
-			langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
+			wg.Add(1)
+			go func(path string) {
+				defer wg.Done()
+				// Extract the language code from the file name without the extension
+				langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 
-			data, err := os.ReadFile(path)
-			if err != nil {
-				return err
-			}
+				data, err := os.ReadFile(path)
+				if err != nil {
+					log.Printf("[localization/LoadLanguages]: Error reading file %s: %v", path, err)
+					return
+				}
 
-			// Unmarshal the language YAML data and store it in the cache
-			langMap := make(map[string]interface{})
-			err = yaml.Unmarshal(data, &langMap)
-			if err != nil {
-				return err
-			}
+				// Unmarshal the language YAML data and store it in the cache
+				langMap := make(map[string]interface{})
+				err = yaml.Unmarshal(data, &langMap)
+				if err != nil {
+					log.Printf("[localization/LoadLanguages]: Error unmarshalling file %s: %v", path, err)
+					return
+				}
 
-			LangCache[langCode] = langMap
+				LangCache[langCode] = langMap
 
-			// Append the file name to the global variable availableLocales
-			database.AvailableLocales = append(database.AvailableLocales, langCode)
+				// Append the file name to the global variable availableLocales
+				database.AvailableLocales = append(database.AvailableLocales, langCode)
+			}(path)
 		}
 
 		return nil
 	})
 
+	wg.Wait()
 	return err
 }
 
