@@ -55,7 +55,7 @@ func getEmbedData(post_id string) InstagramData {
 		// Get the caption and owner
 		var caption string
 		var owner string
-		re = regexp.MustCompile(`(?s)class="Caption"(.*?)class="CaptionUsername"(.*?)<\/a>(.*?)<div`)
+		re = regexp.MustCompile(`(?s)class="Caption"(.*?)class="CaptionUsername".*data-log-event="captionProfileClick" target="_blank">(.*?)<\/a>(.*?)<div`)
 		captionData := re.FindAllStringSubmatch(string(body), -1)
 
 		if len(captionData) > 0 && len(captionData[0]) > 2 {
@@ -65,12 +65,22 @@ func getEmbedData(post_id string) InstagramData {
 		}
 
 		dataJson := `{
-				"shortcode_media":{
-					"__typename":"GraphImage",
-					"display_url":"` + mainMediaURL + `",
-					"edge_media_to_caption":{"edges":[{"node":{"text":"` + caption + `"}}]
-					"owner":{"username":"` + owner + `"},
-					}}
+			"shortcode_media": {
+				"__typename": "GraphImage",
+				"display_url": "` + mainMediaURL + `",
+				"edge_media_to_caption": {
+					"edges": [
+						{
+							"node": {
+								"text": "` + caption + `"
+							}
+						}
+					]
+				},
+				"owner": {
+					"username": "` + owner + `"
+				}
+			}
 			}`
 
 		err := json.Unmarshal([]byte(dataJson), &instagramData)
