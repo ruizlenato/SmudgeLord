@@ -82,11 +82,11 @@ menu:
 afk:
   name: AFK
   now-unavailable: <b>%s</b> está agora indisponível!
-  unavailable: |-
-    <b><a href='tg://user?id=%s'>%s</a></b> está <b>indisponível!</b>
+  unavailable: |
+    <b><a href='tg://user?id=%d'>%s</a></b> está <b>indisponível!</b>
     Visto pela última vez à <code>%s</code> atrás
   reason: <b>Motivo:</b> <code>%s</code>
-  now-available: <b><a href='tg://user?id=%s'>%s</a></b> está de volta após <code>%s</code> de ausência!
+  now-available: <b><a href='tg://user?id=%d'>%s</a></b> está de volta após <code>%s</code> de ausência!
   help: |
     <b>AFK — <i>Away from Keyboard</i></b>
 

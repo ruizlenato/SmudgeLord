@@ -83,10 +83,10 @@ afk:
   name: AFK
   now-unavailable: <b>%s</b> is now unavailable!
   unavailable: |
-    <b><a href='tg://user?id=%s'>%s</a></b> is <b>unavailable!</b>
+    <b><a href='tg://user?id=%d'>%s</a></b> is <b>unavailable!</b>
     Last seen <code>%s</code> ago
   reason: <b>Reason:</b> <code>%s</code>
-  now-available: <b><a href='tg://user?id=%s'>%s</a></b> is back after <code>%s</code> away.!
+  now-available: <b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.!
   help: |
     <b>AFK — <i>Away from Keyboard</i></b>
 
