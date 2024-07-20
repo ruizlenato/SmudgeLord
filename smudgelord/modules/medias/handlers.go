@@ -9,6 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"smudgelord/smudgelord/config"
 	"smudgelord/smudgelord/database"
 	"smudgelord/smudgelord/localization"
 	"smudgelord/smudgelord/modules/medias/downloader"
@@ -124,7 +125,7 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 	i18n := localization.Get(chat)
 
 	callbackData := strings.Split(update.CallbackQuery.Data, "|")
-	if userID, _ := strconv.Atoi(callbackData[4]); update.CallbackQuery.From.ID != int64(userID) {
+	if userID, _ := strconv.Atoi(callbackData[5]); update.CallbackQuery.From.ID != int64(userID) {
 		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
 			Text:            i18n("medias.youtubeDenied"),
@@ -133,21 +134,19 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	outputFile, video, err := yt.Downloader(callbackData)
-	if err != nil {
-		if err.Error() == "file size is too large" {
-			bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-				CallbackQueryID: update.CallbackQuery.ID,
-				Text:            i18n("medias.youtubeBigFile"),
-				ShowAlert:       true,
-			})
-			return
-		}
-		return
+	sizeLimit := int64(1572864000) // 1.5 GB
+	if config.BotAPIURL == "" {
+		sizeLimit = 52428800 // 50 MB
 	}
 
-	messageID, _ := strconv.Atoi(callbackData[3])
-	itag, _ := strconv.Atoi(callbackData[2])
+	if size, _ := strconv.ParseInt(callbackData[3], 10, 64); size > sizeLimit {
+		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            i18n("medias.youtubeBigFile"),
+			ShowAlert:       true,
+		})
+		return
+	}
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(chat.ID),
@@ -155,7 +154,15 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 		Text:      i18n("medias.downloading"),
 	})
 
-	// Create temporary audio/video file and set the chat action.
+	outputFile, video, err := yt.Downloader(callbackData)
+	if err != nil {
+		log.Printf("Failed to youtube download video: %v", err)
+		return
+	}
+
+	messageID, _ := strconv.Atoi(callbackData[4])
+	itag, _ := strconv.Atoi(callbackData[2])
+
 	var action string
 	switch callbackData[0] {
 	case "_aud":
@@ -277,7 +284,6 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 		}
 	}
 	videoStream := video.Formats.Type("video/mp4")[maxBitrateIndex]
-	videoSize := videoStream.ContentLength
 
 	var audioStream youtube.Format
 	if len(video.Formats.Itag(140)) > 0 {
@@ -285,23 +291,22 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 	} else {
 		audioStream = video.Formats.WithAudioChannels().Type("audio/mp4")[1]
 	}
-	audioSize := audioStream.ContentLength
 
 	text := fmt.Sprintf(i18n("medias.youtubeVideoInfo"),
 		video.Title, video.Author,
-		float64(audioSize)/(1024*1024),
-		float64(audioSize)/(1024*1024)+float64(videoSize)/(1024*1024),
+		float64(audioStream.ContentLength)/(1024*1024),
+		float64(videoStream.ContentLength+audioStream.ContentLength)/(1024*1024),
 		video.Duration.String())
 
 	keyboard := telegoutil.InlineKeyboard(
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
 				Text:         i18n("medias.youtubeDownloadAudio"),
-				CallbackData: fmt.Sprintf("_aud|%s|%d|%d|%d", video.ID, audioStream.ItagNo, message.MessageID, message.From.ID),
+				CallbackData: fmt.Sprintf("_aud|%s|%d|%d|%d|%d", video.ID, audioStream.ItagNo, audioStream.ContentLength, message.MessageID, message.From.ID),
 			},
 			telego.InlineKeyboardButton{
 				Text:         i18n("medias.youtubeDownloadVideo"),
-				CallbackData: fmt.Sprintf("_vid|%s|%d|%d|%d", video.ID, videoStream.ItagNo, message.MessageID, message.From.ID),
+				CallbackData: fmt.Sprintf("_vid|%s|%d|%d|%d|%d", video.ID, videoStream.ItagNo, videoStream.ContentLength+audioStream.ContentLength, message.MessageID, message.From.ID),
 			},
 		),
 	)
@@ -373,8 +378,6 @@ func handleMediaConfig(bot *telego.Bot, update telego.Update) {
 		Text:         i18n("button.back"),
 		CallbackData: "configMenu",
 	}})
-
-	// Verificar porque o "update.CallbackQuery.Message.GetMessageID()" não atualiza após ser chamado novamente
 
 	if update.Message == nil {
 		_, err := bot.EditMessageText(&telego.EditMessageTextParams{

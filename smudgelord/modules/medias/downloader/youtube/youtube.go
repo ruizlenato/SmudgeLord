@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 
-	"smudgelord/smudgelord/config"
 	"smudgelord/smudgelord/modules/medias/downloader"
 
 	"github.com/kkdai/youtube/v2"
@@ -50,24 +49,6 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	format, err := getVideoFormat(video, itag)
 	if err != nil {
 		return nil, video, err
-	}
-
-	sizeLimit := int64(1572864000) // 1.5 GB
-	if config.BotAPIURL == "" {
-		sizeLimit = 52428800 // 50 MB
-	}
-
-	mediaSize := format.ContentLength
-	if callbackData[0] == "_vid" {
-		audioFormat, err := getVideoFormat(video, 140)
-		if err != nil {
-			return nil, video, err
-		}
-		mediaSize += audioFormat.ContentLength
-	}
-
-	if mediaSize > sizeLimit {
-		return nil, video, errors.New("file size is too large")
 	}
 
 	var outputFile *os.File
