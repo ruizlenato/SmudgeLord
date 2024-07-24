@@ -152,6 +152,7 @@ func getGQLData(post_id string) InstagramData {
 }
 
 func Instagram(url string) ([]telego.InputMedia, string) {
+	var mu sync.Mutex
 	var mediaItems []telego.InputMedia
 	var caption string
 	var postID string
@@ -264,6 +265,8 @@ func Instagram(url string) ([]telego.InputMedia, string) {
 			wg.Add(1)
 			go func(index int, result Edges) {
 				defer wg.Done()
+				mu.Lock()
+				defer mu.Unlock()
 
 				var media InputMedia
 				var err error

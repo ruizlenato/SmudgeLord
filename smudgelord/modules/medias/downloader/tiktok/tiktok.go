@@ -73,6 +73,7 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
 		var wg sync.WaitGroup
+		var mu sync.Mutex
 		wg.Add(len(tikTokData.AwemeList[0].ImagePostInfo.Images))
 
 		medias := make(map[int]*os.File)
@@ -83,11 +84,15 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 				if err != nil {
 					log.Print("[tiktok/TikTok] Error downloading photo:", err)
 					// Use index as key to store nil for failed downloads
+					mu.Lock()
 					medias[index] = nil
+					mu.Unlock()
 					return
 				}
 				// Use index as key to store downloaded file
+				mu.Lock()
 				medias[index] = file
+				mu.Unlock()
 			}(i, media)
 		}
 
