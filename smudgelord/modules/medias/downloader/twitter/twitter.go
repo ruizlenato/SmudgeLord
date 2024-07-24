@@ -107,6 +107,7 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 }
 
 func Twitter(url string) ([]telego.InputMedia, string) {
+	var mu sync.Mutex
 	var mediaItems []telego.InputMedia
 	var caption string
 	var tweetID string
@@ -136,6 +137,8 @@ func Twitter(url string) ([]telego.InputMedia, string) {
 	for i, media := range (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
 		go func(index int, twitterMedia Media) {
 			defer wg.Done()
+			mu.Lock()
+			defer mu.Unlock()
 
 			var media InputMedia
 			var err error
