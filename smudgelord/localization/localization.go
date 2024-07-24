@@ -17,7 +17,11 @@ import (
 
 const defaultLanguage = "en-us"
 
-var LangCache = make(map[string]map[string]interface{})
+var (
+	LangCache             = make(map[string]map[string]interface{})
+	langCacheMutex        sync.RWMutex
+	availableLocalesMutex sync.Mutex
+)
 
 // LoadLanguages loads language files from the localtizations directory and populates the global cache.
 // Each file in the directory should be a JSON file representing translations for a specific language.
@@ -45,7 +49,6 @@ func LoadLanguages() error {
 			wg.Add(1)
 			go func(path string) {
 				defer wg.Done()
-				// Extract the language code from the file name without the extension
 				langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 
 				data, err := os.ReadFile(path)
@@ -54,7 +57,6 @@ func LoadLanguages() error {
 					return
 				}
 
-				// Unmarshal the language YAML data and store it in the cache
 				langMap := make(map[string]interface{})
 				err = yaml.Unmarshal(data, &langMap)
 				if err != nil {
@@ -62,10 +64,13 @@ func LoadLanguages() error {
 					return
 				}
 
+				langCacheMutex.Lock()
 				LangCache[langCode] = langMap
+				langCacheMutex.Unlock()
 
-				// Append the file name to the global variable availableLocales
+				availableLocalesMutex.Lock()
 				database.AvailableLocales = append(database.AvailableLocales, langCode)
+				availableLocalesMutex.Unlock()
 			}(path)
 		}
 
@@ -108,7 +113,6 @@ func GetChatLanguage(chat telego.Chat) (string, error) {
 //
 // Returns:
 //   - func(string) string: A function that, given a message key, returns the translated message.
-
 func Get(chat telego.Chat) func(string) string {
 	return func(key string) string {
 		language, err := GetChatLanguage(chat)
@@ -117,16 +121,20 @@ func Get(chat telego.Chat) func(string) string {
 			return "KEY_NOT_FOUND"
 		}
 
+		langCacheMutex.RLock()
 		langMap, ok := LangCache[language]
+		langCacheMutex.RUnlock()
+
 		if !ok {
-			// Use default language if the requested language is not found
+			langCacheMutex.RLock()
 			langMap, ok = LangCache[defaultLanguage]
+			langCacheMutex.RUnlock()
+
 			if !ok {
 				return "KEY_NOT_FOUND"
 			}
 		}
 
-		// Use a helper function to traverse the nested structure and get the final string
 		value := GetStringFromNestedMap(langMap, key)
 		return value
 	}
