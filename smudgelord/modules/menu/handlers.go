@@ -59,7 +59,7 @@ func handleStart(bot *telego.Bot, update telego.Update) {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
 			MessageID: update.CallbackQuery.Message.GetMessageID(),
-			Text:      fmt.Sprintf(i18n("start.message-private"), message.Chat.FirstName, botUser.FirstName),
+			Text:      fmt.Sprintf(i18n("menu.start-message"), message.Chat.FirstName, botUser.FirstName),
 			ParseMode: "HTML",
 			LinkPreviewOptions: &telego.LinkPreviewOptions{
 				IsDisabled: true,
@@ -72,7 +72,7 @@ func handleStart(bot *telego.Bot, update telego.Update) {
 	if strings.Contains(message.Chat.Type, "group") {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("start.message-group"), botUser.FirstName),
+			Text:      fmt.Sprintf(i18n("menu.start-message-group"), botUser.FirstName),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -88,7 +88,7 @@ func handleStart(bot *telego.Bot, update telego.Update) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("start.message-private"), message.From.FirstName, botUser.FirstName),
+		Text:      fmt.Sprintf(i18n("menu.start-message"), message.From.FirstName, botUser.FirstName),
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			IsDisabled: true,
@@ -141,14 +141,14 @@ func handlePrivacy(bot *telego.Bot, update telego.Update) {
 	if strings.Contains(message.Chat.Type, "group") {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("start.privacy-message"), botUser.FirstName),
+			Text:      i18n("menu.privacy-group-message"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
 			},
 			ReplyMarkup: telegoutil.InlineKeyboard(telegoutil.InlineKeyboardRow(
 				telego.InlineKeyboardButton{
-					Text: i18n("button.start"),
+					Text: i18n("button.privacy-policy"),
 					URL:  fmt.Sprintf("https://t.me/%s?start=privacy", botUser.Username),
 				})),
 		})

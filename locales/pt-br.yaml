@@ -2,15 +2,6 @@ language:
   name: Português (BR)
   flag: 🇧🇷
 
-start:
-  message-private: |
-    Olá <b>%s</b> — Sou o <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.
-
-    <b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
-  message-group: |
-    Olá, sou o <b>%s</b>
-    Tenho varias funções, para saber mais, clique no botão abaixo e inicie uma conversa comigo.
-
 button:
   start: Inciar uma conversa
   language: Idioma
@@ -23,8 +14,16 @@ button:
   caption: "Legendas:" # Precisa das aspas porque a string termina com dois pontos
   automatic: "Automático:" # Precisa das aspas porque a string termina com dois pontos
   about-your-data: Sobre seus dados
+  privacy-policy: Política de Privacidade
 
 menu:
+  start-message: |
+    Olá <b>%s</b> — Sou o <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.
+
+    <b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
+  start-message-group: |
+    Olá, sou o <b>%s</b>
+    Tenho varias funções, para saber mais, clique no botão abaixo e inicie uma conversa comigo.
   help-message: |
     Aqui estão todos os meus módulos.
     <b>Para saber mais sobre os módulos, basta clicar no nome deles.</b>
@@ -47,6 +46,8 @@ menu:
     Agradeço sua confiança e estarei comprometido em proteger sua privacidade.
 
     <i>Essa política de privacidade pode ser atualizada e as alterações serão comunicadas através Canal do SmudgeLord - @SmudgeLordChannel.</i>
+  privacy-group-message: |
+    Para acessar a política de privacidade do SmudgeLord, <b>clique no botão abaixo.</b>
   yourData-message: |-
     <b>Sobre seus dados.</b>
 

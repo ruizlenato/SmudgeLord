@@ -2,15 +2,6 @@ language:
   name: English (US)
   flag: 🇺🇸
 
-start:
-  message-private: |
-    Hello <b>%s</b> — I'm <b>%s</b>, a bot with some useful and fun commands for you.
-
-    <b>Source Code:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
-  message-group: |
-    Hello, I'm <b>%s</b>
-    I have a lot of cool features. To find out more, click on the button below and start a conversation with me.
-
 button:
   start: Inciar uma conversa
   language: Language
@@ -23,8 +14,16 @@ button:
   caption: "Captions:" # Need the quotes because string ends with a colon
   automatic: "Auto:" # Need the quotes because string ends with a colon
   about-your-data: About your data
+  privacy-policy: Privacy Policy
 
 menu:
+  start-message: |
+    Hello <b>%s</b> — I'm <b>%s</b>, a bot with some useful and fun commands for you.
+
+    <b>Source Code:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
+  start-message-group: |
+    Hello, I'm <b>%s</b>
+    I have a lot of cool features. To find out more, click on the button below and start a conversation with me.
   help-message: |
     Here are all my modules.
     <b>To learn more about the modules, simply click on their names.</b>
@@ -47,6 +46,8 @@ menu:
     Thank you for trusting me and I am fully dedicated to protect your privacy.
 
     <i>This privacy policy may be updated and changes will be communicated through SmudgeLord's Channel - @SmudgeLordChannel.</i>
+  privacy-group-message: |
+    To acess SmudgeLord's privacy policy, <b>click on the button below.</b>
   yourData-message: |-
     <b>About your data.</b>
 
@@ -64,7 +65,7 @@ menu:
     <b>3. Data Sharing.</b>
     The data collected by the bot is not shared with third parties, except where required by law. 
     All your data is stored securely.
-    
+
     <b>Note:</b> Your user information on Telegram is public information of the platform. We don't know your "real" data.
   about-message: |-
     <b>— SmudgeLord</b>
