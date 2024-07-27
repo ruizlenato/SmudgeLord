@@ -5,10 +5,12 @@ import (
 	"strings"
 
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
 type RequestParams struct {
 	Method     string            // "GET", "OPTIONS" or "POST"
+	Proxy      string            // Proxy URL
 	Headers    map[string]string // Common headers for both GET and POST
 	Query      map[string]string // Query parameters for GET
 	BodyString []string          // Body of the request for POST
@@ -50,6 +52,9 @@ func Request(Link string, params RequestParams) *fasthttp.Response {
 		ReadBufferSize:  16 * 1024,
 		MaxConnsPerHost: 1024,
 	}
+	if params.Proxy != "" {
+		client.Dial = fasthttpproxy.FasthttpSocksDialer(params.Proxy)
+	}
 
 	request.Header.SetMethod(params.Method)
 	for key, value := range params.Headers {
@@ -81,6 +86,5 @@ func Request(Link string, params RequestParams) *fasthttp.Response {
 		}
 		log.Print("[request/Request] Error: ", err)
 	}
-
 	return response
 }
