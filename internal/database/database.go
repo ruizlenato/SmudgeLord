@@ -6,9 +6,8 @@ import (
 	"log"
 	"slices"
 
+	"github.com/amarnathcjd/gogram/telegram"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
 )
 
 // DB is a global variable representing the SQLite database connection.
@@ -73,7 +72,7 @@ func CreateTables() error {
 			username TEXT,
 			lastfm_username TEXT
         );
-		CREATE TABLE IF NOT EXISTS groups (
+		CREATE TABLE IF NOT EXISTS chats (
             id INTEGER PRIMARY KEY,
             language TEXT DEFAULT 'en-us',
 			mediasAuto BOOLEAN DEFAULT 1,
@@ -97,7 +96,7 @@ func CreateTables() error {
 //
 //	Close()
 func Close() {
-	fmt.Println("Database closed")
+	fmt.Println("[!] — Database closed")
 	if DB != nil {
 		DB.Close()
 	}
@@ -113,51 +112,39 @@ func Close() {
 // Note:
 // - This function is intended to be used as a middleware in a Telego handler chain.
 // - Ensure that the DB variable is correctly initialized before calling this function.
-func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler) {
-	message := update.Message
+func SaveUsers(message *telegram.NewMessage) error {
 	var username string
 
-	if message == nil {
-		if update.CallbackQuery == nil {
-			return
-		}
-		message = update.CallbackQuery.Message.(*telego.Message)
-	}
-	// If the message is sent by the sender's chat (e.g., channels or anonymous users), return without further processing.
-	if message.SenderChat != nil {
-		return
+	if message.Sender.ID == message.Client.Me().ID {
+		return nil
 	}
 
-	// If the message is from a group, insert the group's ID into the 'groups' table.
-	if message.From.ID != message.Chat.ID {
-		query := "INSERT OR IGNORE INTO groups (id) VALUES (?);"
-		_, err := DB.Exec(query, message.Chat.ID)
+	if chatID := message.ChatID(); chatID != message.Sender.ID {
+		query := "INSERT OR IGNORE INTO chats (id) VALUES (?);"
+		_, err := DB.Exec(query, chatID)
 		if err != nil {
 			log.Print("[database/SaveUsers] Error inserting group: ", err)
 		}
 	}
 
-	// Inserts user information into the 'users' table, including the user's ID and language code.
 	query := `
 		INSERT INTO users (id, language, username)
     	VALUES (?, ?, ?)
     	ON CONFLICT(id) DO UPDATE SET 
 			username = excluded.username;
 	`
-
-	if message.From.Username != "" {
-		username = "@" + message.From.Username
+	if message.Sender.Username != "" {
+		username = "@" + message.Sender.Username
 	}
 
-	lang := message.From.LanguageCode
+	lang := message.Sender.LangCode
 	if !slices.Contains(AvailableLocales, lang) {
 		lang = "en-us"
 	}
-	_, err := DB.Exec(query, message.From.ID, lang, username)
+	_, err := DB.Exec(query, message.Sender.ID, lang, username)
 	if err != nil {
 		log.Print("[database/SaveUsers] Error upserting user: ", err)
 	}
 
-	// Call the next handler in the processing chain.
-	next(bot, update)
+	return nil
 }

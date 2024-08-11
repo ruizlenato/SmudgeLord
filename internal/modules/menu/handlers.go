@@ -5,426 +5,237 @@ import (
 	"log"
 	"strings"
 
-	"smudgelord/internal/database"
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils/helpers"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
+	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/localization"
 )
 
-func handleStart(bot *telego.Bot, update telego.Update) {
-	botUser, err := bot.GetMe()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	message := update.Message
-	if update.CallbackQuery != nil {
-		message = update.CallbackQuery.Message.(*telego.Message)
-	}
-
-	if messageFields := strings.Fields(message.Text); len(messageFields) > 1 && messageFields[1] == "privacy" {
-		handlePrivacy(bot, update)
-		return
-	}
-
-	i18n := localization.Get(message.Chat)
-
-	keyboard := telegoutil.InlineKeyboard(
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         i18n("button.about"),
-				CallbackData: "aboutMenu",
-			},
-			telego.InlineKeyboardButton{
-				Text:         fmt.Sprintf("%s %s", i18n("language.flag"), i18n("button.language")),
-				CallbackData: "languageMenu",
-			},
+func createStartKeyboard(i18n func(string) string) telegram.ReplyMarkup {
+	return telegram.Button{}.Keyboard(
+		telegram.Button{}.Row(
+			telegram.Button{}.Data(
+				i18n("button.about"),
+				"aboutMenu",
+			),
+			telegram.Button{}.Data(
+				fmt.Sprintf("%s %s", i18n("language.flag"), i18n("button.language")),
+				"languageMenu",
+			),
 		),
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         i18n("button.privacy"),
-				CallbackData: "privacy",
-			},
-			telego.InlineKeyboardButton{
-				Text:         i18n("button.help"),
-				CallbackData: "helpMenu",
-			},
+		telegram.Button{}.Row(
+			telegram.Button{}.Data(
+				i18n("button.privacy"),
+				"privacy",
+			),
 		),
 	)
+}
 
-	if update.CallbackQuery != nil {
-		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-			MessageID: update.CallbackQuery.Message.GetMessageID(),
-			Text:      fmt.Sprintf(i18n("menu.start-message"), message.Chat.FirstName, botUser.FirstName),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyMarkup: keyboard,
+func handlerStart(message *telegram.NewMessage) error {
+	i18n := localization.Get(message)
+
+	if messageFields := strings.Fields(message.Text()); len(messageFields) > 1 && messageFields[1] == "privacy" {
+		return handlerPrivacy(message)
+	}
+
+	if message.ChatType() == "user" {
+		_, err := message.Reply(fmt.Sprintf(i18n("menu.start-message"), message.Sender.FirstName, message.Client.Me().FirstName),
+			telegram.SendOptions{
+				ParseMode:   telegram.HTML,
+				ReplyMarkup: createStartKeyboard(i18n),
+			})
+		return err
+	}
+
+	_, err := message.Reply(fmt.Sprintf(i18n("menu.start-message-group"), message.Client.Me().FirstName),
+		telegram.SendOptions{
+			ParseMode: telegram.HTML,
+			ReplyMarkup: telegram.Button{}.Keyboard(
+				telegram.Button{}.Row(
+					telegram.Button{}.URL(
+						i18n("button.start"),
+						fmt.Sprintf("https://t.me/%s?start=start", message.Client.Me().Username),
+					))),
 		})
-		return
-	}
 
-	if strings.Contains(message.Chat.Type, "group") {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("menu.start-message-group"), botUser.FirstName),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-			ReplyMarkup: telegoutil.InlineKeyboard(telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text: i18n("button.start"),
-					URL:  fmt.Sprintf("https://t.me/%s?start=start", botUser.Username),
-				})),
-		})
-		return
-	}
+	return err
+}
 
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("menu.start-message"), message.From.FirstName, botUser.FirstName),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: keyboard,
+func callbackStart(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
+
+	_, err := update.Edit(fmt.Sprintf(i18n("menu.start-message"), update.Sender.FirstName, update.Client.Me().FirstName), &telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		ReplyMarkup: createStartKeyboard(i18n),
 	})
+
+	return err
 }
 
-// handlePrivacy displays the Privacy Policy menu in response to a callback query or command.
-func handlePrivacy(bot *telego.Bot, update telego.Update) {
-	botUser, err := bot.GetMe()
-	if err != nil {
-		log.Fatal(err)
-	}
+func callbackLanguageMenu(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
 
-	message := update.Message
-	if update.CallbackQuery != nil {
-		message = update.CallbackQuery.Message.(*telego.Message)
-	}
-
-	i18n := localization.Get(message.Chat)
-
-	if update.CallbackQuery != nil {
-		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-			MessageID: update.CallbackQuery.Message.GetMessageID(),
-			Text:      i18n("menu.privacy-message"),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyMarkup: telegoutil.InlineKeyboard(
-				telegoutil.InlineKeyboardRow(
-					telego.InlineKeyboardButton{
-						Text:         i18n("button.about-your-data"),
-						CallbackData: "aboutYourData",
-					},
-				),
-				telegoutil.InlineKeyboardRow(
-					telego.InlineKeyboardButton{
-						Text:         i18n("button.back"),
-						CallbackData: "start",
-					},
-				),
-			),
-		})
-		return
-	}
-
-	if strings.Contains(message.Chat.Type, "group") {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("menu.privacy-group-message"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-			ReplyMarkup: telegoutil.InlineKeyboard(telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text: i18n("button.privacy-policy"),
-					URL:  fmt.Sprintf("https://t.me/%s?start=privacy", botUser.Username),
-				})),
-		})
-		return
-	}
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("menu.privacy-message"),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("button.about-your-data"),
-					CallbackData: "aboutYourData",
-				},
-			),
-		),
-	})
-}
-
-func handleAboutYourData(bot *telego.Bot, update telego.Update) {
-	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
-	i18n := localization.Get(chat)
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(chat.ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("menu.yourData-message"),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("button.back"),
-					CallbackData: "privacy",
-				},
-			),
-		),
-	})
-}
-
-// aboutMenu displays the about menu in response to a callback query.
-func handleAboutMenu(bot *telego.Bot, update telego.Update) {
-	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
-	i18n := localization.Get(chat)
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(chat.ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("menu.about-message"),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text: i18n("button.donation"),
-					URL:  "https://ko-fi.com/ruizlenato",
-				},
-				telego.InlineKeyboardButton{
-					Text: i18n("button.news-channel"),
-					URL:  "https://t.me/SmudgeLordChannel",
-				},
-			),
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("button.back"),
-					CallbackData: "start",
-				},
-			),
-		),
-	})
-}
-
-// helpMenu displays the help menu in response to a callback query.
-// It edits the original message with the updated help menu text and inline keyboard.
-func handleHelpMenu(bot *telego.Bot, update telego.Update) {
-	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
-	i18n := localization.Get(chat)
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(chat.ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("menu.help-message"),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(helpers.GetHelpKeyboard(i18n)...),
-	})
-}
-
-func handleHelpMessage(bot *telego.Bot, update telego.Update) {
-	chat := update.CallbackQuery.Message.(*telego.Message).GetChat()
-	i18n := localization.Get(chat)
-	module := strings.ReplaceAll(update.CallbackQuery.Data, "helpMessage ", "")
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(chat.ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n(fmt.Sprintf("%s.help", module)),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("button.back"),
-					CallbackData: "helpMenu",
-				},
-			),
-		),
-	})
-}
-
-func handleConfigMenu(bot *telego.Bot, update telego.Update) {
-	message := update.Message
-	if message == nil {
-		message = update.CallbackQuery.Message.(*telego.Message)
-	}
-
-	chat := message.GetChat()
-	i18n := localization.Get(chat)
-
-	keyboard := telegoutil.InlineKeyboard(
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         i18n("medias.name"),
-				CallbackData: "mediaConfig",
-			},
-		),
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         "LastFM",
-				CallbackData: "lastFMConfig",
-			},
-		),
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         i18n("language.flag") + i18n("button.language"),
-				CallbackData: "languageMenu",
-			},
-		),
-	)
-
-	if update.Message == nil {
-		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:      telegoutil.ID(chat.ID),
-			MessageID:   update.CallbackQuery.Message.GetMessageID(),
-			Text:        i18n("menu.config-message"),
-			ParseMode:   "HTML",
-			ReplyMarkup: keyboard,
-		})
-	} else {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:      telegoutil.ID(update.Message.Chat.ID),
-			Text:        i18n("menu.config-message"),
-			ParseMode:   "HTML",
-			ReplyMarkup: keyboard,
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-	}
-}
-
-func handleLanguageMenu(bot *telego.Bot, update telego.Update) {
-	message := update.Message
-	if message == nil {
-		message = update.CallbackQuery.Message.(*telego.Message)
-	}
-
-	chat := message.GetChat()
-	i18n := localization.Get(chat)
-
-	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
+	buttons := telegram.Button{}.Keyboard()
 	for _, lang := range database.AvailableLocales {
 		loaded, ok := localization.LangCache[lang]
 		if !ok {
 			log.Fatalf("Language '%s' not found in the cache.", lang)
 		}
 
-		buttons = append(buttons, []telego.InlineKeyboardButton{{
-			Text: localization.GetStringFromNestedMap(loaded, "language.flag") +
+		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+			localization.GetStringFromNestedMap(loaded, "language.flag")+
 				localization.GetStringFromNestedMap(loaded, "language.name"),
-			CallbackData: fmt.Sprintf("setLang %s", lang),
-		}})
+			"setLang "+lang,
+		)))
 	}
 
-	// Query the database to retrieve the language info based on the chat type.
-	row := database.DB.QueryRow("SELECT language FROM users WHERE id = ?;", chat.ID)
-	if strings.Contains(chat.Type, "group") {
-		row = database.DB.QueryRow("SELECT language FROM groups WHERE id = ?;", chat.ID)
+	row := database.DB.QueryRow("SELECT language FROM chats WHERE id = ?;", update.ChatID)
+	if update.ChatType() == "user" {
+		row = database.DB.QueryRow("SELECT language FROM users WHERE id = ?;", update.ChatID)
 	}
-	var language string        // Variable to store the language information retrieved from the database.
-	err := row.Scan(&language) // Scan method to retrieve the value of the "language" column from the query result.
+	var language string
+	err := row.Scan(&language)
 	if err != nil {
 		log.Print("[start/languageMenu] Error querying user:", err)
 	}
 
-	if update.Message == nil {
-		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:      telegoutil.ID(chat.ID),
-			MessageID:   update.CallbackQuery.Message.GetMessageID(),
-			Text:        fmt.Sprintf(i18n("menu.language-mesage"), i18n("language.flag"), i18n("language.name")),
-			ParseMode:   "HTML",
-			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
-		})
-	} else {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:      telegoutil.ID(update.Message.Chat.ID),
-			Text:        fmt.Sprintf(i18n("menu.language-mesage"), i18n("language.flag"), i18n("language.name")),
-			ParseMode:   "HTML",
-			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-	}
+	_, err = update.Edit(fmt.Sprintf(i18n("menu.language-mesage"), i18n("language.flag"), i18n("language.name")), &telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		ReplyMarkup: buttons,
+	})
+	return err
 }
 
-// languageSet updates the language preference for a user or a group based on the provided CallbackQuery.
-// It retrieves the language information from the CallbackQuery data, determines the appropriate database table (users or groups),
-// and updates the language for the corresponding user or group in the database.
-func handleLanguageSet(bot *telego.Bot, update telego.Update) {
-	i18n := localization.Get(update.CallbackQuery.Message.GetChat())
-	lang := strings.ReplaceAll(update.CallbackQuery.Data, "setLang ", "")
+func callbackLanguageSet(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
+	lang := strings.ReplaceAll(update.DataString(), "setLang ", "")
 
-	// Determine the appropriate database table based on the chat type.
-	dbQuery := "UPDATE users SET language = ? WHERE id = ?;"
-	if strings.Contains(update.CallbackQuery.Message.GetChat().Type, "group") {
-		dbQuery = "UPDATE groups SET language = ? WHERE id = ?;"
+	dbQuery := "UPDATE chats SET language = ? WHERE id = ?;"
+	if update.ChatType() == "user" {
+		dbQuery = "UPDATE users SET language = ? WHERE id = ?;"
 	}
-	_, err := database.DB.Exec(dbQuery, lang, update.CallbackQuery.Message.GetChat().ID)
+	_, err := database.DB.Exec(dbQuery, lang, update.ChatID)
 	if err != nil {
 		log.Print("[start/languageSet] Error updating language:", err)
 	}
 
-	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
+	buttons := telegram.Button{}.Keyboard()
 
-	if update.CallbackQuery.Message.GetChat().Type == telego.ChatTypePrivate {
-		buttons = append(buttons, []telego.InlineKeyboardButton{{
-			Text:         i18n("button.back"),
-			CallbackData: "start",
-		}})
+	if update.ChatType() == "user" {
+		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+			i18n("button.back"),
+			"start",
+		)))
 	}
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("menu.language-changed-successfully"),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+	_, err = update.Edit(i18n("menu.language-changed-successfully"), &telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		ReplyMarkup: buttons,
 	})
+	return err
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	bh.Handle(handleStart, telegohandler.Or(
-		telegohandler.CommandEqual("start"),
-		telegohandler.CallbackDataEqual("start")))
-	bh.Handle(handlePrivacy, telegohandler.Or(
-		telegohandler.CommandEqual("privacy"),
-		telegohandler.CallbackDataEqual("privacy")))
-	bh.Handle(handleLanguageMenu, telegohandler.Or(
-		telegohandler.CallbackDataEqual("languageMenu"),
-		telegohandler.CommandEqual("lang")), helpers.IsAdmin(bot))
-	bh.Handle(handleAboutYourData, telegohandler.CallbackDataEqual("aboutYourData"))
-	bh.Handle(handleLanguageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
-	bh.Handle(handleHelpMenu, telegohandler.CallbackDataEqual("helpMenu"))
-	bh.Handle(handleAboutMenu, telegohandler.CallbackDataEqual("aboutMenu"))
-	bh.Handle(handleHelpMessage, telegohandler.CallbackDataPrefix("helpMessage"))
-	bh.Handle(handleConfigMenu, telegohandler.CommandEqual("config"), helpers.IsAdmin(bot), helpers.IsGroup)
-	bh.Handle(handleConfigMenu, telegohandler.CallbackDataEqual("configMenu"), helpers.IsAdmin(bot))
+func createPrivacyKeyboard(i18n func(string) string) telegram.ReplyMarkup {
+	return telegram.Button{}.Keyboard(
+		telegram.Button{}.Row(
+			telegram.Button{}.Data(
+				i18n("button.about-your-data"),
+				"aboutYourData",
+			),
+		),
+	)
+}
+
+func handlerPrivacy(message *telegram.NewMessage) error {
+	i18n := localization.Get(message)
+
+	if message.ChatType() == "user" {
+		_, err := message.Reply(i18n("menu.privacy-message"),
+			telegram.SendOptions{
+				ParseMode:   telegram.HTML,
+				ReplyMarkup: createPrivacyKeyboard(i18n),
+			})
+		return err
+	}
+	_, err := message.Reply(i18n("menu.privacy-group-message"),
+		telegram.SendOptions{
+			ParseMode: telegram.HTML,
+			ReplyMarkup: telegram.Button{}.Keyboard(
+				telegram.Button{}.Row(
+					telegram.Button{}.URL(
+						i18n("button.about-your-data"),
+						fmt.Sprintf("https://t.me/%s?start=privacy", message.Client.Me().Username),
+					),
+				),
+			),
+		})
+	return err
+}
+
+func callbackPrivacy(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
+	keyboard := createPrivacyKeyboard(i18n)
+	keyboard.(*telegram.ReplyInlineMarkup).Rows = append(keyboard.(*telegram.ReplyInlineMarkup).Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+		i18n("button.back"),
+		"start",
+	)))
+	_, err := update.Edit(i18n("menu.privacy-message"), &telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		ReplyMarkup: keyboard,
+	})
+	return err
+}
+
+func callbackAboutYourData(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
+
+	_, err := update.Edit(i18n("menu.yourData-message"), &telegram.SendOptions{
+		ParseMode: telegram.HTML,
+		ReplyMarkup: telegram.Button{}.Keyboard(
+			telegram.Button{}.Row(
+				telegram.Button{}.Data(
+					i18n("button.back"),
+					"privacy",
+				),
+			),
+		),
+	})
+	return err
+}
+
+func callbackAboutMenu(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
+	_, err := update.Edit(i18n("menu.yourData-message"), &telegram.SendOptions{
+		ParseMode: telegram.HTML,
+		ReplyMarkup: telegram.Button{}.Keyboard(
+			telegram.Button{}.Row(
+				telegram.Button{}.URL(
+					i18n("button.donation"),
+					"https://ko-fi.com/ruizlenato",
+				),
+				telegram.Button{}.URL(
+					i18n("button.news-channel"),
+					"https://t.me/SmudgeLordChannel",
+				),
+			),
+			telegram.Button{}.Row(
+				telegram.Button{}.Data(
+					i18n("button.back"),
+					"start",
+				),
+			),
+		),
+	})
+	return err
+}
+
+func Load(client *telegram.Client) {
+	client.On("command:start", handlerStart)
+	client.On("callback:start", callbackStart)
+	client.On("callback:languageMenu", callbackLanguageMenu)
+	client.On("callback:setLang", callbackLanguageSet)
+	client.On("command:privacy", handlerPrivacy)
+	client.On("callback:privacy", callbackPrivacy)
+	client.On("callback:aboutYourData", callbackAboutYourData)
+	client.On("callback:aboutMenu", callbackAboutMenu)
 }

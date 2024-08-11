@@ -9,10 +9,11 @@ import (
 	"sync"
 	"time"
 
-	"smudgelord/internal/database"
+	"github.com/amarnathcjd/gogram/telegram"
+
+	"github.com/ruizlenato/smudgelord/internal/database"
 
 	"github.com/goccy/go-yaml"
-	"github.com/mymmrac/telego"
 )
 
 const defaultLanguage = "en-us"
@@ -89,20 +90,22 @@ func LoadLanguages() error {
 // Returns:
 //   - string: The language code for the chat.
 //   - error: An error if there is any issue retrieving the language from the database.
-func GetChatLanguage(chat telego.Chat) (string, error) {
-	var tableName, idColumn string
-	if strings.Contains(chat.Type, "group") {
-		tableName = "groups"
-		idColumn = "id"
+func GetChatLanguage(chatID int64, chatType string) (string, error) {
+	var tableName string
+	if chatType == "chat" {
+		tableName = "chats"
 	} else {
 		tableName = "users"
-		idColumn = "id"
 	}
 
-	row := database.DB.QueryRow(fmt.Sprintf("SELECT language FROM %s WHERE %s = ?;", tableName, idColumn), chat.ID)
+	row := database.DB.QueryRow(fmt.Sprintf("SELECT language FROM %s WHERE id = ?;", tableName), chatID)
 	var language string
 	err := row.Scan(&language)
 	return language, err
+}
+
+type TelegramUpdate interface {
+	ChatID() int64
 }
 
 // Get returns a function that, given a message key, returns the translated message for a specific chat.
@@ -113,11 +116,27 @@ func GetChatLanguage(chat telego.Chat) (string, error) {
 //
 // Returns:
 //   - func(string) string: A function that, given a message key, returns the translated message.
-func Get(chat telego.Chat) func(string) string {
+func Get(update interface{}) func(string) string {
+	var chatID int64
+	var chatType string
+	switch u := update.(type) {
+	case *telegram.NewMessage:
+		chatID = u.ChatID()
+		chatType = "chat"
+		if u.ChatType() == "user" {
+			chatType = "user"
+		}
+	case *telegram.CallbackQuery:
+		chatID = u.GetChatID()
+		chatType = "chat"
+		if u.ChatType() == "user" {
+			chatType = "user"
+		}
+	}
 	return func(key string) string {
-		language, err := GetChatLanguage(chat)
+		language, err := GetChatLanguage(chatID, chatType)
 		if err != nil {
-			log.Printf("[localization/Get]: Error retrieving language for chat %v: %v", chat.ID, err)
+			log.Printf("[localization/Get]: Error retrieving language for chat %v: %v", chatID, err)
 			return "KEY_NOT_FOUND"
 		}
 
@@ -171,9 +190,9 @@ func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 //
 // Returns:
 //   - string: A human-readable representation of the time duration since a specific event.
-func HumanizeTimeSince(duration time.Duration, chat telego.Chat) string {
+func HumanizeTimeSince(duration time.Duration, message *telegram.NewMessage) string {
 	// Get the i18n function for the chat
-	i18n := Get(chat)
+	i18n := Get(message)
 
 	var timeDuration int
 	var stringKey string

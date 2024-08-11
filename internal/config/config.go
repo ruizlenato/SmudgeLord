@@ -4,57 +4,43 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
 
 var (
-	TelegramToken string
-	LastFMKey     string
-	DatabaseFile  string
-	BotAPIURL     string
-	WebhookURL    string
-	WebhookPort   int
-	SOCKS5URLs    []string
-	OWNER_ID      int64
+	TelegramAPIID    int32
+	TelegramAPIHash  string
+	TelegramBotToken string
+	DatabaseFile     string
+	OWNERID          int64
 )
 
-// init initializes the config variables.
 func init() {
-	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 
-	TelegramToken = os.Getenv("TELEGRAM_TOKEN")
-	if TelegramToken == "" {
-		log.Fatalf(`You need to set the "TELEGRAM_TOKEN" in the .env file!`)
+	tempAPIID, _ := strconv.ParseInt(os.Getenv("TELEGRAM_API_ID"), 10, 32)
+	TelegramAPIID = int32(tempAPIID)
+	if TelegramAPIID == 0 {
+		log.Fatalf(`You need to set the "TELEGRAM_API_ID" in the .env file!`)
 	}
 
-	LastFMKey = os.Getenv("LASTFM_API_KEY")
-	if LastFMKey == "" {
-		log.Fatalf(`You need to set the "LASTFM_API_KEY" in the .env file!`)
+	TelegramAPIHash = os.Getenv("TELEGRAM_API_HASH")
+	if TelegramAPIHash == "" {
+		log.Fatalf(`You need to set the "TELEGRAM_API_HASH" in the .env file!`)
+	}
+
+	TelegramBotToken = os.Getenv("TELEGRAM_BOT_TOKEN")
+	if TelegramBotToken == "" {
+		log.Fatalf(`You need to set the "TELEGRAM_BOT_TOKEN" in the .env file!`)
 	}
 
 	DatabaseFile = os.Getenv("DATABASE_FILE")
 
-	WebhookPort, _ = strconv.Atoi(os.Getenv("WEBHOOK_PORT"))
-	if WebhookPort == 0 {
-		WebhookPort = 8080
-	}
-
-	WebhookURL = os.Getenv("WEBHOOK_URL")
-	BotAPIURL = os.Getenv("BOTAPI_URL")
-
-	// Split the SOCKS5URL into a list of URLs
-	SOCKS5URLString := os.Getenv("SOCKS5URL")
-	if SOCKS5URLString != "" {
-		SOCKS5URLs = strings.Split(SOCKS5URLString, ",")
-	}
-
-	OWNER_ID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
-	if OWNER_ID == 0 {
+	OWNERID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
+	if OWNERID == 0 {
 		log.Fatalf(`You need to set the "OWNER_ID" in the .env file!`)
 	}
 }
