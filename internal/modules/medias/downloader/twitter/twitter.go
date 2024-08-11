@@ -11,10 +11,10 @@ import (
 	"strings"
 	"sync"
 
-	"smudgelord/internal/modules/medias/downloader"
-	"smudgelord/internal/utils"
-
-	"github.com/mymmrac/telego"
+	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
+	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 var headers = map[string]string{
@@ -38,7 +38,7 @@ func getGuestToken() string {
 	var res guestToken
 	err := json.Unmarshal(body, &res)
 	if err != nil {
-		log.Printf("Error unmarshalling guest token: %v", err)
+		log.Print("Error unmarshalling guest token: ", err)
 	}
 	return res.GuestToken
 }
@@ -99,16 +99,15 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {
-		log.Printf("Error unmarshalling Twitter data: %v", err)
+		log.Print("Error unmarshalling Twitter data: ", err)
 		return nil
 	}
 
 	return twitterAPIData
 }
 
-func Twitter(url string) ([]telego.InputMedia, string) {
-	var mu sync.Mutex
-	var mediaItems []telego.InputMedia
+func Twitter(url string, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+	var mediaItems []telegram.InputMedia
 	var caption string
 	var tweetID string
 
@@ -126,7 +125,7 @@ func Twitter(url string) ([]telego.InputMedia, string) {
 
 	var wg sync.WaitGroup
 	wg.Add(len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
-	mediaItems = make([]telego.InputMedia, len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
+	mediaItems = make([]telegram.InputMedia, len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
 
 	type InputMedia struct {
 		File      *os.File
@@ -137,8 +136,6 @@ func Twitter(url string) ([]telego.InputMedia, string) {
 	for i, media := range (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
 		go func(index int, twitterMedia Media) {
 			defer wg.Done()
-			mu.Lock()
-			defer mu.Unlock()
 
 			var media InputMedia
 			var err error
@@ -159,46 +156,45 @@ func Twitter(url string) ([]telego.InputMedia, string) {
 				}
 			}
 			if err != nil {
-				log.Print("[twitter/Twitter] Error downloading media:", err)
-				// Use index as key to store nil for failed downloads
+				log.Print("[twitter/Twitter] Error downloading media: ", err)
 				medias[index] = &InputMedia{File: nil, Thumbnail: nil}
 				return
 			}
-			// Use index as key to store downloaded file
 			medias[index] = &media
 		}(i, media)
 	}
 
 	wg.Wait()
 
-	// Process medias after all downloads are complete
 	for index, media := range medias {
 		if media.File != nil {
-			var mediaItem telego.InputMedia
+			var mediaItem telegram.InputMedia
 			if (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index].Type == "photo" {
-				mediaItem = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: media.File},
+				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+					File: media.File.Name(),
+				})
+				if err != nil {
+					log.Print("[instagram/Instagram] Error uploading video: ", err)
+					return nil, caption
 				}
+
+				mediaItem = &photo
 			} else {
-				if media.Thumbnail != nil {
-					mediaItem = &telego.InputMediaVideo{
-						Type:              telego.MediaTypeVideo,
-						Media:             telego.InputFile{File: media.File},
-						Thumbnail:         &telego.InputFile{File: media.Thumbnail},
-						Width:             ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
-						Height:            ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
+				video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
+					File:  media.File.Name(),
+					Thumb: media.Thumbnail.Name(),
+					Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
 						SupportsStreaming: true,
-					}
-				} else {
-					mediaItem = &telego.InputMediaVideo{
-						Type:              telego.MediaTypeVideo,
-						Media:             telego.InputFile{File: media.File},
-						Width:             ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
-						Height:            ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
-						SupportsStreaming: true,
-					}
+						W:                 int32(((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width),
+						H:                 int32(((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height),
+					}},
+				})
+				if err != nil {
+					log.Print("[instagram/Instagram] Error uploading video: ", err)
+					return nil, caption
 				}
+
+				mediaItem = &video
 			}
 			mediaItems[index] = mediaItem
 		}

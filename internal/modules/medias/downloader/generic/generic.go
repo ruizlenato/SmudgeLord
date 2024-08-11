@@ -4,15 +4,16 @@ import (
 	"encoding/json"
 	"log"
 
-	"smudgelord/internal/modules/medias/downloader"
-	"smudgelord/internal/utils"
+	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 
-	"github.com/mymmrac/telego"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 )
 
-func Generic(url string) ([]telego.InputMedia, string) {
+func Generic(url string, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
 	var genericData GenericData
-	var mediaItems []telego.InputMedia
+	var mediaItems []telegram.InputMedia
 	var caption string
 
 	body := utils.Request("https://scrapper.ruizlenato.workers.dev/", utils.RequestParams{
@@ -41,10 +42,15 @@ func Generic(url string) ([]telego.InputMedia, string) {
 		return nil, caption
 	}
 
-	mediaItems = append(mediaItems, &telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
-		SupportsStreaming: true,
+	video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
+		File: file.Name(),
 	})
+	if err != nil {
+		log.Print("[instagram/Instagram] Error uploading video:", err)
+		return nil, caption
+	}
+
+	mediaItems = append(mediaItems, &video)
+
 	return mediaItems, caption
 }

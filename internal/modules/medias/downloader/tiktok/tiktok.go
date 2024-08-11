@@ -10,19 +10,21 @@ import (
 	"slices"
 	"sync"
 
-	"smudgelord/internal/modules/medias/downloader"
-	"smudgelord/internal/utils"
+	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 
-	"github.com/mymmrac/telego"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
+
+	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
 )
 
-func TikTok(url string) ([]telego.InputMedia, string) {
-	var mediaItems []telego.InputMedia
+func TikTok(url string, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+	var mediaItems []telegram.InputMedia
 	var caption string
 
 	res, err := http.Get(url)
 	if err != nil {
-		log.Printf("[tiktok/TikTok] Error getting TikTok URL: %v", err)
+		log.Print("[tiktok/TikTok] Error getting TikTok URL: ", err)
 		return nil, caption
 	}
 	defer res.Body.Close()
@@ -52,14 +54,14 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 	}).Body()
 
 	if body == nil {
-		log.Printf("[tiktok/TikTok] No response body for video ID: %s", videoID)
+		log.Print("[tiktok/TikTok] No response body for video ID: ", videoID)
 		return nil, caption
 	}
 
 	var tikTokData TikTokData
 	err = json.Unmarshal(body, &tikTokData)
 	if err != nil {
-		log.Printf("[tiktok/TikTok] Error unmarshalling TikTok data: %v", err)
+		log.Print("[tiktok/TikTok] Error unmarshalling TikTok data: ", err)
 		return nil, caption
 	}
 
@@ -73,7 +75,6 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
 		var wg sync.WaitGroup
-		var mu sync.Mutex
 		wg.Add(len(tikTokData.AwemeList[0].ImagePostInfo.Images))
 
 		medias := make(map[int]*os.File)
@@ -82,30 +83,31 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 				defer wg.Done()
 				file, err := downloader.Downloader(media.DisplayImage.URLList[1])
 				if err != nil {
-					log.Print("[tiktok/TikTok] Error downloading photo:", err)
+					log.Print("[tiktok/TikTok] Error downloading photo: ", err)
 					// Use index as key to store nil for failed downloads
-					mu.Lock()
 					medias[index] = nil
-					mu.Unlock()
 					return
 				}
 				// Use index as key to store downloaded file
-				mu.Lock()
 				medias[index] = file
-				mu.Unlock()
 			}(i, media)
 		}
 
 		wg.Wait()
-		mediaItems = make([]telego.InputMedia, len(medias))
+		mediaItems = make([]telegram.InputMedia, 0, len(medias))
 
 		// Process medias after all downloads are complete
 		for index, file := range medias {
 			if file != nil {
-				mediaItems[index] = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: file},
+				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+					File: file.Name(),
+				})
+				if err != nil {
+					log.Print("[instagram/Instagram] Error uploading video: ", err)
+					return nil, caption
 				}
+
+				mediaItems[index] = &photo
 			}
 		}
 	} else {
@@ -117,18 +119,25 @@ func TikTok(url string) ([]telego.InputMedia, string) {
 
 		thumbnail, err := downloader.Downloader(tikTokData.AwemeList[0].Video.Cover.URLList[0])
 		if err != nil {
-			log.Print("[tiktok/TikTok] Error downloading thumbnail:", err)
+			log.Print("[tiktok/TikTok] Error downloading thumbnail: ", err)
 			return nil, caption
 		}
 
-		mediaItems = append(mediaItems, &telego.InputMediaVideo{
-			Type:              telego.MediaTypeVideo,
-			Media:             telego.InputFile{File: file},
-			Thumbnail:         &telego.InputFile{File: thumbnail},
-			Width:             tikTokData.AwemeList[0].Video.PlayAddr.Width,
-			Height:            tikTokData.AwemeList[0].Video.PlayAddr.Height,
-			SupportsStreaming: true,
+		video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
+			File:  file.Name(),
+			Thumb: thumbnail.Name(),
+			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
+				SupportsStreaming: true,
+				W:                 int32(tikTokData.AwemeList[0].Video.PlayAddr.Width),
+				H:                 int32(tikTokData.AwemeList[0].Video.PlayAddr.Height),
+			}},
 		})
+		if err != nil {
+			log.Print("[instagram/Instagram] Error uploading video: ", err)
+			return nil, caption
+		}
+
+		mediaItems = append(mediaItems, &video)
 	}
 
 	return mediaItems, caption

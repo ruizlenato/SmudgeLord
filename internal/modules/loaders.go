@@ -14,6 +14,7 @@ import (
 var (
 	packageLoadersMutex sync.Mutex
 	packageLoaders      = map[string]func(*telegram.Client){
+		"medias": medias.Load,
 		"menu":   menu.Load,
 	}
 )

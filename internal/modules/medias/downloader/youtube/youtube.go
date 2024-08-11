@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"smudgelord/internal/modules/medias/downloader"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 
 	"github.com/kkdai/youtube/v2"
 )

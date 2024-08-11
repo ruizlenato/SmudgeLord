@@ -6,12 +6,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"sync"
+	"strings"
 	"unicode/utf8"
 
-	"smudgelord/internal/utils"
-
-	"github.com/mymmrac/telego"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 var mimeExtensions = map[string]string{
@@ -41,7 +39,17 @@ func Downloader(media string) (*os.File, error) {
 		return extension
 	}
 
-	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension(body.Header.ContentType())))
+	contentDisposition := body.Header.Peek("Content-Disposition")
+	filename := "Smudge*." + extension(body.Header.ContentType())
+
+	if contentDisposition != nil {
+		parts := strings.Split(string(contentDisposition), "filename=")
+		if len(parts) > 1 {
+			filename = "Smudge*" + strings.Trim(parts[1], `"`)
+		}
+	}
+
+	file, err := os.CreateTemp("", filename)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +76,9 @@ func TruncateUTF8Caption(s, url string) string {
 	if utf8.RuneCountInString(s) <= 1017 {
 		return s + fmt.Sprintf("\n<a href='%s'>🔗 Link</a>", url)
 	}
-	var truncated []rune
+
+	truncated := make([]rune, 0, 1017)
+
 	currentLength := 0
 
 	for _, r := range s {
@@ -83,8 +93,14 @@ func TruncateUTF8Caption(s, url string) string {
 }
 
 func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
-	videoFile.Seek(0, 0)
-	audioFile.Seek(0, 0)
+	if _, err := videoFile.Seek(0, 0); err != nil {
+		log.Println("[MergeAudioVideo] Error seeking video file:", err)
+		return nil
+	}
+	if _, err := audioFile.Seek(0, 0); err != nil {
+		log.Println("[MergeAudioVideo] Error seeking audio file:", err)
+		return nil
+	}
 
 	defer os.Remove(videoFile.Name())
 	defer os.Remove(audioFile.Name())
@@ -112,29 +128,4 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 	}
 
 	return outputFile
-}
-
-func RemoveMediaFiles(mediaItems []telego.InputMedia) {
-	var wg sync.WaitGroup
-
-	for _, media := range mediaItems {
-		wg.Add(1)
-
-		go func(media telego.InputMedia) {
-			defer wg.Done()
-
-			switch media.MediaType() {
-			case "photo":
-				if photo, ok := media.(*telego.InputMediaPhoto); ok {
-					os.Remove(photo.Media.String())
-				}
-			case "video":
-				if video, ok := media.(*telego.InputMediaVideo); ok {
-					os.Remove(video.Media.String())
-				}
-			}
-		}(media)
-	}
-
-	wg.Wait()
 }

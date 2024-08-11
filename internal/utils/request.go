@@ -5,21 +5,23 @@ import (
 	"strings"
 
 	"github.com/valyala/fasthttp"
-	"github.com/valyala/fasthttp/fasthttpproxy"
 )
 
 type RequestParams struct {
 	Method     string            // "GET", "OPTIONS" or "POST"
-	Proxy      string            // Proxy URL
 	Headers    map[string]string // Common headers for both GET and POST
 	Query      map[string]string // Query parameters for GET
 	BodyString []string          // Body of the request for POST
 }
 
-// Request sends a GET, OPTIONS or POST request to the specified link with the provided parameters and returns the response.
+// Request sends a GET, OPTIONS or POST request to the specified link with the
+// provided parameters and returns the response.
+//
 // The Link specifies the URL to send the request to.
-// The params contain additional parameters for the request, such as headers, query parameters, and body.
-// The Method field in params should be "GET" or "POST" to indicate the type of request.
+// The params contain additional parameters for the request, such as headers,
+// query parameters, and body.
+// The Method field in params should be "GET" or "POST" to indicate the type of
+// request.
 //
 // Example usage:
 //
@@ -51,9 +53,6 @@ func Request(Link string, params RequestParams) *fasthttp.Response {
 	client := &fasthttp.Client{
 		ReadBufferSize:  16 * 1024,
 		MaxConnsPerHost: 1024,
-	}
-	if params.Proxy != "" {
-		client.Dial = fasthttpproxy.FasthttpSocksDialer(params.Proxy)
 	}
 
 	request.Header.SetMethod(params.Method)
