@@ -45,9 +45,9 @@ func handlerMedias(message *telegram.NewMessage) error {
 	}
 
 	mediaHandlers := map[string]func(string, *telegram.NewMessage) ([]telegram.InputMedia, string){
-		"(twitter|x).com/":             twitter.Twitter,
-		"instagram.com/":               instagram.Instagram,
-		"tiktok.com/":                  tiktok.TikTok,
+		"(twitter|x).com/":             twitter.Handle,
+		"instagram.com/":               instagram.Handle,
+		"tiktok.com/":                  tiktok.Handle,
 		"(?:reddit|twitch).(?:com|tv)": generic.Generic,
 	}
 
@@ -208,7 +208,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 	replyID, _ := strconv.Atoi(callbackData[4])
 	switch callbackData[0] {
 	case "_aud":
-		update.Client.SendMedia(update.Sender.ID, outputFile.Name(), &telegram.MediaOptions{
+		_, err = update.Client.SendMedia(update.Sender.ID, outputFile.Name(), &telegram.MediaOptions{
 			ReplyID: int32(replyID),
 			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeAudio{
 				Title:     video.Title,
@@ -217,8 +217,12 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 			Caption: fmt.Sprintf("<b>%s -</b>%s", video.Author, video.Title),
 			Thumb:   thumbnail.Name(),
 		})
+		if err != nil {
+			// update edit mesage error
+			return err
+		}
 	case "_vid":
-		update.Client.SendMedia(update.Sender.ID, outputFile.Name(), &telegram.MediaOptions{
+		_, err := update.Client.SendMedia(update.Sender.ID, outputFile.Name(), &telegram.MediaOptions{
 			ReplyID: int32(replyID),
 			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
 				SupportsStreaming: true,
@@ -228,6 +232,10 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 			Caption: video.Title,
 			Thumb:   thumbnail.Name(),
 		})
+		if err != nil {
+			// update edit mesage error
+			return err
+		}
 	}
 	_, err = update.Delete()
 	return err

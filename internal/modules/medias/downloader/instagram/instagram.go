@@ -2,12 +2,12 @@ package instagram
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
 	"regexp"
 	"strings"
-	"sync"
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
@@ -15,6 +15,81 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 )
+
+func Handle(url string, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+	postID, err := getPostID(url)
+	if err != nil {
+		log.Print(err)
+		return nil, ""
+	}
+
+	instagramData, err := getInstagramData(postID)
+	if err != nil {
+		log.Print(err)
+		return nil, ""
+	}
+
+	caption := getCaption(instagramData)
+
+	switch instagramData.Typename {
+	case "GraphVideo", "XDTGraphVideo":
+		return handleVideo(instagramData, message, caption)
+	case "GraphImage", "XDTGraphImage":
+		return handleImage(instagramData, message, caption)
+	case "GraphSidecar", "XDTGraphSidecar":
+		return handleSidecar(instagramData, message, caption)
+	}
+
+	return nil, caption
+}
+
+func getPostID(url string) (string, error) {
+	if matches := regexp.MustCompile(`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`).FindStringSubmatch(url); len(matches) == 2 {
+		return matches[1], nil
+	} else {
+		return "", errors.New("could not find post ID")
+	}
+}
+
+func getInstagramData(postID string) (*ShortcodeMedia, error) {
+	if data := getEmbedData(postID); data != nil && data.ShortcodeMedia != nil {
+		return data.ShortcodeMedia, nil
+	} else if data := getGQLData(postID); data != nil && data.Data.XDTShortcodeMedia != nil {
+		return data.Data.XDTShortcodeMedia, nil
+	}
+
+	return nil, errors.New("could not find Instagram data")
+}
+
+func getCaption(instagramData *ShortcodeMedia) string {
+	if len(instagramData.EdgeMediaToCaption.Edges) > 0 {
+		var sb strings.Builder
+
+		if username := instagramData.Owner.Username; username != "" {
+			sb.WriteString(fmt.Sprintf("<b>%v</b>", username))
+		}
+
+		if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
+			if sb.Len() > 0 {
+				sb.WriteString(" <b>&</b> ")
+			}
+			for i, coauthor := range *coauthors {
+				if i > 0 {
+					sb.WriteString(" <b>&</b> ")
+				}
+				sb.WriteString(fmt.Sprintf("<b>%v</b>", coauthor.Username))
+			}
+		}
+
+		if sb.Len() > 0 {
+			sb.WriteString("<b>:</b>\n")
+		}
+		sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
+
+		return sb.String()
+	}
+	return ""
+}
 
 func getEmbedData(postID string) InstagramData {
 	var instagramData InstagramData
@@ -92,7 +167,6 @@ func getEmbedData(postID string) InstagramData {
 	return instagramData
 }
 
-// Fazer ele parser tudo e dps baixar, fazer somente uma chamada do downloader.
 func getGQLData(postID string) InstagramData {
 	var instagramData InstagramData
 
@@ -151,173 +225,148 @@ func getGQLData(postID string) InstagramData {
 	return instagramData
 }
 
-func Instagram(url string, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
-	var mu sync.Mutex
-	var mediaItems []telegram.InputMedia
-	var caption string
-	var postID string
-
-	if matches := regexp.MustCompile(`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`).FindStringSubmatch(url); len(matches) == 2 {
-		postID = matches[1]
-	} else {
+func handleVideo(instagramData *ShortcodeMedia, message *telegram.NewMessage, caption string) ([]telegram.InputMedia, string) {
+	file, err := downloader.Downloader(instagramData.VideoURL)
+	if err != nil {
+		log.Print("[instagram/Instagram] Error downloading video: ", err)
 		return nil, caption
 	}
 
-	var instagramData *ShortcodeMedia
-	if data := getEmbedData(postID); data != nil && data.ShortcodeMedia != nil {
-		instagramData = data.ShortcodeMedia
-	} else if data := getGQLData(postID); data != nil && data.Data.XDTShortcodeMedia != nil {
-		instagramData = data.Data.XDTShortcodeMedia
-	}
-
-	if instagramData == nil {
+	thumbnail, err := downloader.Downloader(instagramData.DisplayResources[len(instagramData.DisplayResources)-1].Src)
+	if err != nil {
+		log.Print("[instagram/Instagram] Error downloading video: ", err)
 		return nil, caption
 	}
 
-	if len(instagramData.EdgeMediaToCaption.Edges) > 0 {
-		var sb strings.Builder
-
-		if username := instagramData.Owner.Username; username != "" {
-			sb.WriteString(fmt.Sprintf("<b>%v</b>", username))
-		}
-
-		if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
-			if sb.Len() > 0 {
-				sb.WriteString(" <b>&</b> ")
-			}
-			for i, coauthor := range *coauthors {
-				if i > 0 {
-					sb.WriteString(" <b>&</b> ")
-				}
-				sb.WriteString(fmt.Sprintf("<b>%v</b>", coauthor.Username))
-			}
-		}
-
-		if sb.Len() > 0 {
-			sb.WriteString("<b>:</b>\n")
-		}
-		sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
-
-		caption = sb.String()
+	video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
+		File:  file.Name(),
+		Thumb: thumbnail.Name(),
+		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
+			SupportsStreaming: true,
+			W:                 int32(instagramData.Dimensions.Width),
+			H:                 int32(instagramData.Dimensions.Height),
+		}},
+	})
+	if err != nil {
+		log.Print("[instagram/Instagram] Error uploading video: ", err)
+		return nil, caption
 	}
 
-	switch instagramData.Typename {
-	case "GraphVideo", "XDTGraphVideo":
-		file, err := downloader.Downloader(instagramData.VideoURL)
-		if err != nil {
-			log.Print("[instagram/Instagram] Error downloading video: ", err)
-			return nil, caption
-		}
+	return []telegram.InputMedia{&video}, caption
+}
 
-		thumbnail, err := downloader.Downloader(instagramData.DisplayResources[len(instagramData.DisplayResources)-1].Src)
-		if err != nil {
-			log.Print("[instagram/Instagram] Error downloading video: ", err)
-			return nil, caption
-		}
+func handleImage(instagramData *ShortcodeMedia, message *telegram.NewMessage, caption string) ([]telegram.InputMedia, string) {
+	file, err := downloader.Downloader(instagramData.DisplayURL)
+	if err != nil {
+		log.Print("[instagram/Instagram] Error downloading image:", err)
+		return nil, caption
+	}
 
-		video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-			File:  file.Name(),
-			Thumb: thumbnail.Name(),
-			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-				SupportsStreaming: true,
-				W:                 int32(instagramData.Dimensions.Width),
-				H:                 int32(instagramData.Dimensions.Height),
-			}},
-		})
-		if err != nil {
-			log.Print("[instagram/Instagram] Error uploading video: ", err)
-			return nil, caption
-		}
+	photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+		File: file.Name(),
+	})
+	if err != nil {
+		log.Print("[instagram/Instagram] Error uploading video: ", err)
+		return nil, caption
+	}
 
-		mediaItems = append(mediaItems, &video)
-	case "GraphImage", "XDTGraphImage":
-		file, err := downloader.Downloader(instagramData.DisplayURL)
-		if err != nil {
-			log.Print("[instagram/Instagram] Error downloading image:", err)
-			return nil, caption
-		}
+	return []telegram.InputMedia{&photo}, caption
+}
 
-		photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
-			File: file.Name(),
-		})
-		if err != nil {
-			log.Print("[instagram/Instagram] Error uploading video: ", err)
-			return nil, caption
-		}
+type InputMedia struct {
+	File      *os.File
+	Thumbnail *os.File
+}
 
-		mediaItems = append(mediaItems, &photo)
-	case "GraphSidecar", "XDTGraphSidecar":
-		var wg sync.WaitGroup
+func handleSidecar(instagramData *ShortcodeMedia, message *telegram.NewMessage, caption string) ([]telegram.InputMedia, string) {
+	type mediaResult struct {
+		index int
+		media *InputMedia
+		err   error
+	}
 
-		type InputMedia struct {
-			File      *os.File
-			Thumbnail *os.File
-		}
-		medias := make(map[int]*InputMedia)
+	mediaCount := len(instagramData.EdgeSidecarToChildren.Edges)
+	mediaChan := make(chan mediaResult, mediaCount)
+	medias := make([]*InputMedia, mediaCount)
+	mediaItems := make([]telegram.InputMedia, mediaCount)
 
-		for i, results := range instagramData.EdgeSidecarToChildren.Edges {
-			wg.Add(1)
-			go func(index int, result Edges) {
-				defer wg.Done()
-				mu.Lock()
-				defer mu.Unlock()
+	for i, result := range instagramData.EdgeSidecarToChildren.Edges {
+		go func(index int, result Edges) {
+			var media InputMedia
+			var err error
 
-				var media InputMedia
-				var err error
-
-				if !result.Node.IsVideo {
-					media.File, err = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
-				} else {
-					media.File, err = downloader.Downloader(result.Node.VideoURL)
-					if err == nil {
-						media.Thumbnail, _ = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
-					}
-				}
-				if err != nil {
-					log.Print("[instagram/Instagram] Error downloading media: ", err)
-					// Use index as key to store nil for failed downloads
-					medias[index] = &InputMedia{File: nil, Thumbnail: nil}
-					return
-				}
-				// Use index as key to store downloaded file
-				medias[index] = &media
-			}(i, results)
-		}
-
-		wg.Wait()
-		mediaItems = make([]telegram.InputMedia, len(medias))
-
-		// Process results after all downloads are complete
-		for index, media := range medias {
-			if media.File != nil {
-				if !instagramData.EdgeSidecarToChildren.Edges[index].Node.IsVideo {
-					photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
-						File: media.File.Name(),
-					})
-					if err != nil {
-						log.Print("[instagram/Instagram] Error uploading video: ", err)
-						return nil, caption
-					}
-					mediaItems[index] = &photo
-				} else {
-					video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-						File:  media.File.Name(),
-						Thumb: media.Thumbnail.Name(),
-						Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-							SupportsStreaming: true,
-							W:                 int32(instagramData.Dimensions.Width),
-							H:                 int32(instagramData.Dimensions.Height),
-						}},
-					})
-					if err != nil {
-						log.Print("[instagram/Instagram] Error uploading video:", err)
-						return nil, caption
-					}
-
-					mediaItems[index] = &video
+			if !result.Node.IsVideo {
+				media.File, err = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
+			} else {
+				media.File, err = downloader.Downloader(result.Node.VideoURL)
+				if err == nil {
+					media.Thumbnail, _ = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
 				}
 			}
+			if err != nil {
+				log.Print("[instagram/Instagram] Error downloading media: ", err)
+			}
+
+			mediaChan <- mediaResult{index, &media, err}
+		}(i, result)
+	}
+
+	for i := 0; i < mediaCount; i++ {
+		result := <-mediaChan
+		if result.err != nil {
+			medias[result.index] = &InputMedia{File: nil, Thumbnail: nil}
+			continue
 		}
+		medias[result.index] = result.media
+	}
+
+	uploadChan := make(chan struct {
+		index int
+		media telegram.InputMedia
+		err   error
+	}, mediaCount)
+
+	for i, media := range medias {
+		if media == nil || media.File == nil {
+			continue
+		}
+
+		go func(index int, media *InputMedia) {
+			if !instagramData.EdgeSidecarToChildren.Edges[index].Node.IsVideo {
+				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+					File: media.File.Name(),
+				})
+				uploadChan <- struct {
+					index int
+					media telegram.InputMedia
+					err   error
+				}{index, &photo, err}
+			} else {
+				video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
+					File:  media.File.Name(),
+					Thumb: media.Thumbnail.Name(),
+					Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
+						SupportsStreaming: true,
+						W:                 int32(instagramData.Dimensions.Width),
+						H:                 int32(instagramData.Dimensions.Height),
+					}},
+				})
+				uploadChan <- struct {
+					index int
+					media telegram.InputMedia
+					err   error
+				}{index, &video, err}
+			}
+		}(i, media)
+	}
+
+	for i := 0; i < mediaCount; i++ {
+		result := <-uploadChan
+		if result.err != nil {
+			log.Print("[instagram/Instagram] Error uploading media: ", result.err)
+			return nil, caption
+		}
+		mediaItems[result.index] = result.media
 	}
 
 	return mediaItems, caption
