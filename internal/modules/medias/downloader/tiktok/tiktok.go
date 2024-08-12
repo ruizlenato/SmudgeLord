@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"slices"
+	"sync"
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -126,8 +127,17 @@ func downloadImages(tikTokData TikTokData, message *telegram.NewMessage) []teleg
 		err   error
 	}, mediaCount)
 
+	var (
+		seqnoMutex sync.Mutex
+		seqno      int
+	)
+
 	for i, file := range medias {
 		go func(index int, file *os.File) {
+			seqnoMutex.Lock()
+			defer seqnoMutex.Unlock()
+			seqno++
+
 			if file != nil {
 				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 					File: file.Name(),

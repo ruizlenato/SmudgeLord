@@ -8,6 +8,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync"
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
@@ -333,12 +334,21 @@ func handleSidecar(instagramData *ShortcodeMedia, message *telegram.NewMessage, 
 		err   error
 	}, mediaCount)
 
+	var (
+		seqnoMutex sync.Mutex
+		seqno      int
+	)
+
 	for i, media := range medias {
 		if media == nil || media.File == nil {
 			continue
 		}
 
 		go func(index int, media *InputMedia) {
+			seqnoMutex.Lock()
+			defer seqnoMutex.Unlock()
+			seqno++
+
 			if !instagramData.EdgeSidecarToChildren.Edges[index].Node.IsVideo {
 				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 					File: media.File.Name(),
