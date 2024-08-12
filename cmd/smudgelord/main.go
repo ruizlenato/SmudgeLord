@@ -6,6 +6,7 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules"
 	"github.com/ruizlenato/smudgelord/internal/telegram"
@@ -57,6 +58,10 @@ func initializeServices() error {
 
 	if err := database.CreateTables(); err != nil {
 		return fmt.Errorf("create tables: %w", err)
+	}
+
+	if err := cache.RedisClient("localhost:6379", "", 0); err != nil {
+		return fmt.Errorf("redis client: %w", err)
 	}
 
 	return nil

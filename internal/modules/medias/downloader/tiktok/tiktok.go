@@ -15,25 +15,30 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func Handle(url string, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
-	postID, err := getPostID(url)
+func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+	postID, err := getPostID(message.Text())
 	if err != nil {
 		log.Print(err)
-		return nil, ""
+		return nil, []string{}
+	}
+
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
+	if err == nil {
+		return cachedMedias, []string{cachedCaption, postID}
 	}
 
 	tikTokData, err := getTikTokData(postID)
 	if err != nil {
 		log.Print(err)
-		return nil, ""
+		return nil, []string{}
 	}
 
 	caption := getCaption(tikTokData)
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
-		return downloadImages(tikTokData, message), caption
+		return downloadImages(tikTokData, message), []string{caption, postID}
 	}
-	return downloadVideo(tikTokData, message), caption
+	return downloadVideo(tikTokData, message), []string{caption, postID}
 }
 
 func getPostID(url string) (string, error) {

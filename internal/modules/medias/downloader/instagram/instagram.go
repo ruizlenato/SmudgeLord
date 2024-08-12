@@ -16,31 +16,40 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 )
 
-func Handle(url string, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
-	postID, err := getPostID(url)
+func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+	var medias []telegram.InputMedia
+
+	postID, err := getPostID(message.Text())
 	if err != nil {
 		log.Print(err)
-		return nil, ""
+		return nil, []string{}
+	}
+
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
+	if err == nil {
+		return cachedMedias, []string{cachedCaption, postID}
 	}
 
 	instagramData, err := getInstagramData(postID)
 	if err != nil {
 		log.Print(err)
-		return nil, ""
+		return nil, []string{}
 	}
 
 	caption := getCaption(instagramData)
 
 	switch instagramData.Typename {
 	case "GraphVideo", "XDTGraphVideo":
-		return handleVideo(instagramData, message, caption)
+		medias, caption = handleVideo(instagramData, message, caption)
 	case "GraphImage", "XDTGraphImage":
-		return handleImage(instagramData, message, caption)
+		medias, caption = handleImage(instagramData, message, caption)
 	case "GraphSidecar", "XDTGraphSidecar":
-		return handleSidecar(instagramData, message, caption)
+		medias, caption = handleSidecar(instagramData, message, caption)
+	default:
+		return nil, []string{}
 	}
 
-	return nil, caption
+	return medias, []string{caption, postID}
 }
 
 func getPostID(url string) (string, error) {
@@ -122,12 +131,10 @@ func getEmbedData(postID string) InstagramData {
 
 	mediaTypeData := regexp.MustCompile(`(?s)data-media-type="(.*?)"`).FindAllStringSubmatch(string(body), -1)
 	if instagramData == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
-		// Get the main media
 		re := regexp.MustCompile(`class="Content(.*?)src="(.*?)"`)
 		mainMediaData := re.FindAllStringSubmatch(string(body), -1)
 		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
 
-		// Get the caption and owner
 		var caption string
 		var owner string
 		re = regexp.MustCompile(`(?s)class="Caption"(.*?)class="CaptionUsername".*data-log-event="captionProfileClick" target="_blank">(.*?)<\/a>(.*?)<div`)
@@ -140,23 +147,23 @@ func getEmbedData(postID string) InstagramData {
 		}
 
 		dataJSON := `{
-			"shortcode_media": {
-				"__typename": "GraphImage",
-				"display_url": "` + mainMediaURL + `",
-				"edge_media_to_caption": {
-					"edges": [
-						{
-							"node": {
-								"text": "` + caption + `"
-							}
-						}
-					]
-				},
-				"owner": {
-					"username": "` + owner + `"
-				}
-			}
-			}`
+            "shortcode_media": {
+                "__typename": "GraphImage",
+                "display_url": "` + mainMediaURL + `",
+                "edge_media_to_caption": {
+                    "edges": [
+                        {
+                            "node": {
+                                "text": "` + caption + `"
+                            }
+                        }
+                    ]
+                },
+                "owner": {
+                    "username": "` + owner + `"
+                }
+            }
+            }`
 
 		err := json.Unmarshal([]byte(dataJSON), &instagramData)
 		if err != nil {

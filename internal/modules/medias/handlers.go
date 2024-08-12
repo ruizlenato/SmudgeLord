@@ -14,7 +14,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
-	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/generic"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
@@ -29,6 +28,7 @@ const (
 func handlerMedias(message *telegram.NewMessage) error {
 	var mediaItems []telegram.InputMedia
 	var caption string
+	var postID string
 
 	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text()) && message.ChatType() != "user" {
 		var mediasAuto bool
@@ -44,16 +44,19 @@ func handlerMedias(message *telegram.NewMessage) error {
 		return err
 	}
 
-	mediaHandlers := map[string]func(string, *telegram.NewMessage) ([]telegram.InputMedia, string){
-		"(twitter|x).com/":             twitter.Handle,
-		"instagram.com/":               instagram.Handle,
-		"tiktok.com/":                  tiktok.Handle,
-		"(?:reddit|twitch).(?:com|tv)": generic.Generic,
+	mediaHandlers := map[string]func(*telegram.NewMessage) ([]telegram.InputMedia, []string){
+		"(twitter|x).com/": twitter.Handle,
+		"instagram.com/":   instagram.Handle,
+		"tiktok.com/":      tiktok.Handle,
 	}
 
 	for pattern, handler := range mediaHandlers {
 		if match, _ := regexp.MatchString(pattern, message.Text()); match {
-			mediaItems, caption = handler(message.Text(), message)
+			var result []string
+			mediaItems, result = handler(message)
+			if len(result) == 2 {
+				caption, postID = result[0], result[1]
+			}
 			break
 		}
 	}
@@ -65,6 +68,10 @@ func handlerMedias(message *telegram.NewMessage) error {
 		return nil
 	}
 
+	if media, ok := mediaItems[0].(*telegram.InputMediaUploadedDocument); ok {
+		fmt.Printf("%+v\n", media.File)
+	}
+
 	if utf8.RuneCountInString(caption) > maxSizeCaption {
 		caption = downloader.TruncateUTF8Caption(
 			caption,
@@ -73,10 +80,11 @@ func handlerMedias(message *telegram.NewMessage) error {
 	}
 
 	message.SendAction("upload_document")
-	_, err := message.Client.SendAlbum(message.Message.PeerID, mediaItems, &telegram.MediaOptions{
-		Caption: caption,
-		ReplyID: message.Message.ID,
-	})
+	replied, err := message.ReplyAlbum(mediaItems, &telegram.MediaOptions{Caption: caption})
+	if err != nil {
+		return err
+	}
+	err = downloader.SetMediaCache(replied, postID)
 	return err
 }
 

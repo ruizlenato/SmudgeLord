@@ -26,19 +26,25 @@ var headers = map[string]string{
 	"content-type":              "application/json",
 }
 
-func Handle(url string, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
-	postID, err := getPostID(url)
+func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+	postID, err := getPostID(message.Text())
 	if err != nil {
 		log.Print(err)
-		return nil, ""
+		return nil, []string{}
+	}
+
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
+	if err == nil {
+		return cachedMedias, []string{cachedCaption, postID}
 	}
 
 	twitterData, err := getTwitterData(postID)
 	if err != nil {
 		log.Print(err)
-		return nil, ""
+		return nil, []string{}
 	}
-	return processMedia(twitterData, message)
+	medias, caption := processMedia(twitterData, message)
+	return medias, []string{caption, postID}
 }
 
 type InputMedia struct {

@@ -3,28 +3,25 @@ package utils
 import (
 	"fmt"
 
-	"github.com/mymmrac/telego"
+	"github.com/amarnathcjd/gogram/telegram"
 )
 
-func FormatText(text string, entities []telego.MessageEntity) string {
-	// Convert text to a slice of runes
+func FormatText(text string, entities []telegram.MessageEntity) string {
 	textRunes := []rune(text)
 
-	// Insert entities in reverse order to keep track of shifting offsets
 	for i := len(entities) - 1; i >= 0; i-- {
-		entity := entities[i]
-		switch entity.Type {
-		case "bold":
+		switch entity := entities[i].(type) {
+		case *telegram.MessageEntityBold:
 			textRunes = append(textRunes[:entity.Offset+entity.Length], append([]rune("</b>"), textRunes[entity.Offset+entity.Length:]...)...)
 			textRunes = append(textRunes[:entity.Offset], append([]rune("<b>"), textRunes[entity.Offset:]...)...)
-		case "italic":
+		case *telegram.MessageEntityItalic:
 			textRunes = append(textRunes[:entity.Offset+entity.Length], append([]rune("</i>"), textRunes[entity.Offset+entity.Length:]...)...)
 			textRunes = append(textRunes[:entity.Offset], append([]rune("<i>"), textRunes[entity.Offset:]...)...)
-		case "code":
+		case *telegram.MessageEntityCode:
 			textRunes = append(textRunes[:entity.Offset+entity.Length], append([]rune("</code>"), textRunes[entity.Offset+entity.Length:]...)...)
 			textRunes = append(textRunes[:entity.Offset], append([]rune("<code>"), textRunes[entity.Offset:]...)...)
-		case "text_link":
-			textRunes = append(textRunes[:entity.Offset+entity.Length], append([]rune("</a>"), textRunes[entity.Offset+entity.Length:]...)...)
+		case *telegram.MessageEntityTextURL:
+			textRunes = append(textRunes[:entity.Offset+entity.Length], append([]rune("</a>"), textRunes[entity.Offset+entity.Length-1:]...)...)
 			textRunes = append(textRunes[:entity.Offset], append([]rune(fmt.Sprintf("<a href='%s'>", entity.URL)), textRunes[entity.Offset:]...)...)
 		}
 	}
