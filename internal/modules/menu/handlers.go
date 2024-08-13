@@ -8,6 +8,7 @@ import (
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 )
 
 func createStartKeyboard(i18n func(string) string) telegram.ReplyMarkup {
@@ -96,7 +97,7 @@ func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 	var language string
 	err := row.Scan(&language)
 	if err != nil {
-		log.Print("[start/languageMenu] Error querying user:", err)
+		log.Print("[start/languageMenu] Error querying user: ", err)
 	}
 
 	_, err = update.Edit(fmt.Sprintf(i18n("menu.language-mesage"), i18n("language.flag"), i18n("language.name")), &telegram.SendOptions{
@@ -116,7 +117,7 @@ func callbackLanguageSet(update *telegram.CallbackQuery) error {
 	}
 	_, err := database.DB.Exec(dbQuery, lang, update.ChatID)
 	if err != nil {
-		log.Print("[start/languageSet] Error updating language:", err)
+		log.Print("[start/languageSet] Error updating language: ", err)
 	}
 
 	buttons := telegram.Button{}.Keyboard()
@@ -230,11 +231,11 @@ func callbackAboutMenu(update *telegram.CallbackQuery) error {
 }
 
 func Load(client *telegram.Client) {
-	client.On("command:start", handlerStart)
+	client.On("command:start", handlers.HanndleCommand(handlerStart))
 	client.On("callback:start", callbackStart)
 	client.On("callback:languageMenu", callbackLanguageMenu)
 	client.On("callback:setLang", callbackLanguageSet)
-	client.On("command:privacy", handlerPrivacy)
+	client.On("command:privacy", handlers.HanndleCommand(handlerPrivacy))
 	client.On("callback:privacy", callbackPrivacy)
 	client.On("callback:aboutYourData", callbackAboutYourData)
 	client.On("callback:aboutMenu", callbackAboutMenu)

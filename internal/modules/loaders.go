@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	"github.com/amarnathcjd/gogram/telegram"
-	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
 )
@@ -20,7 +19,6 @@ var (
 )
 
 func Load(client *telegram.Client) {
-	client.On(telegram.OnMessage, database.SaveUsers)
 	var wg sync.WaitGroup
 
 	done := make(chan struct{}, len(packageLoaders))

@@ -18,6 +18,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
 	yt "github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
+	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 )
 
 const (
@@ -250,8 +251,8 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 }
 
 func Load(client *telegram.Client) {
-	client.On("message:"+regexMedia, handlerMedias)
-	client.On("command:(?:s)?dl", handlerMedias)
-	client.On("command:ytdl", handleYoutubeDownload)
+	client.On("message:"+regexMedia, handlers.HanndleCommand(handlerMedias))
+	client.On("command:(?:s)?dl", handlers.HanndleCommand(handlerMedias))
+	client.On("command:ytdl", handlers.HanndleCommand(handleYoutubeDownload))
 	client.On("callback:^(_(vid|aud))", callbackYoutubeDownload)
 }
