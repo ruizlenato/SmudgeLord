@@ -231,11 +231,11 @@ func callbackAboutMenu(update *telegram.CallbackQuery) error {
 }
 
 func Load(client *telegram.Client) {
-	client.On("command:start", handlers.HanndleCommand(handlerStart))
+	client.On("command:start", handlers.HandleCommand(handlerStart))
 	client.On("callback:start", callbackStart)
 	client.On("callback:languageMenu", callbackLanguageMenu)
 	client.On("callback:setLang", callbackLanguageSet)
-	client.On("command:privacy", handlers.HanndleCommand(handlerPrivacy))
+	client.On("command:privacy", handlers.HandleCommand(handlerPrivacy))
 	client.On("callback:privacy", callbackPrivacy)
 	client.On("callback:aboutYourData", callbackAboutYourData)
 	client.On("callback:aboutMenu", callbackAboutMenu)

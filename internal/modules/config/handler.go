@@ -88,7 +88,7 @@ func handlerDisableableCommands(message *telegram.NewMessage) error {
 }
 
 func Load(client *telegram.Client) {
-	client.On("command:disable", handlers.HanndleCommand(handlerDisable))
-	client.On("command:enable", handlers.HanndleCommand(handlerEnable))
-	client.On("command:disableable", handlers.HanndleCommand(handlerDisableableCommands))
+	client.On("command:disable", handlers.HandleCommand(handlerDisable))
+	client.On("command:enable", handlers.HandleCommand(handlerEnable))
+	client.On("command:disableable", handlers.HandleCommand(handlerDisableableCommands))
 }

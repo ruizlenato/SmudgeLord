@@ -268,9 +268,9 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 }
 
 func Load(client *telegram.Client) {
-	client.On("message:"+regexMedia, handlers.HanndleCommand(handlerMedias))
-	client.On("command:dl", handlers.HanndleCommand(handlerMedias))
-	client.On("command:ytdl", handlers.HanndleCommand(handleYoutubeDownload))
+	client.On("message:"+regexMedia, handlers.HandleCommand(handlerMedias))
+	client.On("command:dl", handlers.HandleCommand(handlerMedias))
+	client.On("command:ytdl", handlers.HandleCommand(handleYoutubeDownload))
 	client.On("callback:^(_(vid|aud))", callbackYoutubeDownload)
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "ytdl", "dl")

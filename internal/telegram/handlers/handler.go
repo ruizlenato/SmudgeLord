@@ -10,7 +10,7 @@ import (
 
 var DisableableCommands []string
 
-func HanndleCommand(handler func(m *telegram.NewMessage) error) func(m *telegram.NewMessage) error {
+func HandleCommand(handler func(m *telegram.NewMessage) error) func(m *telegram.NewMessage) error {
 	return func(m *telegram.NewMessage) error {
 		if CheckDisabledCommand(strings.Split(m.Text(), " ")[0]) {
 			return nil

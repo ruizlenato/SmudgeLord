@@ -119,8 +119,8 @@ func getUserIDFromMessage(message *telegram.NewMessage) (int64, error) {
 
 func Load(client *telegram.Client) {
 	client.On(telegram.OnMessage, checkAFK)
-	client.On("command:afk", handlers.HanndleCommand(handlerSetAFK))
-	client.On("message:^brb", handlers.HanndleCommand(handlerSetAFK))
+	client.On("command:afk", handlers.HandleCommand(handlerSetAFK))
+	client.On("message:^brb", handlers.HandleCommand(handlerSetAFK))
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "afk", "brb")
 }
