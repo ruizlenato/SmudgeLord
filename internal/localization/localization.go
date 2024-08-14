@@ -184,14 +184,7 @@ func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 
 // HumanizeTimeSince returns a human-readable representation of the time duration since a given duration.
 // It takes a duration and a chat as input parameters and returns a string.
-// Parameters:
-//   - duration: The time duration since a specific event.
-//   - chat: Used to determine the localization settings for the returned string.
-//
-// Returns:
-//   - string: A human-readable representation of the time duration since a specific event.
 func HumanizeTimeSince(duration time.Duration, message *telegram.NewMessage) string {
-	// Get the i18n function for the chat
 	i18n := Get(message)
 
 	var timeDuration int
