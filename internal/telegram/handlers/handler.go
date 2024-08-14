@@ -12,7 +12,7 @@ var DisableableCommands []string
 
 func HanndleCommand(handler func(m *telegram.NewMessage) error) func(m *telegram.NewMessage) error {
 	return func(m *telegram.NewMessage) error {
-		if CheckDisabledCommand(strings.TrimPrefix(m.GetCommand(), "/")) {
+		if CheckDisabledCommand(strings.Split(m.Text(), " ")[0]) {
 			return nil
 		}
 		database.SaveUsers(m)
