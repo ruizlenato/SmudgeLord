@@ -164,8 +164,8 @@ medias:
   autoHelp: Quando essa opção está ativa, o bot fará o download de fotos e vídeos de algumas redes sociais automaticamente ao ver um link, dispensando a necessidade do comando /sdl ou /dl.
   captionHelp: Quando essa opção está ativa, as legendas das mídias que você baixar usando o bot serão enviadas junto com elas.
   youtubeNoURL: |
-    Forneça um link do YouTube para que eu possa fazer o download.
-    <b>Exemplo:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
+    Forneça o link do YouTube para que eu possa baixá-lo.
+    <b>Exemplo:</b> <code>/ytdl https://youtu.be/OjNpRbNdR7E</code>
   youtubeInvalidURL: Esse link do YouTube não existe ou é de um vídeo privado.
   youtubeBigFile: O vídeo ultrapassa o tamanho de 1,5GB, que é o meu limite máximo.
   youtubeDenied: Este botão não é para você.
@@ -176,6 +176,9 @@ medias:
     <b>Duração:</b> %s
   youtubeDownloadVideo: 🎬 Baixar vídeo
   youtubeDownloadAudio: 💿 Baixar áudio
+  youtubeError: |
+    <b>Ocorreu um erro ao processar o vídeo.</b>
+    Se o problema persistir, entre em contato com o meu desenvolvedor.
   downloading: Baixando...
   uploading: Enviando...
   help: |

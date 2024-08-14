@@ -165,7 +165,7 @@ medias:
   captionHelp: When this option is enabled, the captions of media that you download using the bot will be sent along with them.
   youtubeNoURL: |
     Please provide a YouTube link so I can download it.
-    <b>Example:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
+    <b>Example:</b> <code>/ytdl https://youtu.be/OjNpRbNdR7E</code>
   youtubeInvalidURL: That YouTube link doesn't exist or it's a private video.
   youtubeBigFile: "The video exceeds the size of 1,5GB, which is my maximum limit."
   youtubeDenied: This button is not for you.
@@ -176,6 +176,9 @@ medias:
     <b>Duração:</b> %s
   youtubeDownloadVideo: 🎬 Download video
   youtubeDownloadAudio: 💿 Download audio
+  youtubeError: |
+    <b>An error occurred while processing the video.</b>
+    If the problem persists, please contact my developer.
   downloading: Downloading...
   uploading: Uploading...
   help: |
