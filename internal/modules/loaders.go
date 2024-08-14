@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/modules/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
 )
@@ -13,6 +14,7 @@ import (
 var (
 	packageLoadersMutex sync.Mutex
 	packageLoaders      = map[string]func(*telegram.Client){
+		"config": config.Load,
 		"medias": medias.Load,
 		"menu":   menu.Load,
 	}

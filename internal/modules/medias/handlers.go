@@ -31,7 +31,7 @@ func handlerMedias(message *telegram.NewMessage) error {
 	var caption string
 	var postID string
 
-	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text()) && message.ChatType() != "user" {
+	if !regexp.MustCompile(`^/dl`).MatchString(message.Text()) && message.ChatType() != "user" {
 		var mediasAuto bool
 		if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto); err != nil || !mediasAuto {
 			return nil
@@ -252,7 +252,9 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 
 func Load(client *telegram.Client) {
 	client.On("message:"+regexMedia, handlers.HanndleCommand(handlerMedias))
-	client.On("command:(?:s)?dl", handlers.HanndleCommand(handlerMedias))
+	client.On("command:dl", handlers.HanndleCommand(handlerMedias))
 	client.On("command:ytdl", handlers.HanndleCommand(handleYoutubeDownload))
 	client.On("callback:^(_(vid|aud))", callbackYoutubeDownload)
+
+	handlers.DisableableCommands = append(handlers.DisableableCommands, "ytdl", "dl")
 }

@@ -97,6 +97,15 @@ afk:
     - /afk &lt;reason&gt; — Define yourself as away.
     - brb &lt;reason&gt;  — Same as the afk command, but not a command; no need to use <code>/</code>.
 
+config:
+  name: Configurações
+  cmdDisableables: <b>Disableable commands:</b>
+  cmdDisabled: The <code>%s</code> command was disabled.
+  cmdAlreadyDisabled: The <code>%s</code> command is already disabled.
+  cmdEnabled: The <code>%s</code> command was enabled.
+  cmdAlreadyEnabled: The <code>%s</code> command is already enabled.
+
+    
 lastfm:
   name: Last.FM
   provide-username: |
