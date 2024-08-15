@@ -35,7 +35,6 @@ func UploadDocument(message *telegram.NewMessage, params UploadDocumentParams) (
 		params.MimeType = mimeType.String()
 	}
 
-	fmt.Println(params.File)
 	file, err := GetInputFile(message, params.File)
 	if err != nil {
 		return telegram.InputMediaUploadedDocument{}, err

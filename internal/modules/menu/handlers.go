@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/amarnathcjd/gogram/telegram"
-	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 )
@@ -38,7 +37,7 @@ func handlerStart(message *telegram.NewMessage) error {
 		return handlerPrivacy(message)
 	}
 
-	if message.ChatType() == "user" {
+	if message.ChatType() == telegram.EntityUser {
 		_, err := message.Reply(fmt.Sprintf(i18n("menu.start-message"), message.Sender.FirstName, message.Client.Me().FirstName),
 			telegram.SendOptions{
 				ParseMode:   telegram.HTML,
@@ -86,7 +85,7 @@ func createPrivacyKeyboard(i18n func(string) string) telegram.ReplyMarkup {
 func handlerPrivacy(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 
-	if message.ChatType() == "user" {
+	if message.ChatType() == telegram.EntityUser {
 		_, err := message.Reply(i18n("menu.privacy-message"),
 			telegram.SendOptions{
 				ParseMode:   telegram.HTML,
