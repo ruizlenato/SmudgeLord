@@ -14,6 +14,7 @@ var (
 	TelegramBotToken string
 	DatabaseFile     string
 	OWNERID          int64
+	LastFMAPIKey     string
 )
 
 func init() {
@@ -42,5 +43,10 @@ func init() {
 	OWNERID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
 	if OWNERID == 0 {
 		log.Fatalf(`You need to set the "OWNER_ID" in the .env file!`)
+	}
+
+	LastFMAPIKey = os.Getenv("LASTFM_API_KEY")
+	if LastFMAPIKey == "" {
+		log.Fatalf(`You need to set the "LASTFM_API_KEY" in the .env file!`)
 	}
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/modules/afk"
 	"github.com/ruizlenato/smudgelord/internal/modules/config"
+	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
 	"github.com/ruizlenato/smudgelord/internal/modules/misc"
@@ -18,6 +19,7 @@ var (
 	packageLoaders      = map[string]func(*telegram.Client){
 		"afk":    afk.Load,
 		"config": config.Load,
+		"lastfm": lastfm.Load,
 		"medias": medias.Load,
 		"menu":   menu.Load,
 		"misc":   misc.Load,

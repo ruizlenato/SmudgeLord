@@ -2,20 +2,12 @@ package lastfm
 
 import (
 	"fmt"
-	"log"
-	"regexp"
 	"strings"
 
-	"smudgelord/internal/database"
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils"
-	"smudgelord/internal/utils/helpers"
-
-	lastFMAPI "smudgelord/internal/modules/lastfm/api"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
+	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	lastFMAPI "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
+	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 )
 
 func getErrorMessage(err error, i18n func(string) string) string {
@@ -31,319 +23,149 @@ func getErrorMessage(err error, i18n func(string) string) string {
 
 var lastFM = lastFMAPI.Init()
 
-func handleLastFMConfig(bot *telego.Bot, update telego.Update) {
-	message := update.CallbackQuery.Message.(*telego.Message)
-	lastFMCommands, err := getLastFMCommands(message.Chat.ID)
-	if err != nil {
-		log.Printf("Error getting lastFMCommands: %v", err)
-		return
-	}
-	chat := message.GetChat()
-	i18n := localization.Get(chat)
+func handleSetUser(message *telegram.NewMessage) error {
+	i18n := localization.Get(message)
+	if message.Args() != "" {
+		if err := lastFM.GetUser(message.Args()); err != nil {
+			_, err := message.Reply(i18n("lastfm.invalid-username"), telegram.SendOptions{
+				ParseMode: telegram.HTML,
+			})
+			return err
+		}
 
-	configType := strings.ReplaceAll(update.CallbackQuery.Data, "lastFMConfig ", "")
-	if configType != "lastFMConfig" {
-		lastFMCommands = !lastFMCommands
-		_, err := database.DB.Exec("UPDATE groups SET lastFMCommands = ? WHERE id = ?;", lastFMCommands, message.Chat.ID)
+		if err := setLastFMUsername(message.SenderID(), message.Args()); err != nil {
+			_, err := message.Reply(i18n("lastfm.error"), telegram.SendOptions{
+				ParseMode: telegram.HTML,
+			})
+			return err
+		}
+
+		_, err := message.Reply(i18n("lastfm.username-set"), telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
+		return err
+	}
+
+	conv, err := message.Conv()
+	if err != nil {
+		return err
+	}
+	defer conv.Close()
+
+	respond, err := conv.Respond(i18n("lastfm.provide-username"), &telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		ReplyMarkup: &telegram.ReplyKeyboardForceReply{},
+	})
+	if err != nil {
+		return err
+	}
+
+	resp, err := conv.GetResponse()
+	if err != nil {
+		return err
+	}
+
+	if respond.ID == resp.ReplyToMsgID() {
+		if err := lastFM.GetUser(resp.Text()); err != nil {
+			_, err := conv.Reply(i18n("lastfm.invalid-username"), &telegram.SendOptions{
+				ParseMode: telegram.HTML,
+			})
+			return err
+		}
+
+		if err := setLastFMUsername(message.SenderID(), resp.Text()); err != nil {
+			_, err := message.Reply(i18n("lastfm.error"), telegram.SendOptions{
+				ParseMode: telegram.HTML,
+			})
+			return err
+		}
+
+		_, err = conv.Respond(i18n("lastfm.username-set"), &telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
+		return err
+	}
+
+	_, err = respond.Delete()
+	if respond.IsReply() {
+		reply, err := respond.GetReplyMessage()
 		if err != nil {
-			return
+			return err
 		}
+		_, err = reply.Delete()
+		return err
 	}
 
-	state := func(state bool) string {
-		if state {
-			return "✅"
-		}
-		return "☑️"
-	}
-
-	buttons := [][]telego.InlineKeyboardButton{
-		{
-			{Text: state(lastFMCommands), CallbackData: "lastFMConfig update"},
-		},
-	}
-
-	buttons = append(buttons, []telego.InlineKeyboardButton{{
-		Text:         i18n("button.back"),
-		CallbackData: "configMenu",
-	}})
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(chat.ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("lastfm.config-help"),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
-	})
+	return err
 }
 
-func handleSetUser(bot *telego.Bot, message telego.Message) {
-	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
-		return
-	}
-
-	i18n := localization.Get(message.Chat)
-	var lastFMUsername string
-
-	if len(strings.Fields(message.Text)) > 1 {
-		lastFMUsername = strings.Fields(message.Text)[1]
-	} else {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("lastfm.provide-username"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	if lastFM.GetUser(lastFMUsername) == nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.invalid-username"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	if err := setLastFMUsername(message.From.ID, lastFMUsername); err != nil {
-		log.Printf("Error setting lastFM username: %v", err)
-		return
-	}
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("lastfm.username-set"),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
+func handleMusic(message *telegram.NewMessage) error {
+	return lastfm(message, "track")
 }
 
-func handleMusic(bot *telego.Bot, message telego.Message) {
-	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
-		return
-	}
-	i18n := localization.Get(message.Chat)
+func handleAlbum(message *telegram.NewMessage) error {
+	return lastfm(message, "album")
+}
 
-	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
-	if err != nil || lastFMUsername == "" {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-username"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
+func handleArtist(message *telegram.NewMessage) error {
+	return lastfm(message, "artist")
+}
 
-	recentTracks, err := lastFM.GetRecentTrack("track", lastFMUsername)
+func lastfm(message *telegram.NewMessage, methodType string) error {
+	i18n := localization.Get(message)
+	lastFMUsername, err := getUserLastFMUsername(message.SenderID())
 	if err != nil {
-		errorMessage := getErrorMessage(err, i18n)
-		if errorMessage != "" {
-			bot.SendMessage(&telego.SendMessageParams{
-				ChatID:    telegoutil.ID(message.Chat.ID),
-				Text:      errorMessage,
-				ParseMode: "HTML",
-				LinkPreviewOptions: &telego.LinkPreviewOptions{
-					IsDisabled: true,
-				},
-				ReplyParameters: &telego.ReplyParameters{
-					MessageID: message.MessageID,
-				},
-			})
-		}
-		return
+		_, err := message.Reply(i18n("lastfm.error"), telegram.SendOptions{ParseMode: telegram.HTML})
+		return err
 	}
 
-	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (recentTracks.Image))
-
-	if recentTracks.Nowplaying {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
-	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
-	}
-
-	text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Track)
-	if recentTracks.Trackloved {
-		text += " ❤️"
-	}
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      text,
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			PreferLargeMedia: true,
-			ShowAboveText:    true,
-		},
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
-}
-
-func handleAlbum(bot *telego.Bot, message telego.Message) {
-	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
-		return
-	}
-	i18n := localization.Get(message.Chat)
-
-	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
-	if err != nil && lastFMUsername == "" {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-username"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	recentTracks, err := lastFM.GetRecentTrack("album", lastFMUsername)
+	recentTracks, err := lastFM.GetRecentTrack(methodType, lastFMUsername)
 	if err != nil {
-		errorMessage := getErrorMessage(err, i18n)
-		if errorMessage != "" {
-			bot.SendMessage(&telego.SendMessageParams{
-				ChatID:    telegoutil.ID(message.Chat.ID),
-				Text:      errorMessage,
-				ParseMode: "HTML",
-				LinkPreviewOptions: &telego.LinkPreviewOptions{
-					IsDisabled: true,
-				},
-				ReplyParameters: &telego.ReplyParameters{
-					MessageID: message.MessageID,
-				},
-			})
-		}
-		return
+		_, err := message.Reply(getErrorMessage(err, i18n), telegram.SendOptions{ParseMode: telegram.HTML})
+		return err
 	}
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
-
 	if recentTracks.Nowplaying {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
+		text += i18n("lastfm.nowplaying")
 	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
+		text += i18n("lastfm.not-nowplaying")
 	}
 
-	text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Album)
+	switch methodType {
+	case "track":
+		text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Track)
+	case "album":
+		text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Album)
+	case "artist":
+		text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
+	}
+
 	if recentTracks.Trackloved {
-		text += " ❤️"
+		text += i18n("lastfm.trackloved")
 	}
 
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      text,
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			PreferLargeMedia: true,
-			ShowAboveText:    true,
-		},
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
+	_, err = message.Reply(text, telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		InvertMedia: true,
+		LinkPreview: true,
 	})
+
+	return err
 }
 
-func handleArtist(bot *telego.Bot, message telego.Message) {
-	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
-		return
-	}
-	i18n := localization.Get(message.Chat)
+func Load(client *telegram.Client) {
+	client.On("command:setuser", handlers.HandleCommand(handleSetUser))
+	client.On("command:lastfm", handlers.HandleCommand(handleMusic))
+	client.On("command:lt", handlers.HandleCommand(handleMusic))
+	client.On("command:lmu", handlers.HandleCommand(handleMusic))
+	client.On("command:album", handlers.HandleCommand(handleAlbum))
+	client.On("command:lalb", handlers.HandleCommand(handleAlbum))
+	client.On("command:alb", handlers.HandleCommand(handleAlbum))
+	client.On("command:artist", handlers.HandleCommand(handleArtist))
+	client.On("command:lart", handlers.HandleCommand(handleArtist))
+	client.On("command:art", handlers.HandleCommand(handleArtist))
 
-	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
-	if err != nil && lastFMUsername == "" {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-username"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	recentTracks, err := lastFM.GetRecentTrack("artist", lastFMUsername)
-	if err != nil {
-		errorMessage := getErrorMessage(err, i18n)
-		if errorMessage != "" {
-			bot.SendMessage(&telego.SendMessageParams{
-				ChatID:    telegoutil.ID(message.Chat.ID),
-				Text:      errorMessage,
-				ParseMode: "HTML",
-				LinkPreviewOptions: &telego.LinkPreviewOptions{
-					IsDisabled: true,
-				},
-				ReplyParameters: &telego.ReplyParameters{
-					MessageID: message.MessageID,
-				},
-			})
-		}
-		return
-	}
-
-	body := utils.Request(fmt.Sprintf("https://www.last.fm/music/%s/+images", recentTracks.Artist), utils.RequestParams{
-		Method: "GET",
-	}).String()
-
-	imageFound := regexp.MustCompile(`https://lastfm.freetls.fastly.net/i/u/avatar170s/[^"]*`).FindStringSubmatch(body)
-
-	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
-	if len(imageFound) > 0 {
-		text = fmt.Sprintf("<a href='%s'>\u200c</a>", strings.ReplaceAll(imageFound[0], "avatar170s", "770x0")+".jpg")
-	}
-
-	if recentTracks.Nowplaying {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
-	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
-	}
-
-	text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      text,
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			PreferLargeMedia: true,
-			ShowAboveText:    true,
-		},
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
-}
-
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	helpers.Store("lastfm")
-	bh.HandleMessage(handleSetUser, telegohandler.CommandEqual("setuser"))
-	bh.HandleMessage(handleMusic, telegohandler.Or(
-		telegohandler.CommandEqual("lastfm"),
-		telegohandler.CommandEqual("lmu"),
-	))
-	bh.HandleMessage(handleMusic, telegohandler.Or(telegohandler.CommandEqual("lt"), telegohandler.CommandEqual("np")), lastFMDisabled)
-	bh.HandleMessage(handleAlbum, telegohandler.Or(
-		telegohandler.CommandEqual("album"),
-		telegohandler.CommandEqual("lalb"),
-	))
-	bh.HandleMessage(handleAlbum, telegohandler.CommandEqual("alb"), lastFMDisabled)
-	bh.HandleMessage(handleArtist, telegohandler.Or(
-		telegohandler.CommandEqual("artist"),
-		telegohandler.CommandEqual("lart")),
-	)
-	bh.HandleMessage(handleArtist, telegohandler.CommandEqual("art"), lastFMDisabled)
-	bh.Handle(handleLastFMConfig, telegohandler.CallbackDataPrefix("lastFMConfig"), helpers.IsAdmin(bot))
+	handlers.DisableableCommands = append(handlers.DisableableCommands,
+		"setuser", "lastfm", "lt", "lmu", "album", "lalb", "alb", "artist", "lart", "art")
 }

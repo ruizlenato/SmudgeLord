@@ -108,16 +108,17 @@ config:
     
 lastfm:
   name: Last.FM
-  provide-username: |
-    Provide your last.fm username.
-    <b>Example:</b> <code>/setuser maozedong</code>.
+  provide-username: <b>Answer this message</b> with your last.fm username.
   invalid-username: |
     <b>Invalid last.fm username</b>
     Check that you have correctly typed your last.FM username and try again.
   no-username: |
     <b>You haven't set your last.fm username yet.</b>
     Use the command /setuser to set
-  username-set: <b>Done, last.fm user saved!</b>
+  unsaved-username: |
+    <b>Your last.fm username has not been saved.</b>
+    Apparently, you didn't respond to the message to save your Last.fm username. Use the <code>/setuser</code> command again to save your username
+  username-set: <b>Done</b>, your last.fm username has been saved!
   error: |
     <b>An error seems to have occurred.</b>
     Last.fm might be temporarily unavailable.

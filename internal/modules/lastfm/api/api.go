@@ -7,8 +7,8 @@ import (
 	"log"
 	"strconv"
 
-	"smudgelord/internal/config"
-	"smudgelord/internal/utils"
+	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 const lastFMAPI = "http://ws.audioscrobbler.com/2.0"
@@ -24,7 +24,7 @@ type lastFMRecentTrack struct {
 }
 
 func Init() *LastFM {
-	return &LastFM{apiKey: config.LastFMKey}
+	return &LastFM{apiKey: config.LastFMAPIKey}
 }
 
 func (lfm *LastFM) GetUser(username string) error {
@@ -38,14 +38,10 @@ func (lfm *LastFM) GetUser(username string) error {
 		},
 	})
 
-	if body.StatusCode() != 200 {
-		return nil
-	}
-
 	var userInfo userInfo
 	err := json.Unmarshal(body.Body(), &userInfo)
 	if err != nil {
-		log.Print("[lastfm/GetUser] Error unmarshalling user info:", err)
+		return fmt.Errorf("error unmarshalling user info: %w", err)
 	}
 
 	if userInfo.User == nil {
@@ -54,7 +50,7 @@ func (lfm *LastFM) GetUser(username string) error {
 	return nil
 }
 
-func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
+func (lfm *LastFM) GetRecentTrackAPI(username string) (*recentTracks, error) {
 	body := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
@@ -68,47 +64,42 @@ func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
 	})
 
 	if body.StatusCode() != 200 {
-		return nil
+		return nil, fmt.Errorf("failed to fetch recent tracks, status code: %d", body.StatusCode())
 	}
 
 	var recentTracks recentTracks
 	err := json.Unmarshal(body.Body(), &recentTracks)
 	if err != nil {
-		log.Print("[lastfm/GetRecentTrack] Error unmarshalling recent tracks:", err)
+		return nil, fmt.Errorf("error unmarshalling recent tracks: %w", err)
 	}
-	return &recentTracks
+	return &recentTracks, nil
 }
 
 func (lfm *LastFM) GetRecentTrack(methodType, username string) (lastFMRecentTrack, error) {
-	var track string
-	var artist string
-	var album string
-	var image string
-	var playcount int
-	var nowplaying bool
-	var trackloved bool
-
-	recentTracks := lfm.GetRecentTrackAPI(username)
-
-	// Check if recentTracks is nil or empty
-	if recentTracks == nil {
-		return lastFMRecentTrack{}, fmt.Errorf("lastFM error")
+	recentTracks, err := lfm.GetRecentTrackAPI(username)
+	if err != nil {
+		return lastFMRecentTrack{}, err
 	}
+
 	if recentTracks.RecentTracks == nil || len(*recentTracks.RecentTracks.Track) < 1 {
-		return lastFMRecentTrack{}, fmt.Errorf("no recent tracks")
+		return lastFMRecentTrack{}, errors.New("no recent tracks")
 	}
 
-	image = (*recentTracks.RecentTracks.Track)[0].Image[3].Text
-	artist = (*recentTracks.RecentTracks.Track)[0].Artist.Name
-	nowplaying = (*recentTracks.RecentTracks.Track)[0].Attr.Nowplaying != ""
-	trackloved = (*recentTracks.RecentTracks.Track)[0].Loved == "1"
+	trackInfo := (*recentTracks.RecentTracks.Track)[0]
+	image := trackInfo.Image[3].Text
+	artist := trackInfo.Artist.Name
+	nowplaying := trackInfo.Attr.Nowplaying != ""
+	trackloved := trackInfo.Loved == "1"
+
+	var track, album string
+	var playcount int
 
 	switch methodType {
 	case "track":
-		track = (*recentTracks.RecentTracks.Track)[0].Name
+		track = trackInfo.Name
 		playcount = lfm.PlayCount(recentTracks, methodType)
 	case "album":
-		album = (*recentTracks.RecentTracks.Track)[0].Album.Text
+		album = trackInfo.Album.Text
 		playcount = lfm.PlayCount(recentTracks, methodType)
 	case "artist":
 		playcount = lfm.PlayCount(recentTracks, methodType)
@@ -118,7 +109,7 @@ func (lfm *LastFM) GetRecentTrack(methodType, username string) (lastFMRecentTrac
 }
 
 func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
-	username := *recentTracks.RecentTracks.Attr.User // Dereference the pointer to get the string value
+	username := *recentTracks.RecentTracks.Attr.User
 	artist := (*recentTracks.RecentTracks.Track)[0].Artist.Name
 	var methodValue string
 
@@ -146,7 +137,8 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 	var getInfo getInfo
 	err := json.Unmarshal(body, &getInfo)
 	if err != nil {
-		log.Print("[lastfm/PlayCount] Error unmarshalling get info:", err)
+		log.Printf("[lastfm/PlayCount] Error unmarshalling get info: %v", err)
+		return 1
 	}
 
 	var userPlaycount int
