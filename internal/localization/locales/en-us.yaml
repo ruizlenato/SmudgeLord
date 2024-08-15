@@ -31,9 +31,6 @@ menu:
     <b>Note:</b>
     Some modules have additional settings in groups.
     To learn more, send <code>/config</code> in a group where you're an administrator.
-  config-message: |
-    <b>Settings —</b> Here are my settings for this group.
-    To know more, <b>click on the buttons below.</b>
   language-mesage: |
     <b>Current language:</b> %s %s
 
@@ -99,12 +96,15 @@ afk:
 
 config:
   name: Configurações
+  cmdNotDisableable: <b>Command cannot be deactivated.</b>
   cmdDisableables: <b>Disableable commands:</b>
   cmdDisabled: The <code>%s</code> command was disabled.
   cmdAlreadyDisabled: The <code>%s</code> command is already disabled.
   cmdEnabled: The <code>%s</code> command was enabled.
   cmdAlreadyEnabled: The <code>%s</code> command is already enabled.
-
+  menuText: |
+    <b>Settings —</b> Here are my settings for this group.
+    To know more, <b>click on the buttons below.</b>
     
 lastfm:
   name: Last.FM

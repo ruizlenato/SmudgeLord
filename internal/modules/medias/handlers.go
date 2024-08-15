@@ -31,9 +31,9 @@ func handlerMedias(message *telegram.NewMessage) error {
 	var caption string
 	var postID string
 
-	if !regexp.MustCompile(`^/dl`).MatchString(message.Text()) && message.ChatType() != "user" {
+	if !regexp.MustCompile(`^/dl`).MatchString(message.Text()) && message.ChatType() != telegram.EntityUser {
 		var mediasAuto bool
-		if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto); err != nil || !mediasAuto {
+		if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.ChatID()).Scan(&mediasAuto); err != nil || !mediasAuto {
 			return nil
 		}
 	}
