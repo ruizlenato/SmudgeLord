@@ -199,6 +199,9 @@ medias:
 
 misc:
   name: Diversos
+  tr-error: |
+    <b>Ocorreu um erro ao traduzir o texto.</b>
+    Se o erro persistir, entre em contato com o meu desenvolvedor.
   tr-noargs: |
     <b>Uso:</b> <code>/tr &lt;idioma&gt; &lt;texto para tradução&gt;</code>
 
@@ -244,6 +247,7 @@ stickers:
     - /getsticker — Responda a um sticker para que possa enviar-lo como arquivo <i>.png</i> ou <i>.gif</i>. <b>Só funciona com figurinhas <i>de vídeos ou estáticas.</i></b>
 
 weather:
+  select-location: <b>Selecione o local que você deseja saber o clima:</b>
   location-unknown: Localização não encontrada.
   no-location: |
     Você não especificou uma localização.

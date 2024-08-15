@@ -10,6 +10,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
+	"github.com/ruizlenato/smudgelord/internal/modules/misc"
 )
 
 var (
@@ -19,6 +20,7 @@ var (
 		"config": config.Load,
 		"medias": medias.Load,
 		"menu":   menu.Load,
+		"misc":   misc.Load,
 	}
 )
 

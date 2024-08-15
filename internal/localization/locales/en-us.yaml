@@ -197,6 +197,9 @@ medias:
 
 misc:
   name: Miscellaneous
+  tr-error: |
+    <b>An error occurred while processing the translation.</b>
+    If the problem persists, please contact my developer.
   tr-noargs: |
     <b>Usage:</b> <code>/tr &lt;language&gt; &lt;text for translation&gt;</code>
 
@@ -242,6 +245,7 @@ stickers:
     - /getsticker — Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
 
 weather:
+  select-location: <b>Select the location where you want to know the weather:</b>
   location-unknown: Location not found.
   no-location: |
     You haven't specified a location.
