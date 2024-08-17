@@ -1,4 +1,4 @@
-package lastFMAPI
+package lastfmapi
 
 import (
 	"encoding/json"
