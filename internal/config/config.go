@@ -13,7 +13,8 @@ var (
 	TelegramAPIHash  string
 	TelegramBotToken string
 	DatabaseFile     string
-	OWNERID          int64
+	OwnerID          int64
+	ChannelLogID     int64
 	LastFMAPIKey     string
 )
 
@@ -40,9 +41,14 @@ func init() {
 
 	DatabaseFile = os.Getenv("DATABASE_FILE")
 
-	OWNERID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
-	if OWNERID == 0 {
+	OwnerID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
+	if OwnerID == 0 {
 		log.Fatalf(`You need to set the "OWNER_ID" in the .env file!`)
+	}
+
+	ChannelLogID, _ = strconv.ParseInt(os.Getenv("CHANNEL_LOG_ID"), 10, 64)
+	if ChannelLogID == 0 {
+		log.Fatalf(`You need to set the "CHANNEL_LOG_ID" in the .env file!`)
 	}
 
 	LastFMAPIKey = os.Getenv("LASTFM_API_KEY")

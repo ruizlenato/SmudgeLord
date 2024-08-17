@@ -8,6 +8,7 @@ import (
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/h2non/bimg"
+	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 )
@@ -123,7 +124,7 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 	defer os.Remove(stickerFile)
 	stickerSetName, stickerSetTitle := generateStickerSetName(message, stickerType)
 
-	mediaMsg, err := message.Client.SendMedia(1367701861, stickerFile, &telegram.MediaOptions{
+	mediaMsg, err := message.Client.SendMedia(config.ChannelLogID, stickerFile, &telegram.MediaOptions{
 		ForceDocument: true,
 	})
 	if err != nil {
