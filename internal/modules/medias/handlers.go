@@ -80,7 +80,10 @@ func handlerMedias(message *telegram.NewMessage) error {
 		)
 	}
 
-	message.SendAction("upload_document")
+	_, err := message.SendAction("upload_document")
+	if err != nil {
+		return err
+	}
 	replied, err := message.ReplyAlbum(mediaItems, &telegram.MediaOptions{Caption: caption})
 	if err != nil {
 		return err

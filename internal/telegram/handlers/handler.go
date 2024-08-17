@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/amarnathcjd/gogram/telegram"
@@ -15,7 +16,10 @@ func HandleCommand(handler func(m *telegram.NewMessage) error) func(m *telegram.
 		if CheckDisabledCommand(strings.Split(m.Text(), " ")[0]) {
 			return nil
 		}
-		database.SaveUsers(m)
+		err := database.SaveUsers(m)
+		if err != nil {
+			log.Printf("Error saving user: %v\n", err)
+		}
 		return handler(m)
 	}
 }

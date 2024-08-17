@@ -125,7 +125,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 	body := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
-			"method":  fmt.Sprintf("%s.getinfo", method),
+			"method":  method + ".getinfo",
 			"user":    username,
 			"api_key": lfm.apiKey,
 			"artist":  artist,

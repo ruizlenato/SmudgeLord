@@ -2,6 +2,7 @@ package stickers
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -45,7 +46,7 @@ func handlerGetSticker(message *telegram.NewMessage) error {
 		return err
 	}
 
-	_, err = message.ReplyMedia(stickerFile, telegram.MediaOptions{ForceDocument: true, Caption: fmt.Sprintf("<b>Emoji:</b> %s", emoji)})
+	_, err = message.ReplyMedia(stickerFile, telegram.MediaOptions{ForceDocument: true, Caption: "<b>Emoji:</b> " + emoji})
 	return err
 }
 
@@ -75,9 +76,10 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 		emoji = "🤔"
 	}
 	if stickerType == "" {
-		progressMsg.Edit(i18n("stickers.invalidType"), telegram.SendOptions{
+		_, err := progressMsg.Edit(i18n("stickers.invalidType"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
+		return err
 	}
 
 	var filename string
@@ -103,22 +105,31 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 	case "resize":
 		stickerFile, err = resizeImage(stickerFile)
 		if err != nil {
-			progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
+			_, err := progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
+			if err != nil {
+				return err
+			}
 			return err
 		}
 	case "convert":
 		stickerFile, err = convertVideo(stickerFile)
 		if err != nil {
-			progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
+			_, err := progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
+			if err != nil {
+				return err
+			}
 			return err
 		}
-		progressMsg.Edit(i18n("stickers.converting"), telegram.SendOptions{
+		_, err = progressMsg.Edit(i18n("stickers.converting"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
+		if err != nil {
+			return err
+		}
 	}
 
 	defer os.Remove(stickerFile)
@@ -128,24 +139,35 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 		ForceDocument: true,
 	})
 	if err != nil {
-		progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
+		_, err = progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
 	}
-	defer mediaMsg.Delete()
+	defer func() {
+		if _, err := mediaMsg.Delete(); err != nil {
+			log.Println(err)
+		}
+	}()
 
-	progressMsg.Edit(i18n("stickers.packExists"), telegram.SendOptions{
+	_, err = progressMsg.Edit(i18n("stickers.packExists"), telegram.SendOptions{
 		ParseMode: telegram.HTML,
 	})
+	if err != nil {
+		return err
+	}
+
 	_, err = message.Client.StickersAddStickerToSet(&telegram.InputStickerSetShortName{ShortName: stickerSetName}, &telegram.InputStickerSetItem{
 		Document: &telegram.InputDocumentObj{ID: mediaMsg.Document().ID, AccessHash: mediaMsg.Document().AccessHash},
 		Emoji:    emoji,
 	})
 	if err != nil {
-		progressMsg.Edit(i18n("stickers.newPack"), telegram.SendOptions{
+		_, err = progressMsg.Edit(i18n("stickers.newPack"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
+		if err != nil {
+			return err
+		}
 		_, err = message.Client.StickersCreateStickerSet(&telegram.StickersCreateStickerSetParams{
 			UserID:    &telegram.InputUserObj{UserID: message.Sender.ID, AccessHash: message.Sender.AccessHash},
 			ShortName: stickerSetName,
@@ -156,7 +178,7 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 			}},
 		})
 		if err != nil {
-			progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
+			_, err = progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
@@ -317,7 +339,10 @@ func convertVideo(inputFile string) (videoConverted string, err error) {
 	if err != nil {
 		return videoConverted, err
 	}
-	outputFile.Seek(0, 0)
+	_, err = outputFile.Seek(0, 0)
+	if err != nil {
+		return videoConverted, err
+	}
 
 	return outputFile.Name(), nil
 }

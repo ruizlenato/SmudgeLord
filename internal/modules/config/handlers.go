@@ -200,8 +200,15 @@ func callbackMediaConfig(update *telegram.CallbackQuery) error {
 	var mediasCaption bool
 	var mediasAuto bool
 
-	database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", update.ChatID).Scan(&mediasCaption)
-	database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", update.ChatID).Scan(&mediasAuto)
+	err := database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", update.ChatID).Scan(&mediasCaption)
+	if err != nil {
+		return err
+	}
+
+	err = database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", update.ChatID).Scan(&mediasAuto)
+	if err != nil {
+		return err
+	}
 
 	configType := strings.ReplaceAll(update.DataString(), "mediaConfig ", "")
 	if configType != "mediaConfig" {
@@ -257,7 +264,7 @@ func callbackMediaConfig(update *telegram.CallbackQuery) error {
 		"configMenu",
 	)))
 
-	_, err := update.Edit(i18n("medias.config"), &telegram.SendOptions{
+	_, err = update.Edit(i18n("medias.config"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: keyboard,
 	})
