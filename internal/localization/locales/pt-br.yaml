@@ -227,16 +227,16 @@ stickers:
   name: Figurinhas
   kanging: <code>Kangando (roubando) o sticker...</code>
   converting: <code>Convertendo vídeo/gif para sticker de vídeo...</code>
-  pack-exists: <code>Usando um pacote de sticker existente...</code>
-  new-pack: <code>Criando um novo pacote de sticker...</code>
-  invalid-type: O arquivo que você respondeu não é valido, responda a uma <i><b>uma figurinha</b></i> (sticker) ou um <i><b>vídeo</b></i> ou <i><b>uma foto</b></i> valida.
-  sticker-stoled: |
+  packExists: <code>Usando um pacote de sticker existente...</code>
+  newPack: <code>Criando um novo pacote de sticker...</code>
+  invalidType: O arquivo que você respondeu não é valido, responda a uma <i><b>uma figurinha</b></i> (sticker) ou um <i><b>vídeo</b></i> ou <i><b>uma foto</b></i> valida.
+  stickerStoled: |
     Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/%s'>confira.</a>
     <b>Emoji:</b> %s
-  kang-not-reply: Você precisa usar este comando respondendo <i><b>uma figurinha</b></i> (sticker) ou <i><b>um vídeo</b></i> ou <i><b>uma foto</b></i>.
-  get-not-reply: |
-    Você precisa responder a uma figurinha para usar esse comando, assim eu posso enviar a figurinha respondida como <i><b>png</b></i> ou <i><b>gif</b></i>.
-    <i>Só funciona com figurinhas estáticas ou vídeos</i>
+  kangNotReply: Você precisa usar este comando respondendo <i><b>uma figurinha</b></i> (sticker) ou <i><b>um vídeo,</b></i> ou <i><b>uma foto</b></i>.
+  getNotReply: |
+    Você precisa responder a uma figurinha para usar esse comando, assim eu posso enviar a figurinha respondida como <i><b>PNG</b></i> ou <i><b>GIF</b></i>.
+    <b>Só funciona com figurinhas estáticas ou vídeos.</b>
   error: |
     <b>Ocorreu um erro ao processar o sticker, tente novamente.</b>
     Se o erro persistir, entre em contato com o meu desenvolvedor.

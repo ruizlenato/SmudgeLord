@@ -223,16 +223,16 @@ stickers:
   name: Stickers
   kanging: <code>Kanging (Stealing) the sticker...</code>
   converting: <code>Converting video/gif to video sticker...</code>
-  pack-exists: <code>Using existing sticker pack...</code>
-  new-pack: <code>Creating a new sticker pack...</code>
-  invalid-type: The file you replied to is not valid, reply to a valid <i><b>sticker</b></i> or <i><b>video</b></i> or <i><b>photo</b></i>.
-  sticker-stoled: |
+  packExists: <code>Using existing sticker pack...</code>
+  newPack: <code>Creating a new sticker pack...</code>
+  invalidType: The file you replied to is not valid, reply to a valid <i><b>sticker</b></i> or <i><b>video</b></i> or <i><b>photo</b></i>.
+  stickerStoled: |
     Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/%s'>check out.</a>
     <b>Emoji:</b> %s
-  kang-not-reply: You need to use this command by replying to <i><b>a sticker</b></i> or <i><b>a video</b></i> or <i><b>a photo</b></i>.
-  get-not-reply: |
+  kangNotReply: You need to use this command by replying to <i><b>a sticker</b></i> or <i><b>a video</b></i> or <i><b>a photo</b></i>.
+  getNotReply: |
     You need to use this command by replying to <i><b>a sticker</b></i> or <i><b>a video</b></i> or <i><b>a photo</b></i>.
-    <i>Only works with static or video stickers</i>
+    <b>Only works with static or video stickers</b>
   error: |
     <b>An error occurred while processing the sticker, try again later.</b>
     If the problem persists, contact the developer.
