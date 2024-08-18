@@ -45,7 +45,7 @@ func handlerTranslate(message *telegram.NewMessage) error {
 		return err
 	}
 
-	var translations []string
+	translations := make([]string, 0, len(translation.Sentences))
 	for _, sentence := range translation.Sentences {
 		translations = append(translations, sentence.Trans)
 	}

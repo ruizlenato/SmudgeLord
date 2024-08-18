@@ -84,7 +84,7 @@ type Medias struct {
 
 func SetMediaCache(replied []*telegram.NewMessage, postID string) error {
 	var (
-		medias  []string
+		medias  = []string{}
 		caption string
 		mu      sync.Mutex
 		wg      sync.WaitGroup
