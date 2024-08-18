@@ -155,7 +155,7 @@ func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 		log.Print("[start/languageMenu] Error querying user: ", err)
 	}
 
-	_, err = update.Edit(fmt.Sprintf(i18n("menu.language-mesage"), i18n("language.flag"), i18n("language.name")), &telegram.SendOptions{
+	_, err = update.Edit(fmt.Sprintf(i18n("menu.languageMsg"), i18n("language.flag"), i18n("language.name")), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: buttons,
 	})
@@ -189,7 +189,7 @@ func callbackLanguageSet(update *telegram.CallbackQuery) error {
 		)))
 	}
 
-	_, err = update.Edit(i18n("menu.language-changed-successfully"), &telegram.SendOptions{
+	_, err = update.Edit(i18n("menu.languageChangedSuccessfully"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: buttons,
 	})

@@ -7,45 +7,44 @@ button:
   language: Language
   help: ❔Help
   about: ℹ️ About
-  privacy: 🔒 Privacy
+  privacy: 🔒 Privacy Policy
   donation: 💵 Donation
   news-channel: 📢 Channel
   back: ↩️ Back
-  caption: "Captions:" # Need the quotes because string ends with a colon
-  automatic: "Auto:" # Need the quotes because string ends with a colon
+  caption: "Captions:"
+  automatic: "Auto:"
   about-your-data: About your data
-  privacy-policy: Privacy Policy
 
 menu:
-  start-message: |
+  startMsg: |
     Hello <b>%s</b> — I'm <b>%s</b>, a bot with some useful and fun commands for you.
 
     <b>Source Code:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
-  start-message-group: |
+  startGroupMsg: |
     Hello, I'm <b>%s</b>
     I have a lot of cool features. To find out more, click on the button below and start a conversation with me.
-  help-message: |
+  helpMsg: |
     Here are all my modules.
     <b>To learn more about the modules, simply click on their names.</b>
 
     <b>Note:</b>
     Some modules have additional settings in groups.
     To learn more, send <code>/config</code> in a group where you're an administrator.
-  language-mesage: |
+  languageMsg: |
     <b>Current language:</b> %s %s
 
     <b>Select below the language you want to use the bot.</b>
-  language-changed-successfully: The language has been changed successfully.
-  privacy-message: |
+  languageChangedSuccessfully: The language has been changed successfully.
+  privacyMessage: |
     <b>SmudgeLord's Privacy Policy.</b>
 
     SmudgeLord is built to provide users with transparency and trust. 
     Thank you for trusting me and I am fully dedicated to protect your privacy.
 
     <i>This privacy policy may be updated and changes will be communicated through SmudgeLord's Channel - @SmudgeLordChannel.</i>
-  privacy-group-message: |
+  privacyGroupMsg: |
     To acess SmudgeLord's privacy policy, <b>click on the button below.</b>
-  yourData-message: |-
+  yourDataMsg: |-
     <b>About your data.</b>
 
     <b>1. Data collection.</b>
@@ -64,7 +63,7 @@ menu:
     All your data is stored securely.
 
     <b>Note:</b> Your user information on Telegram is public information of the platform. We don't know your "real" data.
-  about-message: |-
+  aboutMsg: |-
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily
 
@@ -79,12 +78,12 @@ menu:
 
 afk:
   name: AFK
-  now-unavailable: <b>%s</b> is now unavailable!
+  nowUnavailable: <b>%s</b> is now unavailable!
   unavailable: |
     <b><a href='tg://user?id=%d'>%s</a></b> is <b>unavailable!</b>
     Last seen <code>%s</code> ago
   reason: <b>Reason:</b> <code>%s</code>
-  now-available: <b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.!
+  nowAvailable: <b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.!
   help: |
     <b>AFK — <i>Away from Keyboard</i></b>
 
@@ -108,28 +107,28 @@ config:
     
 lastfm:
   name: Last.FM
-  provide-username: <b>Answer this message</b> with your last.fm username.
+  provideUsername: <b>Answer this message</b> with your last.fm username.
   invalid-username: |
     <b>Invalid last.fm username</b>
     Check that you have correctly typed your last.FM username and try again.
-  no-username: |
+  noUsername: |
     <b>You haven't set your last.fm username yet.</b>
     Use the command /setuser to set
-  unsaved-username: |
+  unsavedUsername: |
     <b>Your last.fm username has not been saved.</b>
     Apparently, you didn't respond to the message to save your Last.fm username. Use the <code>/setuser</code> command again to save your username
-  username-set: <b>Done</b>, your last.fm username has been saved!
+  usernameSet: <b>Done</b>, your last.fm username has been saved!
   error: |
     <b>An error seems to have occurred.</b>
     Last.fm might be temporarily unavailable.
 
     Try again in a few minutes, if the error persists, contact my developer.
-  no-scrobbles: |
+  noScrobbles: |
     <b>It seems you haven't scrobbled any tracks on Last.fm yet.</b>.
 
     <b>If you're having trouble using Last.fm,</b> go to last.fm/about/trackmymusic and learn how to connect your account to your music app.",
-  now-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
-  was-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
   config-help: |
     <b>LastFM settings in your group:</b>
     Use the button below to configure whether the bot should respond to the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in the group.
@@ -194,10 +193,10 @@ medias:
 
 misc:
   name: Miscellaneous
-  tr-error: |
+  translatorError: |
     <b>An error occurred while processing the translation.</b>
     If the problem persists, please contact my developer.
-  tr-noargs: |
+  translatorNoArgs: |
     <b>Usage:</b> <code>/tr &lt;language&gt; &lt;text for translation&gt;</code>
 
     You need to specify the text you want to translate or reply to a text message, or a photo with a caption.
@@ -242,12 +241,12 @@ stickers:
     - /getsticker — Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
 
 weather:
-  select-location: <b>Select the location where you want to know the weather:</b>
-  location-unknown: Location not found.
-  no-location: |
+  selectLocation: <b>Select the location where you want to know the weather:</b>
+  locationUnknown: Location not found.
+  nolocation: |
     You haven't specified a location.
     <b>Example:</b> <code>/weather Belém</code>.
-  measurement-unit: m
+  measurementunit: m
   details: |-
     <b>%s</b>:
 

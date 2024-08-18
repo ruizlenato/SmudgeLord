@@ -39,7 +39,7 @@ func handlerStart(message *telegram.NewMessage) error {
 	}
 
 	if message.ChatType() == telegram.EntityUser {
-		_, err := message.Reply(fmt.Sprintf(i18n("menu.start-message"), message.Sender.FirstName, message.Client.Me().FirstName),
+		_, err := message.Reply(fmt.Sprintf(i18n("menu.startMsg"), message.Sender.FirstName, message.Client.Me().FirstName),
 			telegram.SendOptions{
 				ParseMode:   telegram.HTML,
 				ReplyMarkup: createStartKeyboard(i18n),
@@ -47,7 +47,7 @@ func handlerStart(message *telegram.NewMessage) error {
 		return err
 	}
 
-	_, err := message.Reply(fmt.Sprintf(i18n("menu.start-message-group"), message.Client.Me().FirstName),
+	_, err := message.Reply(fmt.Sprintf(i18n("menu.startGroupMsg"), message.Client.Me().FirstName),
 		telegram.SendOptions{
 			ParseMode: telegram.HTML,
 			ReplyMarkup: telegram.Button{}.Keyboard(
@@ -64,7 +64,7 @@ func handlerStart(message *telegram.NewMessage) error {
 func callbackStart(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 
-	_, err := update.Edit(fmt.Sprintf(i18n("menu.start-message"), update.Sender.FirstName, update.Client.Me().FirstName), &telegram.SendOptions{
+	_, err := update.Edit(fmt.Sprintf(i18n("menu.startMsg"), update.Sender.FirstName, update.Client.Me().FirstName), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: createStartKeyboard(i18n),
 	})
@@ -174,7 +174,7 @@ func callbackAboutMenu(update *telegram.CallbackQuery) error {
 
 func callbackHelpMenu(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
-	_, err := update.Edit(i18n("menu.help-message"), &telegram.SendOptions{
+	_, err := update.Edit(i18n("menu.helpMsg"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: utils.GetHelpKeyboard(i18n),
 	})

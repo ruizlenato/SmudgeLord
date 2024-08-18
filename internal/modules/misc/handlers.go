@@ -34,7 +34,7 @@ func handlerTranslate(message *telegram.NewMessage) error {
 	} else if message.Args() != "" {
 		text = message.Args()
 	} else {
-		_, err := message.Reply(i18n("misc.tr-noargs"), telegram.SendOptions{
+		_, err := message.Reply(i18n("misc.translatorNoArgs"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -51,7 +51,7 @@ func handlerTranslate(message *telegram.NewMessage) error {
 	}
 	unescapedText, err := url.QueryUnescape(strings.Join(translations, ""))
 	if err != nil {
-		_, err := message.Reply(i18n("misc.tr-error"), telegram.SendOptions{
+		_, err := message.Reply(i18n("misc.translatorError"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -74,7 +74,7 @@ type weatherSearch struct {
 func handlerWeather(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() == "" {
-		_, err := message.Reply(i18n("weather.no-location"), telegram.SendOptions{
+		_, err := message.Reply(i18n("weather.noLocation"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -113,7 +113,7 @@ func handlerWeather(message *telegram.NewMessage) error {
 		)))
 	}
 
-	_, err = message.Reply(i18n("weather.select-location"), telegram.SendOptions{
+	_, err = message.Reply(i18n("weather.selectLocation"), telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: buttons,
 	})
@@ -170,7 +170,7 @@ func callbackWeather(update *telegram.CallbackQuery) error {
 				"apiKey":   weatherAPIKey,
 				"geocode":  fmt.Sprintf("%.3f,%.3f", latitude, longitude),
 				"language": strings.Split(chatLang, "-")[0],
-				"units":    i18n("weather.measurement-unit"),
+				"units":    i18n("weather.measurementUnit"),
 				"format":   "json",
 			},
 		}).Body()

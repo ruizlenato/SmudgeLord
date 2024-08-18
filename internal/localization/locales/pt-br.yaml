@@ -7,45 +7,44 @@ button:
   language: Idioma
   help: ❔ Ajuda
   about: ℹ️ Sobre
-  privacy: 🔒 Privacidade
+  privacy: 🔒 Política de privacidade.
   donation: 💵 Doação
   news-channel: 📢 Canal
   back: ↩️ Voltar
   caption: "Legendas:" # Precisa das aspas porque a string termina com dois pontos
   automatic: "Automático:" # Precisa das aspas porque a string termina com dois pontos
   about-your-data: Sobre seus dados
-  privacy-policy: Política de Privacidade
 
 menu:
-  start-message: |
+  startMsg: |
     Olá <b>%s</b> — Sou o <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.
 
     <b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
-  start-message-group: |
+  startGroupMsg: |
     Olá, sou o <b>%s</b>
     Tenho varias funções, para saber mais, clique no botão abaixo e inicie uma conversa comigo.
-  help-message: |
+  helpMsg: |
     Aqui estão todos os meus módulos.
     <b>Para saber mais sobre os módulos, basta clicar no nome deles.</b>
 
     <b>Nota:</b>
     Alguns módulos tem configurações adicionais em grupos.
     Para saber mais, envie <code>/config</code> em um grupo no qual você é administrador.
-  language-mesage: |
+  languageMsg: |
     <b>Idioma atual:</b> %s %s
 
     <b>Selecione abaixo o idioma que você quer utilizar no bot.</b>
-  language-changed-successfully: O idioma foi alterado com sucesso.
-  privacy-message: |
+  languageChangedSuccessfully: O idioma foi alterado com sucesso.
+  privacyMessage: |
     <b>Política de Privacidade do SmudgeLord.</b>
 
     O SmudgeLord foi elaborado para garantir a transparência e a confiança aos usuários. 
     Agradeço sua confiança e estarei comprometido em proteger sua privacidade.
 
     <i>Essa política de privacidade pode ser atualizada e as alterações serão comunicadas através Canal do SmudgeLord - @SmudgeLordChannel.</i>
-  privacy-group-message: |
+  privacyGroupMsg: |
     Para acessar a política de privacidade do SmudgeLord, <b>clique no botão abaixo.</b>
-  yourData-message: |-
+  yourDataMsg: |-
     <b>Sobre seus dados.</b>
 
     <b>1. Coleta de Dados.</b>
@@ -64,7 +63,7 @@ menu:
     Todos os seus dados são armazenados de forma segura.
 
     <b>Nota:</b> Suas informações do usuário no telegram são informações públicas da plataforma. Não sabemos os seus dados "reais".
-  about-message: |-
+  aboutMsg: |-
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) é um gato que se tornou um meme na Internet. A sua fama surgiu a partir de uma imagem em que é visto ao lado de uma mulher a gritar com raiva
 
@@ -79,12 +78,12 @@ menu:
 
 afk:
   name: AFK
-  now-unavailable: <b>%s</b> está agora indisponível!
+  nowUnavailable: <b>%s</b> está agora indisponível!
   unavailable: |
     <b><a href='tg://user?id=%d'>%s</a></b> está <b>indisponível!</b>
     Visto pela última vez à <code>%s</code> atrás
   reason: <b>Motivo:</b> <code>%s</code>
-  now-available: <b><a href='tg://user?id=%d'>%s</a></b> está de volta após <code>%s</code> de ausência!
+  nowAvailable: <b><a href='tg://user?id=%d'>%s</a></b> está de volta após <code>%s</code> de ausência!
   help: |
     <b>AFK — <i>Away from Keyboard</i></b>
 
@@ -110,28 +109,28 @@ config:
 
 lastfm:
   name: Last.FM
-  provide-username: <b>Responda a essa mensagem</b> com o seu nome de usuário do last.fm.
+  provideUsername: <b>Responda a essa mensagem</b> com o seu nome de usuário do last.fm.
   invalid-username: |
     <b>Usuário do last.fm inválido</b>
     Verifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.
-  no-username: |
+  noUsername: |
     <b>Você ainda não definiu seu nome de usuário do last.fm</b>
     Use o comando /setuser para definir
-  unsaved-username: |
+  unsavedUsername: |
     <b>Seu nome de usuário do last.fm não foi salvo.</b>
     Parece que você não respondeu a essa mensagem para salvar seu nome de usuário do Last.fm. Use o comando <code>/setuser</code> novamente para salvar seu nome de usuário.
-  username-set: <b>Pronto</b>, seu nome de usuário do last.fm foi salvo!
+  usernameSet: <b>Pronto</b>, seu nome de usuário do last.fm foi salvo!
   error: |
     <b>Parece que ocorreu um erro.</b>
     O last.fm pode estar temporariamente indisponível.
 
     Tente novamente em alguns minutos, se o erro persistir, entre em contato com o meu desenvolvedor.
-  no-scrobbles: |
+  noScrobbles: |
     <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>
 
     <b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.
-  now-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
-  was-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
   config-help: |
     <b>Configurações do LastFM em seu grupo:</b>
     Use o botão abaixo para configurar se o bot deve responder aos comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
@@ -198,10 +197,10 @@ medias:
 
 misc:
   name: Diversos
-  tr-error: |
+  translatorError: |
     <b>Ocorreu um erro ao traduzir o texto.</b>
     Se o erro persistir, entre em contato com o meu desenvolvedor.
-  tr-noargs: |
+  translatorNoArgs: |
     <b>Uso:</b> <code>/tr &lt;idioma&gt; &lt;texto para tradução&gt;</code>
 
     Você precisa especificar o texto que deseja traduzir ou responder a uma mensagem de texto, ou uma foto com legenda.
@@ -246,12 +245,12 @@ stickers:
     - /getsticker — Responda a um sticker para que possa enviar-lo como arquivo <i>.png</i> ou <i>.gif</i>. <b>Só funciona com figurinhas <i>de vídeos ou estáticas.</i></b>
 
 weather:
-  select-location: <b>Selecione o local que você deseja saber o clima:</b>
-  location-unknown: Localização não encontrada.
-  no-location: |
+  selectLocation: <b>Selecione o local que você deseja saber o clima:</b>
+  locationUnknown: Localização não encontrada.
+  noLocation: |
     Você não especificou uma localização.
     <b>Exemplo:</b> <code>/clima Belém</code>.
-  measurement-unit: m
+  measurementUnit: m
   details: |-
     <b>%s</b>:
 
