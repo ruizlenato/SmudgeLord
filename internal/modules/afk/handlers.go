@@ -9,6 +9,7 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 
 	"github.com/amarnathcjd/gogram/telegram"
 )
@@ -67,7 +68,6 @@ func checkAFK(message *telegram.NewMessage) error {
 			ParseMode: telegram.HTML,
 		})
 		return err
-
 	}
 }
 
@@ -118,6 +118,7 @@ func getUserIDFromMessage(message *telegram.NewMessage) (int64, error) {
 }
 
 func Load(client *telegram.Client) {
+	utils.SotreHelp("afk")
 	client.On(telegram.OnMessage, checkAFK)
 	client.On("command:afk", handlers.HandleCommand(handlerSetAFK))
 	client.On("message:^brb", handlers.HandleCommand(handlerSetAFK))

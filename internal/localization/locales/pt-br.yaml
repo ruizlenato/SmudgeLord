@@ -149,10 +149,6 @@ lastfm:
     - /album | /alb — Mostra o álbum você está ou estava ouvindo.
     - /artist | /art — Mostra o artista você está ou estava ouvindo.
 
-    <b>Nota:</b> 
-    Esse módulo contém configurações adicionais para grupos.
-    Você pode desativar os comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> em grupos.
-
 medias:
   name: Mídias
   config: |

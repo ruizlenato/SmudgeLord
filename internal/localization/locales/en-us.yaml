@@ -147,10 +147,6 @@ lastfm:
     - /album | /alb — Shows the album you are or were listening to.
     - /artist | /art — Shows the artist you are or were listening to.
 
-    <b>Note:</b> 
-    This module has additional settings for groups.
-    You can disable the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in groups.
-
 medias:
   name: Medias
   config: |

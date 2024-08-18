@@ -19,6 +19,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
 	yt "github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 const (
@@ -271,6 +272,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 }
 
 func Load(client *telegram.Client) {
+	utils.SotreHelp("medias")
 	client.On("message:"+regexMedia, handlers.HandleCommand(handlerMedias))
 	client.On("command:dl", handlers.HandleCommand(handlerMedias))
 	client.On("command:ytdl", handlers.HandleCommand(handleYoutubeDownload))

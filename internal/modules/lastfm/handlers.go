@@ -8,6 +8,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	lastFMAPI "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 func getErrorMessage(err error, i18n func(string) string) string {
@@ -155,6 +156,7 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 }
 
 func Load(client *telegram.Client) {
+	utils.SotreHelp("lastfm")
 	client.On("command:setuser", handlers.HandleCommand(handleSetUser))
 	client.On("command:lastfm", handlers.HandleCommand(handleMusic))
 	client.On("command:lt", handlers.HandleCommand(handleMusic))

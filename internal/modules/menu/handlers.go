@@ -7,6 +7,7 @@ import (
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 func createStartKeyboard(i18n func(string) string) telegram.ReplyMarkup {
@@ -23,8 +24,8 @@ func createStartKeyboard(i18n func(string) string) telegram.ReplyMarkup {
 		),
 		telegram.Button{}.Row(
 			telegram.Button{}.Data(
-				i18n("button.privacy"),
-				"privacy",
+				i18n("button.help"),
+				"helpMenu",
 			),
 		),
 	)
@@ -86,14 +87,14 @@ func handlerPrivacy(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 
 	if message.ChatType() == telegram.EntityUser {
-		_, err := message.Reply(i18n("menu.privacy-message"),
+		_, err := message.Reply(i18n("menu.privacyMessage"),
 			telegram.SendOptions{
 				ParseMode:   telegram.HTML,
 				ReplyMarkup: createPrivacyKeyboard(i18n),
 			})
 		return err
 	}
-	_, err := message.Reply(i18n("menu.privacy-group-message"),
+	_, err := message.Reply(i18n("menu.privacyGroupMsg"),
 		telegram.SendOptions{
 			ParseMode: telegram.HTML,
 			ReplyMarkup: telegram.Button{}.Keyboard(
@@ -115,7 +116,7 @@ func callbackPrivacy(update *telegram.CallbackQuery) error {
 		i18n("button.back"),
 		"start",
 	)))
-	_, err := update.Edit(i18n("menu.privacy-message"), &telegram.SendOptions{
+	_, err := update.Edit(i18n("menu.privacyMessage"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: keyboard,
 	})
@@ -125,7 +126,7 @@ func callbackPrivacy(update *telegram.CallbackQuery) error {
 func callbackAboutYourData(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 
-	_, err := update.Edit(i18n("menu.yourData-message"), &telegram.SendOptions{
+	_, err := update.Edit(i18n("menu.yourDataMsg"), &telegram.SendOptions{
 		ParseMode: telegram.HTML,
 		ReplyMarkup: telegram.Button{}.Keyboard(
 			telegram.Button{}.Row(
@@ -141,7 +142,7 @@ func callbackAboutYourData(update *telegram.CallbackQuery) error {
 
 func callbackAboutMenu(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
-	_, err := update.Edit(i18n("menu.yourData-message"), &telegram.SendOptions{
+	_, err := update.Edit(i18n("menu.aboutMsg"), &telegram.SendOptions{
 		ParseMode: telegram.HTML,
 		ReplyMarkup: telegram.Button{}.Keyboard(
 			telegram.Button{}.Row(
@@ -156,8 +157,40 @@ func callbackAboutMenu(update *telegram.CallbackQuery) error {
 			),
 			telegram.Button{}.Row(
 				telegram.Button{}.Data(
+					i18n("button.privacy"),
+					"privacy",
+				),
+			),
+			telegram.Button{}.Row(
+				telegram.Button{}.Data(
 					i18n("button.back"),
 					"start",
+				),
+			),
+		),
+	})
+	return err
+}
+
+func callbackHelpMenu(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
+	_, err := update.Edit(i18n("menu.help-message"), &telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		ReplyMarkup: utils.GetHelpKeyboard(i18n),
+	})
+	return err
+}
+
+func callbackHelpMessage(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
+	module := strings.TrimPrefix(update.DataString(), "helpMessage ")
+	_, err := update.Edit(i18n(module+".help"), &telegram.SendOptions{
+		ParseMode: telegram.HTML,
+		ReplyMarkup: telegram.Button{}.Keyboard(
+			telegram.Button{}.Row(
+				telegram.Button{}.Data(
+					i18n("button.back"),
+					"helpMenu",
 				),
 			),
 		),
@@ -172,4 +205,6 @@ func Load(client *telegram.Client) {
 	client.On("callback:privacy", callbackPrivacy)
 	client.On("callback:aboutYourData", callbackAboutYourData)
 	client.On("callback:aboutMenu", callbackAboutMenu)
+	client.On("callback:helpMenu", callbackHelpMenu)
+	client.On("callback:helpMessage", callbackHelpMessage)
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 func handlerGetSticker(message *telegram.NewMessage) error {
@@ -348,6 +349,7 @@ func convertVideo(inputFile string) (videoConverted string, err error) {
 }
 
 func Load(client *telegram.Client) {
+	utils.SotreHelp("stickers")
 	client.On("command:getsticker", handlers.HandleCommand(handlerGetSticker))
 	client.On("command:kang", handlers.HandleCommand(handlerKangSticker))
 

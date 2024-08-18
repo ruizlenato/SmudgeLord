@@ -208,6 +208,7 @@ func callbackWeather(update *telegram.CallbackQuery) error {
 }
 
 func Load(client *telegram.Client) {
+	utils.SotreHelp("misc")
 	client.On("command:translate", handlers.HandleCommand(handlerTranslate))
 	client.On("command:tr", handlers.HandleCommand(handlerTranslate))
 	client.On("command:weather", handlers.HandleCommand(handlerWeather))
