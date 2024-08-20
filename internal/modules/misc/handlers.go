@@ -43,7 +43,7 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 	if text == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("misc.tr-noargs"),
+			Text:      i18n("misc.translatorNoArgs"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -64,7 +64,7 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 	if text == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("misc.tr-noargs"),
+			Text:      i18n("misc.translatorNoArgs"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -238,7 +238,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("weather.no-location"),
+			Text:      i18n("weather.noLocation"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -263,7 +263,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 	if err != nil || len(weatherData.Location.Address) == 0 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("weather.location-unknown"),
+			Text:      i18n("weather.locationUnknown"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -280,7 +280,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 				"apiKey":   weatherAPIKey,
 				"geocode":  fmt.Sprintf("%.3f,%.3f", weatherData.Location.Latitude[0], weatherData.Location.Longitude[0]),
 				"language": strings.Split(lang, "-")[0],
-				"units":    i18n("weather.measurement-unit"),
+				"units":    i18n("weather.measurementUnit"),
 				"format":   "json",
 			},
 		}).Body()

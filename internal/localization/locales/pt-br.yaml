@@ -7,48 +7,47 @@ button:
   language: Idioma
   help: ❔ Ajuda
   about: ℹ️ Sobre
-  privacy: 🔒 Privacidade
+  privacy: 🔒 Política de Privacidade
   donation: 💵 Doação
-  news-channel: 📢 Canal
+  newsChannel: 📢 Canal
   back: ↩️ Voltar
-  caption: "Legendas:" # Precisa das aspas porque a string termina com dois pontos
-  automatic: "Automático:" # Precisa das aspas porque a string termina com dois pontos
-  about-your-data: Sobre seus dados
-  privacy-policy: Política de Privacidade
+  caption: "Legendas:"
+  automatic: "Automático:"
+  aboutYourData: Sobre seus dados
 
 menu:
-  start-message: |
+  startMessage: |
     Olá <b>%s</b> — Sou o <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.
 
     <b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
-  start-message-group: |
+  startGroupMessage: |
     Olá, sou o <b>%s</b>
     Tenho varias funções, para saber mais, clique no botão abaixo e inicie uma conversa comigo.
-  help-message: |
+  helpMessage: |
     Aqui estão todos os meus módulos.
     <b>Para saber mais sobre os módulos, basta clicar no nome deles.</b>
 
     <b>Nota:</b>
     Alguns módulos tem configurações adicionais em grupos.
     Para saber mais, envie <code>/config</code> em um grupo no qual você é administrador.
-  config-message: |
+  configMessage: |
     <b>Configurações —</b> Aqui estão minhas configurações para esse grupo.
     Para saber mais, <b>clique nos botões abaixo.</b>
-  language-mesage: |
+  languageMessage: |
     <b>Idioma atual:</b> %s %s
 
     <b>Selecione abaixo o idioma que você quer utilizar no bot.</b>
-  language-changed-successfully: O idioma foi alterado com sucesso.
-  privacy-message: |
+  languageChangedSuccessfully: O idioma foi alterado com sucesso.
+  privacyMessage: |
     <b>Política de Privacidade do SmudgeLord.</b>
 
     O SmudgeLord foi elaborado para garantir a transparência e a confiança aos usuários. 
     Agradeço sua confiança e estarei comprometido em proteger sua privacidade.
 
     <i>Essa política de privacidade pode ser atualizada e as alterações serão comunicadas através Canal do SmudgeLord - @SmudgeLordChannel.</i>
-  privacy-group-message: |
+  privacyGroupMessage: |
     Para acessar a política de privacidade do SmudgeLord, <b>clique no botão abaixo.</b>
-  yourData-message: |-
+  yourDataMessage: |-
     <b>Sobre seus dados.</b>
 
     <b>1. Coleta de Dados.</b>
@@ -67,7 +66,7 @@ menu:
     Todos os seus dados são armazenados de forma segura.
 
     <b>Nota:</b> Suas informações do usuário no telegram são informações públicas da plataforma. Não sabemos os seus dados "reais".
-  about-message: |-
+  aboutMessage: |-
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) é um gato que se tornou um meme na Internet. A sua fama surgiu a partir de uma imagem em que é visto ao lado de uma mulher a gritar com raiva
 
@@ -82,12 +81,12 @@ menu:
 
 afk:
   name: AFK
-  now-unavailable: <b>%s</b> está agora indisponível!
+  nowUnavailable: <b>%s</b> está agora indisponível!
   unavailable: |
     <b><a href='tg://user?id=%d'>%s</a></b> está <b>indisponível!</b>
     Visto pela última vez à <code>%s</code> atrás
   reason: <b>Motivo:</b> <code>%s</code>
-  now-available: <b><a href='tg://user?id=%d'>%s</a></b> está de volta após <code>%s</code> de ausência!
+  nowAvailable: <b><a href='tg://user?id=%d'>%s</a></b> está de volta após <code>%s</code> de ausência!
   help: |
     <b>AFK — <i>Away from Keyboard</i></b>
 
@@ -99,28 +98,28 @@ afk:
     - brb &lt;motivo&gt; — Igual ao comando afk, mas não é um comando; não é necessário usar <code>/</code>.
 lastfm:
   name: Last.FM
-  provide-username: |
+  provideUsername: |
     Forneça seu nome de usuário do last.fm
     <b>Exemplo:</b> <code>/setuser maozedong</code>.
-  invalid-username: |
+  invalidUsername: |
     <b>Usuário do last.fm inválido</b>
     Verifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.
-  no-username: |
+  noUsername: |
     <b>Você ainda não definiu seu nome de usuário do last.fm</b>
     Use o comando /setuser para definir
-  username-set: <b>Pronto, nome de usuário do last.fm foi salvo!</b>
+  usernameSet: <b>Pronto</b>, seu nome de usuário do last.fm foi salvo!
   error: |
     <b>Parece que ocorreu um erro.</b>
     O last.fm pode estar temporariamente indisponível.
 
     Tente novamente em alguns minutos, se o erro persistir, entre em contato com o meu desenvolvedor.
-  no-scrobbles: |
+  noScrobbles: |
     <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>
 
     <b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.
-  now-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
-  was-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
-  config-help: |
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  configHelp: |
     <b>Configurações do LastFM em seu grupo:</b>
     Use o botão abaixo para configurar se o bot deve responder aos comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
 
@@ -167,6 +166,9 @@ medias:
     <b>Duração:</b> %s
   youtubeDownloadVideo: 🎬 Baixar vídeo
   youtubeDownloadAudio: 💿 Baixar áudio
+  youtubeError: |
+    <b>Ocorreu um erro ao processar o vídeo.</b>
+    Se o problema persistir, entre em contato com o meu desenvolvedor.
   downloading: Baixando...
   uploading: Enviando...
   help: |
@@ -187,7 +189,7 @@ medias:
 
 misc:
   name: Diversos
-  tr-noargs: |
+  translatorNoArgs: |
     <b>Uso:</b> <code>/tr &lt;idioma&gt; &lt;texto para tradução&gt;</code>
 
     Você precisa especificar o texto que deseja traduzir ou responder a uma mensagem de texto, ou uma foto com legenda.
@@ -209,14 +211,14 @@ stickers:
   name: Figurinhas
   kanging: <code>Kangando (roubando) o sticker...</code>
   converting: <code>Convertendo vídeo/gif para sticker de vídeo...</code>
-  pack-exists: <code>Usando um pacote de sticker existente...</code>
-  new-pack: <code>Criando um novo pacote de sticker...</code>
-  invalid-type: O arquivo que você respondeu não é valido, responda a uma <i><b>uma figurinha</b></i> (sticker) ou um <i><b>vídeo</b></i> ou <i><b>uma foto</b></i> valida.
-  sticker-stoled: |
+  packExists: <code>Usando um pacote de sticker existente...</code>
+  newPack: <code>Criando um novo pacote de sticker...</code>
+  invalidType: O arquivo que você respondeu não é valido, responda a uma <i><b>uma figurinha</b></i> (sticker) ou um <i><b>vídeo</b></i> ou <i><b>uma foto</b></i> valida.
+  stickerStoled: |
     Sticker roubado <b>com sucesso</b>, <a href='t.me/addstickers/%s'>confira.</a>
     <b>Emoji:</b> %s
-  kang-not-reply: Você precisa usar este comando respondendo <i><b>uma figurinha</b></i> (sticker) ou <i><b>um vídeo</b></i> ou <i><b>uma foto</b></i>.
-  get-not-reply: |
+  kangNotReply: Você precisa usar este comando respondendo <i><b>uma figurinha</b></i> (sticker) ou <i><b>um vídeo</b></i> ou <i><b>uma foto</b></i>.
+  getNotReply: |
     Você precisa responder a uma figurinha para usar esse comando, assim eu posso enviar a figurinha respondida como <i><b>png</b></i> ou <i><b>gif</b></i>.
     <i>Só funciona com figurinhas estáticas ou vídeos</i>
   error: |
@@ -232,11 +234,11 @@ stickers:
     - /getsticker — Responda a um sticker para que possa enviar-lo como arquivo <i>.png</i> ou <i>.gif</i>. <b>Só funciona com figurinhas <i>de vídeos ou estáticas.</i></b>
 
 weather:
-  location-unknown: Localização não encontrada.
-  no-location: |
+  locationUnknown: Localização não encontrada.
+  noLocation: |
     Você não especificou uma localização.
     <b>Exemplo:</b> <code>/clima Belém</code>.
-  measurement-unit: m
+  measurementUnit: m
   details: |-
     <b>%s</b>:
 

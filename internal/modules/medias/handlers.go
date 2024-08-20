@@ -115,24 +115,21 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		Action: telego.ChatActionUploadDocument,
 	})
 
-	replied, err := bot.SendMediaGroup(&telego.SendMediaGroupParams{
+	replied, _ := bot.SendMediaGroup(&telego.SendMediaGroupParams{
 		ChatID: telegoutil.ID(message.Chat.ID),
 		Media:  mediaItems,
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
 	})
-	if err != nil {
-		log.Print(err)
-	}
 	downloader.RemoveMediaFiles(mediaItems)
-	err = downloader.SetMediaCache(replied, postID)
+	err := downloader.SetMediaCache(replied, postID)
 	if err != nil {
 		log.Print(err)
 	}
 }
 
-func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
+func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	chat := update.CallbackQuery.Message.GetChat()
 	i18n := localization.Get(chat)
 
@@ -193,13 +190,24 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 		Action: action,
 	})
 
-	outputFile.Seek(0, 0) // Seek back to the beginning of the file
+	_, err = outputFile.Seek(0, 0)
+	if err != nil {
+		bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:    telegoutil.ID(chat.ID),
+			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			Text:      i18n("medias.error"),
+		})
+		return
+	}
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
 	thumbnail, _ := downloader.Downloader(thumbURL)
 
 	defer func() {
 		if err := os.Remove(thumbnail.Name()); err != nil {
 			log.Printf("Failed to remove thumbnail: %v", err)
+		}
+		if err := os.Remove(outputFile.Name()); err != nil {
+			log.Printf("Failed to remove outputFile: %v", err)
 		}
 	}()
 
@@ -236,12 +244,6 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 		log.Printf("Failed to send video: %v", err)
 		return
 	}
-
-	defer func() {
-		if err := os.Remove(outputFile.Name()); err != nil {
-			log.Printf("Failed to remove outputFile: %v", err)
-		}
-	}()
 
 	bot.DeleteMessage(&telego.DeleteMessageParams{
 		ChatID:    telegoutil.ID(chat.ID),
@@ -441,7 +443,7 @@ func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 		telegohandler.CommandEqual("sdl"),
 		telegohandler.TextMatches(regexp.MustCompile(regexMedia)),
 	))
-	bh.Handle(handleYoutubeDownloadCallback, telegohandler.CallbackDataMatches(regexp.MustCompile(`^(_(vid|aud))`)))
+	bh.Handle(callbackYoutubeDownload, telegohandler.CallbackDataMatches(regexp.MustCompile(`^(_(vid|aud))`)))
 	bh.Handle(handleMediaConfig, telegohandler.CallbackDataPrefix("mediaConfig"), helpers.IsAdmin(bot))
 	bh.Handle(handleExplainConfig, telegohandler.CallbackDataPrefix("ieConfig"), helpers.IsAdmin(bot))
 }

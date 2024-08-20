@@ -53,7 +53,7 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 		}
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("afk.now-available"), message.From.ID, message.From.FirstName, humanizedDuration),
+			Text:      fmt.Sprintf(i18n("afk.nowAvailable"), message.From.ID, message.From.FirstName, humanizedDuration),
 			ParseMode: "HTML",
 			LinkPreviewOptions: &telego.LinkPreviewOptions{
 				IsDisabled: true,
@@ -104,7 +104,7 @@ func handleSetAFK(bot *telego.Bot, message telego.Message) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("afk.now-unavailable"), message.From.FirstName),
+		Text:      fmt.Sprintf(i18n("afk.nowUnavailable"), message.From.FirstName),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,

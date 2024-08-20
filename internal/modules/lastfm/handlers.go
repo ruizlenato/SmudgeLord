@@ -21,7 +21,7 @@ import (
 func getErrorMessage(err error, i18n func(string) string) string {
 	switch {
 	case strings.Contains(err.Error(), "no recent tracks"):
-		return i18n("lastfm.no-scrobbles")
+		return i18n("lastfm.noScrobbles")
 	case strings.Contains(err.Error(), "lastFM error"):
 		return i18n("lastfm.error")
 	default:
@@ -71,7 +71,7 @@ func handleLastFMConfig(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:      telegoutil.ID(chat.ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("lastfm.config-help"),
+		Text:        i18n("lastfm.configHelp"),
 		ParseMode:   "HTML",
 		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 	})
@@ -90,7 +90,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("lastfm.provide-username"),
+			Text:      i18n("lastfm.provideUsername"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -102,7 +102,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 	if lastFM.GetUser(lastFMUsername) == nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.invalid-username"),
+			Text:      i18n("lastfm.invalidUsername"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -118,7 +118,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("lastfm.username-set"),
+		Text:      i18n("lastfm.usernameSet"),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -136,7 +136,7 @@ func handleMusic(bot *telego.Bot, message telego.Message) {
 	if err != nil || lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-username"),
+			Text:      i18n("lastfm.noUsername"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -167,9 +167,9 @@ func handleMusic(bot *telego.Bot, message telego.Message) {
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", (recentTracks.Image))
 
 	if recentTracks.Nowplaying {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
+		text += fmt.Sprintf(i18n("lastfm.nowPlaying"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
+		text += fmt.Sprintf(i18n("lastfm.wasPlaying"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	}
 
 	text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Track)
@@ -201,7 +201,7 @@ func handleAlbum(bot *telego.Bot, message telego.Message) {
 	if err != nil && lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-username"),
+			Text:      i18n("lastfm.noUsername"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -232,9 +232,9 @@ func handleAlbum(bot *telego.Bot, message telego.Message) {
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
 
 	if recentTracks.Nowplaying {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
+		text += fmt.Sprintf(i18n("lastfm.nowPlaying"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
+		text += fmt.Sprintf(i18n("lastfm.wasPlaying"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	}
 
 	text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Album)
@@ -266,7 +266,7 @@ func handleArtist(bot *telego.Bot, message telego.Message) {
 	if err != nil && lastFMUsername == "" {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.no-username"),
+			Text:      i18n("lastfm.noUsername"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -306,9 +306,9 @@ func handleArtist(bot *telego.Bot, message telego.Message) {
 	}
 
 	if recentTracks.Nowplaying {
-		text += fmt.Sprintf(i18n("lastfm.now-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
+		text += fmt.Sprintf(i18n("lastfm.nowPlaying"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	} else {
-		text += fmt.Sprintf(i18n("lastfm.was-playing"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
+		text += fmt.Sprintf(i18n("lastfm.wasPlaying"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
 	}
 
 	text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
