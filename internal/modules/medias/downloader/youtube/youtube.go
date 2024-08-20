@@ -4,12 +4,14 @@ import (
 	"errors"
 	"io"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 
-	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
-
 	"github.com/kkdai/youtube/v2"
+	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 )
 
 func getVideoFormat(video *youtube.Video, itag int) (*youtube.Format, error) {
@@ -40,6 +42,15 @@ func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format 
 
 func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	youtubeClient := youtube.Client{}
+	var client *http.Client
+	if config.Socks5Proxy != "" {
+		proxyURL, _ := url.Parse(config.Socks5Proxy)
+		client = &http.Client{Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}}
+		youtubeClient = youtube.Client{HTTPClient: client}
+	}
+
 	video, err := youtubeClient.GetVideo(callbackData[1])
 	if err != nil {
 		return nil, video, err

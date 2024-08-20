@@ -3,6 +3,8 @@ package medias
 import (
 	"fmt"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
@@ -209,6 +211,8 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 			Thumbnail: &telego.InputFile{File: thumbnail},
 			Performer: video.Author,
 			Title:     video.Title,
+			Caption:   fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
+			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: messageID,
 			},
@@ -221,7 +225,8 @@ func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {
 			SupportsStreaming: true,
 			Width:             video.Formats.Itag(itag)[0].Width,
 			Height:            video.Formats.Itag(itag)[0].Height,
-			Caption:           video.Title,
+			Caption:           fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
+			ParseMode:         "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: messageID,
 			},
@@ -265,6 +270,14 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 	}
 
 	ytClient := youtube.Client{}
+	var client *http.Client
+	if config.Socks5Proxy != "" {
+		proxyURL, _ := url.Parse(config.Socks5Proxy)
+		client = &http.Client{Transport: &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+		}}
+		ytClient = youtube.Client{HTTPClient: client}
+	}
 	video, err := ytClient.GetVideo(videoURL)
 	if err != nil {
 		bot.SendMessage(&telego.SendMessageParams{
