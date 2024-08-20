@@ -1,4 +1,4 @@
-package lastFMAPI
+package lastfmapi
 
 type LastFM struct {
 	apiKey string

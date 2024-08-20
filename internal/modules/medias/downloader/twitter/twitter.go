@@ -2,6 +2,7 @@ package twitter
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -11,10 +12,10 @@ import (
 	"strings"
 	"sync"
 
-	"smudgelord/internal/modules/medias/downloader"
-	"smudgelord/internal/utils"
-
-	"github.com/mymmrac/telego"
+	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
+	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 var headers = map[string]string{
@@ -24,6 +25,158 @@ var headers = map[string]string{
 	"Accept-language":           "en",
 	"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
 	"content-type":              "application/json",
+}
+
+func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+	postID, err := getPostID(message.Text())
+	if err != nil {
+		log.Print(err)
+		return nil, []string{}
+	}
+
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
+	if err == nil {
+		return cachedMedias, []string{cachedCaption, postID}
+	}
+
+	twitterData, err := getTwitterData(postID)
+	if err != nil {
+		log.Print(err)
+		return nil, []string{}
+	}
+	medias, caption := processMedia(twitterData, message)
+	return medias, []string{caption, postID}
+}
+
+type InputMedia struct {
+	File      *os.File
+	Thumbnail *os.File
+}
+
+func processMedia(twitterData *TwitterAPIData, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+	type mediaResult struct {
+		index int
+		media *InputMedia
+		err   error
+	}
+
+	mediaCount := len((*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)
+	mediaChan := make(chan mediaResult, mediaCount)
+	medias := make([]*InputMedia, mediaCount)
+	mediaItems := make([]telegram.InputMedia, mediaCount)
+
+	for i, media := range (*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
+		go func(index int, twitterMedia Media) {
+			media, err := downloadMedia(twitterMedia)
+			mediaChan <- mediaResult{index, media, err}
+		}(i, media)
+	}
+
+	for i := 0; i < mediaCount; i++ {
+		result := <-mediaChan
+		if result.err != nil {
+			log.Print(result.err)
+			continue
+		}
+		medias[result.index] = result.media
+	}
+
+	uploadChan := make(chan struct {
+		index int
+		media telegram.InputMedia
+		err   error
+	}, mediaCount)
+
+	var (
+		seqnoMutex sync.Mutex
+		seqno      int
+	)
+
+	for i, media := range medias {
+		if media == nil || media.File == nil {
+			continue
+		}
+
+		go func(index int, media *InputMedia) {
+			seqnoMutex.Lock()
+			defer seqnoMutex.Unlock()
+			seqno++
+
+			uploadedMedia, err := uploadMedia(twitterData, message, media, index)
+			uploadChan <- struct {
+				index int
+				media telegram.InputMedia
+				err   error
+			}{index, uploadedMedia, err}
+		}(i, media)
+	}
+
+	for i := 0; i < mediaCount; i++ {
+		result := <-uploadChan
+		if result.err != nil {
+			log.Print(result.err)
+			continue
+		}
+		mediaItems[result.index] = result.media
+	}
+
+	caption := getCaption(twitterData)
+	return mediaItems, caption
+}
+
+func downloadMedia(twitterMedia Media) (*InputMedia, error) {
+	var media InputMedia
+	var err error
+
+	if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
+		sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
+			return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
+		})
+		media.File, err = downloader.Downloader(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
+		if err == nil {
+			media.Thumbnail, _ = downloader.Downloader(twitterMedia.MediaURLHTTPS)
+		}
+	} else {
+		media.File, err = downloader.Downloader(twitterMedia.MediaURLHTTPS)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return &media, nil
+}
+
+func uploadMedia(twitterData *TwitterAPIData, message *telegram.NewMessage, media *InputMedia, index int) (telegram.InputMedia, error) {
+	twitterMedia := (*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index]
+	if twitterMedia.Type == "photo" {
+		photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: media.File.Name()})
+		if err != nil {
+			return nil, err
+		}
+		return &photo, nil
+	}
+
+	video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
+		File:  media.File.Name(),
+		Thumb: media.Thumbnail.Name(),
+		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
+			SupportsStreaming: true,
+			W:                 int32(twitterMedia.OriginalInfo.Width),
+			H:                 int32(twitterMedia.OriginalInfo.Height),
+		}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &video, nil
+}
+
+func getPostID(url string) (string, error) {
+	if matches := regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`).FindStringSubmatch(url); len(matches) == 2 {
+		return matches[1], nil
+	} else {
+		return "", errors.New("could not find post ID")
+	}
 }
 
 func getGuestToken() string {
@@ -38,16 +191,16 @@ func getGuestToken() string {
 	var res guestToken
 	err := json.Unmarshal(body, &res)
 	if err != nil {
-		log.Printf("Error unmarshalling guest token: %v", err)
+		log.Print("Error unmarshalling guest token: ", err)
 	}
 	return res.GuestToken
 }
 
-func TweetExtract(tweetID string) *TwitterAPIData {
+func getTwitterData(postID string) (*TwitterAPIData, error) {
 	headers["x-guest-token"] = getGuestToken()
 	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", getGuestToken())
 	variables := map[string]interface{}{
-		"tweetId":                                tweetID,
+		"tweetId":                                postID,
 		"referrer":                               "messages",
 		"includePromotedContent":                 true,
 		"withCommunity":                          true,
@@ -94,125 +247,33 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 		Headers: headers,
 	}).Body()
 	if body == nil {
-		return nil
+		return nil, errors.New("error getting Twitter data")
 	}
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {
-		log.Printf("Error unmarshalling Twitter data: %v", err)
-		return nil
+		return nil, errors.New("error unmarshalling Twitter data")
 	}
-
-	return twitterAPIData
-}
-
-func Twitter(url string) ([]telego.InputMedia, string) {
-	var mu sync.Mutex
-	var mediaItems []telego.InputMedia
-	var caption string
-	var tweetID string
-
-	if matches := regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`).FindStringSubmatch(url); len(matches) == 2 {
-		tweetID = matches[1]
-	} else {
-		return nil, ""
-	}
-
-	twitterAPIData := TweetExtract(tweetID)
 
 	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {
-		return nil, ""
+		return nil, errors.New("could not find Twitter data")
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
-	mediaItems = make([]telego.InputMedia, len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
+	return twitterAPIData, nil
+}
 
-	type InputMedia struct {
-		File      *os.File
-		Thumbnail *os.File
-	}
-	medias := make(map[int]*InputMedia)
+func getCaption(twitterData *TwitterAPIData) string {
+	var caption string
 
-	for i, media := range (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
-		go func(index int, twitterMedia Media) {
-			defer wg.Done()
-			mu.Lock()
-			defer mu.Unlock()
-
-			var media InputMedia
-			var err error
-			var videoType string
-
-			if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
-				videoType = "video"
-			}
-			if videoType != "video" {
-				media.File, err = downloader.Downloader(twitterMedia.MediaURLHTTPS)
-			} else {
-				sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
-					return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
-				})
-				media.File, err = downloader.Downloader(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
-				if err == nil {
-					media.Thumbnail, _ = downloader.Downloader(twitterMedia.MediaURLHTTPS)
-				}
-			}
-			if err != nil {
-				log.Print("[twitter/Twitter] Error downloading media:", err)
-				// Use index as key to store nil for failed downloads
-				medias[index] = &InputMedia{File: nil, Thumbnail: nil}
-				return
-			}
-			// Use index as key to store downloaded file
-			medias[index] = &media
-		}(i, media)
-	}
-
-	wg.Wait()
-
-	// Process medias after all downloads are complete
-	for index, media := range medias {
-		if media.File != nil {
-			var mediaItem telego.InputMedia
-			if (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index].Type == "photo" {
-				mediaItem = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: media.File},
-				}
-			} else {
-				if media.Thumbnail != nil {
-					mediaItem = &telego.InputMediaVideo{
-						Type:              telego.MediaTypeVideo,
-						Media:             telego.InputFile{File: media.File},
-						Thumbnail:         &telego.InputFile{File: media.Thumbnail},
-						Width:             ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
-						Height:            ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
-						SupportsStreaming: true,
-					}
-				} else {
-					mediaItem = &telego.InputMediaVideo{
-						Type:              telego.MediaTypeVideo,
-						Media:             telego.InputFile{File: media.File},
-						Width:             ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
-						Height:            ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
-						SupportsStreaming: true,
-					}
-				}
-			}
-			mediaItems[index] = mediaItem
-		}
-	}
-
-	if tweet := (*twitterAPIData).Data.TweetResults.Result.Legacy; tweet != nil {
-		caption = fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n",
-			(*twitterAPIData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.Name,
-			(*twitterAPIData).Data.TweetResults.Core.UserResults.Result.Legacy.ScreenName)
+	if tweet := (*twitterData).Data.TweetResults.Result.Legacy; tweet != nil {
+		caption = (fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n",
+			(*twitterData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.Name,
+			(*twitterData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.ScreenName))
 
 		if idx := strings.LastIndex(tweet.FullText, " https://t.co/"); idx != -1 {
-			caption += tweet.FullText[:idx]
+			caption += (tweet.FullText[:idx])
 		}
 	}
 
-	return mediaItems, caption
+	return caption
 }

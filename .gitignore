@@ -1,2 +1,5 @@
 .env
+session.dat
+cache.db
+*.[yml, yaml, toml]*
 internal/database/database.[sql,db]*

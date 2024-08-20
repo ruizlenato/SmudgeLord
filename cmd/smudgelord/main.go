@@ -3,86 +3,66 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 
-	"smudgelord/internal/config"
-	"smudgelord/internal/database"
-	"smudgelord/internal/telegram"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
+	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/database/cache"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/modules"
+	"github.com/ruizlenato/smudgelord/internal/telegram"
 )
 
 func main() {
-	bot, err := telegram.CreateBot()
+	client, err := telegram.Init()
 	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	if err := initializeServices(); err != nil {
 		log.Fatal(err)
 	}
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	done := make(chan struct{})
+	defer func() {
+		fmt.Println("[!] — Received stop signal")
+		database.Close()
+	}()
 
-	var updates <-chan telego.Update
-
-	if config.WebhookURL != "" {
-		updates, err = telegram.SetupWebhook(bot)
-	} else {
-		updates, err = telegram.SetupLongPolling(bot)
-	}
+	err = client.LoginBot(config.TelegramBotToken)
 	if err != nil {
-		log.Fatal("Setup updates:", err)
+		log.Fatalf("\033[31mFailed to login bot:\033[0m %v\n", err)
+		return
 	}
 
-	bh, err := telegohandler.NewBotHandler(bot, updates)
+	botInfo, err := client.GetMe()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("\033[31mFailed to get bot info:\033[0m %v\n", err)
+		return
 	}
-	handler := telegram.NewHandler(bot, bh)
-	handler.RegisterHandlers()
-
-	botUser, err := bot.GetMe()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := InitializeServices(); err != nil {
-		log.Fatal(err)
-	}
-
-	go handleSignals(sigs, bot, bh, done)
-
-	go bh.Start()
 	fmt.Println("\033[0;32m\U0001F680 Bot Started\033[0m")
-	fmt.Printf("\033[0;36mBot Info:\033[0m %v - @%v\n", botUser.FirstName, botUser.Username)
+	fmt.Printf("\033[0;36mBot Info:\033[0m %v - @%v\n", botInfo.FirstName, botInfo.Username)
 
-	if config.WebhookURL != "" {
-		go StartWebhookServer(bot)
-	}
+	modules.Load(client)
 
-	<-done
-	fmt.Println("Done")
+	client.Idle()
 }
 
-func handleSignals(sigs chan os.Signal, bot *telego.Bot, bh *telegohandler.BotHandler, done chan struct{}) {
-	<-sigs
-	fmt.Println("\033[0;31mStopping...\033[0m")
-
-	if config.WebhookURL != "" {
-		if err := bot.StopWebhook(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		bot.StopLongPolling()
+func initializeServices() error {
+	if err := localization.LoadLanguages(); err != nil {
+		return fmt.Errorf("load languages: %v", err)
 	}
-	fmt.Println("Updates stopped")
 
-	bh.Stop()
-	fmt.Println("Bot handler stopped")
+	if err := database.Open(config.DatabaseFile); err != nil {
+		return fmt.Errorf("open database: %w", err)
+	}
 
-	database.Close()
+	if err := database.CreateTables(); err != nil {
+		return fmt.Errorf("create tables: %w", err)
+	}
 
-	done <- struct{}{}
+	if err := cache.RedisClient("localhost:6379", "", 0); err != nil {
+		return fmt.Errorf("redis client: %w", err)
+	}
+
+	return nil
 }

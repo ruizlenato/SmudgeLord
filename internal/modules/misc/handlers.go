@@ -3,208 +3,65 @@ package misc
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"math/rand"
 	"net/url"
+	"strconv"
 	"strings"
 
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils"
-	"smudgelord/internal/utils/helpers"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
+	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/modules/misc/misc"
+	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
-
-func handleTranslate(bot *telego.Bot, message telego.Message) {
-	var text string
-	i18n := localization.Get(message.Chat)
-
-	if message.ReplyToMessage != nil {
-		replyText := ""
-		if messageText := message.ReplyToMessage.Text; messageText != "" {
-			replyText = messageText
-		} else if caption := message.ReplyToMessage.Caption; caption != "" {
-			replyText = caption
-		}
-		text = replyText
-		if len(message.Text) > 4 {
-			text = message.Text[4:] + " " + replyText
-		}
-	} else if len(message.Text) > 4 && strings.Fields(message.Text)[0] == "/tr" {
-		text = message.Text[4:]
-	}
-
-	if messageFields := strings.Fields(message.Text); messageFields[0] == "/translate" && len(message.Text) > 11 {
-		text = message.Text[11:]
-	}
-
-	if text == "" {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("misc.tr-noargs"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	var sourceLang string
-	var targetLang string
-
-	language := getTranslateLang(text, message.Chat)
-	if strings.HasPrefix(text, language) {
-		text = strings.Replace(text, language, "", 1)
-		text = strings.TrimSpace(text)
-	}
-
-	if text == "" {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("misc.tr-noargs"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	if langParts := strings.Split(language, "-"); len(langParts) > 1 {
-		sourceLang = langParts[0]
-		targetLang = langParts[1]
-	} else {
-		targetLang = language
-		sourceLang = "auto"
-	}
-
-	translation := new(struct {
-		Sentences []struct {
-			Trans   string `json:"trans"`
-			Orig    string `json:"orig"`
-			Backend int    `json:"backend"`
-		} `json:"sentences"`
-		Source string `json:"src"`
-	})
-
-	devices := []string{
-		"Linux; U; Android 10; Pixel 4",
-		"Linux; U; Android 10; Pixel 4 XL",
-		"Linux; U; Android 10; Pixel 4a",
-		"Linux; U; Android 10; Pixel 4a XL",
-		"Linux; U; Android 11; Pixel 4",
-		"Linux; U; Android 11; Pixel 4 XL",
-		"Linux; U; Android 11; Pixel 4a",
-		"Linux; U; Android 11; Pixel 4a XL",
-		"Linux; U; Android 11; Pixel 5",
-		"Linux; U; Android 11; Pixel 5a",
-		"Linux; U; Android 12; Pixel 4",
-		"Linux; U; Android 12; Pixel 4 XL",
-		"Linux; U; Android 12; Pixel 4a",
-		"Linux; U; Android 12; Pixel 4a XL",
-		"Linux; U; Android 12; Pixel 5",
-		"Linux; U; Android 12; Pixel 5a",
-		"Linux; U; Android 12; Pixel 6",
-		"Linux; U; Android 12; Pixel 6 Pro",
-	}
-
-	body := utils.Request(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
-		sourceLang, targetLang, url.QueryEscape(text)), utils.RequestParams{
-		Method: "POST",
-		Headers: map[string]string{
-			`User-Agent`:   fmt.Sprintf(`GoogleTranslate/6.28.0.05.421483610 (%s)`, devices[rand.Intn(len(devices))]),
-			`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
-		},
-	}).Body()
-
-	err := json.Unmarshal(body, &translation)
-	if err != nil {
-		log.Println("[Misc/gTranslate] Error unmarshalling translation data:", err)
-	}
-
-	var translations []string
-	for _, sentence := range translation.Sentences {
-		translations = append(translations, sentence.Trans)
-	}
-	textUnescaped, _ := (url.QueryUnescape(strings.Join(translations, "")))
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf("<b>%s</b> -> <b>%s</b>\n<code>%s</code>", translation.Source, targetLang, textUnescaped),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
-}
-
-func getTranslateLang(text string, chat telego.Chat) string {
-	languages := [135]string{
-		`af`, `sq`, `am`, `ar`, `hy`,
-		`as`, `ay`, `az`, `bm`, `eu`,
-		`be`, `bn`, `bho`, `bs`, `bg`,
-		`ca`, `ceb`, `zh`, `co`, `hr`,
-		`cs`, `da`, `dv`, `doi`, `nl`,
-		`en`, `eo`, `et`, `ee`, `fil`,
-		`fi`, `fr`, `fy`, `gl`, `ka`,
-		`de`, `el`, `gn`, `gu`, `ht`,
-		`ha`, `haw`, `he`, `iw`, `hi`,
-		`hmn`, `hu`, `is`, `ig`, `ilo`,
-		`id`, `ga`, `it`, `ja`, `jv`,
-		`jw`, `kn`, `kk`, `km`, `rw`,
-		`gom`, `ko`, `kri`, `ku`, `ckb`,
-		`ky`, `lo`, `la`, `lv`, `ln`,
-		`lt`, `lg`, `lb`, `mk`, `mai`,
-		`mg`, `ms`, `ml`, `mt`, `mi`,
-		`mr`, `mni`, `lus`, `mn`, `my`,
-		`ne`, `no`, `ny`, `or`, `om`,
-		`ps`, `fa`, `pl`, `pt`, `pa`,
-		`qu`, `ro`, `ru`, `sm`, `sa`,
-		`gd`, `nso`, `sr`, `st`, `sn`,
-		`sd`, `si`, `sk`, `sl`, `so`,
-		`es`, `su`, `sw`, `sv`, `tl`,
-		`tg`, `ta`, `tt`, `te`, `th`,
-		`ti`, `ts`, `tr`, `tk`, `ak`,
-		`uk`, `ur`, `ug`, `uz`, `vi`,
-		`cy`, `xh`, `yi`, `yo`, `zu`,
-	}
-	checkLang := func(item string) bool {
-		for _, s := range languages {
-			if s == item {
-				return true
-			}
-		}
-		return false
-	}
-
-	chatLang, err := localization.GetChatLanguage(chat)
-	if err != nil {
-		chatLang = "en"
-	}
-
-	if len(strings.Fields(text)) > 0 {
-		lang := strings.Fields(text)[0]
-		langParts := strings.Split(lang, "-")
-
-		if !checkLang(langParts[0]) {
-			lang = strings.Split(chatLang, "-")[0]
-		}
-
-		if len(langParts) > 1 && !checkLang(langParts[1]) {
-			lang = strings.Split(chatLang, "-")[0]
-		}
-
-		return lang
-	}
-	return "en"
-}
 
 const (
 	weatherAPIKey = "8de2d8b3a93542c9a2d8b3a935a2c909"
 )
+
+func handlerTranslate(message *telegram.NewMessage) error {
+	var text string
+	i18n := localization.Get(message)
+
+	if message.IsReply() {
+		reply, err := message.GetReplyMessage()
+		if err != nil {
+			return err
+		}
+		text = reply.Text()
+		if message.Args() != "" {
+			text = message.Args() + " " + text
+		}
+	} else if message.Args() != "" {
+		text = message.Args()
+	} else {
+		_, err := message.Reply(i18n("misc.translatorNoArgs"), telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
+		return err
+	}
+
+	translation, err := misc.Translator(text, message)
+	if err != nil {
+		return err
+	}
+
+	translations := make([]string, 0, len(translation.Sentences))
+	for _, sentence := range translation.Sentences {
+		translations = append(translations, sentence.Trans)
+	}
+	unescapedText, err := url.QueryUnescape(strings.Join(translations, ""))
+	if err != nil {
+		_, err := message.Reply(i18n("misc.translatorError"), telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
+		return err
+	}
+	_, err = message.Reply(fmt.Sprintf("<b>%s</b> -> <b>%s</b>\n<code>%s</code>", translation.Source, translation.Target, unescapedText), telegram.SendOptions{
+		ParseMode: telegram.HTML,
+	})
+
+	return err
+}
 
 type weatherSearch struct {
 	Location struct {
@@ -212,6 +69,56 @@ type weatherSearch struct {
 		Longitude []float64 `json:"longitude"`
 		Address   []string  `json:"address"`
 	} `json:"location"`
+}
+
+func handlerWeather(message *telegram.NewMessage) error {
+	i18n := localization.Get(message)
+	if message.Args() == "" {
+		_, err := message.Reply(i18n("weather.noLocation"), telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
+		return err
+	}
+
+	chatLang, err := localization.GetChatLanguage(message.ChatID(), message.ChatType())
+	if err != nil {
+		return err
+	}
+
+	var weatherSearchData weatherSearch
+
+	body := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"apiKey":   weatherAPIKey,
+			"query":    message.Args(),
+			"language": strings.Split(chatLang, "-")[0],
+			"format":   "json",
+		},
+	}).Body()
+
+	err = json.Unmarshal(body, &weatherSearchData)
+	if err != nil {
+		return err
+	}
+
+	buttons := telegram.Button{}.Keyboard()
+	for i := 0; i < len(weatherSearchData.Location.Address) && i < 5; i++ {
+		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+			weatherSearchData.Location.Address[i],
+			fmt.Sprintf("_weather|%f|%f",
+				weatherSearchData.Location.Latitude[i],
+				weatherSearchData.Location.Longitude[i],
+			),
+		)))
+	}
+
+	_, err = message.Reply(i18n("weather.selectLocation"), telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		ReplyMarkup: buttons,
+	})
+
+	return err
 }
 
 type weatherResult struct {
@@ -224,88 +131,89 @@ type weatherResult struct {
 		WindSpeed            int    `json:"windSpeed"`
 		WxPhraseLong         string `json:"wxPhraseLong"`
 	} `json:"v3-wx-observations-current"`
+	V3LocationPoint struct {
+		Location struct {
+			City   string `json:"city"`
+			Locale struct {
+				Locale3 any    `json:"locale3"`
+				Locale4 string `json:"locale4"`
+			} `json:"locale"`
+			AdminDistrict  string `json:"adminDistrict"`
+			Country        string `json:"country"`
+			DisplayContext string `json:"displayContext"`
+		} `json:"location"`
+	} `json:"v3-location-point"`
 }
 
-func handleWeather(bot *telego.Bot, message telego.Message) {
-	var weatherQuery string
+func callbackWeather(update *telegram.CallbackQuery) error {
+	var weatherResultData weatherResult
+	i18n := localization.Get(update)
+	chatLang, err := localization.GetChatLanguage(update.ChatID, update.ChatType())
+	if err != nil {
+		return err
+	}
+	callbackData := strings.Split(update.DataString(), "|")
 
-	lang, _ := localization.GetChatLanguage(message.Chat)
-	i18n := localization.Get(message.Chat)
-
-	if len(strings.Fields(message.Text)) > 1 {
-		_, _, args := telegoutil.ParseCommand(message.Text)
-		weatherQuery = strings.Join(args, " ")
-	} else {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("weather.no-location"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
+	latitude, err := strconv.ParseFloat(callbackData[1], 64)
+	if err != nil {
+		return err
+	}
+	longitude, err := strconv.ParseFloat(callbackData[2], 64)
+	if err != nil {
+		return err
 	}
 
-	var weatherData weatherSearch
-
-	body := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
-		Method: "GET",
-		Query: map[string]string{
-			"apiKey":   weatherAPIKey,
-			"query":    weatherQuery,
-			"language": strings.Split(lang, "-")[0],
-			"format":   "json",
-		},
-	}).Body()
-
-	err := json.Unmarshal(body, &weatherData)
-	if err != nil || len(weatherData.Location.Address) == 0 {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("weather.location-unknown"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	var weatherResult weatherResult
-	body = utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current",
+	body := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point",
 		utils.RequestParams{
 			Method: "GET",
 			Query: map[string]string{
 				"apiKey":   weatherAPIKey,
-				"geocode":  fmt.Sprintf("%.3f,%.3f", weatherData.Location.Latitude[0], weatherData.Location.Longitude[0]),
-				"language": strings.Split(lang, "-")[0],
-				"units":    i18n("weather.measurement-unit"),
+				"geocode":  fmt.Sprintf("%.3f,%.3f", latitude, longitude),
+				"language": strings.Split(chatLang, "-")[0],
+				"units":    i18n("weather.measurementUnit"),
 				"format":   "json",
 			},
 		}).Body()
 
-	err = json.Unmarshal(body, &weatherResult)
+	err = json.Unmarshal(body, &weatherResultData)
 	if err != nil {
-		log.Print("[misc/weather] Error unmarshalling weather data:", err)
-		return
+		return err
 	}
 
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("weather.details"), weatherData.Location.Address[0], weatherResult.V3WxObservationsCurrent.Temperature, weatherResult.V3WxObservationsCurrent.TemperatureFeelsLike, weatherResult.V3WxObservationsCurrent.RelativeHumidity, weatherResult.V3WxObservationsCurrent.WindSpeed),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
+	var localNameParts []string
+	if locale4 := weatherResultData.V3LocationPoint.Location.Locale.Locale4; locale4 != "" {
+		localNameParts = append(localNameParts, locale4)
+	}
+
+	if locale3, ok := weatherResultData.V3LocationPoint.Location.Locale.Locale3.(string); ok && locale3 != "" {
+		localNameParts = append(localNameParts, locale3)
+	}
+
+	localNameParts = append(localNameParts,
+		weatherResultData.V3LocationPoint.Location.City,
+		weatherResultData.V3LocationPoint.Location.AdminDistrict,
+		weatherResultData.V3LocationPoint.Location.Country)
+
+	localName := strings.Join(localNameParts, ", ")
+
+	_, err = update.Edit(fmt.Sprintf(i18n("weather.details"),
+		localName,
+		weatherResultData.V3WxObservationsCurrent.Temperature,
+		weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
+		weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
+		weatherResultData.V3WxObservationsCurrent.WindSpeed), &telegram.SendOptions{
+		ParseMode: telegram.HTML,
 	})
+	return err
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	helpers.Store("misc")
-	bh.HandleMessage(handleWeather, telegohandler.Or(telegohandler.CommandEqual("weather"), telegohandler.CommandEqual("clima")))
-	bh.HandleMessage(handleTranslate, telegohandler.Or(
-		telegohandler.CommandEqual("translate"),
-		telegohandler.CommandEqual("tr")),
-	)
+func Load(client *telegram.Client) {
+	utils.SotreHelp("misc")
+	client.On("command:translate", handlers.HandleCommand(handlerTranslate))
+	client.On("command:tr", handlers.HandleCommand(handlerTranslate))
+	client.On("command:weather", handlers.HandleCommand(handlerWeather))
+	client.On("command:clima", handlers.HandleCommand(handlerWeather))
+	client.On("callback:weather", callbackWeather)
+
+	handlers.DisableableCommands = append(handlers.DisableableCommands, "translate", "tr", "weather", "clima")
 }

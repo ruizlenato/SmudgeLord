@@ -3,154 +3,125 @@ package afk
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 	"time"
 
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils/helpers"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
+	"github.com/amarnathcjd/gogram/telegram"
 )
 
-func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler) {
-	// Get the message from the update.
-	message := update.Message
-	if message == nil && update.CallbackQuery != nil {
-		message = update.CallbackQuery.Message.(*telego.Message)
-	} else if message == nil ||
-		message.From == nil ||
-		!strings.Contains(message.Chat.Type, "group") ||
-		regexp.MustCompile(`^/\bafk\b|^\bbrb\b`).MatchString(message.Text) {
-		next(bot, update) // Call the next handler in the processing chain
-		return
+func checkAFK(message *telegram.NewMessage) error {
+	if message.ChatType() == "user" {
+		return nil
 	}
 
-	// Check if the user is away.
-	user_id := getUserIDFromMessage(message)
-	if user_id == 0 || !user_is_away(user_id) {
-		next(bot, update) // Call the next handler in the processing chain
-		return
+	match, err := regexp.MatchString(`^(brb|/afk)`, strings.Split(message.Text(), " ")[0])
+	if err != nil || match {
+		return err
 	}
 
-	reason, duration, err := get_user_away(user_id)
+	userID, err := getUserIDFromMessage(message)
+	if err != nil {
+		return err
+	}
+
+	isAway, err := userIsAway(userID)
+	if err != nil || !isAway {
+		return err
+	}
+
+	reason, duration, err := getUserAway(userID)
 	if err != nil && err != sql.ErrNoRows {
-		log.Print(err)
-		return
+		return err
 	}
 
-	i18n := localization.Get(message.Chat)
-	humanizedDuration := localization.HumanizeTimeSince(duration, message.Chat)
+	i18n := localization.Get(message)
+	humanizedDuration := localization.HumanizeTimeSince(duration, message)
 
 	switch {
-	case user_id == message.From.ID:
-		if err = unset_user_away(user_id); err != nil {
-			log.Print(err)
-			return
-		}
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("afk.now-available"), message.From.ID, message.From.FirstName, humanizedDuration),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-	default:
-		user, err := bot.GetChat(&telego.GetChatParams{ChatID: telegoutil.ID(user_id)})
-		if err != nil {
-			log.Printf("[afk/getChat] Error getting user: %v", err)
-			return
+	case userID == message.Sender.ID:
+		if err := unsetUserAway(userID); err != nil {
+			return err
 		}
 
-		text := fmt.Sprintf(i18n("afk.unavailable"), user_id, user.FirstName, humanizedDuration)
+		_, err := message.Reply(fmt.Sprintf(i18n("afk.nowAvailable"), message.Sender.ID, message.Sender.FirstName, humanizedDuration),
+			telegram.SendOptions{
+				ParseMode: telegram.HTML,
+			})
+		return err
+	default:
+		user, err := message.Client.GetUser(userID)
+		if err != nil {
+			return err
+		}
+
+		text := fmt.Sprintf(i18n("afk.unavailable"), userID, user.FirstName, humanizedDuration)
 		if reason != "" {
 			text += fmt.Sprintf(i18n("afk.reason"), reason)
 		}
 
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      text,
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
+		_, err = message.Reply(text, telegram.SendOptions{
+			ParseMode: telegram.HTML,
 		})
+		return err
 	}
-
-	// Call the next handler in the processing chain.
-	next(bot, update)
 }
 
-// setAwayCommand sets the AFK status for the user who sent the command.
-func handleSetAFK(bot *telego.Bot, message telego.Message) {
-	reason := extractReason(message.Text)
-	err := set_user_away(message.From.ID, reason, time.Now().UTC())
+func handlerSetAFK(message *telegram.NewMessage) error {
+	err := setUserAway(message.Sender.ID, message.Args(), time.Now().UTC())
 	if err != nil {
-		log.Print("[afk/setAFK] Error inserting user: ", err)
-		return
+		return err
 	}
 
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
+	_, err = message.Reply(fmt.Sprintf(i18n("afk.nowUnavailable"), message.Sender.FirstName),
+		telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
 
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("afk.now-unavailable"), message.From.FirstName),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
+	return err
 }
 
-// getUserIDFromMessage extracts the user ID from a message, handling mentions and replies.
-func getUserIDFromMessage(message *telego.Message) int64 {
-	if message.ReplyToMessage != nil && message.ReplyToMessage.From != nil {
-		return message.ReplyToMessage.From.ID
+func getUserIDFromMessage(message *telegram.NewMessage) (int64, error) {
+	if message.IsReply() {
+		reply, err := message.GetReplyMessage()
+		if err != nil {
+			return 0, err
+		}
+		sender, err := reply.GetSender()
+		if err != nil {
+			return 0, err
+		}
+		return sender.ID, nil
 	}
 
-	if message.Entities != nil {
-		for _, entity := range message.Entities {
-			if entity.Type == "mention" || entity.Type == "text_mention" {
-				if entity.Type == "text_mention" {
-					return entity.User.ID
-				}
-				username := message.Text[entity.Offset : entity.Offset+entity.Length]
+	if message.Message.Entities != nil {
+		for _, entity := range message.Message.Entities {
+			switch entity := entity.(type) {
+			case *telegram.MessageEntityMentionName:
+				return entity.UserID, nil
+			case *telegram.MessageEntityMention:
+				username := message.Text()[entity.Offset : entity.Offset+entity.Length]
 				userID, err := getIDFromUsername(username)
-				if err == nil {
-					return userID
+				if err != nil {
+					return 0, err
 				}
-				log.Printf("Error getting user ID from username: %v", err)
+				return userID, nil
 			}
 		}
 	}
-
-	return message.From.ID
+	return message.SenderID(), nil
 }
 
-// extractReason extracts the reason from the AFK command message.
-func extractReason(text string) string {
-	matches := regexp.MustCompile(`^(?:brb|\/afk)\s(.+)$`).FindStringSubmatch(text)
-	if len(matches) > 1 {
-		return matches[1]
-	}
-	return ""
-}
+func Load(client *telegram.Client) {
+	utils.SotreHelp("afk")
+	client.On(telegram.OnMessage, checkAFK)
+	client.On("command:afk", handlers.HandleCommand(handlerSetAFK))
+	client.On("message:^brb", handlers.HandleCommand(handlerSetAFK))
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	helpers.Store("afk")
-	bh.Use(checkAFK)
-	bh.HandleMessage(handleSetAFK, telegohandler.Or(
-		telegohandler.CommandEqual("afk"),
-		telegohandler.TextMatches(regexp.MustCompile(`^(?:brb)(\s.+)?`)),
-	))
+	handlers.DisableableCommands = append(handlers.DisableableCommands, "afk", "brb")
 }

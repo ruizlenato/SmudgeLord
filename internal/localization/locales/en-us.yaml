@@ -2,53 +2,49 @@ language:
   name: English (US)
   flag: 🇺🇸
 
-button:
+lutton:
   start: Inciar uma conversa
   language: Language
   help: ❔Help
   about: ℹ️ About
-  privacy: 🔒 Privacy
+  privacy: 🔒 Privacy Policy
   donation: 💵 Donation
-  news-channel: 📢 Channel
+  newsChannel: 📢 Channel
   back: ↩️ Back
-  caption: "Captions:" # Need the quotes because string ends with a colon
-  automatic: "Auto:" # Need the quotes because string ends with a colon
-  about-your-data: About your data
-  privacy-policy: Privacy Policy
+  caption: "Captions:"
+  automatic: "Auto:"
+  aboutYourData: About your data
 
 menu:
-  start-message: |
+  startMsg: |
     Hello <b>%s</b> — I'm <b>%s</b>, a bot with some useful and fun commands for you.
 
     <b>Source Code:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
-  start-message-group: |
+  startGroupMsg: |
     Hello, I'm <b>%s</b>
     I have a lot of cool features. To find out more, click on the button below and start a conversation with me.
-  help-message: |
+  helpMsg: |
     Here are all my modules.
     <b>To learn more about the modules, simply click on their names.</b>
 
     <b>Note:</b>
     Some modules have additional settings in groups.
     To learn more, send <code>/config</code> in a group where you're an administrator.
-  config-message: |
-    <b>Settings —</b> Here are my settings for this group.
-    To know more, <b>click on the buttons below.</b>
-  language-mesage: |
+  languageMsg: |
     <b>Current language:</b> %s %s
 
     <b>Select below the language you want to use the bot.</b>
-  language-changed-successfully: The language has been changed successfully.
-  privacy-message: |
+  languageChangedSuccessfully: The language has been changed successfully.
+  privacyMessage: |
     <b>SmudgeLord's Privacy Policy.</b>
 
     SmudgeLord is built to provide users with transparency and trust. 
     Thank you for trusting me and I am fully dedicated to protect your privacy.
 
     <i>This privacy policy may be updated and changes will be communicated through SmudgeLord's Channel - @SmudgeLordChannel.</i>
-  privacy-group-message: |
+  privacyGroupMsg: |
     To acess SmudgeLord's privacy policy, <b>click on the button below.</b>
-  yourData-message: |-
+  yourDataMsg: |-
     <b>About your data.</b>
 
     <b>1. Data collection.</b>
@@ -67,7 +63,7 @@ menu:
     All your data is stored securely.
 
     <b>Note:</b> Your user information on Telegram is public information of the platform. We don't know your "real" data.
-  about-message: |-
+  aboutMsg: |-
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily
 
@@ -82,12 +78,12 @@ menu:
 
 afk:
   name: AFK
-  now-unavailable: <b>%s</b> is now unavailable!
+  nowUnavailable: <b>%s</b> is now unavailable!
   unavailable: |
     <b><a href='tg://user?id=%d'>%s</a></b> is <b>unavailable!</b>
     Last seen <code>%s</code> ago
   reason: <b>Reason:</b> <code>%s</code>
-  now-available: <b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.!
+  nowAvailable: <b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.!
   help: |
     <b>AFK — <i>Away from Keyboard</i></b>
 
@@ -97,29 +93,43 @@ afk:
     - /afk &lt;reason&gt; — Define yourself as away.
     - brb &lt;reason&gt;  — Same as the afk command, but not a command; no need to use <code>/</code>.
 
+config:
+  name: Configurações
+  cmdNotDisableable: <b>Command cannot be deactivated.</b>
+  cmdDisableables: <b>Disableable commands:</b>
+  cmdDisabled: The <code>%s</code> command was disabled.
+  cmdAlreadyDisabled: The <code>%s</code> command is already disabled.
+  cmdEnabled: The <code>%s</code> command was enabled.
+  cmdAlreadyEnabled: The <code>%s</code> command is already enabled.
+  menuText: |
+    <b>Settings —</b> Here are my settings for this group.
+    To know more, <b>click on the buttons below.</b>
+    
 lastfm:
   name: Last.FM
-  provide-username: |
-    Provide your last.fm username.
-    <b>Example:</b> <code>/setuser maozedong</code>.
-  invalid-username: |
+  provideUsername: <b>Answer this message</b> with your last.fm username.
+  invalidUsername: |
     <b>Invalid last.fm username</b>
     Check that you have correctly typed your last.FM username and try again.
-  no-username: |
+  noUsername: |
     <b>You haven't set your last.fm username yet.</b>
     Use the command /setuser to set
-  username-set: <b>Done, last.fm user saved!</b>
+  unsavedUsername: |
+    <b>Your last.fm username has not been saved.</b>
+    Apparently, you didn't respond to the message to save your Last.fm username. Use the <code>/setuser</code> command again to save your username
+  usernameSet: <b>Done</b>, your last.fm username has been saved!
   error: |
     <b>An error seems to have occurred.</b>
     Last.fm might be temporarily unavailable.
 
     Try again in a few minutes, if the error persists, contact my developer.
-  no-scrobbles: |
+  noScrobbles: |
     <b>It seems you haven't scrobbled any tracks on Last.fm yet.</b>.
 
     <b>If you're having trouble using Last.fm,</b> go to last.fm/about/trackmymusic and learn how to connect your account to your music app.",
-  now-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
-  was-playing: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:"
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:"
+  trackLoved: " ❤️‍🔥"
   config-help: |
     <b>LastFM settings in your group:</b>
     Use the button below to configure whether the bot should respond to the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in the group.
@@ -137,13 +147,9 @@ lastfm:
     - /album | /alb — Shows the album you are or were listening to.
     - /artist | /art — Shows the artist you are or were listening to.
 
-    <b>Note:</b> 
-    This module has additional settings for groups.
-    You can disable the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in groups.
-
 medias:
   name: Medias
-  config: |
+  Config: |
     <b>Medias settings</b>
     To know more about the <b><i>medias</i></b> module, use /help in my private chat.
 
@@ -151,12 +157,12 @@ medias:
     <i>These settings are for this group only, not for other groups or private chats.</i>
   noURL: |
     <b>You didn't specify a link or you specified an invalid link.</b>
-    Specify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b> <b><i>Twitter/X</i></b> or <b><i>Twitch Clips</i></b> link so I can download the media(s).
+    Specify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b> or <b><i>Twitter/X</i></b> link so I can download the media(s).
   autoHelp: When this option is enabled, the bot will download photos and videos from some social networks automatically when it sees a link, eliminating the need for the /sdl or /dl command.
   captionHelp: When this option is enabled, the captions of media that you download using the bot will be sent along with them.
   youtubeNoURL: |
     Please provide a YouTube link so I can download it.
-    <b>Example:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
+    <b>Example:</b> <code>/ytdl https://youtu.be/OjNpRbNdR7E</code>
   youtubeInvalidURL: That YouTube link doesn't exist or it's a private video.
   youtubeBigFile: "The video exceeds the size of 1,5GB, which is my maximum limit."
   youtubeDenied: This button is not for you.
@@ -167,6 +173,9 @@ medias:
     <b>Duração:</b> %s
   youtubeDownloadVideo: 🎬 Download video
   youtubeDownloadAudio: 💿 Download audio
+  youtubeError: |
+    <b>An error occurred while processing the video.</b>
+    If the problem persists, please contact my developer.
   downloading: Downloading...
   uploading: Uploading...
   help: |
@@ -185,7 +194,10 @@ medias:
 
 misc:
   name: Miscellaneous
-  tr-noargs: |
+  translatorError: |
+    <b>An error occurred while processing the translation.</b>
+    If the problem persists, please contact my developer.
+  translatorNoArgs: |
     <b>Usage:</b> <code>/tr &lt;language&gt; &lt;text for translation&gt;</code>
 
     You need to specify the text you want to translate or reply to a text message, or a photo with a caption.
@@ -207,16 +219,16 @@ stickers:
   name: Stickers
   kanging: <code>Kanging (Stealing) the sticker...</code>
   converting: <code>Converting video/gif to video sticker...</code>
-  pack-exists: <code>Using existing sticker pack...</code>
-  new-pack: <code>Creating a new sticker pack...</code>
-  invalid-type: The file you replied to is not valid, reply to a valid <i><b>sticker</b></i> or <i><b>video</b></i> or <i><b>photo</b></i>.
-  sticker-stoled: |
+  packExists: <code>Using existing sticker pack...</code>
+  newPack: <code>Creating a new sticker pack...</code>
+  invalidType: The file you replied to is not valid, reply to a valid <i><b>sticker</b></i> or <i><b>video</b></i> or <i><b>photo</b></i>.
+  stickerStoled: |
     Sticker stolen <b>successfully</b>, <a href='t.me/addstickers/%s'>check out.</a>
     <b>Emoji:</b> %s
-  kang-not-reply: You need to use this command by replying to <i><b>a sticker</b></i> or <i><b>a video</b></i> or <i><b>a photo</b></i>.
-  get-not-reply: |
+  kangNotReply: You need to use this command by replying to <i><b>a sticker</b></i> or <i><b>a video</b></i> or <i><b>a photo</b></i>.
+  getNotReply: |
     You need to use this command by replying to <i><b>a sticker</b></i> or <i><b>a video</b></i> or <i><b>a photo</b></i>.
-    <i>Only works with static or video stickers</i>
+    <b>Only works with static or video stickers</b>
   error: |
     <b>An error occurred while processing the sticker, try again later.</b>
     If the problem persists, contact the developer.
@@ -230,11 +242,12 @@ stickers:
     - /getsticker — Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
 
 weather:
-  location-unknown: Location not found.
-  no-location: |
+  selectLocation: <b>Select the location where you want to know the Weather:</b>
+  locationUnknown: Location not found.
+  nolocation: |
     You haven't specified a location.
     <b>Example:</b> <code>/weather Belém</code>.
-  measurement-unit: m
+  measurementunit: m
   details: |-
     <b>%s</b>:
 
