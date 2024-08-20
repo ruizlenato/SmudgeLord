@@ -38,14 +38,10 @@ func (lfm *LastFM) GetUser(username string) error {
 		},
 	})
 
-	if body.StatusCode() != 200 {
-		return nil
-	}
-
 	var userInfo userInfo
 	err := json.Unmarshal(body.Body(), &userInfo)
 	if err != nil {
-		log.Print("[lastfm/GetUser] Error unmarshalling user info:", err)
+		return fmt.Errorf("error unmarshalling user info: %w", err)
 	}
 
 	if userInfo.User == nil {
