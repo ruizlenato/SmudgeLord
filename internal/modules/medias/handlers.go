@@ -74,7 +74,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	}
 
 	row := database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", message.Chat.ID)
-	var mediasCaption bool
+	var mediasCaption bool = true
 	if row.Scan(&mediasCaption); !mediasCaption {
 		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
 	}
