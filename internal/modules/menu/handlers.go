@@ -5,9 +5,9 @@ import (
 	"log"
 	"strings"
 
-	"smudgelord/internal/database"
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils/helpers"
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"

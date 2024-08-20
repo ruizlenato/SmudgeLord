@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"smudgelord/internal/config"
-	"smudgelord/internal/database"
-	"smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/localization"
 
 	"github.com/mymmrac/telego"
 )

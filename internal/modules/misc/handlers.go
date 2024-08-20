@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"strings"
 
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils"
-	"smudgelord/internal/utils/helpers"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"

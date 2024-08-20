@@ -9,16 +9,16 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"smudgelord/internal/config"
-	"smudgelord/internal/database"
-	"smudgelord/internal/localization"
-	"smudgelord/internal/modules/medias/downloader"
-	"smudgelord/internal/modules/medias/downloader/generic"
-	"smudgelord/internal/modules/medias/downloader/instagram"
-	"smudgelord/internal/modules/medias/downloader/tiktok"
-	"smudgelord/internal/modules/medias/downloader/twitter"
-	yt "smudgelord/internal/modules/medias/downloader/youtube"
-	"smudgelord/internal/utils/helpers"
+	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/generic"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
+	yt "github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
+	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
 	"github.com/kkdai/youtube/v2"
 	"github.com/mymmrac/telego"
@@ -41,7 +41,6 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 
 	i18n := localization.Get(message.GetChat())
 
-	// Extract URL from the message text using regex
 	url := regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text)
 	if len(url) < 1 {
 		bot.SendMessage(&telego.SendMessageParams{
@@ -60,7 +59,6 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
 	}
 
-	// Check if only one photo is present and link preview is enabled, then return
 	if mediaItems == nil || len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" && message.LinkPreviewOptions != nil && !message.LinkPreviewOptions.IsDisabled {
 		return
 	}

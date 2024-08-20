@@ -9,7 +9,7 @@ import (
 	"sync"
 	"unicode/utf8"
 
-	"smudgelord/internal/utils"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 
 	"github.com/mymmrac/telego"
 )

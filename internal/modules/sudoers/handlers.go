@@ -5,10 +5,10 @@ import (
 	"log"
 	"strings"
 
-	"smudgelord/internal/config"
-	"smudgelord/internal/database"
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils"
+	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"

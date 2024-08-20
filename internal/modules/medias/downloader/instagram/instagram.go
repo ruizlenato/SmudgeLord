@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	"smudgelord/internal/modules/medias/downloader"
-	"smudgelord/internal/utils"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegoutil"

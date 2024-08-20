@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
 // Custom error type for consistency

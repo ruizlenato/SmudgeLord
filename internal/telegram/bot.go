@@ -1,7 +1,7 @@
 package telegram
 
 import (
-	"smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/config"
 
 	"github.com/mymmrac/telego"
 )

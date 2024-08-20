@@ -1,4 +1,4 @@
-module smudgelord
+module github.com/ruizlenato/smudgelord
 
 go 1.22.3
 

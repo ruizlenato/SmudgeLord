@@ -3,7 +3,7 @@ package telegram
 import (
 	"fmt"
 
-	"smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/config"
 
 	"github.com/fasthttp/router"
 	"github.com/mymmrac/telego"

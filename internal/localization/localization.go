@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/database"
 
 	"github.com/goccy/go-yaml"
 	"github.com/mymmrac/telego"

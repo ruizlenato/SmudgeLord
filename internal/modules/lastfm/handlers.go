@@ -6,12 +6,12 @@ import (
 	"regexp"
 	"strings"
 
-	"smudgelord/internal/database"
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils"
-	"smudgelord/internal/utils/helpers"
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
-	lastFMAPI "smudgelord/internal/modules/lastfm/api"
+	lastFMAPI "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"

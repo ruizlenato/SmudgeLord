@@ -3,7 +3,7 @@ package database_test
 import (
 	"testing"
 
-	"smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/database"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"

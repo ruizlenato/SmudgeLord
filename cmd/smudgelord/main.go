@@ -7,9 +7,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"smudgelord/internal/config"
-	"smudgelord/internal/database"
-	"smudgelord/internal/telegram"
+	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/telegram"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"

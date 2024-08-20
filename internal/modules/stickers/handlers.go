@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"smudgelord/internal/localization"
-	"smudgelord/internal/utils/helpers"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
 	"github.com/h2non/bimg"
 	"github.com/mymmrac/telego"

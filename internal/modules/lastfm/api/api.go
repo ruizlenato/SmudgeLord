@@ -7,8 +7,8 @@ import (
 	"log"
 	"strconv"
 
-	"smudgelord/internal/config"
-	"smudgelord/internal/utils"
+	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 const lastFMAPI = "http://ws.audioscrobbler.com/2.0"
