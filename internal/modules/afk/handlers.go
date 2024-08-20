@@ -17,7 +17,6 @@ import (
 )
 
 func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler) {
-	// Get the message from the update.
 	message := update.Message
 	if message == nil && update.CallbackQuery != nil {
 		message = update.CallbackQuery.Message.(*telego.Message)
@@ -25,14 +24,13 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 		message.From == nil ||
 		!strings.Contains(message.Chat.Type, "group") ||
 		regexp.MustCompile(`^/\bafk\b|^\bbrb\b`).MatchString(message.Text) {
-		next(bot, update) // Call the next handler in the processing chain
+		next(bot, update)
 		return
 	}
 
-	// Check if the user is away.
 	user_id := getUserIDFromMessage(message)
 	if user_id == 0 || !user_is_away(user_id) {
-		next(bot, update) // Call the next handler in the processing chain
+		next(bot, update)
 		return
 	}
 
@@ -42,8 +40,8 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 		return
 	}
 
-	i18n := localization.Get(message)
-	humanizedDuration := localization.HumanizeTimeSince(duration, message.Chat)
+	i18n := localization.Get(update)
+	humanizedDuration := localization.HumanizeTimeSince(duration, update)
 
 	switch {
 	case user_id == message.From.ID:
@@ -87,11 +85,9 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 		})
 	}
 
-	// Call the next handler in the processing chain.
 	next(bot, update)
 }
 
-// setAwayCommand sets the AFK status for the user who sent the command.
 func handleSetAFK(bot *telego.Bot, message telego.Message) {
 	reason := extractReason(message.Text)
 	err := set_user_away(message.From.ID, reason, time.Now().UTC())
@@ -112,7 +108,6 @@ func handleSetAFK(bot *telego.Bot, message telego.Message) {
 	})
 }
 
-// getUserIDFromMessage extracts the user ID from a message, handling mentions and replies.
 func getUserIDFromMessage(message *telego.Message) int64 {
 	if message.ReplyToMessage != nil && message.ReplyToMessage.From != nil {
 		return message.ReplyToMessage.From.ID
@@ -137,7 +132,6 @@ func getUserIDFromMessage(message *telego.Message) int64 {
 	return message.From.ID
 }
 
-// extractReason extracts the reason from the AFK command message.
 func extractReason(text string) string {
 	matches := regexp.MustCompile(`^(?:brb|\/afk)\s(.+)$`).FindStringSubmatch(text)
 	if len(matches) > 1 {

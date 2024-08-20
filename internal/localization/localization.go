@@ -23,18 +23,6 @@ var (
 	availableLocalesMutex sync.Mutex
 )
 
-// LoadLanguages loads language files from the localtizations directory and populates the global cache.
-// Each file in the directory should be a JSON file representing translations for a specific language.
-// The language files are identified by their language code, derived from the file name without the extension.
-// Loaded languages are stored in the cache for quick access during program execution.
-// Additionally, the language codes are appended to the global list of available locales (AvailableLocales).
-//
-// Parameters:
-//   - dir: The directory containing JSON files with translations for each language.
-//
-// Returns:
-//   - error: Returns an error if there is any issue during the loading of languages.
-//     Otherwise, it returns nil, indicating successful loading of languages.
 func LoadLanguages() error {
 	database.AvailableLocales = nil
 	dir := "internal/localization/locales"
@@ -103,7 +91,11 @@ func Get(update interface{}) func(string) string {
 	case telego.Message:
 		chat = u.Chat
 	case telego.Update:
-		chat = u.CallbackQuery.Message.(*telego.Message).Chat
+		if u.CallbackQuery != nil && u.CallbackQuery.Message != nil {
+			chat = u.CallbackQuery.Message.GetChat()
+		} else if u.Message != nil {
+			chat = u.Message.Chat
+		}
 	}
 
 	return func(key string) string {
@@ -132,7 +124,6 @@ func Get(update interface{}) func(string) string {
 	}
 }
 
-// Helper function to traverse nested map and get the final string value
 func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 	keys := strings.Split(key, ".")
 	currentMap := langMap
@@ -155,21 +146,11 @@ func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 	return "KEY_NOT_FOUND"
 }
 
-// HumanizeTimeSince returns a human-readable representation of the time duration since a given duration.
-// It takes a duration and a chat as input parameters and returns a string.
-// Parameters:
-//   - duration: The time duration since a specific event.
-//   - chat: Used to determine the localization settings for the returned string.
-//
-// Returns:
-//   - string: A human-readable representation of the time duration since a specific event.
-func HumanizeTimeSince(duration time.Duration, chat telego.Chat) string {
-	// Get the i18n function for the chat
-	i18n := Get(chat)
-
+func HumanizeTimeSince(duration time.Duration, update telego.Update) string {
 	var timeDuration int
 	var stringKey string
 
+	i18n := Get(update)
 	switch {
 	case duration < time.Minute:
 		timeDuration = int(duration.Seconds())
@@ -191,12 +172,10 @@ func HumanizeTimeSince(duration time.Duration, chat telego.Chat) string {
 		stringKey = "relativeDuration.%s.M"
 	}
 
-	// Use a helper function to get the translated string based on the string key and time duration
 	timeSince := getTranslatedTimeSince(i18n, stringKey, timeDuration)
 	return timeSince
 }
 
-// Helper function to get the translated time since string
 func getTranslatedTimeSince(i18n func(string) string, stringKey string, timeDuration int) string {
 	singularKey := fmt.Sprintf(stringKey, "singular")
 	pluralKey := fmt.Sprintf(stringKey, "plural")
