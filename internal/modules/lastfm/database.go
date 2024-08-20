@@ -18,8 +18,5 @@ func setLastFMUsername(userID int64, lastFMUsername string) error {
 func getUserLastFMUsername(userID int64) (string, error) {
 	var lastFMUsername string
 	err := database.DB.QueryRow("SELECT lastfm_username FROM users WHERE id = ?;", userID).Scan(&lastFMUsername)
-	if err != nil {
-		log.Printf("Error getting LastFM username for user %d: %v", userID, err)
-	}
 	return lastFMUsername, err
 }
