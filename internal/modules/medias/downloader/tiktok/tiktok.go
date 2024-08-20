@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"regexp"
 	"slices"
@@ -43,8 +44,12 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 }
 
 func getPostID(url string) (string, error) {
-	resp := utils.Request(url, utils.RequestParams{Method: "GET"})
-	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(string(resp.Body()))
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", errors.New("Error getting TikTok URL " + err.Error())
+	}
+	defer resp.Body.Close()
+	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(resp.Request.URL.String())
 	if len(matches) > 1 {
 		return matches[1], nil
 	}
