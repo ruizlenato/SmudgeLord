@@ -15,6 +15,24 @@ button:
   automatic: "Auto:" # Need the quotes because string ends with a colon
   aboutYourData: About your data
 
+
+afk:
+  name: AFK
+  nowUnavailable: <b>%s</b> is now unavailable!
+  unavailable: |
+    <b><a href='tg://user?id=%d'>%s</a></b> is <b>unavailable!</b>
+    Last seen <code>%s</code> ago
+  reason: <b>Reason:</b> <code>%s</code>
+  nowAvailable: <b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.!
+  help: |
+    <b>AFK — <i>Away from Keyboard</i></b>
+
+    <b>AFK stands for</b> <i>“away from keyboard”</i>. It is basically Internet slang to say that you are away.
+
+    <b>— Commands:</b>
+    <b>/afk (reason):</b> Define yourself as away.
+    <b>brb (reason):</b> Same as the afk command, but not a command; no need to use <code>/</code>.
+
 config:
   name: Settings
   cmdNotDisableable: <b>Command cannot be deactivated.</b>
@@ -38,6 +56,94 @@ config:
     <b>/disableable:</b> Lists all the commands that can be deactivated.
     <b>/disabled:</b> Lists all commands that are currently disabled.
     <b>/config:</b> Returns a menu with some group settings
+
+lastfm:
+  name: Last.FM
+  provideUsername: |
+    Provide your last.fm username.
+    <b>Example:</b> <code>/setuser maozedong</code>.
+  invalidUsername: |
+    <b>Invalid last.fm username</b>
+    Check that you have correctly typed your last.FM username and try again.
+  noUsername: |
+    <b>You haven't set your last.fm username yet.</b>
+    Use the command /setuser to set
+  usernameSet: <b>Done</b>, your last.fm username has been saved!
+  error: |
+    <b>An error seems to have occurred.</b>
+    Last.fm might be temporarily unavailable.
+
+    Try again in a few minutes, if the error persists, contact my developer.
+  noScrobbles: |
+    <b>It seems you haven't scrobbled any tracks on Last.fm yet.</b>.
+
+    <b>If you're having trouble using Last.fm,</b> go to last.fm/about/trackmymusic and learn how to connect your account to your music app.",
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
+  configHelp: |
+    <b>LastFM settings in your group:</b>
+    Use the button below to configure whether the bot should respond to the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in the group.
+
+    If you want to avoid conflicts with other bots, you can disable the option below so that the bot doesn't respond to the commands mentioned above.
+  help: |
+    <b>Last.FM Scobbles</b>
+
+    <b>Scrobble</b> is a feature of last.fm that automatically sends information about the music you're listening to to the service.
+    <b>To know more <a href='https://www.last.fm/pt/about/trackmymusic'>click here</a></b>.
+
+    <b>— Commands:</b>
+    <b>/setuser (lastfm username):</b> Set your last.fm username.
+    <b>/lastfm | /lp:</b> Shows the music you are or were listening to.
+    <b>/album | /alb:</b>Shows the album you are or were listening to.
+    <b>/artist   | /art:</b> Shows the artist you are or were listening to.
+
+medias:
+  name: Medias
+  config: |
+    <b>Medias settings</b>
+    To know more about the <b><i>medias</i></b> module, use /help in my private chat.
+
+    <b>To know more about each configuration, click on its name.</b>
+    <i>These settings are for this group only, not for other groups or private chats.</i>
+  noURL: |
+    <b>You didn't specify a link or you specified an invalid link.</b>
+    Specify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b> <b><i>Twitter/X</i></b> or <b><i>Twitch Clips</i></b> link so I can download the media(s).
+  autoHelp: When this option is enabled, the bot will download photos and videos from some social networks automatically when it sees a link, eliminating the need for the /sdl or /dl command.
+  captionHelp: When this option is enabled, the captions of media that you download using the bot will be sent along with them.
+  youtubeNoURL: |
+    Please provide a YouTube link so I can download it.
+    <b>Example:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
+  youtubeInvalidURL: That YouTube link doesn't exist or it's a private video.
+  youtubeBigFile: "The video exceeds the size of 1,5GB, which is my maximum limit."
+  youtubeDenied: This button is not for you.
+  youtubeVideoInfo: |
+    <b>Título:</b> %s
+    <b>Autor:</b> %s
+    <b>Tamanho:</b> <code>%.2f</code> (Vídeo) | <code>%.2f</code> (Áudio)
+    <b>Duração:</b> %s
+  youtubeDownloadVideo: 🎬 Download video
+  youtubeDownloadAudio: 💿 Download audio
+  youtubeError: |
+    <b>An error occurred while processing the video.</b>
+    If the problem persists, please contact my developer.
+  downloading: Downloading...
+  uploading: Uploading...
+  help: |
+    <b>Media Downloader</b>
+
+    When sharing links on Telegram, some sites don't display an image or video preview. This module enables Smudge to automatically detect links from supported sites and send the videos and images contained within them.
+
+    <b>Currently supported sites:</b> <i>Instagram</i>, <i>TikTok</i> and <i>Twitter/X</i>.
+
+    <b>Note:</b> 
+    This module contains additional settings for groups. 
+    You can disable automatic downloads and captions in the groups.
+
+    <b>— Commands:</b>
+    <b>/dl | /sdl (link):</b> This command is for when you disable automatic downloads in groups.
+    <b>/ytdl (link)</b>: Downloads videos from <b>YouTube</b>
+    The maximum quality of video downloads is 1080p. You can also download just the audio of the video with this command.
+
 menu:
   startMessage: |
     Hello <b>%s</b> — I'm <b>%s</b>, a bot with some useful and fun commands for you.
@@ -99,123 +205,6 @@ menu:
 
     If you want to contribute in another way, with a card for example, click on the button below and you will be redirected to the Ko-Fi donation link.
 
-afk:
-  name: AFK
-  nowUnavailable: <b>%s</b> is now unavailable!
-  unavailable: |
-    <b><a href='tg://user?id=%d'>%s</a></b> is <b>unavailable!</b>
-    Last seen <code>%s</code> ago
-  reason: <b>Reason:</b> <code>%s</code>
-  nowAvailable: <b><a href='tg://user?id=%d'>%s</a></b> is back after <code>%s</code> away.!
-  help: |
-    <b>AFK — <i>Away from Keyboard</i></b>
-
-    <b>AFK stands for</b> <i>“away from keyboard”</i>. It is basically Internet slang to say that you are away.
-
-    <b>Commands:</b>
-    - /afk &lt;reason&gt; — Define yourself as away.
-    - brb &lt;reason&gt;  — Same as the afk command, but not a command; no need to use <code>/</code>.
-
-config:
-  name: Configurações
-  cmdNotDisableable: <b>Command cannot be deactivated.</b>
-  cmdDisableables: <b>Disableable commands:</b>
-  cmdDisabled: The <code>%s</code> command was disabled.
-  cmdAlreadyDisabled: The <code>%s</code> command is already disabled.
-  cmdEnabled: The <code>%s</code> command was enabled.
-  cmdAlreadyEnabled: The <code>%s</code> command is already enabled.
-  menuText: |
-    <b>Settings —</b> Here are my settings for this group.
-    To know more, <b>click on the buttons below.</b>
-
-lastfm:
-  name: Last.FM
-  provideUsername: |
-    Provide your last.fm username.
-    <b>Example:</b> <code>/setuser maozedong</code>.
-  invalidUsername: |
-    <b>Invalid last.fm username</b>
-    Check that you have correctly typed your last.FM username and try again.
-  noUsername: |
-    <b>You haven't set your last.fm username yet.</b>
-    Use the command /setuser to set
-  usernameSet: <b>Done</b>, your last.fm username has been saved!
-  error: |
-    <b>An error seems to have occurred.</b>
-    Last.fm might be temporarily unavailable.
-
-    Try again in a few minutes, if the error persists, contact my developer.
-  noScrobbles: |
-    <b>It seems you haven't scrobbled any tracks on Last.fm yet.</b>.
-
-    <b>If you're having trouble using Last.fm,</b> go to last.fm/about/trackmymusic and learn how to connect your account to your music app.",
-  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
-  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
-  configHelp: |
-    <b>LastFM settings in your group:</b>
-    Use the button below to configure whether the bot should respond to the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in the group.
-
-    If you want to avoid conflicts with other bots, you can disable the option below so that the bot doesn't respond to the commands mentioned above.
-  help: |
-    <b>Last.FM Scobbles</b>
-
-    <b>Scrobble</b> is a feature of last.fm that automatically sends information about the music you're listening to to the service.
-    <b>To know more <a href='https://www.last.fm/pt/about/trackmymusic'>click here</a></b>.
-
-    <b>Commands:</b>
-    - /setuser &lt;lastfm username&gt; — Set your last.fm username.
-    - /lastfm | /lp — Shows the music you are or were listening to.
-    - /album | /alb — Shows the album you are or were listening to.
-    - /artist | /art — Shows the artist you are or were listening to.
-
-    <b>Note:</b> 
-    This module has additional settings for groups.
-    You can disable the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in groups.
-
-medias:
-  name: Medias
-  config: |
-    <b>Medias settings</b>
-    To know more about the <b><i>medias</i></b> module, use /help in my private chat.
-
-    <b>To know more about each configuration, click on its name.</b>
-    <i>These settings are for this group only, not for other groups or private chats.</i>
-  noURL: |
-    <b>You didn't specify a link or you specified an invalid link.</b>
-    Specify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b> <b><i>Twitter/X</i></b> or <b><i>Twitch Clips</i></b> link so I can download the media(s).
-  autoHelp: When this option is enabled, the bot will download photos and videos from some social networks automatically when it sees a link, eliminating the need for the /sdl or /dl command.
-  captionHelp: When this option is enabled, the captions of media that you download using the bot will be sent along with them.
-  youtubeNoURL: |
-    Please provide a YouTube link so I can download it.
-    <b>Example:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
-  youtubeInvalidURL: That YouTube link doesn't exist or it's a private video.
-  youtubeBigFile: "The video exceeds the size of 1,5GB, which is my maximum limit."
-  youtubeDenied: This button is not for you.
-  youtubeVideoInfo: |
-    <b>Título:</b> %s
-    <b>Autor:</b> %s
-    <b>Tamanho:</b> <code>%.2f</code> (Vídeo) | <code>%.2f</code> (Áudio)
-    <b>Duração:</b> %s
-  youtubeDownloadVideo: 🎬 Download video
-  youtubeDownloadAudio: 💿 Download audio
-  youtubeError: |
-    <b>An error occurred while processing the video.</b>
-    If the problem persists, please contact my developer.
-  downloading: Downloading...
-  uploading: Uploading...
-  help: |
-    <b>Media Downloader</b>
-
-    When sharing links on Telegram, some sites don't display an image or video preview. This module enables Smudge to automatically detect links from supported sites and send the videos and images contained within them.
-
-    <b>Note:</b> 
-    This module contains additional settings for groups. 
-    You can disable automatic downloads and captions in the groups.
-
-    <b>Commands:</b> 
-    - /dl | /sdl &lt;link&gt; — This command is for when you disable automatic downloads in groups.
-    - /ytdl &lt;link&gt; — Downloads videos from <b>YouTube</b>
-    The maximum quality of video downloads is 1080p. You can also download just the audio of the video with this command.
 
 misc:
   name: Miscellaneous
@@ -228,9 +217,9 @@ misc:
     
     This module combines some useful commands that don't fit into other specific categories.
     
-    <b>Commands:</b> 
-    - /weather &lt;city&gt; — Displays the current weather of the specified city.
-    - /tr &lt;source&gt;-&lt;destination&gt; &lt;text&gt; — Translates a text from the source language to the specified destination language.
+    <b>— Commands:</b>
+    <b>/weather (city):</b> Displays the current weather of the specified city.
+    <b>/tr (source)-(destination) (text):</b> Translates a text from the source language to the specified destination language.
     <i>If you don't specify the source language, Smudge will automatically detect it.</i>
 
     <b>Note:</b>
@@ -259,23 +248,9 @@ stickers:
 
     This module contains some useful functions for you to manage stickers.
 
-    <b>Commands:</b>
-    - /kang &lt;emoji&gt; — Reply to any sticker to add it to your sticker pack created by me. <b>Works with <i>static, video, and animated</i> stickers.</b>
-    - /getsticker — Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
-
-weather:
-  locationUnknown: Location not found.
-  noLocation: |
-    You haven't specified a location.
-    <b>Example:</b> <code>/weather Belém</code>.
-  measurementUnit: m
-  details: |-
-    <b>%s</b>:
-
-    Temperature: <code>%d °C</code>
-    Temperature feels like: <code>%d °C</code>
-    Air humidity: <code>%d%%</code>
-    Wind speed: <code>%d km/h</code>
+    <b>— Commands:</b>
+    <b>/kang (emoji):</b> Reply to any sticker to add it to your sticker pack created by me. <b>Works with <i>static, video, and animated</i> stickers.</b>
+    <b>/getsticker:</b> Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
 
 relativeDuration:
   singular:
@@ -292,3 +267,18 @@ relativeDuration:
     d: days
     w: weeks
     M: months
+
+weather:
+  locationUnknown: Location not found.
+  noLocation: |
+    You haven't specified a location.
+    <b>Example:</b> <code>/weather Belém</code>.
+  measurementUnit: m
+  details: |-
+    <b>%s</b>:
+
+    Temperature: <code>%d °C</code>
+    Temperature feels like: <code>%d °C</code>
+    Air humidity: <code>%d%%</code>
+    Wind speed: <code>%d km/h</code>
+

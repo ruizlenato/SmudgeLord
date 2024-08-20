@@ -15,6 +15,24 @@ button:
   automatic: "Automático:"
   aboutYourData: Sobre seus dados
 
+afk:
+  name: AFK
+  nowUnavailable: <b>%s</b> está agora indisponível!
+  unavailable: |
+    <b><a href='tg://user?id=%d'>%s</a></b> está <b>indisponível!</b>
+    Visto pela última vez à <code>%s</code> atrás
+  reason: <b>Motivo:</b> <code>%s</code>
+  nowAvailable: <b><a href='tg://user?id=%d'>%s</a></b> está de volta após <code>%s</code> de ausência!
+  help: |
+    <b>AFK — <i>Away from Keyboard</i></b>
+
+    <b>AFK</b> em uma tradução para o português, significa <b>“Longe do teclado”</b>.
+    É uma gíria da internet usada para indicar que você está ausente.
+
+    <b>— Comandos:</b>
+    <b>/afk (motivo):</b> Define você mesmo como ausente.
+    <b>brb (motivo):</b> Igual ao comando afk, mas não é um comando; não é necessário usar <code>/</code>.
+  
 config:
   name: Configurações
   cmdNotDisableable: <b>Comando não pode ser desativado.</b>
@@ -38,6 +56,94 @@ config:
     <b>/disableable:</b> Lista todos os comandos que podem ser desativados.
     <b>/disabled:</b> Lista todos os comandos que estão atualmente desativados.
     <b>/config:</b> Retorna um menu com algumas configurações de grupo
+
+lastfm:
+  name: Last.FM
+  provideUsername: |
+    Forneça seu nome de usuário do last.fm
+    <b>Exemplo:</b> <code>/setuser maozedong</code>.
+  invalidUsername: |
+    <b>Usuário do last.fm inválido</b>
+    Verifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.
+  noUsername: |
+    <b>Você ainda não definiu seu nome de usuário do last.fm</b>
+    Use o comando /setuser para definir
+  usernameSet: <b>Pronto</b>, seu nome de usuário do last.fm foi salvo!
+  error: |
+    <b>Parece que ocorreu um erro.</b>
+    O last.fm pode estar temporariamente indisponível.
+
+    Tente novamente em alguns minutos, se o erro persistir, entre em contato com o meu desenvolvedor.
+  noScrobbles: |
+    <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>
+
+    <b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  configHelp: |
+    <b>Configurações do LastFM em seu grupo:</b>
+    Use o botão abaixo para configurar se o bot deve responder aos comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
+
+    Se quiser evitar conflitos com outros bots você pode desativar a opção abaixo para que o bot não responda aos comandos mencionados acima.
+  help: |
+    <b>Last.FM Scobbles</b>
+
+    <b>Scrobble</b> é um recurso do Last.fm que envia automaticamente informações sobre as músicas que você está ou estava ouvindo para o serviço.
+    <b>Para saber mais, <a href='https://www.last.fm/pt/about/trackmymusic'>clique aqui</a>.</b>
+
+    <b>— Comandos:</b>
+    <b>/setuser (nome de usuário):</b> Configura seu nome de usuário do last.fm.
+    <b>/lastfm | /lp:</b> Mostra a música você está ou estava ouvindo.
+    <b>/album | /alb:</b> Mostra o álbum você está ou estava ouvindo.
+    <b>/artist   | /art:</b> Mostra o artista você está ou estava ouvindo.
+
+medias:
+  name: Mídias
+  config: |
+    <b>Configurações de Mídias</b>
+    Para saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.
+
+    <b>Para saber um pouco sobre cada configuração, clique no nome dela.</b>
+    <i>Essas configurações é somente para esse grupo, não servem para outros ou chat privado.</i>
+  noURL: |
+    <b>Você não especificou um link ou especificou um link invalido.</b>
+    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b> ou <b><i>Twitter/X</i></b> para que eu possa baixar a(s) mídia(s).
+  autoHelp: Quando essa opção está ativa, o bot fará o download de fotos e vídeos de algumas redes sociais automaticamente ao ver um link, dispensando a necessidade do comando /sdl ou /dl.
+  captionHelp: Quando essa opção está ativa, as legendas das mídias que você baixar usando o bot serão enviadas junto com elas.
+  youtubeNoURL: |
+    Forneça um link do YouTube para que eu possa fazer o download.
+    <b>Exemplo:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
+  youtubeInvalidURL: Esse link do YouTube não existe ou é de um vídeo privado.
+  youtubeBigFile: O vídeo ultrapassa o tamanho de 1,5GB, que é o meu limite máximo.
+  youtubeDenied: Este botão não é para você.
+  youtubeVideoInfo: |
+    <b>Título:</b> %s
+    <b>Autor:</b> %s
+    <b>Tamanho:</b> <code>%.2f</code> (Vídeo) | <code>%.2f</code> (Áudio)
+    <b>Duração:</b> %s
+  youtubeDownloadVideo: 🎬 Baixar vídeo
+  youtubeDownloadAudio: 💿 Baixar áudio
+  youtubeError: |
+    <b>Ocorreu um erro ao processar o vídeo.</b>
+    Se o problema persistir, entre em contato com o meu desenvolvedor.
+  downloading: Baixando...
+  uploading: Enviando...
+  help: |
+    <b>Media Downloader</b>
+
+    Ao compartilhar links no Telegram, alguns sites não exibem uma pré-visualização de imagem ou vídeo. Esse módulo faz com que o Smudge detecte automaticamente os links dos sites suportados e envie os vídeos e imagens que estão presentes no mesmo.
+
+    <b>Sites atualmente suportados:</b> <i>Instagram</i>, <i>TikTok</i> e <i>Twitter/X</i>.
+    
+    <b>Nota:</b> 
+    Esse módulo contém configurações adicionais para grupos. 
+    Você pode desativar os downloads automáticos e as legendas em grupos.
+    
+    <b>— Comandos:</b>
+    <b>/dl|/sdl (link):</b> Esse comando é para quando você desativa os downloads automáticos nos grupos.
+    <b>/ytdl (link):</b> Baixa vídeos do <b>YouTube</b>.
+    A qualidade máxima dos downloads dos vídeos do YouTube é 1080p. Você também pode baixar apenas o áudio do vídeo com esse comando.
+
 menu:
   startMessage: |
     Olá <b>%s</b> — Sou o <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.
@@ -98,128 +204,7 @@ menu:
     • Chave Pix e Email do PayPal: <code>ruizlenato@proton.me</code>
 
     Caso queira contribuir de outra maneira, com cartão de crédito ou debito por exemplo, clique no botão abaixo e seja redirecionado ao link de doação do Ko-Fi.
-
-afk:
-  name: AFK
-  nowUnavailable: <b>%s</b> está agora indisponível!
-  unavailable: |
-    <b><a href='tg://user?id=%d'>%s</a></b> está <b>indisponível!</b>
-    Visto pela última vez à <code>%s</code> atrás
-  reason: <b>Motivo:</b> <code>%s</code>
-  nowAvailable: <b><a href='tg://user?id=%d'>%s</a></b> está de volta após <code>%s</code> de ausência!
-  help: |
-    <b>AFK — <i>Away from Keyboard</i></b>
-
-    <b>AFK</b> em uma tradução para o português, significa <b>“Longe do teclado”</b>.
-    É uma gíria da internet usada para indicar que você está ausente.
-
-    <b>Comandos:</b>
-    - /afk &lt;motivo&gt; — Define você mesmo como ausente.
-    - brb &lt;motivo&gt; — Igual ao comando afk, mas não é um comando; não é necessário usar <code>/</code>.
-  
-config:
-  name: Configurações
-  cmdNotDisableable: <b>Comando não pode ser desativado.</b>
-  cmdDisableables: <b>Comandos desativáveis:</b>
-  cmdDisabled: O comando <code>%s</code> foi desabilitado.
-  cmdAlreadyDisabled: O comando <code>%s</code> já está desabilitado.
-  cmdEnabled: O comando <code>%s</code> foi habilitado.
-  cmdAlreadyEnabled: O comando <code>%s</code> já está habilitado.
-  menuText: |
-    <b>Configurações —</b> Aqui estão minhas configurações para esse grupo.
-    Para saber mais, <b>clique nos botões abaixo.</b>
-
-lastfm:
-  name: Last.FM
-  provideUsername: |
-    Forneça seu nome de usuário do last.fm
-    <b>Exemplo:</b> <code>/setuser maozedong</code>.
-  invalidUsername: |
-    <b>Usuário do last.fm inválido</b>
-    Verifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.
-  noUsername: |
-    <b>Você ainda não definiu seu nome de usuário do last.fm</b>
-    Use o comando /setuser para definir
-  usernameSet: <b>Pronto</b>, seu nome de usuário do last.fm foi salvo!
-  error: |
-    <b>Parece que ocorreu um erro.</b>
-    O last.fm pode estar temporariamente indisponível.
-
-    Tente novamente em alguns minutos, se o erro persistir, entre em contato com o meu desenvolvedor.
-  noScrobbles: |
-    <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>
-
-    <b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.
-  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
-  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
-  configHelp: |
-    <b>Configurações do LastFM em seu grupo:</b>
-    Use o botão abaixo para configurar se o bot deve responder aos comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
-
-    Se quiser evitar conflitos com outros bots você pode desativar a opção abaixo para que o bot não responda aos comandos mencionados acima.
-  help: |
-    <b>Last.FM Scobbles</b>
-
-    <b>Scrobble</b> é um recurso do Last.fm que envia automaticamente informações sobre as músicas que você está ou estava ouvindo para o serviço.
-    <b>Para saber mais, <a href='https://www.last.fm/pt/about/trackmymusic'>clique aqui</a>.</b>
-
-    <b>Comandos:</b>
-    - /setuser &lt;nome de usuário&gt; — Configura seu nome de usuário do last.fm.
-    - /lastfm | /lp — Mostra a música você está ou estava ouvindo.
-    - /album | /alb — Mostra o álbum você está ou estava ouvindo.
-    - /artist | /art — Mostra o artista você está ou estava ouvindo.
-
-    <b>Nota:</b> 
-    Esse módulo contém configurações adicionais para grupos.
-    Você pode desativar os comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> em grupos.
-
-medias:
-  name: Mídias
-  config: |
-    <b>Configurações de Mídias</b>
-    Para saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.
-
-    <b>Para saber um pouco sobre cada configuração, clique no nome dela.</b>
-    <i>Essas configurações é somente para esse grupo, não servem para outros ou chat privado.</i>
-  noURL: |
-    <b>Você não especificou um link ou especificou um link invalido.</b>
-    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Clipe da Twitch</i></b> para que eu possa baixar a(s) mídia(s).
-  autoHelp: Quando essa opção está ativa, o bot fará o download de fotos e vídeos de algumas redes sociais automaticamente ao ver um link, dispensando a necessidade do comando /sdl ou /dl.
-  captionHelp: Quando essa opção está ativa, as legendas das mídias que você baixar usando o bot serão enviadas junto com elas.
-  youtubeNoURL: |
-    Forneça um link do YouTube para que eu possa fazer o download.
-    <b>Exemplo:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
-  youtubeInvalidURL: Esse link do YouTube não existe ou é de um vídeo privado.
-  youtubeBigFile: O vídeo ultrapassa o tamanho de 1,5GB, que é o meu limite máximo.
-  youtubeDenied: Este botão não é para você.
-  youtubeVideoInfo: |
-    <b>Título:</b> %s
-    <b>Autor:</b> %s
-    <b>Tamanho:</b> <code>%.2f</code> (Vídeo) | <code>%.2f</code> (Áudio)
-    <b>Duração:</b> %s
-  youtubeDownloadVideo: 🎬 Baixar vídeo
-  youtubeDownloadAudio: 💿 Baixar áudio
-  youtubeError: |
-    <b>Ocorreu um erro ao processar o vídeo.</b>
-    Se o problema persistir, entre em contato com o meu desenvolvedor.
-  downloading: Baixando...
-  uploading: Enviando...
-  help: |
-    <b>Media Downloader</b>
-
-    Ao compartilhar links no Telegram, alguns sites não exibem uma pré-visualização de imagem ou vídeo. Esse módulo faz com que o Smudge detecte automaticamente os links dos sites suportados e envie os vídeos e imagens que estão presentes no mesmo.
-
-    <b>Sites atualmente suportados:</b> <i>Instagram</i>, <i>TikTok</i>, <i>Reddit</i>, <i>Twitter/X</i> e <i>Clips da Twitch</i>.
     
-    <b>Nota:</b> 
-    Esse módulo contém configurações adicionais para grupos. 
-    Você pode desativar os downloads automáticos e as legendas em grupos.
-
-    <b>Comandos:</b>
-    - /dl|/sdl &lt;link&gt; — Esse comando é para quando você desativa os downloads automáticos nos grupos.
-    - /ytdl &lt;link&gt; — Baixa vídeos do <b>YouTube</b>.
-    A qualidade máxima dos downloads dos vídeos do YouTube é 1080p. Você também pode baixar apenas o áudio do vídeo com esse comando.
-
 misc:
   name: Diversos
   translatorNoArgs: |
@@ -231,9 +216,9 @@ misc:
     
     Esse módulo reúne alguns comandos úteis que não se encaixam em outras categorias específicas.
 
-    <b>Comandos:</b>
-    - /clima &lt;cidade&gt; — Mostra o clima atual da cidade especifica.
-    - /tr &lt;origem&gt;-&lt;destino&gt; &lt;texto&gt; — Traduz um texto do idioma de origem para o idioma de destino especificado.
+    <b>— Comandos:</b>
+    <b>/clima (cidade):</b> Mostra o clima atual da cidade especifica.
+    <b>/tr (origem)-(destino) (texto):</b> Traduz um texto do idioma de origem para o idioma de destino especificado.
     <i>Caso você não especifique o idioma de origem, o Smudge irá identificar automaticamente.</i>
 
     <b>Nota:</b>
@@ -262,23 +247,9 @@ stickers:
 
     Esse módulo contém algumas funções úteis para você gerenciar stickers (figurinhas).
     
-    <b>Comandos:</b>
-    - /kang &lt;emoji&gt; — Responda a qualquer sticker para adicioná-lo ao seu pacote de stickers criado por mim. <b>Funciona com stickers <i>estáticos, de vídeos e animados.</i></b>
-    - /getsticker — Responda a um sticker para que possa enviar-lo como arquivo <i>.png</i> ou <i>.gif</i>. <b>Só funciona com figurinhas <i>de vídeos ou estáticas.</i></b>
-
-weather:
-  locationUnknown: Localização não encontrada.
-  noLocation: |
-    Você não especificou uma localização.
-    <b>Exemplo:</b> <code>/clima Belém</code>.
-  measurementUnit: m
-  details: |-
-    <b>%s</b>:
-
-    Temperatura: <code>%d °C</code>
-    Sensação térmica: <code>%d °C</code>
-    Umidade do ar: <code>%d%%</code>
-    Vento: <code>%d km/h</code>
+    <b>— Comandos:</b>
+    <b>/kang (emoji):</b> Responda a qualquer sticker para adicioná-lo ao seu pacote de stickers criado por mim. <b>Funciona com stickers <i>estáticos, de vídeos e animados.</i></b>
+    <b>/getsticker:</b> Responda a um sticker para que possa enviar-lo como arquivo <i>.png</i> ou <i>.gif</i>. <b>Só funciona com figurinhas <i>de vídeos ou estáticas.</i></b>
 
 relativeDuration:
   singular:
@@ -295,3 +266,18 @@ relativeDuration:
     d: dias
     w: semanas
     M: meses
+
+weather:
+  locationUnknown: Localização não encontrada.
+  noLocation: |
+    Você não especificou uma localização.
+    <b>Exemplo:</b> <code>/clima Belém</code>.
+  measurementUnit: m
+  details: |-
+    <b>%s</b>:
+
+    Temperatura: <code>%d °C</code>
+    Sensação térmica: <code>%d °C</code>
+    Umidade do ar: <code>%d%%</code>
+    Vento: <code>%d km/h</code>
+
