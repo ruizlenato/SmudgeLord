@@ -24,7 +24,7 @@ func FormatText(text string, entities []telego.MessageEntity) string {
 			textRunes = append(textRunes[:entity.Offset+entity.Length], append([]rune("</code>"), textRunes[entity.Offset+entity.Length:]...)...)
 			textRunes = append(textRunes[:entity.Offset], append([]rune("<code>"), textRunes[entity.Offset:]...)...)
 		case "text_link":
-			textRunes = append(textRunes[:entity.Offset+entity.Length], append([]rune("</a>"), textRunes[entity.Offset+entity.Length:]...)...)
+			textRunes = append(textRunes[:entity.Offset+entity.Length], append([]rune("</a>"), textRunes[entity.Offset+entity.Length-1:]...)...)
 			textRunes = append(textRunes[:entity.Offset], append([]rune(fmt.Sprintf("<a href='%s'>", entity.URL)), textRunes[entity.Offset:]...)...)
 		}
 	}
