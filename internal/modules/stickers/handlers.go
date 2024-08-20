@@ -437,4 +437,6 @@ func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("stickers")
 	bh.HandleMessage(handleGetSticker, telegohandler.CommandEqual("getsticker"))
 	bh.HandleMessage(handleKangSticker, telegohandler.CommandEqual("kang"))
+
+	helpers.DisableableCommands = append(helpers.DisableableCommands, "getsticker", "kang")
 }

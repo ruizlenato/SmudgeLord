@@ -308,4 +308,6 @@ func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 		telegohandler.CommandEqual("translate"),
 		telegohandler.CommandEqual("tr")),
 	)
+
+	helpers.DisableableCommands = append(helpers.DisableableCommands, "tr", "translate", "weather", "clima")
 }

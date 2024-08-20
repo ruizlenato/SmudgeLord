@@ -331,18 +331,20 @@ func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	bh.HandleMessage(handleSetUser, telegohandler.CommandEqual("setuser"))
 	bh.HandleMessage(handleMusic, telegohandler.Or(
 		telegohandler.CommandEqual("lastfm"),
+telegohandler.CommandEqual("lt"),
+		telegohandler.CommandEqual("np"),
 		telegohandler.CommandEqual("lmu"),
 	))
-	bh.HandleMessage(handleMusic, telegohandler.Or(telegohandler.CommandEqual("lt"), telegohandler.CommandEqual("np")), lastFMDisabled)
-	bh.HandleMessage(handleAlbum, telegohandler.Or(
+		bh.HandleMessage(handleAlbum, telegohandler.Or(
 		telegohandler.CommandEqual("album"),
+telegohandler.CommandEqual("alb"),
 		telegohandler.CommandEqual("lalb"),
 	))
-	bh.HandleMessage(handleAlbum, telegohandler.CommandEqual("alb"), lastFMDisabled)
-	bh.HandleMessage(handleArtist, telegohandler.Or(
+		bh.HandleMessage(handleArtist, telegohandler.Or(
 		telegohandler.CommandEqual("artist"),
+telegohandler.CommandEqual("art"),
 		telegohandler.CommandEqual("lart")),
 	)
-	bh.HandleMessage(handleArtist, telegohandler.CommandEqual("art"), lastFMDisabled)
-	bh.Handle(handleLastFMConfig, telegohandler.CallbackDataPrefix("lastFMConfig"), helpers.IsAdmin(bot))
+		bh.Handle(handleLastFMConfig, telegohandler.CallbackDataPrefix("lastFMConfig"), helpers.IsAdmin(bot))
+helpers.DisableableCommands = append(helpers.DisableableCommands, "lastfm", "lmu", "lt", "np", "album", "lalb", "alb", "artist", "lart", "art")
 }

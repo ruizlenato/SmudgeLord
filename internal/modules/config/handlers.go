@@ -13,6 +13,103 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 )
 
+func handlerDisableable(bot *telego.Bot, message telego.Message) {
+	i18n := localization.Get(message)
+	text := i18n("config.cmdDisableables")
+	for _, command := range helpers.DisableableCommands {
+		text += "\n- <code>" + command + "</code>"
+	}
+	bot.SendMessage(&telego.SendMessageParams{
+		ChatID:    telegoutil.ID(message.Chat.ID),
+		Text:      text,
+		ParseMode: "HTML",
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
+	})
+	return
+}
+
+func handleDisable(bot *telego.Bot, message telego.Message) {
+	i18n := localization.Get(message)
+	contains := func(array []string, str string) bool {
+		for _, item := range array {
+			if item == str {
+				return true
+			}
+		}
+		return false
+	}
+	_, _, args := telegoutil.ParseCommand(message.Text)
+	if !contains(helpers.DisableableCommands, args[0]) {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("config.cmdCantDisable"),
+			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
+		return
+	}
+
+	query := "INSERT INTO commandsDisabled (command) VALUES (?);"
+	_, err := database.DB.Exec(query, args[0])
+	if err != nil {
+		fmt.Print("Error inserting command: " + err.Error())
+		return
+	}
+	bot.SendMessage(&telego.SendMessageParams{
+		ChatID:    telegoutil.ID(message.Chat.ID),
+		Text:      fmt.Sprintf(i18n("config.cmdDisabled"), args[0]),
+		ParseMode: "HTML",
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
+	})
+	return
+}
+
+func handleEnable(bot *telego.Bot, message telego.Message) {
+	i18n := localization.Get(message)
+	contains := func(array []string, str string) bool {
+		for _, item := range array {
+			if item == str {
+				return true
+			}
+		}
+		return false
+	}
+	_, _, args := telegoutil.ParseCommand(message.Text)
+	if !contains(helpers.DisableableCommands, args[0]) {
+		bot.SendMessage(&telego.SendMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("config.cmdCantDisable"),
+			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: message.MessageID,
+			},
+		})
+		return
+	}
+
+	query := "DELETE FROM commandsDisabled WHERE command = ?;"
+	_, err := database.DB.Exec(query, args[0])
+	if err != nil {
+		fmt.Print("Error deleting command: " + err.Error())
+		return
+	}
+	bot.SendMessage(&telego.SendMessageParams{
+		ChatID:    telegoutil.ID(message.Chat.ID),
+		Text:      fmt.Sprintf(i18n("config.cmdEnabled"), args[0]),
+		ParseMode: "HTML",
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
+	})
+	return
+}
+
 func callbackLanguageMenu(bot *telego.Bot, update telego.Update) {
 	i18n := localization.Get(update)
 
@@ -113,7 +210,7 @@ func handleConfig(bot *telego.Bot, message telego.Message) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:      telegoutil.ID(message.Chat.ID),
-		Text:        i18n("menu.configMessage"),
+		Text:        i18n("config.menuText"),
 		ParseMode:   "HTML",
 		ReplyMarkup: createConfigKeyboard(i18n),
 		ReplyParameters: &telego.ReplyParameters{
@@ -127,7 +224,7 @@ func callbackConfig(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("menu.configMessage"),
+		Text:        i18n("config.menuText"),
 		ParseMode:   "HTML",
 		ReplyMarkup: createConfigKeyboard(i18n),
 	})
@@ -204,6 +301,12 @@ func callbackMediaConfig(bot *telego.Bot, update telego.Update) {
 }
 
 func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
+	bh.HandleMessage(handlerDisableable, telegohandler.Or(
+		telegohandler.CommandEqual("disableables"),
+		telegohandler.CommandEqual("disableable"),
+	), helpers.IsAdmin(bot), helpers.IsGroup)
+	bh.HandleMessage(handleDisable, telegohandler.CommandEqual("disable"), helpers.IsAdmin(bot), helpers.IsGroup)
+	bh.HandleMessage(handleEnable, telegohandler.CommandEqual("enable"), helpers.IsAdmin(bot), helpers.IsGroup)
 	bh.Handle(callbackLanguageMenu, telegohandler.CallbackDataEqual("languageMenu"), helpers.IsAdmin(bot))
 	bh.Handle(callbackLanguageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
 	bh.HandleMessage(handleConfig, telegohandler.CommandEqual("config"), helpers.IsAdmin(bot), helpers.IsGroup)

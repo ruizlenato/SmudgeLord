@@ -30,9 +30,6 @@ menu:
     <b>Nota:</b>
     Alguns módulos tem configurações adicionais em grupos.
     Para saber mais, envie <code>/config</code> em um grupo no qual você é administrador.
-  configMessage: |
-    <b>Configurações —</b> Aqui estão minhas configurações para esse grupo.
-    Para saber mais, <b>clique nos botões abaixo.</b>
   languageMessage: |
     <b>Idioma atual:</b> %s %s
 
@@ -96,6 +93,19 @@ afk:
     <b>Comandos:</b>
     - /afk &lt;motivo&gt; — Define você mesmo como ausente.
     - brb &lt;motivo&gt; — Igual ao comando afk, mas não é um comando; não é necessário usar <code>/</code>.
+  
+config:
+  name: Configurações
+  cmdNotDisableable: <b>Comando não pode ser desativado.</b>
+  cmdDisableables: <b>Comandos desativáveis:</b>
+  cmdDisabled: O comando <code>%s</code> foi desabilitado.
+  cmdAlreadyDisabled: O comando <code>%s</code> já está desabilitado.
+  cmdEnabled: O comando <code>%s</code> foi habilitado.
+  cmdAlreadyEnabled: O comando <code>%s</code> já está habilitado.
+  menuText: |
+    <b>Configurações —</b> Aqui estão minhas configurações para esse grupo.
+    Para saber mais, <b>clique nos botões abaixo.</b>
+
 lastfm:
   name: Last.FM
   provideUsername: |

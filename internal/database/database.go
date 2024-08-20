@@ -21,14 +21,12 @@ func Open(databaseFile string) error {
 		return err
 	}
 
-	// Check if journal_mode is set to WAL
 	_, err = db.Exec("PRAGMA journal_mode=WAL;")
 	if err != nil {
 		db.Close()
 		return err
 	}
 
-	// Set the global DB variable to the opened database.
 	DB = db
 
 	return nil
@@ -36,25 +34,28 @@ func Open(databaseFile string) error {
 
 func CreateTables() error {
 	query := `
-        CREATE TABLE IF NOT EXISTS users (
+		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY,
-            language TEXT DEFAULT 'en-us',
+			language TEXT NOT NULL DEFAULT 'en-us',
 			username TEXT,
 			lastfm_username TEXT
-        );
+		);
 		CREATE TABLE IF NOT EXISTS groups (
-            id INTEGER PRIMARY KEY,
-            language TEXT DEFAULT 'en-us',
+			id INTEGER PRIMARY KEY,
+			language TEXT DEFAULT 'en-us',
 			mediasAuto BOOLEAN DEFAULT 1,
-			mediasCaption BOOLEAN DEFAULT 1,
-			lastFMCommands BOOLEAN DEFAULT 1
-        );
+			mediasCaption BOOLEAN DEFAULT 1
+		);
 		CREATE TABLE IF NOT EXISTS afk (
 			id INTEGER PRIMARY KEY,
 			reason TEXT,
 			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
-    `
+		CREATE TABLE IF NOT EXISTS commandsDisabled (
+			group_id INTEGER PRIMARY KEY,
+			command TEXT NOT NULL
+		);
+	`
 	_, err := DB.Exec(query)
 	return err
 }

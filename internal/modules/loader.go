@@ -8,12 +8,14 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/modules/afk"
+	"github.com/ruizlenato/smudgelord/internal/modules/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
 	"github.com/ruizlenato/smudgelord/internal/modules/misc"
 	"github.com/ruizlenato/smudgelord/internal/modules/stickers"
 	"github.com/ruizlenato/smudgelord/internal/modules/sudoers"
+	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
@@ -23,6 +25,7 @@ var (
 	packageLoadersMutex sync.Mutex
 	packageLoaders      = map[string]func(*telegohandler.BotHandler, *telego.Bot){
 		"afk":      afk.Load,
+		"config":   config.Load,
 		"lastfm":   lastfm.Load,
 		"medias":   medias.Load,
 		"menu":     menu.Load,
@@ -55,6 +58,7 @@ func NewHandler(bot *telego.Bot, bh *telegohandler.BotHandler) *Handler {
 
 func (h *Handler) RegisterHandlers() {
 	h.bh.Use(database.SaveUsers)
+	h.bh.Use(helpers.CheckDisabled)
 
 	var wg sync.WaitGroup
 	done := make(chan struct{}, len(packageLoaders))
