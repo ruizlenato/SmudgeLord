@@ -63,15 +63,15 @@ func handlerMedias(message *telegram.NewMessage) error {
 		}
 	}
 
-	if _, InputMediaUploadedPhoto := mediaItems[0].(*telegram.InputMediaUploadedPhoto); mediaItems == nil || (len(mediaItems) == 1 &&
-		InputMediaUploadedPhoto &&
-		message.Media() != nil &&
-		message.Media().(*telegram.MessageMediaWebPage) != nil) {
+	if mediaItems == nil || len(mediaItems) == 0 {
 		return nil
 	}
 
-	if media, ok := mediaItems[0].(*telegram.InputMediaUploadedDocument); ok {
-		fmt.Printf("%+v\n", media.File)
+	if _, InputMediaUploadedPhoto := mediaItems[0].(*telegram.InputMediaUploadedPhoto); len(mediaItems) == 1 &&
+		InputMediaUploadedPhoto &&
+		message.Media() != nil &&
+		message.Media().(*telegram.MessageMediaWebPage) != nil {
+		return nil
 	}
 
 	if utf8.RuneCountInString(caption) > maxSizeCaption {
