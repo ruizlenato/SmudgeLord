@@ -1,8 +1,10 @@
-package telegram
+package modules
 
 import (
 	"context"
 	"fmt"
+	"strings"
+	"sync"
 
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/modules/afk"
@@ -15,6 +17,19 @@ import (
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
+)
+
+var (
+	packageLoadersMutex sync.Mutex
+	packageLoaders      = map[string]func(*telegohandler.BotHandler, *telego.Bot){
+		"afk":      afk.Load,
+		"lastfm":   lastfm.Load,
+		"medias":   medias.Load,
+		"menu":     menu.Load,
+		"misc":     misc.Load,
+		"stickers": stickers.Load,
+		"sudoers":  sudoers.Load,
+	}
 )
 
 func BotHandler(ctx context.Context, bot *telego.Bot, updates <-chan telego.Update) (*telegohandler.BotHandler, error) {
@@ -41,11 +56,35 @@ func NewHandler(bot *telego.Bot, bh *telegohandler.BotHandler) *Handler {
 func (h *Handler) RegisterHandlers() {
 	h.bh.Use(database.SaveUsers)
 
-	afk.Load(h.bh, h.bot)
-	lastfm.Load(h.bh, h.bot)
-	medias.Load(h.bh, h.bot)
-	menu.Load(h.bh, h.bot)
-	misc.Load(h.bh, h.bot)
-	stickers.Load(h.bh, h.bot)
-	sudoers.Load(h.bh, h.bot)
+	var wg sync.WaitGroup
+	done := make(chan struct{}, len(packageLoaders))
+	moduleNames := make([]string, 0, len(packageLoaders))
+
+	for name, loadFunc := range packageLoaders {
+		wg.Add(1)
+
+		go func(name string, loadFunc func(*telegohandler.BotHandler, *telego.Bot)) {
+			defer wg.Done()
+
+			packageLoadersMutex.Lock()
+			defer packageLoadersMutex.Unlock()
+
+			loadFunc(h.bh, h.bot)
+
+			done <- struct{}{}
+			moduleNames = append(moduleNames, name)
+		}(name, loadFunc)
+	}
+
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	for range done {
+	}
+
+	joinedModuleNames := strings.Join(moduleNames, ", ")
+
+	fmt.Printf("\033[0;35mModules Loaded:\033[0m %s\n", joinedModuleNames)
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/modules"
 	"github.com/ruizlenato/smudgelord/internal/telegram"
 
 	"github.com/mymmrac/telego"
@@ -40,8 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	handler := telegram.NewHandler(bot, bh)
-	handler.RegisterHandlers()
+	handler := modules.NewHandler(bot, bh)
 
 	botUser, err := bot.GetMe()
 	if err != nil {
@@ -57,6 +57,7 @@ func main() {
 	go bh.Start()
 	fmt.Println("\033[0;32m\U0001F680 Bot Started\033[0m")
 	fmt.Printf("\033[0;36mBot Info:\033[0m %v - @%v\n", botUser.FirstName, botUser.Username)
+	handler.RegisterHandlers()
 
 	if config.WebhookURL != "" {
 		go StartWebhookServer(bot)
