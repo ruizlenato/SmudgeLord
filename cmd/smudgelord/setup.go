@@ -33,9 +33,7 @@ func InitializeServices() error {
 }
 
 func StartWebhookServer(bot *telego.Bot) {
-	go func() {
-		if err := bot.StartWebhook(fmt.Sprintf("0.0.0.0:%d", config.WebhookPort)); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	if err := bot.StartWebhook(fmt.Sprintf("0.0.0.0:%d", config.WebhookPort)); err != nil {
+		log.Fatal(err)
+	}
 }
