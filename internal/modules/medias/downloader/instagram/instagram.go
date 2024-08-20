@@ -2,7 +2,6 @@ package instagram
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -27,9 +26,8 @@ func Handle(message telego.Message) ([]telego.InputMedia, []string) {
 		return cachedMedias, []string{cachedCaption, postID}
 	}
 
-	instagramData, err := getInstagramData(postID)
-	if err != nil {
-		log.Print(err)
+	instagramData := getInstagramData(postID)
+	if instagramData == nil {
 		return nil, []string{}
 	}
 
@@ -56,14 +54,14 @@ func getPostID(url string) (postID string) {
 	return postID
 }
 
-func getInstagramData(postID string) (*ShortcodeMedia, error) {
+func getInstagramData(postID string) *ShortcodeMedia {
 	if data := getEmbedData(postID); data != nil && data.ShortcodeMedia != nil {
-		return data.ShortcodeMedia, nil
+		return data.ShortcodeMedia
 	} else if data := getGQLData(postID); data != nil && data.Data.XDTShortcodeMedia != nil {
-		return data.Data.XDTShortcodeMedia, nil
+		return data.Data.XDTShortcodeMedia
 	}
 
-	return nil, errors.New("could not find Instagram data")
+	return nil
 }
 
 func getCaption(instagramData *ShortcodeMedia) string {

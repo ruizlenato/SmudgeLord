@@ -2,7 +2,6 @@ package tiktok
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -26,9 +25,8 @@ func Handle(message telego.Message) ([]telego.InputMedia, []string) {
 		return cachedMedias, []string{cachedCaption, postID}
 	}
 
-	tikTokData, err := getTikTokData(postID)
-	if err != nil {
-		log.Print(err)
+	tikTokData := getTikTokData(postID)
+	if tikTokData == nil {
 		return nil, []string{}
 	}
 
@@ -54,7 +52,7 @@ func getPostID(url string) (postID string) {
 	return postID
 }
 
-func getTikTokData(postID string) (TikTokData, error) {
+func getTikTokData(postID string) TikTokData {
 	body := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method: "OPTIONS",
 		Headers: map[string]string{
@@ -74,16 +72,16 @@ func getTikTokData(postID string) (TikTokData, error) {
 	}).Body()
 
 	if body == nil {
-		return nil, errors.New("no response body")
+		return nil
 	}
 
 	var tikTokData TikTokData
 	err := json.Unmarshal(body, &tikTokData)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
-	return tikTokData, nil
+	return tikTokData
 }
 
 func getCaption(tikTokData TikTokData) string {

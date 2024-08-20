@@ -2,7 +2,6 @@ package twitter
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -36,9 +35,8 @@ func Handle(message telego.Message) ([]telego.InputMedia, []string) {
 		return cachedMedias, []string{cachedCaption, postID}
 	}
 
-	twitterData, err := getTwitterData(postID)
-	if err != nil {
-		log.Print(err)
+	twitterData := getTwitterData(postID)
+	if twitterData == nil {
 		return nil, []string{}
 	}
 	medias := processMedia(twitterData)
@@ -148,7 +146,7 @@ func getGuestToken() string {
 	return res.GuestToken
 }
 
-func getTwitterData(postID string) (*TwitterAPIData, error) {
+func getTwitterData(postID string) *TwitterAPIData {
 	headers["x-guest-token"] = getGuestToken()
 	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", getGuestToken())
 	variables := map[string]interface{}{
@@ -199,19 +197,19 @@ func getTwitterData(postID string) (*TwitterAPIData, error) {
 		Headers: headers,
 	}).Body()
 	if body == nil {
-		return nil, errors.New("error getting Twitter data")
+		return nil
 	}
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {
-		return nil, errors.New("error unmarshalling Twitter data")
+		return nil
 	}
 
 	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {
-		return nil, errors.New("could not find Twitter data")
+		return nil
 	}
 
-	return twitterAPIData, nil
+	return twitterAPIData
 }
 
 func getCaption(twitterData *TwitterAPIData) string {
