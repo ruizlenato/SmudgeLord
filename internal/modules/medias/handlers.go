@@ -350,81 +350,6 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 	})
 }
 
-func handleMediaConfig(bot *telego.Bot, update telego.Update) {
-	var mediasCaption bool
-	var mediasAuto bool
-	message := update.Message
-	if message == nil {
-		message = update.CallbackQuery.Message.(*telego.Message)
-	}
-
-	database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", message.Chat.ID).Scan(&mediasCaption)
-	database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto)
-
-	configType := strings.ReplaceAll(update.CallbackQuery.Data, "mediaConfig ", "")
-	if configType != "mediaConfig" {
-		query := fmt.Sprintf("UPDATE groups SET %s = ? WHERE id = ?;", configType)
-		var err error
-		switch configType {
-		case "mediasCaption":
-			mediasCaption = !mediasCaption
-			_, err = database.DB.Exec(query, mediasCaption, message.Chat.ID)
-		case "mediasAuto":
-			mediasAuto = !mediasAuto
-			_, err = database.DB.Exec(query, mediasAuto, message.Chat.ID)
-		}
-		if err != nil {
-			return
-		}
-	}
-
-	chat := message.GetChat()
-	i18n := localization.Get(chat)
-
-	state := func(mediasAuto bool) string {
-		if mediasAuto {
-			return "✅"
-		}
-		return "☑️"
-	}
-
-	buttons := [][]telego.InlineKeyboardButton{
-		{
-			{Text: i18n("button.caption"), CallbackData: "ieConfig mediasCaption"},
-			{Text: state(mediasCaption), CallbackData: "mediaConfig mediasCaption"},
-		},
-		{
-			{Text: i18n("button.automatic"), CallbackData: "ieConfig mediasAuto"},
-			{Text: state(mediasAuto), CallbackData: "mediaConfig mediasAuto"},
-		},
-	}
-
-	buttons = append(buttons, []telego.InlineKeyboardButton{{
-		Text:         i18n("button.back"),
-		CallbackData: "configMenu",
-	}})
-
-	if update.Message == nil {
-		_, err := bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:      telegoutil.ID(chat.ID),
-			MessageID:   update.CallbackQuery.Message.GetMessageID(),
-			Text:        i18n("medias.config"),
-			ParseMode:   "HTML",
-			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
-		})
-		if err != nil {
-			log.Print("[medias/mediaConfig] Error edit mediaConfig: ", err)
-		}
-	} else {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:      telegoutil.ID(update.Message.Chat.ID),
-			Text:        i18n("medias.config"),
-			ParseMode:   "HTML",
-			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
-		})
-	}
-}
-
 func handleExplainConfig(bot *telego.Bot, update telego.Update) {
 	i18n := localization.Get(update)
 	ieConfig := strings.ReplaceAll(update.CallbackQuery.Data, "ieConfig medias", "")
@@ -444,6 +369,5 @@ func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 		telegohandler.TextMatches(regexp.MustCompile(regexMedia)),
 	))
 	bh.Handle(callbackYoutubeDownload, telegohandler.CallbackDataMatches(regexp.MustCompile(`^(_(vid|aud))`)))
-	bh.Handle(handleMediaConfig, telegohandler.CallbackDataPrefix("mediaConfig"), helpers.IsAdmin(bot))
 	bh.Handle(handleExplainConfig, telegohandler.CallbackDataPrefix("ieConfig"), helpers.IsAdmin(bot))
 }
