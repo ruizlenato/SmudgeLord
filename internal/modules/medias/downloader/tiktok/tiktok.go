@@ -21,6 +21,11 @@ func Handle(message telego.Message) ([]telego.InputMedia, []string) {
 		return nil, []string{}
 	}
 
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
+	if err == nil {
+		return cachedMedias, []string{cachedCaption, postID}
+	}
+
 	tikTokData, err := getTikTokData(postID)
 	if err != nil {
 		log.Print(err)

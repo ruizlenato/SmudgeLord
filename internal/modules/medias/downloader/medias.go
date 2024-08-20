@@ -1,14 +1,17 @@
 package downloader
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 	"sync"
+	"time"
 	"unicode/utf8"
 
+	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 
 	"github.com/mymmrac/telego"
@@ -137,4 +140,124 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 	}
 
 	wg.Wait()
+}
+
+type Medias struct {
+	Videos  []string `json:"videos"`
+	Photos  []string `json:"photos"`
+	Caption string   `json:"caption"`
+}
+
+func SetMediaCache(replied []telego.Message, postID string) error {
+	var (
+		videos  []string
+		photos  []string
+		caption string
+		wg      sync.WaitGroup
+		mu      sync.Mutex
+	)
+
+	results := make(chan struct {
+		mediaType string
+		fileID    string
+	}, len(replied))
+
+	for _, message := range replied {
+		if caption == "" {
+			caption = utils.FormatText(message.Caption, message.CaptionEntities)
+		}
+		wg.Add(1)
+		go func(message telego.Message) {
+			defer wg.Done()
+			if message.Video != nil {
+				results <- struct {
+					mediaType string
+					fileID    string
+				}{"video", message.Video.FileID}
+			} else if message.Photo != nil {
+				results <- struct {
+					mediaType string
+					fileID    string
+				}{"photo", message.Photo[0].FileID}
+			}
+		}(message)
+	}
+
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	for result := range results {
+		mu.Lock()
+		switch result.mediaType {
+		case "video":
+			videos = append(videos, result.fileID)
+		case "photo":
+			photos = append(photos, result.fileID)
+		}
+		mu.Unlock()
+	}
+
+	album := Medias{Caption: caption, Videos: videos, Photos: photos}
+
+	jsonValue, err := json.Marshal(album)
+	if err != nil {
+		return fmt.Errorf("could not marshal JSON: %v", err)
+	}
+
+	if err := cache.SetCache("media-cache:"+postID, jsonValue, 48*time.Hour); err != nil {
+		return fmt.Errorf("could not set cache: %v", err)
+	}
+
+	return nil
+}
+
+func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
+	type result struct {
+		inputMedias []telego.InputMedia
+		caption     string
+		err         error
+	}
+
+	resultChan := make(chan result, 1)
+
+	go func() {
+		cached, err := cache.GetCache("media-cache:" + postID)
+		if err != nil {
+			resultChan <- result{nil, "", err}
+			return
+		}
+
+		var medias Medias
+		if err := json.Unmarshal([]byte(cached), &medias); err != nil {
+			resultChan <- result{nil, "", fmt.Errorf("could not unmarshal JSON: %v", err)}
+			return
+		}
+
+		if err := cache.SetCache("media-cache:"+postID, cached, 48*time.Hour); err != nil {
+			resultChan <- result{nil, "", fmt.Errorf("could not reset cache expiration: %v", err)}
+			return
+		}
+
+		inputMedias := make([]telego.InputMedia, 0, len(medias.Videos)+len(medias.Photos))
+		for _, media := range medias.Videos {
+			inputMedias = append(inputMedias, &telego.InputMediaVideo{
+				Type:  telego.MediaTypeVideo,
+				Media: telego.InputFile{FileID: media},
+			})
+		}
+
+		for _, media := range medias.Photos {
+			inputMedias = append(inputMedias, &telego.InputMediaPhoto{
+				Type:  telego.MediaTypePhoto,
+				Media: telego.InputFile{FileID: media},
+			})
+		}
+
+		resultChan <- result{inputMedias, medias.Caption, nil}
+	}()
+
+	res := <-resultChan
+	return res.inputMedias, res.caption, res.err
 }

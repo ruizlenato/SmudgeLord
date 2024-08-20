@@ -33,6 +33,7 @@ const (
 func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	var mediaItems []telego.InputMedia
 	var caption string
+	var postID string
 
 	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text) && strings.Contains(message.Chat.Type, "group") {
 		var mediasAuto bool
@@ -64,6 +65,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 			mediaItems, result = handler(message)
 			if len(result) == 2 {
 				caption = result[0]
+				postID = result[1]
 			}
 			break
 		}
@@ -84,7 +86,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	if mediaItems != nil && caption == "" {
+	if caption == "" {
 		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url)
 	}
 
@@ -111,14 +113,21 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		Action: telego.ChatActionUploadDocument,
 	})
 
-	bot.SendMediaGroup(&telego.SendMediaGroupParams{
+	replied, err := bot.SendMediaGroup(&telego.SendMediaGroupParams{
 		ChatID: telegoutil.ID(message.Chat.ID),
 		Media:  mediaItems,
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
 	})
+	if err != nil {
+		log.Print(err)
+	}
 	downloader.RemoveMediaFiles(mediaItems)
+	err = downloader.SetMediaCache(replied, postID)
+	if err != nil {
+		log.Print(err)
+	}
 }
 
 func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {

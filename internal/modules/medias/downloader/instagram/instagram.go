@@ -10,9 +10,8 @@ import (
 	"strings"
 
 	"github.com/mymmrac/telego"
-	"github.com/ruizlenato/smudgelord/internal/utils"
-
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 func Handle(message telego.Message) ([]telego.InputMedia, []string) {
@@ -21,6 +20,11 @@ func Handle(message telego.Message) ([]telego.InputMedia, []string) {
 	postID := getPostID(message.Text)
 	if postID == "" {
 		return nil, []string{}
+	}
+
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
+	if err == nil {
+		return cachedMedias, []string{cachedCaption, postID}
 	}
 
 	instagramData, err := getInstagramData(postID)
