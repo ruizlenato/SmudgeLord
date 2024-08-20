@@ -13,7 +13,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
-	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/generic"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
@@ -32,6 +31,9 @@ const (
 )
 
 func handleMediaDownload(bot *telego.Bot, message telego.Message) {
+	var mediaItems []telego.InputMedia
+	var caption string
+
 	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text) && strings.Contains(message.Chat.Type, "group") {
 		var mediasAuto bool
 		if err := database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto); err != nil || !mediasAuto {
@@ -39,9 +41,8 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		}
 	}
 
-	i18n := localization.Get(message.GetChat())
-
 	url := regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text)
+	i18n := localization.Get(message.GetChat())
 	if len(url) < 1 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
@@ -51,7 +52,22 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	mediaItems, caption := downloadMediaFromURL(url[0])
+	mediaHandlers := map[string]func(telego.Message) ([]telego.InputMedia, []string){
+		"instagram.com/":   instagram.Handle,
+		"(twitter|x).com/": twitter.Handle,
+		"tiktok.com/":      tiktok.Handle,
+	}
+
+	for pattern, handler := range mediaHandlers {
+		if match, _ := regexp.MatchString(pattern, message.Text); match {
+			var result []string
+			mediaItems, result = handler(message)
+			if len(result) == 2 {
+				caption = result[0]
+			}
+			break
+		}
+	}
 
 	row := database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", message.Chat.ID)
 	var mediasCaption bool
@@ -59,52 +75,13 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
 	}
 
-	if mediaItems == nil || len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" && message.LinkPreviewOptions != nil && !message.LinkPreviewOptions.IsDisabled {
+	if mediaItems == nil ||
+		len(mediaItems) == 0 ||
+		len(mediaItems) == 1 &&
+			mediaItems[0].MediaType() == "photo" &&
+			message.LinkPreviewOptions != nil &&
+			!message.LinkPreviewOptions.IsDisabled {
 		return
-	}
-
-	if len(mediaItems) > 0 {
-		for _, media := range mediaItems[:1] {
-			switch media.MediaType() {
-			case "photo":
-				if photo, ok := media.(*telego.InputMediaPhoto); ok {
-					photo.WithCaption(caption).WithParseMode("HTML")
-				}
-			case "video":
-				if video, ok := media.(*telego.InputMediaVideo); ok {
-					video.WithCaption(caption).WithParseMode("HTML")
-				}
-			}
-		}
-
-		bot.SendChatAction(&telego.SendChatActionParams{
-			ChatID: telegoutil.ID(message.Chat.ID),
-			Action: telego.ChatActionUploadDocument,
-		})
-
-		bot.SendMediaGroup(&telego.SendMediaGroupParams{
-			ChatID: telegoutil.ID(message.Chat.ID),
-			Media:  mediaItems,
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		downloader.RemoveMediaFiles(mediaItems)
-	}
-}
-
-func downloadMediaFromURL(url string) ([]telego.InputMedia, string) {
-	var mediaItems []telego.InputMedia
-	var caption string
-
-	if match, _ := regexp.MatchString("(twitter|x).com/", url); match {
-		mediaItems, caption = twitter.Twitter(url)
-	} else if match, _ := regexp.MatchString("instagram.com/", url); match {
-		mediaItems, caption = instagram.Instagram(url)
-	} else if match, _ := regexp.MatchString("tiktok.com/", url); match {
-		mediaItems, caption = tiktok.TikTok(url)
-	} else if match, _ := regexp.MatchString("(?:reddit|twitch).(?:com|tv)", url); match {
-		mediaItems, caption = generic.Generic(url)
 	}
 
 	if mediaItems != nil && caption == "" {
@@ -112,10 +89,36 @@ func downloadMediaFromURL(url string) ([]telego.InputMedia, string) {
 	}
 
 	if utf8.RuneCountInString(caption) > maxSizeCaption {
-		caption = downloader.TruncateUTF8Caption(caption, url)
+		caption = downloader.TruncateUTF8Caption(caption,
+			regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text)[0])
 	}
 
-	return mediaItems, caption
+	for _, media := range mediaItems[:1] {
+		switch media.MediaType() {
+		case "photo":
+			if photo, ok := media.(*telego.InputMediaPhoto); ok {
+				photo.WithCaption(caption).WithParseMode("HTML")
+			}
+		case "video":
+			if video, ok := media.(*telego.InputMediaVideo); ok {
+				video.WithCaption(caption).WithParseMode("HTML")
+			}
+		}
+	}
+
+	bot.SendChatAction(&telego.SendChatActionParams{
+		ChatID: telegoutil.ID(message.Chat.ID),
+		Action: telego.ChatActionUploadDocument,
+	})
+
+	bot.SendMediaGroup(&telego.SendMediaGroupParams{
+		ChatID: telegoutil.ID(message.Chat.ID),
+		Media:  mediaItems,
+		ReplyParameters: &telego.ReplyParameters{
+			MessageID: message.MessageID,
+		},
+	})
+	downloader.RemoveMediaFiles(mediaItems)
 }
 
 func handleYoutubeDownloadCallback(bot *telego.Bot, update telego.Update) {

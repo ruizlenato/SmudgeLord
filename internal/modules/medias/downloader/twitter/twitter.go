@@ -2,6 +2,7 @@ package twitter
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -9,7 +10,6 @@ import (
 	"slices"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -25,6 +25,107 @@ var headers = map[string]string{
 	"content-type":              "application/json",
 }
 
+func Handle(message telego.Message) ([]telego.InputMedia, []string) {
+	postID := getPostID(message.Text)
+	if postID == "" {
+		return nil, []string{}
+	}
+
+	twitterData, err := getTwitterData(postID)
+	if err != nil {
+		log.Print(err)
+		return nil, []string{}
+	}
+	medias := processMedia(twitterData)
+	caption := getCaption(twitterData)
+	return medias, []string{caption, postID}
+}
+
+func getPostID(url string) (postID string) {
+	if matches := regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`).FindStringSubmatch(url); len(matches) == 2 {
+		return matches[1]
+	} else {
+		return postID
+	}
+}
+
+type InputMedia struct {
+	File      *os.File
+	Thumbnail *os.File
+}
+
+func processMedia(twitterData *TwitterAPIData) []telego.InputMedia {
+	type mediaResult struct {
+		index int
+		media *InputMedia
+		err   error
+	}
+
+	mediaCount := len((*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)
+	mediaItems := make([]telego.InputMedia, mediaCount)
+	results := make(chan mediaResult, mediaCount)
+
+	for i, media := range (*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
+		go func(index int, twitterMedia Media) {
+			media, err := downloadMedia(twitterMedia)
+			results <- mediaResult{index: index, media: media, err: err}
+		}(i, media)
+	}
+
+	for i := 0; i < mediaCount; i++ {
+		result := <-results
+		if result.err != nil {
+			log.Print(result.err)
+			continue
+		}
+		if result.media.File != nil {
+			var mediaItem telego.InputMedia
+			if (*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[result.index].Type == "photo" {
+				mediaItem = &telego.InputMediaPhoto{
+					Type:  telego.MediaTypePhoto,
+					Media: telego.InputFile{File: result.media.File},
+				}
+			} else {
+				mediaItem = &telego.InputMediaVideo{
+					Type:              telego.MediaTypeVideo,
+					Media:             telego.InputFile{File: result.media.File},
+					Width:             ((*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[result.index].OriginalInfo.Width,
+					Height:            ((*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[result.index].OriginalInfo.Height,
+					SupportsStreaming: true,
+				}
+				if result.media.Thumbnail != nil {
+					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
+				}
+			}
+			mediaItems[result.index] = mediaItem
+		}
+	}
+
+	return mediaItems
+}
+
+func downloadMedia(twitterMedia Media) (*InputMedia, error) {
+	var media InputMedia
+	var err error
+
+	if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
+		sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
+			return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
+		})
+		media.File, err = downloader.Downloader(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
+		if err == nil {
+			media.Thumbnail, _ = downloader.Downloader(twitterMedia.MediaURLHTTPS)
+		}
+	} else {
+		media.File, err = downloader.Downloader(twitterMedia.MediaURLHTTPS)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	return &media, nil
+}
+
 func getGuestToken() string {
 	type guestToken struct {
 		GuestToken string `json:"guest_token"`
@@ -37,16 +138,16 @@ func getGuestToken() string {
 	var res guestToken
 	err := json.Unmarshal(body, &res)
 	if err != nil {
-		log.Printf("Error unmarshalling guest token: %v", err)
+		log.Print("Error unmarshalling guest token: ", err)
 	}
 	return res.GuestToken
 }
 
-func TweetExtract(tweetID string) *TwitterAPIData {
+func getTwitterData(postID string) (*TwitterAPIData, error) {
 	headers["x-guest-token"] = getGuestToken()
 	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", getGuestToken())
 	variables := map[string]interface{}{
-		"tweetId":                                tweetID,
+		"tweetId":                                postID,
 		"referrer":                               "messages",
 		"includePromotedContent":                 true,
 		"withCommunity":                          true,
@@ -93,125 +194,33 @@ func TweetExtract(tweetID string) *TwitterAPIData {
 		Headers: headers,
 	}).Body()
 	if body == nil {
-		return nil
+		return nil, errors.New("error getting Twitter data")
 	}
 	var twitterAPIData *TwitterAPIData
 	err := json.Unmarshal(body, &twitterAPIData)
 	if err != nil {
-		log.Printf("Error unmarshalling Twitter data: %v", err)
-		return nil
+		return nil, errors.New("error unmarshalling Twitter data")
 	}
-
-	return twitterAPIData
-}
-
-func Twitter(url string) ([]telego.InputMedia, string) {
-	var mu sync.Mutex
-	var mediaItems []telego.InputMedia
-	var caption string
-	var tweetID string
-
-	if matches := regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`).FindStringSubmatch(url); len(matches) == 2 {
-		tweetID = matches[1]
-	} else {
-		return nil, ""
-	}
-
-	twitterAPIData := TweetExtract(tweetID)
 
 	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {
-		return nil, ""
+		return nil, errors.New("could not find Twitter data")
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
-	mediaItems = make([]telego.InputMedia, len((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media))
+	return twitterAPIData, nil
+}
 
-	type InputMedia struct {
-		File      *os.File
-		Thumbnail *os.File
-	}
-	medias := make(map[int]*InputMedia)
+func getCaption(twitterData *TwitterAPIData) string {
+	var caption string
 
-	for i, media := range (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
-		go func(index int, twitterMedia Media) {
-			defer wg.Done()
-			mu.Lock()
-			defer mu.Unlock()
-
-			var media InputMedia
-			var err error
-			var videoType string
-
-			if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
-				videoType = "video"
-			}
-			if videoType != "video" {
-				media.File, err = downloader.Downloader(twitterMedia.MediaURLHTTPS)
-			} else {
-				sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
-					return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
-				})
-				media.File, err = downloader.Downloader(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
-				if err == nil {
-					media.Thumbnail, _ = downloader.Downloader(twitterMedia.MediaURLHTTPS)
-				}
-			}
-			if err != nil {
-				log.Print("[twitter/Twitter] Error downloading media:", err)
-				// Use index as key to store nil for failed downloads
-				medias[index] = &InputMedia{File: nil, Thumbnail: nil}
-				return
-			}
-			// Use index as key to store downloaded file
-			medias[index] = &media
-		}(i, media)
-	}
-
-	wg.Wait()
-
-	// Process medias after all downloads are complete
-	for index, media := range medias {
-		if media.File != nil {
-			var mediaItem telego.InputMedia
-			if (*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index].Type == "photo" {
-				mediaItem = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: media.File},
-				}
-			} else {
-				if media.Thumbnail != nil {
-					mediaItem = &telego.InputMediaVideo{
-						Type:              telego.MediaTypeVideo,
-						Media:             telego.InputFile{File: media.File},
-						Thumbnail:         &telego.InputFile{File: media.Thumbnail},
-						Width:             ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
-						Height:            ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
-						SupportsStreaming: true,
-					}
-				} else {
-					mediaItem = &telego.InputMediaVideo{
-						Type:              telego.MediaTypeVideo,
-						Media:             telego.InputFile{File: media.File},
-						Width:             ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Width,
-						Height:            ((*twitterAPIData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[index].OriginalInfo.Height,
-						SupportsStreaming: true,
-					}
-				}
-			}
-			mediaItems[index] = mediaItem
-		}
-	}
-
-	if tweet := (*twitterAPIData).Data.TweetResults.Result.Legacy; tweet != nil {
+	if tweet := (*twitterData).Data.TweetResults.Result.Legacy; tweet != nil {
 		caption = fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n",
-			(*twitterAPIData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.Name,
-			(*twitterAPIData).Data.TweetResults.Core.UserResults.Result.Legacy.ScreenName)
+			(*twitterData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.Name,
+			(*twitterData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.ScreenName)
 
 		if idx := strings.LastIndex(tweet.FullText, " https://t.co/"); idx != -1 {
 			caption += tweet.FullText[:idx]
 		}
 	}
 
-	return mediaItems, caption
+	return caption
 }
