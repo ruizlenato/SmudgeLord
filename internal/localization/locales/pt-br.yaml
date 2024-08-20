@@ -15,6 +15,29 @@ button:
   automatic: "Automático:"
   aboutYourData: Sobre seus dados
 
+config:
+  name: Configurações
+  cmdNotDisableable: <b>Comando não pode ser desativado.</b>
+  cmdDisableables: <b>Comandos desativáveis:</b>
+  cmdDisabled: O comando <code>%s</code> foi desabilitado.
+  cmdAlreadyDisabled: O comando <code>%s</code> já está desabilitado.
+  cmdEnabled: O comando <code>%s</code> foi habilitado.
+  cmdAlreadyEnabled: O comando <code>%s</code> já está habilitado.
+  menuText: |
+    <b>Configurações —</b> Aqui estão minhas configurações para esse grupo.
+    Para saber mais, <b>clique nos botões abaixo.</b>
+  help: |
+    <b>Configurações:</b>
+
+    Esse módulo é feito para ser <b>utilizado em grupos.</b>
+    É necessário ser administrador para poder utilizá-los.
+
+    <b>— Comandos:</b>
+    <b>/disable (comando):</b>  Desativa o comando especificado em grupo.
+    <b>/enable (comando):</b> Habilita o comando especificado que foi desativado posteriormente.
+    <b>/disableable:</b> Lista todos os comandos que podem ser desativados.
+    <b>/disabled:</b> Lista todos os comandos que estão atualmente desativados.
+    <b>/config:</b> Retorna um menu com algumas configurações de grupo
 menu:
   startMessage: |
     Olá <b>%s</b> — Sou o <b>%s</b>, um bot com alguns comandos úteis e divertidos para você.

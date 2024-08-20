@@ -301,6 +301,7 @@ func callbackMediaConfig(bot *telego.Bot, update telego.Update) {
 }
 
 func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
+	helpers.Store("config")
 	bh.HandleMessage(handlerDisableable, telegohandler.Or(
 		telegohandler.CommandEqual("disableables"),
 		telegohandler.CommandEqual("disableable"),

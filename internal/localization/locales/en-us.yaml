@@ -15,6 +15,29 @@ button:
   automatic: "Auto:" # Need the quotes because string ends with a colon
   aboutYourData: About your data
 
+config:
+  name: Settings
+  cmdNotDisableable: <b>Command cannot be deactivated.</b>
+  cmdDisableables: <b>Disableable commands:</b>
+  cmdDisabled: The <code>%s</code> command was disabled.
+  cmdAlreadyDisabled: The <code>%s</code> command is already disabled.
+  cmdEnabled: The <code>%s</code> command was enabled.
+  cmdAlreadyEnabled: The <code>%s</code> command is already enabled.
+  menuText: |
+    <b>Settings —</b> Here are my settings for this group.
+    To know more, <b>click on the buttons below.</b>
+  help: |
+    <b>Settings:</b>
+
+    This module is designed to be <b>used in groups.</b>
+    You must be an administrator to use them.
+
+    <b>— Commands:</b>
+    <b>/disable (command):</b> Disable the command specified in the group.
+    <b>/enable (command):</b> Enables the specified command that was later disabled.
+    <b>/disableable:</b> Lists all the commands that can be deactivated.
+    <b>/disabled:</b> Lists all commands that are currently disabled.
+    <b>/config:</b> Returns a menu with some group settings
 menu:
   startMessage: |
     Hello <b>%s</b> — I'm <b>%s</b>, a bot with some useful and fun commands for you.
