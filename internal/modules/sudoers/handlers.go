@@ -26,8 +26,8 @@ func announce(bot *telego.Bot, update telego.Update) {
 		lang = strings.ReplaceAll(update.CallbackQuery.Data, "announce ", "")
 	}
 
-	if (message == nil || message.From.ID != config.OWNER_ID) &&
-		(update.CallbackQuery == nil || update.CallbackQuery.From.ID != config.OWNER_ID) {
+	if (message == nil || message.From.ID != config.OwnerID) &&
+		(update.CallbackQuery == nil || update.CallbackQuery.From.ID != config.OwnerID) {
 		return
 	}
 
@@ -47,7 +47,7 @@ func announce(bot *telego.Bot, update telego.Update) {
 		}
 
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:      telegoutil.ID(config.OWNER_ID),
+			ChatID:      telegoutil.ID(config.OwnerID),
 			Text:        "Choose a language:",
 			ParseMode:   "HTML",
 			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
@@ -107,7 +107,7 @@ func announce(bot *telego.Bot, update telego.Update) {
 	}
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(config.OWNER_ID),
+		ChatID:    telegoutil.ID(config.OwnerID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 		Text:      fmt.Sprintf("<b>Messages sent successfully:</b> <code>%d</code>\n<b>Messages unsent:</b> <code>%d</code>", successCount, errorCount),
 		ParseMode: "HTML",

@@ -4,7 +4,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -16,13 +15,11 @@ var (
 	BotAPIURL     string
 	WebhookURL    string
 	WebhookPort   int
-	SOCKS5URLs    []string
-	OWNER_ID      int64
+	Socks5Proxy   string
+	OwnerID       int64
 )
 
-// init initializes the config variables.
 func init() {
-	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
@@ -47,14 +44,10 @@ func init() {
 	WebhookURL = os.Getenv("WEBHOOK_URL")
 	BotAPIURL = os.Getenv("BOTAPI_URL")
 
-	// Split the SOCKS5URL into a list of URLs
-	SOCKS5URLString := os.Getenv("SOCKS5URL")
-	if SOCKS5URLString != "" {
-		SOCKS5URLs = strings.Split(SOCKS5URLString, ",")
-	}
+	Socks5Proxy = os.Getenv("SOCKS5_PROXY")
 
-	OWNER_ID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
-	if OWNER_ID == 0 {
+	OwnerID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
+	if OwnerID == 0 {
 		log.Fatalf(`You need to set the "OWNER_ID" in the .env file!`)
 	}
 }
