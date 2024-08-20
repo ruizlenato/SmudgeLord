@@ -2,18 +2,18 @@ language:
   name: English (US)
   flag: 🇺🇸
 
-button:
+lutton:
   start: Inciar uma conversa
   language: Language
   help: ❔Help
   about: ℹ️ About
   privacy: 🔒 Privacy Policy
   donation: 💵 Donation
-  news-channel: 📢 Channel
+  newsChannel: 📢 Channel
   back: ↩️ Back
   caption: "Captions:"
   automatic: "Auto:"
-  about-your-data: About your data
+  aboutYourData: About your data
 
 menu:
   startMsg: |
@@ -108,7 +108,7 @@ config:
 lastfm:
   name: Last.FM
   provideUsername: <b>Answer this message</b> with your last.fm username.
-  invalid-username: |
+  invalidUsername: |
     <b>Invalid last.fm username</b>
     Check that you have correctly typed your last.FM username and try again.
   noUsername: |
@@ -127,8 +127,9 @@ lastfm:
     <b>It seems you haven't scrobbled any tracks on Last.fm yet.</b>.
 
     <b>If you're having trouble using Last.fm,</b> go to last.fm/about/trackmymusic and learn how to connect your account to your music app.",
-  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
-  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:"
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:"
+  trackLoved: " ❤️‍🔥"
   config-help: |
     <b>LastFM settings in your group:</b>
     Use the button below to configure whether the bot should respond to the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in the group.
@@ -148,7 +149,7 @@ lastfm:
 
 medias:
   name: Medias
-  config: |
+  Config: |
     <b>Medias settings</b>
     To know more about the <b><i>medias</i></b> module, use /help in my private chat.
 
@@ -156,7 +157,7 @@ medias:
     <i>These settings are for this group only, not for other groups or private chats.</i>
   noURL: |
     <b>You didn't specify a link or you specified an invalid link.</b>
-    Specify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b> <b><i>Twitter/X</i></b> or <b><i>Twitch Clips</i></b> link so I can download the media(s).
+    Specify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b> or <b><i>Twitter/X</i></b> link so I can download the media(s).
   autoHelp: When this option is enabled, the bot will download photos and videos from some social networks automatically when it sees a link, eliminating the need for the /sdl or /dl command.
   captionHelp: When this option is enabled, the captions of media that you download using the bot will be sent along with them.
   youtubeNoURL: |
@@ -241,7 +242,7 @@ stickers:
     - /getsticker — Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
 
 weather:
-  selectLocation: <b>Select the location where you want to know the weather:</b>
+  selectLocation: <b>Select the location where you want to know the Weather:</b>
   locationUnknown: Location not found.
   nolocation: |
     You haven't specified a location.

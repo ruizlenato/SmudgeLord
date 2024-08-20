@@ -48,7 +48,7 @@ func checkAFK(message *telegram.NewMessage) error {
 			return err
 		}
 
-		_, err := message.Reply(fmt.Sprintf(i18n("afk.now-available"), message.Sender.ID, message.Sender.FirstName, humanizedDuration),
+		_, err := message.Reply(fmt.Sprintf(i18n("afk.nowAvailable"), message.Sender.ID, message.Sender.FirstName, humanizedDuration),
 			telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
@@ -78,7 +78,7 @@ func handlerSetAFK(message *telegram.NewMessage) error {
 	}
 
 	i18n := localization.Get(message)
-	_, err = message.Reply(fmt.Sprintf(i18n("afk.now-unavailable"), message.Sender.FirstName),
+	_, err = message.Reply(fmt.Sprintf(i18n("afk.nowUnavailable"), message.Sender.FirstName),
 		telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})

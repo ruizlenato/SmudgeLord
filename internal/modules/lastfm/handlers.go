@@ -14,7 +14,7 @@ import (
 func getErrorMessage(err error, i18n func(string) string) string {
 	switch {
 	case strings.Contains(err.Error(), "no recent tracks"):
-		return i18n("lastfm.no-scrobbles")
+		return i18n("lastfm.noScrobbles")
 	case strings.Contains(err.Error(), "lastFM error"):
 		return i18n("lastfm.error")
 	default:
@@ -28,7 +28,7 @@ func handleSetUser(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() != "" {
 		if err := lastFM.GetUser(message.Args()); err != nil {
-			_, err := message.Reply(i18n("lastfm.invalid-username"), telegram.SendOptions{
+			_, err := message.Reply(i18n("lastfm.invalidUsername"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
@@ -68,7 +68,7 @@ func handleSetUser(message *telegram.NewMessage) error {
 
 	if respond.ID == resp.ReplyToMsgID() {
 		if err := lastFM.GetUser(resp.Text()); err != nil {
-			_, err := conv.Reply(i18n("lastfm.invalid-username"), &telegram.SendOptions{
+			_, err := conv.Reply(i18n("lastfm.invalidUsername"), &telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
@@ -128,22 +128,21 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
 	if recentTracks.Nowplaying {
-		text += i18n("lastfm.nowplaying")
+		text += fmt.Sprintf(i18n("lastfm.nowPlaying"), lastFMUsername, message.Sender.FirstName, recentTracks.Playcount)
 	} else {
-		text += i18n("lastfm.not-nowplaying")
+		text += fmt.Sprintf(i18n("lastfm.wasPlaying"), lastFMUsername, message.Sender.FirstName, recentTracks.Playcount)
 	}
 
 	switch methodType {
 	case "track":
 		text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Track)
+		if recentTracks.Trackloved {
+			text += i18n("lastfm.trackLoved")
+		}
 	case "album":
 		text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Album)
 	case "artist":
 		text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
-	}
-
-	if recentTracks.Trackloved {
-		text += i18n("lastfm.trackloved")
 	}
 
 	_, err = message.Reply(text, telegram.SendOptions{

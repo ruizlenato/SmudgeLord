@@ -9,11 +9,11 @@ button:
   about: ℹ️ Sobre
   privacy: 🔒 Política de privacidade.
   donation: 💵 Doação
-  news-channel: 📢 Canal
+  newsChannel: 📢 Canal
   back: ↩️ Voltar
-  caption: "Legendas:" # Precisa das aspas porque a string termina com dois pontos
-  automatic: "Automático:" # Precisa das aspas porque a string termina com dois pontos
-  about-your-data: Sobre seus dados
+  caption: "Legendas:"
+  automatic: "Automático:"
+  aboutYourData: Sobre seus dados
 
 menu:
   startMsg: |
@@ -110,7 +110,7 @@ config:
 lastfm:
   name: Last.FM
   provideUsername: <b>Responda a essa mensagem</b> com o seu nome de usuário do last.fm.
-  invalid-username: |
+  invalidUsername: |
     <b>Usuário do last.fm inválido</b>
     Verifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.
   noUsername: |
@@ -129,8 +129,9 @@ lastfm:
     <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>
 
     <b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.
-  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
-  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:"
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:"
+  trackLoved: " ❤️‍🔥"
   config-help: |
     <b>Configurações do LastFM em seu grupo:</b>
     Use o botão abaixo para configurar se o bot deve responder aos comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
@@ -150,7 +151,7 @@ lastfm:
 
 medias:
   name: Mídias
-  config: |
+  Config: |
     <b>Configurações de Mídias</b>
     Para saber mais sobre o módulo <b><i>mídias</i></b>, use /help em meu chat privado.
 
@@ -158,7 +159,7 @@ medias:
     <i>Essas configurações é somente para esse grupo, não servem para outros ou chat privado.</i>
   noURL: |
     <b>Você não especificou um link ou especificou um link invalido.</b>
-    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Clipe da Twitch</i></b> para que eu possa baixar a(s) mídia(s).
+    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, ou <b><i>Twitter/X</i></b> para que eu possa baixar a(s) mídia(s).
   autoHelp: Quando essa opção está ativa, o bot fará o download de fotos e vídeos de algumas redes sociais automaticamente ao ver um link, dispensando a necessidade do comando /sdl ou /dl.
   captionHelp: Quando essa opção está ativa, as legendas das mídias que você baixar usando o bot serão enviadas junto com elas.
   youtubeNoURL: |

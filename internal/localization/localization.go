@@ -24,18 +24,6 @@ var (
 	availableLocalesMutex sync.Mutex
 )
 
-// LoadLanguages loads language files from the localtizations directory and populates the global cache.
-// Each file in the directory should be a JSON file representing translations for a specific language.
-// The language files are identified by their language code, derived from the file name without the extension.
-// Loaded languages are stored in the cache for quick access during program execution.
-// Additionally, the language codes are appended to the global list of available locales (AvailableLocales).
-//
-// Parameters:
-//   - dir: The directory containing JSON files with translations for each language.
-//
-// Returns:
-//   - error: Returns an error if there is any issue during the loading of languages.
-//     Otherwise, it returns nil, indicating successful loading of languages.
 func LoadLanguages() error {
 	database.AvailableLocales = nil
 	dir := "internal/localization/locales"
@@ -82,14 +70,6 @@ func LoadLanguages() error {
 	return err
 }
 
-// getChatLanguage retrieves the language for a specific chat from the database.
-//
-// Parameters:
-//   - chat: The telego.Chat representing the user or group for which to retrieve the language.
-//
-// Returns:
-//   - string: The language code for the chat.
-//   - error: An error if there is any issue retrieving the language from the database.
 func GetChatLanguage(chatID int64, chatType string) (string, error) {
 	var tableName string
 	if chatType == "chat" {
@@ -108,14 +88,6 @@ type TelegramUpdate interface {
 	ChatID() int64
 }
 
-// Get returns a function that, given a message key, returns the translated message for a specific chat.
-// It uses the language set for the chat, falling back to the default language if the chat's language is not found.
-//
-// Parameters:
-//   - chat: The telego.Chat representing the user or group for which to retrieve the language.
-//
-// Returns:
-//   - func(string) string: A function that, given a message key, returns the translated message.
 func Get(update interface{}) func(string) string {
 	var chatID int64
 	var chatType string
@@ -159,7 +131,6 @@ func Get(update interface{}) func(string) string {
 	}
 }
 
-// Helper function to traverse nested map and get the final string value
 func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 	keys := strings.Split(key, ".")
 	currentMap := langMap
@@ -182,8 +153,6 @@ func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 	return "KEY_NOT_FOUND"
 }
 
-// HumanizeTimeSince returns a human-readable representation of the time duration since a given duration.
-// It takes a duration and a chat as input parameters and returns a string.
 func HumanizeTimeSince(duration time.Duration, message *telegram.NewMessage) string {
 	i18n := Get(message)
 
@@ -193,30 +162,28 @@ func HumanizeTimeSince(duration time.Duration, message *telegram.NewMessage) str
 	switch {
 	case duration < time.Minute:
 		timeDuration = int(duration.Seconds())
-		stringKey = "relativeDuration.%s.s"
+		stringKey = "relativeDuration%s.s"
 	case duration < time.Hour:
 		timeDuration = int(duration.Minutes())
-		stringKey = "relativeDuration.%s.m"
+		stringKey = "relativeDuration%s.m"
 	case duration < 24*time.Hour:
 		timeDuration = int(duration.Hours())
-		stringKey = "relativeDuration.%s.h"
+		stringKey = "relativeDuration%s.h"
 	case duration < 7*24*time.Hour:
 		timeDuration = int(duration.Hours() / 24)
-		stringKey = "relativeDuration.%s.d"
+		stringKey = "relativeDuration%s.d"
 	case duration < 30*24*time.Hour:
 		timeDuration = int(duration.Hours() / (24 * 7))
-		stringKey = "relativeDuration.%s.w"
+		stringKey = "relativeDuration%s.w"
 	default:
 		timeDuration = int(duration.Hours() / (24 * 30))
-		stringKey = "relativeDuration.%s.M"
+		stringKey = "relativeDuration%s.M"
 	}
 
-	// Use a helper function to get the translated string based on the string key and time duration
 	timeSince := getTranslatedTimeSince(i18n, stringKey, timeDuration)
 	return timeSince
 }
 
-// Helper function to get the translated time since string
 func getTranslatedTimeSince(i18n func(string) string, stringKey string, timeDuration int) string {
 	singularKey := fmt.Sprintf(stringKey, "singular")
 	pluralKey := fmt.Sprintf(stringKey, "plural")

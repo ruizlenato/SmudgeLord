@@ -76,7 +76,7 @@ func createPrivacyKeyboard(i18n func(string) string) telegram.ReplyMarkup {
 	return telegram.Button{}.Keyboard(
 		telegram.Button{}.Row(
 			telegram.Button{}.Data(
-				i18n("button.about-your-data"),
+				i18n("button.aboutYourData"),
 				"aboutYourData",
 			),
 		),
@@ -100,7 +100,7 @@ func handlerPrivacy(message *telegram.NewMessage) error {
 			ReplyMarkup: telegram.Button{}.Keyboard(
 				telegram.Button{}.Row(
 					telegram.Button{}.URL(
-						i18n("button.about-your-data"),
+						i18n("button.aboutYourData"),
 						fmt.Sprintf("https://t.me/%s?start=privacy", message.Client.Me().Username),
 					),
 				),
@@ -151,7 +151,7 @@ func callbackAboutMenu(update *telegram.CallbackQuery) error {
 					"https://ko-fi.com/ruizlenato",
 				),
 				telegram.Button{}.URL(
-					i18n("button.news-channel"),
+					i18n("button.newsChannel"),
 					"https://t.me/SmudgeLordChannel",
 				),
 			),
