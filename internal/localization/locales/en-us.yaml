@@ -38,9 +38,17 @@ config:
   cmdNotDisableable: <b>Command cannot be deactivated.</b>
   cmdDisableables: <b>Disableable commands:</b>
   cmdDisabled: The <code>%s</code> command was disabled.
+  cmdDisableUsage: |
+    You haven't specified which command you want to disable. To find out which commands can be disabled, use /disableable.
+    <b>Usage:</b> <code>/disable (command)</code>
   cmdAlreadyDisabled: The <code>%s</code> command is already disabled.
   cmdEnabled: The <code>%s</code> command was enabled.
+  cmdEnableUsage: |
+    You haven't specified which command you want to enable. To find out which commands are disabled, use /disabled.
+    <b>Usage:</b> <code>/enable (command)</code>
   cmdAlreadyEnabled: The <code>%s</code> command is already enabled.
+  disabledCmds: <b>Disabled commands:</b>
+  noDisabledCmds: There are no disabled commands <b>in this group.</b>
   menuText: |
     <b>Settings —</b> Here are my settings for this group.
     To know more, <b>click on the buttons below.</b>
