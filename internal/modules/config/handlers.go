@@ -53,8 +53,8 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	query := "INSERT INTO commandsDisabled (command) VALUES (?);"
-	_, err := database.DB.Exec(query, args[0])
+	query := "INSERT INTO commandsDisabled (chat_id, command) VALUES (?, ?);"
+	_, err := database.DB.Exec(query, message.Chat.ID, args[0])
 	if err != nil {
 		fmt.Print("Error inserting command: " + err.Error())
 		return
