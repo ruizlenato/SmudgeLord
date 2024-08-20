@@ -38,8 +38,7 @@ func handleLastFMConfig(bot *telego.Bot, update telego.Update) {
 		log.Printf("Error getting lastFMCommands: %v", err)
 		return
 	}
-	chat := message.GetChat()
-	i18n := localization.Get(chat)
+	i18n := localization.Get(update)
 
 	configType := strings.ReplaceAll(update.CallbackQuery.Data, "lastFMConfig ", "")
 	if configType != "lastFMConfig" {
@@ -69,7 +68,7 @@ func handleLastFMConfig(bot *telego.Bot, update telego.Update) {
 	}})
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(chat.ID),
+		ChatID:      telegoutil.ID(message.Chat.ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
 		Text:        i18n("lastfm.configHelp"),
 		ParseMode:   "HTML",
@@ -82,7 +81,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 	var lastFMUsername string
 
 	if len(strings.Fields(message.Text)) > 1 {
@@ -130,7 +129,7 @@ func handleMusic(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
 		return
 	}
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 
 	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
 	if err != nil || lastFMUsername == "" {
@@ -195,7 +194,7 @@ func handleAlbum(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
 		return
 	}
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 
 	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
 	if err != nil && lastFMUsername == "" {
@@ -260,7 +259,7 @@ func handleArtist(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
 		return
 	}
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 
 	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
 	if err != nil && lastFMUsername == "" {

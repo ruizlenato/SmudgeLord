@@ -42,7 +42,7 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 		return
 	}
 
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 	humanizedDuration := localization.HumanizeTimeSince(duration, message.Chat)
 
 	switch {
@@ -100,7 +100,7 @@ func handleSetAFK(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),

@@ -81,14 +81,6 @@ func LoadLanguages() error {
 	return err
 }
 
-// getChatLanguage retrieves the language for a specific chat from the database.
-//
-// Parameters:
-//   - chat: The telego.Chat representing the user or group for which to retrieve the language.
-//
-// Returns:
-//   - string: The language code for the chat.
-//   - error: An error if there is any issue retrieving the language from the database.
 func GetChatLanguage(chat telego.Chat) (string, error) {
 	var tableName, idColumn string
 	if strings.Contains(chat.Type, "group") {
@@ -105,15 +97,15 @@ func GetChatLanguage(chat telego.Chat) (string, error) {
 	return language, err
 }
 
-// Get returns a function that, given a message key, returns the translated message for a specific chat.
-// It uses the language set for the chat, falling back to the default language if the chat's language is not found.
-//
-// Parameters:
-//   - chat: The telego.Chat representing the user or group for which to retrieve the language.
-//
-// Returns:
-//   - func(string) string: A function that, given a message key, returns the translated message.
-func Get(chat telego.Chat) func(string) string {
+func Get(update interface{}) func(string) string {
+	var chat telego.Chat
+	switch u := update.(type) {
+	case telego.Message:
+		chat = u.Chat
+	case telego.Update:
+		chat = u.CallbackQuery.Message.(*telego.Message).Chat
+	}
+
 	return func(key string) string {
 		language, err := GetChatLanguage(chat)
 		if err != nil {

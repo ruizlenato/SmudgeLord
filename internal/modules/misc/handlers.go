@@ -19,7 +19,7 @@ import (
 
 func handleTranslate(bot *telego.Bot, message telego.Message) {
 	var text string
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 
 	if message.ReplyToMessage != nil {
 		replyText := ""
@@ -230,7 +230,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 	var weatherQuery string
 
 	lang, _ := localization.GetChatLanguage(message.Chat)
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 
 	if len(strings.Fields(message.Text)) > 1 {
 		_, _, args := telegoutil.ParseCommand(message.Text)

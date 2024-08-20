@@ -18,7 +18,7 @@ import (
 )
 
 func handleGetSticker(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 	if message.ReplyToMessage == nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
@@ -78,7 +78,7 @@ func handleGetSticker(bot *telego.Bot, message telego.Message) {
 }
 
 func handleKangSticker(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message.Chat)
+	i18n := localization.Get(message)
 	if message.ReplyToMessage == nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
@@ -338,14 +338,12 @@ func getFileIDAndType(reply *telego.Message) (stickerAction string, stickerType 
 }
 
 func bytesToFile(data []byte, extension string) (*os.File, error) {
-	// Create a new temporary file with the .png extension
 	tempFile, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension))
 	if err != nil {
 		log.Panic(err)
 		return nil, err
 	}
 
-	// Defer a function to close and remove the file in case of error
 	defer func() {
 		if err != nil {
 			tempFile.Close()
@@ -353,21 +351,20 @@ func bytesToFile(data []byte, extension string) (*os.File, error) {
 		}
 	}()
 
-	_, err = tempFile.Write(data) // Write the byte slice to the file
+	_, err = tempFile.Write(data)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = tempFile.Seek(0, 0) // Seek back to the beginning of the file
+	_, err = tempFile.Seek(0, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	return tempFile, nil // Return the file
+	return tempFile, nil
 }
 
 func resizeImage(input []byte) (*os.File, error) {
-	// Create a new vips Image object from the input byte slice
 	resizedImg, err := bimg.Resize(input, bimg.Options{
 		Width:   512,
 		Height:  512,
@@ -377,20 +374,17 @@ func resizeImage(input []byte) (*os.File, error) {
 		return nil, err
 	}
 
-	// Create a temporary file with a .png extension
 	tempFile, err := os.CreateTemp("", "Smudge*.png")
 	if err != nil {
 		tempFile.Close()
 		return nil, err
 	}
 
-	// Write the resized image data to the temporary file
 	_, err = tempFile.Write(resizedImg)
 	if err != nil {
 		return nil, err
 	}
 
-	// Defer a function to close and remove the file in case of error
 	defer func() {
 		if err != nil {
 			tempFile.Close()
@@ -398,7 +392,6 @@ func resizeImage(input []byte) (*os.File, error) {
 		}
 	}()
 
-	// Seek back to the beginning of the file
 	_, err = tempFile.Seek(0, 0)
 	if err != nil {
 		return nil, err
@@ -407,49 +400,37 @@ func resizeImage(input []byte) (*os.File, error) {
 	return tempFile, nil
 }
 
-// convertVideo converts a specified video in []byte format to a webm file.
-// It returns an *os.File containing the converted video and an error, if any.
 func convertVideo(input []byte) (*os.File, error) {
-	// Create a temporary file for the input video
 	inputFile, err := os.CreateTemp("", "Smudgeinput_*.mp4")
 	if err != nil {
 		return nil, err
 	}
-	defer os.Remove(inputFile.Name()) // Remove the temporary input file when the function returns
+	defer os.Remove(inputFile.Name())
 
-	// Write the input video data to the temporary input file
 	if _, err := inputFile.Write(input); err != nil {
 		return nil, err
 	}
 
-	// Create a temporary file for the output video
 	outputFile, err := os.CreateTemp("", "Smudge*.webm")
 	if err != nil {
 		return nil, err
 	}
 
-	// Run ffmpeg command to convert the input video to WebM format with specified settings
 	cmd := exec.Command("ffmpeg",
-		"-loglevel", "quiet", // Set log level to quiet
-		"-i", inputFile.Name(), // Input file path
-		"-t", "00:00:03", // Set duration of output video to 3 seconds
-		"-vf", "fps=30", // Set frame rate to 30 fps
-		"-c:v", "vp9", // Set video codec to VP9
-		"-b:v", "500k", // Set video bitrate to 500k
-		"-preset", "ultrafast", // Set preset to ultrafast for fast encoding
-		"-s", "512x512", // Set output video resolution to 512x512
-		"-y",         // Overwrite output file without asking
-		"-an",        // Disable audio
-		"-f", "webm", // Set output format to WebM
-		outputFile.Name()) // Specify output file path
+		"-loglevel", "quiet", "-i", inputFile.Name(),
+		"-t", "00:00:03", "-vf", "fps=30",
+		"-c:v", "vp9", "-b:v", "500k",
+		"-preset", "ultrafast", "-s", "512x512",
+		"-y", "-an", "-f", "webm",
+		outputFile.Name())
 
-	err = cmd.Run() // Execute the ffmpeg command
+	err = cmd.Run()
 	if err != nil {
 		return nil, err
 	}
-	outputFile.Seek(0, 0) // Move the file pointer to the beginning of the output file
+	outputFile.Seek(0, 0)
 
-	return outputFile, nil // Return the converted video file
+	return outputFile, nil
 }
 
 func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {

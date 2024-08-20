@@ -45,7 +45,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	}
 
 	url := regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text)
-	i18n := localization.Get(message.GetChat())
+	i18n := localization.Get(message)
 	if len(url) < 1 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
@@ -130,8 +130,8 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 }
 
 func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
-	chat := update.CallbackQuery.Message.GetChat()
-	i18n := localization.Get(chat)
+	message := update.CallbackQuery.Message.(*telego.Message)
+	i18n := localization.Get(update)
 
 	callbackData := strings.Split(update.CallbackQuery.Data, "|")
 	if userID, _ := strconv.Atoi(callbackData[5]); update.CallbackQuery.From.ID != int64(userID) {
@@ -158,7 +158,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	}
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(chat.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 		Text:      i18n("medias.downloading"),
 	})
@@ -181,19 +181,19 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	}
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(chat.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 		Text:      i18n("medias.uploading"),
 	})
 	bot.SendChatAction(&telego.SendChatActionParams{
-		ChatID: telegoutil.ID(chat.ID),
+		ChatID: telegoutil.ID(message.Chat.ID),
 		Action: action,
 	})
 
 	_, err = outputFile.Seek(0, 0)
 	if err != nil {
 		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    telegoutil.ID(chat.ID),
+			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: update.CallbackQuery.Message.GetMessageID(),
 			Text:      i18n("medias.error"),
 		})
@@ -214,7 +214,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	switch callbackData[0] {
 	case "_aud":
 		_, err = bot.SendAudio(&telego.SendAudioParams{
-			ChatID:    telegoutil.ID(chat.ID),
+			ChatID:    telegoutil.ID(message.Chat.ID),
 			Audio:     telegoutil.File(outputFile),
 			Thumbnail: &telego.InputFile{File: thumbnail},
 			Performer: video.Author,
@@ -227,7 +227,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 		})
 	case "_vid":
 		_, err = bot.SendVideo(&telego.SendVideoParams{
-			ChatID:            telegoutil.ID(chat.ID),
+			ChatID:            telegoutil.ID(message.Chat.ID),
 			Video:             telegoutil.File(outputFile),
 			Thumbnail:         &telego.InputFile{File: thumbnail},
 			SupportsStreaming: true,
@@ -246,13 +246,13 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	}
 
 	bot.DeleteMessage(&telego.DeleteMessageParams{
-		ChatID:    telegoutil.ID(chat.ID),
+		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 	})
 }
 
 func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message.GetChat())
+	i18n := localization.Get(message)
 	var videoURL string
 
 	if message.ReplyToMessage != nil && message.ReplyToMessage.Text != "" {
@@ -426,7 +426,7 @@ func handleMediaConfig(bot *telego.Bot, update telego.Update) {
 }
 
 func handleExplainConfig(bot *telego.Bot, update telego.Update) {
-	i18n := localization.Get(update.CallbackQuery.Message.(*telego.Message).GetChat())
+	i18n := localization.Get(update)
 	ieConfig := strings.ReplaceAll(update.CallbackQuery.Data, "ieConfig medias", "")
 	bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
