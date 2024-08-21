@@ -74,8 +74,8 @@ lastfm:
     <b>Usuário do last.fm inválido</b>
     Verifique se você digitou corretamente seu nome de usuário do last.fm e tente novamente.
   noUsername: |
-    <b>Você ainda não definiu seu nome de usuário do last.fm</b>
-    Use o comando /setuser para definir
+    <b>Você ainda não definiu seu nome de usuário do last.fm</b>.
+    Use o comando /setuser para definir.
   usernameSet: <b>Pronto</b>, seu nome de usuário do last.fm foi salvo!
   error: |
     <b>Parece que ocorreu um erro.</b>
@@ -86,13 +86,8 @@ lastfm:
     <b>Aparentemente você nunca scrobblou uma música no last.fm.</b>
 
     <b>Se estiver enfrentando problemas para utilizar o Last.fm,</b> acesse o site last.fm/about/trackmymusic e aprenda como conectar sua conta ao seu aplicativo de música.
-  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
-  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:" # Precisa das aspas porque a string termina com dois pontos
-  configHelp: |
-    <b>Configurações do LastFM em seu grupo:</b>
-    Use o botão abaixo para configurar se o bot deve responder aos comandos <code>/lt</code>, <code>/art</code> e <code>/alb</code> no grupo.
-
-    Se quiser evitar conflitos com outros bots você pode desativar a opção abaixo para que o bot não responda aos comandos mencionados acima.
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> está ouvindo pela <b>%dª vez</b>:"
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> estava ouvindo pela <b>%dª vez</b>:"
   help: |
     <b>Last.FM Scobbles</b>
 

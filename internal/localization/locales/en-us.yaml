@@ -75,7 +75,7 @@ lastfm:
     Check that you have correctly typed your last.FM username and try again.
   noUsername: |
     <b>You haven't set your last.fm username yet.</b>
-    Use the command /setuser to set
+    Use the command /setuser to set.
   usernameSet: <b>Done</b>, your last.fm username has been saved!
   error: |
     <b>An error seems to have occurred.</b>
@@ -86,13 +86,8 @@ lastfm:
     <b>It seems you haven't scrobbled any tracks on Last.fm yet.</b>.
 
     <b>If you're having trouble using Last.fm,</b> go to last.fm/about/trackmymusic and learn how to connect your account to your music app.",
-  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
-  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:" # Need the quotes because string ends with a colon
-  configHelp: |
-    <b>LastFM settings in your group:</b>
-    Use the button below to configure whether the bot should respond to the <code>/lt</code>, <code>/art</code> and <code>/alb</code> commands in the group.
-
-    If you want to avoid conflicts with other bots, you can disable the option below so that the bot doesn't respond to the commands mentioned above.
+  nowPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> is listening for the <b>%dnd time</b>:"
+  wasPlaying: "<b><a href='https://last.fm/user/%s'>%s</a></b> was listening for the <b>%dnd time</b>:"
   help: |
     <b>Last.FM Scobbles</b>
 

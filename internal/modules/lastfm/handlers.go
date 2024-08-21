@@ -98,7 +98,7 @@ func lastfm(bot *telego.Bot, message telego.Message, methodType string) {
 	if err != nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.error"),
+			Text:      i18n("lastfm.noUsername"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
