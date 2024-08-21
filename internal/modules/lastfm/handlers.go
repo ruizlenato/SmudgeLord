@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
@@ -28,51 +27,6 @@ func getErrorMessage(err error, i18n func(string) string) string {
 }
 
 var lastFM = lastFMAPI.Init()
-
-func handleLastFMConfig(bot *telego.Bot, update telego.Update) {
-	message := update.CallbackQuery.Message.(*telego.Message)
-	lastFMCommands, err := getLastFMCommands(message.Chat.ID)
-	if err != nil {
-		log.Printf("Error getting lastFMCommands: %v", err)
-		return
-	}
-	i18n := localization.Get(update)
-
-	configType := strings.ReplaceAll(update.CallbackQuery.Data, "lastFMConfig ", "")
-	if configType != "lastFMConfig" {
-		lastFMCommands = !lastFMCommands
-		_, err := database.DB.Exec("UPDATE groups SET lastFMCommands = ? WHERE id = ?;", lastFMCommands, message.Chat.ID)
-		if err != nil {
-			return
-		}
-	}
-
-	state := func(state bool) string {
-		if state {
-			return "✅"
-		}
-		return "☑️"
-	}
-
-	buttons := [][]telego.InlineKeyboardButton{
-		{
-			{Text: state(lastFMCommands), CallbackData: "lastFMConfig update"},
-		},
-	}
-
-	buttons = append(buttons, []telego.InlineKeyboardButton{{
-		Text:         i18n("button.back"),
-		CallbackData: "config",
-	}})
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(message.Chat.ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("lastfm.configHelp"),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
-	})
-}
 
 func handleSetUser(bot *telego.Bot, message telego.Message) {
 	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
@@ -220,6 +174,5 @@ func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 		telegohandler.CommandEqual("art"),
 		telegohandler.CommandEqual("lart")),
 	)
-	bh.Handle(handleLastFMConfig, telegohandler.CallbackDataPrefix("lastFMConfig"), helpers.IsAdmin(bot))
 	helpers.DisableableCommands = append(helpers.DisableableCommands, "lastfm", "lmu", "lt", "np", "album", "lalb", "alb", "artist", "lart", "art")
 }

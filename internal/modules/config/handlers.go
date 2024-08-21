@@ -296,12 +296,6 @@ func createConfigKeyboard(i18n func(string) string) *telego.InlineKeyboardMarkup
 		),
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
-				Text:         "LastFM",
-				CallbackData: "lastFMConfig",
-			},
-		),
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
 				Text:         i18n("language.flag") + i18n("button.language"),
 				CallbackData: "languageMenu",
 			},
