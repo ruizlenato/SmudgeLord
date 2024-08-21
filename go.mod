@@ -3,13 +3,14 @@ module github.com/ruizlenato/smudgelord
 go 1.22.3
 
 require (
+	github.com/disintegration/imaging v1.6.2
 	github.com/fasthttp/router v1.5.2
 	github.com/goccy/go-yaml v1.12.0
-	github.com/h2non/bimg v1.1.9
 	github.com/joho/godotenv v1.5.1
 	github.com/kkdai/youtube/v2 v2.10.1
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/mymmrac/telego v0.31.0
+	github.com/redis/go-redis/v9 v9.6.1
 	github.com/valyala/fasthttp v1.55.0
 )
 
@@ -32,14 +33,14 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.8 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/redis/go-redis/v9 v9.6.1 // indirect
 	github.com/savsgio/gotils v0.0.0-20240704082632-aef3928b8a38 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fastjson v1.6.4 // indirect
 	golang.org/x/arch v0.8.0 // indirect
+	golang.org/x/image v0.19.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
-	golang.org/x/text v0.16.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240716161551-93cc26a95ae9 // indirect
 )

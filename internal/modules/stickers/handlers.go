@@ -1,6 +1,7 @@
 package stickers
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"os"
@@ -8,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/disintegration/imaging"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
-	"github.com/h2non/bimg"
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
 	"github.com/mymmrac/telego/telegoutil"
@@ -365,23 +366,15 @@ func bytesToFile(data []byte, extension string) (*os.File, error) {
 }
 
 func resizeImage(input []byte) (*os.File, error) {
-	resizedImg, err := bimg.Resize(input, bimg.Options{
-		Width:   512,
-		Height:  512,
-		Quality: 100,
-	})
+	img, err := imaging.Decode(bytes.NewReader(input))
 	if err != nil {
 		return nil, err
 	}
+	resizedImg := imaging.Resize(img, 512, 512, imaging.Lanczos)
 
 	tempFile, err := os.CreateTemp("", "Smudge*.png")
 	if err != nil {
 		tempFile.Close()
-		return nil, err
-	}
-
-	_, err = tempFile.Write(resizedImg)
-	if err != nil {
 		return nil, err
 	}
 
@@ -391,6 +384,11 @@ func resizeImage(input []byte) (*os.File, error) {
 			os.Remove(tempFile.Name())
 		}
 	}()
+
+	err = imaging.Encode(tempFile, resizedImg, imaging.PNG)
+	if err != nil {
+		return nil, err
+	}
 
 	_, err = tempFile.Seek(0, 0)
 	if err != nil {
