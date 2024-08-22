@@ -57,6 +57,8 @@ func getPostID(url string) (postID string) {
 func getInstagramData(postID string) *ShortcodeMedia {
 	if data := getEmbedData(postID); data != nil && data.ShortcodeMedia != nil {
 		return data.ShortcodeMedia
+	} else if data := getScrapperAPIData(postID); data != nil && data.ShortcodeMedia != nil {
+		return data.ShortcodeMedia
 	} else if data := getGQLData(postID); data != nil && data.Data.XDTShortcodeMedia != nil {
 		return data.Data.XDTShortcodeMedia
 	}
@@ -150,7 +152,7 @@ func getEmbedData(postID string) InstagramData {
                 "display_url": "` + mainMediaURL + `",
                 "edge_media_to_caption": {
                     "edges": [
-                        {otimize e melhore esse codigo
+                        {
                             "node": {
                                 "text": "` + caption + `"
                             }
@@ -167,6 +169,25 @@ func getEmbedData(postID string) InstagramData {
 		if err != nil {
 			return nil
 		}
+	}
+
+	return instagramData
+}
+
+func getScrapperAPIData(postID string) InstagramData {
+	var instagramData InstagramData
+
+	body := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"id": postID,
+		},
+	}).Body()
+
+	err := json.Unmarshal(body, &instagramData)
+	if err != nil {
+		log.Print("Instagram: Error unmarshalling ScrapperAPIdata: ", err)
+		return nil
 	}
 
 	return instagramData
@@ -223,7 +244,7 @@ func getGQLData(postID string) InstagramData {
 
 	err := json.Unmarshal(body, &instagramData)
 	if err != nil {
-		log.Print("[instagram/Instagram] Error unmarshalling Instagram data: ", err)
+		log.Print("Instagram: Error unmarshalling GQLData: ", err)
 		return nil
 	}
 
@@ -233,13 +254,13 @@ func getGQLData(postID string) InstagramData {
 func handleVideo(instagramData *ShortcodeMedia) []telego.InputMedia {
 	file, err := downloader.Downloader(instagramData.VideoURL)
 	if err != nil {
-		log.Print("[instagram/Instagram] Error downloading video: ", err)
+		log.Print("Instagram: Error downloading video: ", err)
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(instagramData.DisplayResources[len(instagramData.DisplayResources)-1].Src)
 	if err != nil {
-		log.Print("[instagram/Instagram] Error downloading video: ", err)
+		log.Print("Instagram: Error downloading thumbnail: ", err)
 		return nil
 	}
 	return []telego.InputMedia{&telego.InputMediaVideo{
@@ -255,7 +276,7 @@ func handleVideo(instagramData *ShortcodeMedia) []telego.InputMedia {
 func handleImage(instagramData *ShortcodeMedia) []telego.InputMedia {
 	file, err := downloader.Downloader(instagramData.DisplayURL)
 	if err != nil {
-		log.Print("[instagram/Instagram] Error downloading image:", err)
+		log.Print("Instagram: Error downloading image:", err)
 		return nil
 	}
 
