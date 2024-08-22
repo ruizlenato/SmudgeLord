@@ -115,7 +115,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		Action: telego.ChatActionUploadDocument,
 	})
 
-	replied, _ := bot.SendMediaGroup(&telego.SendMediaGroupParams{
+	replied, err := bot.SendMediaGroup(&telego.SendMediaGroupParams{
 		ChatID: telegoutil.ID(message.Chat.ID),
 		Media:  mediaItems,
 		ReplyParameters: &telego.ReplyParameters{
@@ -123,7 +123,10 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		},
 	})
 	downloader.RemoveMediaFiles(mediaItems)
-	err := downloader.SetMediaCache(replied, postID)
+	if err != nil {
+		return
+	}
+	err = downloader.SetMediaCache(replied, postID)
 	if err != nil {
 		log.Print(err)
 	}
