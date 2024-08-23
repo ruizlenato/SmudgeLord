@@ -36,6 +36,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	var mediaItems []telego.InputMedia
 	var caption string
 	var postID string
+	var forceSend bool = false
 
 	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text) && strings.Contains(message.Chat.Type, "group") {
 		var mediasAuto bool
@@ -63,6 +64,9 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 
 	for pattern, handler := range mediaHandlers {
 		if match, _ := regexp.MatchString(pattern, message.Text); match {
+			if strings.Contains(message.Text, "tiktok.com/") {
+				forceSend = true
+			}
 			var result []string
 			mediaItems, result = handler(message)
 			if len(result) == 2 {
@@ -84,7 +88,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		len(mediaItems) == 1 &&
 			mediaItems[0].MediaType() == "photo" &&
 			message.LinkPreviewOptions != nil &&
-			!message.LinkPreviewOptions.IsDisabled {
+			!message.LinkPreviewOptions.IsDisabled && !forceSend {
 		return
 	}
 
