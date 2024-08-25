@@ -35,7 +35,7 @@ afk:
   
 config:
   name: Configurações
-  cmdNotDisableable: <b>Comando não pode ser desativado.</b>
+  cmdNotDisableable: <b>O comando <code>%s</code> não pode ser desativado.</b>
   cmdDisableables: <b>Comandos desativáveis:</b>
   cmdDisabled: O comando <code>%s</code> foi desabilitado.
   cmdDisableUsage: |

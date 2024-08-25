@@ -67,7 +67,7 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 	if !contains(helpers.DisableableCommands, args[0]) {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("config.cmdCantDisable"),
+			Text:      fmt.Sprintf(i18n("config.cmdNotDisableable"), args[0]),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
