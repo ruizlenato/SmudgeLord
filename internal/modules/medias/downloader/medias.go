@@ -143,18 +143,18 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 }
 
 type Medias struct {
-	Videos  []string `json:"videos"`
-	Photos  []string `json:"photos"`
+	Files   []string `json:"file_id"`
+	Type    []string `json:"type"`
 	Caption string   `json:"caption"`
 }
 
 func SetMediaCache(replied []telego.Message, postID string) error {
 	var (
-		videos  []string
-		photos  []string
-		caption string
-		wg      sync.WaitGroup
-		mu      sync.Mutex
+		files      []string
+		mediasType []string
+		caption    string
+		wg         sync.WaitGroup
+		mu         sync.Mutex
 	)
 
 	results := make(chan struct {
@@ -173,12 +173,12 @@ func SetMediaCache(replied []telego.Message, postID string) error {
 				results <- struct {
 					mediaType string
 					fileID    string
-				}{"video", message.Video.FileID}
+				}{telego.MediaTypeVideo, message.Video.FileID}
 			} else if message.Photo != nil {
 				results <- struct {
 					mediaType string
 					fileID    string
-				}{"photo", message.Photo[0].FileID}
+				}{telego.MediaTypePhoto, message.Photo[0].FileID}
 			}
 		}(message)
 	}
@@ -190,16 +190,12 @@ func SetMediaCache(replied []telego.Message, postID string) error {
 
 	for result := range results {
 		mu.Lock()
-		switch result.mediaType {
-		case "video":
-			videos = append(videos, result.fileID)
-		case "photo":
-			photos = append(photos, result.fileID)
-		}
+		files = append(files, result.fileID)
+		mediasType = append(mediasType, result.mediaType)
 		mu.Unlock()
 	}
 
-	album := Medias{Caption: caption, Videos: videos, Photos: photos}
+	album := Medias{Caption: caption, Files: files, Type: mediasType}
 
 	jsonValue, err := json.Marshal(album)
 	if err != nil {
@@ -240,19 +236,20 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 			return
 		}
 
-		inputMedias := make([]telego.InputMedia, 0, len(medias.Videos)+len(medias.Photos))
-		for _, media := range medias.Videos {
-			inputMedias = append(inputMedias, &telego.InputMediaVideo{
-				Type:  telego.MediaTypeVideo,
-				Media: telego.InputFile{FileID: media},
-			})
-		}
-
-		for _, media := range medias.Photos {
-			inputMedias = append(inputMedias, &telego.InputMediaPhoto{
-				Type:  telego.MediaTypePhoto,
-				Media: telego.InputFile{FileID: media},
-			})
+		inputMedias := make([]telego.InputMedia, 0, len(medias.Files))
+		for i, media := range medias.Files {
+			switch medias.Type[i] {
+			case telego.MediaTypeVideo:
+				inputMedias = append(inputMedias, &telego.InputMediaVideo{
+					Type:  telego.MediaTypeVideo,
+					Media: telego.InputFile{FileID: media},
+				})
+			case telego.MediaTypePhoto:
+				inputMedias = append(inputMedias, &telego.InputMediaPhoto{
+					Type:  telego.MediaTypePhoto,
+					Media: telego.InputFile{FileID: media},
+				})
+			}
 		}
 
 		resultChan <- result{inputMedias, medias.Caption, nil}
