@@ -102,7 +102,7 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 		"-loglevel", "warning",
 		"-i", videoFile.Name(),
 		"-i", audioFile.Name(),
-		"-c", "copy", // Just copy
+		"-c", "copy",
 		"-shortest",
 		outputFile.Name(),
 	)
@@ -148,18 +148,13 @@ type Medias struct {
 	Caption string   `json:"caption"`
 }
 
-func SetMediaCache(replied []telego.Message, postID string) error {
+func SetMediaCache(replied []telego.Message, result []string) error {
 	var (
 		files      []string
 		mediasType []string
-		caption    string
 	)
 
 	for _, message := range replied {
-		if caption == "" {
-			caption = utils.FormatText(message.Caption, message.CaptionEntities)
-		}
-
 		if message.Video != nil {
 			files = append(files, message.Video.FileID)
 			mediasType = append(mediasType, telego.MediaTypeVideo)
@@ -169,13 +164,13 @@ func SetMediaCache(replied []telego.Message, postID string) error {
 		}
 	}
 
-	album := Medias{Caption: caption, Files: files, Type: mediasType}
+	album := Medias{Caption: result[0], Files: files, Type: mediasType}
 	jsonValue, err := json.Marshal(album)
 	if err != nil {
 		return fmt.Errorf("could not marshal JSON: %v", err)
 	}
 
-	if err := cache.SetCache("media-cache:"+postID, jsonValue, 48*time.Hour); err != nil {
+	if err := cache.SetCache("media-cache:"+result[1], jsonValue, 48*time.Hour); err != nil {
 		return fmt.Errorf("could not set cache: %v", err)
 	}
 

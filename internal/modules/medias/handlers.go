@@ -33,14 +33,17 @@ const (
 )
 
 func handleMediaDownload(bot *telego.Bot, message telego.Message) {
-	var mediaItems []telego.InputMedia
-	var caption string
-	var postID string
-	var forceSend bool = false
+	var (
+		mediaItems []telego.InputMedia
+		result     []string
+		caption    string
+		forceSend  bool
+	)
 
 	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(message.Text) && strings.Contains(message.Chat.Type, "group") {
 		var mediasAuto bool
-		if err := database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto); err != nil || !mediasAuto {
+		err := database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto)
+		if err != nil || !mediasAuto {
 			return
 		}
 	}
@@ -67,47 +70,35 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 			if strings.Contains(message.Text, "tiktok.com/") {
 				forceSend = true
 			}
-			var result []string
 			mediaItems, result = handler(message)
 			if len(result) == 2 {
 				caption = result[0]
-				postID = result[1]
 			}
 			break
 		}
 	}
 
-	row := database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", message.Chat.ID)
-	var mediasCaption bool = true
-	if row.Scan(&mediasCaption); !mediasCaption {
-		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
-	}
-
-	if mediaItems == nil ||
-		len(mediaItems) == 0 ||
-		len(mediaItems) == 1 &&
-			mediaItems[0].MediaType() == "photo" &&
-			message.LinkPreviewOptions != nil &&
-			!message.LinkPreviewOptions.IsDisabled && !forceSend {
+	if mediaItems == nil || len(mediaItems) == 0 || (len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" &&
+		message.LinkPreviewOptions != nil && !message.LinkPreviewOptions.IsDisabled && !forceSend) {
 		return
 	}
 
-	if caption == "" {
-		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url)
+	if utf8.RuneCountInString(caption) > maxSizeCaption {
+		caption = downloader.TruncateUTF8Caption(caption, url[0])
 	}
 
-	if utf8.RuneCountInString(caption) > maxSizeCaption {
-		caption = downloader.TruncateUTF8Caption(caption,
-			regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text)[0])
+	var mediasCaption bool = true
+	if err := database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", message.Chat.ID).Scan(&mediasCaption); err == nil && !mediasCaption || caption == "" {
+		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
 	}
 
 	for _, media := range mediaItems[:1] {
 		switch media.MediaType() {
-		case "photo":
+		case telego.MediaTypePhoto:
 			if photo, ok := media.(*telego.InputMediaPhoto); ok {
 				photo.WithCaption(caption).WithParseMode("HTML")
 			}
-		case "video":
+		case telego.MediaTypeVideo:
 			if video, ok := media.(*telego.InputMediaVideo); ok {
 				video.WithCaption(caption).WithParseMode("HTML")
 			}
@@ -126,13 +117,14 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 			MessageID: message.MessageID,
 		},
 	})
+
 	downloader.RemoveMediaFiles(mediaItems)
 	if err != nil {
 		return
 	}
-	err = downloader.SetMediaCache(replied, postID)
-	if err != nil {
-		log.Print(err)
+
+	if err := downloader.SetMediaCache(replied, result); err != nil {
+		log.Print("Failed to set media cache: " + err.Error())
 	}
 }
 
