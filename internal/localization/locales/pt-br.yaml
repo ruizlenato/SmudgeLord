@@ -122,7 +122,7 @@ medias:
   youtubeVideoInfo: |
     <b>Título:</b> %s
     <b>Autor:</b> %s
-    <b>Tamanho:</b> <code>%.2f</code> (Vídeo) | <code>%.2f</code> (Áudio)
+    <b>Tamanho:</b> <code>%.2f</code> (Áudio) | <code>%.2f</code> (Vídeo)
     <b>Duração:</b> %s
   youtubeDownloadVideo: 🎬 Baixar vídeo
   youtubeDownloadAudio: 💿 Baixar áudio

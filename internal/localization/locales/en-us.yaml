@@ -120,10 +120,10 @@ medias:
   youtubeBigFile: "The video exceeds the size of 1,5GB, which is my maximum limit."
   youtubeDenied: This button is not for you.
   youtubeVideoInfo: |
-    <b>Título:</b> %s
-    <b>Autor:</b> %s
-    <b>Tamanho:</b> <code>%.2f</code> (Vídeo) | <code>%.2f</code> (Áudio)
-    <b>Duração:</b> %s
+    <b>Title:</b> %s
+    <b>Uploader:</b> %s
+    <b>Size:</b> <code>%.2f</code> (Audio) | <code>%.2f</code> (Video)
+    <b>Duration:</b> %s
   youtubeDownloadVideo: 🎬 Download video
   youtubeDownloadAudio: 💿 Download audio
   youtubeError: |
