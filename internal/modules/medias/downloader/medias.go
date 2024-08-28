@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -171,7 +172,10 @@ func SetMediaCache(replied []telego.Message, result []string) error {
 	}
 
 	if err := cache.SetCache("media-cache:"+result[1], jsonValue, 48*time.Hour); err != nil {
-		return fmt.Errorf("could not set cache: %v", err)
+		if !strings.Contains(err.Error(), "connect: connection refused") {
+			return err
+		}
+		return nil
 	}
 
 	return nil

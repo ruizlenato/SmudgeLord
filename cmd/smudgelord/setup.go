@@ -26,7 +26,7 @@ func InitializeServices() error {
 	}
 
 	if err := cache.RedisClient("localhost:6379", "", 0); err != nil {
-		return fmt.Errorf("redis client: %w", err)
+		log.Println("\033[0;31mRedis cache is currently unavailable.\033[0m")
 	}
 
 	return nil
