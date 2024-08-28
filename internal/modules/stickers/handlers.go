@@ -3,13 +3,15 @@ package stickers
 import (
 	"bytes"
 	"fmt"
+	"image"
 	"log"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 
-	"github.com/disintegration/imaging"
+	"github.com/anthonynsimon/bild/imgio"
+	"github.com/anthonynsimon/bild/transform"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
@@ -366,15 +368,14 @@ func bytesToFile(data []byte, extension string) (*os.File, error) {
 }
 
 func resizeImage(input []byte) (*os.File, error) {
-	img, err := imaging.Decode(bytes.NewReader(input))
+	img, _, err := image.Decode(bytes.NewReader(input))
 	if err != nil {
 		return nil, err
 	}
-	resizedImg := imaging.Resize(img, 512, 512, imaging.Lanczos)
+	resizedImg := transform.Resize(img, 512, 512, transform.Lanczos)
 
 	tempFile, err := os.CreateTemp("", "Smudge*.png")
 	if err != nil {
-		tempFile.Close()
 		return nil, err
 	}
 
@@ -385,13 +386,11 @@ func resizeImage(input []byte) (*os.File, error) {
 		}
 	}()
 
-	err = imaging.Encode(tempFile, resizedImg, imaging.PNG)
-	if err != nil {
+	if err := imgio.Save(tempFile.Name(), resizedImg, imgio.PNGEncoder()); err != nil {
 		return nil, err
 	}
 
-	_, err = tempFile.Seek(0, 0)
-	if err != nil {
+	if _, err = tempFile.Seek(0, 0); err != nil {
 		return nil, err
 	}
 

@@ -3,7 +3,7 @@ module github.com/ruizlenato/smudgelord
 go 1.22.3
 
 require (
-	github.com/disintegration/imaging v1.6.2
+	github.com/anthonynsimon/bild v0.14.0
 	github.com/fasthttp/router v1.5.2
 	github.com/goccy/go-yaml v1.12.0
 	github.com/joho/godotenv v1.5.1
