@@ -128,128 +128,6 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	}
 }
 
-func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
-	message := update.CallbackQuery.Message.(*telego.Message)
-	i18n := localization.Get(update)
-
-	callbackData := strings.Split(update.CallbackQuery.Data, "|")
-	if userID, _ := strconv.Atoi(callbackData[5]); update.CallbackQuery.From.ID != int64(userID) {
-		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-			CallbackQueryID: update.CallbackQuery.ID,
-			Text:            i18n("medias.youtubeDenied"),
-			ShowAlert:       true,
-		})
-		return
-	}
-
-	sizeLimit := int64(1572864000) // 1.5 GB
-	if config.BotAPIURL == "" {
-		sizeLimit = 52428800 // 50 MB
-	}
-
-	if size, _ := strconv.ParseInt(callbackData[3], 10, 64); size > sizeLimit {
-		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
-			CallbackQueryID: update.CallbackQuery.ID,
-			Text:            i18n("medias.youtubeBigFile"),
-			ShowAlert:       true,
-		})
-		return
-	}
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("medias.downloading"),
-	})
-
-	outputFile, video, err := yt.Downloader(callbackData)
-	if err != nil {
-		log.Printf("Failed to youtube download video: %v", err)
-		return
-	}
-
-	messageID, _ := strconv.Atoi(callbackData[4])
-	itag, _ := strconv.Atoi(callbackData[2])
-
-	var action string
-	switch callbackData[0] {
-	case "_aud":
-		action = telego.ChatActionUploadVoice
-	case "_vid":
-		action = telego.ChatActionUploadVideo
-	}
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("medias.uploading"),
-	})
-	bot.SendChatAction(&telego.SendChatActionParams{
-		ChatID: telegoutil.ID(message.Chat.ID),
-		Action: action,
-	})
-
-	_, err = outputFile.Seek(0, 0)
-	if err != nil {
-		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			MessageID: update.CallbackQuery.Message.GetMessageID(),
-			Text:      i18n("medias.error"),
-		})
-		return
-	}
-	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
-	thumbnail, _ := downloader.Downloader(thumbURL)
-
-	defer func() {
-		if err := os.Remove(thumbnail.Name()); err != nil {
-			log.Printf("Failed to remove thumbnail: %v", err)
-		}
-		if err := os.Remove(outputFile.Name()); err != nil {
-			log.Printf("Failed to remove outputFile: %v", err)
-		}
-	}()
-
-	switch callbackData[0] {
-	case "_aud":
-		_, err = bot.SendAudio(&telego.SendAudioParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Audio:     telegoutil.File(outputFile),
-			Thumbnail: &telego.InputFile{File: thumbnail},
-			Performer: video.Author,
-			Title:     video.Title,
-			Caption:   fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: messageID,
-			},
-		})
-	case "_vid":
-		_, err = bot.SendVideo(&telego.SendVideoParams{
-			ChatID:            telegoutil.ID(message.Chat.ID),
-			Video:             telegoutil.File(outputFile),
-			Thumbnail:         &telego.InputFile{File: thumbnail},
-			SupportsStreaming: true,
-			Width:             video.Formats.Itag(itag)[0].Width,
-			Height:            video.Formats.Itag(itag)[0].Height,
-			Caption:           fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
-			ParseMode:         "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: messageID,
-			},
-		})
-	}
-	if err != nil {
-		log.Printf("Failed to send video: %v", err)
-		return
-	}
-
-	bot.DeleteMessage(&telego.DeleteMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-	})
-}
-
 func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message)
 	var videoURL string
@@ -347,6 +225,194 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 			MessageID: message.MessageID,
 		},
 	})
+}
+
+func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
+	message := update.CallbackQuery.Message.(*telego.Message)
+	i18n := localization.Get(update)
+
+	callbackData := strings.Split(update.CallbackQuery.Data, "|")
+	if userID, _ := strconv.Atoi(callbackData[5]); update.CallbackQuery.From.ID != int64(userID) {
+		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            i18n("medias.youtubeDenied"),
+			ShowAlert:       true,
+		})
+		return
+	}
+
+	sizeLimit := int64(1572864000) // 1.5 GB
+	if config.BotAPIURL == "" {
+		sizeLimit = 52428800 // 50 MB
+	}
+
+	if size, _ := strconv.ParseInt(callbackData[3], 10, 64); size > sizeLimit {
+		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            i18n("medias.youtubeBigFile"),
+			ShowAlert:       true,
+		})
+		return
+	}
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(message.Chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text:      i18n("medias.downloading"),
+	})
+
+	messageID, _ := strconv.Atoi(callbackData[4])
+	cacheFound, err := trySendCachedYoutubeMedia(bot, message.Chat.ID, messageID, callbackData)
+	if cacheFound || err == nil {
+		bot.DeleteMessage(&telego.DeleteMessageParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			MessageID: update.CallbackQuery.Message.GetMessageID(),
+		})
+		return
+	}
+
+	outputFile, video, err := yt.Downloader(callbackData)
+	if err != nil {
+		bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			Text:      i18n("medias.youtubeError"),
+		})
+		return
+	}
+
+	itag, _ := strconv.Atoi(callbackData[2])
+
+	var action string
+	switch callbackData[0] {
+	case "_aud":
+		action = telego.ChatActionUploadVoice
+	case "_vid":
+		action = telego.ChatActionUploadVideo
+	}
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(message.Chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text:      i18n("medias.uploading"),
+	})
+
+	bot.SendChatAction(&telego.SendChatActionParams{
+		ChatID: telegoutil.ID(message.Chat.ID),
+		Action: action,
+	})
+
+	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
+	thumbnail, _ := downloader.Downloader(thumbURL)
+
+	defer func() {
+		if err := os.Remove(thumbnail.Name()); err != nil {
+			log.Printf("Failed to remove thumbnail: %v", err)
+		}
+		if err := os.Remove(outputFile.Name()); err != nil {
+			log.Printf("Failed to remove outputFile: %v", err)
+		}
+	}()
+
+	var replied *telego.Message
+	caption := fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title)
+	switch callbackData[0] {
+	case "_aud":
+		replied, err = bot.SendAudio(&telego.SendAudioParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Audio:     telegoutil.File(outputFile),
+			Thumbnail: &telego.InputFile{File: thumbnail},
+			Performer: video.Author,
+			Title:     video.Title,
+			Caption:   caption,
+			ParseMode: "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: messageID,
+			},
+		})
+	case "_vid":
+		replied, err = bot.SendVideo(&telego.SendVideoParams{
+			ChatID:            telegoutil.ID(message.Chat.ID),
+			Video:             telegoutil.File(outputFile),
+			Thumbnail:         &telego.InputFile{File: thumbnail},
+			SupportsStreaming: true,
+			Width:             video.Formats.Itag(itag)[0].Width,
+			Height:            video.Formats.Itag(itag)[0].Height,
+			Caption:           caption,
+			ParseMode:         "HTML",
+			ReplyParameters: &telego.ReplyParameters{
+				MessageID: messageID,
+			},
+		})
+	}
+	if err != nil {
+		log.Printf("Failed to send video: %v", err)
+		bot.EditMessageText(&telego.EditMessageTextParams{
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			MessageID: update.CallbackQuery.Message.GetMessageID(),
+			Text:      i18n("medias.youtubeError"),
+		})
+		return
+	}
+	bot.DeleteMessage(&telego.DeleteMessageParams{
+		ChatID:    telegoutil.ID(message.Chat.ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+	})
+
+	if err := downloader.SetYoutubeCache(replied, callbackData[1]); err != nil {
+		log.Print(err)
+	}
+}
+
+func trySendCachedYoutubeMedia(bot *telego.Bot, chatID int64, messageID int, callbackData []string) (bool, error) {
+	var fileID, caption string
+	var err error
+
+	switch callbackData[0] {
+	case "_aud":
+		fileID, caption, err = downloader.GetYoutubeCache(callbackData[1], telego.MediaTypeAudio)
+	case "_vid":
+		fileID, caption, err = downloader.GetYoutubeCache(callbackData[1], telego.MediaTypeVideo)
+	}
+
+	if err == nil {
+		switch callbackData[0] {
+		case "_aud":
+			bot.SendAudio(&telego.SendAudioParams{
+				ChatID:    telegoutil.ID(chatID),
+				Audio:     telego.InputFile{FileID: fileID},
+				Caption:   caption,
+				ParseMode: "HTML",
+				ReplyParameters: &telego.ReplyParameters{
+					MessageID: messageID,
+				},
+			})
+		case "_vid":
+			bot.SendVideo(&telego.SendVideoParams{
+				ChatID:            telegoutil.ID(chatID),
+				Video:             telego.InputFile{FileID: fileID},
+				SupportsStreaming: true,
+				Caption:           caption,
+				ParseMode:         "HTML",
+				ReplyParameters: &telego.ReplyParameters{
+					MessageID: messageID,
+				},
+			})
+		}
+		return true, nil
+	}
+	return false, err
+}
+
+func cleanupFiles(outputFile *os.File, thumbnailURL string) {
+	if err := os.Remove(outputFile.Name()); err != nil {
+		log.Printf("Failed to remove output file: %v", err)
+	}
+	if thumbnail, err := downloader.Downloader(thumbnailURL); err == nil {
+		if err := os.Remove(thumbnail.Name()); err != nil {
+			log.Printf("Failed to remove thumbnail: %v", err)
+		}
+	}
 }
 
 func handleExplainConfig(bot *telego.Bot, update telego.Update) {

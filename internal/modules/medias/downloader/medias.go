@@ -185,7 +185,7 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 
 	var medias Medias
 	if err := json.Unmarshal([]byte(cached), &medias); err != nil {
-		return nil, "", fmt.Errorf("could not unmarshal JSON: %v", err)
+		return nil, "", fmt.Errorf("could not unmarshal medias JSON: %v", err)
 	}
 
 	inputMedias := make([]telego.InputMedia, 0, len(medias.Files))
@@ -205,4 +205,69 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 	}
 
 	return inputMedias, medias.Caption, nil
+}
+
+type YouTube struct {
+	Video   string `json:"video"`
+	Audio   string `json:"audio"`
+	Caption string `json:"caption"`
+}
+
+func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
+	var youtube YouTube
+
+	cached, _ := cache.GetCache("youtube-cache:" + youtubeID)
+	if cached != "" {
+		if err := json.Unmarshal([]byte(cached), &youtube); err != nil {
+			return fmt.Errorf("could not unmarshal youtube JSON: %w", err)
+		}
+	}
+
+	if replied.Video != nil {
+		youtube = YouTube{Caption: replied.Caption, Video: replied.Video.FileID, Audio: youtube.Audio}
+	} else if replied.Audio != nil {
+		youtube = YouTube{Caption: replied.Caption, Video: youtube.Video, Audio: replied.Audio.FileID}
+	}
+
+	jsonValue, err := json.Marshal(youtube)
+	if err != nil {
+		return fmt.Errorf("could not marshal youtube JSON: %w", err)
+	}
+
+	if err := cache.SetCache("youtube-cache:"+youtubeID, jsonValue, 168*time.Hour); err != nil {
+		return fmt.Errorf("could not set youtube cache: %w", err)
+	}
+
+	return nil
+}
+
+func GetYoutubeCache(youtubeID string, format string) (string, string, error) {
+	cached, err := cache.GetCache("youtube-cache:" + youtubeID)
+	if err != nil {
+		return "", "", err
+	}
+
+	var youtube YouTube
+	if err := json.Unmarshal([]byte(cached), &youtube); err != nil {
+		return "", "", fmt.Errorf("could not unmarshal youtube JSON: %v", err)
+	}
+
+	if err := cache.SetCache("youtube-cache:"+youtubeID, cached, 168*time.Hour); err != nil {
+		return "", "", fmt.Errorf("could not reset cache expiration: %v", err)
+	}
+
+	switch format {
+	case telego.MediaTypeVideo:
+		if youtube.Video == "" {
+			return "", "", errors.New("video not found")
+		}
+		return youtube.Video, youtube.Caption, nil
+	case telego.MediaTypeAudio:
+		if youtube.Audio == "" {
+			return "", "", errors.New("audio not found")
+		}
+		return youtube.Audio, youtube.Caption, nil
+	default:
+		return "", "", nil
+	}
 }

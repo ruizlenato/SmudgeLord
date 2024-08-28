@@ -98,5 +98,10 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 		outputFile = downloader.MergeAudioVideo(outputFile, audioFile)
 	}
 
+	_, err = outputFile.Seek(0, 0)
+	if err != nil {
+		return nil, video, err
+	}
+
 	return outputFile, video, nil
 }
