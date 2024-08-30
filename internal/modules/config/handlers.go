@@ -13,17 +13,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 )
 
-func checkDisabledCommand(command string) bool {
-	var exists bool
-	query := "SELECT EXISTS(SELECT 1 FROM commandsDisabled WHERE command = ? LIMIT 1);"
-	err := database.DB.QueryRow(query, command).Scan(&exists)
-	if err != nil {
-		fmt.Printf("Error checking command: %v\n", err)
-		return false
-	}
-	return exists
-}
-
 func handleDisableable(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message)
 	text := i18n("config.cmdDisableables")
@@ -76,7 +65,7 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	if checkDisabledCommand(args[0]) {
+	if helpers.CheckDisabledCommand(args[0], message.Chat.ID) {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      fmt.Sprintf(i18n("config.cmdAlreadyDisabled"), args[0]),
@@ -141,7 +130,7 @@ func handleEnable(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	if !checkDisabledCommand(args[0]) {
+	if !helpers.CheckDisabledCommand(args[0], message.Chat.ID) {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			Text:      fmt.Sprintf(i18n("config.cmdAlreadyEnabled"), args[0]),
