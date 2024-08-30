@@ -255,6 +255,21 @@ stickers:
     <b>/kang (emoji):</b> Reply to any sticker to add it to your sticker pack created by me. <b>Works with <i>static, video, and animated</i> stickers.</b>
     <b>/getsticker:</b> Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
 
+weather:
+  selectLocation: <b>Select the location where you want to know the Weather:</b>
+  locationUnknown: Location not found.
+  nolocation: |
+    You haven't specified a location.
+    <b>Example:</b> <code>/weather Belém</code>.
+  measurementUnit: "m"
+  details: |-
+    <b>%s</b>:
+
+    Temperature: <code>%d °C</code>
+    Temperature feels like: <code>%d °C</code>
+    Air humidity: <code>%d%%</code>
+    Wind speed: <code>%d km/h</code>
+
 relativeDuration:
   singular:
     s: second
@@ -270,18 +285,3 @@ relativeDuration:
     d: days
     w: weeks
     M: months
-
-weather:
-  locationUnknown: Location not found.
-  noLocation: |
-    You haven't specified a location.
-    <b>Example:</b> <code>/weather Belém</code>.
-  measurementUnit: m
-  details: |-
-    <b>%s</b>:
-
-    Temperature: <code>%d °C</code>
-    Temperature feels like: <code>%d °C</code>
-    Air humidity: <code>%d%%</code>
-    Wind speed: <code>%d km/h</code>
-

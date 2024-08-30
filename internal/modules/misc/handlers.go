@@ -6,8 +6,10 @@ import (
 	"log"
 	"math/rand"
 	"net/url"
+	"strconv"
 	"strings"
 
+	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
@@ -214,22 +216,8 @@ type weatherSearch struct {
 	} `json:"location"`
 }
 
-type weatherResult struct {
-	ID                      string `json:"id"`
-	V3WxObservationsCurrent struct {
-		IconCode             int    `json:"iconCode"`
-		RelativeHumidity     int    `json:"relativeHumidity"`
-		Temperature          int    `json:"temperature"`
-		TemperatureFeelsLike int    `json:"temperatureFeelsLike"`
-		WindSpeed            int    `json:"windSpeed"`
-		WxPhraseLong         string `json:"wxPhraseLong"`
-	} `json:"v3-wx-observations-current"`
-}
-
 func handleWeather(bot *telego.Bot, message telego.Message) {
 	var weatherQuery string
-
-	lang, _ := localization.GetChatLanguage(message.Chat)
 	i18n := localization.Get(message)
 
 	if len(strings.Fields(message.Text)) > 1 {
@@ -247,63 +235,149 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	var weatherData weatherSearch
+	chatLang, err := localization.GetChatLanguage(message.Chat)
+	if err != nil {
+		return
+	}
+
+	var weatherSearchData weatherSearch
 
 	body := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
-			"apiKey":   weatherAPIKey,
-			"query":    weatherQuery,
-			"language": strings.Split(lang, "-")[0],
-			"format":   "json",
+			"apiKey": weatherAPIKey,
+			"query":  weatherQuery,
+			"language": strings.Split(chatLang, "-")[0] +
+				"-" +
+				strings.ToUpper(strings.Split(chatLang, "-")[1]),
+			"format": "json",
 		},
 	}).Body()
 
-	err := json.Unmarshal(body, &weatherData)
-	if err != nil || len(weatherData.Location.Address) == 0 {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("weather.locationUnknown"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
+	err = json.Unmarshal(body, &weatherSearchData)
+	if err != nil {
 		return
 	}
 
-	var weatherResult weatherResult
-	body = utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current",
-		utils.RequestParams{
-			Method: "GET",
-			Query: map[string]string{
-				"apiKey":   weatherAPIKey,
-				"geocode":  fmt.Sprintf("%.3f,%.3f", weatherData.Location.Latitude[0], weatherData.Location.Longitude[0]),
-				"language": strings.Split(lang, "-")[0],
-				"units":    i18n("weather.measurementUnit"),
-				"format":   "json",
-			},
-		}).Body()
-
-	err = json.Unmarshal(body, &weatherResult)
-	if err != nil {
-		log.Print("[misc/weather] Error unmarshalling weather data:", err)
-		return
+	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
+	for i := 0; i < len(weatherSearchData.Location.Address) && i < 5; i++ {
+		buttons = append(buttons, []telego.InlineKeyboardButton{{
+			Text: weatherSearchData.Location.Address[i],
+			CallbackData: fmt.Sprintf("_weather|%f|%f",
+				weatherSearchData.Location.Latitude[i],
+				weatherSearchData.Location.Longitude[i],
+			),
+		}})
 	}
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("weather.details"), weatherData.Location.Address[0], weatherResult.V3WxObservationsCurrent.Temperature, weatherResult.V3WxObservationsCurrent.TemperatureFeelsLike, weatherResult.V3WxObservationsCurrent.RelativeHumidity, weatherResult.V3WxObservationsCurrent.WindSpeed),
+		Text:      i18n("weather.selectLocation"),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
 		},
+		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+	})
+}
+
+type weatherResult struct {
+	ID                      string `json:"id"`
+	V3WxObservationsCurrent struct {
+		IconCode             int    `json:"iconCode"`
+		RelativeHumidity     int    `json:"relativeHumidity"`
+		Temperature          int    `json:"temperature"`
+		TemperatureFeelsLike int    `json:"temperatureFeelsLike"`
+		WindSpeed            int    `json:"windSpeed"`
+		WxPhraseLong         string `json:"wxPhraseLong"`
+	} `json:"v3-wx-observations-current"`
+	V3LocationPoint struct {
+		Location struct {
+			City   string `json:"city"`
+			Locale struct {
+				Locale3 any    `json:"locale3"`
+				Locale4 string `json:"locale4"`
+			} `json:"locale"`
+			AdminDistrict  string `json:"adminDistrict"`
+			Country        string `json:"country"`
+			DisplayContext string `json:"displayContext"`
+		} `json:"location"`
+	} `json:"v3-location-point"`
+}
+
+func callbackWeather(bot *telego.Bot, update telego.Update) {
+	var weatherResultData weatherResult
+	i18n := localization.Get(update)
+	message := update.CallbackQuery.Message.(*telego.Message)
+
+	chatLang, err := localization.GetChatLanguage(message.Chat)
+	if err != nil {
+		return
+	}
+	callbackData := strings.Split(update.CallbackQuery.Data, "|")
+
+	latitude, err := strconv.ParseFloat(callbackData[1], 64)
+	if err != nil {
+		return
+	}
+	longitude, err := strconv.ParseFloat(callbackData[2], 64)
+	if err != nil {
+		return
+	}
+
+	body := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point",
+		utils.RequestParams{
+			Method: "GET",
+			Query: map[string]string{
+				"apiKey":  weatherAPIKey,
+				"geocode": fmt.Sprintf("%.3f,%.3f", latitude, longitude),
+				"language": strings.Split(chatLang, "-")[0] +
+					"-" +
+					strings.ToUpper(strings.Split(chatLang, "-")[1]),
+				"units":  i18n("weather.measurementUnit"),
+				"format": "json",
+			},
+		}).Body()
+
+	err = json.Unmarshal(body, &weatherResultData)
+	if err != nil {
+		return
+	}
+
+	var localNameParts []string
+	if locale4 := weatherResultData.V3LocationPoint.Location.Locale.Locale4; locale4 != "" {
+		localNameParts = append(localNameParts, locale4)
+	}
+
+	if locale3, ok := weatherResultData.V3LocationPoint.Location.Locale.Locale3.(string); ok && locale3 != "" {
+		localNameParts = append(localNameParts, locale3)
+	}
+
+	localNameParts = append(localNameParts,
+		weatherResultData.V3LocationPoint.Location.City,
+		weatherResultData.V3LocationPoint.Location.AdminDistrict,
+		weatherResultData.V3LocationPoint.Location.Country)
+
+	localName := strings.Join(localNameParts, ", ")
+
+	bot.EditMessageText(&telego.EditMessageTextParams{
+		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text: fmt.Sprintf(i18n("weather.details"),
+			localName,
+			weatherResultData.V3WxObservationsCurrent.Temperature,
+			weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
+			weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
+			weatherResultData.V3WxObservationsCurrent.WindSpeed),
+		ParseMode: "HTML",
 	})
 }
 
 func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("misc")
 	bh.HandleMessage(handleWeather, telegohandler.Or(telegohandler.CommandEqual("weather"), telegohandler.CommandEqual("clima")))
+	bh.Handle(callbackWeather, telegohandler.CallbackDataContains("_weather"))
+
 	bh.HandleMessage(handleTranslate, telegohandler.Or(
 		telegohandler.CommandEqual("translate"),
 		telegohandler.CommandEqual("tr")),

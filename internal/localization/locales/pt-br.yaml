@@ -254,6 +254,22 @@ stickers:
     <b>/kang (emoji):</b> Responda a qualquer sticker para adicioná-lo ao seu pacote de stickers criado por mim. <b>Funciona com stickers <i>estáticos, de vídeos e animados.</i></b>
     <b>/getsticker:</b> Responda a um sticker para que possa enviar-lo como arquivo <i>.png</i> ou <i>.gif</i>. <b>Só funciona com figurinhas <i>de vídeos ou estáticas.</i></b>
 
+weather:
+  selectLocation: <b>Selecione o local que você deseja saber o clima:</b>
+  locationUnknown: Localização não encontrada.
+  noLocation: |
+    Você não especificou uma localização.
+    <b>Exemplo:</b> <code>/clima Belém</code>.
+  measurementUnit: m
+  language: "en-US"
+  details: |-
+    <b>%s</b>:
+
+    Temperatura: <code>%d °C</code>
+    Sensação térmica: <code>%d °C</code>
+    Umidade do ar: <code>%d%%</code>
+    Vento: <code>%d km/h</code>
+
 relativeDuration:
   singular:
     s: segundo
@@ -269,18 +285,3 @@ relativeDuration:
     d: dias
     w: semanas
     M: meses
-
-weather:
-  locationUnknown: Localização não encontrada.
-  noLocation: |
-    Você não especificou uma localização.
-    <b>Exemplo:</b> <code>/clima Belém</code>.
-  measurementUnit: m
-  details: |-
-    <b>%s</b>:
-
-    Temperatura: <code>%d °C</code>
-    Sensação térmica: <code>%d °C</code>
-    Umidade do ar: <code>%d%%</code>
-    Vento: <code>%d km/h</code>
-
