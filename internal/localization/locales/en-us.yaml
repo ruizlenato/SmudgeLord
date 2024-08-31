@@ -110,7 +110,7 @@ medias:
     <i>These settings are for this group only, not for other groups or private chats.</i>
   noURL: |
     <b>You didn't specify a link or you specified an invalid link.</b>
-    Specify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b> <b><i>Twitter/X</i></b> or <b><i>BlueSky</i></b> link so I can download the media(s).
+    Specify an <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b>, <b><i>Twitter/X</i></b>, <b><i>Threads</i></b> or <b><i>BlueSky</i></b> link so I can download the media(s).
   autoHelp: When this option is enabled, the bot will download photos and videos from some social networks automatically when it sees a link, eliminating the need for the /sdl or /dl command.
   captionHelp: When this option is enabled, the captions of media that you download using the bot will be sent along with them.
   youtubeNoURL: |
@@ -136,7 +136,7 @@ medias:
 
     When sharing links on Telegram, some sites don't display an image or video preview. This module enables Smudge to automatically detect links from supported sites and send the videos and images contained within them.
 
-    <b>Currently supported sites:</b> <i>Instagram</i>, <i>TikTok</i>, <i>Twitter/X</i> and <i>BlueSky</i>.
+    <b>Currently supported sites:</b> <i>Instagram</i>, <i>TikTok</i>, <i>Twitter/X</i>, <i>Threads</i> and <i>Bluesky</i>.
 
     <b>Note:</b> 
     This module contains additional settings for groups. 
