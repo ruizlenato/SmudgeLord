@@ -27,7 +27,7 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 	}
 
 	graphQLData := getGQLData(getPostID(text))
-	if graphQLData == nil {
+	if graphQLData == nil || graphQLData.Data.Data.Edges == nil {
 		return nil, []string{}
 	}
 

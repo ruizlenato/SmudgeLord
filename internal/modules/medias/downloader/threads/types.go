@@ -12,7 +12,7 @@ type ThreadsDataDataData struct {
 	Edges []ThreadsDataEdge `json:"edges"`
 }
 
-type ThreadsDataEdge struct {
+type ThreadsDataEdge *struct {
 	Node ThreadsDataNode `json:"node"`
 }
 
