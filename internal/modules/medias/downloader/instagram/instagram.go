@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
 	"regexp"
 	"strings"
 
@@ -31,8 +30,6 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	caption := getCaption(instagramData)
-
 	switch instagramData.Typename {
 	case "GraphVideo", "XDTGraphVideo":
 		medias = handleVideo(instagramData)
@@ -43,6 +40,7 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 	default:
 		return nil, []string{}
 	}
+	caption := getCaption(instagramData)
 
 	return medias, []string{caption, postID}
 }
@@ -55,45 +53,41 @@ func getPostID(url string) (postID string) {
 }
 
 func getInstagramData(postID string) *ShortcodeMedia {
-	if data := getEmbedData(postID); data != nil && data.ShortcodeMedia != nil {
-		return data.ShortcodeMedia
-	} else if data := getScrapperAPIData(postID); data != nil && data.ShortcodeMedia != nil {
-		return data.ShortcodeMedia
-	} else if data := getGQLData(postID); data != nil && data.Data.XDTShortcodeMedia != nil {
-		return data.Data.XDTShortcodeMedia
+	for _, fetchFunc := range []func(string) InstagramData{
+		getEmbedData, getScrapperAPIData, getGQLData,
+	} {
+		if data := fetchFunc(postID); data != nil {
+			return data.ShortcodeMedia
+		}
 	}
-
 	return nil
 }
 
 func getCaption(instagramData *ShortcodeMedia) string {
-	if len(instagramData.EdgeMediaToCaption.Edges) > 0 {
-		var sb strings.Builder
+	if len(instagramData.EdgeMediaToCaption.Edges) == 0 {
+		return ""
+	}
 
-		if username := instagramData.Owner.Username; username != "" {
-			sb.WriteString(fmt.Sprintf("<b>%v</b>", username))
-		}
+	var sb strings.Builder
+	if username := instagramData.Owner.Username; username != "" {
+		sb.WriteString(fmt.Sprintf("<b>%v</b>", username))
+	}
 
-		if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
-			if sb.Len() > 0 {
+	if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
+		for i, coauthor := range *coauthors {
+			if i > 0 {
 				sb.WriteString(" <b>&</b> ")
 			}
-			for i, coauthor := range *coauthors {
-				if i > 0 {
-					sb.WriteString(" <b>&</b> ")
-				}
-				sb.WriteString(fmt.Sprintf("<b>%v</b>", coauthor.Username))
-			}
+			sb.WriteString(fmt.Sprintf("<b>%v</b>", coauthor.Username))
 		}
-
-		if sb.Len() > 0 {
-			sb.WriteString("<b>:</b>\n")
-		}
-		sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
-
-		return sb.String()
 	}
-	return ""
+
+	if sb.Len() > 0 {
+		sb.WriteString("<b>:</b>\n")
+	}
+	sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
+
+	return sb.String()
 }
 
 var (
@@ -284,11 +278,6 @@ func handleImage(instagramData *ShortcodeMedia) []telego.InputMedia {
 		Type:  telego.MediaTypePhoto,
 		Media: telego.InputFile{File: file},
 	}}
-}
-
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
 }
 
 func handleSidecar(instagramData *ShortcodeMedia) []telego.InputMedia {

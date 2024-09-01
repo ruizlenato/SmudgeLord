@@ -1,5 +1,7 @@
 package instagram
 
+import "os"
+
 type InstagramData *struct {
 	ShortcodeMedia *ShortcodeMedia `json:"shortcode_media"`
 	Data           struct {
@@ -66,4 +68,9 @@ type EdgeSidecarToChildren struct {
 
 type StoriesData struct {
 	URL string `json:"url"`
+}
+
+type InputMedia struct {
+	File      *os.File
+	Thumbnail *os.File
 }
