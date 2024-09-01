@@ -74,9 +74,17 @@ func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler
 
 	if message == nil {
 		if update.CallbackQuery == nil {
+			next(bot, update)
 			return
 		}
-		message = update.CallbackQuery.Message.(*telego.Message)
+
+		switch msg := update.CallbackQuery.Message.(type) {
+		case *telego.Message:
+			message = msg
+		default:
+			next(bot, update)
+			return
+		}
 	}
 
 	if message.SenderChat != nil {
