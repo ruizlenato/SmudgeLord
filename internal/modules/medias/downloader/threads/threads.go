@@ -10,11 +10,13 @@ import (
 
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func Handle(message telego.Message) ([]telego.InputMedia, []string) {
-	shortcode := getShortcode(message.Text)
+func Handle(text string) ([]telego.InputMedia, []string) {
+	var medias []telego.InputMedia
+	shortcode := getShortcode(text)
 	if shortcode == "" {
 		return nil, []string{}
 	}
@@ -24,14 +26,28 @@ func Handle(message telego.Message) ([]telego.InputMedia, []string) {
 		return cachedMedias, []string{cachedCaption, shortcode}
 	}
 
-	threadsPost := getGQLData(getPostID(message.Text))
-	if threadsPost == nil {
+	graphQLData := getGQLData(getPostID(text))
+	if graphQLData == nil {
 		return nil, []string{}
 	}
 
-	caption := getCaption(threadsPost)
+	threadsPost := graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post
+	if threadsPost.CarouselMedia != nil {
+		medias = handleCarousel(threadsPost)
+	} else if len(threadsPost.VideoVersions) > 0 {
+		medias = handleVideo(threadsPost)
+	} else if len(threadsPost.ImageVersions.Candidates) > 0 {
+		medias = handleImage(threadsPost)
+	}
 
-	return processMedia(threadsPost.Data.Data.Edges[0].Node.ThreadItems[0].Post), []string{caption, shortcode}
+	if strings.HasPrefix(threadsPost.TextPostAppInfo.LinkPreviewAttachment.DisplayURL, "instagram.com") {
+		medias, result := instagram.Handle(threadsPost.TextPostAppInfo.LinkPreviewAttachment.URL)
+		return medias, result
+	}
+
+	caption := getCaption(graphQLData)
+
+	return medias, []string{caption, shortcode}
 }
 
 func getShortcode(url string) (postID string) {
@@ -52,7 +68,6 @@ func getPostID(message string) string {
 
 	idLocation := strings.Index(string(body), "post_id")
 	if idLocation == -1 {
-		fmt.Println("No post_id")
 		return ""
 	}
 
@@ -120,22 +135,31 @@ type InputMedia struct {
 	Thumbnail *os.File
 }
 
-func processMedia(post Post) []telego.InputMedia {
+func handleCarousel(post Post) []telego.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
 		err   error
 	}
 
-	mediaCount := len(post.CarouselMedia)
+	mediaCount := len(*post.CarouselMedia)
 	mediaItems := make([]telego.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range post.CarouselMedia {
-		go func(index int, twitterMedia CarouselMedia) {
-			media, err := downloadMedia(twitterMedia)
-			results <- mediaResult{index: index, media: media, err: err}
-		}(i, media)
+	for i, result := range *post.CarouselMedia {
+		go func(index int, threadsMedia CarouselMedia) {
+			var media InputMedia
+			var err error
+			if (*post.CarouselMedia)[index].VideoVersions == nil {
+				media.File, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
+			} else {
+				media.File, err = downloader.Downloader(threadsMedia.VideoVersions[0].URL)
+				if err == nil {
+					media.Thumbnail, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
+				}
+			}
+			results <- mediaResult{index: index, media: &media, err: err}
+		}(i, result)
 	}
 
 	for i := 0; i < mediaCount; i++ {
@@ -146,21 +170,21 @@ func processMedia(post Post) []telego.InputMedia {
 		}
 		if result.media.File != nil {
 			var mediaItem telego.InputMedia
-			if post.CarouselMedia[result.index].VideoVersions != nil {
+			if (*post.CarouselMedia)[result.index].VideoVersions == nil {
+				mediaItem = &telego.InputMediaPhoto{
+					Type:  telego.MediaTypePhoto,
+					Media: telego.InputFile{File: result.media.File},
+				}
+			} else {
 				mediaItem = &telego.InputMediaVideo{
 					Type:              telego.MediaTypeVideo,
 					Media:             telego.InputFile{File: result.media.File},
-					Width:             post.CarouselMedia[result.index].OriginalWidth,
-					Height:            post.CarouselMedia[result.index].OriginalHeight,
+					Width:             (*post.CarouselMedia)[result.index].OriginalWidth,
+					Height:            (*post.CarouselMedia)[result.index].OriginalHeight,
 					SupportsStreaming: true,
 				}
 				if result.media.Thumbnail != nil {
 					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
-				}
-			} else {
-				mediaItem = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: result.media.File},
 				}
 			}
 			mediaItems[result.index] = mediaItem
@@ -170,21 +194,37 @@ func processMedia(post Post) []telego.InputMedia {
 	return mediaItems
 }
 
-func downloadMedia(threadsMedia CarouselMedia) (*InputMedia, error) {
-	var media InputMedia
-	var err error
-
-	if threadsMedia.VideoVersions != nil {
-		media.File, err = downloader.Downloader(threadsMedia.VideoVersions[0].URL)
-		if err == nil {
-			media.Thumbnail, _ = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
-		}
-	} else {
-		media.File, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
-	}
+func handleVideo(post Post) []telego.InputMedia {
+	file, err := downloader.Downloader(post.VideoVersions[0].URL)
 	if err != nil {
-		return nil, err
+		log.Print("Threads: Error downloading video: ", err)
+		return nil
 	}
 
-	return &media, nil
+	thumbnail, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
+	if err != nil {
+		log.Print("Threads: Error downloading thumbnail: ", err)
+		return nil
+	}
+	return []telego.InputMedia{&telego.InputMediaVideo{
+		Type:              telego.MediaTypeVideo,
+		Media:             telego.InputFile{File: file},
+		Thumbnail:         &telego.InputFile{File: thumbnail},
+		Width:             post.OriginalWidth,
+		Height:            post.OriginalHeight,
+		SupportsStreaming: true,
+	}}
+}
+
+func handleImage(post Post) []telego.InputMedia {
+	file, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
+	if err != nil {
+		log.Print("Threads: Error downloading image:", err)
+		return nil
+	}
+
+	return []telego.InputMedia{&telego.InputMediaPhoto{
+		Type:  telego.MediaTypePhoto,
+		Media: telego.InputFile{File: file},
+	}}
 }

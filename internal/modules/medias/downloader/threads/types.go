@@ -27,21 +27,37 @@ type ThreadItem struct {
 }
 
 type Post struct {
-	User          User            `json:"user"`
-	ID            string          `json:"id"`
-	Code          string          `json:"code"`
-	CarouselMedia []CarouselMedia `json:"carousel_media"`
-	Caption       Caption         `json:"caption"`
+	User            User             `json:"user"`
+	ID              string           `json:"id"`
+	TextPostAppInfo TextPostAppInfo  `json:"text_post_app_info"`
+	Code            string           `json:"code"`
+	CarouselMedia   *[]CarouselMedia `json:"carousel_media"`
+	ImageVersions   ImageVersions    `json:"image_versions2"`
+	OriginalHeight  int              `json:"original_height"`
+	OriginalWidth   int              `json:"original_width"`
+	VideoVersions   []VideoVersions  `json:"video_versions"`
+	Caption         Caption          `json:"caption"`
 }
 
 type User struct {
 	Username string `json:"username"`
 }
 
+type TextPostAppInfo struct {
+	LinkPreviewAttachment LinkPreviewAttachment `json:"link_preview_attachment"`
+}
+
+type LinkPreviewAttachment struct {
+	DisplayURL string `json:"display_url"`
+	ImageURL   string `json:"image_url"`
+	Title      string `json:"title"`
+	URL        string `json:"url"`
+}
+
 type CarouselMedia struct {
 	OriginalHeight int             `json:"original_height"`
 	OriginalWidth  int             `json:"original_width"`
-	ImageVersions  *ImageVersions  `json:"image_versions2"`
+	ImageVersions  ImageVersions   `json:"image_versions2"`
 	VideoVersions  []VideoVersions `json:"video_versions"`
 }
 
