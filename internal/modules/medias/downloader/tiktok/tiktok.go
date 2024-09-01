@@ -14,8 +14,8 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func Handle(message telego.Message) ([]telego.InputMedia, []string) {
-	postID := getPostID(message.Text)
+func Handle(text string) ([]telego.InputMedia, []string) {
+	postID := getPostID(text)
 	if postID == "" {
 		return nil, []string{}
 	}

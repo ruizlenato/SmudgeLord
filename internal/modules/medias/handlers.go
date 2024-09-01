@@ -61,7 +61,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	mediaHandlers := map[string]func(telego.Message) ([]telego.InputMedia, []string){
+	mediaHandlers := map[string]func(string) ([]telego.InputMedia, []string){
 		"bsky.app/":        bluesky.Handle,
 		"instagram.com/":   instagram.Handle,
 		"threads.net/":     threads.Handle,
@@ -74,7 +74,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 			if strings.Contains(message.Text, "tiktok.com/") {
 				forceSend = true
 			}
-			mediaItems, result = handler(message)
+			mediaItems, result = handler(message.Text)
 			if len(result) == 2 {
 				caption = result[0]
 			}

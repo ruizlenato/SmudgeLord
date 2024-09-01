@@ -24,8 +24,8 @@ var headers = map[string]string{
 	"content-type":              "application/json",
 }
 
-func Handle(message telego.Message) ([]telego.InputMedia, []string) {
-	postID := getPostID(message.Text)
+func Handle(text string) ([]telego.InputMedia, []string) {
+	postID := getPostID(text)
 	if postID == "" {
 		return nil, []string{}
 	}
