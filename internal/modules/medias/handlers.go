@@ -87,6 +87,10 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
+	if len(mediaItems) > 10 { // Telegram limits up to 10 images and videos in an album.
+		mediaItems = mediaItems[:10]
+	}
+
 	if utf8.RuneCountInString(caption) > maxSizeCaption {
 		caption = downloader.TruncateUTF8Caption(caption, url[0])
 	}
