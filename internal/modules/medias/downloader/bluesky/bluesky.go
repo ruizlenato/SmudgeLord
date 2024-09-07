@@ -10,6 +10,7 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/valyala/fasthttp"
 )
 
 func Handle(text string) ([]telego.InputMedia, []string) {
@@ -41,7 +42,7 @@ func getUsernameAndPostID(url string) (username, postID string) {
 }
 
 func getBlueskyData(username, postID string) BlueskyData {
-	_, response := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
+	request, response, err := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"Content-Type": "application/json",
@@ -52,12 +53,15 @@ func getBlueskyData(username, postID string) BlueskyData {
 			"depth": "10",
 		},
 	})
-	if response.Body() == nil {
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil || response.Body() == nil {
 		return nil
 	}
 
 	var blueskyData BlueskyData
-	err := json.Unmarshal(response.Body(), &blueskyData)
+	err = json.Unmarshal(response.Body(), &blueskyData)
 	if err != nil {
 		log.Print("Bluesky: Error unmarshalling JSON: ", err)
 	}

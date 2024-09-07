@@ -10,6 +10,7 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/valyala/fasthttp"
 )
 
 func Handle(text string) ([]telego.InputMedia, []string) {
@@ -100,7 +101,7 @@ var (
 func getEmbedData(postID string) InstagramData {
 	var instagramData InstagramData
 
-	_, response := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestParams{
+	request, response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -111,7 +112,10 @@ func getEmbedData(postID string) InstagramData {
 			"viewport-width":  "1280",
 		},
 	})
-	if response.Body() == nil {
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil || response.Body() == nil {
 		return nil
 	}
 
@@ -171,14 +175,20 @@ func getEmbedData(postID string) InstagramData {
 func getScrapperAPIData(postID string) InstagramData {
 	var instagramData InstagramData
 
-	_, response := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
+	request, response, err := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"id": postID,
 		},
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
 
-	err := json.Unmarshal(response.Body(), &instagramData)
+	if err != nil || response.Body() == nil {
+		return nil
+	}
+
+	err = json.Unmarshal(response.Body(), &instagramData)
 	if err != nil {
 		log.Print("Instagram: Error unmarshalling ScrapperAPIdata: ", err)
 		log.Print("Instagram PostID: ", postID)
@@ -191,7 +201,7 @@ func getScrapperAPIData(postID string) InstagramData {
 func getGQLData(postID string) InstagramData {
 	var instagramData InstagramData
 
-	_, response := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
+	request, response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
 			`User-Agent`:         `Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0`,
@@ -236,8 +246,14 @@ func getGQLData(postID string) InstagramData {
 			`doc_id=25531498899829322`,
 		},
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
 
-	err := json.Unmarshal(response.Body(), &instagramData)
+	if err != nil || response.Body() == nil {
+		return nil
+	}
+
+	err = json.Unmarshal(response.Body(), &instagramData)
 	if err != nil {
 		log.Print("Instagram: Error unmarshalling GQLData: ", err)
 		return nil

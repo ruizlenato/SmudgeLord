@@ -1,13 +1,66 @@
 package utils
 
 import (
-	"log"
+	"errors"
+	"fmt"
+	"math"
 	"strings"
+	"time"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/valyala/fasthttp"
 	"github.com/valyala/fasthttp/fasthttpproxy"
 )
+
+type FastHTTPCaller struct {
+	Client *fasthttp.Client
+}
+
+var DefaultFastHTTPCaller = &FastHTTPCaller{
+	Client: &fasthttp.Client{
+		ReadBufferSize:  16 * 1024,
+		MaxConnsPerHost: 1024,
+	},
+}
+
+func (a FastHTTPCaller) Call(url string, params RequestParams) (*fasthttp.Request, *fasthttp.Response, error) {
+	req := fasthttp.AcquireRequest()
+	resp := fasthttp.AcquireResponse()
+
+	req.Header.SetMethod(params.Method)
+	for key, value := range params.Headers {
+		req.Header.Set(key, value)
+	}
+
+	switch params.Method {
+	case fasthttp.MethodGet, fasthttp.MethodOptions:
+		req.SetRequestURI(url)
+		for key, value := range params.Query {
+			req.URI().QueryArgs().Add(key, value)
+		}
+	case fasthttp.MethodPost:
+		req.SetBodyString(strings.Join(params.BodyString, "&"))
+		req.SetRequestURI(url)
+	default:
+		return nil, nil, fmt.Errorf("unsupported method: %s", params.Method)
+	}
+
+	var err error
+	if params.Redirects > 0 {
+		err = a.Client.DoRedirects(req, resp, params.Redirects)
+	} else {
+		err = a.Client.Do(req, resp)
+	}
+
+	if err != nil {
+		if strings.Contains(err.Error(), "missing port in address") {
+			return req, resp, nil
+		}
+		return nil, nil, fmt.Errorf("request error: %w", err)
+	}
+
+	return req, resp, nil
+}
 
 type RequestParams struct {
 	Method     string            // "GET", "OPTIONS" or "POST"
@@ -18,81 +71,50 @@ type RequestParams struct {
 	BodyString []string          // Body of the request for POST
 }
 
-// Request sends a GET, OPTIONS or POST request to the specified link with the provided parameters and returns the response.
-// The Link specifies the URL to send the request to.
-// The params contain additional parameters for the request, such as headers, query parameters, and body.
-// The Method field in params should be "GET" or "POST" to indicate the type of request.
-//
-// Example usage:
-//
-//	response := Request("https://api.example.com/users", RequestParams{
-//		Method: "GET",
-//		Headers: map[string]string{
-//			"Authorization": "Bearer your-token",
-//		},
-//		Query: map[string]string{
-//			"page":  "1",
-//			"limit": "10",
-//		},
-//	})
-//
-//	response := Request("https://example.com/api", RequestParams{
-//		Method: "POST",
-//		Headers: map[string]string{
-//			"Content-Type": "application/json",
-//		},
-//		BodyString: []string{
-//			"param1=value1",
-//			"param2=value2",
-//		},
-//	})
-func Request(Link string, params RequestParams) (*fasthttp.Request, *fasthttp.Response) {
-	request := fasthttp.AcquireRequest()
-	response := fasthttp.AcquireResponse()
-	defer fasthttp.ReleaseResponse(response)
-
-	client := &fasthttp.Client{
-		ReadBufferSize:  16 * 1024,
-		MaxConnsPerHost: 1024,
-	}
+func Request(Link string, params RequestParams) (*fasthttp.Request, *fasthttp.Response, error) {
 	if params.Proxy {
-		client.Dial = fasthttpproxy.FasthttpSocksDialer(config.Socks5Proxy)
+		DefaultFastHTTPCaller.Client.Dial = fasthttpproxy.FasthttpSocksDialer(config.Socks5Proxy)
 	}
 
-	request.Header.SetMethod(params.Method)
-	for key, value := range params.Headers {
-		request.Header.Set(key, value)
-	}
-
-	if params.Method == fasthttp.MethodGet {
-		request.SetRequestURI(Link)
-		for key, value := range params.Query {
-			request.URI().QueryArgs().Add(key, value)
-		}
-	} else if params.Method == fasthttp.MethodOptions {
-		request.SetRequestURI(Link)
-		for key, value := range params.Query {
-			request.URI().QueryArgs().Add(key, value)
-		}
-	} else if params.Method == fasthttp.MethodPost {
-		request.SetBodyString(strings.Join(params.BodyString, "&"))
-		request.SetRequestURI(Link)
-	} else {
-		log.Print("[request/Request] Error: Unsupported method ", params.Method)
-		return request, response
-	}
-
-	var err error
-	if params.Redirects > 0 {
-		err = client.DoRedirects(request, response, 10)
-	} else {
-		err = client.Do(request, response)
-	}
+	req, resp, err := DefaultFastHTTPCaller.Call(Link, params)
 	if err != nil {
-		if strings.Contains(err.Error(), "missing port in address") {
-			return request, response
-		}
-		log.Print("[request/Request] Error: ", err)
+		return nil, nil, errors.Join(err)
 	}
-	return request, response
+
+	return req, resp, nil
+}
+
+type RetryCaller struct {
+	Caller       *FastHTTPCaller
+	MaxAttempts  int
+	ExponentBase float64
+	StartDelay   time.Duration
+	MaxDelay     time.Duration
+}
+
+var ErrMaxRetryAttempts = errors.New("max retry attempts reached")
+
+func (r *RetryCaller) Request(url string, params RequestParams) (*fasthttp.Request, *fasthttp.Response, error) {
+	var req *fasthttp.Request
+	var resp *fasthttp.Response
+	var err error
+
+	for i := 0; i < r.MaxAttempts; i++ {
+		req, resp, err = r.Caller.Call(url, params)
+		if err == nil {
+			return req, resp, nil
+		}
+
+		if i == r.MaxAttempts-1 {
+			break
+		}
+
+		delay := time.Duration(math.Pow(r.ExponentBase, float64(i))) * r.StartDelay
+		if delay > r.MaxDelay {
+			delay = r.MaxDelay
+		}
+		time.Sleep(delay)
+	}
+
+	return nil, nil, errors.Join(err, ErrMaxRetryAttempts)
 }

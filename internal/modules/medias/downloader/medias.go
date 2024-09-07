@@ -14,6 +14,7 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/valyala/fasthttp"
 
 	"github.com/mymmrac/telego"
 )
@@ -30,10 +31,21 @@ var mimeExtensions = map[string]string{
 }
 
 func Downloader(media string) (*os.File, error) {
-	_, response := utils.Request(media, utils.RequestParams{
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultFastHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   1 * time.Second,
+		MaxDelay:     5 * time.Second,
+	}
+
+	request, response, err := retryCaller.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
-	if response == nil {
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil || response == nil {
 		return nil, errors.New("get error")
 	}
 

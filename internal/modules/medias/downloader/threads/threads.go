@@ -12,6 +12,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/valyala/fasthttp"
 )
 
 func Handle(text string) ([]telego.InputMedia, []string) {
@@ -58,13 +59,19 @@ func getShortcode(url string) (postID string) {
 }
 
 func getPostID(message string) string {
-	_, response := utils.Request(message, utils.RequestParams{
+	request, response, err := utils.Request(message, utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"User-Agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
 			"Sec-Fetch-Mode": "navigate",
 		},
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil {
+		return ""
+	}
 
 	idLocation := strings.Index(string(response.Body()), "post_id")
 	if idLocation == -1 {
@@ -85,7 +92,7 @@ func getGQLData(postID string) ThreadsData {
 
 	lsd := utils.RandomString(10)
 
-	_, response := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
+	request, response, err := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
 			`User-Agent`:     `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36`,
@@ -110,8 +117,14 @@ func getGQLData(postID string) ThreadsData {
 			`lsd=` + lsd,
 		},
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
 
-	err := json.Unmarshal(response.Body(), &threadsData)
+	if err != nil {
+		return nil
+	}
+
+	err = json.Unmarshal(response.Body(), &threadsData)
 	if err != nil {
 		log.Print("threadsData: Error unmarshalling GQLData: ", err)
 		return nil

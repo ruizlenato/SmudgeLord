@@ -13,6 +13,7 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/valyala/fasthttp"
 )
 
 var headers = map[string]string{
@@ -134,12 +135,18 @@ func getGuestToken() string {
 		GuestToken string `json:"guest_token"`
 	}
 
-	_, response := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
+	request, response, err := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
 		Method:  "POST",
 		Headers: headers,
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil {
+		log.Print("Error getting guest token: ", err)
+	}
 	var res guestToken
-	err := json.Unmarshal(response.Body(), &res)
+	err = json.Unmarshal(response.Body(), &res)
 	if err != nil {
 		log.Print("Error unmarshalling guest token: ", err)
 	}
@@ -188,7 +195,7 @@ func getTwitterData(postID string) *TwitterAPIData {
 		return result
 	}
 
-	_, response := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
+	request, response, err := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"variables": string(jsonMarshal(variables)),
@@ -196,11 +203,14 @@ func getTwitterData(postID string) *TwitterAPIData {
 		},
 		Headers: headers,
 	})
-	if response.Body() == nil {
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil || response.Body() == nil {
 		return nil
 	}
 	var twitterAPIData *TwitterAPIData
-	err := json.Unmarshal(response.Body(), &twitterAPIData)
+	err = json.Unmarshal(response.Body(), &twitterAPIData)
 	if err != nil {
 		return nil
 	}

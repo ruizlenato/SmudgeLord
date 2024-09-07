@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"regexp"
 	"slices"
+	"time"
 
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/valyala/fasthttp"
 )
 
 func Handle(text string) ([]telego.InputMedia, []string) {
@@ -39,17 +40,25 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 }
 
 func getPostID(url string) (postID string) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return postID
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultFastHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   1 * time.Second,
+		MaxDelay:     5 * time.Second,
 	}
-	defer resp.Body.Close()
 
-	_, _ = utils.Request(url, utils.RequestParams{
+	request, response, err := retryCaller.Request(url, utils.RequestParams{
 		Method:    "GET",
 		Redirects: 2,
 	})
-	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(resp.Request.URL.String())
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil {
+		return postID
+	}
+	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(request.URI().String())
 	if len(matches) > 1 {
 		return matches[1]
 	}
@@ -58,7 +67,7 @@ func getPostID(url string) (postID string) {
 }
 
 func getTikTokData(postID string) TikTokData {
-	_, response := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
+	request, response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method: "OPTIONS",
 		Headers: map[string]string{
 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
@@ -75,13 +84,15 @@ func getTikTokData(postID string) TikTokData {
 			"aid":             "1128",
 		},
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
 
-	if response.Body() == nil {
+	if err != nil || response.Body() == nil {
 		return nil
 	}
 
 	var tikTokData TikTokData
-	err := json.Unmarshal(response.Body(), &tikTokData)
+	err = json.Unmarshal(response.Body(), &tikTokData)
 	if err != nil {
 		return nil
 	}

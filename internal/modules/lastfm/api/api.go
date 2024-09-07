@@ -9,6 +9,7 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/valyala/fasthttp"
 )
 
 const lastFMAPI = "http://ws.audioscrobbler.com/2.0"
@@ -28,7 +29,7 @@ func Init() *LastFM {
 }
 
 func (lfm *LastFM) GetUser(username string) error {
-	_, response := utils.Request(lastFMAPI, utils.RequestParams{
+	request, response, err := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":  "user.getinfo",
@@ -37,9 +38,15 @@ func (lfm *LastFM) GetUser(username string) error {
 			"format":  "json",
 		},
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil {
+		return fmt.Errorf("error requesting user info: %w", err)
+	}
 
 	var userInfo userInfo
-	err := json.Unmarshal(response.Body(), &userInfo)
+	err = json.Unmarshal(response.Body(), &userInfo)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling user info: %w", err)
 	}
@@ -51,7 +58,7 @@ func (lfm *LastFM) GetUser(username string) error {
 }
 
 func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
-	_, response := utils.Request(lastFMAPI, utils.RequestParams{
+	request, response, err := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":   "user.getrecenttracks",
@@ -62,13 +69,15 @@ func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
 			"format":   "json",
 		},
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
 
-	if response.StatusCode() != 200 {
+	if err != nil || response.StatusCode() != 200 {
 		return nil
 	}
 
 	var recentTracks recentTracks
-	err := json.Unmarshal(response.Body(), &recentTracks)
+	err = json.Unmarshal(response.Body(), &recentTracks)
 	if err != nil {
 		log.Print("[lastfm/GetRecentTrack] Error unmarshalling recent tracks:", err)
 	}
@@ -127,7 +136,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 		methodValue = (*recentTracks.RecentTracks.Track)[0].Artist.Name
 	}
 
-	_, response := utils.Request(lastFMAPI, utils.RequestParams{
+	request, response, err := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":  fmt.Sprintf("%s.getinfo", method),
@@ -138,9 +147,15 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 			"format":  "json",
 		},
 	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+
+	if err != nil {
+		log.Print("lastfm/PlayCount — Error requesting get info:", err)
+	}
 
 	var getInfo getInfo
-	err := json.Unmarshal(response.Body(), &getInfo)
+	err = json.Unmarshal(response.Body(), &getInfo)
 	if err != nil {
 		log.Print("[lastfm/PlayCount] Error unmarshalling get info:", err)
 	}
