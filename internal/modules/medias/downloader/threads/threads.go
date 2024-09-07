@@ -58,26 +58,26 @@ func getShortcode(url string) (postID string) {
 }
 
 func getPostID(message string) string {
-	body := utils.Request(message, utils.RequestParams{
+	_, response := utils.Request(message, utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"User-Agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
 			"Sec-Fetch-Mode": "navigate",
 		},
-	}).Body()
+	})
 
-	idLocation := strings.Index(string(body), "post_id")
+	idLocation := strings.Index(string(response.Body()), "post_id")
 	if idLocation == -1 {
 		return ""
 	}
 
 	start := idLocation + 10
-	end := strings.Index(string(body)[start:], "\"")
+	end := strings.Index(string(response.Body())[start:], "\"")
 	if end == -1 {
 		return ""
 	}
 
-	return string(body)[start : start+end]
+	return string(response.Body())[start : start+end]
 }
 
 func getGQLData(postID string) ThreadsData {
@@ -85,7 +85,7 @@ func getGQLData(postID string) ThreadsData {
 
 	lsd := utils.RandomString(10)
 
-	body := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
+	_, response := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
 			`User-Agent`:     `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36`,
@@ -109,9 +109,9 @@ func getGQLData(postID string) ThreadsData {
 			`doc_id=7448594591874178`,
 			`lsd=` + lsd,
 		},
-	}).Body()
+	})
 
-	err := json.Unmarshal(body, &threadsData)
+	err := json.Unmarshal(response.Body(), &threadsData)
 	if err != nil {
 		log.Print("threadsData: Error unmarshalling GQLData: ", err)
 		return nil

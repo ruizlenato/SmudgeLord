@@ -30,10 +30,10 @@ var mimeExtensions = map[string]string{
 }
 
 func Downloader(media string) (*os.File, error) {
-	body := utils.Request(media, utils.RequestParams{
+	_, response := utils.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
-	if body == nil {
+	if response == nil {
 		return nil, errors.New("get error")
 	}
 
@@ -45,7 +45,7 @@ func Downloader(media string) (*os.File, error) {
 		return extension
 	}
 
-	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension(body.Header.ContentType())))
+	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension(response.Header.ContentType())))
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func Downloader(media string) (*os.File, error) {
 		}
 	}()
 
-	if _, err = file.Write(body.Body()); err != nil {
+	if _, err = file.Write(response.Body()); err != nil {
 		return nil, err
 	}
 

@@ -41,7 +41,7 @@ func getUsernameAndPostID(url string) (username, postID string) {
 }
 
 func getBlueskyData(username, postID string) BlueskyData {
-	body := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
+	_, response := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"Content-Type": "application/json",
@@ -51,13 +51,13 @@ func getBlueskyData(username, postID string) BlueskyData {
 			"uri":   fmt.Sprintf("at://%s/app.bsky.feed.post/%s", username, postID),
 			"depth": "10",
 		},
-	}).Body()
-	if body == nil {
+	})
+	if response.Body() == nil {
 		return nil
 	}
 
 	var blueskyData BlueskyData
-	err := json.Unmarshal(body, &blueskyData)
+	err := json.Unmarshal(response.Body(), &blueskyData)
 	if err != nil {
 		log.Print("Bluesky: Error unmarshalling JSON: ", err)
 	}

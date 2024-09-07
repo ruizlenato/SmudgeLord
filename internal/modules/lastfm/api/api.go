@@ -28,7 +28,7 @@ func Init() *LastFM {
 }
 
 func (lfm *LastFM) GetUser(username string) error {
-	body := utils.Request(lastFMAPI, utils.RequestParams{
+	_, response := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":  "user.getinfo",
@@ -39,7 +39,7 @@ func (lfm *LastFM) GetUser(username string) error {
 	})
 
 	var userInfo userInfo
-	err := json.Unmarshal(body.Body(), &userInfo)
+	err := json.Unmarshal(response.Body(), &userInfo)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling user info: %w", err)
 	}
@@ -51,7 +51,7 @@ func (lfm *LastFM) GetUser(username string) error {
 }
 
 func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
-	body := utils.Request(lastFMAPI, utils.RequestParams{
+	_, response := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":   "user.getrecenttracks",
@@ -63,12 +63,12 @@ func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
 		},
 	})
 
-	if body.StatusCode() != 200 {
+	if response.StatusCode() != 200 {
 		return nil
 	}
 
 	var recentTracks recentTracks
-	err := json.Unmarshal(body.Body(), &recentTracks)
+	err := json.Unmarshal(response.Body(), &recentTracks)
 	if err != nil {
 		log.Print("[lastfm/GetRecentTrack] Error unmarshalling recent tracks:", err)
 	}
@@ -127,7 +127,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 		methodValue = (*recentTracks.RecentTracks.Track)[0].Artist.Name
 	}
 
-	body := utils.Request(lastFMAPI, utils.RequestParams{
+	_, response := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":  fmt.Sprintf("%s.getinfo", method),
@@ -137,10 +137,10 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 			method:    methodValue,
 			"format":  "json",
 		},
-	}).Body()
+	})
 
 	var getInfo getInfo
-	err := json.Unmarshal(body, &getInfo)
+	err := json.Unmarshal(response.Body(), &getInfo)
 	if err != nil {
 		log.Print("[lastfm/PlayCount] Error unmarshalling get info:", err)
 	}

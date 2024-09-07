@@ -11,6 +11,7 @@ import (
 
 type RequestParams struct {
 	Method     string            // "GET", "OPTIONS" or "POST"
+	Redirects  int               // Number of redirects to follow
 	Proxy      bool              // Use proxy for the request
 	Headers    map[string]string // Common headers for both GET and POST
 	Query      map[string]string // Query parameters for GET
@@ -45,9 +46,10 @@ type RequestParams struct {
 //			"param2=value2",
 //		},
 //	})
-func Request(Link string, params RequestParams) *fasthttp.Response {
+func Request(Link string, params RequestParams) (*fasthttp.Request, *fasthttp.Response) {
 	request := fasthttp.AcquireRequest()
 	response := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(response)
 
 	client := &fasthttp.Client{
 		ReadBufferSize:  16 * 1024,
@@ -77,15 +79,20 @@ func Request(Link string, params RequestParams) *fasthttp.Response {
 		request.SetRequestURI(Link)
 	} else {
 		log.Print("[request/Request] Error: Unsupported method ", params.Method)
-		return response
+		return request, response
 	}
 
-	err := client.Do(request, response)
+	var err error
+	if params.Redirects > 0 {
+		err = client.DoRedirects(request, response, 10)
+	} else {
+		err = client.Do(request, response)
+	}
 	if err != nil {
 		if strings.Contains(err.Error(), "missing port in address") {
-			return response
+			return request, response
 		}
 		log.Print("[request/Request] Error: ", err)
 	}
-	return response
+	return request, response
 }

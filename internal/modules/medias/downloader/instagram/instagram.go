@@ -100,7 +100,7 @@ var (
 func getEmbedData(postID string) InstagramData {
 	var instagramData InstagramData
 
-	body := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestParams{
+	_, response := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -110,12 +110,12 @@ func getEmbedData(postID string) InstagramData {
 			"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
 			"viewport-width":  "1280",
 		},
-	}).Body()
-	if body == nil {
+	})
+	if response.Body() == nil {
 		return nil
 	}
 
-	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body); len(match) == 2 {
+	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(response.Body()); len(match) == 2 {
 		s := strings.ReplaceAll(string(match[1]), `\"`, `"`)
 		s = strings.ReplaceAll(s, `\\/`, `/`)
 		s = strings.ReplaceAll(s, `\\`, `\`)
@@ -126,14 +126,14 @@ func getEmbedData(postID string) InstagramData {
 		}
 	}
 
-	mediaTypeData := mediaTypeRegex.FindAllStringSubmatch(string(body), -1)
+	mediaTypeData := mediaTypeRegex.FindAllStringSubmatch(string(response.Body()), -1)
 	if instagramData == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
-		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(body), -1)
+		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(response.Body()), -1)
 		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
 
 		var caption string
 		var owner string
-		captionData := captionRegex.FindAllStringSubmatch(string(body), -1)
+		captionData := captionRegex.FindAllStringSubmatch(string(response.Body()), -1)
 
 		if len(captionData) > 0 && len(captionData[0]) > 2 {
 			owner = strings.TrimSpace(htmlTagRegex.ReplaceAllString(captionData[0][2], ""))
@@ -171,16 +171,17 @@ func getEmbedData(postID string) InstagramData {
 func getScrapperAPIData(postID string) InstagramData {
 	var instagramData InstagramData
 
-	body := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
+	_, response := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"id": postID,
 		},
-	}).Body()
+	})
 
-	err := json.Unmarshal(body, &instagramData)
+	err := json.Unmarshal(response.Body(), &instagramData)
 	if err != nil {
 		log.Print("Instagram: Error unmarshalling ScrapperAPIdata: ", err)
+		log.Print("Instagram PostID: ", postID)
 		return nil
 	}
 
@@ -190,7 +191,7 @@ func getScrapperAPIData(postID string) InstagramData {
 func getGQLData(postID string) InstagramData {
 	var instagramData InstagramData
 
-	body := utils.Request("https://www.instagram.com/api/graphql", utils.RequestParams{
+	_, response := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
 			`User-Agent`:         `Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0`,
@@ -223,7 +224,7 @@ func getGQLData(postID string) InstagramData {
 			`__csr=gps8cIy8WTDAqjWDrpda9SoLHhaVeVEgvhaJzVQ8hF-qEPBV8O4EhGmciDBQh1mVuF9V9d2FHGicAVu8GAmfZiHzk9IxlhV94aKC5oOq6Uhx-Ku4Kaw04Jrx64-0oCdw0MXw1lm0EE2Ixcjg2Fg1JEko0N8U421tw62wq8989EMw1QpV60CE02BIw`,
 			`__comet_req=7`,
 			`lsd=AVp2LurCmJw`,
-			`jazoest=2989`,
+			`jazoest=2947`,
 			`__spin_r=1010782723`,
 			`__spin_b=trunk`,
 			`__spin_t=1705025808`,
@@ -232,11 +233,11 @@ func getGQLData(postID string) InstagramData {
 			`query_hash=b3055c01b4b222b8a47dc12b090e4e64`,
 			fmt.Sprintf(`variables={"shortcode": "%v","fetch_comment_count":2,"fetch_related_profile_media_count":0,"parent_comment_count":0,"child_comment_count":0,"fetch_like_count":10,"fetch_tagged_user_count":null,"fetch_preview_comment_count":2,"has_threaded_comments":true,"hoisted_comment_id":null,"hoisted_reply_id":null}`, postID),
 			`server_timestamps=true`,
-			`doc_id=10015901848480474`,
+			`doc_id=25531498899829322`,
 		},
-	}).Body()
+	})
 
-	err := json.Unmarshal(body, &instagramData)
+	err := json.Unmarshal(response.Body(), &instagramData)
 	if err != nil {
 		log.Print("Instagram: Error unmarshalling GQLData: ", err)
 		return nil

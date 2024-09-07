@@ -134,12 +134,12 @@ func getGuestToken() string {
 		GuestToken string `json:"guest_token"`
 	}
 
-	body := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
+	_, response := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
 		Method:  "POST",
 		Headers: headers,
-	}).Body()
+	})
 	var res guestToken
-	err := json.Unmarshal(body, &res)
+	err := json.Unmarshal(response.Body(), &res)
 	if err != nil {
 		log.Print("Error unmarshalling guest token: ", err)
 	}
@@ -188,19 +188,19 @@ func getTwitterData(postID string) *TwitterAPIData {
 		return result
 	}
 
-	body := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
+	_, response := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"variables": string(jsonMarshal(variables)),
 			"features":  string(jsonMarshal(features)),
 		},
 		Headers: headers,
-	}).Body()
-	if body == nil {
+	})
+	if response.Body() == nil {
 		return nil
 	}
 	var twitterAPIData *TwitterAPIData
-	err := json.Unmarshal(body, &twitterAPIData)
+	err := json.Unmarshal(response.Body(), &twitterAPIData)
 	if err != nil {
 		return nil
 	}

@@ -113,16 +113,16 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 		"Linux; U; Android 12; Pixel 6 Pro",
 	}
 
-	body := utils.Request(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
+	_, response := utils.Request(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
 		sourceLang, targetLang, url.QueryEscape(text)), utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
 			`User-Agent`:   fmt.Sprintf(`GoogleTranslate/6.28.0.05.421483610 (%s)`, devices[rand.Intn(len(devices))]),
 			`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
 		},
-	}).Body()
+	})
 
-	err := json.Unmarshal(body, &translation)
+	err := json.Unmarshal(response.Body(), &translation)
 	if err != nil {
 		log.Println("[Misc/gTranslate] Error unmarshalling translation data:", err)
 	}
@@ -242,7 +242,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 
 	var weatherSearchData weatherSearch
 
-	body := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
+	_, response := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"apiKey": weatherAPIKey,
@@ -252,9 +252,9 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 				strings.ToUpper(strings.Split(chatLang, "-")[1]),
 			"format": "json",
 		},
-	}).Body()
+	})
 
-	err = json.Unmarshal(body, &weatherSearchData)
+	err = json.Unmarshal(response.Body(), &weatherSearchData)
 	if err != nil {
 		return
 	}
@@ -325,7 +325,7 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	body := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point",
+	_, response := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point",
 		utils.RequestParams{
 			Method: "GET",
 			Query: map[string]string{
@@ -337,9 +337,9 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 				"units":  i18n("weather.measurementUnit"),
 				"format": "json",
 			},
-		}).Body()
+		})
 
-	err = json.Unmarshal(body, &weatherResultData)
+	err = json.Unmarshal(response.Body(), &weatherResultData)
 	if err != nil {
 		return
 	}

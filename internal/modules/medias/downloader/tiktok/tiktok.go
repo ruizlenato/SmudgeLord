@@ -44,6 +44,11 @@ func getPostID(url string) (postID string) {
 		return postID
 	}
 	defer resp.Body.Close()
+
+	_, _ = utils.Request(url, utils.RequestParams{
+		Method:    "GET",
+		Redirects: 2,
+	})
 	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(resp.Request.URL.String())
 	if len(matches) > 1 {
 		return matches[1]
@@ -53,7 +58,7 @@ func getPostID(url string) (postID string) {
 }
 
 func getTikTokData(postID string) TikTokData {
-	body := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
+	_, response := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method: "OPTIONS",
 		Headers: map[string]string{
 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
@@ -69,14 +74,14 @@ func getTikTokData(postID string) TikTokData {
 			"aweme_id":        postID,
 			"aid":             "1128",
 		},
-	}).Body()
+	})
 
-	if body == nil {
+	if response.Body() == nil {
 		return nil
 	}
 
 	var tikTokData TikTokData
-	err := json.Unmarshal(body, &tikTokData)
+	err := json.Unmarshal(response.Body(), &tikTokData)
 	if err != nil {
 		return nil
 	}
