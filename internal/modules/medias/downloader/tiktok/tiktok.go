@@ -52,12 +52,17 @@ func getPostID(url string) (postID string) {
 		Method:    "GET",
 		Redirects: 2,
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	if request != nil {
+		defer fasthttp.ReleaseRequest(request)
+	}
+	if response != nil {
+		defer fasthttp.ReleaseResponse(response)
+	}
 
 	if err != nil {
 		return postID
 	}
+
 	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(request.URI().String())
 	if len(matches) > 1 {
 		return matches[1]
