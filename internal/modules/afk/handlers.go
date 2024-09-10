@@ -19,7 +19,13 @@ import (
 func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler) {
 	message := update.Message
 	if message == nil && update.CallbackQuery != nil {
-		message = update.CallbackQuery.Message.(*telego.Message)
+		switch msg := update.CallbackQuery.Message.(type) {
+		case *telego.Message:
+			message = msg
+		default:
+			next(bot, update)
+			return
+		}
 	} else if message == nil ||
 		message.From == nil ||
 		!strings.Contains(message.Chat.Type, "group") ||
