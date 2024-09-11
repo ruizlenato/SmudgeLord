@@ -1,23 +1,39 @@
 package downloader
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
 
+	"github.com/grafov/m3u8"
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 	"github.com/valyala/fasthttp"
 
 	"github.com/mymmrac/telego"
 )
+
+type Medias struct {
+	Files   []string `json:"file_id"`
+	Type    []string `json:"type"`
+	Caption string   `json:"caption"`
+}
+
+type YouTube struct {
+	Video   string `json:"video"`
+	Audio   string `json:"audio"`
+	Caption string `json:"caption"`
+}
 
 var mimeExtensions = map[string]string{
 	"image/jpeg":      "jpg",
@@ -49,15 +65,11 @@ func Downloader(media string) (*os.File, error) {
 		return nil, errors.New("get error")
 	}
 
-	extension := func(contentType []byte) string {
-		extension, ok := mimeExtensions[string(contentType)]
-		if !ok {
-			return ""
-		}
-		return extension
+	if bytes.Contains(response.Body(), []byte("#EXTM3U")) {
+		return downloadSegments(request, response)
 	}
 
-	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension(response.Header.ContentType())))
+	file, err := os.CreateTemp("", "Smudge*.mp4")
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +90,97 @@ func Downloader(media string) (*os.File, error) {
 	}
 
 	return file, err
+}
+
+func downloadSegments(request *fasthttp.Request, response *fasthttp.Response) (*os.File, error) {
+	playlist, _, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
+	if err != nil {
+		log.Print("Failed to decode m3u8 playlist: ", err)
+	}
+
+	segmentFiles := []string{}
+	for _, segment := range playlist.(*m3u8.MediaPlaylist).Segments {
+		if segment == nil {
+			continue
+		}
+
+		urlSegment := fmt.Sprintf("%s://%s%s/%s",
+			string(request.URI().Scheme()),
+			string(request.URI().Host()),
+			path.Dir(string(request.URI().Path())), segment.URI)
+		fileName, err := downloadUrlSegment(urlSegment)
+		if err != nil {
+			log.Printf("Error downloading segment from %s: %s", urlSegment, err)
+		}
+		segmentFiles = append(segmentFiles, fileName)
+	}
+
+	return mergeSegments(segmentFiles)
+}
+
+func downloadUrlSegment(url string) (string, error) {
+	request, response, err := utils.Request(url, utils.RequestParams{
+		Method:    "GET",
+		Redirects: 5,
+	})
+	defer fasthttp.ReleaseRequest(request)
+	defer fasthttp.ReleaseResponse(response)
+	if err != nil {
+		return "", err
+	}
+
+	tmpFile, err := os.CreateTemp("", "SmudgeSegment-*.ts")
+	if err != nil {
+		return "", err
+	}
+	defer tmpFile.Close()
+
+	if _, err := io.Copy(tmpFile, bytes.NewReader(response.Body())); err != nil {
+		return "", err
+	}
+
+	return tmpFile.Name(), nil
+}
+
+func mergeSegments(segmentFiles []string) (*os.File, error) {
+	listFile, err := os.CreateTemp("", "SmudgeSegment*.txt")
+	if err != nil {
+		return nil, err
+	}
+	defer listFile.Close()
+	defer os.Remove(listFile.Name())
+
+	file, err := os.CreateTemp("", "Smudge*.mp4")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		for _, segmentFile := range segmentFiles {
+			os.Remove(segmentFile)
+		}
+	}()
+
+	for _, segmentFile := range segmentFiles {
+		if _, err := listFile.WriteString(fmt.Sprintf("file '%s'\n", segmentFile)); err != nil {
+			return nil, err
+		}
+	}
+
+	cmd := exec.Command("ffmpeg", "-y",
+		"-f", "concat",
+		"-safe", "0",
+		"-i", listFile.Name(),
+		"-c", "copy",
+		file.Name())
+	err = cmd.Run()
+	if err != nil {
+		file.Close()
+		os.Remove(file.Name())
+		return nil, err
+	}
+
+	return file, nil
 }
 
 func TruncateUTF8Caption(s, url string) string {
@@ -155,12 +258,6 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 	wg.Wait()
 }
 
-type Medias struct {
-	Files   []string `json:"file_id"`
-	Type    []string `json:"type"`
-	Caption string   `json:"caption"`
-}
-
 func SetMediaCache(replied []telego.Message, result []string) error {
 	var (
 		files      []string
@@ -221,12 +318,6 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 	}
 
 	return inputMedias, medias.Caption, nil
-}
-
-type YouTube struct {
-	Video   string `json:"video"`
-	Audio   string `json:"audio"`
-	Caption string `json:"caption"`
 }
 
 func SetYoutubeCache(replied *telego.Message, youtubeID string) error {

@@ -14,6 +14,8 @@ require (
 	github.com/valyala/fasthttp v1.55.0
 )
 
+require github.com/grafov/m3u8 v0.12.0
+
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/bitly/go-simplejson v0.5.1 // indirect
