@@ -112,8 +112,12 @@ func getEmbedData(postID string) InstagramData {
 			"viewport-width":  "1280",
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	if request != nil {
+		defer fasthttp.ReleaseRequest(request)
+	}
+	if response != nil {
+		defer fasthttp.ReleaseResponse(response)
+	}
 
 	if err != nil || response.Body() == nil {
 		return nil
@@ -181,8 +185,12 @@ func getScrapperAPIData(postID string) InstagramData {
 			"id": postID,
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	if request != nil {
+		defer fasthttp.ReleaseRequest(request)
+	}
+	if response != nil {
+		defer fasthttp.ReleaseResponse(response)
+	}
 
 	if err != nil || response.Body() == nil {
 		return nil
@@ -246,8 +254,12 @@ func getGQLData(postID string) InstagramData {
 			`doc_id=25531498899829322`,
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	if request != nil {
+		defer fasthttp.ReleaseRequest(request)
+	}
+	if response != nil {
+		defer fasthttp.ReleaseResponse(response)
+	}
 
 	if err != nil || response.Body() == nil {
 		return nil
