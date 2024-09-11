@@ -26,8 +26,14 @@ type Record struct {
 }
 
 type Embed struct {
-	Type   string  `json:"$type"`
-	Images []Image `json:"images"`
+	Type        string  `json:"$type"`
+	Images      []Image `json:"images"`
+	Playlist    string  `json:"playlist"`
+	Thumbnail   string  `json:"thumbnail"`
+	AspectRatio struct {
+		Height int `json:"height"`
+		Width  int `json:"width"`
+	} `json:"aspectRatio"`
 }
 
 type Image struct {

@@ -1,12 +1,17 @@
 package bluesky
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"regexp"
+	"strconv"
+	"strings"
 
+	"github.com/grafov/m3u8"
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -50,11 +55,15 @@ func getBlueskyData(username, postID string) BlueskyData {
 		},
 		Query: map[string]string{
 			"uri":   fmt.Sprintf("at://%s/app.bsky.feed.post/%s", username, postID),
-			"depth": "10",
+			"depth": "0",
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	if request != nil {
+		defer fasthttp.ReleaseRequest(request)
+	}
+	if response != nil {
+		defer fasthttp.ReleaseResponse(response)
+	}
 
 	if err != nil || response.Body() == nil {
 		return nil
@@ -63,7 +72,7 @@ func getBlueskyData(username, postID string) BlueskyData {
 	var blueskyData BlueskyData
 	err = json.Unmarshal(response.Body(), &blueskyData)
 	if err != nil {
-		log.Print("Bluesky: Error unmarshalling JSON: ", err)
+		log.Print("Bluesky —  Error unmarshalling JSON: ", err)
 	}
 
 	return blueskyData
@@ -82,6 +91,103 @@ type InputMedia struct {
 }
 
 func processMedia(blueskyData BlueskyData) []telego.InputMedia {
+	if strings.Contains(blueskyData.Thread.Post.Embed.Type, "image") {
+		return handleImage(blueskyData)
+	}
+	if strings.Contains(blueskyData.Thread.Post.Embed.Type, "video") {
+		return handleVideo(blueskyData)
+	}
+	return nil
+}
+
+func parseResolution(resolution string) (int, int, error) {
+	parts := strings.Split(resolution, "x")
+	if len(parts) != 2 {
+		return 0, 0, fmt.Errorf("invalid resolution format: %s", resolution)
+	}
+
+	width, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid width: %s", parts[0])
+	}
+
+	height, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid height: %s", parts[1])
+	}
+
+	return width, height, nil
+}
+
+func handleVideo(blueskyData BlueskyData) []telego.InputMedia {
+	if !strings.HasPrefix(blueskyData.Thread.Post.Embed.Playlist, "https://video.bsky.app/") {
+		return nil
+	}
+
+	request, response, err := utils.Request(blueskyData.Thread.Post.Embed.Playlist, utils.RequestParams{
+		Method: "GET",
+	})
+	if request != nil {
+		defer fasthttp.ReleaseRequest(request)
+	}
+	if response != nil {
+		defer fasthttp.ReleaseResponse(response)
+	}
+	if err != nil {
+		log.Print("Bluesky — Error requesting playlist: ", err)
+	}
+
+	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
+	if err != nil {
+		log.Print("Bluesky — Failed to decode m3u8 playlist: ", err)
+	}
+
+	if listType != m3u8.MASTER {
+		return nil
+	}
+
+	var highestBandwidthVariant *m3u8.Variant
+	for _, variant := range playlist.(*m3u8.MasterPlaylist).Variants {
+		if highestBandwidthVariant == nil || variant.Bandwidth > highestBandwidthVariant.Bandwidth {
+			highestBandwidthVariant = variant
+		}
+	}
+
+	url := fmt.Sprintf("%s://%s%s/%s",
+		string(request.URI().Scheme()),
+		string(request.URI().Host()),
+		path.Dir(string(request.URI().Path())),
+		highestBandwidthVariant.URI)
+
+	width, height, err := parseResolution(highestBandwidthVariant.Resolution)
+	if err != nil {
+		log.Printf("Bluesky — Error parsing resolution: %s", err)
+		return nil
+	}
+
+	file, err := downloader.Downloader(url)
+	if err != nil {
+		log.Printf("Bluesky — Error downloading video from %s: %s", url, err)
+		return nil
+	}
+
+	thumbnail, err := downloader.Downloader(blueskyData.Thread.Post.Embed.Thumbnail)
+	if err != nil {
+		log.Printf("Bluesky — Error downloading thumbnail from %s: %s", blueskyData.Thread.Post.Embed.Thumbnail, err)
+		return nil
+	}
+
+	return []telego.InputMedia{&telego.InputMediaVideo{
+		Type:              telego.MediaTypeVideo,
+		Media:             telego.InputFile{File: file},
+		Thumbnail:         &telego.InputFile{File: thumbnail},
+		Width:             width,
+		Height:            height,
+		SupportsStreaming: true,
+	}}
+}
+
+func handleImage(blueskyData BlueskyData) []telego.InputMedia {
 	type mediaResult struct {
 		index int
 		file  *os.File
@@ -96,7 +202,7 @@ func processMedia(blueskyData BlueskyData) []telego.InputMedia {
 		go func(index int, media Image) {
 			file, err := downloader.Downloader(media.Fullsize)
 			if err != nil {
-				log.Printf("BlueSky: Error downloading file from %s: %s", media.Fullsize, err)
+				log.Printf("BlueSky — Error downloading file from %s: %s", media.Fullsize, err)
 			}
 			results <- mediaResult{index, file, err}
 		}(i, media)
