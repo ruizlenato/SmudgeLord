@@ -58,8 +58,7 @@ func Downloader(media string) (*os.File, error) {
 	request, response, err := retryCaller.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response == nil {
 		return nil, errors.New("get error")
@@ -123,8 +122,8 @@ func downloadSegment(url string) (string, error) {
 		Method:    "GET",
 		Redirects: 5,
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
+
 	if err != nil {
 		return "", err
 	}

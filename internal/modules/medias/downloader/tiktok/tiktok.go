@@ -12,7 +12,6 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 func Handle(text string) ([]telego.InputMedia, []string) {
@@ -52,12 +51,7 @@ func getPostID(url string) (postID string) {
 		Method:    "GET",
 		Redirects: 2,
 	})
-	if request != nil {
-		defer fasthttp.ReleaseRequest(request)
-	}
-	if response != nil {
-		defer fasthttp.ReleaseResponse(response)
-	}
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return postID
@@ -89,8 +83,7 @@ func getTikTokData(postID string) TikTokData {
 			"aid":             "1128",
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.Body() == nil {
 		return nil

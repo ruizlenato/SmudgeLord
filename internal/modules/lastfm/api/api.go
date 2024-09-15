@@ -9,7 +9,6 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 const lastFMAPI = "http://ws.audioscrobbler.com/2.0"
@@ -38,8 +37,7 @@ func (lfm *LastFM) GetUser(username string) error {
 			"format":  "json",
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return fmt.Errorf("error requesting user info: %w", err)
@@ -69,8 +67,7 @@ func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
 			"format":   "json",
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.StatusCode() != 200 {
 		return nil
@@ -147,8 +144,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 			"format":  "json",
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		log.Print("lastfm/PlayCount — Error requesting get info:", err)

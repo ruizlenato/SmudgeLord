@@ -13,7 +13,6 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 var headers = map[string]string{
@@ -139,8 +138,7 @@ func getGuestToken() string {
 		Method:  "POST",
 		Headers: headers,
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		log.Print("Error getting guest token: ", err)
@@ -203,8 +201,7 @@ func getTwitterData(postID string) *TwitterAPIData {
 		},
 		Headers: headers,
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.Body() == nil {
 		return nil

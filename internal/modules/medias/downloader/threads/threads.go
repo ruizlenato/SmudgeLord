@@ -12,7 +12,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 func Handle(text string) ([]telego.InputMedia, []string) {
@@ -66,8 +65,7 @@ func getPostID(message string) string {
 			"Sec-Fetch-Mode": "navigate",
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return ""
@@ -117,8 +115,7 @@ func getGQLData(postID string) ThreadsData {
 			`lsd=` + lsd,
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return nil

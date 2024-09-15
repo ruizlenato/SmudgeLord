@@ -15,7 +15,6 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 func Handle(text string) ([]telego.InputMedia, []string) {
@@ -58,12 +57,7 @@ func getBlueskyData(username, postID string) BlueskyData {
 			"depth": "0",
 		},
 	})
-	if request != nil {
-		defer fasthttp.ReleaseRequest(request)
-	}
-	if response != nil {
-		defer fasthttp.ReleaseResponse(response)
-	}
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.Body() == nil {
 		return nil
@@ -127,12 +121,8 @@ func handleVideo(blueskyData BlueskyData) []telego.InputMedia {
 	request, response, err := utils.Request(blueskyData.Thread.Post.Embed.Playlist, utils.RequestParams{
 		Method: "GET",
 	})
-	if request != nil {
-		defer fasthttp.ReleaseRequest(request)
-	}
-	if response != nil {
-		defer fasthttp.ReleaseResponse(response)
-	}
+	defer utils.ReleaseRequestResources(request, response)
+
 	if err != nil {
 		log.Print("Bluesky — Error requesting playlist: ", err)
 	}

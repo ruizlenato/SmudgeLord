@@ -10,7 +10,6 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 func Handle(text string) ([]telego.InputMedia, []string) {
@@ -112,12 +111,7 @@ func getEmbedData(postID string) InstagramData {
 			"viewport-width":  "1280",
 		},
 	})
-	if request != nil {
-		defer fasthttp.ReleaseRequest(request)
-	}
-	if response != nil {
-		defer fasthttp.ReleaseResponse(response)
-	}
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.Body() == nil {
 		return nil
@@ -185,13 +179,7 @@ func getScrapperAPIData(postID string) InstagramData {
 			"id": postID,
 		},
 	})
-	if request != nil {
-		defer fasthttp.ReleaseRequest(request)
-	}
-	if response != nil {
-		defer fasthttp.ReleaseResponse(response)
-	}
-
+	defer utils.ReleaseRequestResources(request, response)
 	if err != nil || response.Body() == nil {
 		return nil
 	}
@@ -254,12 +242,7 @@ func getGQLData(postID string) InstagramData {
 			`doc_id=25531498899829322`,
 		},
 	})
-	if request != nil {
-		defer fasthttp.ReleaseRequest(request)
-	}
-	if response != nil {
-		defer fasthttp.ReleaseResponse(response)
-	}
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.Body() == nil {
 		return nil

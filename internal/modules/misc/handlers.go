@@ -13,7 +13,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
-	"github.com/valyala/fasthttp"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
@@ -122,8 +121,7 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 			`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		log.Println("Error requesting translation:", err)
@@ -261,8 +259,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 			"format": "json",
 		},
 	})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		log.Println("Error requesting weather search:", err)
@@ -353,8 +350,7 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 				"format": "json",
 			},
 		})
-	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
+	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		log.Println("Error requesting weather data:", err)

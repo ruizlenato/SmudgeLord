@@ -118,3 +118,12 @@ func (r *RetryCaller) Request(url string, params RequestParams) (*fasthttp.Reque
 
 	return nil, nil, errors.Join(err, ErrMaxRetryAttempts)
 }
+
+func ReleaseRequestResources(request *fasthttp.Request, response *fasthttp.Response) {
+	if request != nil {
+		defer fasthttp.ReleaseRequest(request)
+	}
+	if response != nil {
+		defer fasthttp.ReleaseResponse(response)
+	}
+}
