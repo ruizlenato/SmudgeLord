@@ -2,7 +2,6 @@ package afk
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"regexp"
 	"strings"
@@ -47,6 +46,7 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 	}
 
 	i18n := localization.Get(update)
+
 	humanizedDuration := localization.HumanizeTimeSince(duration, update)
 
 	switch {
@@ -56,9 +56,13 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 			return
 		}
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("afk.nowAvailable"), message.From.ID, message.From.FirstName, humanizedDuration),
-			ParseMode: "HTML",
+			ChatID: telegoutil.ID(message.Chat.ID),
+			Text: i18n("now-available",
+				map[string]interface{}{
+					"userID":   message.From.ID,
+					"userName": message.From.FirstName,
+					"duration": humanizedDuration,
+				}),
 			LinkPreviewOptions: &telego.LinkPreviewOptions{
 				IsDisabled: true,
 			},
@@ -73,9 +77,18 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 			return
 		}
 
-		text := fmt.Sprintf(i18n("afk.unavailable"), user_id, user.FirstName, humanizedDuration)
+		text := i18n("user-unavailable",
+			map[string]interface{}{
+				"userID":        user_id,
+				"userFirstName": user.FirstName,
+				"duration":      humanizedDuration,
+			})
+
 		if reason != "" {
-			text += fmt.Sprintf(i18n("afk.reason"), reason)
+			text += "\n" + i18n("user-unavailable-reason",
+				map[string]interface{}{
+					"reason": reason,
+				})
 		}
 
 		bot.SendMessage(&telego.SendMessageParams{
@@ -105,8 +118,11 @@ func handleSetAFK(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message)
 
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("afk.nowUnavailable"), message.From.FirstName),
+		ChatID: telegoutil.ID(message.Chat.ID),
+		Text: i18n("user-now-unavailable",
+			map[string]interface{}{
+				"userName": message.From.FirstName,
+			}),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,

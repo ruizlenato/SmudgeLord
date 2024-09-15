@@ -9,8 +9,6 @@ import (
 
 type module struct {
 	Name string
-	// TODO: Add support for keyboard
-	// Keyboard [][]telego.InlineKeyboardButton
 }
 
 var helpModule = make(map[string]module)
@@ -18,12 +16,10 @@ var helpModule = make(map[string]module)
 func Store(name string) {
 	helpModule[name] = module{
 		Name: name,
-		// TODO: Add support for keyboard
-		// Keyboard: keyboard,
 	}
 }
 
-func GetHelpKeyboard(i18n func(string) string) [][]telego.InlineKeyboardButton {
+func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) [][]telego.InlineKeyboardButton {
 	var moduleNames []string
 	for name := range helpModule {
 		moduleNames = append(moduleNames, name)
@@ -39,7 +35,7 @@ func GetHelpKeyboard(i18n func(string) string) [][]telego.InlineKeyboardButton {
 			row = nil
 		}
 		row = append(row, telego.InlineKeyboardButton{
-			Text:         i18n(fmt.Sprintf("%s.name", name)),
+			Text:         i18n(name),
 			CallbackData: fmt.Sprintf("helpMessage %s", name),
 		})
 	}
@@ -48,7 +44,7 @@ func GetHelpKeyboard(i18n func(string) string) [][]telego.InlineKeyboardButton {
 	}
 
 	buttons = append(buttons, []telego.InlineKeyboardButton{{
-		Text:         i18n("button.back"),
+		Text:         i18n("back-button"),
 		CallbackData: "start",
 	}})
 	return buttons

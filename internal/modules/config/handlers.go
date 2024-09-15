@@ -15,7 +15,7 @@ import (
 
 func handleDisableable(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message)
-	text := i18n("config.cmdDisableables")
+	text := i18n("disableables-commands")
 	for _, command := range helpers.DisableableCommands {
 		text += "\n- <code>" + command + "</code>"
 	}
@@ -44,7 +44,7 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 	if len(args) == 0 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("config.cmdDisableUsage"),
+			Text:      i18n("disable-commands-usage"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -55,8 +55,11 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 
 	if !contains(helpers.DisableableCommands, args[0]) {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("config.cmdNotDisableable"), args[0]),
+			ChatID: telegoutil.ID(message.Chat.ID),
+			Text: i18n("command-not-deactivatable",
+				map[string]interface{}{
+					"command": args[0],
+				}),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -67,8 +70,11 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 
 	if helpers.CheckDisabledCommand(args[0], message.Chat.ID) {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("config.cmdAlreadyDisabled"), args[0]),
+			ChatID: telegoutil.ID(message.Chat.ID),
+			Text: i18n("command-already-disabled",
+				map[string]interface{}{
+					"command": args[0],
+				}),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -86,7 +92,7 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("config.cmdDisabled"), args[0]),
+		Text:      fmt.Sprintf(i18n("command-disabled"), args[0]),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -97,31 +103,11 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 
 func handleEnable(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message)
-	contains := func(array []string, str string) bool {
-		for _, item := range array {
-			if item == str {
-				return true
-			}
-		}
-		return false
-	}
 	_, _, args := telegoutil.ParseCommand(message.Text)
 	if len(args) == 0 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("config.cmdEnableUsage"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	if !contains(helpers.DisableableCommands, args[0]) {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("config.cmdCantDisable"),
+			Text:      i18n("enable-commands-usage"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -132,8 +118,11 @@ func handleEnable(bot *telego.Bot, message telego.Message) {
 
 	if !helpers.CheckDisabledCommand(args[0], message.Chat.ID) {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      fmt.Sprintf(i18n("config.cmdAlreadyEnabled"), args[0]),
+			ChatID: telegoutil.ID(message.Chat.ID),
+			Text: i18n("command-already-enabled",
+				map[string]interface{}{
+					"command": args[0],
+				}),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -149,8 +138,11 @@ func handleEnable(bot *telego.Bot, message telego.Message) {
 		return
 	}
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("config.cmdEnabled"), args[0]),
+		ChatID: telegoutil.ID(message.Chat.ID),
+		Text: i18n("command-enabled",
+			map[string]interface{}{
+				"command": args[0],
+			}),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -161,7 +153,7 @@ func handleEnable(bot *telego.Bot, message telego.Message) {
 
 func handleDisabled(bot *telego.Bot, message telego.Message) {
 	i18n := localization.Get(message)
-	text := i18n("config.disabledCmds")
+	text := i18n("disabled-commands")
 	rows, err := database.DB.Query("SELECT command FROM commandsDisabled WHERE chat_id = ?", message.Chat.ID)
 	if err != nil {
 		return
@@ -180,7 +172,7 @@ func handleDisabled(bot *telego.Bot, message telego.Message) {
 	if len(commands) == 0 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("config.noDisabledCmds"),
+			Text:      i18n("no-disabled-commands"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -208,14 +200,16 @@ func callbackLanguageMenu(bot *telego.Bot, update telego.Update) {
 
 	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
 	for _, lang := range database.AvailableLocales {
-		loaded, ok := localization.LangCache[lang]
+		loaded, ok := localization.LangBundles[lang]
 		if !ok {
 			log.Fatalf("Language '%s' not found in the cache.", lang)
 		}
+		languageFlag, _, _ := loaded.FormatMessage("language-flag")
+		languageName, _, _ := loaded.FormatMessage("language-name")
 
 		buttons = append(buttons, []telego.InlineKeyboardButton{{
-			Text: localization.GetStringFromNestedMap(loaded, "language.flag") +
-				localization.GetStringFromNestedMap(loaded, "language.name"),
+			Text: languageFlag +
+				languageName,
 			CallbackData: fmt.Sprintf("setLang %s", lang),
 		}})
 	}
@@ -231,9 +225,13 @@ func callbackLanguageMenu(bot *telego.Bot, update telego.Update) {
 	}
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        fmt.Sprintf(i18n("menu.languageMessage"), i18n("language.flag"), i18n("language.name")),
+		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
+		MessageID: update.CallbackQuery.Message.GetMessageID(),
+		Text: i18n("language-menu",
+			map[string]interface{}{
+				"languageFlag": i18n("language-flag"),
+				"languageName": i18n("language-name"),
+			}),
 		ParseMode:   "HTML",
 		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 	})
@@ -256,12 +254,12 @@ func callbackLanguageSet(bot *telego.Bot, update telego.Update) {
 
 	if update.CallbackQuery.Message.GetChat().Type == telego.ChatTypePrivate {
 		buttons = append(buttons, []telego.InlineKeyboardButton{{
-			Text:         i18n("button.back"),
+			Text:         i18n("back-button"),
 			CallbackData: "start",
 		}})
 	} else {
 		buttons = append(buttons, []telego.InlineKeyboardButton{{
-			Text:         i18n("button.back"),
+			Text:         i18n("back-button"),
 			CallbackData: "config",
 		}})
 	}
@@ -269,23 +267,23 @@ func callbackLanguageSet(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("menu.languageChangedSuccessfully"),
+		Text:        i18n("language-changed"),
 		ParseMode:   "HTML",
 		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 	})
 }
 
-func createConfigKeyboard(i18n func(string) string) *telego.InlineKeyboardMarkup {
+func createConfigKeyboard(i18n func(string, ...map[string]interface{}) string) *telego.InlineKeyboardMarkup {
 	return telegoutil.InlineKeyboard(
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
-				Text:         i18n("medias.name"),
+				Text:         i18n("medias"),
 				CallbackData: "mediaConfig",
 			},
 		),
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
-				Text:         i18n("language.flag") + i18n("button.language"),
+				Text:         i18n("language-flag") + i18n("language-button"),
 				CallbackData: "languageMenu",
 			},
 		),
@@ -297,7 +295,7 @@ func handleConfig(bot *telego.Bot, message telego.Message) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:      telegoutil.ID(message.Chat.ID),
-		Text:        i18n("config.menuText"),
+		Text:        i18n("config-message"),
 		ParseMode:   "HTML",
 		ReplyMarkup: createConfigKeyboard(i18n),
 		ReplyParameters: &telego.ReplyParameters{
@@ -311,7 +309,7 @@ func callbackConfig(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("config.menuText"),
+		Text:        i18n("config-message"),
 		ParseMode:   "HTML",
 		ReplyMarkup: createConfigKeyboard(i18n),
 	})
@@ -364,24 +362,24 @@ func callbackMediaConfig(bot *telego.Bot, update telego.Update) {
 
 	buttons := [][]telego.InlineKeyboardButton{
 		{
-			{Text: i18n("button.caption"), CallbackData: "ieConfig mediasCaption"},
+			{Text: i18n("caption-button"), CallbackData: "ieConfig mediasCaption"},
 			{Text: state(mediasCaption), CallbackData: "mediaConfig mediasCaption"},
 		},
 		{
-			{Text: i18n("button.automatic"), CallbackData: "ieConfig mediasAuto"},
+			{Text: i18n("automatic-button"), CallbackData: "ieConfig mediasAuto"},
 			{Text: state(mediasAuto), CallbackData: "mediaConfig mediasAuto"},
 		},
 	}
 
 	buttons = append(buttons, []telego.InlineKeyboardButton{{
-		Text:         i18n("button.back"),
+		Text:         i18n("back-button"),
 		CallbackData: "config",
 	}})
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("medias.config"),
+		Text:        i18n("config-medias"),
 		ParseMode:   "HTML",
 		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
 	})

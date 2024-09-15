@@ -15,12 +15,12 @@ import (
 	"github.com/mymmrac/telego/telegoutil"
 )
 
-func getErrorMessage(err error, i18n func(string) string) string {
+func getErrorMessage(err error, i18n func(string, ...map[string]interface{}) string) string {
 	switch {
 	case strings.Contains(err.Error(), "no recent tracks"):
-		return i18n("lastfm.noScrobbles")
+		return i18n("no-scrobbled-yet")
 	case strings.Contains(err.Error(), "lastFM error"):
-		return i18n("lastfm.error")
+		return i18n("lastfm-error")
 	default:
 		return ""
 	}
@@ -41,7 +41,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("lastfm.provideUsername"),
+			Text:      i18n("no-lastfm-username-provided"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -53,7 +53,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 	if lastFM.GetUser(lastFMUsername) != nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.invalidUsername"),
+			Text:      i18n("invalid-lastfm-username"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -69,7 +69,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("lastfm.usernameSet"),
+		Text:      i18n("lastfm-username-saved"),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -98,7 +98,7 @@ func lastfm(bot *telego.Bot, message telego.Message, methodType string) {
 	if err != nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("lastfm.noUsername"),
+			Text:      i18n("lastfm-username-not-defined"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -121,11 +121,12 @@ func lastfm(bot *telego.Bot, message telego.Message, methodType string) {
 	}
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
-	if recentTracks.Nowplaying {
-		text += fmt.Sprintf(i18n("lastfm.nowPlaying"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
-	} else {
-		text += fmt.Sprintf(i18n("lastfm.wasPlaying"), lastFMUsername, message.From.FirstName, recentTracks.Playcount)
-	}
+	text += i18n("lastfm-playing", map[string]interface{}{
+		"nowplaying":     fmt.Sprintf("%v", recentTracks.Nowplaying),
+		"lastFMUsername": lastFMUsername,
+		"firstName":      message.From.FirstName,
+		"playcount":      recentTracks.Playcount,
+	})
 
 	switch methodType {
 	case "track":

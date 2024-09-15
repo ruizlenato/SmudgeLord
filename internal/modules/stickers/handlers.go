@@ -25,7 +25,7 @@ func handleGetSticker(bot *telego.Bot, message telego.Message) {
 	if message.ReplyToMessage == nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("stickers.getNotReply"),
+			Text:      i18n("get-sticker-no-reply-provided"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -59,7 +59,7 @@ func handleGetSticker(bot *telego.Bot, message telego.Message) {
 			log.Print("[stickers/getSticker] Error creating file: ", err)
 			bot.SendMessage(&telego.SendMessageParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
-				Text:      i18n("stickers.error"),
+				Text:      i18n("kang-error"),
 				ParseMode: "HTML",
 				ReplyParameters: &telego.ReplyParameters{
 					MessageID: message.MessageID,
@@ -85,7 +85,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 	if message.ReplyToMessage == nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("stickers.kangNotReply"),
+			Text:      i18n("kang-no-reply-provided"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -95,7 +95,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 	}
 	progMSG, err := bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("stickers.kanging"),
+		Text:      i18n("kanging"),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -111,7 +111,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: progMSG.GetMessageID(),
-			Text:      i18n("stickers.invalidType"),
+			Text:      i18n("sticker-invalid-media-type"),
 			ParseMode: "HTML",
 		})
 		return
@@ -119,7 +119,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 
 	var (
 		emoji           []string
-		stickerSetTitle string // 1-64 characters
+		stickerSetTitle string
 		packPrefix      string
 		stickerFile     *os.File
 	)
@@ -144,7 +144,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("stickers.error"),
+				Text:      i18n("kang-error"),
 				ParseMode: "HTML",
 			})
 			return
@@ -153,7 +153,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: progMSG.GetMessageID(),
-			Text:      i18n("stickers.converting"),
+			Text:      i18n("converting-video-to-sticker"),
 			ParseMode: "HTML",
 		})
 		stickerFile, err = convertVideo(fileData)
@@ -162,7 +162,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("stickers.error"),
+				Text:      i18n("kang-error"),
 				ParseMode: "HTML",
 			})
 			return
@@ -182,7 +182,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("stickers.error"),
+				Text:      i18n("kang-error"),
 				ParseMode: "HTML",
 			})
 			return
@@ -251,7 +251,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: progMSG.GetMessageID(),
-		Text:      i18n("stickers.packExists"),
+		Text:      i18n("sticker-pack-already-exists"),
 		ParseMode: "HTML",
 	})
 
@@ -271,7 +271,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("stickers.newPack"),
+				Text:      i18n("sticker-new-pack"),
 				ParseMode: "HTML",
 			})
 			stickerFile.Seek(0, 0)
@@ -288,7 +288,11 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: progMSG.GetMessageID(),
-		Text:      fmt.Sprintf(i18n("stickers.stickerStoled"), stickerSetName, strings.Join(emoji, "")),
+		Text: i18n("sticker-stoled",
+			map[string]interface{}{
+				"stickerSetName": stickerSetName,
+				"emoji":          strings.Join(emoji, ""),
+			}),
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
 			IsDisabled: true,

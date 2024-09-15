@@ -55,7 +55,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	if len(url) < 1 {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("medias.noURL"),
+			Text:      i18n("no-link-provided"),
 			ParseMode: "HTML",
 		})
 		return
@@ -91,6 +91,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		mediaItems = mediaItems[:10]
 	}
 
+	caption = downloader.RemoveTags(caption)
 	if utf8.RuneCountInString(caption) > maxSizeCaption {
 		caption = downloader.TruncateUTF8Caption(caption, url[0])
 	}
@@ -125,7 +126,6 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 			MessageID: message.MessageID,
 		},
 	})
-
 	downloader.RemoveMediaFiles(mediaItems)
 	if err != nil {
 		return
@@ -147,7 +147,7 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("medias.youtubeNoURL"),
+			Text:      i18n("youtube-no-url"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -169,7 +169,7 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 	if err != nil {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("medias.youtubeInvalidURL"),
+			Text:      i18n("youtube-invalid-url"),
 			ParseMode: "HTML",
 		})
 		return
@@ -202,20 +202,23 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 		audioStream = video.Formats.WithAudioChannels().Type("audio/mp4")[1]
 	}
 
-	text := fmt.Sprintf(i18n("medias.youtubeVideoInfo"),
-		video.Title, video.Author,
-		float64(audioStream.ContentLength)/(1024*1024),
-		float64(videoStream.ContentLength+audioStream.ContentLength)/(1024*1024),
-		video.Duration.String())
+	text := i18n("youtube-video-info",
+		map[string]interface{}{
+			"title":     video.Title,
+			"author":    video.Author,
+			"audioSize": fmt.Sprintf("%.2f", float64(audioStream.ContentLength)/(1024*1024)),
+			"videoSize": fmt.Sprintf("%.2f", float64(videoStream.ContentLength+audioStream.ContentLength)/(1024*1024)),
+			"duration":  video.Duration.String(),
+		})
 
 	keyboard := telegoutil.InlineKeyboard(
 		telegoutil.InlineKeyboardRow(
 			telego.InlineKeyboardButton{
-				Text:         i18n("medias.youtubeDownloadAudio"),
+				Text:         i18n("youtube-download-audio-button"),
 				CallbackData: fmt.Sprintf("_aud|%s|%d|%d|%d|%d", video.ID, audioStream.ItagNo, audioStream.ContentLength, message.MessageID, message.From.ID),
 			},
 			telego.InlineKeyboardButton{
-				Text:         i18n("medias.youtubeDownloadVideo"),
+				Text:         i18n("youtube-download-video-button"),
 				CallbackData: fmt.Sprintf("_vid|%s|%d|%d|%d|%d", video.ID, videoStream.ItagNo, videoStream.ContentLength+audioStream.ContentLength, message.MessageID, message.From.ID),
 			},
 		),
@@ -243,7 +246,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	if userID, _ := strconv.Atoi(callbackData[5]); update.CallbackQuery.From.ID != int64(userID) {
 		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
-			Text:            i18n("medias.youtubeDenied"),
+			Text:            i18n("denied-button-alert"),
 			ShowAlert:       true,
 		})
 		return
@@ -257,8 +260,10 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	if size, _ := strconv.ParseInt(callbackData[3], 10, 64); size > sizeLimit {
 		bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
-			Text:            i18n("medias.youtubeBigFile"),
-			ShowAlert:       true,
+			Text: i18n("video-exceeds-limit", map[string]interface{}{
+				"size": sizeLimit,
+			}),
+			ShowAlert: true,
 		})
 		return
 	}
@@ -266,7 +271,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("medias.downloading"),
+		Text:      i18n("downloading"),
 	})
 
 	messageID, _ := strconv.Atoi(callbackData[4])
@@ -284,7 +289,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: update.CallbackQuery.Message.GetMessageID(),
-			Text:      i18n("medias.youtubeError"),
+			Text:      i18n("youtube-error"),
 		})
 		return
 	}
@@ -302,7 +307,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("medias.uploading"),
+		Text:      i18n("uploading"),
 	})
 
 	bot.SendChatAction(&telego.SendChatActionParams{
@@ -354,11 +359,11 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 		})
 	}
 	if err != nil {
-		log.Printf("Failed to send video: %v", err)
+		log.Printf("Failed to send media: %v", err)
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: update.CallbackQuery.Message.GetMessageID(),
-			Text:      i18n("medias.youtubeError"),
+			Text:      i18n("youtube-error"),
 		})
 		return
 	}
@@ -428,7 +433,7 @@ func handleExplainConfig(bot *telego.Bot, update telego.Update) {
 	ieConfig := strings.ReplaceAll(update.CallbackQuery.Data, "ieConfig medias", "")
 	bot.AnswerCallbackQuery(&telego.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
-		Text:            i18n("medias." + strings.ToLower(ieConfig) + "Help"),
+		Text:            i18n(strings.ToLower(ieConfig) + "-help"),
 		ShowAlert:       true,
 	})
 }

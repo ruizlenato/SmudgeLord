@@ -5,17 +5,16 @@ import (
 	"log"
 	"strings"
 
+	"github.com/mymmrac/telego"
+	"github.com/mymmrac/telego/telegohandler"
+	"github.com/mymmrac/telego/telegoutil"
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
 )
 
-var announceMessageText string // Global variable to store the message text
+var announceMessageText string
 
 func announce(bot *telego.Bot, update telego.Update) {
 	var lang string
@@ -34,14 +33,16 @@ func announce(bot *telego.Bot, update telego.Update) {
 	if lang == "" {
 		buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
 		for _, lang := range database.AvailableLocales {
-			loaded, ok := localization.LangCache[lang]
+			loaded, ok := localization.LangBundles[lang]
 			if !ok {
 				log.Fatalf("Language '%s' not found in the cache.", lang)
 			}
+			languageFlag, _, _ := loaded.FormatMessage("language-flag")
+			languageName, _, _ := loaded.FormatMessage("language-name")
 
 			buttons = append(buttons, []telego.InlineKeyboardButton{{
-				Text: localization.GetStringFromNestedMap(loaded, "language.flag") +
-					localization.GetStringFromNestedMap(loaded, "language.name"),
+				Text: languageFlag +
+					languageName,
 				CallbackData: fmt.Sprintf("announce %s", lang),
 			}})
 		}

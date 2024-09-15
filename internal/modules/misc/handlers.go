@@ -45,8 +45,8 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 
 	if text == "" {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("misc.translatorNoArgs"),
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("translator-no-args-provided"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -66,8 +66,8 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 
 	if text == "" {
 		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("misc.translatorNoArgs"),
+			ChatID:    telegoutil.ID(message.Chat.ID),
+			Text:      i18n("translator-no-args-provided"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -234,7 +234,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 	} else {
 		bot.SendMessage(&telego.SendMessageParams{
 			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("weather.noLocation"),
+			Text:      i18n("weather-no-location-provided"),
 			ParseMode: "HTML",
 			ReplyParameters: &telego.ReplyParameters{
 				MessageID: message.MessageID,
@@ -287,7 +287,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 
 	bot.SendMessage(&telego.SendMessageParams{
 		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("weather.selectLocation"),
+		Text:      i18n("weather-select-location"),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -349,7 +349,7 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 				"language": strings.Split(chatLang, "-")[0] +
 					"-" +
 					strings.ToUpper(strings.Split(chatLang, "-")[1]),
-				"units":  i18n("weather.measurementUnit"),
+				"units":  i18n("measurement-unit"),
 				"format": "json",
 			},
 		})
@@ -385,12 +385,14 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 	bot.EditMessageText(&telego.EditMessageTextParams{
 		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text: fmt.Sprintf(i18n("weather.details"),
-			localName,
-			weatherResultData.V3WxObservationsCurrent.Temperature,
-			weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
-			weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
-			weatherResultData.V3WxObservationsCurrent.WindSpeed),
+		Text: i18n("weather-details",
+			map[string]interface{}{
+				"localname":            localName,
+				"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
+				"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
+				"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
+				"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
+			}),
 		ParseMode: "HTML",
 	})
 }
@@ -399,7 +401,6 @@ func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
 	helpers.Store("misc")
 	bh.HandleMessage(handleWeather, telegohandler.Or(telegohandler.CommandEqual("weather"), telegohandler.CommandEqual("clima")))
 	bh.Handle(callbackWeather, telegohandler.CallbackDataContains("_weather"))
-
 	bh.HandleMessage(handleTranslate, telegohandler.Or(
 		telegohandler.CommandEqual("translate"),
 		telegohandler.CommandEqual("tr")),
