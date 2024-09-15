@@ -71,8 +71,8 @@ func handleStart(bot *telego.Bot, message telego.Message) {
 		ChatID: telegoutil.ID(message.Chat.ID),
 		Text: i18n("start-message",
 			map[string]interface{}{
-				"userName": message.From.FirstName,
-				"botName":  botUser.FirstName,
+				"userFirstName": message.From.FirstName,
+				"botName":       botUser.FirstName,
 			}),
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{
@@ -94,8 +94,8 @@ func callbackStart(bot *telego.Bot, update telego.Update) {
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 		Text: i18n("start-message",
 			map[string]interface{}{
-				"userName": update.CallbackQuery.Message.GetChat().FirstName,
-				"botName":  botUser.FirstName,
+				"userFirstName": update.CallbackQuery.Message.GetChat().FirstName,
+				"botName":       botUser.FirstName,
 			}),
 		ParseMode: "HTML",
 		LinkPreviewOptions: &telego.LinkPreviewOptions{

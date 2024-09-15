@@ -8,7 +8,7 @@ language-changed = O idioma foi alterado com sucesso.
 measurement-unit = m
 start-button = Inciar uma conversa.
 start-message =
-    Olá <b>{ $userName }</b> — Eu sou o <b>{ $botName }</b>, um bot com alguns comandos úteis e divertidos para você.
+    Olá <b>{ $userFirstName }</b> — Eu sou o <b>{ $botName }</b>, um bot com alguns comandos úteis e divertidos para você.
 
     <b>Código Fonte:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
 start-message-group =
@@ -108,7 +108,7 @@ user-unavailable =
     <b><a href='tg://user?id={ $userID }'>{ $userFirstName } </a></b> está <b>indisponível!</b>
     Visto pela última vez à <code>{ $duration}</code> atrás.
 user-unavailable-reason = <b>Reason:</b> <code>{ $reason }</code>
-now-available = <b><a href='tg://user?id={ $userID }'>{ $userName }</a></b> está de volta após <code>{ $duration }</code> de ausência!
+now-available = <b><a href='tg://user?id={ $userID }'>{ $userFirstName }</a></b> está de volta após <code>{ $duration }</code> de ausência!
 config = Configurações
 config-help =
     <b>Configurações:</b>

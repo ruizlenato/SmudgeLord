@@ -59,9 +59,9 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 			ChatID: telegoutil.ID(message.Chat.ID),
 			Text: i18n("now-available",
 				map[string]interface{}{
-					"userID":   message.From.ID,
-					"userName": message.From.FirstName,
-					"duration": humanizedDuration,
+					"userID":        message.From.ID,
+					"userFirstName": message.From.FirstName,
+					"duration":      humanizedDuration,
 				}),
 			LinkPreviewOptions: &telego.LinkPreviewOptions{
 				IsDisabled: true,
@@ -121,7 +121,7 @@ func handleSetAFK(bot *telego.Bot, message telego.Message) {
 		ChatID: telegoutil.ID(message.Chat.ID),
 		Text: i18n("user-now-unavailable",
 			map[string]interface{}{
-				"userName": message.From.FirstName,
+				"userFirstName": message.From.FirstName,
 			}),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{

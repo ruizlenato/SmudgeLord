@@ -8,7 +8,7 @@ language-changed = The language has been changed successfully.
 measurement-unit = m
 start-button = Start a chat.
 start-message =
-    Hello <b>{ $userName }</b> — I'm <b>{ $botName }</b>, a bot with some useful and fun commands for you.
+    Hello <b>{ $userFirstName }</b> — I'm <b>{ $botName }</b>, a bot with some useful and fun commands for you.
 
     <b>Source Code:</b> <a href='github.com/ruizlenato/smudgelord'>GitHub</a>
 start-message-group =
@@ -102,12 +102,12 @@ afk-help =
     <b>— Commands:</b>
     <b>/afk (reason):</b> Define yourself as away.
     <b>brb (reason):</b> Same as the afk command, but not a command; no need to use <code>/</code>.
-user-now-unavailable = <b>{ $userName }</b> is now unavailable!
+user-now-unavailable = <b>{ $userFirstName }</b> is now unavailable!
 user-unavailable =
     <b><a href='tg://user?id={ $userID }'>{ $userFirstName }</a></b> is <b>unavailable!</b>
     Last seen <code>{ $duration }</code> ago
 user-unavailable-reason = <b>Reason:</b> <code>{ $reason }</code>
-now-available = <b><a href='tg://user?id={ $userID }'>{ $userName }</a></b> is back after <code>{ $duration }</code> away!
+now-available = <b><a href='tg://user?id={ $userID }'>{ $userFirstName }</a></b> is back after <code>{ $duration }</code> away!
 config = Settings
 config-help =
     <b>Settings:</b>
