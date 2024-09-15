@@ -28,10 +28,8 @@ func user_is_away(user_id int64) bool {
 }
 
 func get_user_away(user_id int64) (string, time.Duration, error) {
-	// Single row query with named placeholder for security
 	row := database.DB.QueryRow("SELECT reason, time FROM afk WHERE id = ?", user_id)
 
-	// Scan directly into variables for efficiency
 	var reason string
 	var afkTime time.Time
 	err := row.Scan(&reason, &afkTime)
@@ -42,17 +40,15 @@ func get_user_away(user_id int64) (string, time.Duration, error) {
 		return "", 0, &AFKError{fmt.Sprintf("Error getting AFK info: %v", err)}
 	}
 
-	// Calculate duration since afkTime
 	return reason, time.Since(afkTime), nil
 }
 
 func set_user_away(user_id int64, reason string, time time.Time) error {
-	// Prepared statement for reusability and efficiency
 	stmt, err := database.DB.Prepare("INSERT OR IGNORE INTO afk (id, reason, time) VALUES (?, ?, ?)")
 	if err != nil {
 		return &AFKError{fmt.Sprintf("Error preparing setAFK statement: %v", err)}
 	}
-	defer stmt.Close() // Ensure statement is closed
+	defer stmt.Close()
 
 	_, err = stmt.Exec(user_id, reason, time)
 	if err != nil {
@@ -62,12 +58,11 @@ func set_user_away(user_id int64, reason string, time time.Time) error {
 }
 
 func unset_user_away(user_id int64) error {
-	// Prepared statement for reusability and efficiency
 	stmt, err := database.DB.Prepare("DELETE FROM afk WHERE id = ?")
 	if err != nil {
 		return &AFKError{fmt.Sprintf("Error preparing unsetAFK statement: %v", err)}
 	}
-	defer stmt.Close() // Ensure statement is closed
+	defer stmt.Close()
 
 	_, err = stmt.Exec(user_id)
 	if err != nil {
@@ -78,7 +73,6 @@ func unset_user_away(user_id int64) error {
 
 func getIDFromUsername(username string) (int64, error) {
 	var id int64
-	// Single row query with named placeholder for security
 	row := database.DB.QueryRow("SELECT id FROM users WHERE username = ?", username)
 
 	err := row.Scan(&id)

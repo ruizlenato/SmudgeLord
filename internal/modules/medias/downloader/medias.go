@@ -66,7 +66,7 @@ func Downloader(media string) (*os.File, error) {
 	}
 
 	if bytes.Contains(response.Body(), []byte("#EXTM3U")) {
-		return downloadSegments(request, response)
+		return downloadM3U8(request, response)
 	}
 
 	file, err := os.CreateTemp("", "Smudge*.mp4")
@@ -92,7 +92,7 @@ func Downloader(media string) (*os.File, error) {
 	return file, err
 }
 
-func downloadSegments(request *fasthttp.Request, response *fasthttp.Response) (*os.File, error) {
+func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.File, error) {
 	playlist, _, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
 	if err != nil {
 		log.Print("Failed to decode m3u8 playlist: ", err)
@@ -108,7 +108,7 @@ func downloadSegments(request *fasthttp.Request, response *fasthttp.Response) (*
 			string(request.URI().Scheme()),
 			string(request.URI().Host()),
 			path.Dir(string(request.URI().Path())), segment.URI)
-		fileName, err := downloadUrlSegment(urlSegment)
+		fileName, err := downloadSegment(urlSegment)
 		if err != nil {
 			log.Printf("Error downloading segment from %s: %s", urlSegment, err)
 		}
@@ -118,7 +118,7 @@ func downloadSegments(request *fasthttp.Request, response *fasthttp.Response) (*
 	return mergeSegments(segmentFiles)
 }
 
-func downloadUrlSegment(url string) (string, error) {
+func downloadSegment(url string) (string, error) {
 	request, response, err := utils.Request(url, utils.RequestParams{
 		Method:    "GET",
 		Redirects: 5,

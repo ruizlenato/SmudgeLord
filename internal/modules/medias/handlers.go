@@ -91,7 +91,6 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		mediaItems = mediaItems[:10]
 	}
 
-	caption = downloader.RemoveTags(caption)
 	if utf8.RuneCountInString(caption) > maxSizeCaption {
 		caption = downloader.TruncateUTF8Caption(caption, url[0])
 	}
