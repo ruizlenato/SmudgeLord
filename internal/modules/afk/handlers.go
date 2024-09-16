@@ -63,6 +63,7 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 					"userFirstName": message.From.FirstName,
 					"duration":      humanizedDuration,
 				}),
+			ParseMode: "HTML",
 			LinkPreviewOptions: &telego.LinkPreviewOptions{
 				IsDisabled: true,
 			},
