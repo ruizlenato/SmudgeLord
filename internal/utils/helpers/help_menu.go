@@ -20,26 +20,30 @@ func Store(name string) {
 }
 
 func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) [][]telego.InlineKeyboardButton {
-	var moduleNames []string
+	modules := make([]struct {
+		name string
+		text string
+	}, 0, len(helpModule))
+
 	for name := range helpModule {
-		moduleNames = append(moduleNames, name)
+		modules = append(modules, struct {
+			name string
+			text string
+		}{name, i18n(name)})
 	}
+	sort.Slice(modules, func(i, j int) bool {
+		return modules[i].text < modules[j].text
+	})
 
-	sort.Strings(moduleNames)
-
-	buttons := make([][]telego.InlineKeyboardButton, 0, len(moduleNames))
-	var row []telego.InlineKeyboardButton
-	for _, name := range moduleNames {
-		if len(row) == 3 {
-			buttons = append(buttons, row)
-			row = nil
+	buttons := make([][]telego.InlineKeyboardButton, 0, (len(modules)+2)/3)
+	for i := 0; i < len(modules); i += 3 {
+		row := make([]telego.InlineKeyboardButton, 0, 3)
+		for j := i; j < i+3 && j < len(modules); j++ {
+			row = append(row, telego.InlineKeyboardButton{
+				Text:         modules[j].text,
+				CallbackData: fmt.Sprintf("helpMessage %s", modules[j].name),
+			})
 		}
-		row = append(row, telego.InlineKeyboardButton{
-			Text:         i18n(name),
-			CallbackData: fmt.Sprintf("helpMessage %s", name),
-		})
-	}
-	if len(row) > 0 {
 		buttons = append(buttons, row)
 	}
 
