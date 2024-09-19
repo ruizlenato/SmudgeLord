@@ -74,7 +74,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 			if strings.Contains(message.Text, "tiktok.com/") {
 				forceSend = true
 			}
-			mediaItems, result = handler(message.Text)
+			mediaItems, result = handler(url[0])
 			if len(result) == 2 {
 				caption = result[0]
 			}
