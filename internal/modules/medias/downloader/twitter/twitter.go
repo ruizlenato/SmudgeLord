@@ -15,6 +15,11 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
+const (
+	twitterAPIURL = "https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId"
+	guestTokenURL = "https://api.twitter.com/1.1/guest/activate.json"
+)
+
 var headers = map[string]string{
 	"Authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
 	"x-twitter-client-language": "en",
@@ -133,27 +138,37 @@ func getGuestToken() string {
 	type guestToken struct {
 		GuestToken string `json:"guest_token"`
 	}
+	var res guestToken
 
-	request, response, err := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
-		Method:  "POST",
-		Headers: headers,
+	request, response, err := utils.Request(guestTokenURL, utils.RequestParams{
+		Method:    "POST",
+		Headers:   headers,
+		Redirects: 3,
 	})
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		log.Print("Error getting guest token: ", err)
+		return ""
 	}
-	var res guestToken
+
 	err = json.Unmarshal(response.Body(), &res)
 	if err != nil {
-		log.Print("Error unmarshalling guest token: ", err)
+		log.Printf("Error unmarshalling guest token: %v", err)
+		return ""
 	}
 	return res.GuestToken
 }
 
 func getTwitterData(postID string) *TwitterAPIData {
-	headers["x-guest-token"] = getGuestToken()
-	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", getGuestToken())
+	guestToken := getGuestToken()
+	if guestToken == "" {
+		return nil
+	}
+
+	headers["x-guest-token"] = guestToken
+	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
+
 	variables := map[string]interface{}{
 		"tweetId":                                postID,
 		"referrer":                               "messages",
@@ -164,6 +179,7 @@ func getTwitterData(postID string) *TwitterAPIData {
 		"withVoice":                              true,
 		"withV2Timeline":                         true,
 	}
+
 	features := map[string]interface{}{
 		"creator_subscriptions_tweet_preview_api_enabled":                         true,
 		"c9s_tweet_anatomy_moderator_badge_enabled":                               true,
@@ -193,7 +209,7 @@ func getTwitterData(postID string) *TwitterAPIData {
 		return result
 	}
 
-	request, response, err := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
+	request, response, err := utils.Request(twitterAPIURL, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"variables": string(jsonMarshal(variables)),
@@ -206,6 +222,7 @@ func getTwitterData(postID string) *TwitterAPIData {
 	if err != nil || response.Body() == nil {
 		return nil
 	}
+
 	var twitterAPIData *TwitterAPIData
 	err = json.Unmarshal(response.Body(), &twitterAPIData)
 	if err != nil {
