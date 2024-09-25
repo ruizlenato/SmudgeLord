@@ -2,6 +2,7 @@ package youtube
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/kkdai/youtube/v2"
+	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 )
@@ -140,4 +142,40 @@ func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
 	}
 
 	return bestFormat
+}
+
+func Handle(videoURL string) ([]telego.InputMedia, []string) {
+	youtubeClient := configureYoutubeClient()
+	video, err := youtubeClient.GetVideo(videoURL)
+	if err != nil {
+		return nil, []string{}
+	}
+
+	videoStream := GetBestQualityVideoStream(video.Formats.Type("video/mp4"))
+
+	format, err := getVideoFormat(video, videoStream.ItagNo)
+	if err != nil {
+		return nil, []string{}
+	}
+
+	outputFile, err := os.CreateTemp("", "SmudgeYoutube_*.mp4")
+	if err != nil {
+		log.Println("youtube: error creating temporary file: ", err)
+		return nil, []string{}
+	}
+
+	if err = downloadStream(&youtubeClient, video, format, outputFile); err != nil {
+		return nil, []string{}
+	}
+
+	err, outputFile = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+	if err != nil {
+		return nil, []string{}
+	}
+
+	return []telego.InputMedia{&telego.InputMediaVideo{
+		Type:              telego.MediaTypeVideo,
+		Media:             telego.InputFile{File: outputFile},
+		SupportsStreaming: true,
+	}}, []string{fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title), video.ID}
 }

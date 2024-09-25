@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:instagram|twitter|x|tiktok|reddit|twitch|bsky|threads).(?:com|net|tv|app)/(?:\S*)`
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
 	maxSizeCaption = 1024
 )
 
@@ -67,6 +67,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		"threads.net/":     threads.Handle,
 		"tiktok.com/":      tiktok.Handle,
 		"(twitter|x).com/": twitter.Handle,
+		"youtube.com/":     yt.Handle,
 	}
 
 	for pattern, handler := range mediaHandlers {
@@ -79,6 +80,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 				caption = result[0]
 			}
 			break
+
 		}
 	}
 
