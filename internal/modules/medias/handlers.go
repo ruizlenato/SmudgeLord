@@ -174,25 +174,7 @@ func handleYoutubeDownload(bot *telego.Bot, message telego.Message) {
 		return
 	}
 
-	desiredQualityLabels := func(qualityLabel string) bool {
-		supportedQualities := []string{"1080p", "720p", "480p", "360p", "240p", "144p"}
-		for _, supported := range supportedQualities {
-			if strings.Contains(qualityLabel, supported) {
-				return true
-			}
-		}
-		return false
-	}
-
-	var maxBitrate int
-	var maxBitrateIndex int
-	for i, format := range video.Formats.Type("video/mp4") {
-		if format.Bitrate > maxBitrate && desiredQualityLabels(format.QualityLabel) {
-			maxBitrate = format.Bitrate
-			maxBitrateIndex = i
-		}
-	}
-	videoStream := video.Formats.Type("video/mp4")[maxBitrateIndex]
+	videoStream := yt.GetBestQualityVideoStream(video.Formats.Type("video/mp4"))
 
 	var audioStream youtube.Format
 	if len(video.Formats.Itag(140)) > 0 {

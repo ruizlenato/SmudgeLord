@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/kkdai/youtube/v2"
 	"github.com/ruizlenato/smudgelord/internal/config"
@@ -22,6 +23,19 @@ func getVideoFormat(video *youtube.Video, itag int) (*youtube.Format, error) {
 	return &formats[0], nil
 }
 
+func configureYoutubeClient() youtube.Client {
+	if config.Socks5Proxy != "" {
+		proxyURL, _ := url.Parse(config.Socks5Proxy)
+		client := &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyURL),
+			},
+		}
+		return youtube.Client{HTTPClient: client}
+	}
+	return youtube.Client{}
+}
+
 func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format *youtube.Format, outputFile *os.File) error {
 	stream, _, err := youtubeClient.GetStream(video, format)
 	if err != nil {
@@ -30,8 +44,7 @@ func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format 
 	}
 	defer stream.Close()
 
-	_, err = io.Copy(outputFile, stream)
-	if err != nil {
+	if _, err = io.Copy(outputFile, stream); err != nil {
 		os.Remove(outputFile.Name())
 		log.Println("[youtube/Downloader] Error copying stream to file: ", err)
 		return err
@@ -41,16 +54,7 @@ func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format 
 }
 
 func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
-	youtubeClient := youtube.Client{}
-	var client *http.Client
-	if config.Socks5Proxy != "" {
-		proxyURL, _ := url.Parse(config.Socks5Proxy)
-		client = &http.Client{Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
-		}}
-		youtubeClient = youtube.Client{HTTPClient: client}
-	}
-
+	youtubeClient := configureYoutubeClient()
 	video, err := youtubeClient.GetVideo(callbackData[1])
 	if err != nil {
 		return nil, video, err
@@ -80,22 +84,10 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	if callbackData[0] == "_vid" {
-		audioFormat, err := getVideoFormat(video, 140)
+		err, _ = downloadAndMergeAudio(&youtubeClient, video, outputFile)
 		if err != nil {
 			return nil, video, err
 		}
-		audioFile, err := os.CreateTemp("", "SmudgeYoutube_*.m4a")
-		if err != nil {
-			log.Println("[youtube/Downloader] Error creating temporary audio file: ", err)
-			return nil, video, err
-		}
-
-		err = downloadStream(&youtubeClient, video, audioFormat, audioFile)
-		if err != nil {
-			return nil, video, err
-		}
-
-		outputFile = downloader.MergeAudioVideo(outputFile, audioFile)
 	}
 
 	_, err = outputFile.Seek(0, 0)
@@ -104,4 +96,48 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	return outputFile, video, nil
+}
+
+func downloadAndMergeAudio(youtubeClient *youtube.Client, video *youtube.Video, videoFile *os.File) (error, *os.File) {
+	audioFormat, err := getVideoFormat(video, 140)
+	if err != nil {
+		return err, nil
+	}
+
+	audioFile, err := os.CreateTemp("", "SmudgeYoutube_*.m4a")
+	if err != nil {
+		return err, nil
+	}
+	defer audioFile.Close()
+
+	err = downloadStream(youtubeClient, video, audioFormat, audioFile)
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, downloader.MergeAudioVideo(videoFile, audioFile)
+}
+
+func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
+	var bestFormat youtube.Format
+	var maxBitrate int
+
+	isDesiredQuality := func(qualityLabel string) bool {
+		supportedQualities := []string{"1080p", "720p", "480p", "360p", "240p", "144p"}
+		for _, supported := range supportedQualities {
+			if strings.Contains(qualityLabel, supported) {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, format := range formats {
+		if format.Bitrate > maxBitrate && isDesiredQuality(format.QualityLabel) {
+			maxBitrate = format.Bitrate
+			bestFormat = format
+		}
+	}
+
+	return bestFormat
 }
