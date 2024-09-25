@@ -94,7 +94,7 @@ func Downloader(media string) (*os.File, error) {
 func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.File, error) {
 	playlist, _, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
 	if err != nil {
-		log.Print("Failed to decode m3u8 playlist: ", err)
+		return nil, fmt.Errorf("Failed to decode m3u8 playlist: %s", err)
 	}
 
 	segmentFiles := []string{}
