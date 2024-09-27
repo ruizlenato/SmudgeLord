@@ -302,11 +302,9 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	thumbnail, _ := downloader.Downloader(thumbURL)
 
 	defer func() {
-		if err := os.Remove(thumbnail.Name()); err != nil {
-			log.Printf("Failed to remove thumbnail: %v", err)
-		}
-		if err := os.Remove(outputFile.Name()); err != nil {
-			log.Printf("Failed to remove outputFile: %v", err)
+		if err != nil {
+			os.Remove(thumbnail.Name())
+			os.Remove(outputFile.Name())
 		}
 	}()
 

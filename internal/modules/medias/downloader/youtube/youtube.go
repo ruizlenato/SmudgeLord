@@ -176,6 +176,8 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 	return []telego.InputMedia{&telego.InputMediaVideo{
 		Type:              telego.MediaTypeVideo,
 		Media:             telego.InputFile{File: outputFile},
+		Width:             video.Formats.Itag(videoStream.ItagNo)[0].Width,
+		Height:            video.Formats.Itag(videoStream.ItagNo)[0].Height,
 		SupportsStreaming: true,
 	}}, []string{fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title), video.ID}
 }
