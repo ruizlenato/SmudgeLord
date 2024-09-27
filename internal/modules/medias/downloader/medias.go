@@ -68,7 +68,15 @@ func Downloader(media string) (*os.File, error) {
 		return downloadM3U8(request, response)
 	}
 
-	file, err := os.CreateTemp("", "Smudge*.mp4")
+	extension := func(contentType []byte) string {
+		extension, ok := mimeExtensions[string(contentType)]
+		if !ok {
+			return ""
+		}
+		return extension
+	}
+
+	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension(response.Header.ContentType())))
 	if err != nil {
 		return nil, err
 	}
@@ -249,6 +257,9 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 			case "video":
 				if video, ok := media.(*telego.InputMediaVideo); ok {
 					os.Remove(video.Media.String())
+					if video.Thumbnail != nil {
+						os.Remove(video.Thumbnail.String())
+					}
 				}
 			}
 		}(media)

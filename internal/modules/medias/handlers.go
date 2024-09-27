@@ -84,6 +84,8 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		}
 	}
 
+	defer downloader.RemoveMediaFiles(mediaItems)
+
 	if mediaItems == nil || len(mediaItems) == 0 || (len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" &&
 		message.LinkPreviewOptions != nil && !message.LinkPreviewOptions.IsDisabled && !forceSend) {
 		return
@@ -127,7 +129,6 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 			MessageID: message.MessageID,
 		},
 	})
-	downloader.RemoveMediaFiles(mediaItems)
 	if err != nil {
 		return
 	}
@@ -302,10 +303,8 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	thumbnail, _ := downloader.Downloader(thumbURL)
 
 	defer func() {
-		if err != nil {
-			os.Remove(thumbnail.Name())
-			os.Remove(outputFile.Name())
-		}
+		os.Remove(thumbnail.Name())
+		os.Remove(outputFile.Name())
 	}()
 
 	var replied *telego.Message
