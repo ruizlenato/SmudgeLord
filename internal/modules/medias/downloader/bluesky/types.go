@@ -25,15 +25,25 @@ type Record struct {
 	Text string `json:"text"`
 }
 
+type Media struct {
+	Type      string  `json:"$type"`
+	Images    []Image `json:"images"`
+	Playlist  string  `json:"playlist"`
+	Thumbnail string  `json:"thumbnail"`
+}
+
+type AspectRatio struct {
+	Height int `json:"height"`
+	Width  int `json:"width"`
+}
+
 type Embed struct {
-	Type        string  `json:"$type"`
-	Images      []Image `json:"images"`
-	Playlist    string  `json:"playlist"`
-	Thumbnail   string  `json:"thumbnail"`
-	AspectRatio struct {
-		Height int `json:"height"`
-		Width  int `json:"width"`
-	} `json:"aspectRatio"`
+	Type        string      `json:"$type"`
+	Media       Media       `json:"media"`
+	Images      []Image     `json:"images"`
+	Playlist    *string     `json:"playlist"`
+	Thumbnail   *string     `json:"thumbnail"`
+	AspectRatio AspectRatio `json:"aspectRatio"`
 }
 
 type Image struct {
@@ -41,9 +51,4 @@ type Image struct {
 	Fullsize    string      `json:"fullsize"`
 	Alt         string      `json:"alt"`
 	AspectRatio AspectRatio `json:"aspectRatio"`
-}
-
-type AspectRatio struct {
-	Height int `json:"height"`
-	Width  int `json:"width"`
 }

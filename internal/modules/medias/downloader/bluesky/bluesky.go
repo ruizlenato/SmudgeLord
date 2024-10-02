@@ -85,12 +85,21 @@ type InputMedia struct {
 }
 
 func processMedia(blueskyData BlueskyData) []telego.InputMedia {
-	if strings.Contains(blueskyData.Thread.Post.Embed.Type, "image") {
-		return handleImage(blueskyData)
-	}
-	if strings.Contains(blueskyData.Thread.Post.Embed.Type, "video") {
+	switch {
+	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "image"):
+		return handleImage(blueskyData.Thread.Post.Embed.Media.Images)
+	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "video"):
 		return handleVideo(blueskyData)
+	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "recordWithMedia"):
+		if strings.Contains(blueskyData.Thread.Post.Embed.Media.Type, "image") {
+			return handleImage(blueskyData.Thread.Post.Embed.Media.Images)
+		}
+		if strings.Contains(blueskyData.Thread.Post.Embed.Media.Type, "video") {
+			return handleVideo(blueskyData)
+		}
+		return nil
 	}
+
 	return nil
 }
 
@@ -113,12 +122,24 @@ func parseResolution(resolution string) (int, int, error) {
 	return width, height, nil
 }
 
+func getPlaylistAndThumbnailURLs(blueskyData BlueskyData) (string, string) {
+	if blueskyData.Thread.Post.Embed.Playlist != nil {
+		return *blueskyData.Thread.Post.Embed.Playlist, *blueskyData.Thread.Post.Embed.Thumbnail
+	}
+	return blueskyData.Thread.Post.Embed.Media.Playlist, blueskyData.Thread.Post.Embed.Media.Thumbnail
+}
+
 func handleVideo(blueskyData BlueskyData) []telego.InputMedia {
-	if !strings.HasPrefix(blueskyData.Thread.Post.Embed.Playlist, "https://video.bsky.app/") {
+	playlistURL, thumbnailURL := getPlaylistAndThumbnailURLs(blueskyData)
+	if playlistURL == "" || thumbnailURL == "" {
 		return nil
 	}
 
-	request, response, err := utils.Request(blueskyData.Thread.Post.Embed.Playlist, utils.RequestParams{
+	if !strings.HasPrefix(playlistURL, "https://video.bsky.app/") {
+		return nil
+	}
+
+	request, response, err := utils.Request(playlistURL, utils.RequestParams{
 		Method: "GET",
 	})
 	defer utils.ReleaseRequestResources(request, response)
@@ -161,9 +182,9 @@ func handleVideo(blueskyData BlueskyData) []telego.InputMedia {
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(blueskyData.Thread.Post.Embed.Thumbnail)
+	thumbnail, err := downloader.Downloader(thumbnailURL)
 	if err != nil {
-		log.Printf("Bluesky — Error downloading thumbnail from %s: %s", blueskyData.Thread.Post.Embed.Thumbnail, err)
+		log.Printf("Bluesky — Error downloading thumbnail from %s: %s", thumbnailURL, err)
 		return nil
 	}
 
@@ -177,18 +198,18 @@ func handleVideo(blueskyData BlueskyData) []telego.InputMedia {
 	}}
 }
 
-func handleImage(blueskyData BlueskyData) []telego.InputMedia {
+func handleImage(blueskyImages []Image) []telego.InputMedia {
 	type mediaResult struct {
 		index int
 		file  *os.File
 		err   error
 	}
 
-	mediaCount := len(blueskyData.Thread.Post.Embed.Images)
+	mediaCount := len(blueskyImages)
 	mediaItems := make([]telego.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range blueskyData.Thread.Post.Embed.Images {
+	for i, media := range blueskyImages {
 		go func(index int, media Image) {
 			file, err := downloader.Downloader(media.Fullsize)
 			if err != nil {
