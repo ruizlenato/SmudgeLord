@@ -274,6 +274,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: update.CallbackQuery.Message.GetMessageID(),
 			Text:      i18n("youtube-error"),
+			ParseMode: "HTML",
 		})
 		return
 	}
@@ -344,6 +345,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: update.CallbackQuery.Message.GetMessageID(),
 			Text:      i18n("youtube-error"),
+			ParseMode: "HTML",
 		})
 		return
 	}
