@@ -156,7 +156,7 @@ medias-help =
     Ao compartilhar links no Telegram, alguns sites não exibem uma pré-visualização de imagem ou vídeo. 
     Esse módulo faz com que o Smudge detecte automaticamente os links dos sites suportados e envie os vídeos e imagens que estão presentes no mesmo.
 
-    <b>Sites atualmente suportados:</b> <i>Instagram</i>, <i>TikTok</i>, <i>Twitter/X</i>, <i>Threads</i> e <i>Bluesky</i>.
+    <b>Sites atualmente suportados:</b> <i>Instagram</i>, <i>TikTok</i>, <i>Twitter/X</i>, <i>Threads</i>, <i>Bluesky</i> e <i>YouTube Shorts</i>.
 
     <b>Observação:</b> 
     Esse módulo contém configurações adicionais para grupos. 
@@ -192,7 +192,7 @@ auto-help = Quando ativado, o bot baixará automaticamente fotos e vídeos de de
 caption-help = Quando ativado, a legenda das mídias baixada pelo bot serão enviadas junto com a mídia.
 no-link-provided =
     <b>Você não especificou um link ou especificou um link invalido.</b>
-    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b>, <b><i>Threads</i></b> ou <b><i>Bluesky</i></b> para que eu possa baixar a(s) mídia(s).
+    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b>, <b><i>Threads</i></b>, <b><i>Bluesky</i></b> ou <b><i>YouTube Shorts</i></b> para que eu possa baixar a(s) mídia(s).
 misc = Diversos
 misc-help =
     <b>Miscellaneous</b>
@@ -265,7 +265,7 @@ lastfm-error =
 
     Tente novamente mais tarde. Se o problema persistir, entre em contacto com o meu desenvolvedor.
 no-scrobbled-yet = 
-    <b>Parece que você ainda não fez scrobble de nenhuma música no Last.fm.</b>.
+    <b>Parece que você ainda não fez scrobble de nenhuma música no Last.fm.</b>
 
     Se você estiver enfrentando problemas com o Last.fm, visite last.fm/about/trackmymusic para saber como conectar sua conta ao seu aplicativo de música.
 lastfm-playing = 
