@@ -86,7 +86,7 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	if callbackData[0] == "_vid" {
-		err, _ = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+		err, outputFile = downloadAndMergeAudio(&youtubeClient, video, outputFile)
 		if err != nil {
 			return nil, video, err
 		}
