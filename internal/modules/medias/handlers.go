@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
 	maxSizeCaption = 1024
 )
 
