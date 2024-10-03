@@ -44,7 +44,17 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 	if twitterData == nil {
 		return nil, []string{}
 	}
-	medias := processMedia(twitterData)
+
+	if (*twitterData).Data.TweetResult.Result.Reason != nil && *(*twitterData).Data.TweetResult.Result.Reason == "NsfwLoggedOut" {
+		fxTwitterData := getFxTwitterData(postID)
+		if fxTwitterData == nil {
+			return nil, []string{}
+		}
+		medias, caption := processFxTwitterAPI(fxTwitterData)
+		return medias, []string{caption, postID}
+	}
+
+	medias := processTwitterAPI(twitterData)
 	caption := getCaption(twitterData)
 	return medias, []string{caption, postID}
 }
@@ -62,18 +72,18 @@ type InputMedia struct {
 	Thumbnail *os.File
 }
 
-func processMedia(twitterData *TwitterAPIData) []telego.InputMedia {
+func processTwitterAPI(twitterData *TwitterAPIData) []telego.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
 		err   error
 	}
 
-	mediaCount := len((*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)
+	mediaCount := len((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)
 	mediaItems := make([]telego.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range (*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
+	for i, media := range (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media {
 		go func(index int, twitterMedia Media) {
 			media, err := downloadMedia(twitterMedia)
 			results <- mediaResult{index: index, media: media, err: err}
@@ -88,7 +98,7 @@ func processMedia(twitterData *TwitterAPIData) []telego.InputMedia {
 		}
 		if result.media.File != nil {
 			var mediaItem telego.InputMedia
-			if (*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[result.index].Type == "photo" {
+			if (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media[result.index].Type == "photo" {
 				mediaItem = &telego.InputMediaPhoto{
 					Type:  telego.MediaTypePhoto,
 					Media: telego.InputFile{File: result.media.File},
@@ -97,8 +107,8 @@ func processMedia(twitterData *TwitterAPIData) []telego.InputMedia {
 				mediaItem = &telego.InputMediaVideo{
 					Type:              telego.MediaTypeVideo,
 					Media:             telego.InputFile{File: result.media.File},
-					Width:             ((*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[result.index].OriginalInfo.Width,
-					Height:            ((*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)[result.index].OriginalInfo.Height,
+					Width:             ((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)[result.index].OriginalInfo.Width,
+					Height:            ((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)[result.index].OriginalInfo.Height,
 					SupportsStreaming: true,
 				}
 				if result.media.Thumbnail != nil {
@@ -229,7 +239,16 @@ func getTwitterData(postID string) *TwitterAPIData {
 		return nil
 	}
 
-	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {
+	if twitterAPIData != nil &&
+		(*twitterAPIData).Data.TweetResult != nil &&
+		(*twitterAPIData).Data.TweetResult.Result.Reason != nil &&
+		*(*twitterAPIData).Data.TweetResult.Result.Reason == "NsfwLoggedOut" {
+		return twitterAPIData
+	}
+
+	if twitterAPIData == nil ||
+		(*twitterAPIData).Data.TweetResult == nil ||
+		(*twitterAPIData).Data.TweetResult.Legacy == nil {
 		return nil
 	}
 
@@ -239,10 +258,10 @@ func getTwitterData(postID string) *TwitterAPIData {
 func getCaption(twitterData *TwitterAPIData) string {
 	var caption string
 
-	if tweet := (*twitterData).Data.TweetResults.Result.Legacy; tweet != nil {
+	if tweet := (*twitterData).Data.TweetResult.Result.Legacy; tweet != nil {
 		caption = fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n",
-			(*twitterData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.Name,
-			(*twitterData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.ScreenName)
+			(*twitterData).Data.TweetResult.Result.Core.UserResults.Result.Legacy.Name,
+			(*twitterData).Data.TweetResult.Result.Core.UserResults.Result.Legacy.ScreenName)
 
 		if idx := strings.LastIndex(tweet.FullText, " https://t.co/"); idx != -1 {
 			caption += tweet.FullText[:idx]
@@ -250,4 +269,87 @@ func getCaption(twitterData *TwitterAPIData) string {
 	}
 
 	return caption
+}
+
+func getFxTwitterData(postID string) *FxTwitterAPIData {
+	request, response, err := utils.Request("https://api.fxtwitter.com/status/"+postID, utils.RequestParams{
+		Method:  "GET",
+		Headers: headers,
+	})
+	if err != nil || response.Body() == nil {
+		return nil
+	}
+	defer utils.ReleaseRequestResources(request, response)
+
+	var fxTwitterAPIData *FxTwitterAPIData
+	err = json.Unmarshal(response.Body(), &fxTwitterAPIData)
+	if err != nil {
+		return nil
+	}
+
+	if fxTwitterAPIData == nil || fxTwitterAPIData.Code != 200 {
+		return nil
+	}
+
+	return fxTwitterAPIData
+}
+
+func processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]telego.InputMedia, string) {
+	type mediaResult struct {
+		index int
+		media *InputMedia
+		err   error
+	}
+
+	mediaCount := len(twitterData.Tweet.Media.All)
+	mediaItems := make([]telego.InputMedia, mediaCount)
+	results := make(chan mediaResult, mediaCount)
+
+	for i, media := range twitterData.Tweet.Media.All {
+		go func(index int, twitterMedia FxTwitterMedia) {
+			var media InputMedia
+			var err error
+			media.File, err = downloader.Downloader(twitterMedia.URL)
+			if err == nil && twitterMedia.Type == "video" {
+				media.Thumbnail, _ = downloader.Downloader(twitterMedia.ThumbnailURL)
+			}
+			results <- mediaResult{index: index, media: &media, err: err}
+		}(i, media)
+	}
+
+	for i := 0; i < mediaCount; i++ {
+		result := <-results
+		if result.err != nil {
+			log.Print(result.err)
+			continue
+		}
+		if result.media.File != nil {
+			var mediaItem telego.InputMedia
+			if twitterData.Tweet.Media.All[result.index].Type != "video" {
+				mediaItem = &telego.InputMediaPhoto{
+					Type:  telego.MediaTypePhoto,
+					Media: telego.InputFile{File: result.media.File},
+				}
+			} else {
+				mediaItem = &telego.InputMediaVideo{
+					Type:              telego.MediaTypeVideo,
+					Media:             telego.InputFile{File: result.media.File},
+					Width:             twitterData.Tweet.Media.All[result.index].Width,
+					Height:            twitterData.Tweet.Media.All[result.index].Height,
+					SupportsStreaming: true,
+				}
+				if result.media.Thumbnail != nil {
+					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
+				}
+			}
+			mediaItems[result.index] = mediaItem
+		}
+	}
+
+	caption := fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n%s",
+		twitterData.Tweet.Author.Name,
+		twitterData.Tweet.Author.ScreenName,
+		twitterData.Tweet.Text)
+
+	return mediaItems, caption
 }
