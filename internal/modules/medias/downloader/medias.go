@@ -341,9 +341,9 @@ func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
 	}
 
 	if replied.Video != nil {
-		youtube = YouTube{Caption: replied.Caption, Video: replied.Video.FileID, Audio: youtube.Audio}
+		youtube = YouTube{Caption: utils.FormatText(replied.Caption, replied.CaptionEntities), Video: replied.Video.FileID, Audio: youtube.Audio}
 	} else if replied.Audio != nil {
-		youtube = YouTube{Caption: replied.Caption, Video: youtube.Video, Audio: replied.Audio.FileID}
+		youtube = YouTube{Caption: utils.FormatText(replied.Caption, replied.CaptionEntities), Video: youtube.Video, Audio: replied.Audio.FileID}
 	}
 
 	jsonValue, err := json.Marshal(youtube)
