@@ -87,7 +87,7 @@ type InputMedia struct {
 func processMedia(blueskyData BlueskyData) []telego.InputMedia {
 	switch {
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "image"):
-		return handleImage(blueskyData.Thread.Post.Embed.Media.Images)
+		return handleImage(blueskyData.Thread.Post.Embed.Images)
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "video"):
 		return handleVideo(blueskyData)
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "recordWithMedia"):
