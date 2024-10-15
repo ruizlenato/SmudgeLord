@@ -95,6 +95,10 @@ func getTikTokData(postID string) TikTokData {
 		return nil
 	}
 
+	if tikTokData.AwemeList[0].AwemeID != postID {
+		return nil
+	}
+
 	return tikTokData
 }
 
