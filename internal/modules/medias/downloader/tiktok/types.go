@@ -46,6 +46,7 @@ type Video struct {
 	Cover    Cover    `json:"cover"`
 	Height   int      `json:"height"`
 	Width    int      `json:"width"`
+	Duration int      `json:"duration"`
 }
 
 type ImagePostInfo struct {

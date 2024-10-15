@@ -173,6 +173,7 @@ func downloadVideo(tikTokData TikTokData) []telego.InputMedia {
 		Thumbnail:         &telego.InputFile{File: thumbnail},
 		Width:             tikTokData.AwemeList[0].Video.PlayAddr.Width,
 		Height:            tikTokData.AwemeList[0].Video.PlayAddr.Height,
+		Duration:          tikTokData.AwemeList[0].Video.Duration / 1000,
 		SupportsStreaming: true,
 	}}
 }
