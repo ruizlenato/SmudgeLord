@@ -250,7 +250,7 @@ func getGQLData(postID string) InstagramData {
 
 	err = json.Unmarshal(response.Body(), &instagramData)
 	if err != nil {
-		log.Print("Instagram: Error unmarshalling GQLData: ", err)
+		log.Print("Instagram — Error unmarshalling GQLData: ", err)
 		return nil
 	}
 
@@ -260,15 +260,22 @@ func getGQLData(postID string) InstagramData {
 func handleVideo(instagramData *ShortcodeMedia) []telego.InputMedia {
 	file, err := downloader.Downloader(instagramData.VideoURL)
 	if err != nil {
-		log.Print("Instagram: Error downloading video: ", err)
+		log.Print("Instagram — Error downloading video: ", err)
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(instagramData.DisplayResources[len(instagramData.DisplayResources)-1].Src)
 	if err != nil {
-		log.Print("Instagram: Error downloading thumbnail: ", err)
+		log.Print("Instagram — Error downloading thumbnail: ", err)
 		return nil
 	}
+
+	err = utils.ResizeThumbnail(thumbnail)
+	if err != nil {
+		log.Printf("Instagram — Error resizing thumbnail: %s", err)
+		return nil
+	}
+
 	return []telego.InputMedia{&telego.InputMediaVideo{
 		Type:              telego.MediaTypeVideo,
 		Media:             telego.InputFile{File: file},

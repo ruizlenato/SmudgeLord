@@ -188,6 +188,12 @@ func handleVideo(blueskyData BlueskyData) []telego.InputMedia {
 		return nil
 	}
 
+	err = utils.ResizeThumbnail(thumbnail)
+	if err != nil {
+		log.Printf("Bluesky — Error resizing thumbnail: %s", err)
+		return nil
+	}
+
 	return []telego.InputMedia{&telego.InputMediaVideo{
 		Type:              telego.MediaTypeVideo,
 		Media:             telego.InputFile{File: file},

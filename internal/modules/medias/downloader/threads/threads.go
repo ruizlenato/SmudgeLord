@@ -207,15 +207,22 @@ func handleCarousel(post Post) []telego.InputMedia {
 func handleVideo(post Post) []telego.InputMedia {
 	file, err := downloader.Downloader(post.VideoVersions[0].URL)
 	if err != nil {
-		log.Print("Threads: Error downloading video: ", err)
+		log.Print("Threads — Error downloading video: ", err)
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		log.Print("Threads: Error downloading thumbnail: ", err)
+		log.Print("Threads — Error downloading thumbnail: ", err)
 		return nil
 	}
+
+	err = utils.ResizeThumbnail(thumbnail)
+	if err != nil {
+		log.Printf("Threads — Error resizing thumbnail: %s", err)
+		return nil
+	}
+
 	return []telego.InputMedia{&telego.InputMediaVideo{
 		Type:              telego.MediaTypeVideo,
 		Media:             telego.InputFile{File: file},

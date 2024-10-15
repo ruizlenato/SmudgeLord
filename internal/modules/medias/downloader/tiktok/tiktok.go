@@ -84,7 +84,6 @@ func getTikTokData(postID string) TikTokData {
 		},
 	})
 	defer utils.ReleaseRequestResources(request, response)
-
 	if err != nil || response.Body() == nil {
 		return nil
 	}
@@ -152,13 +151,19 @@ func downloadImages(tikTokData TikTokData) []telego.InputMedia {
 func downloadVideo(tikTokData TikTokData) []telego.InputMedia {
 	file, err := downloader.Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 	if err != nil {
-		log.Printf("TikTok: Error downloading video from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
+		log.Printf("TikTok — Error downloading video from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(tikTokData.AwemeList[0].Video.Cover.URLList[0])
 	if err != nil {
-		log.Printf("TikTok: Error downloading thumbnail from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
+		log.Printf("TikTok — Error downloading thumbnail from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
+		return nil
+	}
+
+	err = utils.ResizeThumbnail(thumbnail)
+	if err != nil {
+		log.Printf("TikTok — Error resizing thumbnail from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
 		return nil
 	}
 

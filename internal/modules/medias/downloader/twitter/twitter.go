@@ -112,6 +112,10 @@ func processTwitterAPI(twitterData *TwitterAPIData) []telego.InputMedia {
 					SupportsStreaming: true,
 				}
 				if result.media.Thumbnail != nil {
+					err := utils.ResizeThumbnail(result.media.Thumbnail)
+					if err != nil {
+						log.Print("Twitter — Error resizing thumbnail: " + err.Error())
+					}
 					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
 				}
 			}
@@ -340,6 +344,10 @@ func processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]telego.InputMedia, st
 				}
 				if result.media.Thumbnail != nil {
 					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
+					err := utils.ResizeThumbnail(result.media.Thumbnail)
+					if err != nil {
+						log.Print("Twitter — Error resizing thumbnail: " + err.Error())
+					}
 				}
 			}
 			mediaItems[result.index] = mediaItem
