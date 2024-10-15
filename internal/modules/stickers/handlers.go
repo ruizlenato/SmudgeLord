@@ -1,18 +1,15 @@
 package stickers
 
 import (
-	"bytes"
 	"fmt"
-	"image"
 	"log"
 	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 
-	"github.com/anthonynsimon/bild/imgio"
-	"github.com/anthonynsimon/bild/transform"
 	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
 	"github.com/mymmrac/telego"
@@ -138,7 +135,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 
 	switch stickerAction {
 	case "resize":
-		stickerFile, err = resizeImage(fileData)
+		stickerFile, err = utils.ResizeSticker(fileData)
 		if err != nil {
 			log.Print("[stickers/kang] Error resizing image: ", err)
 			bot.EditMessageText(&telego.EditMessageTextParams{
@@ -365,36 +362,6 @@ func bytesToFile(data []byte, extension string) (*os.File, error) {
 
 	_, err = tempFile.Seek(0, 0)
 	if err != nil {
-		return nil, err
-	}
-
-	return tempFile, nil
-}
-
-func resizeImage(input []byte) (*os.File, error) {
-	img, _, err := image.Decode(bytes.NewReader(input))
-	if err != nil {
-		return nil, err
-	}
-	resizedImg := transform.Resize(img, 512, 512, transform.Lanczos)
-
-	tempFile, err := os.CreateTemp("", "Smudge*.png")
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if err != nil {
-			tempFile.Close()
-			os.Remove(tempFile.Name())
-		}
-	}()
-
-	if err := imgio.Save(tempFile.Name(), resizedImg, imgio.PNGEncoder()); err != nil {
-		return nil, err
-	}
-
-	if _, err = tempFile.Seek(0, 0); err != nil {
 		return nil, err
 	}
 
