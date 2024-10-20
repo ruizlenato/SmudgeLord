@@ -17,6 +17,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/bluesky"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/reddit"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/threads"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
@@ -64,6 +65,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	mediaHandlers := map[string]func(string) ([]telego.InputMedia, []string){
 		"bsky.app/":        bluesky.Handle,
 		"instagram.com/":   instagram.Handle,
+		"reddit.com/":      reddit.Handle,
 		"threads.net/":     threads.Handle,
 		"tiktok.com/":      tiktok.Handle,
 		"(twitter|x).com/": twitter.Handle,
