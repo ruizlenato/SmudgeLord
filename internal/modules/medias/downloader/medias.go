@@ -257,7 +257,7 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 			case "video":
 				if video, ok := media.(*telego.InputMediaVideo); ok {
 					os.Remove(video.Media.String())
-					if video.Thumbnail != nil {
+					if video.Thumbnail != nil && video.Thumbnail.File.(*os.File) != nil {
 						os.Remove(video.Thumbnail.String())
 					}
 				}

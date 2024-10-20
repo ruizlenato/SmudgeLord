@@ -111,12 +111,16 @@ func processVideoMedia(content string, request *fasthttp.Request) []telego.Input
 			return nil
 		}
 
-		return []telego.InputMedia{&telego.InputMediaVideo{
+		video := []telego.InputMedia{&telego.InputMediaVideo{
 			Type:              telego.MediaTypeVideo,
 			Media:             telego.InputFile{File: file},
-			Thumbnail:         &telego.InputFile{File: thumbnail},
 			SupportsStreaming: true,
 		}}
+
+		if thumbnail != nil {
+			video[0].(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: thumbnail}
+		}
+		return video
 	}
 	return nil
 }
