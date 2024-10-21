@@ -158,7 +158,6 @@ func downloadThumbnail(content string, request *fasthttp.Request) *os.File {
 		err = utils.ResizeThumbnail(thumbnail)
 		if err != nil {
 			log.Printf("Reddit — Error resizing thumbnail: %s", err)
-			return nil
 		}
 
 		return thumbnail

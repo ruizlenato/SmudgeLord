@@ -220,7 +220,6 @@ func handleVideo(post Post) []telego.InputMedia {
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
 		log.Printf("Threads — Error resizing thumbnail: %s", err)
-		return nil
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{

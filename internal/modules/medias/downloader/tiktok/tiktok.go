@@ -164,7 +164,6 @@ func downloadVideo(tikTokData TikTokData) []telego.InputMedia {
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
 		log.Printf("TikTok — Error resizing thumbnail from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
-		return nil
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{

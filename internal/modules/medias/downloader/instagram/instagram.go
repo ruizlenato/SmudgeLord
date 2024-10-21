@@ -273,7 +273,6 @@ func handleVideo(instagramData *ShortcodeMedia) []telego.InputMedia {
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
 		log.Printf("Instagram — Error resizing thumbnail: %s", err)
-		return nil
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{
