@@ -105,24 +105,67 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 		return nil, fmt.Errorf("Failed to decode m3u8 playlist: %s", err)
 	}
 
-	segmentFiles := []string{}
-	for _, segment := range playlist.(*m3u8.MediaPlaylist).Segments {
+	mediaPlaylist := playlist.(*m3u8.MediaPlaylist)
+	segmentCount := 0
+	for _, segment := range mediaPlaylist.Segments {
+		if segment != nil {
+			segmentCount++
+		}
+	}
+
+	type segmentResult struct {
+		index    int
+		fileName string
+		err      error
+	}
+
+	results := make(chan segmentResult, segmentCount)
+	segmentFiles := make([]string, segmentCount)
+
+	for i, segment := range mediaPlaylist.Segments {
 		if segment == nil {
 			continue
 		}
 
+		go func(index int, segment *m3u8.MediaSegment) {
 		urlSegment := fmt.Sprintf("%s://%s%s/%s",
 			string(request.URI().Scheme()),
-			string(request.URI().Host()),
-			path.Dir(string(request.URI().Path())), segment.URI)
+				string(request.URI().Host()),
+				path.Dir(string(request.URI().Path())),
+				segment.URI)
+
 		fileName, err := downloadSegment(urlSegment)
-		if err != nil {
-			log.Printf("Error downloading segment from %s: %s", urlSegment, err)
-		}
-		segmentFiles = append(segmentFiles, fileName)
+			results <- segmentResult{
+				index:    index,
+				fileName: fileName,
+				err:      err,
+			}
+		}(i, segment)
 	}
 
-	return mergeSegments(segmentFiles)
+	var downloadErrors []error
+	for i := 0; i < segmentCount; i++ {
+		result := <-results
+		if result.err != nil {
+			log.Printf("Error downloading segment %d: %s", result.index, result.err)
+			downloadErrors = append(downloadErrors, result.err)
+			continue
+		}
+		segmentFiles[result.index] = result.fileName
+	}
+
+	if len(downloadErrors) > segmentCount/2 {
+		return nil, fmt.Errorf("Too many segments failed to download: %d errors", len(downloadErrors))
+	}
+
+	cleanSegmentFiles := make([]string, 0, len(segmentFiles))
+	for _, fileName := range segmentFiles {
+		if fileName != "" {
+			cleanSegmentFiles = append(cleanSegmentFiles, fileName)
+		}
+	}
+
+	return mergeSegments(cleanSegmentFiles)
 }
 
 func downloadSegment(url string) (string, error) {
@@ -245,10 +288,16 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 
 	for _, media := range mediaItems {
 		wg.Add(1)
-
 		go func(media telego.InputMedia) {
 			defer wg.Done()
+			removeMediaFile(media)
+		}(media)
+	}
 
+	wg.Wait()
+}
+
+func removeMediaFile(media telego.InputMedia) {
 			switch media.MediaType() {
 			case "photo":
 				if photo, ok := media.(*telego.InputMediaPhoto); ok {
@@ -262,27 +311,10 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 					}
 				}
 			}
-		}(media)
-	}
-
-	wg.Wait()
 }
 
 func SetMediaCache(replied []telego.Message, result []string) error {
-	var (
-		files      []string
-		mediasType []string
-	)
-
-	for _, message := range replied {
-		if message.Video != nil {
-			files = append(files, message.Video.FileID)
-			mediasType = append(mediasType, telego.MediaTypeVideo)
-		} else if message.Photo != nil {
-			files = append(files, message.Photo[0].FileID)
-			mediasType = append(mediasType, telego.MediaTypePhoto)
-		}
-	}
+	files, mediasType := extractMediaInfo(replied)
 
 	album := Medias{Caption: result[0], Files: files, Type: mediasType}
 	jsonValue, err := json.Marshal(album)
@@ -298,6 +330,22 @@ func SetMediaCache(replied []telego.Message, result []string) error {
 	}
 
 	return nil
+}
+
+func extractMediaInfo(replied []telego.Message) ([]string, []string) {
+	var files, mediasType []string
+
+	for _, message := range replied {
+		if message.Video != nil {
+			files = append(files, message.Video.FileID)
+			mediasType = append(mediasType, telego.MediaTypeVideo)
+		} else if message.Photo != nil {
+			files = append(files, message.Photo[0].FileID)
+			mediasType = append(mediasType, telego.MediaTypePhoto)
+		}
+	}
+
+	return files, mediasType
 }
 
 func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
@@ -341,9 +389,9 @@ func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
 	}
 
 	if replied.Video != nil {
-		youtube = YouTube{Caption: utils.FormatText(replied.Caption, replied.CaptionEntities), Video: replied.Video.FileID, Audio: youtube.Audio}
+		youtube = YouTube{Caption: replied.Caption, Video: replied.Video.FileID, Audio: youtube.Audio}
 	} else if replied.Audio != nil {
-		youtube = YouTube{Caption: utils.FormatText(replied.Caption, replied.CaptionEntities), Video: youtube.Video, Audio: replied.Audio.FileID}
+		youtube = YouTube{Caption: replied.Caption, Video: youtube.Video, Audio: replied.Audio.FileID}
 	}
 
 	jsonValue, err := json.Marshal(youtube)
