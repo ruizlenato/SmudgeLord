@@ -86,12 +86,12 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		}
 	}
 
-	defer downloader.RemoveMediaFiles(mediaItems)
-
-	if mediaItems == nil || len(mediaItems) == 0 || (len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" &&
+	if mediaItems == nil || len(mediaItems) == 0 || mediaItems[0] == nil || (len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" &&
 		message.LinkPreviewOptions != nil && !message.LinkPreviewOptions.IsDisabled && !forceSend) {
 		return
 	}
+
+	defer downloader.RemoveMediaFiles(mediaItems)
 
 	if len(mediaItems) > 10 { // Telegram limits up to 10 images and videos in an album.
 		mediaItems = mediaItems[:10]
