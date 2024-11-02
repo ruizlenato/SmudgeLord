@@ -134,7 +134,9 @@ func SetMediaCache(replied []*telegram.NewMessage, postID string) error {
 	}
 
 	if err := cache.SetCache("media-cache:"+postID, jsonValue, 48*time.Hour); err != nil {
-		return fmt.Errorf("could not set cache: %v", err)
+		if !strings.Contains(err.Error(), "connect: connection refused") {
+			return err
+		}
 	}
 
 	return nil
