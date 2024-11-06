@@ -10,28 +10,30 @@ import (
 
 func IsAdmin(bot *telego.Bot) telegohandler.Predicate {
 	return func(update telego.Update) bool {
-		message := update.Message
+		var message *telego.Message
+		var userID int64
 
-		if message == nil {
-			if update.CallbackQuery == nil {
+		switch {
+		case update.Message != nil:
+			message = update.Message
+			userID = update.Message.From.ID
+		case update.CallbackQuery != nil:
+			if msg, ok := update.CallbackQuery.Message.(*telego.Message); ok {
+				message = msg
+				userID = update.CallbackQuery.From.ID
+			} else {
 				return false
 			}
-			message = update.CallbackQuery.Message.(*telego.Message)
+		default:
+			return false
 		}
 
-		// If the message is sent by a private chat, return without further processing.
 		if message.Chat.Type == telego.ChatTypePrivate {
 			return true
 		}
 
-		// If the message is sent by the sender's chat (e.g., channels or anonymous users), return without further processing.
 		if message.SenderChat != nil {
 			return false
-		}
-
-		userID := message.From.ID
-		if update.CallbackQuery != nil {
-			userID = update.CallbackQuery.From.ID
 		}
 
 		chatMember, err := bot.GetChatMember(&telego.GetChatMemberParams{
@@ -39,15 +41,12 @@ func IsAdmin(bot *telego.Bot) telegohandler.Predicate {
 			UserID: userID,
 		})
 		if err != nil {
-			log.Print("[helpers/IsAdmin] Error getting chat member:", err)
+			log.Print("helpers/IsAdmin — Error getting chat member:", err)
 			return false
 		}
 
-		if chatMember.MemberStatus() == "creator" || chatMember.MemberStatus() == "administrator" {
-			return true
-		}
-
-		return false
+		status := chatMember.MemberStatus()
+		return status == "creator" || status == "administrator"
 	}
 }
 
