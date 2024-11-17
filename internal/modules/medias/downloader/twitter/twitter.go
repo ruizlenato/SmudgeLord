@@ -30,20 +30,20 @@ var headers = map[string]string{
 func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 	postID, err := getPostID(message.Text())
 	if err != nil {
-		log.Print(err)
+		log.Printf("Error getting post ID: %v", err)
 		return nil, []string{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
-	if err == nil {
+	if cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID); err == nil {
 		return cachedMedias, []string{cachedCaption, postID}
 	}
 
 	twitterData, err := getTwitterData(postID)
 	if err != nil {
-		log.Print(err)
+		log.Printf("Error getting Twitter data: %v", err)
 		return nil, []string{}
 	}
+
 	medias, caption := processMedia(twitterData, message)
 	return medias, []string{caption, postID}
 }
@@ -184,12 +184,18 @@ func getGuestToken() string {
 		GuestToken string `json:"guest_token"`
 	}
 
-	body := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
+	response, err := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
 		Method:  "POST",
 		Headers: headers,
-	}).Body()
+	})
+	defer response.Body.Close()
+
+	if err != nil || response.Body == nil {
+		return ""
+	}
+
 	var res guestToken
-	err := json.Unmarshal(body, &res)
+	err = json.NewDecoder(response.Body).Decode(&res)
 	if err != nil {
 		log.Print("Error unmarshalling guest token: ", err)
 	}
@@ -197,8 +203,9 @@ func getGuestToken() string {
 }
 
 func getTwitterData(postID string) (*TwitterAPIData, error) {
-	headers["x-guest-token"] = getGuestToken()
-	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", getGuestToken())
+	guestToken := getGuestToken()
+	headers["x-guest-token"] = guestToken
+	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
 	variables := map[string]interface{}{
 		"tweetId":                                postID,
 		"referrer":                               "messages",
@@ -238,21 +245,24 @@ func getTwitterData(postID string) (*TwitterAPIData, error) {
 		return result
 	}
 
-	body := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
+	response, err := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"variables": string(jsonMarshal(variables)),
 			"features":  string(jsonMarshal(features)),
 		},
 		Headers: headers,
-	}).Body()
-	if body == nil {
+	})
+	defer response.Body.Close()
+
+	if err != nil || response.Body == nil {
 		return nil, errors.New("error getting Twitter data")
 	}
+
 	var twitterAPIData *TwitterAPIData
-	err := json.Unmarshal(body, &twitterAPIData)
+	err = json.NewDecoder(response.Body).Decode(&twitterAPIData)
 	if err != nil {
-		return nil, errors.New("error unmarshalling Twitter data")
+		return nil, err
 	}
 
 	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {

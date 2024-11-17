@@ -15,6 +15,7 @@ var (
 	DatabaseFile     string
 	OwnerID          int64
 	ChannelLogID     int64
+	Socks5Proxy      string
 	LastFMAPIKey     string
 )
 
@@ -50,6 +51,8 @@ func init() {
 	if ChannelLogID == 0 {
 		log.Fatalf(`You need to set the "CHANNEL_LOG_ID" in the .env file!`)
 	}
+
+	Socks5Proxy = os.Getenv("SOCKS5_PROXY")
 
 	LastFMAPIKey = os.Getenv("LASTFM_API_KEY")
 	if LastFMAPIKey == "" {

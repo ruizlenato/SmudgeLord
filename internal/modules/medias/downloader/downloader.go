@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -29,26 +30,27 @@ var mimeExtensions = map[string]string{
 }
 
 func Downloader(media string) (*os.File, error) {
-	body := utils.Request(media, utils.RequestParams{
+	response, err := utils.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
-	if body == nil {
+	if err != nil || response == nil {
 		return nil, errors.New("get error")
 	}
+	defer response.Body.Close()
 
-	extension := func(contentType []byte) string {
-		extension, ok := mimeExtensions[string(contentType)]
+	extension := func(contentType string) string {
+		extension, ok := mimeExtensions[contentType]
 		if !ok {
 			return ""
 		}
 		return extension
 	}
 
-	contentDisposition := body.Header.Peek("Content-Disposition")
-	filename := "Smudge*." + extension(body.Header.ContentType())
+	contentDisposition := response.Header.Get("Content-Disposition")
+	filename := "Smudge*." + extension(response.Header.Get("Content-Type"))
 
-	if contentDisposition != nil {
-		parts := strings.Split(string(contentDisposition), "filename=")
+	if contentDisposition != "" {
+		parts := strings.Split(contentDisposition, "filename=")
 		if len(parts) > 1 {
 			filename = "Smudge*" + strings.Trim(parts[1], `"`)
 		}
@@ -66,7 +68,7 @@ func Downloader(media string) (*os.File, error) {
 		}
 	}()
 
-	if _, err = file.Write(body.Body()); err != nil {
+	if _, err = io.Copy(file, response.Body); err != nil {
 		return nil, err
 	}
 
@@ -84,7 +86,7 @@ type Medias struct {
 
 func SetMediaCache(replied []*telegram.NewMessage, postID string) error {
 	var (
-		medias  = []string{}
+		medias  []string
 		caption string
 		mu      sync.Mutex
 		wg      sync.WaitGroup

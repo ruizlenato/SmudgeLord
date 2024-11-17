@@ -85,9 +85,7 @@ func handlerWeather(message *telegram.NewMessage) error {
 		return err
 	}
 
-	var weatherSearchData weatherSearch
-
-	body := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
+	response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"apiKey":   weatherAPIKey,
@@ -95,9 +93,15 @@ func handlerWeather(message *telegram.NewMessage) error {
 			"language": strings.Split(chatLang, "-")[0],
 			"format":   "json",
 		},
-	}).Body()
+	})
+	defer response.Body.Close()
 
-	err = json.Unmarshal(body, &weatherSearchData)
+	if err != nil || response.Body == nil {
+		return err
+	}
+
+	var weatherSearchData weatherSearch
+	err = json.NewDecoder(response.Body).Decode(&weatherSearchData)
 	if err != nil {
 		return err
 	}
@@ -146,7 +150,6 @@ type weatherResult struct {
 }
 
 func callbackWeather(update *telegram.CallbackQuery) error {
-	var weatherResultData weatherResult
 	i18n := localization.Get(update)
 	chatLang, err := localization.GetChatLanguage(update.ChatID, update.ChatType())
 	if err != nil {
@@ -163,19 +166,24 @@ func callbackWeather(update *telegram.CallbackQuery) error {
 		return err
 	}
 
-	body := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point",
-		utils.RequestParams{
-			Method: "GET",
-			Query: map[string]string{
-				"apiKey":   weatherAPIKey,
-				"geocode":  fmt.Sprintf("%.3f,%.3f", latitude, longitude),
-				"language": strings.Split(chatLang, "-")[0],
-				"units":    i18n("weather.measurementUnit"),
-				"format":   "json",
-			},
-		}).Body()
+	response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"apiKey":   weatherAPIKey,
+			"geocode":  fmt.Sprintf("%.3f,%.3f", latitude, longitude),
+			"language": strings.Split(chatLang, "-")[0],
+			"units":    i18n("weather.measurementUnit"),
+			"format":   "json",
+		},
+	})
+	defer response.Body.Close()
 
-	err = json.Unmarshal(body, &weatherResultData)
+	if err != nil || response.Body == nil {
+		return err
+	}
+
+	var weatherResultData weatherResult
+	err = json.NewDecoder(response.Body).Decode(&weatherResultData)
 	if err != nil {
 		return err
 	}

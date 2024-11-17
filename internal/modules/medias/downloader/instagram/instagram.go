@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
@@ -104,7 +105,7 @@ func getCaption(instagramData *ShortcodeMedia) string {
 func getEmbedData(postID string) InstagramData {
 	var instagramData InstagramData
 
-	body := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestParams{
+	response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -114,11 +115,18 @@ func getEmbedData(postID string) InstagramData {
 			"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
 			"viewport-width":  "1280",
 		},
-	}).Body()
-	if body == nil {
+	})
+	defer response.Body.Close()
+
+	if err != nil || response.Body == nil {
 		return nil
 	}
 
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Print("instagram/getEmbed — Error reading response body: ", err)
+		return nil
+	}
 	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body); len(match) == 2 {
 		s := strings.ReplaceAll(string(match[1]), `\"`, `"`)
 		s = strings.ReplaceAll(s, `\\/`, `/`)
@@ -126,7 +134,7 @@ func getEmbedData(postID string) InstagramData {
 
 		err := json.Unmarshal([]byte(s), &instagramData)
 		if err != nil {
-			log.Print("[instagram/getEmbed] Error unmarshalling Instagram data: ", err)
+			log.Print("instagram/getEmbed — Error unmarshalling Instagram data: ", err)
 		}
 	}
 
@@ -176,9 +184,7 @@ func getEmbedData(postID string) InstagramData {
 }
 
 func getGQLData(postID string) InstagramData {
-	var instagramData InstagramData
-
-	body := utils.Request("https://www.instagram.com/api/graphql", utils.RequestParams{
+	response, err := utils.Request("https://www.instagram.com/api/graphql", utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
 			`User-Agent`:         `Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0`,
@@ -222,11 +228,17 @@ func getGQLData(postID string) InstagramData {
 			`server_timestamps=true`,
 			`doc_id=10015901848480474`,
 		},
-	}).Body()
+	})
+	defer response.Body.Close()
 
-	err := json.Unmarshal(body, &instagramData)
+	if err != nil || response.Body == nil {
+		return nil
+	}
+
+	var instagramData InstagramData
+	err = json.NewDecoder(response.Body).Decode(&instagramData)
 	if err != nil {
-		log.Print("[instagram/Instagram] Error unmarshalling Instagram data: ", err)
+		log.Print("instagram/Instagram — Error decoding Instagram data: ", err)
 		return nil
 	}
 

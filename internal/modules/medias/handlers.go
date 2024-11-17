@@ -47,9 +47,9 @@ func handlerMedias(message *telegram.NewMessage) error {
 	}
 
 	mediaHandlers := map[string]func(*telegram.NewMessage) ([]telegram.InputMedia, []string){
-		"(twitter|x).com/": twitter.Handle,
 		"instagram.com/":   instagram.Handle,
 		"tiktok.com/":      tiktok.Handle,
+		"(twitter|x).com/": twitter.Handle,
 	}
 
 	for pattern, handler := range mediaHandlers {

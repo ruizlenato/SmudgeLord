@@ -21,6 +21,8 @@ type Translation struct {
 }
 
 func Translator(text string, message *telegram.NewMessage) (*Translation, error) {
+	var translation Translation
+
 	sourceLang, targetLang, text := parseAndGetTranslateLang(text, message)
 	userAgent := fmt.Sprintf(
 		`GoogleTranslate/6.28.0.05.421483610 (%s)`,
@@ -33,16 +35,24 @@ func Translator(text string, message *telegram.NewMessage) (*Translation, error)
 		url.QueryEscape(text),
 	)
 
-	response := utils.Request(url, utils.RequestParams{
+	response, err := utils.Request(url, utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
 			`User-Agent`:   userAgent,
 			`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
 		},
-	}).Body()
+	})
+	defer response.Body.Close()
 
-	var translation Translation
-	err := json.Unmarshal(response, &translation)
+	if err != nil || response.Body == nil {
+		return &translation, err
+	}
+
+	err = json.NewDecoder(response.Body).Decode(&translation)
+	if err != nil {
+		return &translation, err
+	}
+
 	translation.Target = targetLang
 	return &translation, err
 }

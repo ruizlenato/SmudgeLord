@@ -2,14 +2,13 @@ package tiktok
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"regexp"
 	"slices"
 	"sync"
+	"time"
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -18,9 +17,8 @@ import (
 )
 
 func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
-	postID, err := getPostID(message.Text())
-	if err != nil {
-		log.Print(err)
+	postID := getPostID(message.Text())
+	if postID == "" {
 		return nil, []string{}
 	}
 
@@ -29,9 +27,8 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 		return cachedMedias, []string{cachedCaption, postID}
 	}
 
-	tikTokData, err := getTikTokData(postID)
-	if err != nil {
-		log.Print(err)
+	tikTokData := getTikTokData(postID)
+	if tikTokData == nil {
 		return nil, []string{}
 	}
 
@@ -43,22 +40,35 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 	return downloadVideo(tikTokData, message), []string{caption, postID}
 }
 
-func getPostID(url string) (string, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", errors.New("Error getting TikTok URL " + err.Error())
-	}
-	defer resp.Body.Close()
-	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(resp.Request.URL.String())
-	if len(matches) > 1 {
-		return matches[1], nil
+func getPostID(url string) (postID string) {
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   1 * time.Second,
+		MaxDelay:     5 * time.Second,
 	}
 
-	return "", errors.New("could not find post ID")
+	response, err := retryCaller.Request(url, utils.RequestParams{
+		Method:    "GET",
+		Redirects: 2,
+	})
+	defer response.Body.Close()
+
+	if err != nil {
+		return postID
+	}
+
+	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(response.Request.URL.String())
+	if len(matches) > 1 {
+		return matches[1]
+	}
+
+	return postID
 }
 
-func getTikTokData(postID string) (TikTokData, error) {
-	body := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
+func getTikTokData(postID string) TikTokData {
+	response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method: "OPTIONS",
 		Headers: map[string]string{
 			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
@@ -74,19 +84,20 @@ func getTikTokData(postID string) (TikTokData, error) {
 			"aweme_id":        postID,
 			"aid":             "1128",
 		},
-	}).Body()
+	})
+	defer response.Body.Close()
 
-	if body == nil {
-		return nil, errors.New("no response body")
+	if err != nil || response.Body == nil {
+		return nil
 	}
 
 	var tikTokData TikTokData
-	err := json.Unmarshal(body, &tikTokData)
+	err = json.NewDecoder(response.Body).Decode(&tikTokData)
 	if err != nil {
-		return nil, err
+		return nil
 	}
 
-	return tikTokData, nil
+	return tikTokData
 }
 
 func getCaption(tikTokData TikTokData) string {

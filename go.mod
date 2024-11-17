@@ -12,7 +12,6 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/bitly/go-simplejson v0.5.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -21,13 +20,10 @@ require (
 	github.com/fatih/color v1.18.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
 	github.com/google/pprof v0.0.0-20241101162523-b92577c0c142 // indirect
-	github.com/klauspost/compress v1.17.11 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
-	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 )
 
 require (
@@ -36,6 +32,5 @@ require (
 	github.com/kkdai/youtube/v2 v2.10.1
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/valyala/fasthttp v1.57.0
 	golang.org/x/net v0.30.0 // indirect
 )
