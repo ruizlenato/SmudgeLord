@@ -2,13 +2,15 @@ package stickers
 
 import (
 	"fmt"
+	"image"
 	"log"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/amarnathcjd/gogram/telegram"
-	"github.com/h2non/bimg"
+	"github.com/anthonynsimon/bild/imgio"
+	"github.com/anthonynsimon/bild/transform"
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
@@ -102,9 +104,11 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 		return err
 	}
 
+	defer os.Remove(stickerFile)
+
 	switch stickerAction {
 	case "resize":
-		stickerFile, err = resizeImage(stickerFile)
+		err = resizeImage(stickerFile)
 		if err != nil {
 			_, err := progressMsg.Edit(i18n("stickers.error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
@@ -133,7 +137,6 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 		}
 	}
 
-	defer os.Remove(stickerFile)
 	stickerSetName, stickerSetTitle := generateStickerSetName(message, stickerType)
 
 	mediaMsg, err := message.Client.SendMedia(config.ChannelLogID, stickerFile, &telegram.MediaOptions{
@@ -279,45 +282,35 @@ func extractStickerInfo(reply *telegram.NewMessage) (stickerAction string, stick
 	return stickerAction, stickerType, emoji
 }
 
-func resizeImage(input string) (imageResized string, err error) {
-	defer os.Remove(input)
-	buffer, err := bimg.Read(input)
+func resizeImage(input string) error {
+	var err error
+
+	fmt.Println(input)
+	file, err := os.Open(input)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		return err
+	}
+	defer file.Close()
+
+	img, _, err := image.Decode(file)
+	if err != nil {
+		return err
 	}
 
-	resizedImg, err := bimg.Resize(buffer, bimg.Options{
-		Width: 512, Height: 512, Quality: 100,
-	})
-	if err != nil {
-		return imageResized, err
+	resizedImg := transform.Resize(img, 512, 512, transform.Lanczos)
+	if err := os.Remove(input); err != nil {
+		return err
 	}
 
-	tempFile, err := os.CreateTemp("", "Smudge*.png")
+	err = imgio.Save(input, resizedImg, imgio.PNGEncoder())
 	if err != nil {
-		return imageResized, err
-	}
-
-	defer tempFile.Close()
-
-	_, err = tempFile.Write(resizedImg)
-	if err != nil {
-		return imageResized, err
-	}
-
-	defer func() {
-		if err != nil {
-			tempFile.Close()
-			os.Remove(tempFile.Name())
+		if err := os.Remove(input); err != nil {
+			return err
 		}
-	}()
-
-	_, err = tempFile.Seek(0, 0)
-	if err != nil {
-		return imageResized, err
+		return err
 	}
 
-	return tempFile.Name(), nil
+	return nil
 }
 
 func convertVideo(inputFile string) (videoConverted string, err error) {

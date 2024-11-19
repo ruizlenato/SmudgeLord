@@ -6,7 +6,7 @@ toolchain go1.23.2
 
 require (
 	github.com/amarnathcjd/gogram v0.0.0-20241030211922-4e5abb2407e9
-	github.com/h2non/bimg v1.1.9
+	github.com/anthonynsimon/bild v0.14.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.7.0
 )
@@ -22,8 +22,9 @@ require (
 	github.com/google/pprof v0.0.0-20241101162523-b92577c0c142 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
+	golang.org/x/image v0.22.0 // indirect
 	golang.org/x/sys v0.26.0 // indirect
-	golang.org/x/text v0.19.0 // indirect
+	golang.org/x/text v0.20.0 // indirect
 )
 
 require (
