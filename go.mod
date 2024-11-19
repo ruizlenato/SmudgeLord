@@ -5,7 +5,7 @@ go 1.23
 toolchain go1.23.2
 
 require (
-	github.com/amarnathcjd/gogram v0.0.0-20241030211922-4e5abb2407e9
+	github.com/amarnathcjd/gogram v1.3.21
 	github.com/anthonynsimon/bild v0.14.0
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.7.0
