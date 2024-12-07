@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|www|mobile)?(?:.)?(?:instagram|twitter|x|tiktok|reddit|bsky).(?:com|net|app)/(?:\S*)`
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|bsky)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
 	maxSizeCaption = 1024
 )
 
@@ -52,6 +52,7 @@ func handlerMedias(message *telegram.NewMessage) error {
 		"instagram.com/":   instagram.Handle,
 		"tiktok.com/":      tiktok.Handle,
 		"(twitter|x).com/": twitter.Handle,
+		"youtube.com/":     yt.Handle,
 	}
 
 	for pattern, handler := range mediaHandlers {
