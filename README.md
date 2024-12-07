@@ -14,7 +14,6 @@ SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His 
 ## Requirements
 - Go 1.22+
 - [FFmpeg](//ffmpeg.org)
-- [libvips](//github.com/libvips/libvips)
 - [Telegram bot token](//t.me/botfather)
 - [Telegram API Credentials](//core.telegram.org/api/obtaining_api_id)
 
