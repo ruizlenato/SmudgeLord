@@ -29,8 +29,8 @@ const (
 
 func handlerMedias(message *telegram.NewMessage) error {
 	var mediaItems []telegram.InputMedia
+	var result []string
 	var caption string
-	var postID string
 
 	if !regexp.MustCompile(`^/dl`).MatchString(message.Text()) && message.ChatType() != telegram.EntityUser {
 		var mediasAuto bool
@@ -54,10 +54,9 @@ func handlerMedias(message *telegram.NewMessage) error {
 
 	for pattern, handler := range mediaHandlers {
 		if match, _ := regexp.MatchString(pattern, message.Text()); match {
-			var result []string
 			mediaItems, result = handler(message)
 			if len(result) == 2 {
-				caption, postID = result[0], result[1]
+				caption = result[0]
 			}
 			break
 		}
@@ -89,7 +88,7 @@ func handlerMedias(message *telegram.NewMessage) error {
 	if err != nil {
 		return err
 	}
-	err = downloader.SetMediaCache(replied, postID)
+	err = downloader.SetMediaCache(replied, result)
 	return err
 }
 
