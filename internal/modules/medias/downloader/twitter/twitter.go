@@ -39,9 +39,15 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 	}
 
 	twitterData, err := getTwitterData(postID)
-	if err != nil {
-		log.Printf("Error getting Twitter data: %v", err)
-		return nil, []string{}
+	if err != nil || twitterData == nil ||
+		(*twitterData).Data.TweetResult == nil || (*twitterData).Data.TweetResult.Legacy == nil ||
+		(*twitterData).Data.TweetResult.Result.Reason != nil && *(*twitterData).Data.TweetResult.Result.Reason == "NsfwLoggedOut" {
+		fxTwitterData := getFxTwitterData(postID)
+		if fxTwitterData == nil {
+			return nil, []string{}
+		}
+		medias, caption := processFxTwitterAPI(fxTwitterData, message)
+		return medias, []string{caption, postID}
 	}
 
 	medias, caption := processMedia(twitterData, message)
@@ -60,12 +66,12 @@ func processMedia(twitterData *TwitterAPIData, message *telegram.NewMessage) ([]
 		err   error
 	}
 
-	mediaCount := len((*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media)
+	mediaCount := len((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)
 	mediaChan := make(chan mediaResult, mediaCount)
 	medias := make([]*InputMedia, mediaCount)
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 
-	for i, media := range (*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media {
+	for i, media := range (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media {
 		go func(index int, twitterMedia Media) {
 			media, err := downloadMedia(twitterMedia)
 			mediaChan <- mediaResult{index, media, err}
@@ -147,7 +153,7 @@ func downloadMedia(twitterMedia Media) (*InputMedia, error) {
 }
 
 func uploadMedia(twitterData *TwitterAPIData, message *telegram.NewMessage, media *InputMedia, index int) (telegram.InputMedia, error) {
-	twitterMedia := (*twitterData).Data.TweetResults.Result.Legacy.ExtendedEntities.Media[index]
+	twitterMedia := (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media[index]
 	if twitterMedia.Type == "photo" {
 		photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: media.File.Name()})
 		if err != nil {
@@ -256,7 +262,7 @@ func getTwitterData(postID string) (*TwitterAPIData, error) {
 	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
-		return nil, errors.New("error getting Twitter data")
+		return nil, errors.New("response body is nil")
 	}
 
 	var twitterAPIData *TwitterAPIData
@@ -265,20 +271,16 @@ func getTwitterData(postID string) (*TwitterAPIData, error) {
 		return nil, err
 	}
 
-	if twitterAPIData == nil || (*twitterAPIData).Data.TweetResults == nil || (*twitterAPIData).Data.TweetResults.Legacy == nil {
-		return nil, errors.New("could not find Twitter data")
-	}
-
 	return twitterAPIData, nil
 }
 
 func getCaption(twitterData *TwitterAPIData) string {
 	var caption string
 
-	if tweet := (*twitterData).Data.TweetResults.Result.Legacy; tweet != nil {
+	if tweet := (*twitterData).Data.TweetResult.Result.Legacy; tweet != nil {
 		caption = (fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n",
-			(*twitterData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.Name,
-			(*twitterData).Data.TweetResults.Result.Core.UserResults.Result.Legacy.ScreenName))
+			(*twitterData).Data.TweetResult.Result.Core.UserResults.Result.Legacy.Name,
+			(*twitterData).Data.TweetResult.Result.Core.UserResults.Result.Legacy.ScreenName))
 
 		if idx := strings.LastIndex(tweet.FullText, " https://t.co/"); idx != -1 {
 			caption += (tweet.FullText[:idx])
@@ -286,4 +288,86 @@ func getCaption(twitterData *TwitterAPIData) string {
 	}
 
 	return caption
+}
+
+func getFxTwitterData(postID string) *FxTwitterAPIData {
+	response, err := utils.Request("https://api.fxtwitter.com/status/"+postID, utils.RequestParams{
+		Method:  "GET",
+		Headers: headers,
+	})
+	defer response.Body.Close()
+
+	if err != nil || response.Body == nil {
+		return nil
+	}
+
+	var fxTwitterAPIData *FxTwitterAPIData
+	err = json.NewDecoder(response.Body).Decode(&fxTwitterAPIData)
+	if err != nil {
+		return nil
+	}
+
+	if fxTwitterAPIData == nil || fxTwitterAPIData.Code != 200 {
+		return nil
+	}
+
+	return fxTwitterAPIData
+}
+
+func processFxTwitterAPI(twitterData *FxTwitterAPIData, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+	type mediaResult struct {
+		index int
+		media *InputMedia
+		err   error
+	}
+
+	mediaCount := len(twitterData.Tweet.Media.All)
+	mediaItems := make([]telegram.InputMedia, mediaCount)
+	results := make(chan mediaResult, mediaCount)
+
+	for i, media := range twitterData.Tweet.Media.All {
+		go func(index int, twitterMedia FxTwitterMedia) {
+			var media InputMedia
+			var err error
+			media.File, err = downloader.Downloader(twitterMedia.URL)
+			if err == nil && twitterMedia.Type == "video" {
+				media.Thumbnail, _ = downloader.Downloader(twitterMedia.ThumbnailURL)
+			}
+			results <- mediaResult{index: index, media: &media, err: err}
+		}(i, media)
+	}
+
+	for i := 0; i < mediaCount; i++ {
+		result := <-results
+		if result.err != nil {
+			log.Print(result.err)
+			continue
+		}
+		if result.media.File != nil {
+			var mediaItem telegram.InputMedia
+			if twitterData.Tweet.Media.All[result.index].Type != "video" {
+				uploadedPhoto, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.media.File.Name()})
+				mediaItem = &uploadedPhoto
+			} else {
+				uploadedVideo, _ := helpers.UploadDocument(message, helpers.UploadDocumentParams{
+					File:  result.media.File.Name(),
+					Thumb: result.media.Thumbnail.Name(),
+					Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
+						SupportsStreaming: true,
+						W:                 int32(twitterData.Tweet.Media.All[result.index].Width),
+						H:                 int32(twitterData.Tweet.Media.All[result.index].Height),
+					}},
+				})
+				mediaItem = &uploadedVideo
+			}
+			mediaItems[result.index] = mediaItem
+		}
+	}
+
+	caption := fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n%s",
+		twitterData.Tweet.Author.Name,
+		twitterData.Tweet.Author.ScreenName,
+		twitterData.Tweet.Text)
+
+	return mediaItems, caption
 }

@@ -2,14 +2,15 @@ package twitter
 
 type TwitterAPIData *struct {
 	Data struct {
-		TweetResults *struct {
+		TweetResult *struct {
 			Result `json:"result"`
 		} `json:"tweetResult"`
 	} `json:"data"`
 }
 
 type Result struct {
-	Typename string `json:"__typename"`
+	Typename string  `json:"__typename"`
+	Reason   *string `json:"reason"`
 	Tweet    struct {
 		Legacy Legacy `json:"legacy"`
 	} `json:"tweet"`
@@ -64,4 +65,30 @@ type Size struct {
 	H      int    `json:"h"`
 	W      int    `json:"w"`
 	Resize string `json:"resize"`
+}
+
+type FxTwitterAPIData struct {
+	Code  int            `json:"code"`
+	Tweet FxTwitterTweet `json:"tweet"`
+}
+
+type FxTwitterTweet struct {
+	Text   string          `json:"text"`
+	Author FxTwitterAuthor `json:"author"`
+	Media  struct {
+		All []FxTwitterMedia `json:"all"`
+	} `json:"media"`
+}
+
+type FxTwitterAuthor struct {
+	Name       string `json:"name"`
+	ScreenName string `json:"screen_name"`
+}
+
+type FxTwitterMedia struct {
+	URL          string `json:"url"`
+	ThumbnailURL string `json:"thumbnail_url"`
+	Width        int    `json:"width"`
+	Height       int    `json:"height"`
+	Type         string `json:"type"`
 }
