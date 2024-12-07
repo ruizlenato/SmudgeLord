@@ -1,18 +1,22 @@
 package downloader
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"time"
 	"unicode/utf8"
 
 	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/grafov/m3u8"
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -29,13 +33,31 @@ var mimeExtensions = map[string]string{
 }
 
 func Downloader(media string) (*os.File, error) {
-	response, err := utils.Request(media, utils.RequestParams{
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   1 * time.Second,
+		MaxDelay:     5 * time.Second,
+	}
+
+	response, err := retryCaller.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
 	if err != nil || response == nil {
 		return nil, errors.New("get error")
 	}
 	defer response.Body.Close()
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
+		response.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+		return downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
+	}
 
 	extension := func(contentType string) string {
 		extension, ok := mimeExtensions[contentType]
@@ -67,7 +89,7 @@ func Downloader(media string) (*os.File, error) {
 		}
 	}()
 
-	if _, err = io.Copy(file, response.Body); err != nil {
+	if _, err = file.Write(bodyBytes); err != nil {
 		return nil, err
 	}
 
@@ -156,6 +178,140 @@ func GetMediaCache(postID string) ([]telegram.InputMedia, string, error) {
 	return inputMedias, medias.Caption, nil
 }
 
+func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
+	playlist, _, err := m3u8.DecodeFrom(body, true)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to decode m3u8 playlist: %s", err)
+	}
+
+	mediaPlaylist := playlist.(*m3u8.MediaPlaylist)
+	segmentCount := 0
+	for _, segment := range mediaPlaylist.Segments {
+		if segment != nil {
+			segmentCount++
+		}
+	}
+
+	type segmentResult struct {
+		index    int
+		fileName string
+		err      error
+	}
+
+	results := make(chan segmentResult, segmentCount)
+	segmentFiles := make([]string, segmentCount)
+
+	for i, segment := range mediaPlaylist.Segments {
+		if segment == nil {
+			continue
+		}
+
+		go func(index int, segment *m3u8.MediaSegment) {
+			urlSegment := fmt.Sprintf("%s://%s%s/%s",
+				url.Scheme,
+				url.Host,
+				path.Dir(url.Path),
+				segment.URI)
+
+			fileName, err := downloadSegment(urlSegment)
+			results <- segmentResult{
+				index:    index,
+				fileName: fileName,
+				err:      err,
+			}
+		}(i, segment)
+	}
+
+	var downloadErrors []error
+	for i := 0; i < segmentCount; i++ {
+		result := <-results
+		if result.err != nil {
+			log.Printf("Error downloading segment %d: %s", result.index, result.err)
+			downloadErrors = append(downloadErrors, result.err)
+			continue
+		}
+		segmentFiles[result.index] = result.fileName
+	}
+
+	if len(downloadErrors) > segmentCount/2 {
+		return nil, fmt.Errorf("Too many segments failed to download: %d errors", len(downloadErrors))
+	}
+
+	cleanSegmentFiles := make([]string, 0, len(segmentFiles))
+	for _, fileName := range segmentFiles {
+		if fileName != "" {
+			cleanSegmentFiles = append(cleanSegmentFiles, fileName)
+		}
+	}
+
+	return mergeSegments(cleanSegmentFiles)
+}
+
+func downloadSegment(url string) (string, error) {
+	response, err := utils.Request(url, utils.RequestParams{
+		Method:    "GET",
+		Redirects: 5,
+	})
+	defer response.Body.Close()
+
+	if err != nil {
+		return "", err
+	}
+
+	tmpFile, err := os.CreateTemp("", "SmudgeSegment-*.ts")
+	if err != nil {
+		return "", err
+	}
+	defer tmpFile.Close()
+
+	if _, err := io.Copy(tmpFile, response.Body); err != nil {
+		return "", err
+	}
+
+	return tmpFile.Name(), nil
+}
+
+func mergeSegments(segmentFiles []string) (*os.File, error) {
+	listFile, err := os.CreateTemp("", "SmudgeSegment*.txt")
+	if err != nil {
+		return nil, err
+	}
+	defer listFile.Close()
+	defer os.Remove(listFile.Name())
+
+	file, err := os.CreateTemp("", "Smudge*.mp4")
+	if err != nil {
+		return nil, err
+	}
+
+	defer func() {
+		for _, segmentFile := range segmentFiles {
+			os.Remove(segmentFile)
+		}
+	}()
+
+	for _, segmentFile := range segmentFiles {
+		if _, err := listFile.WriteString(fmt.Sprintf("file '%s'\n", segmentFile)); err != nil {
+			return nil, err
+		}
+	}
+
+	cmd := exec.Command("ffmpeg", "-y",
+		"-f", "concat",
+		"-safe", "0",
+		"-i", listFile.Name(),
+		"-c", "copy",
+		file.Name())
+	err = cmd.Run()
+	if err != nil {
+		file.Close()
+		os.Remove(file.Name())
+		return nil, err
+	}
+
+	return file, nil
+}
+
 func TruncateUTF8Caption(s, url string) string {
 	if utf8.RuneCountInString(s) <= 1017 {
 		return s + fmt.Sprintf("\n<a href='%s'>🔗 Link</a>", url)
@@ -199,7 +355,7 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 		"-loglevel", "warning",
 		"-i", videoFile.Name(),
 		"-i", audioFile.Name(),
-		"-c", "copy", // Just copy
+		"-c", "copy",
 		"-shortest",
 		outputFile.Name(),
 	)

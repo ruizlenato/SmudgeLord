@@ -30,6 +30,7 @@ require (
 require (
 	github.com/gabriel-vasile/mimetype v1.4.6
 	github.com/goccy/go-yaml v1.13.3
+	github.com/grafov/m3u8 v0.12.0
 	github.com/kkdai/youtube/v2 v2.10.1
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/pkg/errors v0.9.1 // indirect
