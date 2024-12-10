@@ -13,14 +13,15 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/database"
 
-	"github.com/goccy/go-yaml"
+	"github.com/lus/fluent.go/fluent"
+	"golang.org/x/text/language"
 )
 
 const defaultLanguage = "en-us"
 
 var (
-	LangCache             = make(map[string]map[string]interface{})
-	langCacheMutex        sync.RWMutex
+	LangBundles           = make(map[string]*fluent.Bundle)
+	langBundlesMutex      sync.RWMutex
 	availableLocalesMutex sync.Mutex
 )
 
@@ -31,43 +32,49 @@ func LoadLanguages() error {
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return err
+			return fmt.Errorf("error walking through directory: %w", err)
 		}
 
-		if !info.IsDir() && filepath.Ext(path) == ".yaml" {
+		if !info.IsDir() && filepath.Ext(path) == ".ftl" {
 			wg.Add(1)
-			go func(path string) {
-				defer wg.Done()
-				langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
-
-				data, err := os.ReadFile(path)
-				if err != nil {
-					log.Printf("[localization/LoadLanguages]: Error reading file %s: %v", path, err)
-					return
-				}
-
-				langMap := make(map[string]interface{})
-				err = yaml.Unmarshal(data, &langMap)
-				if err != nil {
-					log.Printf("[localization/LoadLanguages]: Error unmarshalling file %s: %v", path, err)
-					return
-				}
-
-				langCacheMutex.Lock()
-				LangCache[langCode] = langMap
-				langCacheMutex.Unlock()
-
-				availableLocalesMutex.Lock()
-				database.AvailableLocales = append(database.AvailableLocales, langCode)
-				availableLocalesMutex.Unlock()
-			}(path)
+			go processLanguageFile(path, &wg)
 		}
-
 		return nil
 	})
 
 	wg.Wait()
 	return err
+}
+
+func processLanguageFile(path string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
+	data, err := os.ReadFile(path)
+	if err != nil {
+		log.Printf("localization/LoadLanguages — Error reading file %s: %v", path, err)
+		return
+	}
+
+	resource, parseErrors := fluent.NewResource(string(data))
+	if len(parseErrors) > 0 {
+		log.Printf("localization/LoadLanguages — Errors parsing file %s: %v", path, parseErrors)
+		return
+	}
+
+	langBundle := fluent.NewBundle(language.MustParse(langCode))
+	if errs := langBundle.AddResource(resource); len(errs) > 0 {
+		log.Printf("localization/LoadLanguages — Errors adding resource for %s: %v", langCode, errs)
+		return
+	}
+
+	langBundlesMutex.Lock()
+	defer langBundlesMutex.Unlock()
+	LangBundles[langCode] = langBundle
+
+	availableLocalesMutex.Lock()
+	defer availableLocalesMutex.Unlock()
+	database.AvailableLocales = append(database.AvailableLocales, langCode)
 }
 
 func GetChatLanguage(chatID int64, chatType string) (string, error) {
@@ -88,7 +95,7 @@ type TelegramUpdate interface {
 	ChatID() int64
 }
 
-func Get(update interface{}) func(string) string {
+func Get(update interface{}) func(string, ...map[string]interface{}) string {
 	var chatID int64
 	var chatType string
 	switch u := update.(type) {
@@ -105,30 +112,48 @@ func Get(update interface{}) func(string) string {
 			chatType = "user"
 		}
 	}
-	return func(key string) string {
+
+	return func(key string, args ...map[string]interface{}) string {
 		language, err := GetChatLanguage(chatID, chatType)
 		if err != nil {
-			log.Printf("[localization/Get]: Error retrieving language for chat %v: %v", chatID, err)
-			return "KEY_NOT_FOUND"
+			log.Printf("Error retrieving language for chat %v: %v", chatID, err)
+			return fmt.Sprintf("Key '%s' not found.", key)
 		}
 
-		langCacheMutex.RLock()
-		langMap, ok := LangCache[language]
-		langCacheMutex.RUnlock()
+		langBundlesMutex.RLock()
+		bundle, ok := LangBundles[language]
+		langBundlesMutex.RUnlock()
 
 		if !ok {
-			langCacheMutex.RLock()
-			langMap, ok = LangCache[defaultLanguage]
-			langCacheMutex.RUnlock()
+			langBundlesMutex.RLock()
+			bundle, ok = LangBundles[defaultLanguage]
+			langBundlesMutex.RUnlock()
 
 			if !ok {
-				return "KEY_NOT_FOUND"
+				return fmt.Sprintf("Key '%s' not found.", key)
 			}
 		}
 
-		value := GetStringFromNestedMap(langMap, key)
-		return value
+		var variables map[string]interface{}
+		if len(args) > 0 && args[0] != nil {
+			variables = args[0]
+		} else {
+			variables = make(map[string]interface{})
+		}
+
+		context := createFormatContext(variables)
+		message, _, err := bundle.FormatMessage(key, context)
+		if err != nil {
+			log.Printf("Error formatting message with key %s: %v", key, err)
+			return fmt.Sprintf("Key '%s' not found.", key)
+		}
+
+		return message
 	}
+}
+
+func createFormatContext(args map[string]interface{}) *fluent.FormatContext {
+	return fluent.WithVariables(args)
 }
 
 func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
@@ -154,39 +179,37 @@ func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 }
 
 func HumanizeTimeSince(duration time.Duration, message *telegram.NewMessage) string {
-	i18n := Get(message)
-
 	var timeDuration int
 	var stringKey string
 
+	i18n := Get(message)
 	switch {
 	case duration < time.Minute:
 		timeDuration = int(duration.Seconds())
-		stringKey = "relativeDuration%s.s"
+		stringKey = "relative-duration-seconds"
 	case duration < time.Hour:
 		timeDuration = int(duration.Minutes())
-		stringKey = "relativeDuration%s.m"
+		stringKey = "relative-duration-minutes"
 	case duration < 24*time.Hour:
 		timeDuration = int(duration.Hours())
-		stringKey = "relativeDuration%s.h"
+		stringKey = "relative-duration-hours"
 	case duration < 7*24*time.Hour:
 		timeDuration = int(duration.Hours() / 24)
-		stringKey = "relativeDuration%s.d"
+		stringKey = "relative-duration-days"
 	case duration < 30*24*time.Hour:
 		timeDuration = int(duration.Hours() / (24 * 7))
-		stringKey = "relativeDuration%s.w"
+		stringKey = "relative-duration-weeks"
 	default:
 		timeDuration = int(duration.Hours() / (24 * 30))
-		stringKey = "relativeDuration%s.M"
+		stringKey = "relative-duration-months"
 	}
 
-	timeSince := getTranslatedTimeSince(i18n, stringKey, timeDuration)
-	return timeSince
+	return i18n(stringKey, map[string]interface{}{"count": timeDuration})
 }
 
-func getTranslatedTimeSince(i18n func(string) string, stringKey string, timeDuration int) string {
-	singularKey := fmt.Sprintf(stringKey, "singular")
-	pluralKey := fmt.Sprintf(stringKey, "plural")
+func getTranslatedTimeSince(i18n func(string, ...interface{}) string, stringKey string, timeDuration int) string {
+	singularKey := fmt.Sprintf("%s.singular", stringKey)
+	pluralKey := fmt.Sprintf("%s.plural", stringKey)
 
 	timeSince := fmt.Sprintf("%d %s", timeDuration, i18n(singularKey))
 	if timeDuration > 1 {

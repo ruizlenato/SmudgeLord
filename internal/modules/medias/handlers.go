@@ -43,7 +43,7 @@ func handlerMedias(message *telegram.NewMessage) error {
 
 	url := regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text())
 	if len(url) < 1 {
-		_, err := message.Reply(i18n("medias.noURL"))
+		_, err := message.Reply(i18n("no-link-provided"))
 		return err
 	}
 
@@ -108,14 +108,14 @@ func handleYoutubeDownload(message *telegram.NewMessage) error {
 	} else if len(strings.Fields(message.Text())) > 1 {
 		videoURL = strings.Fields(message.Text())[1]
 	} else {
-		_, err := message.Reply(i18n("medias.youtubeNoURL"))
+		_, err := message.Reply(i18n("youtube-no-url"))
 		return err
 	}
 
 	ytClient := youtube.Client{}
 	video, err := ytClient.GetVideo(videoURL)
 	if err != nil {
-		_, err := message.Reply(i18n("medias.youtubeInvalidURL"))
+		_, err := message.Reply(i18n("youtube-invalid-url"))
 		return err
 	}
 
@@ -146,20 +146,23 @@ func handleYoutubeDownload(message *telegram.NewMessage) error {
 		audioStream = video.Formats.WithAudioChannels().Type("audio/mp4")[1]
 	}
 
-	text := fmt.Sprintf(i18n("medias.youtubeVideoInfo"),
-		video.Title, video.Author,
-		float64(audioStream.ContentLength)/(1024*1024),
-		float64(videoStream.ContentLength+audioStream.ContentLength)/(1024*1024),
-		video.Duration.String())
+	text := i18n("youtube-video-info",
+		map[string]interface{}{
+			"title":     video.Title,
+			"author":    video.Author,
+			"audioSize": fmt.Sprintf("%.2f", float64(audioStream.ContentLength)/(1024*1024)),
+			"videoSize": fmt.Sprintf("%.2f", float64(videoStream.ContentLength+audioStream.ContentLength)/(1024*1024)),
+			"duration":  video.Duration.String(),
+		})
 
 	keyboard := telegram.Button{}.Keyboard(
 		telegram.Button{}.Row(
 			telegram.Button{}.Data(
-				i18n("medias.youtubeDownloadAudio"),
+				i18n("youtube-download-audio-button"),
 				fmt.Sprintf("_aud|%s|%d|%d|%d", video.ID, audioStream.ItagNo, audioStream.ContentLength, message.SenderID()),
 			),
 			telegram.Button{}.Data(
-				i18n("medias.youtubeDownloadVideo"),
+				i18n("youtube-download-video-button"),
 				fmt.Sprintf("_vid|%s|%d|%d|%d", video.ID, videoStream.ItagNo, videoStream.ContentLength+audioStream.ContentLength, message.SenderID()),
 			),
 		),
@@ -177,32 +180,34 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 	callbackData := strings.Split(update.DataString(), "|")
 
 	if userID, _ := strconv.Atoi(callbackData[4]); update.SenderID != int64(userID) {
-		_, err := update.Answer(i18n("medias.youtubeDenied"), &telegram.CallbackOptions{
+		_, err := update.Answer(i18n("denied-button-alert"), &telegram.CallbackOptions{
 			Alert: true,
 		})
 		return err
 	}
 
 	if size, _ := strconv.ParseInt(callbackData[3], 10, 64); size > int64(1572864000) {
-		_, err := update.Answer(i18n("medias.youtubeBigFile"), &telegram.CallbackOptions{
+		_, err := update.Answer(i18n("video-exceeds-limit", map[string]interface{}{
+			"size": int64(1572864000),
+		}), &telegram.CallbackOptions{
 			Alert: true,
 		})
 		return err
 	}
 
-	_, err := update.Edit(i18n("medias.downloading"))
+	_, err := update.Edit(i18n("downloading"))
 	if err != nil {
 		return err
 	}
 
 	outputFile, video, err := yt.Downloader(callbackData)
 	if err != nil {
-		_, err := update.Edit(i18n("medias.youtubeError"))
+		_, err := update.Edit(i18n("youtube-error"))
 		return err
 	}
 	itag, _ := strconv.Atoi(callbackData[2])
 
-	_, err = update.Edit(i18n("medias.uploading"))
+	_, err = update.Edit(i18n("uploading"))
 	if err != nil {
 		return err
 	}
@@ -221,13 +226,13 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 
 	_, err = outputFile.Seek(0, 0)
 	if err != nil {
-		_, err := update.Edit(i18n("medias.youtubeError"))
+		_, err := update.Edit(i18n("youtube-error"))
 		return err
 	}
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
 	thumbnail, err := downloader.Downloader(thumbURL)
 	if err != nil {
-		_, err := update.Edit(i18n("medias.youtubeError"))
+		_, err := update.Edit(i18n("youtube-error"))
 		return err
 	}
 
@@ -251,7 +256,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 			Thumb:   thumbnail.Name(),
 		})
 		if err != nil {
-			_, err := update.Edit(i18n("medias.youtubeError"))
+			_, err := update.Edit(i18n("youtube-error"))
 			return err
 		}
 	case "_vid":
@@ -265,7 +270,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 			Thumb:   thumbnail.Name(),
 		})
 		if err != nil {
-			_, err := update.Edit(i18n("medias.youtubeError"))
+			_, err := update.Edit(i18n("youtube-error"))
 			return err
 		}
 	}

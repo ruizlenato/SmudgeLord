@@ -11,12 +11,12 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func getErrorMessage(err error, i18n func(string) string) string {
+func getErrorMessage(err error, i18n func(string, ...map[string]interface{}) string) string {
 	switch {
 	case strings.Contains(err.Error(), "no recent tracks"):
-		return i18n("lastfm.noScrobbles")
+		return i18n("no-scrobbled-yet")
 	case strings.Contains(err.Error(), "lastFM error"):
-		return i18n("lastfm.error")
+		return i18n("lastfm-error")
 	default:
 		return ""
 	}
@@ -28,20 +28,20 @@ func handleSetUser(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() != "" {
 		if err := lastFM.GetUser(message.Args()); err != nil {
-			_, err := message.Reply(i18n("lastfm.invalidUsername"), telegram.SendOptions{
+			_, err := message.Reply(i18n("invalid-lastfm-username"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
 		}
 
 		if err := setLastFMUsername(message.SenderID(), message.Args()); err != nil {
-			_, err := message.Reply(i18n("lastfm.error"), telegram.SendOptions{
+			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
 		}
 
-		_, err := message.Reply(i18n("lastfm.username-set"), telegram.SendOptions{
+		_, err := message.Reply(i18n("lastfm-username-saved"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -53,7 +53,7 @@ func handleSetUser(message *telegram.NewMessage) error {
 	}
 	defer conv.Close()
 
-	respond, err := conv.Respond(i18n("lastfm.provide-username"), &telegram.SendOptions{
+	respond, err := conv.Respond(i18n("no-lastfm-username-provided"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: &telegram.ReplyKeyboardForceReply{},
 	})
@@ -68,20 +68,20 @@ func handleSetUser(message *telegram.NewMessage) error {
 
 	if respond.ID == resp.ReplyToMsgID() {
 		if err := lastFM.GetUser(resp.Text()); err != nil {
-			_, err := conv.Reply(i18n("lastfm.invalidUsername"), &telegram.SendOptions{
+			_, err := conv.Reply(i18n("invalid-lastfm-username"), &telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
 		}
 
 		if err := setLastFMUsername(message.SenderID(), resp.Text()); err != nil {
-			_, err := message.Reply(i18n("lastfm.error"), telegram.SendOptions{
+			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
 		}
 
-		_, err = conv.Respond(i18n("lastfm.username-set"), &telegram.SendOptions{
+		_, err = conv.Respond(i18n("lastfm-username-saved"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -116,7 +116,7 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 	i18n := localization.Get(message)
 	lastFMUsername, err := getUserLastFMUsername(message.SenderID())
 	if err != nil {
-		_, err := message.Reply(i18n("lastfm.error"), telegram.SendOptions{ParseMode: telegram.HTML})
+		_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{ParseMode: telegram.HTML})
 		return err
 	}
 
@@ -127,11 +127,12 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 	}
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
-	if recentTracks.Nowplaying {
-		text += fmt.Sprintf(i18n("lastfm.nowPlaying"), lastFMUsername, message.Sender.FirstName, recentTracks.Playcount)
-	} else {
-		text += fmt.Sprintf(i18n("lastfm.wasPlaying"), lastFMUsername, message.Sender.FirstName, recentTracks.Playcount)
-	}
+	text += i18n("lastfm-playing", map[string]interface{}{
+		"nowplaying":     fmt.Sprintf("%v", recentTracks.Nowplaying),
+		"lastFMUsername": lastFMUsername,
+		"firstName":      message.Sender.FirstName,
+		"playcount":      recentTracks.Playcount,
+	})
 
 	switch methodType {
 	case "track":

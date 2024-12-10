@@ -18,7 +18,7 @@ func SotreHelp(name string) {
 	}
 }
 
-func GetHelpKeyboard(i18n func(string) string) telegram.ReplyMarkup {
+func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
 	moduleNames := make([]string, 0, len(helpModule))
 	for name := range helpModule {
 		moduleNames = append(moduleNames, name)
@@ -34,14 +34,14 @@ func GetHelpKeyboard(i18n func(string) string) telegram.ReplyMarkup {
 			keyboard = append(keyboard, telegram.Button{}.Row(row...))
 			row = nil
 		}
-		row = append(row, telegram.Button{}.Data(i18n(name+".name"), "helpMessage "+name))
+		row = append(row, telegram.Button{}.Data(i18n(name), "helpMessage "+name))
 	}
 
 	if len(row) > 0 {
 		keyboard = append(keyboard, telegram.Button{}.Row(row...))
 	}
 
-	backButton := telegram.Button{}.Data(i18n("button.back"), "start")
+	backButton := telegram.Button{}.Data(i18n("back-button"), "start")
 	keyboard = append(keyboard, telegram.Button{}.Row(backButton))
 
 	return telegram.Button{}.Keyboard(keyboard...)

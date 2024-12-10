@@ -77,7 +77,7 @@ func getCaption(instagramData *ShortcodeMedia) string {
 		var sb strings.Builder
 
 		if username := instagramData.Owner.Username; username != "" {
-			sb.WriteString(fmt.Sprintf("<b>%v</b>", username))
+			sb.WriteString(fmt.Sprintf("<a href='instagram.com/%v'><b>%v</b></a>", username, username))
 		}
 
 		if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
@@ -88,12 +88,13 @@ func getCaption(instagramData *ShortcodeMedia) string {
 				if i > 0 {
 					sb.WriteString(" <b>&</b> ")
 				}
-				sb.WriteString(fmt.Sprintf("<b>%v</b>", coauthor.Username))
+
+				sb.WriteString(fmt.Sprintf("<a href='instagram.com/%v'><b>%v</b></a>", coauthor.Username, coauthor.Username))
 			}
 		}
 
 		if sb.Len() > 0 {
-			sb.WriteString("<b>:</b>\n")
+			sb.WriteString("\n")
 		}
 		sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
 

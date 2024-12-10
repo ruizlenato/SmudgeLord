@@ -25,12 +25,15 @@ func handlerDisable(message *telegram.NewMessage) error {
 
 	command := strings.Split(message.Args(), " ")[0]
 	if !contains(handlers.DisableableCommands, command) {
-		_, err := message.Reply(i18n("config.cmdCantDisable"))
+		_, err := message.Reply(i18n("enable-commands-usage"))
 		return err
 	}
 
 	if handlers.CheckDisabledCommand(command) {
-		_, err := message.Reply(fmt.Sprintf(i18n("config.cmdAlreadyDisabled"), command))
+		_, err := message.Reply(i18n("command-already-disabled",
+			map[string]interface{}{
+				"command": command,
+			}))
 		return err
 	}
 
@@ -40,8 +43,10 @@ func handlerDisable(message *telegram.NewMessage) error {
 		fmt.Printf("Error inserting command: %v\n", err)
 		return err
 	}
-	_, err = message.Reply(fmt.Sprintf(i18n("config.cmdDisabled"), command))
-
+	_, err = message.Reply(i18n("command-disabled",
+		map[string]interface{}{
+			"command": command,
+		}))
 	return err
 }
 
@@ -63,7 +68,10 @@ func handlerEnable(message *telegram.NewMessage) error {
 	}
 
 	if !handlers.CheckDisabledCommand(command) {
-		_, err := message.Reply(fmt.Sprintf(i18n("config.cmdAlreadyEnabled"), command))
+		_, err := message.Reply(i18n("command-already-enabled",
+			map[string]interface{}{
+				"command": command,
+			}))
 		return err
 	}
 
@@ -73,33 +81,36 @@ func handlerEnable(message *telegram.NewMessage) error {
 		fmt.Printf("Error deleting command: %v\n", err)
 		return err
 	}
-	_, err = message.Reply(fmt.Sprintf(i18n("config.cmdEnabled"), command))
+	_, err = message.Reply(i18n("command-enabled",
+		map[string]interface{}{
+			"command": command,
+		}))
 
 	return err
 }
 
 func handlerDisableableCommands(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
-	text := i18n("config.cmdDisableables")
+	text := i18n("disableables-commands")
 	for _, command := range handlers.DisableableCommands {
-		text += "\n- " + command
+		text += "\n- " + "<code>" + command + "</code>"
 	}
 	_, err := message.Reply(text)
 
 	return err
 }
 
-func createConfigKeyboard(i18n func(string) string) telegram.ReplyMarkup {
+func createConfigKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
 	return telegram.Button{}.Keyboard(
 		telegram.Button{}.Row(
 			telegram.Button{}.Data(
-				i18n("medias.name"),
+				i18n("medias"),
 				"mediaConfig",
 			),
 		),
 		telegram.Button{}.Row(
 			telegram.Button{}.Data(
-				i18n("language.flag")+i18n("button.language"),
+				i18n("language-flag")+i18n("language-button"),
 				"languageMenu",
 			),
 		),
@@ -110,7 +121,7 @@ func handlerConfig(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	keyboard := createConfigKeyboard(i18n)
 
-	_, err := message.Reply(i18n("config.menuText"), telegram.SendOptions{
+	_, err := message.Reply(i18n("config-message"), telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: keyboard,
 	})
@@ -121,7 +132,7 @@ func handlerConfig(message *telegram.NewMessage) error {
 func callbackConfig(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	keyboard := createConfigKeyboard(i18n)
-	_, err := update.Edit(i18n("config.menuText"), &telegram.SendOptions{
+	_, err := update.Edit(i18n("config-message"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: keyboard,
 	})
@@ -133,14 +144,15 @@ func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 
 	buttons := telegram.Button{}.Keyboard()
 	for _, lang := range database.AvailableLocales {
-		loaded, ok := localization.LangCache[lang]
+		loaded, ok := localization.LangBundles[lang]
 		if !ok {
 			log.Fatalf("Language '%s' not found in the cache.", lang)
 		}
+		languageFlag, _, _ := loaded.FormatMessage("language-flag")
+		languageName, _, _ := loaded.FormatMessage("language-name")
 
 		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
-			localization.GetStringFromNestedMap(loaded, "language.flag")+
-				localization.GetStringFromNestedMap(loaded, "language.name"),
+			languageFlag+languageName,
 			"setLang "+lang,
 		)))
 	}
@@ -155,7 +167,7 @@ func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 		log.Print("[start/languageMenu] Error querying user: ", err)
 	}
 
-	_, err = update.Edit(fmt.Sprintf(i18n("menu.languageMsg"), i18n("language.flag"), i18n("language.name")), &telegram.SendOptions{
+	_, err = update.Edit(i18n("language-menu"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: buttons,
 	})
@@ -179,17 +191,17 @@ func callbackLanguageSet(update *telegram.CallbackQuery) error {
 
 	if update.ChatType() == "user" {
 		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
-			i18n("button.back"),
+			i18n("back-button"),
 			"start",
 		)))
 	} else {
 		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
-			i18n("button.back"),
+			i18n("back-button"),
 			"config",
 		)))
 	}
 
-	_, err = update.Edit(i18n("menu.languageChangedSuccessfully"), &telegram.SendOptions{
+	_, err = update.Edit(i18n("language-changed"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: buttons,
 	})
@@ -239,7 +251,7 @@ func callbackMediaConfig(update *telegram.CallbackQuery) error {
 	keyboard := telegram.Button{}.Keyboard(
 		telegram.Button{}.Row(
 			telegram.Button{}.Data(
-				i18n("button.caption"),
+				i18n("caption-button"),
 				"ieConfig mediasCaption",
 			),
 			telegram.Button{}.Data(
@@ -249,7 +261,7 @@ func callbackMediaConfig(update *telegram.CallbackQuery) error {
 		),
 		telegram.Button{}.Row(
 			telegram.Button{}.Data(
-				i18n("button.automatic"),
+				i18n("automatic-button"),
 				"ieConfig mediasAuto",
 			),
 			telegram.Button{}.Data(
@@ -260,11 +272,11 @@ func callbackMediaConfig(update *telegram.CallbackQuery) error {
 	)
 
 	keyboard.Rows = append(keyboard.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
-		i18n("button.back"),
+		i18n("back-button"),
 		"configMenu",
 	)))
 
-	_, err = update.Edit(i18n("medias.config"), &telegram.SendOptions{
+	_, err = update.Edit(i18n("config-medias"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: keyboard,
 	})

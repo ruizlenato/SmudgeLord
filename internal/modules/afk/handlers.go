@@ -2,7 +2,6 @@ package afk
 
 import (
 	"database/sql"
-	"fmt"
 	"regexp"
 	"strings"
 	"time"
@@ -48,7 +47,12 @@ func checkAFK(message *telegram.NewMessage) error {
 			return err
 		}
 
-		_, err := message.Reply(fmt.Sprintf(i18n("afk.nowAvailable"), message.Sender.ID, message.Sender.FirstName, humanizedDuration),
+		_, err := message.Reply(i18n("user-now-available",
+			map[string]interface{}{
+				"userID":   message.Sender.ID,
+				"userName": message.Sender.FirstName,
+				"duration": humanizedDuration,
+			}),
 			telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
@@ -59,9 +63,17 @@ func checkAFK(message *telegram.NewMessage) error {
 			return err
 		}
 
-		text := fmt.Sprintf(i18n("afk.unavailable"), userID, user.FirstName, humanizedDuration)
+		text := i18n("user-unavailable",
+			map[string]interface{}{
+				"userID":        userID,
+				"userFirstName": user.FirstName,
+				"duration":      humanizedDuration,
+			})
 		if reason != "" {
-			text += fmt.Sprintf(i18n("afk.reason"), reason)
+			text += "\n" + i18n("user-unavailable-reason",
+				map[string]interface{}{
+					"reason": reason,
+				})
 		}
 
 		_, err = message.Reply(text, telegram.SendOptions{
@@ -78,7 +90,10 @@ func handlerSetAFK(message *telegram.NewMessage) error {
 	}
 
 	i18n := localization.Get(message)
-	_, err = message.Reply(fmt.Sprintf(i18n("afk.nowUnavailable"), message.Sender.FirstName),
+	_, err = message.Reply(i18n("user-now-unavailable",
+		map[string]interface{}{
+			"userFirstName": message.Sender.FirstName,
+		}),
 		telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})

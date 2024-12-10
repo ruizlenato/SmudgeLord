@@ -34,7 +34,7 @@ func handlerTranslate(message *telegram.NewMessage) error {
 	} else if message.Args() != "" {
 		text = message.Args()
 	} else {
-		_, err := message.Reply(i18n("misc.translatorNoArgs"), telegram.SendOptions{
+		_, err := message.Reply(i18n("translator-no-args-provided"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -51,7 +51,7 @@ func handlerTranslate(message *telegram.NewMessage) error {
 	}
 	unescapedText, err := url.QueryUnescape(strings.Join(translations, ""))
 	if err != nil {
-		_, err := message.Reply(i18n("misc.translatorError"), telegram.SendOptions{
+		_, err := message.Reply(i18n("translator-error"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -74,7 +74,7 @@ type weatherSearch struct {
 func handlerWeather(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() == "" {
-		_, err := message.Reply(i18n("weather.noLocation"), telegram.SendOptions{
+		_, err := message.Reply(i18n("weather-no-location-provided"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -117,7 +117,7 @@ func handlerWeather(message *telegram.NewMessage) error {
 		)))
 	}
 
-	_, err = message.Reply(i18n("weather.selectLocation"), telegram.SendOptions{
+	_, err = message.Reply(i18n("weather-select-location"), telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: buttons,
 	})
@@ -172,7 +172,7 @@ func callbackWeather(update *telegram.CallbackQuery) error {
 			"apiKey":   weatherAPIKey,
 			"geocode":  fmt.Sprintf("%.3f,%.3f", latitude, longitude),
 			"language": strings.Split(chatLang, "-")[0],
-			"units":    i18n("weather.measurementUnit"),
+			"units":    i18n("measurement-unit"),
 			"format":   "json",
 		},
 	})
@@ -204,14 +204,13 @@ func callbackWeather(update *telegram.CallbackQuery) error {
 
 	localName := strings.Join(localNameParts, ", ")
 
-	_, err = update.Edit(fmt.Sprintf(i18n("weather.details"),
-		localName,
-		weatherResultData.V3WxObservationsCurrent.Temperature,
-		weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
-		weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
-		weatherResultData.V3WxObservationsCurrent.WindSpeed), &telegram.SendOptions{
-		ParseMode: telegram.HTML,
-	})
+	_, err = update.Edit(i18n("weather-details", map[string]interface{}{
+		"localname":            localName,
+		"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
+		"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
+		"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
+		"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
+	}))
 	return err
 }
 

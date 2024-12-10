@@ -23,7 +23,7 @@ var emojiRegex = regexp.MustCompile(`[\x{1F600}-\x{1F64F}]|[\x{2694}-\x{2697}]|[
 func handlerGetSticker(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if !message.IsReply() {
-		_, err := message.Reply(i18n("stickers.getNotReply"))
+		_, err := message.Reply(i18n("get-sticker-no-reply-provided"))
 		return err
 	}
 
@@ -34,7 +34,7 @@ func handlerGetSticker(message *telegram.NewMessage) error {
 
 	stickerType, emoji := extractStickerInfo(reply)
 	if reply.Sticker() == nil || stickerType == "animated" {
-		_, err := message.Reply(i18n("stickers.getNotReply"))
+		_, err := message.Reply(i18n("get-sticker-no-reply-provided"))
 		return err
 	}
 
@@ -59,13 +59,13 @@ func handlerGetSticker(message *telegram.NewMessage) error {
 func handlerKangSticker(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if !message.IsReply() {
-		_, err := message.Reply(i18n("stickers.kangNotReply"), telegram.SendOptions{
+		_, err := message.Reply(i18n("kang-no-reply-provided"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
 	}
 
-	progressMessage, err := message.Reply(i18n("stickers.kanging"), telegram.SendOptions{
+	progressMessage, err := message.Reply(i18n("stealing-sticker"), telegram.SendOptions{
 		ParseMode: telegram.HTML,
 	})
 	if err != nil {
@@ -116,7 +116,10 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 	case stickerType == "animated":
 		file, err = os.CreateTemp("", "*"+".tgs")
 	default:
-		return nil
+		_, err = progressMessage.Edit(i18n("sticker-invalid-media-type"), telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
+		return err
 	}
 	if err != nil {
 		return err
@@ -138,7 +141,7 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 	case "resize":
 		err = resizeImage(stickerFile)
 		if err != nil {
-			_, err := progressMessage.Edit(i18n("stickers.error"), telegram.SendOptions{
+			_, err := progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			if err != nil {
@@ -155,7 +158,7 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 		ForceDocument: true,
 	})
 	if err != nil {
-		progressMessage, err = progressMessage.Edit(i18n("stickers.error"), telegram.SendOptions{
+		progressMessage, err = progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -166,7 +169,7 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 		}
 	}()
 
-	progressMessage, err = progressMessage.Edit(i18n("stickers.packExists"), telegram.SendOptions{
+	progressMessage, err = progressMessage.Edit(i18n("sticker-pack-already-exists"), telegram.SendOptions{
 		ParseMode: telegram.HTML,
 	})
 	if err != nil {
@@ -178,7 +181,7 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 		Emoji:    stickerEmoji,
 	})
 	if err != nil {
-		progressMessage, err = progressMessage.Edit(i18n("stickers.newPack"), telegram.SendOptions{
+		progressMessage, err = progressMessage.Edit(i18n("sticker-new-pack"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		if err != nil {
@@ -194,14 +197,18 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 			}},
 		})
 		if err != nil {
-			progressMessage, err = progressMessage.Edit(i18n("stickers.error"), telegram.SendOptions{
+			progressMessage, err = progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
 		}
 	}
 
-	progressMessage, err = progressMessage.Edit(fmt.Sprintf(i18n("stickers.stickerStoled"), stickerSetShortName, stickerEmoji), telegram.SendOptions{
+	progressMessage, err = progressMessage.Edit(i18n("sticker-stoled",
+		map[string]interface{}{
+			"stickerSetName": stickerSetShortName,
+			"emoji":          stickerEmoji,
+		}), telegram.SendOptions{
 		ParseMode: telegram.HTML,
 	})
 	return err
