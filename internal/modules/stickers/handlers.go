@@ -2,7 +2,6 @@ package stickers
 
 import (
 	"fmt"
-	"image"
 	"log"
 	"os"
 	"os/exec"
@@ -150,7 +149,22 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 			return err
 		}
 	case "convert":
-		fmt.Println("Converting video")
+		progressMessage, err = progressMessage.Edit(i18n("converting-video-to-sticker"), telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
+		if err != nil {
+			return err
+		}
+		err = convertVideo(stickerFile)
+		if err != nil {
+			_, err := progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
+				ParseMode: telegram.HTML,
+			})
+			if err != nil {
+				return err
+			}
+			return err
+		}
 	}
 
 	stickerSetShortName, stickerSetTitle := generateStickerSetName(message)
@@ -214,22 +228,18 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 	return err
 }
 
-func generateStickerSetName(message *telegram.NewMessage) (stickerSetShortName, stickerSetTitle string) {
+func generateStickerSetName(message *telegram.NewMessage) (string, string) {
 	shortNamePrefix := "a_"
-	shortNameSuffix := fmt.Sprintf("%d_by_%s", message.SenderID(), (message.Client.Me()).Username)
-
-	var nameTitle string
-	if senderUsername := message.Sender.Username; senderUsername != "" {
-		nameTitle = "@" + senderUsername
-	} else {
-		nameTitle = message.Sender.FirstName
-		if len(nameTitle) > 35 {
-			nameTitle = nameTitle[:35]
-		}
+	shortNameSuffix := fmt.Sprintf("%d_by_%s", message.SenderID(), message.Client.Me().Username)
+	nameTitle := message.Sender.FirstName
+	if username := message.Sender.Username; username != "" {
+		nameTitle = "@" + username
 	}
-
-	stickerSetTitle = fmt.Sprintf("%s's SmudgeLord", nameTitle)
-	stickerSetShortName = shortNamePrefix + shortNameSuffix
+	if len(nameTitle) > 35 {
+		nameTitle = nameTitle[:35]
+	}
+	stickerSetTitle := fmt.Sprintf("%s's SmudgeLord", nameTitle)
+	stickerSetShortName := shortNamePrefix + shortNameSuffix
 
 	for i := 0; checkStickerSetCount(message, stickerSetShortName); i++ {
 		stickerSetShortName = fmt.Sprintf("%s%d_%s", shortNamePrefix, i, shortNameSuffix)
@@ -274,64 +284,39 @@ func extractStickerInfo(reply *telegram.NewMessage) (stickerType string, emoji s
 }
 
 func resizeImage(input string) error {
-	var err error
-
-	file, err := os.Open(input)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	img, _, err := image.Decode(file)
+	img, err := imgio.Open(input)
 	if err != nil {
 		return err
 	}
 
 	resizedImg := transform.Resize(img, 512, 512, transform.Lanczos)
-	if err := os.Remove(input); err != nil {
-		return err
-	}
-
-	err = imgio.Save(input, resizedImg, imgio.PNGEncoder())
-	if err != nil {
-		if err := os.Remove(input); err != nil {
-			return err
-		}
-		return err
-	}
-
-	return nil
+	return imgio.Save(input, resizedImg, imgio.PNGEncoder())
 }
 
-func convertVideo(inputFile string) (videoConverted string, err error) {
-	defer func() {
-		if err := os.Remove(inputFile); err != nil {
-			log.Print(err)
-		}
-	}()
+func convertVideo(inputFile string) (err error) {
 	outputFile, err := os.CreateTemp("", "Smudge*.webm")
 	if err != nil {
-		return videoConverted, err
+		return err
 	}
+	defer os.Remove(outputFile.Name())
 
-	cmd := exec.Command("ffmpeg",
-		"-loglevel", "quiet", "-i", inputFile,
-		"-t", "00:00:03", "-vf", "fps=30",
-		"-c:v", "vp9", "-b:v", "500k",
-		"-preset", "ultrafast", "-s", "512x512",
-		"-y", "-f", "webm",
-		outputFile.Name())
-
-	err = cmd.Run()
+	err = exec.Command("ffmpeg",
+		"-i", inputFile,
+		"-t", "00:00:03",
+		"-vf", "fps=30,scale=512:512",
+		"-c:v", "libvpx-vp9",
+		"-b:v", "256k",
+		"-preset", "ultrafast",
+		"-an",
+		"-y",
+		outputFile.Name(),
+	).Run()
 	if err != nil {
-		return videoConverted, err
+		return err
 	}
-	_, err = outputFile.Seek(0, 0)
-	if err != nil {
-		return videoConverted, err
-	}
+	outputFile.Seek(0, 0)
 
-	return outputFile.Name(), nil
+	return os.Rename(outputFile.Name(), inputFile)
 }
 
 func Load(client *telegram.Client) {
