@@ -141,11 +141,11 @@ enable-commands-usage =
     Especifique o comando que você deseja ativar. Para ver quais os comandos que estão atualmente desativados, utilize /disabled.
 
     <b>Uso:</b> <code>/enable (comando)</code>
-no-disabled-commands = Não existem comandos desativados <b>neste grupo.</b>
+no-disabled-commands = Não há comandos desativados <b>neste grupo.</b>
 disabled-commands = <b>Comandos desativados:</b>
 disableables-commands = <b>Comandos desativáveis:</b>
 command-already-disabled = O comando <code>{ $command }</code> <b>já está desativado.</b>
-command-disabled = O comando <code>{ $command }</code> <b>jfoi desativado com sucesso.</b>
+command-disabled = O comando <code>{ $command }</code> <b>já foi desativado com sucesso.</b>
 disable-commands-usage =
     Especifique o comando que você deseja desativar. Para ver a lista de comandos desativáveis, utilize /disableable.
 
