@@ -44,8 +44,9 @@ func CreateTables() error {
 			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
 		CREATE TABLE IF NOT EXISTS commandsDisabled (
-			chat_id INTEGER PRIMARY KEY,
-			command TEXT NOT NULL
+			chat_id INTEGER,
+			command TEXT NOT NULL,
+			PRIMARY KEY (chat_id, command)
 		);
 	`
 	_, err := DB.Exec(query)

@@ -10,6 +10,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 func handlerDisable(message *telegram.NewMessage) error {
@@ -37,8 +38,8 @@ func handlerDisable(message *telegram.NewMessage) error {
 		return err
 	}
 
-	query := "INSERT INTO commandsDisabled (command) VALUES (?);"
-	_, err := database.DB.Exec(query, command)
+	query := "INSERT INTO commandsDisabled (chat_id, command) VALUES (?, ?);"
+	_, err := database.DB.Exec(query, message.Chat.ID, command)
 	if err != nil {
 		fmt.Printf("Error inserting command: %v\n", err)
 		return err
@@ -75,8 +76,8 @@ func handlerEnable(message *telegram.NewMessage) error {
 		return err
 	}
 
-	query := "DELETE FROM commandsDisabled WHERE command = ?;"
-	_, err := database.DB.Exec(query, command)
+	query := "DELETE FROM commandsDisabled WHERE command = ? AND chat_id = ?;"
+	_, err := database.DB.Exec(query, command, message.Chat.ID)
 	if err != nil {
 		fmt.Printf("Error deleting command: %v\n", err)
 		return err
@@ -97,6 +98,35 @@ func handlerDisableableCommands(message *telegram.NewMessage) error {
 	}
 	_, err := message.Reply(text)
 
+	return err
+}
+
+func handlerDisabled(message *telegram.NewMessage) error {
+	i18n := localization.Get(message)
+	text := i18n("disabled-commands")
+	rows, err := database.DB.Query("SELECT command FROM commandsDisabled WHERE chat_id = ?", message.Chat.ID)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var commands []string
+	for rows.Next() {
+		var command string
+		if err := rows.Scan(&command); err != nil {
+			return err
+		}
+		commands = append(commands, command)
+	}
+
+	if len(commands) == 0 {
+		_, err := message.Reply(i18n("no-disabled-commands"))
+		return err
+	}
+	for _, command := range commands {
+		text += "\n- <code>" + command + "</code>"
+	}
+	_, err = message.Reply(text)
 	return err
 }
 
@@ -294,9 +324,11 @@ func callbackExplainConfig(update *telegram.CallbackQuery) error {
 }
 
 func Load(client *telegram.Client) {
+	utils.SotreHelp("config")
 	client.On("command:disable", handlers.HandleCommand(handlerDisable), telegram.Filter{Group: true, Func: helpers.IsAdmin})
 	client.On("command:enable", handlers.HandleCommand(handlerEnable), telegram.Filter{Group: true, Func: helpers.IsAdmin})
 	client.On("command:disableable", handlers.HandleCommand(handlerDisableableCommands), telegram.Filter{Func: helpers.IsAdmin})
+	client.On("command:disabled", handlers.HandleCommand(handlerDisabled), telegram.Filter{Group: true, Func: helpers.IsAdmin})
 	client.On("command:config", handlers.HandleCommand(handlerConfig), telegram.Filter{Group: true, Func: helpers.IsAdmin})
 	client.On("callback:config", callbackConfig, telegram.Filter{Func: helpers.IsAdmin})
 	client.On("callback:languageMenu", callbackLanguageMenu, telegram.Filter{Func: helpers.IsAdmin})
