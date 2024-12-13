@@ -13,22 +13,32 @@ var DisableableCommands []string
 
 func HandleCommand(handler func(m *telegram.NewMessage) error) func(m *telegram.NewMessage) error {
 	return func(m *telegram.NewMessage) error {
-		if CheckDisabledCommand(strings.Split(m.Text(), " ")[0]) {
+		command := strings.Replace(m.GetCommand(), "/", "", 1)
+		if CheckDisabledCommand(m, command) {
 			return nil
 		}
-		err := database.SaveUsers(m)
-		if err != nil {
+		if err := database.SaveUsers(m); err != nil {
 			log.Printf("Error saving user: %v\n", err)
 		}
-		return handler(m)
+		if err := handler(m); err != nil {
+			if strings.Contains(err.Error(), "CHAT_SEND_PLAIN_FORBIDDEN") ||
+				strings.Contains(err.Error(), "CHAT_WRITE_FORBIDDEN") {
+				return nil
+			}
+			return err
+		}
+		return nil
 	}
 }
 
-func CheckDisabledCommand(command string) bool {
+func CheckDisabledCommand(message *telegram.NewMessage, command string) bool {
 	var exists bool
-	query := "SELECT EXISTS(SELECT 1 FROM commandsDisabled WHERE command = ? LIMIT 1);"
-	err := database.DB.QueryRow(query, command).Scan(&exists)
-	if err != nil {
+	if message.IsPrivate() {
+		return false
+	}
+
+	query := "SELECT EXISTS(SELECT 1 FROM commandsDisabled WHERE command = ? AND chat_id = ? LIMIT 1);"
+	if err := database.DB.QueryRow(query, command, message.Chat.ID).Scan(&exists); err != nil {
 		fmt.Printf("Error checking command: %v\n", err)
 		return false
 	}

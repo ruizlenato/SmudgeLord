@@ -30,7 +30,7 @@ func handlerDisable(message *telegram.NewMessage) error {
 		return err
 	}
 
-	if handlers.CheckDisabledCommand(command) {
+	if handlers.CheckDisabledCommand(message, command) {
 		_, err := message.Reply(i18n("command-already-disabled",
 			map[string]interface{}{
 				"command": command,
@@ -68,7 +68,7 @@ func handlerEnable(message *telegram.NewMessage) error {
 		return err
 	}
 
-	if !handlers.CheckDisabledCommand(command) {
+	if !handlers.CheckDisabledCommand(message, command) {
 		_, err := message.Reply(i18n("command-already-enabled",
 			map[string]interface{}{
 				"command": command,
