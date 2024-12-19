@@ -11,15 +11,14 @@ import (
 )
 
 type UploadDocumentParams struct {
-	NosoundVideo bool
-	ForceFile    bool
-	Spoiler      bool
-	File         string
-	Thumb        string
-	MimeType     string
-	Attributes   []telegram.DocumentAttribute
-	Stickers     []telegram.InputDocument
-	TTLSeconds   int32
+	ForceFile  bool
+	Spoiler    bool
+	File       string
+	Thumb      string
+	MimeType   string
+	Attributes []telegram.DocumentAttribute
+	Stickers   []telegram.InputDocument
+	TTLSeconds int32
 }
 
 func UploadDocument(message *telegram.NewMessage, params UploadDocumentParams) (telegram.InputMediaUploadedDocument, error) {
@@ -49,7 +48,7 @@ func UploadDocument(message *telegram.NewMessage, params UploadDocumentParams) (
 	}
 
 	return telegram.InputMediaUploadedDocument{
-		NosoundVideo: params.NosoundVideo,
+		NosoundVideo: true,
 		ForceFile:    params.ForceFile,
 		Spoiler:      params.Spoiler,
 		File:         file,
