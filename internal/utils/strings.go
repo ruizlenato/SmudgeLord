@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"math/rand"
+	"strings"
 	"unicode/utf16"
 
 	"github.com/amarnathcjd/gogram/telegram"
@@ -27,4 +29,13 @@ func FormatText(text string, entities []telegram.MessageEntity) string {
 		}
 	}
 	return string(utf16.Decode(textRunes))
+}
+
+func RandomString(n int) string {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	var result strings.Builder
+	for i := 0; i < n; i++ {
+		result.WriteByte(letters[rand.Intn(len(letters))])
+	}
+	return result.String()
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/bluesky"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/threads"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
 	yt "github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
@@ -24,7 +25,7 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|bsky)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:bsky|threads|instagram|tiktok|twitter|x)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
 	maxSizeCaption = 1024
 )
 
@@ -49,6 +50,7 @@ func handlerMedias(message *telegram.NewMessage) error {
 
 	mediaHandlers := map[string]func(*telegram.NewMessage) ([]telegram.InputMedia, []string){
 		"bsky.app/":        bluesky.Handle,
+		"threads.net/":     threads.Handle,
 		"instagram.com/":   instagram.Handle,
 		"tiktok.com/":      tiktok.Handle,
 		"(twitter|x).com/": twitter.Handle,
