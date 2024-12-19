@@ -41,17 +41,17 @@ func checkAFK(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	humanizedDuration := localization.HumanizeTimeSince(duration, message)
 
-	switch {
-	case userID == message.Sender.ID:
+	switch userID {
+	case message.Sender.ID:
 		if err := unsetUserAway(userID); err != nil {
 			return err
 		}
 
 		_, err := message.Reply(i18n("user-now-available",
 			map[string]interface{}{
-				"userID":   message.Sender.ID,
+				"userID":        message.Sender.ID,
 				"userFirstName": message.Sender.FirstName,
-				"duration": humanizedDuration,
+				"duration":      humanizedDuration,
 			}),
 			telegram.SendOptions{
 				ParseMode: telegram.HTML,
@@ -107,11 +107,7 @@ func getUserIDFromMessage(message *telegram.NewMessage) (int64, error) {
 		if err != nil {
 			return 0, err
 		}
-		sender, err := reply.GetSender()
-		if err != nil {
-			return 0, err
-		}
-		return sender.ID, nil
+		return reply.Sender.ID, nil
 	}
 
 	if message.Message.Entities != nil {
