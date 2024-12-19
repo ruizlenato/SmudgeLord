@@ -50,7 +50,7 @@ func checkAFK(message *telegram.NewMessage) error {
 		_, err := message.Reply(i18n("user-now-available",
 			map[string]interface{}{
 				"userID":   message.Sender.ID,
-				"userName": message.Sender.FirstName,
+				"userFirstName": message.Sender.FirstName,
 				"duration": humanizedDuration,
 			}),
 			telegram.SendOptions{

@@ -138,7 +138,7 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 	case "track":
 		text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Track)
 		if recentTracks.Trackloved {
-			text += i18n("lastfm.trackLoved")
+			text += " ❤️"
 		}
 	case "album":
 		text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Album)
