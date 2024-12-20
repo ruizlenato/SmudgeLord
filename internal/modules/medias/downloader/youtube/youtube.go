@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/kkdai/youtube/v2"
 	"github.com/mymmrac/telego"
@@ -30,28 +31,52 @@ func configureYoutubeClient() youtube.Client {
 		proxyURL, _ := url.Parse(config.Socks5Proxy)
 		client := &http.Client{
 			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyURL),
+				Proxy:                 http.ProxyURL(proxyURL),
+				ResponseHeaderTimeout: 30 * time.Second,
+				IdleConnTimeout:       90 * time.Second,
+				TLSHandshakeTimeout:   10 * time.Second,
 			},
+			Timeout: 120 * time.Second,
 		}
-		return youtube.Client{HTTPClient: client}
+		resp, err := client.Get("https://www.google.com")
+		if err == nil && resp.StatusCode == http.StatusOK {
+			return youtube.Client{HTTPClient: client}
+		}
+		log.Println("Warning: Proxy connection failed, falling back to direct connection")
 	}
 	return youtube.Client{}
 }
 
+func copyStreamWithRetries(youtubeClient *youtube.Client, video *youtube.Video, format *youtube.Format, outputFile *os.File) error {
+	for attempt := 1; attempt <= 5; attempt++ {
+		stream, _, err := youtubeClient.GetStream(video, format)
+		if err != nil {
+			time.Sleep(2 * time.Second)
+			continue
+		}
+
+		_, err = io.Copy(outputFile, stream)
+		stream.Close()
+
+		if err == nil {
+			return nil
+		}
+
+		outputFile.Seek(0, 0)
+		outputFile.Truncate(0)
+		time.Sleep(2 * time.Second)
+	}
+
+	os.Remove(outputFile.Name())
+	return errors.New("YouTube — Failed after 5 attempts")
+}
+
 func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format *youtube.Format, outputFile *os.File) error {
-	stream, _, err := youtubeClient.GetStream(video, format)
+	err := copyStreamWithRetries(youtubeClient, video, format, outputFile)
 	if err != nil {
-		log.Println("[youtube/Downloader] Error getting stream: ", err)
+		log.Println("YouTube — All download attempts failed: ", err)
 		return err
 	}
-	defer stream.Close()
-
-	if _, err = io.Copy(outputFile, stream); err != nil {
-		os.Remove(outputFile.Name())
-		log.Println("[youtube/Downloader] Error copying stream to file: ", err)
-		return err
-	}
-
 	return nil
 }
 
@@ -86,7 +111,7 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	if callbackData[0] == "_vid" {
-		err, outputFile = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+		err, _ = downloadAndMergeAudio(&youtubeClient, video, outputFile)
 		if err != nil {
 			return nil, video, err
 		}
