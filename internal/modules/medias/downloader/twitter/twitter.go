@@ -25,7 +25,7 @@ var headers = map[string]string{
 	"x-twitter-client-language": "en",
 	"x-twitter-active-user":     "yes",
 	"Accept-language":           "en",
-	"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+	"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
 	"content-type":              "application/json",
 }
 
@@ -153,6 +153,11 @@ func getGuestToken() string {
 		GuestToken string `json:"guest_token"`
 	}
 	var res guestToken
+
+	headers = map[string]string{
+		"Authorization": "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
+		"User-Agent":    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
+	}
 
 	request, response, err := utils.Request(guestTokenURL, utils.RequestParams{
 		Method:    "POST",
