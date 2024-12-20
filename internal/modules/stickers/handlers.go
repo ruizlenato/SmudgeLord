@@ -115,10 +115,8 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 	}
 
 	var (
-		emoji           []string
-		stickerSetTitle string
-		packPrefix      string
-		stickerFile     *os.File
+		emoji       []string
+		stickerFile *os.File
 	)
 
 	file, err := bot.GetFile(&telego.GetFileParams{FileID: fileID})
@@ -187,52 +185,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 	}
 	defer os.Remove(stickerFile.Name())
 
-	botUser, err := bot.GetMe()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	nameTitle := message.From.FirstName
-	if len(nameTitle) > 35 {
-		nameTitle = nameTitle[:35]
-	}
-
-	if message.From.Username != "" {
-		nameTitle = "@" + message.From.Username
-	}
-	stickerSetTitle = nameTitle + "'s SmudgeLord"
-
-	checkStickerSetCount := func(stickerSetName string) bool {
-		stickerSet, err := bot.GetStickerSet(&telego.GetStickerSetParams{
-			Name: stickerSetName,
-		})
-		if err != nil {
-			return false
-		}
-
-		if len(stickerSet.Stickers) > 120 {
-			return true
-		}
-		return false
-	}
-
-	packSuffix := fmt.Sprintf("%d_by_%s", message.From.ID, botUser.Username)
-
-	switch stickerType {
-	case "video":
-		packPrefix = "vid_"
-		stickerSetTitle += " Video"
-	case "animated":
-		packPrefix = "anim_"
-		stickerSetTitle += " Animated"
-	case "static":
-		packPrefix = "a_"
-	}
-
-	stickerSetName := packPrefix + packSuffix
-	for i := 0; checkStickerSetCount(stickerSetName); i++ {
-		stickerSetName = fmt.Sprintf("%s%d_%s", packPrefix, i, packSuffix)
-	}
+	stickerSetShortName, stickerSetTitle := generateStickerSetName(bot, message)
 
 	reEmoji := regexp.MustCompile(`[\x{1F600}-\x{1F64F}]|[\x{2694}-\x{2697}]|[\x{2702}-\x{27B0}]|[\x{1F926}-\x{1F937}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{26FF}]`)
 	emoji = append(emoji, reEmoji.FindAllString(message.Text, -1)...)
@@ -260,7 +213,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 
 	err = bot.AddStickerToSet(&telego.AddStickerToSetParams{
 		UserID:  message.From.ID,
-		Name:    stickerSetName,
+		Name:    stickerSetShortName,
 		Sticker: *sticker,
 	})
 	if err != nil {
@@ -274,7 +227,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 			stickerFile.Seek(0, 0)
 			bot.CreateNewStickerSet(&telego.CreateNewStickerSetParams{
 				UserID:   message.From.ID,
-				Name:     stickerSetName,
+				Name:     stickerSetShortName,
 				Title:    stickerSetTitle,
 				Stickers: []telego.InputSticker{*sticker},
 			})
@@ -287,7 +240,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 		MessageID: progMSG.GetMessageID(),
 		Text: i18n("sticker-stoled",
 			map[string]interface{}{
-				"stickerSetName": stickerSetName,
+				"stickerSetName": stickerSetShortName,
 				"emoji":          strings.Join(emoji, ""),
 			}),
 		ParseMode: "HTML",
@@ -295,6 +248,44 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 			IsDisabled: true,
 		},
 	})
+}
+
+func generateStickerSetName(bot *telego.Bot, message telego.Message) (string, string) {
+	botUser, err := bot.GetMe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	shortNamePrefix := "a_"
+	shortNameSuffix := fmt.Sprintf("%d_by_%s", message.From.ID, botUser.Username)
+
+	nameTitle := message.From.FirstName
+	if username := message.From.Username; username != "" {
+		nameTitle = "@" + username
+	}
+	if len(nameTitle) > 35 {
+		nameTitle = nameTitle[:35]
+	}
+	stickerSetTitle := fmt.Sprintf("%s's SmudgeLord", nameTitle)
+	stickerSetShortName := shortNamePrefix + shortNameSuffix
+
+	for i := 0; checkStickerSetCount(bot, stickerSetShortName); i++ {
+		stickerSetShortName = fmt.Sprintf("%s%d_%s", shortNamePrefix, i, shortNameSuffix)
+	}
+	return stickerSetShortName, stickerSetTitle
+}
+
+func checkStickerSetCount(bot *telego.Bot, stickerSetShortName string) bool {
+	stickerSet, err := bot.GetStickerSet(&telego.GetStickerSetParams{
+		Name: stickerSetShortName,
+	})
+	if err != nil {
+		return false
+	}
+	if len(stickerSet.Stickers) > 120 {
+		return true
+	}
+	return false
 }
 
 func getFileIDAndType(reply *telego.Message) (stickerAction string, stickerType string, fileID string) {
