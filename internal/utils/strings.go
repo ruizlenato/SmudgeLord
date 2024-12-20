@@ -41,3 +41,12 @@ func RandomString(n int) string {
 	}
 	return result.String()
 }
+
+func EscapeHTML(s string) string {
+	replacer := strings.NewReplacer(
+		"&", "&amp;",
+		"<", "&lt;",
+		">", "&gt;",
+	)
+	return replacer.Replace(s)
+}

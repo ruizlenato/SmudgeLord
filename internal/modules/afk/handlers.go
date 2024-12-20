@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
 	"github.com/mymmrac/telego"
@@ -122,7 +123,7 @@ func handleSetAFK(bot *telego.Bot, message telego.Message) {
 		ChatID: telegoutil.ID(message.Chat.ID),
 		Text: i18n("user-now-unavailable",
 			map[string]interface{}{
-				"userFirstName": message.From.FirstName,
+				"userFirstName": utils.EscapeHTML(message.From.FirstName),
 			}),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
