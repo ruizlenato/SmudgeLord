@@ -3,7 +3,7 @@ package afk
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/ruizlenato/smudgelord/internal/database"
@@ -22,7 +22,7 @@ func user_is_away(user_id int64) bool {
 	var count int
 	err := database.DB.QueryRow("SELECT COUNT(*) FROM afk WHERE id = ?", user_id).Scan(&count)
 	if err != nil {
-		log.Printf("Error checking AFK: %v", err)
+		slog.Error("Couldn't check AFK", "UserID", user_id, "Error", err.Error())
 	}
 	return count > 0
 }

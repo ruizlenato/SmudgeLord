@@ -3,7 +3,7 @@ package misc
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"math/rand"
 	"net/url"
 	"strconv"
@@ -124,13 +124,13 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		log.Println("Error requesting translation:", err)
+		slog.Error("Couldn't request translation", "Error", err.Error())
 		return
 	}
 
 	err = json.Unmarshal(response.Body(), &translation)
 	if err != nil {
-		log.Println("Error unmarshalling translation data:", err)
+		slog.Error("Couldn't unmarshal translation data", "Error", err.Error())
 	}
 
 	var translations []string
@@ -262,7 +262,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		log.Println("Error requesting weather search:", err)
+		slog.Error("Couldn't request weather search", "Error", err.Error())
 		return
 	}
 
@@ -353,7 +353,7 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		log.Println("Error requesting weather data:", err)
+		slog.Error("Couldn't request weather data", "Error", err.Error())
 		return
 	}
 

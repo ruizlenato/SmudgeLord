@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,6 +18,12 @@ import (
 )
 
 func main() {
+	logger := slog.New(NewColorHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     config.LogLevel,
+	}))
+	slog.SetDefault(logger)
+
 	bot, err := telegram.CreateBot()
 	if err != nil {
 		log.Fatal(err)

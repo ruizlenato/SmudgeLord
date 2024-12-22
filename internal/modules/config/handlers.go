@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/mymmrac/telego"
@@ -91,8 +92,11 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 	}
 
 	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      fmt.Sprintf(i18n("command-disabled"), args[0]),
+		ChatID: telegoutil.ID(message.Chat.ID),
+		Text: i18n("command-disabled",
+			map[string]interface{}{
+				"command": args[0],
+			}),
 		ParseMode: "HTML",
 		ReplyParameters: &telego.ReplyParameters{
 			MessageID: message.MessageID,
@@ -197,6 +201,7 @@ func handleDisabled(bot *telego.Bot, message telego.Message) {
 
 func callbackLanguageMenu(bot *telego.Bot, update telego.Update) {
 	i18n := localization.Get(update)
+	chat := update.CallbackQuery.Message.GetChat()
 
 	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
 	for _, lang := range database.AvailableLocales {
@@ -214,18 +219,18 @@ func callbackLanguageMenu(bot *telego.Bot, update telego.Update) {
 		}})
 	}
 
-	row := database.DB.QueryRow("SELECT language FROM users WHERE id = ?;", update.CallbackQuery.Message.GetChat().ID)
-	if strings.Contains(update.CallbackQuery.Message.GetChat().Type, "group") {
-		row = database.DB.QueryRow("SELECT language FROM groups WHERE id = ?;", update.CallbackQuery.Message.GetChat().ID)
+	row := database.DB.QueryRow("SELECT language FROM users WHERE id = ?;", chat.ID)
+	if strings.Contains(chat.Type, "group") {
+		row = database.DB.QueryRow("SELECT language FROM groups WHERE id = ?;", chat.ID)
 	}
 	var language string
 	err := row.Scan(&language)
 	if err != nil {
-		log.Print("callbackLanguageMenu - Error querying user:", err)
+		slog.Error("Couldn't query user", "ChatID", chat.ID, "Error", err.Error())
 	}
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
+		ChatID:    telegoutil.ID(chat.ID),
 		MessageID: update.CallbackQuery.Message.GetMessageID(),
 		Text: i18n("language-menu",
 			map[string]interface{}{
@@ -240,19 +245,20 @@ func callbackLanguageMenu(bot *telego.Bot, update telego.Update) {
 func callbackLanguageSet(bot *telego.Bot, update telego.Update) {
 	i18n := localization.Get(update)
 	lang := strings.ReplaceAll(update.CallbackQuery.Data, "setLang ", "")
+	chat := update.CallbackQuery.Message.GetChat()
 
 	dbQuery := "UPDATE users SET language = ? WHERE id = ?;"
-	if strings.Contains(update.CallbackQuery.Message.GetChat().Type, "group") {
+	if strings.Contains(chat.Type, "group") {
 		dbQuery = "UPDATE groups SET language = ? WHERE id = ?;"
 	}
-	_, err := database.DB.Exec(dbQuery, lang, update.CallbackQuery.Message.GetChat().ID)
+	_, err := database.DB.Exec(dbQuery, lang, chat.ID)
 	if err != nil {
-		log.Print("Error updating language:", err)
+		slog.Error("Couldn't update language", "ChatID", chat.ID, "Error", err.Error())
 	}
 
 	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
 
-	if update.CallbackQuery.Message.GetChat().Type == telego.ChatTypePrivate {
+	if chat.Type == telego.ChatTypePrivate {
 		buttons = append(buttons, []telego.InlineKeyboardButton{{
 			Text:         i18n("back-button"),
 			CallbackData: "start",
@@ -265,7 +271,7 @@ func callbackLanguageSet(bot *telego.Bot, update telego.Update) {
 	}
 
 	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
+		ChatID:      telegoutil.ID(chat.ID),
 		MessageID:   update.CallbackQuery.Message.GetMessageID(),
 		Text:        i18n("language-changed"),
 		ParseMode:   "HTML",
@@ -331,7 +337,7 @@ func callbackMediaConfig(bot *telego.Bot, update telego.Update) {
 	chatID := update.CallbackQuery.Message.GetChat().ID
 	mediasCaption, mediasAuto, err := getMediaConfig(chatID)
 	if err != nil {
-		log.Print("Error querying media config:", err)
+		slog.Error("Couldn't query media config", "ChatID", chatID, "Error", err.Error())
 		return
 	}
 

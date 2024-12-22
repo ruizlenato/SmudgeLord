@@ -3,7 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
+	"log/slog"
 	"slices"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -95,7 +95,7 @@ func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler
 		query := "INSERT OR IGNORE INTO groups (id) VALUES (?);"
 		_, err := DB.Exec(query, message.Chat.ID)
 		if err != nil {
-			log.Print("[database/SaveUsers] Error inserting group: ", err)
+			slog.Error("Couldn't insert group", "ChatID", message.Chat.ID, "Error", err.Error())
 		}
 	}
 
@@ -116,7 +116,7 @@ func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler
 	}
 	_, err := DB.Exec(query, message.From.ID, lang, username)
 	if err != nil {
-		log.Print("[database/SaveUsers] Error upserting user: ", err)
+		slog.Error("Couldn't insert user", "UserID", message.From.ID, "Username", username, "Error", err.Error())
 	}
 
 	next(bot, update)

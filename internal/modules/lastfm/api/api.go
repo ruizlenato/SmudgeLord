@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"strconv"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
@@ -76,7 +76,7 @@ func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
 	var recentTracks recentTracks
 	err = json.Unmarshal(response.Body(), &recentTracks)
 	if err != nil {
-		log.Print("[lastfm/GetRecentTrack] Error unmarshalling recent tracks:", err)
+		slog.Error("Couldn't unmarshal recent tracks", "Error", err.Error())
 	}
 	return &recentTracks
 }
@@ -147,13 +147,13 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		log.Print("lastfm/PlayCount — Error requesting get info:", err)
+		slog.Error("Couldn't request get info", "Error", err.Error())
 	}
 
 	var getInfo getInfo
 	err = json.Unmarshal(response.Body(), &getInfo)
 	if err != nil {
-		log.Print("[lastfm/PlayCount] Error unmarshalling get info:", err)
+		slog.Error("Couldn't unmarshal get info", "Error", err.Error())
 	}
 
 	var userPlaycount int

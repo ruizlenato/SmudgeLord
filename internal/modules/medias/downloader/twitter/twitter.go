@@ -3,7 +3,7 @@ package twitter
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"regexp"
 	"slices"
@@ -93,7 +93,7 @@ func processTwitterAPI(twitterData *TwitterAPIData) []telego.InputMedia {
 	for i := 0; i < mediaCount; i++ {
 		result := <-results
 		if result.err != nil {
-			log.Print(result.err)
+			slog.Error("Couldn't download media in carousel", "Media Count", result.index, "Error", result.err)
 			continue
 		}
 		if result.media.File != nil {
@@ -114,7 +114,7 @@ func processTwitterAPI(twitterData *TwitterAPIData) []telego.InputMedia {
 				if result.media.Thumbnail != nil {
 					err := utils.ResizeThumbnail(result.media.Thumbnail)
 					if err != nil {
-						log.Print("Twitter — Error resizing thumbnail: " + err.Error())
+						slog.Error("Couldn't resize thumbnail", "Error", err.Error())
 					}
 					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
 				}
@@ -167,13 +167,13 @@ func getGuestToken() string {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		log.Print("Error getting guest token: ", err)
+		slog.Error("Couldn't get guest token", "Error", err.Error())
 		return ""
 	}
 
 	err = json.Unmarshal(response.Body(), &res)
 	if err != nil {
-		log.Printf("Error unmarshalling guest token: %v", err)
+		slog.Error("Couldn't unmarshal guest token", "Error", err.Error())
 		return ""
 	}
 	return res.GuestToken
@@ -329,7 +329,7 @@ func processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]telego.InputMedia, st
 	for i := 0; i < mediaCount; i++ {
 		result := <-results
 		if result.err != nil {
-			log.Print(result.err)
+			slog.Error("Couldn't download media in carousel", "Media Count", result.index, "Error", result.err)
 			continue
 		}
 		if result.media.File != nil {
@@ -351,7 +351,7 @@ func processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]telego.InputMedia, st
 					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
 					err := utils.ResizeThumbnail(result.media.Thumbnail)
 					if err != nil {
-						log.Print("Twitter — Error resizing thumbnail: " + err.Error())
+						slog.Error("Couldn't resize thumbnail", "Error", err.Error())
 					}
 				}
 			}

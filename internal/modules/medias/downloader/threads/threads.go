@@ -3,7 +3,7 @@ package threads
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"regexp"
 	"strings"
@@ -123,7 +123,7 @@ func getGQLData(postID string) ThreadsData {
 
 	err = json.Unmarshal(response.Body(), &threadsData)
 	if err != nil {
-		log.Print("threadsData: Error unmarshalling GQLData: ", err)
+		slog.Error("Couldn't unmarshal Threads GQLData", "Error", err.Error())
 		return nil
 	}
 
@@ -175,7 +175,7 @@ func handleCarousel(post Post) []telego.InputMedia {
 	for i := 0; i < mediaCount; i++ {
 		result := <-results
 		if result.err != nil {
-			log.Print(result.err)
+			slog.Error("Couldn't download media in carousel", "Media Count", result.index, "Error", result.err)
 			continue
 		}
 		if result.media.File != nil {
@@ -207,19 +207,19 @@ func handleCarousel(post Post) []telego.InputMedia {
 func handleVideo(post Post) []telego.InputMedia {
 	file, err := downloader.Downloader(post.VideoVersions[0].URL)
 	if err != nil {
-		log.Print("Threads — Error downloading video: ", err)
+		slog.Error("Couldn't download video", "Error", err.Error())
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		log.Print("Threads — Error downloading thumbnail: ", err)
+		slog.Error("Couldn't download thumbnail", "Error", err.Error())
 		return nil
 	}
 
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
-		log.Printf("Threads — Error resizing thumbnail: %s", err)
+		slog.Error("Couldn't resize thumbnail", "Error", err.Error())
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{
@@ -235,7 +235,7 @@ func handleVideo(post Post) []telego.InputMedia {
 func handleImage(post Post) []telego.InputMedia {
 	file, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		log.Print("Threads: Error downloading image:", err)
+		slog.Error("Couldn't download image", "Error", err.Error())
 		return nil
 	}
 

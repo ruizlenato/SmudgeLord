@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"log"
+	"log/slog"
 
 	"github.com/mymmrac/telego"
 	"github.com/mymmrac/telego/telegohandler"
@@ -41,7 +41,7 @@ func IsAdmin(bot *telego.Bot) telegohandler.Predicate {
 			UserID: userID,
 		})
 		if err != nil {
-			log.Print("helpers/IsAdmin — Error getting chat member:", err)
+			slog.Error("Couldn't get chat member", "ChatID", message.Chat.ID, "UserID", userID, "Error", err.Error())
 			return false
 		}
 

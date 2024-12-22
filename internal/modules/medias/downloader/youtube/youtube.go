@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -42,7 +42,7 @@ func configureYoutubeClient() youtube.Client {
 		if err == nil && resp.StatusCode == http.StatusOK {
 			return youtube.Client{HTTPClient: client}
 		}
-		log.Println("Warning: Proxy connection failed, falling back to direct connection")
+		slog.Warn("Proxy connection failed, falling back to direct connection")
 	}
 	return youtube.Client{}
 }
@@ -74,7 +74,7 @@ func copyStreamWithRetries(youtubeClient *youtube.Client, video *youtube.Video, 
 func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format *youtube.Format, outputFile *os.File) error {
 	err := copyStreamWithRetries(youtubeClient, video, format, outputFile)
 	if err != nil {
-		log.Println("YouTube — All download attempts failed: ", err)
+		slog.Error("Could't download video, all attempts failed", "Error", err.Error())
 		return err
 	}
 	return nil
@@ -101,7 +101,7 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.mp4")
 	}
 	if err != nil {
-		log.Println("[youtube/Downloader] Error creating temporary file: ", err)
+		slog.Error("Could't create temporary file", "Error", err.Error())
 		return nil, video, err
 	}
 
@@ -185,7 +185,7 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 
 	outputFile, err := os.CreateTemp("", "SmudgeYoutube_*.mp4")
 	if err != nil {
-		log.Println("youtube: error creating temporary file: ", err)
+		slog.Error("Could't create temporary file", "Error", err.Error())
 		return nil, []string{}
 	}
 

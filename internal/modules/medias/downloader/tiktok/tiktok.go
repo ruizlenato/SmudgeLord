@@ -3,7 +3,7 @@ package tiktok
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"regexp"
 	"slices"
@@ -126,7 +126,7 @@ func downloadImages(tikTokData TikTokData) []telego.InputMedia {
 		go func(index int, media Image) {
 			file, err := downloader.Downloader(media.DisplayImage.URLList[1])
 			if err != nil {
-				log.Printf("TikTok: Error downloading file from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
+				slog.Error("Couldn't download thumbnail", "PostID", tikTokData.AwemeList[0].AwemeID, "Error", err.Error())
 			}
 			results <- mediaResult{index, file, err}
 		}(i, media)
@@ -135,6 +135,7 @@ func downloadImages(tikTokData TikTokData) []telego.InputMedia {
 	for i := 0; i < mediaCount; i++ {
 		result := <-results
 		if result.err != nil {
+			slog.Error("Couldn't download media in carousel", "Media Count", result.index, "Error", result.err)
 			continue
 		}
 		if result.file != nil {
@@ -151,19 +152,19 @@ func downloadImages(tikTokData TikTokData) []telego.InputMedia {
 func downloadVideo(tikTokData TikTokData) []telego.InputMedia {
 	file, err := downloader.Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 	if err != nil {
-		log.Printf("TikTok — Error downloading video from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
+		slog.Error("Couldn't download video", "PostID", tikTokData.AwemeList[0].AwemeID, "Error", err.Error())
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(tikTokData.AwemeList[0].Video.Cover.URLList[0])
 	if err != nil {
-		log.Printf("TikTok — Error downloading thumbnail from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
+		slog.Error("Couldn't download thumbnail", "PostID", tikTokData.AwemeList[0].AwemeID, "Error", err.Error())
 		return nil
 	}
 
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
-		log.Printf("TikTok — Error resizing thumbnail from %s: %s", tikTokData.AwemeList[0].AwemeID, err)
+		slog.Error("Couldn't resize thumbnail", "PostID", tikTokData.AwemeList[0].AwemeID, "Error", err.Error())
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{

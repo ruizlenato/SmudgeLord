@@ -2,7 +2,7 @@ package afk
 
 import (
 	"database/sql"
-	"log"
+	"log/slog"
 	"regexp"
 	"strings"
 	"time"
@@ -42,7 +42,7 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 
 	reason, duration, err := get_user_away(user_id)
 	if err != nil && err != sql.ErrNoRows {
-		log.Print(err)
+		slog.Error("Couldn't get user away status", "UserID", user_id, "Error", err.Error())
 		return
 	}
 
@@ -50,10 +50,10 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 
 	humanizedDuration := localization.HumanizeTimeSince(duration, update)
 
-	switch {
-	case user_id == message.From.ID:
+	switch user_id {
+	case message.From.ID:
 		if err = unset_user_away(user_id); err != nil {
-			log.Print(err)
+			slog.Error("CoCouldn't unset user away status", "UserID", user_id, "Error", err.Error())
 			return
 		}
 		bot.SendMessage(&telego.SendMessageParams{
@@ -75,7 +75,7 @@ func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler)
 	default:
 		user, err := bot.GetChat(&telego.GetChatParams{ChatID: telegoutil.ID(user_id)})
 		if err != nil {
-			log.Printf("[afk/getChat] Error getting user: %v", err)
+			slog.Error("Couldn't get user", "UserID", user_id, "Error", err.Error())
 			return
 		}
 
@@ -113,7 +113,7 @@ func handleSetAFK(bot *telego.Bot, message telego.Message) {
 	reason := extractReason(message.Text)
 	err := set_user_away(message.From.ID, reason, time.Now().UTC())
 	if err != nil {
-		log.Print("[afk/setAFK] Error inserting user: ", err)
+		slog.Error("Couldn't set user away status", "UserID", message.From.ID, "Error", err.Error())
 		return
 	}
 
@@ -148,7 +148,7 @@ func getUserIDFromMessage(message *telego.Message) int64 {
 				if err == nil {
 					return userID
 				}
-				log.Printf("Error getting user ID from username: %v", err)
+				slog.Error("Couldn't get user ID from username", "Username", username, "Error", err.Error())
 			}
 		}
 	}

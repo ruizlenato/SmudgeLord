@@ -3,7 +3,7 @@ package reddit
 import (
 	"bytes"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path"
 	"regexp"
@@ -71,7 +71,7 @@ func processMedia(url string) ([]telego.InputMedia, string) {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.Body() == nil {
-		log.Println("Error fetching media content")
+		slog.Error("Couldn't fetch media content", "Error", err.Error())
 		return nil, ""
 	}
 
@@ -120,7 +120,7 @@ func processVideoMedia(content string, request *fasthttp.Request) []telego.Input
 
 		audioFile, err := downloadAudio(playlistURL)
 		if err != nil {
-			log.Print("Reddit — Error downloading audio: ", err.Error())
+			slog.Error("Couldn't download audio", "Error", err.Error())
 			return nil
 		}
 
@@ -129,7 +129,7 @@ func processVideoMedia(content string, request *fasthttp.Request) []telego.Input
 
 		videoFile, err := downloader.Downloader(videoURL)
 		if err != nil {
-			log.Print("Reddit — Error downloading video: ", err.Error())
+			slog.Error("Couldn't download video", "Error", err.Error())
 			return nil
 		}
 
@@ -211,7 +211,7 @@ func processImageMedia(content string, request *fasthttp.Request) []telego.Input
 
 		file, err := downloader.Downloader(imageURL)
 		if err != nil {
-			log.Printf("Reddit — Error downloading image: %s", err)
+			slog.Error("Couldn't download image", "Error", err.Error())
 			return nil
 		}
 
@@ -229,13 +229,13 @@ func downloadThumbnail(content string, request *fasthttp.Request) *os.File {
 
 		thumbnail, err := downloader.Downloader(thumbnailURL)
 		if err != nil {
-			log.Printf("Reddit — Error downloading thumbnail from %s: %s", thumbnailURL, err)
+			slog.Error("Couldn't download thumbnail", "Error", err.Error(), "Thumbnail URL", thumbnailURL)
 			return nil
 		}
 
 		err = utils.ResizeThumbnail(thumbnail)
 		if err != nil {
-			log.Printf("Reddit — Error resizing thumbnail: %s", err)
+			slog.Error("Couldn't resize thumbnail", "Error", err.Error())
 		}
 
 		return thumbnail

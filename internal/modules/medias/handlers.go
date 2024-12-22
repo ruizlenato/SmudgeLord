@@ -2,7 +2,7 @@ package medias
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -136,7 +136,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	}
 
 	if err := downloader.SetMediaCache(replied, result); err != nil {
-		log.Print("Failed to set media cache: " + err.Error())
+		slog.Error("Couldn't set media cache", "Error", err.Error())
 	}
 }
 
@@ -342,7 +342,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 		})
 	}
 	if err != nil {
-		log.Printf("Failed to send media: %v", err)
+		slog.Error("Couldn't send media", "Error", err.Error())
 		bot.EditMessageText(&telego.EditMessageTextParams{
 			ChatID:    telegoutil.ID(message.Chat.ID),
 			MessageID: update.CallbackQuery.Message.GetMessageID(),
@@ -357,7 +357,7 @@ func callbackYoutubeDownload(bot *telego.Bot, update telego.Update) {
 	})
 
 	if err := downloader.SetYoutubeCache(replied, callbackData[1]); err != nil {
-		log.Print(err)
+		slog.Error("Couldn't set youtube cache", "Error", err.Error())
 	}
 }
 
@@ -403,11 +403,11 @@ func trySendCachedYoutubeMedia(bot *telego.Bot, chatID int64, messageID int, cal
 
 func cleanupFiles(outputFile *os.File, thumbnailURL string) {
 	if err := os.Remove(outputFile.Name()); err != nil {
-		log.Printf("Failed to remove output file: %v", err)
+		slog.Error("Couldn't remove output file", "OutputFile", outputFile.Name(), "Error", err.Error())
 	}
 	if thumbnail, err := downloader.Downloader(thumbnailURL); err == nil {
 		if err := os.Remove(thumbnail.Name()); err != nil {
-			log.Printf("Failed to remove thumbnail: %v", err)
+			slog.Error("Couldn't remove thumbnail", "Thumbnail", thumbnail.Name(), "Error", err.Error())
 		}
 	}
 }

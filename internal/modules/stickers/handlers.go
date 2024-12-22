@@ -3,6 +3,7 @@ package stickers
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"regexp"
@@ -35,12 +36,12 @@ func handleGetSticker(bot *telego.Bot, message telego.Message) {
 	if replySticker := message.ReplyToMessage.Sticker; replySticker != nil && !replySticker.IsAnimated {
 		file, err := bot.GetFile(&telego.GetFileParams{FileID: replySticker.FileID})
 		if err != nil {
-			log.Print("[stickers/getSticker] Error getting file: ", err)
+			slog.Error("Couldn't get file", "Error", err.Error())
 			return
 		}
 		fileData, err := telegoutil.DownloadFile(bot.FileDownloadURL(file.FilePath))
 		if err != nil {
-			log.Print("[stickers/getSticker] Error downloading file: ", err)
+			slog.Error("Couldn't download file", "Error", err.Error())
 			return
 		}
 		var extension string
@@ -53,7 +54,7 @@ func handleGetSticker(bot *telego.Bot, message telego.Message) {
 
 		stickerFile, err := bytesToFile(fileData, extension)
 		if err != nil {
-			log.Print("[stickers/getSticker] Error creating file: ", err)
+			slog.Error("Couldn't create file", "Error", err.Error())
 			bot.SendMessage(&telego.SendMessageParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				Text:      i18n("kang-error"),
@@ -99,7 +100,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 		},
 	})
 	if err != nil {
-		log.Print("[stickers/kang] Error sending message: ", err)
+		slog.Error("Couldn't send message", "Error", err.Error())
 		return
 	}
 
@@ -121,13 +122,13 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 
 	file, err := bot.GetFile(&telego.GetFileParams{FileID: fileID})
 	if err != nil {
-		log.Print("[stickers/kang] Error getting file: ", err)
+		slog.Error("Couldn't get file", "Error", err.Error())
 		return
 	}
 
 	fileData, err := telegoutil.DownloadFile(bot.FileDownloadURL(file.FilePath))
 	if err != nil {
-		log.Print("[stickers/kang] Error downloading file: ", err)
+		slog.Error("Couldn't download file", "Error", err.Error())
 		return
 	}
 
@@ -135,7 +136,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 	case "resize":
 		stickerFile, err = utils.ResizeSticker(fileData)
 		if err != nil {
-			log.Print("[stickers/kang] Error resizing image: ", err)
+			slog.Error("Couldn't resize image", "Error", err.Error())
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
@@ -153,7 +154,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 		})
 		stickerFile, err = convertVideo(fileData)
 		if err != nil {
-			log.Print("[stickers/kang] Error converting video: ", err)
+			slog.Error("Couldn't convert video", "Error", err.Error())
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
@@ -173,7 +174,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 
 		stickerFile, err = bytesToFile(fileData, extension)
 		if err != nil {
-			log.Print("[stickers/kang] Error creating file: ", err)
+			slog.Error("Couldn't create file", "Error", err.Error())
 			bot.EditMessageText(&telego.EditMessageTextParams{
 				ChatID:    telegoutil.ID(message.Chat.ID),
 				MessageID: progMSG.GetMessageID(),
@@ -335,7 +336,6 @@ func getFileIDAndType(reply *telego.Message) (stickerAction string, stickerType 
 func bytesToFile(data []byte, extension string) (*os.File, error) {
 	tempFile, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension))
 	if err != nil {
-		log.Panic(err)
 		return nil, err
 	}
 

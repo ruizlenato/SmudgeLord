@@ -6,10 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -128,13 +129,13 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 		}
 
 		go func(index int, segment *m3u8.MediaSegment) {
-		urlSegment := fmt.Sprintf("%s://%s%s/%s",
-			string(request.URI().Scheme()),
+			urlSegment := fmt.Sprintf("%s://%s%s/%s",
+				string(request.URI().Scheme()),
 				string(request.URI().Host()),
 				path.Dir(string(request.URI().Path())),
 				segment.URI)
 
-		fileName, err := downloadSegment(urlSegment)
+			fileName, err := downloadSegment(urlSegment)
 			results <- segmentResult{
 				index:    index,
 				fileName: fileName,
@@ -147,7 +148,7 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 	for i := 0; i < segmentCount; i++ {
 		result := <-results
 		if result.err != nil {
-			log.Printf("Error downloading segment %d: %s", result.index, result.err)
+			slog.Error("Couldn't download segment", "Segment", result.index, "Error", result.err)
 			downloadErrors = append(downloadErrors, result.err)
 			continue
 		}
@@ -251,6 +252,12 @@ func TruncateUTF8Caption(s, url string) string {
 	return string(truncated) + "..." + fmt.Sprintf("\n<a href='%s'>🔗 Link</a>", url)
 }
 
+func RemoveTags(text string) string {
+	re := regexp.MustCompile(`(?m)^#.*`)
+	cleanText := re.ReplaceAllString(text, "")
+	return cleanText
+}
+
 func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 	videoFile.Seek(0, 0)
 	audioFile.Seek(0, 0)
@@ -260,7 +267,7 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 
 	outputFile, err := os.CreateTemp("", "SmudgeYoutube_*.mp4")
 	if err != nil {
-		log.Println("[MergeAudioVideo] Error creating temp file:", err)
+		slog.Error("Could't create temporary file", "Error", err.Error())
 		return nil
 	}
 
@@ -275,7 +282,7 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 
 	err = ffmpegCMD.Run()
 	if err != nil {
-		log.Println("[MergeAudioVideo] Error running ffmpeg:", err)
+		slog.Error("Couldn't merge audio and video", "Error", err.Error())
 		os.Remove(outputFile.Name())
 		return nil
 	}
@@ -298,19 +305,19 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 }
 
 func removeMediaFile(media telego.InputMedia) {
-			switch media.MediaType() {
-			case "photo":
-				if photo, ok := media.(*telego.InputMediaPhoto); ok {
-					os.Remove(photo.Media.String())
-				}
-			case "video":
-				if video, ok := media.(*telego.InputMediaVideo); ok {
-					os.Remove(video.Media.String())
-					if video.Thumbnail != nil && video.Thumbnail.File.(*os.File) != nil {
-						os.Remove(video.Thumbnail.String())
-					}
-				}
+	switch media.MediaType() {
+	case "photo":
+		if photo, ok := media.(*telego.InputMediaPhoto); ok {
+			os.Remove(photo.Media.String())
+		}
+	case "video":
+		if video, ok := media.(*telego.InputMediaVideo); ok {
+			os.Remove(video.Media.String())
+			if video.Thumbnail != nil && video.Thumbnail.File.(*os.File) != nil {
+				os.Remove(video.Thumbnail.String())
 			}
+		}
+	}
 }
 
 func SetMediaCache(replied []telego.Message, result []string) error {
@@ -319,7 +326,7 @@ func SetMediaCache(replied []telego.Message, result []string) error {
 	album := Medias{Caption: result[0], Files: files, Type: mediasType}
 	jsonValue, err := json.Marshal(album)
 	if err != nil {
-		return fmt.Errorf("could not marshal JSON: %v", err)
+		return fmt.Errorf("Couldn't marshal JSON: %v", err)
 	}
 
 	if err := cache.SetCache("media-cache:"+result[1], jsonValue, 48*time.Hour); err != nil {
@@ -356,7 +363,7 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 
 	var medias Medias
 	if err := json.Unmarshal([]byte(cached), &medias); err != nil {
-		return nil, "", fmt.Errorf("could not unmarshal medias JSON: %v", err)
+		return nil, "", fmt.Errorf("Couldn't unmarshal medias JSON: %v", err)
 	}
 
 	inputMedias := make([]telego.InputMedia, 0, len(medias.Files))
@@ -384,7 +391,7 @@ func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
 	cached, _ := cache.GetCache("youtube-cache:" + youtubeID)
 	if cached != "" {
 		if err := json.Unmarshal([]byte(cached), &youtube); err != nil {
-			return fmt.Errorf("could not unmarshal youtube JSON: %w", err)
+			return fmt.Errorf("Couldn't unmarshal youtube JSON: %w", err)
 		}
 	}
 
@@ -396,11 +403,11 @@ func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
 
 	jsonValue, err := json.Marshal(youtube)
 	if err != nil {
-		return fmt.Errorf("could not marshal youtube JSON: %w", err)
+		return fmt.Errorf("Couldn't marshal youtube JSON: %w", err)
 	}
 
 	if err := cache.SetCache("youtube-cache:"+youtubeID, jsonValue, 168*time.Hour); err != nil {
-		return fmt.Errorf("could not set youtube cache: %w", err)
+		return fmt.Errorf("Couldn't set youtube cache: %w", err)
 	}
 
 	return nil
@@ -414,11 +421,11 @@ func GetYoutubeCache(youtubeID string, format string) (string, string, error) {
 
 	var youtube YouTube
 	if err := json.Unmarshal([]byte(cached), &youtube); err != nil {
-		return "", "", fmt.Errorf("could not unmarshal youtube JSON: %v", err)
+		return "", "", fmt.Errorf("Couldn't unmarshal youtube JSON: %v", err)
 	}
 
 	if err := cache.SetCache("youtube-cache:"+youtubeID, cached, 168*time.Hour); err != nil {
-		return "", "", fmt.Errorf("could not reset cache expiration: %v", err)
+		return "", "", fmt.Errorf("Couldn't reset cache expiration: %v", err)
 	}
 
 	switch format {

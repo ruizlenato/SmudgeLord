@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path"
 	"regexp"
@@ -66,7 +66,8 @@ func getBlueskyData(username, postID string) BlueskyData {
 	var blueskyData BlueskyData
 	err = json.Unmarshal(response.Body(), &blueskyData)
 	if err != nil {
-		log.Print("Bluesky —  Error unmarshalling JSON: ", err)
+		slog.Error("Couldn't unmarshal JSON", "Error", err.Error())
+		return nil
 	}
 
 	return blueskyData
@@ -145,12 +146,12 @@ func handleVideo(blueskyData BlueskyData) []telego.InputMedia {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		log.Print("Bluesky — Error requesting playlist: ", err)
+		slog.Error("Couldn't request playlist", "Error", err.Error())
 	}
 
 	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
 	if err != nil {
-		log.Print("Bluesky — Failed to decode m3u8 playlist: ", err)
+		slog.Error("Couldn't decode m3u8 playlist", "Error", err.Error())
 	}
 
 	if listType != m3u8.MASTER {
@@ -172,25 +173,25 @@ func handleVideo(blueskyData BlueskyData) []telego.InputMedia {
 
 	width, height, err := parseResolution(highestBandwidthVariant.Resolution)
 	if err != nil {
-		log.Printf("Bluesky — Error parsing resolution: %s", err)
+		slog.Error("Couldn't parse resolution", "Error", err.Error())
 		return nil
 	}
 
 	file, err := downloader.Downloader(url)
 	if err != nil {
-		log.Printf("Bluesky — Error downloading video from %s: %s", url, err)
+		slog.Error("Couldn't download video", "URL", url, "PostURL", blueskyData.Thread.Post.URI, "Error", err.Error())
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(thumbnailURL)
 	if err != nil {
-		log.Printf("Bluesky — Error downloading thumbnail from %s: %s", thumbnailURL, err)
+		slog.Error("Couldn't download thumbnail", "URL", thumbnailURL, "PostURL", blueskyData.Thread.Post.URI, "Error", err.Error())
 		return nil
 	}
 
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
-		log.Printf("Bluesky — Error resizing thumbnail: %s", err)
+		slog.Error("Couldn't resize thumbnail", "ThumbnailURL", thumbnailURL, "PostURL", blueskyData.Thread.Post.URI, "Error", err.Error())
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{
@@ -218,7 +219,7 @@ func handleImage(blueskyImages []Image) []telego.InputMedia {
 		go func(index int, media Image) {
 			file, err := downloader.Downloader(media.Fullsize)
 			if err != nil {
-				log.Printf("BlueSky — Error downloading file from %s: %s", media.Fullsize, err)
+				slog.Error("Couldn't download image", "URL", media.Fullsize, "Error", err.Error())
 			}
 			results <- mediaResult{index, file, err}
 		}(i, media)
@@ -227,6 +228,7 @@ func handleImage(blueskyImages []Image) []telego.InputMedia {
 	for i := 0; i < mediaCount; i++ {
 		result := <-results
 		if result.err != nil {
+			slog.Error("Couldn't download media in carousel", "Media Count", result.index, "Error", result.err)
 			continue
 		}
 		if result.file != nil {

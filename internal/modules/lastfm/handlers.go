@@ -2,7 +2,7 @@ package lastfm
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
@@ -63,7 +63,7 @@ func handleSetUser(bot *telego.Bot, message telego.Message) {
 	}
 
 	if err := setLastFMUsername(message.From.ID, lastFMUsername); err != nil {
-		log.Printf("Error setting lastFM username: %v", err)
+		slog.Error("Couldn't set lastFM username: %v", "Error", err.Error())
 		return
 	}
 
