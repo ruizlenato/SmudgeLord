@@ -39,6 +39,12 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 }
 
 func getPostID(url string) (postID string) {
+	postIDRegex := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`)
+
+	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
+		return matches[1]
+	}
+
 	retryCaller := &utils.RetryCaller{
 		Caller:       utils.DefaultFastHTTPCaller,
 		MaxAttempts:  3,
@@ -57,8 +63,7 @@ func getPostID(url string) (postID string) {
 		return postID
 	}
 
-	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(request.URI().String())
-	if len(matches) > 1 {
+	if matches := postIDRegex.FindStringSubmatch(request.URI().String()); len(matches) > 1 {
 		return matches[1]
 	}
 
