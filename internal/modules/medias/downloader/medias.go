@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"mime"
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
@@ -36,15 +38,20 @@ type YouTube struct {
 	Caption string `json:"caption"`
 }
 
-var mimeExtensions = map[string]string{
-	"image/jpeg":      "jpg",
-	"image/png":       "png",
-	"image/gif":       "gif",
-	"image/webp":      "webp",
-	"video/mp4":       "mp4",
-	"video/webm":      "webm",
-	"video/quicktime": "mov",
-	"video/x-msvideo": "avi",
+func getFileExtension(response *fasthttp.Response, request *fasthttp.Request) string {
+	if mediatype, _, err := mime.ParseMediaType(string(response.Header.ContentType())); err == nil {
+		if mediatype == "text/plain" {
+			if ext := strings.TrimPrefix(filepath.Ext(string(request.URI().Path())), "."); ext != "" {
+				return ext
+			}
+		}
+
+		if exts, err := mime.ExtensionsByType(mediatype); err == nil && len(exts) > 0 {
+			return strings.TrimPrefix(exts[len(exts)-1], ".")
+		}
+	}
+
+	return "tmp"
 }
 
 func Downloader(media string) (*os.File, error) {
@@ -69,15 +76,9 @@ func Downloader(media string) (*os.File, error) {
 		return downloadM3U8(request, response)
 	}
 
-	extension := func(contentType []byte) string {
-		extension, ok := mimeExtensions[string(contentType)]
-		if !ok {
-			return ""
-		}
-		return extension
-	}
+	extension := getFileExtension(response, request)
 
-	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension(response.Header.ContentType())))
+	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension))
 	if err != nil {
 		return nil, err
 	}
