@@ -188,7 +188,7 @@ func handleKangSticker(bot *telego.Bot, message telego.Message) {
 
 	stickerSetShortName, stickerSetTitle := generateStickerSetName(bot, message)
 
-	reEmoji := regexp.MustCompile(`[\x{1F600}-\x{1F64F}]|[\x{2694}-\x{2697}]|[\x{2702}-\x{27B0}]|[\x{1F926}-\x{1F937}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{26FF}]`)
+	reEmoji := regexp.MustCompile(`[\x{1F000}-\x{1FAFF}]|[\x{2600}-\x{27BF}]|\x{200D}|[\x{FE00}-\x{FE0F}]|[\x{E0020}-\x{E007F}]|[\x{1F1E6}-\x{1F1FF}][\x{1F1E6}-\x{1F1FF}]`)
 	emoji = append(emoji, reEmoji.FindAllString(message.Text, -1)...)
 
 	if len(emoji) == 0 && message.ReplyToMessage.Sticker != nil {
