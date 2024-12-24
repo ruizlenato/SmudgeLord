@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -183,9 +184,10 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	outputFile, err := os.CreateTemp("", "SmudgeYoutube_*.mp4")
+	outputFile, err := os.Create(filepath.Join(os.TempDir(), fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)))
 	if err != nil {
-		slog.Error("Could't create temporary file", "Error", err.Error())
+		slog.Error("Could't create temporary file",
+			"Error", err.Error())
 		return nil, []string{}
 	}
 
@@ -195,6 +197,7 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 
 	err, outputFile = downloadAndMergeAudio(&youtubeClient, video, outputFile)
 	if err != nil {
+		slog.Error("Could't merge audio and video")
 		return nil, []string{}
 	}
 

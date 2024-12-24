@@ -13,45 +13,39 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func Handle(text string) ([]telego.InputMedia, []string) {
-	var medias []telego.InputMedia
-
-	postID := getPostID(text)
-	if postID == "" {
-		return nil, []string{}
-	}
-
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
-	if err == nil {
-		return cachedMedias, []string{cachedCaption, postID}
-	}
-
-	instagramData := getInstagramData(postID)
-	if instagramData == nil {
-		slog.Error("Couldn't find Instagram data", "PostID", postID)
-		return nil, []string{}
-	}
-
-	switch instagramData.Typename {
-	case "GraphVideo", "XDTGraphVideo":
-		medias = handleVideo(instagramData)
-	case "GraphImage", "XDTGraphImage":
-		medias = handleImage(instagramData)
-	case "GraphSidecar", "XDTGraphSidecar":
-		medias = handleSidecar(instagramData)
-	default:
-		return nil, []string{}
-	}
-	caption := getCaption(instagramData)
-
-	return medias, []string{caption, postID}
+type Handler struct {
+	username string
+	postID   string
 }
 
-func getPostID(url string) (postID string) {
+func Handle(text string) ([]telego.InputMedia, []string) {
+	handler := &Handler{}
+	if !handler.setPostID(text) {
+		return nil, []string{}
+	}
+
+	medias, caption, err := downloader.GetMediaCache(handler.postID)
+	if err == nil {
+		return medias, []string{caption, handler.postID}
+	}
+
+	data := handler.getInstagramData()
+	if data == nil {
+		slog.Error("Failed to fetch Instagram data",
+			"Post Info", []string{handler.username, handler.postID})
+		return nil, []string{}
+	}
+
+	handler.username = data.Owner.Username
+	return handler.processMedia(data), []string{getCaption(data), handler.postID}
+}
+
+func (h *Handler) setPostID(url string) bool {
 	postIDRegex := regexp.MustCompile(`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`)
 
 	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
-		return matches[1]
+		h.postID = matches[1]
+		return true
 	}
 
 	retryCaller := &utils.RetryCaller{
@@ -69,50 +63,64 @@ func getPostID(url string) (postID string) {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		return postID
+		return false
 	}
 
 	if matches := postIDRegex.FindStringSubmatch(request.URI().String()); len(matches) > 1 {
-		return matches[1]
+		h.postID = matches[1]
+		return true
 	}
 
-	return postID
+	return false
 }
 
-func getInstagramData(postID string) *ShortcodeMedia {
-	for _, fetchFunc := range []func(string) InstagramData{
-		getEmbedData, getScrapperAPIData, getGQLData,
+func (h *Handler) getInstagramData() *ShortcodeMedia {
+	for _, fetchFunc := range []func() InstagramData{
+		h.getEmbedData, h.getScrapperAPIData, h.getGQLData,
 	} {
-		if data := fetchFunc(postID); data != nil {
+		if data := fetchFunc(); data != nil {
 			return data.ShortcodeMedia
 		}
 	}
 	return nil
 }
 
-func getCaption(instagramData *ShortcodeMedia) string {
-	if len(instagramData.EdgeMediaToCaption.Edges) == 0 {
+func (h *Handler) processMedia(data *ShortcodeMedia) []telego.InputMedia {
+	switch data.Typename {
+	case "GraphVideo", "XDTGraphVideo":
+		return h.handleVideo(data)
+	case "GraphImage", "XDTGraphImage":
+		return h.handleImage(data)
+	case "GraphSidecar", "XDTGraphSidecar":
+		return h.handleSidecar(data)
+	default:
+		return nil
+	}
+}
+
+func getCaption(data *ShortcodeMedia) string {
+	if len(data.EdgeMediaToCaption.Edges) == 0 {
 		return ""
 	}
 
 	var sb strings.Builder
-	if username := instagramData.Owner.Username; username != "" {
-		sb.WriteString(fmt.Sprintf("<b>%v</b>", username))
+	if data.Owner.Username != "" {
+		fmt.Fprintf(&sb, "<b>%s</b>", data.Owner.Username)
 	}
 
-	if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
+	if coauthors := data.CoauthorProducers; coauthors != nil {
 		for i, coauthor := range *coauthors {
 			if i > 0 {
 				sb.WriteString(" <b>&</b> ")
 			}
-			sb.WriteString(fmt.Sprintf("<b>%v</b>", coauthor.Username))
+			fmt.Fprintf(&sb, "<b>%s</b>", coauthor.Username)
 		}
 	}
 
 	if sb.Len() > 0 {
 		sb.WriteString("<b>:</b>\n")
 	}
-	sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
+	sb.WriteString(data.EdgeMediaToCaption.Edges[0].Node.Text)
 
 	return sb.String()
 }
@@ -124,10 +132,10 @@ var (
 	htmlTagRegex   = regexp.MustCompile(`<[^>]*>`)
 )
 
-func getEmbedData(postID string) InstagramData {
-	var instagramData InstagramData
+func (h *Handler) getEmbedData() InstagramData {
+	var data InstagramData
 
-	request, response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", postID), utils.RequestParams{
+	request, response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", h.postID), utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
@@ -149,11 +157,11 @@ func getEmbedData(postID string) InstagramData {
 		s = strings.ReplaceAll(s, `\\/`, `/`)
 		s = strings.ReplaceAll(s, `\\`, `\`)
 
-		json.Unmarshal([]byte(s), &instagramData)
+		json.Unmarshal([]byte(s), &data)
 	}
 
 	mediaTypeData := mediaTypeRegex.FindAllStringSubmatch(string(response.Body()), -1)
-	if instagramData == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
+	if data == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
 		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(response.Body()), -1)
 		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
 
@@ -185,22 +193,22 @@ func getEmbedData(postID string) InstagramData {
             }
             }`
 
-		err := json.Unmarshal([]byte(dataJSON), &instagramData)
+		err := json.Unmarshal([]byte(dataJSON), &data)
 		if err != nil {
 			return nil
 		}
 	}
 
-	return instagramData
+	return data
 }
 
-func getScrapperAPIData(postID string) InstagramData {
-	var instagramData InstagramData
+func (h *Handler) getScrapperAPIData() InstagramData {
+	var data InstagramData
 
 	request, response, err := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
-			"id": postID,
+			"id": h.postID,
 		},
 	})
 	defer utils.ReleaseRequestResources(request, response)
@@ -208,16 +216,16 @@ func getScrapperAPIData(postID string) InstagramData {
 		return nil
 	}
 
-	err = json.Unmarshal(response.Body(), &instagramData)
+	err = json.Unmarshal(response.Body(), &data)
 	if err != nil {
 		return nil
 	}
 
-	return instagramData
+	return data
 }
 
-func getGQLData(postID string) InstagramData {
-	var instagramData InstagramData
+func (h *Handler) getGQLData() InstagramData {
+	var data InstagramData
 
 	request, response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
 		Method: "POST",
@@ -259,7 +267,7 @@ func getGQLData(postID string) InstagramData {
 			`fb_api_caller_class=RelayModern`,
 			`fb_api_req_friendly_name=PolarisPostActionLoadPostQueryQuery`,
 			`query_hash=b3055c01b4b222b8a47dc12b090e4e64`,
-			fmt.Sprintf(`variables={"shortcode": "%v","fetch_comment_count":2,"fetch_related_profile_media_count":0,"parent_comment_count":0,"child_comment_count":0,"fetch_like_count":10,"fetch_tagged_user_count":null,"fetch_preview_comment_count":2,"has_threaded_comments":true,"hoisted_comment_id":null,"hoisted_reply_id":null}`, postID),
+			fmt.Sprintf(`variables={"shortcode": "%v","fetch_comment_count":2,"fetch_related_profile_media_count":0,"parent_comment_count":0,"child_comment_count":0,"fetch_like_count":10,"fetch_tagged_user_count":null,"fetch_preview_comment_count":2,"has_threaded_comments":true,"hoisted_comment_id":null,"hoisted_reply_id":null}`, h.postID),
 			`server_timestamps=true`,
 			`doc_id=25531498899829322`,
 		},
@@ -270,46 +278,54 @@ func getGQLData(postID string) InstagramData {
 		return nil
 	}
 
-	err = json.Unmarshal(response.Body(), &instagramData)
+	err = json.Unmarshal(response.Body(), &data)
 	if err != nil {
 		return nil
 	}
 
-	return instagramData
+	return data
 }
 
-func handleVideo(instagramData *ShortcodeMedia) []telego.InputMedia {
-	file, err := downloader.Downloader(instagramData.VideoURL)
+func (h *Handler) handleVideo(data *ShortcodeMedia) []telego.InputMedia {
+	file, err := downloader.Downloader(data.VideoURL)
 	if err != nil {
-		slog.Error("Couldn't download video", "PostID", instagramData.Shortcode, "Error", err.Error())
+		slog.Error("Failed to download video",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(instagramData.DisplayResources[len(instagramData.DisplayResources)-1].Src)
+	thumbnail, err := downloader.Downloader(data.DisplayResources[len(data.DisplayResources)-1].Src)
 	if err != nil {
-		slog.Error("Couldn't download thumbnail", "PostID", instagramData.Shortcode, "Error", err.Error())
+		slog.Error("Failed to download thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err)
 		return nil
 	}
 
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
-		slog.Error("Couldn't resize thumbnail", "PostID", instagramData.Shortcode, "Error", err.Error())
+		slog.Error("Failed to resize thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err)
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{
 		Type:              telego.MediaTypeVideo,
 		Media:             telego.InputFile{File: file},
 		Thumbnail:         &telego.InputFile{File: thumbnail},
-		Width:             instagramData.Dimensions.Width,
-		Height:            instagramData.Dimensions.Height,
+		Width:             data.Dimensions.Width,
+		Height:            data.Dimensions.Height,
 		SupportsStreaming: true,
 	}}
 }
 
-func handleImage(instagramData *ShortcodeMedia) []telego.InputMedia {
-	file, err := downloader.Downloader(instagramData.DisplayURL)
+func (h *Handler) handleImage(data *ShortcodeMedia) []telego.InputMedia {
+	file, err := downloader.Downloader(data.DisplayURL)
 	if err != nil {
-		slog.Error("Couldn't download image", "PostID", instagramData.Shortcode, "Error", err.Error())
+		slog.Error("Failed to download image",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 		return nil
 	}
 
@@ -319,42 +335,35 @@ func handleImage(instagramData *ShortcodeMedia) []telego.InputMedia {
 	}}
 }
 
-func handleSidecar(instagramData *ShortcodeMedia) []telego.InputMedia {
+func (h *Handler) handleSidecar(data *ShortcodeMedia) []telego.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
 		err   error
 	}
 
-	mediaCount := len(instagramData.EdgeSidecarToChildren.Edges)
+	mediaCount := len(data.EdgeSidecarToChildren.Edges)
 	mediaItems := make([]telego.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, result := range instagramData.EdgeSidecarToChildren.Edges {
-		go func(index int, result Edges) {
-			var media InputMedia
-			var err error
-			if !result.Node.IsVideo {
-				media.File, err = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
-			} else {
-				media.File, err = downloader.Downloader(result.Node.VideoURL)
-				if err == nil {
-					media.Thumbnail, err = downloader.Downloader(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
-				}
-			}
-			results <- mediaResult{index: index, media: &media, err: err}
-		}(i, result)
+	for i, media := range data.EdgeSidecarToChildren.Edges {
+		go func(index int, edge Edges) {
+			media, err := h.downloadMedia(index, edge)
+			results <- mediaResult{index: index, media: media, err: err}
+		}(i, media)
 	}
 
 	for i := 0; i < mediaCount; i++ {
 		result := <-results
 		if result.err != nil {
-			slog.Error("Couldn't download media in carousel", "Media Count", result.index, "PostID", instagramData.Shortcode, "Error", result.err)
+			slog.Error("Failed to download media in sidecar",
+				"Post Info", []string{h.username, h.postID},
+				"Error", result.err)
 			continue
 		}
 		if result.media.File != nil {
 			var mediaItem telego.InputMedia
-			if !instagramData.EdgeSidecarToChildren.Edges[result.index].Node.IsVideo {
+			if !data.EdgeSidecarToChildren.Edges[result.index].Node.IsVideo {
 				mediaItem = &telego.InputMediaPhoto{
 					Type:  telego.MediaTypePhoto,
 					Media: telego.InputFile{File: result.media.File},
@@ -363,8 +372,8 @@ func handleSidecar(instagramData *ShortcodeMedia) []telego.InputMedia {
 				mediaItem = &telego.InputMediaVideo{
 					Type:              telego.MediaTypeVideo,
 					Media:             telego.InputFile{File: result.media.File},
-					Width:             instagramData.Dimensions.Width,
-					Height:            instagramData.Dimensions.Height,
+					Width:             data.Dimensions.Width,
+					Height:            data.Dimensions.Height,
 					SupportsStreaming: true,
 				}
 				if result.media.Thumbnail != nil {
@@ -376,4 +385,23 @@ func handleSidecar(instagramData *ShortcodeMedia) []telego.InputMedia {
 	}
 
 	return mediaItems
+}
+
+func (h *Handler) downloadMedia(index int, data Edges) (*InputMedia, error) {
+	var media InputMedia
+	var err error
+	filename := fmt.Sprintf("SmudgeLord-Instagram_%d_%s_%s", index, h.username, h.postID)
+
+	if !data.Node.IsVideo {
+		media.File, err = downloader.Downloader(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src, filename)
+	} else {
+		media.File, err = downloader.Downloader(data.Node.VideoURL, filename)
+		if err == nil {
+			media.Thumbnail, err = downloader.Downloader(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
+		}
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &media, nil
 }

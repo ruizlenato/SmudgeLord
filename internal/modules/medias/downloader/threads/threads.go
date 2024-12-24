@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/mymmrac/telego"
@@ -14,75 +13,61 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 func Handle(text string) ([]telego.InputMedia, []string) {
-	var medias []telego.InputMedia
-	shortcode := getShortcode(text)
-	if shortcode == "" {
+	handler := &Handler{}
+	if !handler.setPostID(text) {
 		return nil, []string{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(shortcode)
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
 	if err == nil {
-		return cachedMedias, []string{cachedCaption, shortcode}
+		return cachedMedias, []string{cachedCaption, handler.postID}
 	}
 
-	graphQLData := getGQLData(getPostID(text))
+	graphQLData := getGQLData(handler.postID)
 	if graphQLData == nil || graphQLData.Data.Data.Edges == nil {
 		return nil, []string{}
 	}
 
-	threadsPost := graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post
-	if threadsPost.CarouselMedia != nil {
-		medias = handleCarousel(threadsPost)
-	} else if len(threadsPost.VideoVersions) > 0 {
-		medias = handleVideo(threadsPost)
-	} else if len(threadsPost.ImageVersions.Candidates) > 0 {
-		medias = handleImage(threadsPost)
-	}
-
-	if strings.HasPrefix(threadsPost.TextPostAppInfo.LinkPreviewAttachment.DisplayURL, "instagram.com") {
-		medias, result := instagram.Handle(threadsPost.TextPostAppInfo.LinkPreviewAttachment.URL)
+	if strings.HasPrefix(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.DisplayURL, "instagram.com") {
+		medias, result := instagram.Handle(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.URL)
 		return medias, result
 	}
 
-	caption := getCaption(graphQLData)
-
-	return medias, []string{caption, shortcode}
+	return handler.processMedia(graphQLData), []string{getCaption(graphQLData), handler.postID}
 }
 
-func getShortcode(url string) (postID string) {
-	if matches := regexp.MustCompile(`(?:post)/([A-Za-z0-9_-]+)`).FindStringSubmatch(url); len(matches) == 2 {
-		return matches[1]
-	}
-	return postID
-}
-
-func getPostID(message string) string {
-	request, response, err := utils.Request(message, utils.RequestParams{
+func (h *Handler) setPostID(url string) bool {
+	request, response, err := utils.Request(url, utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"User-Agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
 			"Sec-Fetch-Mode": "navigate",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
-
 	if err != nil {
-		return ""
+		return false
 	}
+
+	defer utils.ReleaseRequestResources(request, response)
 
 	idLocation := strings.Index(string(response.Body()), "post_id")
 	if idLocation == -1 {
-		return ""
+		return false
 	}
 
 	start := idLocation + 10
 	end := strings.Index(string(response.Body())[start:], "\"")
 	if end == -1 {
-		return ""
+		return false
 	}
-
-	return string(response.Body())[start : start+end]
+	h.postID = string(response.Body())[start : start+end]
+	return true
 }
 
 func getGQLData(postID string) ThreadsData {
@@ -123,11 +108,26 @@ func getGQLData(postID string) ThreadsData {
 
 	err = json.Unmarshal(response.Body(), &threadsData)
 	if err != nil {
-		slog.Error("Couldn't unmarshal Threads GQLData", "Error", err.Error())
+		slog.Error("Failed to unmarshal Threads GQLData", "Error", err.Error())
 		return nil
 	}
 
 	return threadsData
+}
+
+func (h *Handler) processMedia(data ThreadsData) []telego.InputMedia {
+	post := data.Data.Data.Edges[0].Node.ThreadItems[0].Post
+
+	switch {
+	case post.CarouselMedia != nil:
+		return h.handleCarousel(post)
+	case len(post.VideoVersions) > 0:
+		return h.handleVideo(post)
+	case len(post.ImageVersions.Candidates) > 0:
+		return h.handleImage(post)
+	default:
+		return nil
+	}
 }
 
 func getCaption(threadsData ThreadsData) string {
@@ -145,7 +145,7 @@ type InputMedia struct {
 	Thumbnail *os.File
 }
 
-func handleCarousel(post Post) []telego.InputMedia {
+func (h *Handler) handleCarousel(post Post) []telego.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
@@ -161,9 +161,9 @@ func handleCarousel(post Post) []telego.InputMedia {
 			var media InputMedia
 			var err error
 			if (*post.CarouselMedia)[index].VideoVersions == nil {
-				media.File, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
+				media.File, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL, fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", index, h.username, h.postID))
 			} else {
-				media.File, err = downloader.Downloader(threadsMedia.VideoVersions[0].URL)
+				media.File, err = downloader.Downloader(threadsMedia.VideoVersions[0].URL, fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", index, h.username, h.postID))
 				if err == nil {
 					media.Thumbnail, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
 				}
@@ -175,7 +175,10 @@ func handleCarousel(post Post) []telego.InputMedia {
 	for i := 0; i < mediaCount; i++ {
 		result := <-results
 		if result.err != nil {
-			slog.Error("Couldn't download media in carousel", "Media Count", result.index, "Error", result.err)
+			slog.Error("Failed to download media in carousel",
+				"PostID", h.postID,
+				"Media Count", result.index,
+				"Error", result.err)
 			continue
 		}
 		if result.media.File != nil {
@@ -204,22 +207,28 @@ func handleCarousel(post Post) []telego.InputMedia {
 	return mediaItems
 }
 
-func handleVideo(post Post) []telego.InputMedia {
+func (h *Handler) handleVideo(post Post) []telego.InputMedia {
 	file, err := downloader.Downloader(post.VideoVersions[0].URL)
 	if err != nil {
-		slog.Error("Couldn't download video", "Error", err.Error())
+		slog.Error("Failed to download video",
+			"PostID", h.postID,
+			"Error", err.Error())
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		slog.Error("Couldn't download thumbnail", "Error", err.Error())
+		slog.Error("Failed to download thumbnail",
+			"PostID", h.postID,
+			"Error", err.Error())
 		return nil
 	}
 
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
-		slog.Error("Couldn't resize thumbnail", "Error", err.Error())
+		slog.Error("Failed to resize thumbnail",
+			"PostID", h.postID,
+			"Error", err.Error())
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{
@@ -232,10 +241,12 @@ func handleVideo(post Post) []telego.InputMedia {
 	}}
 }
 
-func handleImage(post Post) []telego.InputMedia {
+func (h *Handler) handleImage(post Post) []telego.InputMedia {
 	file, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		slog.Error("Couldn't download image", "Error", err.Error())
+		slog.Error("Failed to download image",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 		return nil
 	}
 

@@ -54,7 +54,7 @@ func getFileExtension(response *fasthttp.Response, request *fasthttp.Request) st
 	return "tmp"
 }
 
-func Downloader(media string) (*os.File, error) {
+func Downloader(media string, filename ...string) (*os.File, error) {
 	retryCaller := &utils.RetryCaller{
 		Caller:       utils.DefaultFastHTTPCaller,
 		MaxAttempts:  3,
@@ -78,17 +78,25 @@ func Downloader(media string) (*os.File, error) {
 
 	extension := getFileExtension(response, request)
 
-	file, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension))
-	if err != nil {
-		return nil, err
-	}
-
+	var file *os.File
 	defer func() {
 		if err != nil {
 			file.Close()
 			os.Remove(file.Name())
 		}
 	}()
+
+	if len(filename) == 1 {
+		file, err = os.Create(filepath.Join(os.TempDir(), filename[0]+"."+extension))
+		if err != nil {
+			file, err = os.CreateTemp("", fmt.Sprintf("SmudgeLord*.%s", extension))
+		}
+	} else {
+		file, err = os.CreateTemp("", fmt.Sprintf("SmudgeLord*.%s", extension))
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to create temp file: %w", err)
+	}
 
 	if _, err = file.Write(response.Body()); err != nil {
 		return nil, err
@@ -181,7 +189,7 @@ func downloadSegment(url string) (string, error) {
 		return "", err
 	}
 
-	tmpFile, err := os.CreateTemp("", "SmudgeSegment-*.ts")
+	tmpFile, err := os.CreateTemp("", "*.ts")
 	if err != nil {
 		return "", err
 	}
@@ -195,14 +203,14 @@ func downloadSegment(url string) (string, error) {
 }
 
 func mergeSegments(segmentFiles []string) (*os.File, error) {
-	listFile, err := os.CreateTemp("", "SmudgeSegment*.txt")
+	listFile, err := os.CreateTemp("", "*.txt")
 	if err != nil {
 		return nil, err
 	}
 	defer listFile.Close()
 	defer os.Remove(listFile.Name())
 
-	file, err := os.CreateTemp("", "Smudge*.mp4")
+	file, err := os.CreateTemp("", "SmudgeLord*.mp4")
 	if err != nil {
 		return nil, err
 	}

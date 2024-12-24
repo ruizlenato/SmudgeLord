@@ -18,7 +18,6 @@ import (
 
 var redlibInstance = "nyc1.lr.ggtyler.dev"
 
-// Regex patterns
 var (
 	postInfoRegex     = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
 	redditURLRegex    = regexp.MustCompile(`(?:www.)?reddit.com`)
@@ -30,24 +29,39 @@ var (
 	cleanupRegex      = regexp.MustCompile(`(?s)(?:#\d+|amp);`)
 )
 
+type Handler struct {
+	subreddit string
+	postID    string
+}
+
 func Handle(text string) ([]telego.InputMedia, []string) {
-	postInfo := getPostInfo(text)
-	if len(postInfo) < 2 {
+	handler := &Handler{}
+	if !handler.getPostInfo(text) {
 		return nil, []string{}
 	}
-	medias, caption := processMedia(text)
+
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(fmt.Sprintf("%s/%s", handler.subreddit, handler.postID))
+	if err == nil {
+		return cachedMedias, []string{cachedCaption, fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)}
+	}
+
+	medias, caption := handler.processMedia(text)
 	if medias == nil {
 		return nil, []string{}
 	}
 
-	return medias, []string{caption, fmt.Sprintf("%s/%s", postInfo[1], postInfo[2])}
+	return medias, []string{caption, fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)}
 }
 
-func getPostInfo(url string) []string {
-	if matches := postInfoRegex.FindStringSubmatch(url); len(matches) > 2 {
-		return matches
+func (h *Handler) getPostInfo(url string) bool {
+	matches := postInfoRegex.FindStringSubmatch(url)
+	if len(matches) < 3 {
+		return false
 	}
-	return []string{}
+
+	h.subreddit = matches[1]
+	h.postID = matches[2]
+	return true
 }
 
 func buildMediaURL(request *fasthttp.Request, path string) string {
@@ -58,7 +72,7 @@ func buildMediaURL(request *fasthttp.Request, path string) string {
 	)
 }
 
-func processMedia(url string) ([]telego.InputMedia, string) {
+func (h *Handler) processMedia(url string) ([]telego.InputMedia, string) {
 	request, response, err := utils.Request(
 		redditURLRegex.ReplaceAllString(url, redlibInstance),
 		utils.RequestParams{
@@ -71,7 +85,7 @@ func processMedia(url string) ([]telego.InputMedia, string) {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.Body() == nil {
-		slog.Error("Couldn't fetch media content", "Error", err.Error())
+		slog.Error("Failed to fetch media content", "Error", err.Error())
 		return nil, ""
 	}
 
@@ -80,11 +94,11 @@ func processMedia(url string) ([]telego.InputMedia, string) {
 		return nil, ""
 	}
 
-	if videoMedia := processVideoMedia(mediaContent, request); videoMedia != nil {
+	if videoMedia := h.processVideoMedia(mediaContent, request); videoMedia != nil {
 		return videoMedia, extractCaption(response.Body())
 	}
 
-	if imageMedia := processImageMedia(mediaContent, request); imageMedia != nil {
+	if imageMedia := h.processImageMedia(mediaContent, request); imageMedia != nil {
 		return imageMedia, extractCaption(response.Body())
 	}
 
@@ -114,22 +128,22 @@ func extractCaption(body []byte) string {
 	return fmt.Sprintf("<b>%s — %s</b>: %s", postAuthor, postSubreddit, postTitle)
 }
 
-func processVideoMedia(content string, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processVideoMedia(content string, request *fasthttp.Request) []telego.InputMedia {
 	if videoMatch := videoRegex.FindStringSubmatch(content); len(videoMatch) > 1 {
 		playlistURL := cleanupRegex.ReplaceAllString(buildMediaURL(request, playlistRegex.FindStringSubmatch(content)[1]), "")
 
 		audioFile, err := downloadAudio(playlistURL)
 		if err != nil {
-			slog.Error("Couldn't download audio", "Error", err.Error())
+			slog.Error("Failed to download audio", "Error", err.Error())
 			return nil
 		}
 
-		thumbnail := downloadThumbnail(content, request)
+		thumbnail := h.downloadThumbnail(content, request)
 		videoURL := buildMediaURL(request, videoMatch[1])
 
 		videoFile, err := downloader.Downloader(videoURL)
 		if err != nil {
-			slog.Error("Couldn't download video", "Error", err.Error())
+			slog.Error("Failed to download video", "Error", err.Error())
 			return nil
 		}
 
@@ -205,13 +219,13 @@ func getHighestQualityAudio(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
 	return bestAudio
 }
 
-func processImageMedia(content string, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processImageMedia(content string, request *fasthttp.Request) []telego.InputMedia {
 	if imageMatch := imageRegex.FindStringSubmatch(content); len(imageMatch) > 1 {
 		imageURL := buildMediaURL(request, imageMatch[1])
 
 		file, err := downloader.Downloader(imageURL)
 		if err != nil {
-			slog.Error("Couldn't download image", "Error", err.Error())
+			slog.Error("Failed to download image", "Error", err.Error())
 			return nil
 		}
 
@@ -223,19 +237,19 @@ func processImageMedia(content string, request *fasthttp.Request) []telego.Input
 	return nil
 }
 
-func downloadThumbnail(content string, request *fasthttp.Request) *os.File {
+func (h *Handler) downloadThumbnail(content string, request *fasthttp.Request) *os.File {
 	if thumbMatch := thumbRegex.FindStringSubmatch(content); len(thumbMatch) > 1 {
 		thumbnailURL := cleanupRegex.ReplaceAllString(buildMediaURL(request, thumbMatch[1]), "")
 
 		thumbnail, err := downloader.Downloader(thumbnailURL)
 		if err != nil {
-			slog.Error("Couldn't download thumbnail", "Error", err.Error(), "Thumbnail URL", thumbnailURL)
+			slog.Error("Failed to download thumbnail", "Error", err.Error(), "Thumbnail URL", thumbnailURL)
 			return nil
 		}
 
 		err = utils.ResizeThumbnail(thumbnail)
 		if err != nil {
-			slog.Error("Couldn't resize thumbnail", "Error", err.Error())
+			slog.Error("Failed to resize thumbnail", "Error", err.Error())
 		}
 
 		return thumbnail

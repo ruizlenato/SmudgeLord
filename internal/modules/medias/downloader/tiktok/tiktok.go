@@ -14,35 +14,40 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func Handle(text string) ([]telego.InputMedia, []string) {
-	postID := getPostID(text)
-	if postID == "" {
-		return nil, []string{}
-	}
-
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
-	if err == nil {
-		return cachedMedias, []string{cachedCaption, postID}
-	}
-
-	tikTokData := getTikTokData(postID)
-	if tikTokData == nil {
-		return nil, []string{}
-	}
-
-	caption := getCaption(tikTokData)
-
-	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
-		return downloadImages(tikTokData), []string{caption, postID}
-	}
-	return downloadVideo(tikTokData), []string{caption, postID}
+type Handler struct {
+	username string
+	postID   string
 }
 
-func getPostID(url string) (postID string) {
-	postIDRegex := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`)
+func Handle(text string) ([]telego.InputMedia, []string) {
+	handler := &Handler{}
+	if !handler.setPostID(text) {
+		return nil, []string{}
+	}
 
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
+	if err == nil {
+		return cachedMedias, []string{cachedCaption, handler.postID}
+	}
+
+	if tikTokData := handler.getTikTokData(); tikTokData != nil {
+		handler.username = *tikTokData.AwemeList[0].Author.Nickname
+		caption := getCaption(tikTokData)
+
+		if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
+			return handler.downloadImages(tikTokData), []string{caption, handler.postID}
+		}
+		return handler.downloadVideo(tikTokData), []string{caption, handler.postID}
+	}
+
+	return nil, []string{}
+}
+
+func (h *Handler) setPostID(url string) bool {
+	postIDRegex := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`)
 	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
-		return matches[1]
+		h.postID = matches[1]
+		return true
 	}
 
 	retryCaller := &utils.RetryCaller{
@@ -57,20 +62,19 @@ func getPostID(url string) (postID string) {
 		Method:    "GET",
 		Redirects: 2,
 	})
+	if err != nil {
+		return false
+	}
 	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil {
-		return postID
-	}
-
 	if matches := postIDRegex.FindStringSubmatch(request.URI().String()); len(matches) > 1 {
-		return matches[1]
+		h.postID = matches[1]
+		return true
 	}
-
-	return postID
+	return false
 }
 
-func getTikTokData(postID string) TikTokData {
+func (h *Handler) getTikTokData() TikTokData {
 	request, response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method: "OPTIONS",
 		Headers: map[string]string{
@@ -84,7 +88,7 @@ func getTikTokData(postID string) TikTokData {
 			"device_platform": "android",
 			"device_type":     "ASUS_Z01QD",
 			"os_version":      "9",
-			"aweme_id":        postID,
+			"aweme_id":        h.postID,
 			"aid":             "1128",
 		},
 	})
@@ -99,7 +103,7 @@ func getTikTokData(postID string) TikTokData {
 		return nil
 	}
 
-	if tikTokData.AwemeList[0].AwemeID != postID {
+	if tikTokData.AwemeList[0].AwemeID != h.postID {
 		return nil
 	}
 
@@ -116,7 +120,7 @@ func getCaption(tikTokData TikTokData) string {
 	return ""
 }
 
-func downloadImages(tikTokData TikTokData) []telego.InputMedia {
+func (h *Handler) downloadImages(tikTokData TikTokData) []telego.InputMedia {
 	type mediaResult struct {
 		index int
 		file  *os.File
@@ -129,9 +133,11 @@ func downloadImages(tikTokData TikTokData) []telego.InputMedia {
 
 	for i, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
 		go func(index int, media Image) {
-			file, err := downloader.Downloader(media.DisplayImage.URLList[1])
+			file, err := downloader.Downloader(media.DisplayImage.URLList[1], fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", index, h.username, h.postID))
 			if err != nil {
-				slog.Error("Couldn't download thumbnail", "PostID", tikTokData.AwemeList[0].AwemeID, "Error", err.Error())
+				slog.Error("Failed to download thumbnail",
+					"Post Info", []string{h.username, h.postID},
+					"Error", err.Error())
 			}
 			results <- mediaResult{index, file, err}
 		}(i, media)
@@ -140,7 +146,10 @@ func downloadImages(tikTokData TikTokData) []telego.InputMedia {
 	for i := 0; i < mediaCount; i++ {
 		result := <-results
 		if result.err != nil {
-			slog.Error("Couldn't download media in carousel", "Media Count", result.index, "Error", result.err)
+			slog.Error("Failed to download media in carousel",
+				"Post Info", []string{h.username, h.postID},
+				"Media Count", result.index,
+				"Error", result.err)
 			continue
 		}
 		if result.file != nil {
@@ -154,22 +163,28 @@ func downloadImages(tikTokData TikTokData) []telego.InputMedia {
 	return mediaItems
 }
 
-func downloadVideo(tikTokData TikTokData) []telego.InputMedia {
-	file, err := downloader.Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
+func (h *Handler) downloadVideo(tikTokData TikTokData) []telego.InputMedia {
+	file, err := downloader.Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0], fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID))
 	if err != nil {
-		slog.Error("Couldn't download video", "PostID", tikTokData.AwemeList[0].AwemeID, "Error", err.Error())
+		slog.Error("Failed to download video",
+			"PostID", tikTokData.AwemeList[0].AwemeID,
+			"Error", err.Error())
 		return nil
 	}
 
 	thumbnail, err := downloader.Downloader(tikTokData.AwemeList[0].Video.Cover.URLList[0])
 	if err != nil {
-		slog.Error("Couldn't download thumbnail", "PostID", tikTokData.AwemeList[0].AwemeID, "Error", err.Error())
+		slog.Error("Failed to download thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 		return nil
 	}
 
 	err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
-		slog.Error("Couldn't resize thumbnail", "PostID", tikTokData.AwemeList[0].AwemeID, "Error", err.Error())
+		slog.Error("Failed to resize thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 	}
 
 	return []telego.InputMedia{&telego.InputMediaVideo{
