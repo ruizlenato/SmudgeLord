@@ -6,7 +6,7 @@ require (
 	github.com/anthonynsimon/bild v0.14.0
 	github.com/fasthttp/router v1.5.3
 	github.com/joho/godotenv v1.5.1
-	github.com/kkdai/youtube/v2 v2.10.1
+	github.com/kkdai/youtube/v2 v2.10.3-0.20241223090316-51b72ca3df15
 	github.com/lus/fluent.go v0.0.0-20240613180830-a11a6bbd90a9
 	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/mymmrac/telego v0.31.5
