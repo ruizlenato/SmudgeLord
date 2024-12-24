@@ -95,11 +95,18 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	var outputFile *os.File
+	defer func() {
+		if err != nil {
+			outputFile.Close()
+			os.Remove(outputFile.Name())
+		}
+	}()
+
 	switch callbackData[0] {
 	case "_aud":
 		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.m4a")
 	case "_vid":
-		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.mp4")
+		outputFile, err = os.Create(filepath.Join(os.TempDir(), fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)))
 	}
 	if err != nil {
 		slog.Error("Could't create temporary file", "Error", err.Error())
@@ -112,15 +119,10 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	if callbackData[0] == "_vid" {
-		err, _ = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+		err, outputFile = downloadAndMergeAudio(&youtubeClient, video, outputFile)
 		if err != nil {
 			return nil, video, err
 		}
-	}
-
-	_, err = outputFile.Seek(0, 0)
-	if err != nil {
-		return nil, video, err
 	}
 
 	return outputFile, video, nil
@@ -143,7 +145,7 @@ func downloadAndMergeAudio(youtubeClient *youtube.Client, video *youtube.Video, 
 		return err, nil
 	}
 
-	return nil, downloader.MergeAudioVideo(videoFile, audioFile)
+	return downloader.MergeAudioVideo(videoFile, audioFile), videoFile
 }
 
 func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
@@ -174,6 +176,8 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 	youtubeClient := configureYoutubeClient()
 	video, err := youtubeClient.GetVideo(videoURL)
 	if err != nil {
+		slog.Error("Could't get video",
+			"Error", err.Error())
 		return nil, []string{}
 	}
 

@@ -268,50 +268,32 @@ func RemoveTags(text string) string {
 	return cleanText
 }
 
-func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
+func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
 	videoFile.Seek(0, 0)
 	audioFile.Seek(0, 0)
 
-	videoPath := videoFile.Name()
-	videoFile.Close()
-
-	tempVideoPath := videoPath + ".original"
-	err := os.Rename(videoPath, tempVideoPath)
+	outputFile, err := os.CreateTemp("", "Smudge*.mp4")
 	if err != nil {
-		slog.Error("Failed to rename video file",
-			"Error", err.Error())
-		return nil
+		return err
 	}
+	defer os.Remove(outputFile.Name())
+	defer os.Remove(audioFile.Name())
+	videoPath := videoFile.Name()
 
-	ffmpegCMD := exec.Command("ffmpeg", "-y",
-		"-loglevel", "warning",
-		"-i", tempVideoPath,
+	err = exec.Command("ffmpeg",
+		"-i", videoPath,
 		"-i", audioFile.Name(),
 		"-c", "copy",
 		"-shortest",
-		videoPath,
-	)
-
-	err = ffmpegCMD.Run()
+		"-y",
+		outputFile.Name(),
+	).Run()
 	if err != nil {
-		slog.Error("Failed to merge audio and video",
-			"Error", err.Error())
-		os.RemoveAll(videoPath)
-		os.Rename(tempVideoPath, videoPath)
-		return nil
+		return err
 	}
+	outputFile.Seek(0, 0)
 
-	os.Remove(tempVideoPath)
-	os.Remove(audioFile.Name())
-
-	mergedFile, err := os.Open(videoPath)
-	if err != nil {
-		slog.Error("Failed to open merged file",
-			"Error", err.Error())
-		return nil
-	}
-
-	return mergedFile
+	return os.Rename(outputFile.Name(), videoPath)
 }
 
 func RemoveMediaFiles(mediaItems []telego.InputMedia) {
@@ -431,7 +413,10 @@ func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
 	}
 
 	if err := cache.SetCache("youtube-cache:"+youtubeID, jsonValue, 168*time.Hour); err != nil {
-		return fmt.Errorf("Couldn't set youtube cache: %w", err)
+		if !strings.Contains(err.Error(), "connect: connection refused") {
+			return err
+		}
+		return nil
 	}
 
 	return nil
