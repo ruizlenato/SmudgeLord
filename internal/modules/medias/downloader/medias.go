@@ -64,7 +64,8 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 	}
 
 	request, response, err := retryCaller.Request(media, utils.RequestParams{
-		Method: "GET",
+		Method:    "GET",
+		Redirects: 2,
 	})
 	defer utils.ReleaseRequestResources(request, response)
 
