@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"log/slog"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -92,7 +93,13 @@ func (h *ColorHandler) Handle(ctx context.Context, r slog.Record) error {
 					Line: frame.Line,
 				}
 			}
-			file := filepath.Base(fs.File)
+
+			file := fs.File
+			if wd, err := os.Getwd(); err == nil {
+				if rel, err := filepath.Rel(filepath.Dir(wd), file); err == nil {
+					file = "./" + rel
+				}
+			}
 			attrs["Source"] = file + ":" + strconv.Itoa(fs.Line)
 		}
 	}

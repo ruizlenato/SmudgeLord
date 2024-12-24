@@ -176,7 +176,13 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 	youtubeClient := configureYoutubeClient()
 	video, err := youtubeClient.GetVideo(videoURL)
 	if err != nil {
+		if strings.Contains(err.Error(), "can't bypass age restriction") {
+			slog.Warn("Age restricted video",
+				"URL", videoURL)
+			return nil, []string{}
+		}
 		slog.Error("Could't get video",
+			"URL", videoURL,
 			"Error", err.Error())
 		return nil, []string{}
 	}
