@@ -271,32 +271,46 @@ func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
 	videoFile.Seek(0, 0)
 	audioFile.Seek(0, 0)
 
-	defer os.Remove(videoFile.Name())
-	defer os.Remove(audioFile.Name())
+	videoPath := videoFile.Name()
+	videoFile.Close()
 
-	outputFile, err := os.CreateTemp("", "SmudgeYoutube_*.mp4")
+	tempVideoPath := videoPath + ".original"
+	err := os.Rename(videoPath, tempVideoPath)
 	if err != nil {
-		slog.Error("Could't create temporary file", "Error", err.Error())
+		slog.Error("Failed to rename video file",
+			"Error", err.Error())
 		return nil
 	}
 
 	ffmpegCMD := exec.Command("ffmpeg", "-y",
 		"-loglevel", "warning",
-		"-i", videoFile.Name(),
+		"-i", tempVideoPath,
 		"-i", audioFile.Name(),
 		"-c", "copy",
 		"-shortest",
-		outputFile.Name(),
+		videoPath,
 	)
 
 	err = ffmpegCMD.Run()
 	if err != nil {
-		slog.Error("Couldn't merge audio and video", "Error", err.Error())
-		os.Remove(outputFile.Name())
+		slog.Error("Failed to merge audio and video",
+			"Error", err.Error())
+		os.RemoveAll(videoPath)
+		os.Rename(tempVideoPath, videoPath)
 		return nil
 	}
 
-	return outputFile
+	os.Remove(tempVideoPath)
+	os.Remove(audioFile.Name())
+
+	mergedFile, err := os.Open(videoPath)
+	if err != nil {
+		slog.Error("Failed to open merged file",
+			"Error", err.Error())
+		return nil
+	}
+
+	return mergedFile
 }
 
 func RemoveMediaFiles(mediaItems []telego.InputMedia) {
