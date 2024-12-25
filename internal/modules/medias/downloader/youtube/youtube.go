@@ -95,11 +95,18 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	var outputFile *os.File
+	defer func() {
+		if err != nil {
+			outputFile.Close()
+			os.Remove(outputFile.Name())
+		}
+	}()
+
 	switch callbackData[0] {
 	case "_aud":
 		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.m4a")
 	case "_vid":
-		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.mp4")
+		outputFile, err = os.Create(filepath.Join(os.TempDir(), fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)))
 	}
 	if err != nil {
 		slog.Error("Could't create temporary file", "Error", err.Error())
@@ -112,38 +119,33 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	if callbackData[0] == "_vid" {
-		err, _ = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+		outputFile, err = downloadAndMergeAudio(&youtubeClient, video, outputFile)
 		if err != nil {
 			return nil, video, err
 		}
 	}
 
-	_, err = outputFile.Seek(0, 0)
-	if err != nil {
-		return nil, video, err
-	}
-
 	return outputFile, video, nil
 }
 
-func downloadAndMergeAudio(youtubeClient *youtube.Client, video *youtube.Video, videoFile *os.File) (error, *os.File) {
+func downloadAndMergeAudio(youtubeClient *youtube.Client, video *youtube.Video, videoFile *os.File) (*os.File, error) {
 	audioFormat, err := getVideoFormat(video, 140)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
 	audioFile, err := os.CreateTemp("", "SmudgeYoutube_*.m4a")
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 	defer audioFile.Close()
 
 	err = downloadStream(youtubeClient, video, audioFormat, audioFile)
 	if err != nil {
-		return err, nil
+		return nil, err
 	}
 
-	return nil, downloader.MergeAudioVideo(videoFile, audioFile)
+	return downloader.MergeAudioVideo(videoFile, audioFile)
 }
 
 func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
@@ -174,6 +176,14 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 	youtubeClient := configureYoutubeClient()
 	video, err := youtubeClient.GetVideo(videoURL)
 	if err != nil {
+		if strings.Contains(err.Error(), "can't bypass age restriction") {
+			slog.Warn("Age restricted video",
+				"URL", videoURL)
+			return nil, []string{}
+		}
+		slog.Error("Could't get video",
+			"URL", videoURL,
+			"Error", err.Error())
 		return nil, []string{}
 	}
 
@@ -195,7 +205,7 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	err, outputFile = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+	outputFile, err = downloadAndMergeAudio(&youtubeClient, video, outputFile)
 	if err != nil {
 		slog.Error("Could't merge audio and video")
 		return nil, []string{}

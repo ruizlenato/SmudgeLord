@@ -134,7 +134,8 @@ func (h *Handler) processVideoMedia(content string, request *fasthttp.Request) [
 
 		audioFile, err := downloadAudio(playlistURL)
 		if err != nil {
-			slog.Error("Failed to download audio", "Error", err.Error())
+			slog.Error("Failed to download audio",
+				"Error", err.Error())
 			return nil
 		}
 
@@ -143,15 +144,21 @@ func (h *Handler) processVideoMedia(content string, request *fasthttp.Request) [
 
 		videoFile, err := downloader.Downloader(videoURL)
 		if err != nil {
-			slog.Error("Failed to download video", "Error", err.Error())
+			slog.Error("Failed to download video",
+				"Error", err.Error())
 			return nil
 		}
 
-		file := downloader.MergeAudioVideo(audioFile, videoFile)
+		videoFile, err = downloader.MergeAudioVideo(audioFile, videoFile)
+		if err != nil {
+			slog.Error("Failed to merge audio and video",
+				"Error", err.Error())
+			return nil
+		}
 
 		video := []telego.InputMedia{&telego.InputMediaVideo{
 			Type:              telego.MediaTypeVideo,
-			Media:             telego.InputFile{File: file},
+			Media:             telego.InputFile{File: videoFile},
 			SupportsStreaming: true,
 		}}
 
