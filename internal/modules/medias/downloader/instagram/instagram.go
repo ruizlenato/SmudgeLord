@@ -79,6 +79,9 @@ func (h *Handler) getInstagramData() *ShortcodeMedia {
 		h.getEmbedData, h.getScrapperAPIData, h.getGQLData,
 	} {
 		if data := fetchFunc(); data != nil {
+			if data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia != nil {
+				return data.Data.XDTShortcodeMedia
+			}
 			return data.ShortcodeMedia
 		}
 	}
@@ -230,46 +233,19 @@ func (h *Handler) getGQLData() InstagramData {
 	request, response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
-			`User-Agent`:         `Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0`,
-			`Accept`:             `*/*`,
-			`Accept-Language`:    `en-US;q=0.5,en;q=0.3`,
-			`Content-Type`:       `application/x-www-form-urlencoded`,
-			`X-FB-Friendly-Name`: `PolarisPostActionLoadPostQueryQuery`,
-			`X-CSRFToken`:        `-m5n6c-w1Z9RmrGqkoGTMq`,
-			`X-IG-App-ID`:        `936619743392459`,
-			`X-FB-LSD`:           `AVp2LurCmJw`,
-			`X-ASBD-ID`:          `129477`,
-			`DNT`:                `1`,
-			`Sec-Fetch-Dest`:     `empty`,
-			`Sec-Fetch-Mode`:     `cors`,
-			`Sec-Fetch-Site`:     `same-origin`,
+			`User-Agent`:      `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0`,
+			`Accept-Language`: `en-US;q=0.5,en;q=0.3`,
+			`Content-Type`:    `application/x-www-form-urlencoded`,
+			`X-CSRFToken`:     `JKA19cNYckTn_Dr6bcTO5F`,
+			`X-IG-App-ID`:     `936619743392459`,
+			`X-FB-LSD`:        `AVqBX1zadbA`,
+			`Sec-Fetch-Site`:  `same-origin`,
 		},
 		BodyString: []string{
-			`av=0`,
-			`__d=www`,
-			`__user=0`,
-			`__a=1`,
-			`__req=3`,
-			`__hs=19734.HYP:instagram_web_pkg.2.1..0.0`,
-			`dpr=1`,
-			`__ccg=UNKNOWN`,
-			`__rev=1010782723`,
-			`__s=qg5qgx:efei15:ng6310`,
-			`__hsi=7323030086241513400`,
-			`__dyn=7xeUjG1mxu1syUbFp60DU98nwgU29zEdEc8co2qwJw5ux609vCwjE1xoswIwuo2awlU-cw5Mx62G3i1ywOwv89k2C1Fwc60AEC7U2czXwae4UaEW2G1NwwwNwKwHw8Xxm16wUxO1px-0iS2S3qazo7u1xwIwbS1LwTwKG1pg661pwr86C1mwrd6goK68jxe6V8`,
-			`__csr=gps8cIy8WTDAqjWDrpda9SoLHhaVeVEgvhaJzVQ8hF-qEPBV8O4EhGmciDBQh1mVuF9V9d2FHGicAVu8GAmfZiHzk9IxlhV94aKC5oOq6Uhx-Ku4Kaw04Jrx64-0oCdw0MXw1lm0EE2Ixcjg2Fg1JEko0N8U421tw62wq8989EMw1QpV60CE02BIw`,
-			`__comet_req=7`,
-			`lsd=AVp2LurCmJw`,
-			`jazoest=2947`,
-			`__spin_r=1010782723`,
-			`__spin_b=trunk`,
-			`__spin_t=1705025808`,
-			`fb_api_caller_class=RelayModern`,
-			`fb_api_req_friendly_name=PolarisPostActionLoadPostQueryQuery`,
-			`query_hash=b3055c01b4b222b8a47dc12b090e4e64`,
-			fmt.Sprintf(`variables={"shortcode": "%v","fetch_comment_count":2,"fetch_related_profile_media_count":0,"parent_comment_count":0,"child_comment_count":0,"fetch_like_count":10,"fetch_tagged_user_count":null,"fetch_preview_comment_count":2,"has_threaded_comments":true,"hoisted_comment_id":null,"hoisted_reply_id":null}`, h.postID),
-			`server_timestamps=true`,
-			`doc_id=25531498899829322`,
+			`lsd=AVqBX1zadbA`,
+			`jazoest=2949`,
+			fmt.Sprintf(`variables={"shortcode": "%v","fetch_comment_count":0,"fetch_related_profile_media_count":0,"parent_comment_count":null}`, h.postID),
+			`doc_id=8845758582119845`,
 		},
 	})
 	defer utils.ReleaseRequestResources(request, response)
