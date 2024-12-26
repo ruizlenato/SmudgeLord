@@ -7,6 +7,7 @@ type InstagramData *struct {
 	Data           struct {
 		XDTShortcodeMedia *ShortcodeMedia `json:"xdt_shortcode_media"`
 	} `json:"data,omitempty"`
+	Status string `json:"status"`
 }
 
 type ShortcodeMedia struct {

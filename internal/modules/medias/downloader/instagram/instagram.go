@@ -31,8 +31,6 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 
 	data := handler.getInstagramData()
 	if data == nil {
-		slog.Error("Failed to fetch Instagram data",
-			"Post Info", []string{handler.username, handler.postID})
 		return nil, []string{}
 	}
 
@@ -79,6 +77,11 @@ func (h *Handler) getInstagramData() *ShortcodeMedia {
 		h.getEmbedData, h.getScrapperAPIData, h.getGQLData,
 	} {
 		if data := fetchFunc(); data != nil {
+			if data.Status == "ok" && data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia == nil {
+				slog.Error("Failed to fetch Instagram data",
+					"Post Info", []string{h.username, h.postID})
+			}
+
 			if data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia != nil {
 				return data.Data.XDTShortcodeMedia
 			}
