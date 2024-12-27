@@ -88,7 +88,7 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 	}()
 
 	if len(filename) == 1 {
-		file, err = os.Create(filepath.Join(os.TempDir(), filename[0]+"."+extension))
+		file, err = os.Create(filepath.Join(os.TempDir(), utils.SanitizeString(filename[0])+"."+extension))
 		if err != nil {
 			file, err = os.CreateTemp("", fmt.Sprintf("SmudgeLord*.%s", extension))
 		}
@@ -268,33 +268,28 @@ func RemoveTags(text string) string {
 	return cleanText
 }
 
-func MergeAudioVideo(videoFile, audioFile *os.File) (outputFile *os.File, err error) {
+func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
 	videoFile.Seek(0, 0)
 	audioFile.Seek(0, 0)
 
-	outputFile, err = os.CreateTemp("", "Smudge*.mp4")
-	if err != nil {
-		return nil, err
-	}
-	defer os.Remove(videoFile.Name())
-	defer os.Remove(audioFile.Name())
-	videoPath := videoFile.Name()
+	videoName := videoFile.Name()
+	tempOutput := videoName + ".tmp" + filepath.Ext(videoName)
 
-	err = exec.Command("ffmpeg",
-		"-i", videoPath,
+	cmd := exec.Command("ffmpeg",
+		"-i", videoName,
 		"-i", audioFile.Name(),
 		"-c", "copy",
 		"-shortest",
-		"-y",
-		outputFile.Name(),
-	).Run()
-	if err != nil {
-		return nil, err
-	}
-	outputFile.Seek(0, 0)
-	err = os.Rename(outputFile.Name(), videoPath)
+		"-y", tempOutput,
+	)
 
-	return outputFile, err
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	err = os.Rename(tempOutput, videoName)
+	return err
 }
 
 func RemoveMediaFiles(mediaItems []telego.InputMedia) {

@@ -50,3 +50,17 @@ func EscapeHTML(s string) string {
 	)
 	return replacer.Replace(s)
 }
+
+// Some file systems do not support certain characters in file names.
+func SanitizeString(input string) string {
+	illegalChars := []rune{'}', '{', '%', '>', '<', '^', ';', ':', '`', '$', '"', '@', '=', '?', '|', '*'}
+
+	result := strings.ReplaceAll(input, "/", "_")
+	result = strings.ReplaceAll(result, "\\", "_")
+
+	for _, char := range illegalChars {
+		result = strings.ReplaceAll(result, string(char), "")
+	}
+
+	return result
+}

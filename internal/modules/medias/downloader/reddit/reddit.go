@@ -149,7 +149,7 @@ func (h *Handler) processVideoMedia(content string, request *fasthttp.Request) [
 			return nil
 		}
 
-		videoFile, err = downloader.MergeAudioVideo(audioFile, videoFile)
+		err = downloader.MergeAudioVideo(audioFile, videoFile)
 		if err != nil {
 			slog.Error("Failed to merge audio and video",
 				"Error", err.Error())
