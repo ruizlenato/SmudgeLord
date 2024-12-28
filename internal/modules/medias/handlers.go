@@ -74,7 +74,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 
 	for pattern, handler := range mediaHandlers {
 		if match, _ := regexp.MatchString(pattern, message.Text); match {
-			if strings.Contains(message.Text, "tiktok.com/") {
+			if regexp.MustCompile(`(tiktok\.com|reddit\.com)`).MatchString(message.Text) {
 				forceSend = true
 			}
 			mediaItems, result = handler(url[0])
@@ -86,7 +86,7 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 		}
 	}
 
-	if mediaItems == nil || len(mediaItems) == 0 || mediaItems[0] == nil || (len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" &&
+	if len(mediaItems) == 0 || mediaItems[0] == nil || (len(mediaItems) == 1 && mediaItems[0].MediaType() == "photo" &&
 		message.LinkPreviewOptions != nil && !message.LinkPreviewOptions.IsDisabled && !forceSend) {
 		return
 	}

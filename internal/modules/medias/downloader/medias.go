@@ -113,7 +113,7 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.File, error) {
 	playlist, _, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to decode m3u8 playlist: %s", err)
+		return nil, fmt.Errorf("failed to decode m3u8 playlist: %s", err)
 	}
 
 	mediaPlaylist := playlist.(*m3u8.MediaPlaylist)
@@ -282,7 +282,6 @@ func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
 		"-shortest",
 		"-y", tempOutput,
 	)
-
 	err = cmd.Run()
 	if err != nil {
 		return err

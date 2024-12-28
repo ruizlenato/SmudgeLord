@@ -2,6 +2,7 @@ package reddit
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -16,7 +17,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-var redlibInstance = "nyc1.lr.ggtyler.dev"
+var redlibInstance = "https://nyc1.lr.ggtyler.dev"
 
 var (
 	postInfoRegex     = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
@@ -45,7 +46,7 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 		return cachedMedias, []string{cachedCaption, fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)}
 	}
 
-	medias, caption := handler.processMedia(text)
+	medias, caption := handler.processMedia()
 	if medias == nil {
 		return nil, []string{}
 	}
@@ -64,17 +65,25 @@ func (h *Handler) getPostInfo(url string) bool {
 	return true
 }
 
-func buildMediaURL(request *fasthttp.Request, path string) string {
-	return fmt.Sprintf("%s://%s%s",
-		string(request.URI().Scheme()),
-		string(request.URI().Host()),
-		path,
-	)
+func (h *Handler) processMedia() ([]telego.InputMedia, string) {
+	medias, caption := h.getRedlibData()
+	if medias != nil {
+		return medias, caption
+	}
+
+	if data := h.getAPIData(); data != nil {
+		medias := h.processAPIMedia(data)
+		if medias == nil {
+			return nil, ""
+		}
+		return medias, h.processAPICaption(data)
+	}
+
+	return nil, ""
 }
 
-func (h *Handler) processMedia(url string) ([]telego.InputMedia, string) {
-	request, response, err := utils.Request(
-		redditURLRegex.ReplaceAllString(url, redlibInstance),
+func (h *Handler) getRedlibData() ([]telego.InputMedia, string) {
+	request, response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
 		utils.RequestParams{
 			Method: "GET",
 			Headers: map[string]string{
@@ -85,7 +94,8 @@ func (h *Handler) processMedia(url string) ([]telego.InputMedia, string) {
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response.Body() == nil {
-		slog.Error("Failed to fetch media content", "Error", err.Error())
+		slog.Error("Failed to fetch media content",
+			"Error", err.Error())
 		return nil, ""
 	}
 
@@ -94,15 +104,23 @@ func (h *Handler) processMedia(url string) ([]telego.InputMedia, string) {
 		return nil, ""
 	}
 
-	if videoMedia := h.processVideoMedia(mediaContent, request); videoMedia != nil {
-		return videoMedia, extractCaption(response.Body())
+	if videoMedia := h.processRedlibVideo(mediaContent, request); videoMedia != nil {
+		return videoMedia, extractRedlibCaption(response.Body())
 	}
 
-	if imageMedia := h.processImageMedia(mediaContent, request); imageMedia != nil {
-		return imageMedia, extractCaption(response.Body())
+	if imageMedia := h.processRedlibImage(mediaContent, request); imageMedia != nil {
+		return imageMedia, extractRedlibCaption(response.Body())
 	}
 
 	return nil, ""
+}
+
+func buildMediaURL(request *fasthttp.Request, path string) string {
+	return fmt.Sprintf("%s://%s%s",
+		string(request.URI().Scheme()),
+		string(request.URI().Host()),
+		path,
+	)
 }
 
 func extractMediaContent(body []byte) string {
@@ -112,7 +130,7 @@ func extractMediaContent(body []byte) string {
 	return ""
 }
 
-func extractCaption(body []byte) string {
+func extractRedlibCaption(body []byte) string {
 	extract := func(regex string, body []byte) string {
 		re := regexp.MustCompile(regex)
 		if match := re.FindSubmatch(body); len(match) > 1 {
@@ -128,7 +146,7 @@ func extractCaption(body []byte) string {
 	return fmt.Sprintf("<b>%s — %s</b>: %s", postAuthor, postSubreddit, postTitle)
 }
 
-func (h *Handler) processVideoMedia(content string, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processRedlibVideo(content string, request *fasthttp.Request) []telego.InputMedia {
 	if videoMatch := videoRegex.FindStringSubmatch(content); len(videoMatch) > 1 {
 		playlistURL := cleanupRegex.ReplaceAllString(buildMediaURL(request, playlistRegex.FindStringSubmatch(content)[1]), "")
 
@@ -149,7 +167,7 @@ func (h *Handler) processVideoMedia(content string, request *fasthttp.Request) [
 			return nil
 		}
 
-		err = downloader.MergeAudioVideo(audioFile, videoFile)
+		err = downloader.MergeAudioVideo(videoFile, audioFile)
 		if err != nil {
 			slog.Error("Failed to merge audio and video",
 				"Error", err.Error())
@@ -172,46 +190,39 @@ func (h *Handler) processVideoMedia(content string, request *fasthttp.Request) [
 
 func downloadAudio(playlistURL string) (*os.File, error) {
 	if playlistURL == "" {
-		return nil, fmt.Errorf("Empty playlist URL")
+		return nil, fmt.Errorf("empty playlist URL")
 	}
 
 	request, response, err := utils.Request(playlistURL, utils.RequestParams{Method: "GET"})
 	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		return nil, fmt.Errorf("Failed to fetch audio playlist: %s", err)
+		return nil, fmt.Errorf("failed to fetch audio playlist: %s", err)
 	}
 
 	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
 	if err != nil || listType != m3u8.MASTER {
-		return nil, fmt.Errorf("Failed to decode audio playlist: %s", err)
+		return nil, fmt.Errorf("failed to decode audio playlist: %s", err)
 	}
 
 	audioVariant := getHighestQualityAudio(playlist.(*m3u8.MasterPlaylist))
 	if audioVariant == nil {
-		return nil, fmt.Errorf("Failed to get highest quality audio variant")
+		return nil, fmt.Errorf("failed to get highest quality audio variant")
 	}
 
-	audioURL := buildAudioURL(request, audioVariant.URI)
+	audioURL := strings.ReplaceAll(
+		fmt.Sprintf("%s://%s%s/%s",
+			string(request.URI().Scheme()),
+			string(request.URI().Host()),
+			path.Dir(string(request.URI().Path())),
+			audioVariant.URI,
+		), "m3u8", "aac")
 	audioFile, err := downloader.Downloader(audioURL)
 	if err != nil {
 		return nil, err
 	}
 
 	return audioFile, nil
-}
-
-func buildAudioURL(request *fasthttp.Request, audioPath string) string {
-	return strings.ReplaceAll(
-		fmt.Sprintf("%s://%s%s/%s",
-			string(request.URI().Scheme()),
-			string(request.URI().Host()),
-			path.Dir(string(request.URI().Path())),
-			audioPath,
-		),
-		"m3u8",
-		"aac",
-	)
 }
 
 func getHighestQualityAudio(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
@@ -226,7 +237,7 @@ func getHighestQualityAudio(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
 	return bestAudio
 }
 
-func (h *Handler) processImageMedia(content string, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processRedlibImage(content string, request *fasthttp.Request) []telego.InputMedia {
 	if imageMatch := imageRegex.FindStringSubmatch(content); len(imageMatch) > 1 {
 		imageURL := buildMediaURL(request, imageMatch[1])
 
@@ -262,4 +273,125 @@ func (h *Handler) downloadThumbnail(content string, request *fasthttp.Request) *
 		return thumbnail
 	}
 	return nil
+}
+
+func (h *Handler) getAPIData() *Data {
+	request, response, err := utils.Request(fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s/.json?raw_json=1", h.subreddit, h.postID), utils.RequestParams{Method: "GET"})
+	if err != nil || response.Body() == nil {
+		request, response, err = utils.Request(fmt.Sprintf("https://api.reddit.com/api/info/?id=t3_%s", h.postID),
+			utils.RequestParams{Method: "GET"})
+		if err != nil || response.Body() == nil {
+			return nil
+		}
+		defer utils.ReleaseRequestResources(request, response)
+
+		var data KindData
+		err = json.Unmarshal(response.Body(), &data)
+		if err != nil {
+			return nil
+		}
+		return &data.Data.Children[0].Data
+	}
+
+	defer utils.ReleaseRequestResources(request, response)
+
+	var data RedditPost
+	err = json.Unmarshal(response.Body(), &data)
+	if err != nil {
+		return nil
+	}
+
+	return &data[0].Data.Children[0].Data
+}
+
+func (h *Handler) processAPIMedia(data *Data) []telego.InputMedia {
+	filename := fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)
+	if data.IsVideo {
+		video, err := downloader.Downloader(data.Media.RedditVideo.FallbackURL, filename)
+		if err != nil {
+			slog.Error("Failed to download video",
+				"Error", err.Error())
+			return nil
+		}
+
+		thumbnail, err := downloader.Downloader(data.Preview.Images[0].Source.URL)
+		if err != nil {
+			slog.Error("Failed to download thumbnail",
+				"Error", err.Error())
+			return nil
+		}
+
+		return []telego.InputMedia{&telego.InputMediaVideo{
+			Type:              telego.MediaTypeVideo,
+			Media:             telego.InputFile{File: video},
+			Width:             data.Media.RedditVideo.Width,
+			Height:            data.Media.RedditVideo.Height,
+			Thumbnail:         &telego.InputFile{File: thumbnail},
+			SupportsStreaming: true,
+		}}
+	}
+
+	if data.MediaMetadata != nil {
+		type mediaResult struct {
+			index int
+			media telego.InputMedia
+			err   error
+		}
+
+		mediaCount := len(data.GalleryData.Items)
+		mediaItems := make([]telego.InputMedia, mediaCount)
+		results := make(chan mediaResult, mediaCount)
+
+		for i, item := range data.GalleryData.Items {
+			go func(index int, mediaID string) {
+				media := (*data.MediaMetadata)[mediaID]
+				file, err := downloader.Downloader(media.S.U)
+				if err != nil {
+					results <- mediaResult{index: index, err: err}
+					return
+				}
+
+				var inputMedia telego.InputMedia
+				if media.E == "Image" {
+					inputMedia = &telego.InputMediaPhoto{
+						Type:  telego.MediaTypePhoto,
+						Media: telego.InputFile{File: file},
+					}
+				}
+				results <- mediaResult{index: index, media: inputMedia, err: nil}
+			}(i, item.MediaID)
+		}
+
+		for i := 0; i < mediaCount; i++ {
+			result := <-results
+			if result.err != nil {
+				slog.Error("Failed to download media in gallery",
+					"Error", result.err.Error())
+				continue
+			}
+			mediaItems[result.index] = result.media
+		}
+
+		return mediaItems
+	}
+
+	if data.IsRedditMediaDomain && data.Domain == "i.redd.it" {
+		image, err := downloader.Downloader(data.URL)
+		if err != nil {
+			slog.Error("Failed to download image",
+				"Error", err.Error())
+			return nil
+		}
+
+		return []telego.InputMedia{&telego.InputMediaPhoto{
+			Type:  telego.MediaTypePhoto,
+			Media: telego.InputFile{File: image},
+		}}
+	}
+
+	return nil
+}
+
+func (h *Handler) processAPICaption(data *Data) string {
+	return fmt.Sprintf("<b>%s — %s</b>: %s", data.SubredditNamePrefixed, data.Author, data.Title)
 }
