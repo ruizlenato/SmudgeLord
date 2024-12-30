@@ -269,11 +269,28 @@ func RemoveTags(text string) string {
 }
 
 func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
-	videoFile.Seek(0, 0)
-	audioFile.Seek(0, 0)
+	if _, err := videoFile.Seek(0, 0); err != nil {
+		return err
+	}
+	if _, err := audioFile.Seek(0, 0); err != nil {
+		return err
+	}
 
 	videoName := videoFile.Name()
 	tempOutput := videoName + ".tmp" + filepath.Ext(videoName)
+
+	defer func() {
+		err = os.Remove(tempOutput)
+		if err != nil {
+			slog.Error("Couldn't remove temporary file",
+				"Error", err.Error())
+		}
+		err = os.Remove(audioFile.Name())
+		if err != nil {
+			slog.Error("Couldn't remove audio file",
+				"Error", err.Error())
+		}
+	}()
 
 	cmd := exec.Command("ffmpeg",
 		"-i", videoName,
@@ -282,12 +299,21 @@ func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
 		"-shortest",
 		"-y", tempOutput,
 	)
-	err = cmd.Run()
-	if err != nil {
+
+	if err = cmd.Run(); err != nil {
 		return err
 	}
 
-	err = os.Rename(tempOutput, videoName)
+	tempFile, err := os.Open(tempOutput)
+	if err != nil {
+		return err
+	}
+	defer tempFile.Close()
+
+	if _, err = io.Copy(videoFile, tempFile); err != nil {
+		return err
+	}
+
 	return err
 }
 
