@@ -9,8 +9,10 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/mymmrac/telego"
+	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -157,6 +159,10 @@ func (h *Handler) downloadMedia(index int, twitterMedia Media) (*InputMedia, err
 }
 
 func (h *Handler) getGuestToken() string {
+	if token, err := cache.GetCache("twitter_guest_token"); token != "" && err == nil {
+		return token
+	}
+
 	type guestToken struct {
 		GuestToken string `json:"guest_token"`
 	}
@@ -188,6 +194,8 @@ func (h *Handler) getGuestToken() string {
 			"Error", err.Error())
 		return ""
 	}
+
+	cache.SetCache("twitter_guest_token", res.GuestToken, 3*time.Hour)
 	return res.GuestToken
 }
 
