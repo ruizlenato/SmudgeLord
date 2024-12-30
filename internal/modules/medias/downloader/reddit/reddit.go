@@ -333,6 +333,7 @@ func processRedlibGallery(content [][][]byte, request *fasthttp.Request) []teleg
 
 func (h *Handler) getAPIData() *Data {
 	request, response, err := utils.Request(fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s/.json?raw_json=1", h.subreddit, h.postID), utils.RequestParams{Method: "GET"})
+	defer utils.ReleaseRequestResources(request, response)
 	if err != nil || response.Body() == nil || response.StatusCode() != 200 {
 		request, response, err = utils.Request(fmt.Sprintf("https://api.reddit.com/api/info/?id=t3_%s", h.postID),
 			utils.RequestParams{Method: "GET"})
@@ -348,8 +349,6 @@ func (h *Handler) getAPIData() *Data {
 		}
 		return &data.Data.Children[0].Data
 	}
-
-	defer utils.ReleaseRequestResources(request, response)
 
 	var data RedditPost
 	err = json.Unmarshal(response.Body(), &data)

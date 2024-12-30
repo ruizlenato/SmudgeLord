@@ -62,10 +62,11 @@ func (h *Handler) setPostID(url string) bool {
 		Method:    "GET",
 		Redirects: 2,
 	})
+	defer utils.ReleaseRequestResources(request, response)
+
 	if err != nil {
 		return false
 	}
-	defer utils.ReleaseRequestResources(request, response)
 
 	if matches := postIDRegex.FindStringSubmatch(request.URI().String()); len(matches) > 1 {
 		h.postID = matches[1]
