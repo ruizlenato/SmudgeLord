@@ -14,8 +14,9 @@ type Result struct {
 	Tweet    struct {
 		Legacy Legacy `json:"legacy"`
 	} `json:"tweet"`
-	Core   Core   `json:"core"`
-	Legacy Legacy `json:"legacy"`
+	Core      Core      `json:"core"`
+	NoteTweet NoteTweet `json:"note_tweet"`
+	Legacy    Legacy    `json:"legacy"`
 }
 
 type Core struct {
@@ -25,6 +26,16 @@ type Core struct {
 		} `json:"result"`
 	} `json:"user_results"`
 }
+
+type NoteTweet *struct {
+	IsExpandable     bool `json:"is_expandable"`
+	NoteTweetResults struct {
+		Result struct {
+			Text string `json:"text"`
+		} `json:"result"`
+	} `json:"note_tweet_results"`
+}
+
 type Legacy *struct {
 	FullText         string `json:"full_text"`
 	ExtendedEntities struct {

@@ -287,13 +287,17 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 func getCaption(twitterData *TwitterAPIData) string {
 	var caption string
 
-	if tweet := (*twitterData).Data.TweetResult.Result.Legacy; tweet != nil {
+	if tweet := (*twitterData).Data.TweetResult.Legacy; tweet != nil {
 		caption = fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n",
-			(*twitterData).Data.TweetResult.Result.Core.UserResults.Result.Legacy.Name,
-			(*twitterData).Data.TweetResult.Result.Core.UserResults.Result.Legacy.ScreenName)
+			(*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.Name,
+			(*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.ScreenName)
 
-		if idx := strings.LastIndex(tweet.FullText, " https://t.co/"); idx != -1 {
-			caption += tweet.FullText[:idx]
+        text := tweet.FullText
+        if noteTweet := (*twitterData).Data.TweetResult.NoteTweet; noteTweet != nil {
+            text = noteTweet.NoteTweetResults.Result.Text
+        }
+		if idx := strings.LastIndex(text, " https://t.co/"); idx != -1 {
+			caption += text[:idx]
 		}
 	}
 
