@@ -96,14 +96,10 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 	}
 
 	var outputFile *os.File
-	defer func() {
-		if err != nil {
-			outputFile.Close()
-			os.Remove(outputFile.Name())
-		}
-	}()
-
-	filename := fmt.Sprintf("SmudgeLord-YouTube_%s_%s", utils.SanitizeString(video.Title), utils.SanitizeString(video.Title))
+	filename := fmt.Sprintf("SmudgeLord-YouTube_%s_%s", utils.SanitizeString(video.Author), utils.SanitizeString(video.Title))
+	if len(filename) > 255 {
+		filename = filename[:255]
+	}
 	switch callbackData[0] {
 	case "_aud":
 		outputFile, err = os.Create(filepath.Join(os.TempDir(), filename+".m4a"))
@@ -111,9 +107,16 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 		outputFile, err = os.Create(filepath.Join(os.TempDir(), filename+".mp4"))
 	}
 	if err != nil {
-		slog.Error("Could't create temporary file", "Error", err.Error())
+		slog.Error("Couldn't create temporary file", "Error", err.Error())
 		return nil, video, err
 	}
+
+	defer func() {
+		if err != nil {
+			outputFile.Close()
+			os.Remove(outputFile.Name())
+		}
+	}()
 
 	err = downloadStream(&youtubeClient, video, format, outputFile)
 	if err != nil {
@@ -184,7 +187,7 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 				"URL", videoURL)
 			return nil, []string{}
 		}
-		slog.Error("Could't get video",
+		slog.Error("Couldn't get video",
 			"URL", videoURL,
 			"Error", err.Error())
 		return nil, []string{}
@@ -199,7 +202,7 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 
 	outputFile, err := os.Create(filepath.Join(os.TempDir(), fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)))
 	if err != nil {
-		slog.Error("Could't create temporary file",
+		slog.Error("Couldn't create temporary file",
 			"Error", err.Error())
 		return nil, []string{}
 	}

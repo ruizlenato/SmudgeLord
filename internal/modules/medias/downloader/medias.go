@@ -287,7 +287,9 @@ func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
 
 	videoName := videoFile.Name()
 	tempOutput := videoName + ".tmp" + filepath.Ext(videoName)
-
+	if len(tempOutput) > 255 {
+		tempOutput = tempOutput[255:]
+	}
 	defer func() {
 		err = os.Remove(tempOutput)
 		if err != nil {

@@ -401,17 +401,6 @@ func trySendCachedYoutubeMedia(bot *telego.Bot, chatID int64, messageID int, cal
 	return false, err
 }
 
-func cleanupFiles(outputFile *os.File, thumbnailURL string) {
-	if err := os.Remove(outputFile.Name()); err != nil {
-		slog.Error("Couldn't remove output file", "OutputFile", outputFile.Name(), "Error", err.Error())
-	}
-	if thumbnail, err := downloader.Downloader(thumbnailURL); err == nil {
-		if err := os.Remove(thumbnail.Name()); err != nil {
-			slog.Error("Couldn't remove thumbnail", "Thumbnail", thumbnail.Name(), "Error", err.Error())
-		}
-	}
-}
-
 func handleExplainConfig(bot *telego.Bot, update telego.Update) {
 	i18n := localization.Get(update)
 	ieConfig := strings.ReplaceAll(update.CallbackQuery.Data, "ieConfig medias", "")
