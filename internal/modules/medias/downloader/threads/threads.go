@@ -46,15 +46,15 @@ func (h *Handler) setPostID(url string) bool {
 	request, response, err := utils.Request(url, utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
-			"User-Agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+			"User-Agent":     downloader.GenericHeaders["User-Agent"],
 			"Sec-Fetch-Mode": "navigate",
 		},
 	})
+	defer utils.ReleaseRequestResources(request, response)
+
 	if err != nil {
 		return false
 	}
-
-	defer utils.ReleaseRequestResources(request, response)
 
 	idLocation := strings.Index(string(response.Body()), "post_id")
 	if idLocation == -1 {
@@ -74,17 +74,14 @@ func getGQLData(postID string) ThreadsData {
 	var threadsData ThreadsData
 
 	lsd := utils.RandomString(10)
-
+    downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
+    downloader.GenericHeaders["X-Fb-Lsd"] = lsd
+    downloader.GenericHeaders["X-Ig-App-Id"] = "238260118697367"
+    downloader.GenericHeaders["Sec-Fetch-Mode"] = "cors"
+    downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
 	request, response, err := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
 		Method: "POST",
-		Headers: map[string]string{
-			`User-Agent`:     `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36`,
-			`Content-Type`:   `application/x-www-form-urlencoded`,
-			`X-Fb-Lsd`:       lsd,
-			`X-Ig-App-Id`:    `238260118697367`,
-			`Sec-Fetch-Mode`: `cors`,
-			`Sec-Fetch-Site`: `same-origin`,
-		},
+		Headers: downloader.GenericHeaders,
 		BodyString: []string{
 			fmt.Sprintf(`variables={
 			"first":1,
@@ -131,13 +128,9 @@ func (h *Handler) processMedia(data ThreadsData) []telego.InputMedia {
 }
 
 func getCaption(threadsData ThreadsData) string {
-	var caption string
-
-	caption = fmt.Sprintf("<b>%s</b>:\n%s",
+	return fmt.Sprintf("<b>%s</b>:\n%s",
 		threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.User.Username,
 		threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text)
-
-	return caption
 }
 
 type InputMedia struct {

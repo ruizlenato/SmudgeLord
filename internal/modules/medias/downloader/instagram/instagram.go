@@ -142,15 +142,8 @@ func (h *Handler) getEmbedData() InstagramData {
 	var data InstagramData
 
 	request, response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", h.postID), utils.RequestParams{
-		Method: "GET",
-		Headers: map[string]string{
-			"accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-			"accept-language": "en-US,en;q=0.9",
-			"connection":      "close",
-			"sec-fetch-mode":  "navigate",
-			"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-			"viewport-width":  "1280",
-		},
+		Method:  "GET",
+		Headers: downloader.GenericHeaders,
 	})
 	defer utils.ReleaseRequestResources(request, response)
 
@@ -233,20 +226,15 @@ func (h *Handler) getScrapperAPIData() InstagramData {
 func (h *Handler) getGQLData() InstagramData {
 	var data InstagramData
 
+	downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
+	downloader.GenericHeaders["X-CSRFToken"] = "JKA19cNYckTn_Dr6bcTO5F"
+	downloader.GenericHeaders["X-IG-App-ID"] = "936619743392459"
+	downloader.GenericHeaders["X-FB-LSD"] = "AVqBX1zadbA"
+	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
 	request, response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
-		Method: "POST",
-		Headers: map[string]string{
-			`User-Agent`:      `Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0`,
-			`Accept-Language`: `en-US;q=0.5,en;q=0.3`,
-			`Content-Type`:    `application/x-www-form-urlencoded`,
-			`X-CSRFToken`:     `JKA19cNYckTn_Dr6bcTO5F`,
-			`X-IG-App-ID`:     `936619743392459`,
-			`X-FB-LSD`:        `AVqBX1zadbA`,
-			`Sec-Fetch-Site`:  `same-origin`,
-		},
+		Method:  "POST",
+		Headers: downloader.GenericHeaders,
 		BodyString: []string{
-			`lsd=AVqBX1zadbA`,
-			`jazoest=2949`,
 			fmt.Sprintf(`variables={"shortcode": "%v","fetch_comment_count":0,"fetch_related_profile_media_count":0,"parent_comment_count":null}`, h.postID),
 			`doc_id=8845758582119845`,
 		},

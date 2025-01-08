@@ -87,11 +87,8 @@ func (h *Handler) processMedia() ([]telego.InputMedia, string) {
 func (h *Handler) getRedlibData() ([]telego.InputMedia, string) {
 	request, response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
 		utils.RequestParams{
-			Method: "GET",
-			Headers: map[string]string{
-				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
-				"Cookie":     "use_hls=on",
-			},
+			Method:  "GET",
+			Headers: downloader.GenericHeaders,
 		})
 	defer utils.ReleaseRequestResources(request, response)
 
@@ -332,11 +329,15 @@ func processRedlibGallery(content [][][]byte, request *fasthttp.Request) []teleg
 }
 
 func (h *Handler) getAPIData() *Data {
-	request, response, err := utils.Request(fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s/.json?raw_json=1", h.subreddit, h.postID), utils.RequestParams{Method: "GET"})
+	request, response, err := utils.Request(fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s/.json?raw_json=1", h.subreddit, h.postID), utils.RequestParams{
+		Method:  "GET",
+		Headers: downloader.GenericHeaders,
+	})
 	defer utils.ReleaseRequestResources(request, response)
 	if err != nil || response.Body() == nil || response.StatusCode() != 200 {
 		request, response, err = utils.Request(fmt.Sprintf("https://api.reddit.com/api/info/?id=t3_%s", h.postID),
-			utils.RequestParams{Method: "GET"})
+			utils.RequestParams{Method: "GET",
+                    Headers: downloader.GenericHeaders,})
 		if err != nil || response.Body() == nil {
 			return nil
 		}

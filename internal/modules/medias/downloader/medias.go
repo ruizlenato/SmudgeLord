@@ -26,6 +26,15 @@ import (
 	"github.com/mymmrac/telego"
 )
 
+var GenericHeaders = map[string]string{
+	`Accept`:             `*/*`,
+	`Accept-Language`:    `en`,
+	`User-Agent`:         `Mozilla/5.0 (Windows NT 10.0sec-ch-ua-platform; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36`,
+	`Sec-Ch-UA`:          `Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"`,
+	`Sec-Ch-UA-Mobile`:   `?0`,
+	`Sec-Ch-UA-Platform`: `Windows`,
+}
+
 type Medias struct {
 	Files   []string `json:"file_id"`
 	Type    []string `json:"type"`
@@ -166,7 +175,7 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 	}
 
 	if len(downloadErrors) > segmentCount/2 {
-		return nil, fmt.Errorf("Too many segments failed to download: %d errors", len(downloadErrors))
+		return nil, fmt.Errorf("too many segments failed to download: %d errors", len(downloadErrors))
 	}
 
 	cleanSegmentFiles := make([]string, 0, len(segmentFiles))
@@ -223,7 +232,7 @@ func mergeSegments(segmentFiles []string) (*os.File, error) {
 	}()
 
 	for _, segmentFile := range segmentFiles {
-		if _, err := listFile.WriteString(fmt.Sprintf("file '%s'\n", segmentFile)); err != nil {
+		if _, err := fmt.Fprintf(listFile, "file '%s'\n", segmentFile); err != nil {
 			return nil, err
 		}
 	}
@@ -353,7 +362,7 @@ func SetMediaCache(replied []telego.Message, result []string) error {
 	album := Medias{Caption: result[0], Files: files, Type: mediasType}
 	jsonValue, err := json.Marshal(album)
 	if err != nil {
-		return fmt.Errorf("Couldn't marshal JSON: %v", err)
+		return fmt.Errorf("couldn't marshal JSON: %v", err)
 	}
 
 	if err := cache.SetCache("media-cache:"+result[1], jsonValue, 48*time.Hour); err != nil {
@@ -390,7 +399,7 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 
 	var medias Medias
 	if err := json.Unmarshal([]byte(cached), &medias); err != nil {
-		return nil, "", fmt.Errorf("Couldn't unmarshal medias JSON: %v", err)
+		return nil, "", fmt.Errorf("couldn't unmarshal medias JSON: %v", err)
 	}
 
 	inputMedias := make([]telego.InputMedia, 0, len(medias.Files))
@@ -418,7 +427,7 @@ func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
 	cached, _ := cache.GetCache("youtube-cache:" + youtubeID)
 	if cached != "" {
 		if err := json.Unmarshal([]byte(cached), &youtube); err != nil {
-			return fmt.Errorf("Couldn't unmarshal youtube JSON: %w", err)
+			return fmt.Errorf("couldn't unmarshal youtube JSON: %w", err)
 		}
 	}
 
@@ -430,7 +439,7 @@ func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
 
 	jsonValue, err := json.Marshal(youtube)
 	if err != nil {
-		return fmt.Errorf("Couldn't marshal youtube JSON: %w", err)
+		return fmt.Errorf("couldn't marshal youtube JSON: %w", err)
 	}
 
 	if err := cache.SetCache("youtube-cache:"+youtubeID, jsonValue, 168*time.Hour); err != nil {
@@ -451,11 +460,11 @@ func GetYoutubeCache(youtubeID string, format string) (string, string, error) {
 
 	var youtube YouTube
 	if err := json.Unmarshal([]byte(cached), &youtube); err != nil {
-		return "", "", fmt.Errorf("Couldn't unmarshal youtube JSON: %v", err)
+		return "", "", fmt.Errorf("couldn't unmarshal youtube JSON: %v", err)
 	}
 
 	if err := cache.SetCache("youtube-cache:"+youtubeID, cached, 168*time.Hour); err != nil {
-		return "", "", fmt.Errorf("Couldn't reset cache expiration: %v", err)
+		return "", "", fmt.Errorf("couldn't reset cache expiration: %v", err)
 	}
 
 	switch format {

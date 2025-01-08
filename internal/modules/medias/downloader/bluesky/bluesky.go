@@ -57,8 +57,8 @@ func (h *Handler) getBlueskyData() BlueskyData {
 	request, response, err := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
+			"User-Agent":   downloader.GenericHeaders["User-Agent"],
 			"Content-Type": "application/json",
-			"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
 		},
 		Query: map[string]string{
 			"uri":   fmt.Sprintf("at://%s/app.bsky.feed.post/%s", h.username, h.postID),

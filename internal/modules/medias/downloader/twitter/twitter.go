@@ -22,13 +22,12 @@ const (
 	guestTokenURL = "https://api.twitter.com/1.1/guest/activate.json"
 )
 
-var headers = map[string]string{
-	"Authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
-	"x-twitter-client-language": "en",
-	"x-twitter-active-user":     "yes",
-	"Accept-language":           "en",
-	"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
-	"content-type":              "application/json",
+func defaultHeaders() map[string]string {
+	downloader.GenericHeaders["Authorization"] = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"
+	downloader.GenericHeaders["x-twitter-client-language"] = "en"
+	downloader.GenericHeaders["x-twitter-active-user"] = "yes"
+	downloader.GenericHeaders["content-type"] = "application/json"
+	return downloader.GenericHeaders
 }
 
 type Handler struct {
@@ -58,7 +57,7 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	handler.username = (*twitterData).Data.TweetResult.Result.Core.UserResults.Result.Legacy.ScreenName
+	handler.username = (*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.ScreenName
 	return handler.processTwitterAPI(twitterData), []string{getCaption(twitterData), handler.postID}
 }
 
@@ -83,11 +82,11 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputM
 		err   error
 	}
 
-	mediaCount := len((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)
+	mediaCount := len((*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media)
 	mediaItems := make([]telego.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media {
+	for i, media := range (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media {
 		go func(index int, twitterMedia Media) {
 			media, err := h.downloadMedia(index, twitterMedia)
 			results <- mediaResult{index: index, media: media, err: err}
@@ -168,14 +167,9 @@ func (h *Handler) getGuestToken() string {
 	}
 	var res guestToken
 
-	headers = map[string]string{
-		"Authorization": "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
-		"User-Agent":    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
-	}
-
 	request, response, err := utils.Request(guestTokenURL, utils.RequestParams{
 		Method:    "POST",
-		Headers:   headers,
+		Headers:   defaultHeaders(),
 		Redirects: 3,
 	})
 	defer utils.ReleaseRequestResources(request, response)
@@ -204,6 +198,8 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 	if guestToken == "" {
 		return nil
 	}
+
+	headers := defaultHeaders()
 
 	headers["x-guest-token"] = guestToken
 	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
@@ -270,8 +266,8 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 
 	if twitterAPIData != nil &&
 		(*twitterAPIData).Data.TweetResult != nil &&
-		(*twitterAPIData).Data.TweetResult.Result.Reason != nil &&
-		*(*twitterAPIData).Data.TweetResult.Result.Reason == "NsfwLoggedOut" {
+		(*twitterAPIData).Data.TweetResult.Reason != nil &&
+		*(*twitterAPIData).Data.TweetResult.Reason == "NsfwLoggedOut" {
 		return nil
 	}
 
@@ -307,7 +303,7 @@ func getCaption(twitterData *TwitterAPIData) string {
 func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
 	request, response, err := utils.Request("https://api.fxtwitter.com/status/"+h.postID, utils.RequestParams{
 		Method:  "GET",
-		Headers: headers,
+		Headers: downloader.GenericHeaders,
 	})
 	if err != nil || response.Body() == nil {
 		return nil

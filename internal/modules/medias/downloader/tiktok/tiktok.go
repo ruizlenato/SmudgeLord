@@ -77,11 +77,9 @@ func (h *Handler) setPostID(url string) bool {
 
 func (h *Handler) getTikTokData() TikTokData {
 	request, response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
-		Method: "OPTIONS",
-		Headers: map[string]string{
-			"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
-		},
-		Query: map[string]string{
+		Method:  "OPTIONS",
+		Headers: downloader.GenericHeaders,
+        Query: map[string]string{
 			"iid":             "7318518857994389254",
 			"device_id":       "7318517321748022790",
 			"channel":         "googleplay",
