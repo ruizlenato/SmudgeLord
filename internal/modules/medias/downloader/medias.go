@@ -29,10 +29,10 @@ import (
 var GenericHeaders = map[string]string{
 	`Accept`:             `*/*`,
 	`Accept-Language`:    `en`,
-	`User-Agent`:         `Mozilla/5.0 (Windows NT 10.0sec-ch-ua-platform; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36`,
-	`Sec-Ch-UA`:          `Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"`,
+	`User-Agent`:         `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36`,
+	`Sec-Ch-UA`:          `"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"`,
 	`Sec-Ch-UA-Mobile`:   `?0`,
-	`Sec-Ch-UA-Platform`: `Windows`,
+	`Sec-Ch-UA-Platform`: `"Windows"`,
 }
 
 type Medias struct {
@@ -73,8 +73,7 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 	}
 
 	request, response, err := retryCaller.Request(media, utils.RequestParams{
-		Method:    "GET",
-		Redirects: 2,
+		Method: "GET",
 	})
 	defer utils.ReleaseRequestResources(request, response)
 

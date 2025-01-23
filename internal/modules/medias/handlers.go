@@ -21,6 +21,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/threads"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/xiaohongshu"
 	yt "github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
 	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
 
@@ -31,7 +32,7 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
 	maxSizeCaption = 1024
 )
 
@@ -63,13 +64,14 @@ func handleMediaDownload(bot *telego.Bot, message telego.Message) {
 	}
 
 	mediaHandlers := map[string]func(string) ([]telego.InputMedia, []string){
-		"bsky.app/":        bluesky.Handle,
-		"instagram.com/":   instagram.Handle,
-		"reddit.com/":      reddit.Handle,
-		"threads.net/":     threads.Handle,
-		"tiktok.com/":      tiktok.Handle,
-		"(twitter|x).com/": twitter.Handle,
-		"youtube.com/":     yt.Handle,
+		"bsky.app/":                  bluesky.Handle,
+		"instagram.com/":             instagram.Handle,
+		"reddit.com/":                reddit.Handle,
+		"threads.net/":               threads.Handle,
+		"tiktok.com/":                tiktok.Handle,
+		"(twitter|x).com/":           twitter.Handle,
+		"(xiaohongshu|xhslink).com/": xiaohongshu.Handle,
+		"youtube.com/":               yt.Handle,
 	}
 
 	for pattern, handler := range mediaHandlers {

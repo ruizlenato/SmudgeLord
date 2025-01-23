@@ -32,15 +32,15 @@ func (a FastHTTPCaller) Call(url string, params RequestParams) (*fasthttp.Reques
 		req.Header.Set(key, value)
 	}
 
+	req.SetRequestURI(url)
+
 	switch params.Method {
 	case fasthttp.MethodGet, fasthttp.MethodOptions:
-		req.SetRequestURI(url)
 		for key, value := range params.Query {
 			req.URI().QueryArgs().Add(key, value)
 		}
 	case fasthttp.MethodPost:
 		req.SetBodyString(strings.Join(params.BodyString, "&"))
-		req.SetRequestURI(url)
 	default:
 		return nil, nil, fmt.Errorf("unsupported method: %s", params.Method)
 	}
@@ -49,6 +49,7 @@ func (a FastHTTPCaller) Call(url string, params RequestParams) (*fasthttp.Reques
 	if params.Redirects > 0 {
 		err = a.Client.DoRedirects(req, resp, params.Redirects)
 	} else {
+		a.Client.DisablePathNormalizing = true
 		err = a.Client.Do(req, resp)
 	}
 
