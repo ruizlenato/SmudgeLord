@@ -82,11 +82,19 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputM
 		err   error
 	}
 
-	mediaCount := len((*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media)
+	var quoted bool
+
+	mediasEntities := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media
+	if len(mediasEntities) == 0 {
+		quoted = true
+		mediasEntities = (*twitterData).Data.TweetResult.QuotedStatusResult.Result.Legacy.ExtendedEntities.Media
+	}
+
+	mediaCount := len(mediasEntities)
 	mediaItems := make([]telego.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media {
+	for i, media := range mediasEntities {
 		go func(index int, twitterMedia Media) {
 			media, err := h.downloadMedia(index, twitterMedia)
 			results <- mediaResult{index: index, media: media, err: err}
@@ -104,18 +112,20 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputM
 		}
 		if result.media.File != nil {
 			var mediaItem telego.InputMedia
-			if (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media[result.index].Type == "photo" {
+			if mediasEntities[result.index].Type == "photo" {
 				mediaItem = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: result.media.File},
+					Type:                  telego.MediaTypePhoto,
+					Media:                 telego.InputFile{File: result.media.File},
+					ShowCaptionAboveMedia: quoted,
 				}
 			} else {
 				mediaItem = &telego.InputMediaVideo{
-					Type:              telego.MediaTypeVideo,
-					Media:             telego.InputFile{File: result.media.File},
-					Width:             ((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)[result.index].OriginalInfo.Width,
-					Height:            ((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)[result.index].OriginalInfo.Height,
-					SupportsStreaming: true,
+					Type:                  telego.MediaTypeVideo,
+					Media:                 telego.InputFile{File: result.media.File},
+					ShowCaptionAboveMedia: quoted,
+					Width:                 (mediasEntities)[result.index].OriginalInfo.Width,
+					Height:                (mediasEntities)[result.index].OriginalInfo.Height,
+					SupportsStreaming:     true,
 				}
 				if result.media.Thumbnail != nil {
 					err := utils.ResizeThumbnail(result.media.Thumbnail)
@@ -281,19 +291,50 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 }
 
 func getCaption(twitterData *TwitterAPIData) string {
-	var caption string
+	if twitterData == nil {
+		return ""
+	}
 
-	if tweet := (*twitterData).Data.TweetResult.Legacy; tweet != nil {
-		caption = fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n",
-			(*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.Name,
-			(*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.ScreenName)
+	tweetResult := (*twitterData).Data.TweetResult
+	if tweetResult.Legacy == nil {
+		return ""
+	}
 
-        text := tweet.FullText
-        if noteTweet := (*twitterData).Data.TweetResult.NoteTweet; noteTweet != nil {
-            text = noteTweet.NoteTweetResults.Result.Text
-        }
+	user := tweetResult.Core.UserResults.Result.Legacy
+	tweet := tweetResult.Legacy
+
+	formatUser := func(name, screenName string) string {
+		return fmt.Sprintf("<b>%s (<code>%s</code>):</b>\n", name, screenName)
+	}
+
+	extractText := func(text string) string {
 		if idx := strings.LastIndex(text, " https://t.co/"); idx != -1 {
-			caption += text[:idx]
+			return text[:idx]
+		}
+		if strings.HasPrefix(text, "https://t.co/") {
+			return ""
+		}
+		return text
+	}
+
+	caption := formatUser(user.Name, user.ScreenName)
+
+	text := tweet.FullText
+	if tweetResult.NoteTweet != nil {
+		text = tweetResult.NoteTweet.NoteTweetResults.Result.Text
+	}
+	caption += extractText(text)
+
+	if len(tweet.ExtendedEntities.Media) == 0 {
+		quoted := tweetResult.QuotedStatusResult
+		if quoted != nil && quoted.Result.Legacy != nil {
+			quotedTweet := quoted.Result.Legacy
+			quotedUser := quoted.Result.Core.UserResults.Result.Legacy
+
+			caption += fmt.Sprintf("\n<blockquote expandable><i>Quoting</i> %s%s</blockquote>\n",
+				formatUser(quotedUser.Name, quotedUser.ScreenName),
+				extractText(quotedTweet.FullText),
+			)
 		}
 	}
 

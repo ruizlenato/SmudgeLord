@@ -14,9 +14,15 @@ type Result struct {
 	Tweet    struct {
 		Legacy Legacy `json:"legacy"`
 	} `json:"tweet"`
-	Core      Core      `json:"core"`
-	NoteTweet NoteTweet `json:"note_tweet"`
-	Legacy    Legacy    `json:"legacy"`
+	Core               Core      `json:"core"`
+	NoteTweet          NoteTweet `json:"note_tweet"`
+	QuotedStatusResult *struct {
+		Result struct {
+			Core   Core   `json:"core"`
+			Legacy Legacy `json:"legacy"`
+		} `json:"result"`
+	} `json:"quoted_status_result"`
+	Legacy Legacy `json:"legacy"`
 }
 
 type Core struct {

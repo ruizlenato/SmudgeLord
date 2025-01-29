@@ -36,9 +36,10 @@ var GenericHeaders = map[string]string{
 }
 
 type Medias struct {
-	Files   []string `json:"file_id"`
-	Type    []string `json:"type"`
-	Caption string   `json:"caption"`
+	Files                 []string `json:"file_id"`
+	Type                  []string `json:"type"`
+	Caption               string   `json:"caption"`
+	ShowCaptionAboveMedia bool     `json:"show_caption_above_media"`
 }
 
 type YouTube struct {
@@ -357,10 +358,26 @@ func removeMediaFile(media telego.InputMedia) {
 	}
 }
 
-func SetMediaCache(replied []telego.Message, result []string) error {
-	files, mediasType := extractMediaInfo(replied)
+func extractMediaInfo(replied []telego.Message) ([]string, []string, bool) {
+	var files, mediasType []string
 
-	album := Medias{Caption: result[0], Files: files, Type: mediasType}
+	for _, message := range replied {
+		if message.Video != nil {
+			files = append(files, message.Video.FileID)
+			mediasType = append(mediasType, telego.MediaTypeVideo)
+		} else if message.Photo != nil {
+			files = append(files, message.Photo[0].FileID)
+			mediasType = append(mediasType, telego.MediaTypePhoto)
+		}
+	}
+
+	return files, mediasType, replied[0].ShowCaptionAboveMedia
+}
+
+func SetMediaCache(replied []telego.Message, result []string) error {
+	files, mediasType, showCaptionAboveMedia := extractMediaInfo(replied)
+
+	album := Medias{Caption: result[0], Files: files, Type: mediasType, ShowCaptionAboveMedia: showCaptionAboveMedia}
 	jsonValue, err := json.Marshal(album)
 	if err != nil {
 		return fmt.Errorf("couldn't marshal JSON: %v", err)
@@ -374,22 +391,6 @@ func SetMediaCache(replied []telego.Message, result []string) error {
 	}
 
 	return nil
-}
-
-func extractMediaInfo(replied []telego.Message) ([]string, []string) {
-	var files, mediasType []string
-
-	for _, message := range replied {
-		if message.Video != nil {
-			files = append(files, message.Video.FileID)
-			mediasType = append(mediasType, telego.MediaTypeVideo)
-		} else if message.Photo != nil {
-			files = append(files, message.Photo[0].FileID)
-			mediasType = append(mediasType, telego.MediaTypePhoto)
-		}
-	}
-
-	return files, mediasType
 }
 
 func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
@@ -408,13 +409,15 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 		switch medias.Type[i] {
 		case telego.MediaTypeVideo:
 			inputMedias = append(inputMedias, &telego.InputMediaVideo{
-				Type:  telego.MediaTypeVideo,
-				Media: telego.InputFile{FileID: media},
+				Type:                  telego.MediaTypeVideo,
+				Media:                 telego.InputFile{FileID: media},
+				ShowCaptionAboveMedia: medias.ShowCaptionAboveMedia,
 			})
 		case telego.MediaTypePhoto:
 			inputMedias = append(inputMedias, &telego.InputMediaPhoto{
-				Type:  telego.MediaTypePhoto,
-				Media: telego.InputFile{FileID: media},
+				Type:                  telego.MediaTypePhoto,
+				Media:                 telego.InputFile{FileID: media},
+				ShowCaptionAboveMedia: medias.ShowCaptionAboveMedia,
 			})
 		}
 	}
