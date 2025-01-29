@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	twitterAPIURL = "https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId"
+	twitterAPIURL = "https://twitter.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId"
 	guestTokenURL = "https://api.twitter.com/1.1/guest/activate.json"
 )
 
@@ -87,6 +87,9 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputM
 	mediasEntities := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media
 	if len(mediasEntities) == 0 {
 		quoted = true
+		if (*twitterData).Data.TweetResult.QuotedStatusResult == nil {
+			return nil
+		}
 		mediasEntities = (*twitterData).Data.TweetResult.QuotedStatusResult.Result.Legacy.ExtendedEntities.Media
 	}
 
@@ -177,7 +180,15 @@ func (h *Handler) getGuestToken() string {
 	}
 	var res guestToken
 
-	request, response, err := utils.Request(guestTokenURL, utils.RequestParams{
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultFastHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   5 * time.Second,
+		MaxDelay:     10 * time.Second,
+	}
+
+	request, response, err := retryCaller.Request(guestTokenURL, utils.RequestParams{
 		Method:    "POST",
 		Headers:   defaultHeaders(),
 		Redirects: 3,
@@ -215,14 +226,10 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
 
 	variables := map[string]interface{}{
-		"tweetId":                                h.postID,
-		"referrer":                               "messages",
-		"includePromotedContent":                 true,
-		"withCommunity":                          true,
-		"withQuickPromoteEligibilityTweetFields": true,
-		"withBirdwatchNotes":                     true,
-		"withVoice":                              true,
-		"withV2Timeline":                         true,
+		"tweetId":                h.postID,
+		"includePromotedContent": false,
+		"withCommunity":          false,
+		"withVoice":              false,
 	}
 
 	features := map[string]interface{}{
@@ -249,16 +256,29 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 		"responsive_web_enhance_cards_enabled":                                    false,
 	}
 
+	fieldToggles := map[string]interface{}{
+		"withArticleRichContentState": true,
+	}
+
 	jsonMarshal := func(data interface{}) []byte {
 		result, _ := json.Marshal(data)
 		return result
 	}
 
-	request, response, err := utils.Request(twitterAPIURL, utils.RequestParams{
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultFastHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   5 * time.Second,
+		MaxDelay:     10 * time.Second,
+	}
+
+	request, response, err := retryCaller.Request(twitterAPIURL, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
-			"variables": string(jsonMarshal(variables)),
-			"features":  string(jsonMarshal(features)),
+			"variables":    string(jsonMarshal(variables)),
+			"features":     string(jsonMarshal(features)),
+			"fieldToggles": string(jsonMarshal(fieldToggles)),
 		},
 		Headers: headers,
 	})
