@@ -84,13 +84,16 @@ func (h *Handler) getPostURL(text string) string {
 			return ""
 		}
 
-		parsedURL, err := url.Parse(request.URI().String())
+		text = request.URI().String()
+		parsedURL, err := url.Parse(text)
 		if err != nil {
 			slog.Error("Error parsing URL",
 				"Error", err)
 			return ""
 		}
-		text = parsedURL.Query().Get("redirectPath")
+		if parsedURL.Query().Has("redirectPath") {
+			text = parsedURL.Query().Get("redirectPath")
+		}
 	}
 
 	return strings.Replace(text, "/discovery/item/", "/explore/", 1)
