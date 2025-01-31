@@ -18,17 +18,19 @@ import (
 )
 
 const (
-	twitterAPIURL = "https://twitter.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId"
-	guestTokenURL = "https://api.twitter.com/1.1/guest/activate.json"
+	twitterAPIURL   = "https://twitter.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId"
+	guestTokenURL   = "https://api.twitter.com/1.1/guest/activate.json"
+	fxTwitterAPIURL = "https://api.fxtwitter.com/status/"
 )
 
-func defaultHeaders() map[string]string {
-	downloader.GenericHeaders["Authorization"] = "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA"
-	downloader.GenericHeaders["x-twitter-client-language"] = "en"
-	downloader.GenericHeaders["x-twitter-active-user"] = "yes"
-	downloader.GenericHeaders["content-type"] = "application/json"
-	return downloader.GenericHeaders
-}
+var (
+	defaultHeaders = map[string]string{
+		"Authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
+		"x-twitter-client-language": "en",
+		"x-twitter-active-user":     "yes",
+		"content-type":              "application/json",
+	}
+)
 
 type Handler struct {
 	username string
@@ -87,7 +89,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputM
 	mediasEntities := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media
 	if len(mediasEntities) == 0 {
 		quoted = true
-		if (*twitterData).Data.TweetResult.QuotedStatusResult == nil {
+		if quotedStatusResult := (*twitterData).Data.TweetResult.QuotedStatusResult; quotedStatusResult == nil || quotedStatusResult.Result.Legacy == nil {
 			return nil
 		}
 		mediasEntities = (*twitterData).Data.TweetResult.QuotedStatusResult.Result.Legacy.ExtendedEntities.Media
@@ -190,7 +192,7 @@ func (h *Handler) getGuestToken() string {
 
 	request, response, err := retryCaller.Request(guestTokenURL, utils.RequestParams{
 		Method:    "POST",
-		Headers:   defaultHeaders(),
+		Headers:   defaultHeaders,
 		Redirects: 3,
 	})
 	defer utils.ReleaseRequestResources(request, response)
@@ -220,10 +222,8 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 		return nil
 	}
 
-	headers := defaultHeaders()
-
-	headers["x-guest-token"] = guestToken
-	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
+	defaultHeaders["x-guest-token"] = guestToken
+	defaultHeaders["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
 
 	variables := map[string]interface{}{
 		"tweetId":                h.postID,
@@ -280,7 +280,7 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 			"features":     string(jsonMarshal(features)),
 			"fieldToggles": string(jsonMarshal(fieldToggles)),
 		},
-		Headers: headers,
+		Headers: defaultHeaders,
 	})
 	defer utils.ReleaseRequestResources(request, response)
 
@@ -362,7 +362,7 @@ func getCaption(twitterData *TwitterAPIData) string {
 }
 
 func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
-	request, response, err := utils.Request("https://api.fxtwitter.com/status/"+h.postID, utils.RequestParams{
+	request, response, err := utils.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
