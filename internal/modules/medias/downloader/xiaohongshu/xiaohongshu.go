@@ -3,6 +3,7 @@ package xiaohongshu
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/url"
 	"os"
@@ -66,25 +67,25 @@ func (h *Handler) getPostURL(text string) string {
 
 	if strings.Contains(text, "xhslink") {
 		retryCaller := &utils.RetryCaller{
-			Caller:       utils.DefaultFastHTTPCaller,
+			Caller:       utils.DefaultHTTPCaller,
 			MaxAttempts:  3,
 			ExponentBase: 2,
 			StartDelay:   1 * time.Second,
 			MaxDelay:     5 * time.Second,
 		}
 
-		request, response, err := retryCaller.Request(text, utils.RequestParams{
+		response, err := retryCaller.Request(text, utils.RequestParams{
 			Headers:   downloader.GenericHeaders,
 			Method:    "GET",
 			Redirects: 2,
 		})
 
-		defer utils.ReleaseRequestResources(request, response)
 		if err != nil {
 			return ""
 		}
+		defer response.Body.Close()
 
-		text = request.URI().String()
+		text = response.Request.URL.String()
 		parsedURL, err := url.Parse(text)
 		if err != nil {
 			slog.Error("Error parsing URL",
@@ -106,17 +107,25 @@ var (
 func (h *Handler) getPostData(url string) XiaohongshuData {
 	var xiaohongshuData XiaohongshuData
 
-	request, response, err := utils.Request(url, utils.RequestParams{
+	response, err := utils.Request(url, utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return nil
 	}
+	defer response.Body.Close()
 
-	if matches := scriptRegex.FindSubmatch(response.Body()); len(matches) > 1 {
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		slog.Error("Failed to read response body",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
+		return nil
+	}
+
+	if matches := scriptRegex.FindSubmatch(body); len(matches) > 1 {
 		xiaohongshuJson := strings.ReplaceAll(string(matches[1]), "undefined", "null")
 		err := json.Unmarshal([]byte(xiaohongshuJson), &xiaohongshuData)
 		if err != nil {

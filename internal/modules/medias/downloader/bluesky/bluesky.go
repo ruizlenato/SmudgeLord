@@ -1,7 +1,6 @@
 package bluesky
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -54,7 +53,7 @@ func (h *Handler) setUsernameAndPostID(url string) bool {
 }
 
 func (h *Handler) getBlueskyData() BlueskyData {
-	request, response, err := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
+	response, err := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"User-Agent":   downloader.GenericHeaders["User-Agent"],
@@ -65,14 +64,14 @@ func (h *Handler) getBlueskyData() BlueskyData {
 			"depth": "0",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var data BlueskyData
-	err = json.Unmarshal(response.Body(), &data)
+	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		slog.Error("Failed to unmarshal JSON",
 			"Post Info", []string{h.username, h.postID},
@@ -150,10 +149,10 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 		return nil
 	}
 
-	request, response, err := utils.Request(playlistURL, utils.RequestParams{
+	response, err := utils.Request(playlistURL, utils.RequestParams{
 		Method: "GET",
 	})
-	defer utils.ReleaseRequestResources(request, response)
+	defer response.Body.Close()
 
 	if err != nil {
 		slog.Error("Failed to request playlist",
@@ -161,7 +160,7 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 			"Error", err.Error())
 	}
 
-	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
+	playlist, listType, err := m3u8.DecodeFrom(response.Body, true)
 	if err != nil {
 		slog.Error("Failed to decode m3u8 playlist",
 			"Post Info", []string{h.username, h.postID},
@@ -180,9 +179,9 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 	}
 
 	url := fmt.Sprintf("%s://%s%s/%s",
-		string(request.URI().Scheme()),
-		string(request.URI().Host()),
-		path.Dir(string(request.URI().Path())),
+		string(response.Request.URL.Scheme),
+		string(response.Request.URL.Host),
+		path.Dir(string(response.Request.URL.Path)),
 		highestBandwidthVariant.URI)
 
 	width, height, err := parseResolution(highestBandwidthVariant.Resolution)

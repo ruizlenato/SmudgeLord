@@ -113,7 +113,7 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 		"Linux; U; Android 12; Pixel 6 Pro",
 	}
 
-	request, response, err := utils.Request(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
+	response, err := utils.Request(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
 		sourceLang, targetLang, url.QueryEscape(text)), utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
@@ -121,14 +121,14 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 			`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		slog.Error("Couldn't request translation", "Error", err.Error())
 		return
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &translation)
+	err = json.NewDecoder(response.Body).Decode(&translation)
 	if err != nil {
 		slog.Error("Couldn't unmarshal translation data", "Error", err.Error())
 	}
@@ -248,7 +248,7 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 
 	var weatherSearchData weatherSearch
 
-	request, response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
+	response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"apiKey": weatherAPIKey,
@@ -259,14 +259,14 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 			"format": "json",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		slog.Error("Couldn't request weather search", "Error", err.Error())
 		return
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &weatherSearchData)
+	err = json.NewDecoder(response.Body).Decode(&weatherSearchData)
 	if err != nil {
 		return
 	}
@@ -337,7 +337,7 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	request, response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point",
+	response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point",
 		utils.RequestParams{
 			Method: "GET",
 			Query: map[string]string{
@@ -350,14 +350,14 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 				"format": "json",
 			},
 		})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		slog.Error("Couldn't request weather data", "Error", err.Error())
 		return
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &weatherResultData)
+	err = json.NewDecoder(response.Body).Decode(&weatherResultData)
 	if err != nil {
 		return
 	}

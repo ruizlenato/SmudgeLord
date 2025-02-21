@@ -51,24 +51,24 @@ func (h *Handler) setPostID(url string) bool {
 	}
 
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   1 * time.Second,
 		MaxDelay:     5 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(url, utils.RequestParams{
+	response, err := retryCaller.Request(url, utils.RequestParams{
 		Method:    "GET",
 		Redirects: 2,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return false
 	}
+	defer response.Body.Close()
 
-	if matches := postIDRegex.FindStringSubmatch(request.URI().String()); len(matches) > 1 {
+	if matches := postIDRegex.FindStringSubmatch(response.Request.URL.String()); len(matches) > 1 {
 		h.postID = matches[1]
 		return true
 	}
@@ -76,10 +76,10 @@ func (h *Handler) setPostID(url string) bool {
 }
 
 func (h *Handler) getTikTokData() TikTokData {
-	request, response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
+	response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method:  "OPTIONS",
 		Headers: downloader.GenericHeaders,
-        Query: map[string]string{
+		Query: map[string]string{
 			"iid":             "7318518857994389254",
 			"device_id":       "7318517321748022790",
 			"channel":         "googleplay",
@@ -91,13 +91,14 @@ func (h *Handler) getTikTokData() TikTokData {
 			"aid":             "1128",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
-	if err != nil || response.Body() == nil {
+
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var tikTokData TikTokData
-	err = json.Unmarshal(response.Body(), &tikTokData)
+	err = json.NewDecoder(response.Body).Decode(&tikTokData)
 	if err != nil {
 		return nil
 	}

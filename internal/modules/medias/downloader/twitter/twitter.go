@@ -183,19 +183,18 @@ func (h *Handler) getGuestToken() string {
 	var res guestToken
 
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   5 * time.Second,
 		MaxDelay:     10 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(guestTokenURL, utils.RequestParams{
+	response, err := retryCaller.Request(guestTokenURL, utils.RequestParams{
 		Method:    "POST",
 		Headers:   defaultHeaders,
 		Redirects: 3,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		slog.Error("Failed to get guest token",
@@ -203,8 +202,9 @@ func (h *Handler) getGuestToken() string {
 			"Error", err.Error())
 		return ""
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &res)
+	err = json.NewDecoder(response.Body).Decode(&res)
 	if err != nil {
 		slog.Error("Failed to unmarshal guest token",
 			"Post Info", []string{h.username, h.postID},
@@ -266,14 +266,14 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 	}
 
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   5 * time.Second,
 		MaxDelay:     10 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(twitterAPIURL, utils.RequestParams{
+	response, err := retryCaller.Request(twitterAPIURL, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"variables":    string(jsonMarshal(variables)),
@@ -282,14 +282,14 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 		},
 		Headers: defaultHeaders,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var twitterAPIData *TwitterAPIData
-	err = json.Unmarshal(response.Body(), &twitterAPIData)
+	err = json.NewDecoder(response.Body).Decode(&twitterAPIData)
 	if err != nil {
 		return nil
 	}
@@ -362,17 +362,16 @@ func getCaption(twitterData *TwitterAPIData) string {
 }
 
 func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
-	request, response, err := utils.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
+	response, err := utils.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		return nil
 	}
-	defer utils.ReleaseRequestResources(request, response)
 
 	var fxTwitterAPIData *FxTwitterAPIData
-	err = json.Unmarshal(response.Body(), &fxTwitterAPIData)
+	err = json.NewDecoder(response.Body).Decode(&fxTwitterAPIData)
 	if err != nil {
 		return nil
 	}

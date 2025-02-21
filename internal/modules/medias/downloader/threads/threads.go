@@ -3,6 +3,7 @@ package threads
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"strings"
@@ -43,30 +44,38 @@ func Handle(text string) ([]telego.InputMedia, []string) {
 }
 
 func (h *Handler) setPostID(url string) bool {
-	request, response, err := utils.Request(url, utils.RequestParams{
+	response, err := utils.Request(url, utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"User-Agent":     downloader.GenericHeaders["User-Agent"],
 			"Sec-Fetch-Mode": "navigate",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return false
 	}
+	defer response.Body.Close()
 
-	idLocation := strings.Index(string(response.Body()), "post_id")
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		slog.Error("Failed to read response body",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
+		return false
+	}
+
+	idLocation := strings.Index(string(body), "post_id")
 	if idLocation == -1 {
 		return false
 	}
 
 	start := idLocation + 10
-	end := strings.Index(string(response.Body())[start:], "\"")
+	end := strings.Index(string(body)[start:], "\"")
 	if end == -1 {
 		return false
 	}
-	h.postID = string(response.Body())[start : start+end]
+	h.postID = string(body)[start : start+end]
 	return true
 }
 
@@ -74,13 +83,13 @@ func getGQLData(postID string) ThreadsData {
 	var threadsData ThreadsData
 
 	lsd := utils.RandomString(10)
-    downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
-    downloader.GenericHeaders["X-Fb-Lsd"] = lsd
-    downloader.GenericHeaders["X-Ig-App-Id"] = "238260118697367"
-    downloader.GenericHeaders["Sec-Fetch-Mode"] = "cors"
-    downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
-	request, response, err := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
-		Method: "POST",
+	downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
+	downloader.GenericHeaders["X-Fb-Lsd"] = lsd
+	downloader.GenericHeaders["X-Ig-App-Id"] = "238260118697367"
+	downloader.GenericHeaders["Sec-Fetch-Mode"] = "cors"
+	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
+	response, err := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
+		Method:  "POST",
 		Headers: downloader.GenericHeaders,
 		BodyString: []string{
 			fmt.Sprintf(`variables={
@@ -97,13 +106,13 @@ func getGQLData(postID string) ThreadsData {
 			`lsd=` + lsd,
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return nil
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &threadsData)
+	err = json.NewDecoder(response.Body).Decode(&threadsData)
 	if err != nil {
 		slog.Error("Failed to unmarshal Threads GQLData", "Error", err.Error())
 		return nil

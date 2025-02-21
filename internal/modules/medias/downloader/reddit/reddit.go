@@ -1,10 +1,11 @@
 package reddit
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
 	"os"
 	"path"
 	"regexp"
@@ -14,7 +15,6 @@ import (
 	"github.com/mymmrac/telego"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 var redlibInstance = "https://rl.bloat.cat"
@@ -85,54 +85,62 @@ func (h *Handler) processMedia() ([]telego.InputMedia, string) {
 }
 
 func (h *Handler) getRedlibData() ([]telego.InputMedia, string) {
-	request, response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
+	response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
 		utils.RequestParams{
 			Method:  "GET",
 			Headers: downloader.GenericHeaders,
 		})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		slog.Error("Failed to fetch media content",
 			"Error", err.Error())
 		return nil, ""
 	}
+	defer response.Body.Close()
 
-	postType := postTypeRegex.FindSubmatch(response.Body())
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		slog.Error("Failed to read response body",
+			"Post Info", []string{h.subreddit, h.postID},
+			"Error", err.Error())
+		return nil, ""
+	}
+
+	postType := postTypeRegex.FindSubmatch(body)
 	if len(postType) < 1 || string(postType[1]) == "self" {
 		return nil, ""
 	}
 
 	if string(postType[1]) == "video" || string(postType[1]) == "image" {
-		match := mediaContentRegex.FindSubmatch(response.Body())
+		match := mediaContentRegex.FindSubmatch(body)
 		if len(match) < 2 {
 			return nil, ""
 		}
 
-		if videoMedia := h.processRedlibVideo(match[1], request); videoMedia != nil {
-			return videoMedia, extractRedlibCaption(response.Body())
+		if videoMedia := h.processRedlibVideo(match[1], response); videoMedia != nil {
+			return videoMedia, extractRedlibCaption(body)
 		}
 
-		if imageMedia := h.processRedlibImage(match[1], request); imageMedia != nil {
-			return imageMedia, extractRedlibCaption(response.Body())
+		if imageMedia := h.processRedlibImage(match[1], response); imageMedia != nil {
+			return imageMedia, extractRedlibCaption(body)
 		}
 	}
 
 	if string(postType[1]) == "gallery" {
-		match := galleryRegex.FindAllSubmatch(response.Body(), -1)
+		match := galleryRegex.FindAllSubmatch(body, -1)
 
-		if galleryMedia := processRedlibGallery(match, request); galleryMedia != nil {
-			return galleryMedia, extractRedlibCaption(response.Body())
+		if galleryMedia := processRedlibGallery(match, response); galleryMedia != nil {
+			return galleryMedia, extractRedlibCaption(body)
 		}
 	}
 
 	return nil, ""
 }
 
-func buildMediaURL(request *fasthttp.Request, path string) string {
+func buildMediaURL(response *http.Response, path string) string {
 	url := fmt.Sprintf("%s://%s%s",
-		string(request.URI().Scheme()),
-		string(request.URI().Host()),
+		string(response.Request.URL.Scheme),
+		string(response.Request.URL.Host),
 		path,
 	)
 	return cleanupRegex.ReplaceAllString(url, "")
@@ -154,9 +162,9 @@ func extractRedlibCaption(body []byte) string {
 	return fmt.Sprintf("<b>%s — %s</b>: %s", postAuthor, postSubreddit, postTitle)
 }
 
-func (h *Handler) processRedlibVideo(content []byte, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []telego.InputMedia {
 	if videoMatch := videoRegex.FindSubmatch(content); len(videoMatch) > 1 {
-		playlistURL := buildMediaURL(request, string(playlistRegex.FindSubmatch(content)[1]))
+		playlistURL := buildMediaURL(response, string(playlistRegex.FindSubmatch(content)[1]))
 
 		audioFile, err := downloadAudio(playlistURL)
 		if err != nil {
@@ -165,8 +173,8 @@ func (h *Handler) processRedlibVideo(content []byte, request *fasthttp.Request) 
 			return nil
 		}
 
-		thumbnail := h.downloadThumbnail(content, request)
-		videoURL := buildMediaURL(request, string(videoMatch[1]))
+		thumbnail := h.downloadThumbnail(content, response)
+		videoURL := buildMediaURL(response, string(videoMatch[1]))
 
 		videoFile, err := downloader.Downloader(videoURL)
 		if err != nil {
@@ -201,14 +209,14 @@ func downloadAudio(playlistURL string) (*os.File, error) {
 		return nil, fmt.Errorf("empty playlist URL")
 	}
 
-	request, response, err := utils.Request(playlistURL, utils.RequestParams{Method: "GET"})
-	defer utils.ReleaseRequestResources(request, response)
+	response, err := utils.Request(playlistURL, utils.RequestParams{Method: "GET"})
+	defer response.Body.Close()
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch audio playlist: %s", err)
 	}
 
-	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
+	playlist, listType, err := m3u8.DecodeFrom(response.Body, true)
 	if err != nil || listType != m3u8.MASTER {
 		return nil, fmt.Errorf("failed to decode audio playlist: %s", err)
 	}
@@ -220,9 +228,9 @@ func downloadAudio(playlistURL string) (*os.File, error) {
 
 	audioURL := strings.ReplaceAll(
 		fmt.Sprintf("%s://%s%s/%s",
-			string(request.URI().Scheme()),
-			string(request.URI().Host()),
-			path.Dir(string(request.URI().Path())),
+			string(response.Request.URL.Scheme),
+			string(response.Request.URL.Host),
+			path.Dir(string(response.Request.URL.Path)),
 			audioVariant.URI,
 		), "m3u8", "aac")
 	audioFile, err := downloader.Downloader(audioURL)
@@ -245,9 +253,9 @@ func getHighestQualityAudio(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
 	return bestAudio
 }
 
-func (h *Handler) downloadThumbnail(content []byte, request *fasthttp.Request) *os.File {
+func (h *Handler) downloadThumbnail(content []byte, response *http.Response) *os.File {
 	if thumbMatch := thumbRegex.FindSubmatch(content); len(thumbMatch) > 1 {
-		thumbnailURL := buildMediaURL(request, string(thumbMatch[1]))
+		thumbnailURL := buildMediaURL(response, string(thumbMatch[1]))
 
 		thumbnail, err := downloader.Downloader(thumbnailURL)
 		if err != nil {
@@ -265,9 +273,9 @@ func (h *Handler) downloadThumbnail(content []byte, request *fasthttp.Request) *
 	return nil
 }
 
-func (h *Handler) processRedlibImage(content []byte, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processRedlibImage(content []byte, response *http.Response) []telego.InputMedia {
 	if imageMatch := imageRegex.FindSubmatch(content); len(imageMatch) > 1 {
-		imageURL := buildMediaURL(request, string(imageMatch[1]))
+		imageURL := buildMediaURL(response, string(imageMatch[1]))
 
 		file, err := downloader.Downloader(imageURL)
 		if err != nil {
@@ -283,7 +291,7 @@ func (h *Handler) processRedlibImage(content []byte, request *fasthttp.Request) 
 	return nil
 }
 
-func processRedlibGallery(content [][][]byte, request *fasthttp.Request) []telego.InputMedia {
+func processRedlibGallery(content [][][]byte, response *http.Response) []telego.InputMedia {
 	if len(content) < 1 {
 		return nil
 	}
@@ -300,7 +308,7 @@ func processRedlibGallery(content [][][]byte, request *fasthttp.Request) []teleg
 
 	for i, item := range content {
 		go func(index int) {
-			media := buildMediaURL(request, string(item[1]))
+			media := buildMediaURL(response, string(item[1]))
 			file, err := downloader.Downloader(media)
 			if err != nil {
 				results <- mediaResult{index: index, err: err}
@@ -329,30 +337,31 @@ func processRedlibGallery(content [][][]byte, request *fasthttp.Request) []teleg
 }
 
 func (h *Handler) getAPIData() *Data {
-	request, response, err := utils.Request(fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s/.json?raw_json=1", h.subreddit, h.postID), utils.RequestParams{
+	response, err := utils.Request(fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s/.json?raw_json=1", h.subreddit, h.postID), utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
-	defer utils.ReleaseRequestResources(request, response)
-	if err != nil || response.Body() == nil || response.StatusCode() != 200 {
-		request, response, err = utils.Request(fmt.Sprintf("https://api.reddit.com/api/info/?id=t3_%s", h.postID),
+
+	if err != nil || response.Body == nil || response.StatusCode != 200 {
+		response, err = utils.Request(fmt.Sprintf("https://api.reddit.com/api/info/?id=t3_%s", h.postID),
 			utils.RequestParams{Method: "GET",
-                    Headers: downloader.GenericHeaders,})
-		if err != nil || response.Body() == nil {
+				Headers: downloader.GenericHeaders})
+		if err != nil || response.Body == nil {
 			return nil
 		}
-		defer utils.ReleaseRequestResources(request, response)
+		defer response.Body.Close()
 
 		var data KindData
-		err = json.Unmarshal(response.Body(), &data)
+		err = json.NewDecoder(response.Body).Decode(&data)
 		if err != nil {
 			return nil
 		}
 		return &data.Data.Children[0].Data
 	}
+	defer response.Body.Close()
 
 	var data RedditPost
-	err = json.Unmarshal(response.Body(), &data)
+	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		return nil
 	}

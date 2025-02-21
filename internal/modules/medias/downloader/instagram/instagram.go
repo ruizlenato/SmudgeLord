@@ -3,6 +3,7 @@ package instagram
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -47,24 +48,24 @@ func (h *Handler) setPostID(url string) bool {
 	}
 
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   1 * time.Second,
 		MaxDelay:     5 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(url, utils.RequestParams{
+	response, err := retryCaller.Request(url, utils.RequestParams{
 		Method:    "GET",
 		Redirects: 2,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return false
 	}
+	defer response.Body.Close()
 
-	if matches := postIDRegex.FindStringSubmatch(request.URI().String()); len(matches) > 1 {
+	if matches := postIDRegex.FindStringSubmatch(response.Request.URL.User.String()); len(matches) > 1 {
 		h.postID = matches[1]
 		return true
 	}
@@ -141,17 +142,25 @@ var (
 func (h *Handler) getEmbedData() InstagramData {
 	var data InstagramData
 
-	request, response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", h.postID), utils.RequestParams{
+	response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", h.postID), utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
+		return nil
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		slog.Error("Failed to read response body",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 		return nil
 	}
 
-	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(response.Body()); len(match) == 2 {
+	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body); len(match) == 2 {
 		s := strings.ReplaceAll(string(match[1]), `\"`, `"`)
 		s = strings.ReplaceAll(s, `\\/`, `/`)
 		s = strings.ReplaceAll(s, `\\`, `\`)
@@ -159,14 +168,14 @@ func (h *Handler) getEmbedData() InstagramData {
 		json.Unmarshal([]byte(s), &data)
 	}
 
-	mediaTypeData := mediaTypeRegex.FindAllStringSubmatch(string(response.Body()), -1)
+	mediaTypeData := regexp.MustCompile(`(?s)data-media-type="(.*?)"`).FindAllStringSubmatch(string(body), -1)
 	if data == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
-		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(response.Body()), -1)
+		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(body), -1)
 		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
 
 		var caption string
 		var owner string
-		captionData := captionRegex.FindAllStringSubmatch(string(response.Body()), -1)
+		captionData := captionRegex.FindAllStringSubmatch(string(body), -1)
 
 		if len(captionData) > 0 && len(captionData[0]) > 2 {
 			owner = strings.TrimSpace(htmlTagRegex.ReplaceAllString(captionData[0][2], ""))
@@ -204,18 +213,19 @@ func (h *Handler) getEmbedData() InstagramData {
 func (h *Handler) getScrapperAPIData() InstagramData {
 	var data InstagramData
 
-	request, response, err := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
+	response, err := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"id": h.postID,
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
-	if err != nil || response.Body() == nil {
+
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &data)
+	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		return nil
 	}
@@ -231,7 +241,7 @@ func (h *Handler) getGQLData() InstagramData {
 	downloader.GenericHeaders["X-IG-App-ID"] = "936619743392459"
 	downloader.GenericHeaders["X-FB-LSD"] = "AVqBX1zadbA"
 	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
-	request, response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
+	response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
 		Method:  "POST",
 		Headers: downloader.GenericHeaders,
 		BodyString: []string{
@@ -239,13 +249,13 @@ func (h *Handler) getGQLData() InstagramData {
 			`doc_id=8845758582119845`,
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &data)
+	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		return nil
 	}

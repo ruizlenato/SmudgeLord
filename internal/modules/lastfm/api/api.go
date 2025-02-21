@@ -28,7 +28,7 @@ func Init() *LastFM {
 }
 
 func (lfm *LastFM) GetUser(username string) error {
-	request, response, err := utils.Request(lastFMAPI, utils.RequestParams{
+	response, err := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":  "user.getinfo",
@@ -37,14 +37,14 @@ func (lfm *LastFM) GetUser(username string) error {
 			"format":  "json",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return fmt.Errorf("error requesting user info: %w", err)
 	}
+	defer response.Body.Close()
 
 	var userInfo userInfo
-	err = json.Unmarshal(response.Body(), &userInfo)
+	err = json.NewDecoder(response.Body).Decode(&userInfo)
 	if err != nil {
 		return fmt.Errorf("error unmarshalling user info: %w", err)
 	}
@@ -56,7 +56,7 @@ func (lfm *LastFM) GetUser(username string) error {
 }
 
 func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
-	request, response, err := utils.Request(lastFMAPI, utils.RequestParams{
+	response, err := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":   "user.getrecenttracks",
@@ -67,14 +67,14 @@ func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
 			"format":   "json",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.StatusCode() != 200 {
+	if err != nil || response.StatusCode != 200 {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var recentTracks recentTracks
-	err = json.Unmarshal(response.Body(), &recentTracks)
+	err = json.NewDecoder(response.Body).Decode(&recentTracks)
 	if err != nil {
 		slog.Error("Couldn't unmarshal recent tracks", "Error", err.Error())
 	}
@@ -133,7 +133,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 		methodValue = (*recentTracks.RecentTracks.Track)[0].Artist.Name
 	}
 
-	request, response, err := utils.Request(lastFMAPI, utils.RequestParams{
+	response, err := utils.Request(lastFMAPI, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"method":  fmt.Sprintf("%s.getinfo", method),
@@ -144,14 +144,14 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 			"format":  "json",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		slog.Error("Couldn't request get info", "Error", err.Error())
 	}
+	defer response.Body.Close()
 
 	var getInfo getInfo
-	err = json.Unmarshal(response.Body(), &getInfo)
+	err = json.NewDecoder(response.Body).Decode(&getInfo)
 	if err != nil {
 		slog.Error("Couldn't unmarshal get info", "Error", err.Error())
 	}

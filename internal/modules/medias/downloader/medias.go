@@ -8,6 +8,8 @@ import (
 	"io"
 	"log/slog"
 	"mime"
+	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -21,7 +23,6 @@ import (
 	"github.com/grafov/m3u8"
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 
 	"github.com/mymmrac/telego"
 )
@@ -48,10 +49,10 @@ type YouTube struct {
 	Caption string `json:"caption"`
 }
 
-func getFileExtension(response *fasthttp.Response, request *fasthttp.Request) string {
-	if mediatype, _, err := mime.ParseMediaType(string(response.Header.ContentType())); err == nil {
+func getFileExtension(response *http.Response) string {
+	if mediatype, _, err := mime.ParseMediaType(string(response.Header.Get("Content-Type"))); err == nil {
 		if mediatype == "text/plain" {
-			if ext := strings.TrimPrefix(filepath.Ext(string(request.URI().Path())), "."); ext != "" {
+			if ext := strings.TrimPrefix(filepath.Ext(response.Request.URL.Path), "."); ext != "" {
 				return ext
 			}
 		}
@@ -66,27 +67,32 @@ func getFileExtension(response *fasthttp.Response, request *fasthttp.Request) st
 
 func Downloader(media string, filename ...string) (*os.File, error) {
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   1 * time.Second,
 		MaxDelay:     5 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(media, utils.RequestParams{
+	response, err := retryCaller.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil || response == nil {
 		return nil, errors.New("get error")
 	}
+	defer response.Body.Close()
 
-	if bytes.Contains(response.Body(), []byte("#EXTM3U")) {
-		return downloadM3U8(request, response)
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
 	}
 
-	extension := getFileExtension(response, request)
+	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
+		return downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
+	}
+
+	extension := getFileExtension(response)
 
 	var file *os.File
 	defer func() {
@@ -108,7 +114,7 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 		return nil, fmt.Errorf("failed to create temp file: %w", err)
 	}
 
-	if _, err = file.Write(response.Body()); err != nil {
+	if _, err = file.Write(bodyBytes); err != nil {
 		return nil, err
 	}
 
@@ -119,8 +125,8 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 	return file, err
 }
 
-func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.File, error) {
-	playlist, _, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
+func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
+	playlist, _, err := m3u8.DecodeFrom(body, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode m3u8 playlist: %s", err)
 	}
@@ -149,9 +155,9 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 
 		go func(index int, segment *m3u8.MediaSegment) {
 			urlSegment := fmt.Sprintf("%s://%s%s/%s",
-				string(request.URI().Scheme()),
-				string(request.URI().Host()),
-				path.Dir(string(request.URI().Path())),
+				url.Scheme,
+				url.Host,
+				path.Dir(url.Path),
 				segment.URI)
 
 			fileName, err := downloadSegment(urlSegment)
@@ -189,15 +195,15 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 }
 
 func downloadSegment(url string) (string, error) {
-	request, response, err := utils.Request(url, utils.RequestParams{
+	response, err := utils.Request(url, utils.RequestParams{
 		Method:    "GET",
 		Redirects: 5,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return "", err
 	}
+	defer response.Body.Close()
 
 	tmpFile, err := os.CreateTemp("", "*.ts")
 	if err != nil {
@@ -205,7 +211,7 @@ func downloadSegment(url string) (string, error) {
 	}
 	defer tmpFile.Close()
 
-	if _, err := io.Copy(tmpFile, bytes.NewReader(response.Body())); err != nil {
+	if _, err := io.Copy(tmpFile, response.Body); err != nil {
 		return "", err
 	}
 
