@@ -1,38 +1,44 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"strings"
 
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
-	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func handleDisableable(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message)
+func disableableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
 	text := i18n("disableables-commands")
-	for _, command := range helpers.DisableableCommands {
+
+	for _, command := range utils.DisableableCommands {
 		text += "\n- <code>" + command + "</code>"
 	}
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
 		Text:      text,
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			PreferLargeMedia: bot.True(),
+			ShowAboveText:    bot.True(),
+		},
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
 		},
 	})
-	return
 }
 
-func handleDisable(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message)
+func disableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
 	contains := func(array []string, str string) bool {
 		for _, item := range array {
 			if item == str {
@@ -41,145 +47,132 @@ func handleDisable(bot *telego.Bot, message telego.Message) {
 		}
 		return false
 	}
-	_, _, args := telegoutil.ParseCommand(message.Text)
-	if len(args) == 0 {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("disable-commands-usage"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
 
-	if !contains(helpers.DisableableCommands, args[0]) {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID: telegoutil.ID(message.Chat.ID),
-			Text: i18n("command-not-deactivatable",
-				map[string]interface{}{
-					"command": args[0],
-				}),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	if helpers.CheckDisabledCommand(args[0], message.Chat.ID) {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID: telegoutil.ID(message.Chat.ID),
-			Text: i18n("command-already-disabled",
-				map[string]interface{}{
-					"command": args[0],
-				}),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	query := "INSERT INTO commandsDisabled (chat_id, command) VALUES (?, ?);"
-	_, err := database.DB.Exec(query, message.Chat.ID, args[0])
-	if err != nil {
-		fmt.Print("Error inserting command: " + err.Error())
-		return
-	}
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID: telegoutil.ID(message.Chat.ID),
-		Text: i18n("command-disabled",
-			map[string]interface{}{
-				"command": args[0],
-			}),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
-	return
-}
-
-func handleEnable(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message)
-	_, _, args := telegoutil.ParseCommand(message.Text)
-	if len(args) == 0 {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("enable-commands-usage"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	if !helpers.CheckDisabledCommand(args[0], message.Chat.ID) {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID: telegoutil.ID(message.Chat.ID),
-			Text: i18n("command-already-enabled",
-				map[string]interface{}{
-					"command": args[0],
-				}),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	query := "DELETE FROM commandsDisabled WHERE command = ?;"
-	_, err := database.DB.Exec(query, args[0])
-	if err != nil {
-		fmt.Print("Error deleting command: " + err.Error())
-		return
-	}
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID: telegoutil.ID(message.Chat.ID),
-		Text: i18n("command-enabled",
-			map[string]interface{}{
-				"command": args[0],
-			}),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
-	return
-}
-
-func handleDisabled(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message)
-	text := i18n("disabled-commands")
-	rows, err := database.DB.Query("SELECT command FROM commandsDisabled WHERE chat_id = ?", message.Chat.ID)
-	if err != nil {
-		return
-	}
-	defer rows.Close()
-
-	var commands []string
-	for rows.Next() {
-		var command string
-		if err := rows.Scan(&command); err != nil {
+	if len(strings.Fields(update.Message.Text)) > 1 {
+		command := strings.Fields(update.Message.Text)[1]
+		if !contains(utils.DisableableCommands, command) {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text: i18n("command-not-deactivatable",
+					map[string]interface{}{
+						"command": command,
+					}),
+				ParseMode: "HTML",
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: update.Message.ID,
+				},
+			})
 			return
 		}
-		commands = append(commands, command)
+
+		if utils.CheckDisabledCommand(command, update.Message.Chat.ID) {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text: i18n("command-already-disabled",
+					map[string]interface{}{
+						"command": command,
+					}),
+				ParseMode: "HTML",
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: update.Message.ID,
+				},
+			})
+			return
+		}
+
+		if err := insertDisabledCommand(update.Message.Chat.ID, command); err != nil {
+			fmt.Print("Error inserting command: " + err.Error())
+			return
+		}
+
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text: i18n("command-disabled",
+				map[string]interface{}{
+					"command": command,
+				}),
+			ParseMode: "HTML",
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
 	}
 
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      i18n("disable-commands-usage"),
+		ParseMode: "HTML",
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
+}
+
+func enableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+
+	if len(strings.Fields(update.Message.Text)) > 1 {
+		command := strings.Fields(update.Message.Text)[1]
+
+		if !utils.CheckDisabledCommand(command, update.Message.Chat.ID) {
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: update.Message.Chat.ID,
+				Text: i18n("command-already-enabled",
+					map[string]interface{}{
+						"command": command,
+					}),
+				ParseMode: "HTML",
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: update.Message.ID,
+				},
+			})
+			return
+		}
+
+		if err := deleteDisabledCommand(command); err != nil {
+			fmt.Print("Error deleting command: " + err.Error())
+			return
+		}
+
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text: i18n("command-enabled",
+				map[string]interface{}{
+					"command": command,
+				}),
+			ParseMode: "HTML",
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
+	}
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      i18n("enable-commands-usage"),
+		ParseMode: "HTML",
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
+}
+
+func disabledHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+	text := i18n("disabled-commands")
+	commands, err := getDisabledCommands(update.Message.Chat.ID)
+	if err != nil {
+		return
+	}
 	if len(commands) == 0 {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("no-disabled-commands"),
 			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
 			},
 		})
 		return
@@ -188,22 +181,21 @@ func handleDisabled(bot *telego.Bot, message telego.Message) {
 	for _, command := range commands {
 		text += "\n- <code>" + command + "</code>"
 	}
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
 		Text:      text,
 		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
 		},
 	})
-	return
 }
 
-func callbackLanguageMenu(bot *telego.Bot, update telego.Update) {
+func languageMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
-	chat := update.CallbackQuery.Message.GetChat()
 
-	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
+	buttons := make([][]models.InlineKeyboardButton, 0, len(database.AvailableLocales))
 	for _, lang := range database.AvailableLocales {
 		loaded, ok := localization.LangBundles[lang]
 		if !ok {
@@ -212,111 +204,105 @@ func callbackLanguageMenu(bot *telego.Bot, update telego.Update) {
 		languageFlag, _, _ := loaded.FormatMessage("language-flag")
 		languageName, _, _ := loaded.FormatMessage("language-name")
 
-		buttons = append(buttons, []telego.InlineKeyboardButton{{
-			Text: languageFlag +
-				languageName,
+		buttons = append(buttons, []models.InlineKeyboardButton{{
+			Text:         languageFlag + languageName,
 			CallbackData: fmt.Sprintf("setLang %s", lang),
 		}})
 	}
 
-	row := database.DB.QueryRow("SELECT language FROM users WHERE id = ?;", chat.ID)
-	if strings.Contains(chat.Type, "group") {
-		row = database.DB.QueryRow("SELECT language FROM groups WHERE id = ?;", chat.ID)
-	}
-	var language string
-	err := row.Scan(&language)
-	if err != nil {
-		slog.Error("Couldn't query user", "ChatID", chat.ID, "Error", err.Error())
-	}
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(chat.ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
 		Text: i18n("language-menu",
 			map[string]interface{}{
 				"languageFlag": i18n("language-flag"),
 				"languageName": i18n("language-name"),
 			}),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+		ParseMode:   models.ParseModeHTML,
+		ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: buttons},
 	})
 }
 
-func callbackLanguageSet(bot *telego.Bot, update telego.Update) {
+func setLanguageCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 	lang := strings.ReplaceAll(update.CallbackQuery.Data, "setLang ", "")
-	chat := update.CallbackQuery.Message.GetChat()
 
-	dbQuery := "UPDATE users SET language = ? WHERE id = ?;"
-	if strings.Contains(chat.Type, "group") {
-		dbQuery = "UPDATE groups SET language = ? WHERE id = ?;"
+	dbQuery := "UPDATE groups SET language = ? WHERE id = ?;"
+	if update.CallbackQuery.Message.Message.Chat.Type == models.ChatTypePrivate {
+		dbQuery = "UPDATE users SET language = ? WHERE id = ?;"
 	}
-	_, err := database.DB.Exec(dbQuery, lang, chat.ID)
+	_, err := database.DB.Exec(dbQuery, lang, update.CallbackQuery.Message.Message.Chat.ID)
 	if err != nil {
-		slog.Error("Couldn't update language", "ChatID", chat.ID, "Error", err.Error())
+		slog.Error("Couldn't update language",
+			"ChatID", update.CallbackQuery.Message.Message.ID,
+			"Error", err.Error())
 	}
 
-	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
+	buttons := make([][]models.InlineKeyboardButton, 0, len(database.AvailableLocales))
 
-	if chat.Type == telego.ChatTypePrivate {
-		buttons = append(buttons, []telego.InlineKeyboardButton{{
+	if update.CallbackQuery.Message.Message.Chat.Type == models.ChatTypePrivate {
+		buttons = append(buttons, []models.InlineKeyboardButton{{
 			Text:         i18n("back-button"),
 			CallbackData: "start",
 		}})
 	} else {
-		buttons = append(buttons, []telego.InlineKeyboardButton{{
+		buttons = append(buttons, []models.InlineKeyboardButton{{
 			Text:         i18n("back-button"),
 			CallbackData: "config",
 		}})
 	}
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(chat.ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("language-changed"),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
+		Text:      i18n("language-changed"),
+
+		ParseMode:   models.ParseModeHTML,
+		ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: buttons},
 	})
 }
 
-func createConfigKeyboard(i18n func(string, ...map[string]interface{}) string) *telego.InlineKeyboardMarkup {
-	return telegoutil.InlineKeyboard(
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         i18n("medias"),
-				CallbackData: "mediaConfig",
+func createConfigKeyboard(i18n func(string, ...map[string]any) string) *models.InlineKeyboardMarkup {
+	return &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			{
+				{
+					Text:         i18n("medias"),
+					CallbackData: "mediaConfig",
+				},
 			},
-		),
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         i18n("language-flag") + i18n("language-button"),
-				CallbackData: "languageMenu",
+			{
+				{
+					Text:         i18n("language-flag") + i18n("language-button"),
+					CallbackData: "languageMenu",
+				},
 			},
-		),
-	)
-}
-
-func handleConfig(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message)
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:      telegoutil.ID(message.Chat.ID),
-		Text:        i18n("config-message"),
-		ParseMode:   "HTML",
-		ReplyMarkup: createConfigKeyboard(i18n),
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
 		},
+	}
+}
+
+func configHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      i18n("config-message"),
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+		ReplyMarkup: createConfigKeyboard(i18n),
 	})
 }
 
-func callbackConfig(bot *telego.Bot, update telego.Update) {
+func configCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
+
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID:   update.CallbackQuery.Message.Message.ID,
 		Text:        i18n("config-message"),
-		ParseMode:   "HTML",
+		ParseMode:   models.ParseModeHTML,
 		ReplyMarkup: createConfigKeyboard(i18n),
 	})
 }
@@ -327,17 +313,12 @@ func getMediaConfig(chatID int64) (bool, bool, error) {
 	return mediasCaption, mediasAuto, err
 }
 
-func updateMediaConfig(chatID int64, configType string, value bool) error {
-	query := fmt.Sprintf("UPDATE groups SET %s = ? WHERE id = ?;", configType)
-	_, err := database.DB.Exec(query, value, chatID)
-	return err
-}
-
-func callbackMediaConfig(bot *telego.Bot, update telego.Update) {
-	chatID := update.CallbackQuery.Message.GetChat().ID
-	mediasCaption, mediasAuto, err := getMediaConfig(chatID)
+func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	mediasCaption, mediasAuto, err := getMediaConfig(update.CallbackQuery.Message.Message.Chat.ID)
 	if err != nil {
-		slog.Error("Couldn't query media config", "ChatID", chatID, "Error", err.Error())
+		slog.Error("Couldn't query media config",
+			"ChatID", update.CallbackQuery.Message.Message.Chat.ID,
+			"Error", err.Error())
 		return
 	}
 
@@ -348,10 +329,10 @@ func callbackMediaConfig(bot *telego.Bot, update telego.Update) {
 		switch configType {
 		case "mediasCaption":
 			mediasCaption = !mediasCaption
-			_, err = database.DB.Exec(query, mediasCaption, update.CallbackQuery.Message.GetChat().ID)
+			_, err = database.DB.Exec(query, mediasCaption, update.CallbackQuery.Message.Message.Chat.ID)
 		case "mediasAuto":
 			mediasAuto = !mediasAuto
-			_, err = database.DB.Exec(query, mediasAuto, update.CallbackQuery.Message.GetChat().ID)
+			_, err = database.DB.Exec(query, mediasAuto, update.CallbackQuery.Message.Message.Chat.ID)
 		}
 		if err != nil {
 			return
@@ -366,43 +347,65 @@ func callbackMediaConfig(bot *telego.Bot, update telego.Update) {
 		return "☑️"
 	}
 
-	buttons := [][]telego.InlineKeyboardButton{
+	buttons := [][]models.InlineKeyboardButton{
 		{
-			{Text: i18n("caption-button"), CallbackData: "ieConfig mediasCaption"},
-			{Text: state(mediasCaption), CallbackData: "mediaConfig mediasCaption"},
+			{
+				Text:         i18n("caption-button"),
+				CallbackData: "ieConfig mediasCaption",
+			},
+			{
+				Text:         state(mediasCaption),
+				CallbackData: "mediaConfig mediasCaption",
+			},
 		},
 		{
-			{Text: i18n("automatic-button"), CallbackData: "ieConfig mediasAuto"},
-			{Text: state(mediasAuto), CallbackData: "mediaConfig mediasAuto"},
+			{
+				Text:         i18n("automatic-button"),
+				CallbackData: "ieConfig mediasAuto",
+			},
+			{
+				Text:         state(mediasAuto),
+				CallbackData: "mediaConfig mediasAuto",
+			},
 		},
 	}
 
-	buttons = append(buttons, []telego.InlineKeyboardButton{{
+	buttons = append(buttons, []models.InlineKeyboardButton{{
 		Text:         i18n("back-button"),
 		CallbackData: "config",
 	}})
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID:   update.CallbackQuery.Message.Message.ID,
 		Text:        i18n("config-medias"),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+		ParseMode:   models.ParseModeHTML,
+		ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: buttons},
 	})
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	helpers.Store("config")
-	bh.HandleMessage(handleDisableable, telegohandler.Or(
-		telegohandler.CommandEqual("disableables"),
-		telegohandler.CommandEqual("disableable"),
-	), helpers.IsAdmin(bot), helpers.IsGroup)
-	bh.HandleMessage(handleDisable, telegohandler.CommandEqual("disable"), helpers.IsAdmin(bot), helpers.IsGroup)
-	bh.HandleMessage(handleEnable, telegohandler.CommandEqual("enable"), helpers.IsAdmin(bot), helpers.IsGroup)
-	bh.HandleMessage(handleDisabled, telegohandler.CommandEqual("disabled"), helpers.IsAdmin(bot), helpers.IsGroup)
-	bh.Handle(callbackLanguageMenu, telegohandler.CallbackDataEqual("languageMenu"), helpers.IsAdmin(bot))
-	bh.Handle(callbackLanguageSet, telegohandler.CallbackDataPrefix("setLang"), helpers.IsAdmin(bot))
-	bh.HandleMessage(handleConfig, telegohandler.CommandEqual("config"), helpers.IsAdmin(bot), helpers.IsGroup)
-	bh.Handle(callbackConfig, telegohandler.CallbackDataEqual("config"), helpers.IsAdmin(bot))
-	bh.Handle(callbackMediaConfig, telegohandler.CallbackDataPrefix("mediaConfig"), helpers.IsAdmin(bot))
+func explainConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+	ieConfig := strings.ReplaceAll(update.CallbackQuery.Data, "ieConfig medias", "")
+	b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+		CallbackQueryID: update.CallbackQuery.ID,
+		Text:            i18n("ieConfig-" + ieConfig),
+		ShowAlert:       true,
+	})
+}
+
+func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "languageMenu", bot.MatchTypeExact, languageMenuCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "setLang", bot.MatchTypeContains, setLanguageCallback)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/config", bot.MatchTypeExact, configHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "config", bot.MatchTypeExact, configCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "mediaConfig", bot.MatchTypeContains, mediaConfigCallback)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/disableable", bot.MatchTypeExact, disableableHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/disable", bot.MatchTypePrefix, disableHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/enable", bot.MatchTypePrefix, enableHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/disabled", bot.MatchTypeExact, disabledHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "/disableable", bot.MatchTypeExact, disableableHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "ieConfig", bot.MatchTypeExact, explainConfigCallback)
+
+	utils.SaveHelp("config")
 }
