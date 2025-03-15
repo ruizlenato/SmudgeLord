@@ -3,6 +3,7 @@ package bluesky
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"path"
@@ -10,8 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-telegram/bot/models"
 	"github.com/grafov/m3u8"
-	"github.com/mymmrac/telego"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -21,7 +23,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.setUsernameAndPostID(text) {
 		return nil, []string{}
@@ -94,7 +96,7 @@ type InputMedia struct {
 	Thumbnail *os.File
 }
 
-func (h *Handler) processMedia(data BlueskyData) []telego.InputMedia {
+func (h *Handler) processMedia(data BlueskyData) []models.InputMedia {
 	switch {
 	case strings.Contains(data.Thread.Post.Embed.Type, "image"):
 		return h.handleImage(data.Thread.Post.Embed.Images)
@@ -139,7 +141,7 @@ func getPlaylistAndThumbnailURLs(data BlueskyData) (string, string) {
 	return data.Thread.Post.Embed.Media.Playlist, data.Thread.Post.Embed.Media.Thumbnail
 }
 
-func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
+func (h *Handler) handleVideo(data BlueskyData) []models.InputMedia {
 	playlistURL, thumbnailURL := getPlaylistAndThumbnailURLs(data)
 	if playlistURL == "" || thumbnailURL == "" {
 		return nil
@@ -152,13 +154,12 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 	response, err := utils.Request(playlistURL, utils.RequestParams{
 		Method: "GET",
 	})
-	defer response.Body.Close()
-
 	if err != nil {
 		slog.Error("Failed to request playlist",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 	}
+	defer response.Body.Close()
 
 	playlist, listType, err := m3u8.DecodeFrom(response.Body, true)
 	if err != nil {
@@ -218,17 +219,20 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 			"Error", err.Error())
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
-		Thumbnail:         &telego.InputFile{File: thumbnail},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media: "attach://" + file.Name(),
+		Thumbnail: &models.InputFileUpload{
+			Filename: thumbnail.Name(),
+			Data:     io.Reader(thumbnail),
+		},
 		Width:             width,
 		Height:            height,
 		SupportsStreaming: true,
+		MediaAttachment:   file,
 	}}
 }
 
-func (h *Handler) handleImage(blueskyImages []Image) []telego.InputMedia {
+func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
 	type mediaResult struct {
 		index int
 		file  *os.File
@@ -236,7 +240,7 @@ func (h *Handler) handleImage(blueskyImages []Image) []telego.InputMedia {
 	}
 
 	mediaCount := len(blueskyImages)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range blueskyImages {
@@ -262,9 +266,9 @@ func (h *Handler) handleImage(blueskyImages []Image) []telego.InputMedia {
 			continue
 		}
 		if result.file != nil {
-			mediaItems[result.index] = &telego.InputMediaPhoto{
-				Type:  telego.MediaTypePhoto,
-				Media: telego.InputFile{File: result.file},
+			mediaItems[result.index] = &models.InputMediaPhoto{
+				Media:           "attach://" + result.file.Name(),
+				MediaAttachment: result.file,
 			}
 		}
 	}

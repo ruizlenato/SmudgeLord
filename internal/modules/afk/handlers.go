@@ -1,138 +1,130 @@
 package afk
 
 import (
+	"context"
 	"database/sql"
 	"log/slog"
 	"regexp"
-	"strings"
 	"time"
+
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
 )
 
-func checkAFK(bot *telego.Bot, update telego.Update, next telegohandler.Handler) {
-	message := update.Message
-	if message == nil && update.CallbackQuery != nil {
-		switch msg := update.CallbackQuery.Message.(type) {
-		case *telego.Message:
-			message = msg
-		default:
-			next(bot, update)
-			return
+func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
+	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
+		message := update.Message
+		if message == nil && update.CallbackQuery != nil {
+			if update.CallbackQuery.Message.Message == nil {
+				next(ctx, b, update)
+			}
+			message = update.CallbackQuery.Message.Message
 		}
-	} else if message == nil ||
-		message.From == nil ||
-		!strings.Contains(message.Chat.Type, "group") ||
-		regexp.MustCompile(`^/\bafk\b|^\bbrb\b`).MatchString(message.Text) {
-		next(bot, update)
-		return
-	}
 
-	user_id := getUserIDFromMessage(message)
-	if user_id == 0 || !user_is_away(user_id) {
-		next(bot, update)
-		return
-	}
-
-	reason, duration, err := get_user_away(user_id)
-	if err != nil && err != sql.ErrNoRows {
-		slog.Error("Couldn't get user away status", "UserID", user_id, "Error", err.Error())
-		return
-	}
-
-	i18n := localization.Get(update)
-
-	humanizedDuration := localization.HumanizeTimeSince(duration, update)
-
-	switch user_id {
-	case message.From.ID:
-		if err = unset_user_away(user_id); err != nil {
-			slog.Error("CoCouldn't unset user away status", "UserID", user_id, "Error", err.Error())
-			return
-		}
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID: telegoutil.ID(message.Chat.ID),
-			Text: i18n("now-available",
-				map[string]interface{}{
-					"userID":        message.From.ID,
-					"userFirstName": message.From.FirstName,
-					"duration":      humanizedDuration,
-				}),
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-	default:
-		user, err := bot.GetChat(&telego.GetChatParams{ChatID: telegoutil.ID(user_id)})
-		if err != nil {
-			slog.Error("Couldn't get user", "UserID", user_id, "Error", err.Error())
+		if message.From == nil ||
+			message.Chat.Type != models.ChatTypeGroup &&
+				message.Chat.Type != models.ChatTypeSupergroup ||
+			regexp.MustCompile(`^/\bafk\b|^\bbrb\b`).MatchString(message.Text) {
+			next(ctx, b, update)
 			return
 		}
 
-		text := i18n("user-unavailable",
-			map[string]interface{}{
-				"userID":        user_id,
-				"userFirstName": user.FirstName,
-				"duration":      humanizedDuration,
+		mentionedUserID := getUserIDFromMessage(message)
+		if !user_is_away(message.From.ID) && !user_is_away(mentionedUserID) {
+			next(ctx, b, update)
+			return
+		}
+
+		i18n := localization.Get(update)
+
+		if user_is_away(message.From.ID) {
+			_, duration, err := get_user_away(message.From.ID)
+			if err != nil && err != sql.ErrNoRows {
+				slog.Error("Couldn't get user away status",
+					"UserID", message.From.ID,
+					"Error", err.Error())
+				return
+			}
+
+			humanizedDuration := localization.HumanizeTimeSince(duration, update)
+			if err = unset_user_away(message.From.ID); err != nil {
+				slog.Error("Couldn't unset user away status",
+					"UserID", message.From.ID,
+					"Error", err.Error())
+				return
+			}
+
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: message.Chat.ID,
+				Text: i18n("now-available",
+					map[string]interface{}{
+						"userID":        message.From.ID,
+						"userFirstName": utils.EscapeHTML(message.From.FirstName),
+						"duration":      humanizedDuration,
+					}),
+				LinkPreviewOptions: &models.LinkPreviewOptions{
+					PreferLargeMedia: bot.True(),
+				},
+				ParseMode: models.ParseModeHTML,
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: message.ID,
+				},
 			})
-
-		if reason != "" {
-			text += "\n" + i18n("user-unavailable-reason",
-				map[string]interface{}{
-					"reason": reason,
-				})
 		}
 
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      text,
-			ParseMode: "HTML",
-			LinkPreviewOptions: &telego.LinkPreviewOptions{
-				IsDisabled: true,
-			},
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-	}
+		if mentionedUserID != 0 && user_is_away(mentionedUserID) {
+			reason, duration, err := get_user_away(mentionedUserID)
+			if err != nil && err != sql.ErrNoRows {
+				slog.Error("Couldn't get user away status",
+					"UserID", mentionedUserID,
+					"Error", err.Error())
+				return
+			}
 
-	next(bot, update)
+			humanizedDuration := localization.HumanizeTimeSince(duration, update)
+			user, err := b.GetChat(ctx, &bot.GetChatParams{ChatID: mentionedUserID})
+			if err != nil {
+				slog.Error("Couldn't get user",
+					"UserID", mentionedUserID,
+					"Error", err.Error())
+				return
+			}
+
+			text := i18n("user-unavailable",
+				map[string]interface{}{
+					"userID":        mentionedUserID,
+					"userFirstName": utils.EscapeHTML(user.FirstName),
+					"duration":      humanizedDuration,
+				})
+
+			if reason != "" {
+				text += "\n" + i18n("user-unavailable-reason",
+					map[string]interface{}{
+						"reason": reason,
+					})
+			}
+
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID: message.Chat.ID,
+				Text:   text,
+				LinkPreviewOptions: &models.LinkPreviewOptions{
+					PreferLargeMedia: bot.True(),
+				},
+				ParseMode: models.ParseModeHTML,
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: message.ID,
+				},
+			})
+		}
+
+		next(ctx, b, update)
+	}
 }
 
-func handleSetAFK(bot *telego.Bot, message telego.Message) {
-	reason := extractReason(message.Text)
-	err := set_user_away(message.From.ID, reason, time.Now().UTC())
-	if err != nil {
-		slog.Error("Couldn't set user away status", "UserID", message.From.ID, "Error", err.Error())
-		return
-	}
-
-	i18n := localization.Get(message)
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID: telegoutil.ID(message.Chat.ID),
-		Text: i18n("user-now-unavailable",
-			map[string]interface{}{
-				"userFirstName": utils.EscapeHTML(message.From.FirstName),
-			}),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
-}
-
-func getUserIDFromMessage(message *telego.Message) int64 {
+func getUserIDFromMessage(message *models.Message) int64 {
 	if message.ReplyToMessage != nil && message.ReplyToMessage.From != nil {
 		return message.ReplyToMessage.From.ID
 	}
@@ -143,17 +135,45 @@ func getUserIDFromMessage(message *telego.Message) int64 {
 				if entity.Type == "text_mention" {
 					return entity.User.ID
 				}
+
 				username := message.Text[entity.Offset : entity.Offset+entity.Length]
 				userID, err := getIDFromUsername(username)
 				if err == nil {
 					return userID
 				}
-				slog.Error("Couldn't get user ID from username", "Username", username, "Error", err.Error())
+
+				slog.Error("Couldn't get user ID from username",
+					"Username", username,
+					"Error", err.Error(),
+				)
 			}
 		}
 	}
 
-	return message.From.ID
+	return 0
+}
+
+func setAFKHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	reason := extractReason(update.Message.Text)
+	err := set_user_away(update.Message.From.ID, reason, time.Now().UTC())
+	if err != nil {
+		slog.Error("Couldn't set user away status", "UserID", update.Message.From.ID, "Error", err.Error())
+		return
+	}
+
+	i18n := localization.Get(update)
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text: i18n("user-now-unavailable",
+			map[string]interface{}{
+				"userFirstName": utils.EscapeHTML(update.Message.From.FirstName),
+			}),
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
 }
 
 func extractReason(text string) string {
@@ -164,11 +184,9 @@ func extractReason(text string) string {
 	return ""
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	helpers.Store("afk")
-	bh.Use(checkAFK)
-	bh.HandleMessage(handleSetAFK, telegohandler.Or(
-		telegohandler.CommandEqual("afk"),
-		telegohandler.TextMatches(regexp.MustCompile(`^(?:brb)(\s.+)?`)),
-	))
+func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/afk", bot.MatchTypePrefix, setAFKHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "brb", bot.MatchTypePrefix, setAFKHandler)
+
+	utils.SaveHelp("afk")
 }

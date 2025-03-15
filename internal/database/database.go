@@ -1,14 +1,16 @@
 package database
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"log/slog"
 	"slices"
 
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
 )
 
 var DB *sql.DB
@@ -28,7 +30,6 @@ func Open(databaseFile string) error {
 	}
 
 	DB = db
-
 	return nil
 }
 
@@ -62,62 +63,63 @@ func CreateTables() error {
 }
 
 func Close() {
-	fmt.Println("Database closed")
 	if DB != nil {
-		DB.Close()
+		err := DB.Close()
+		if err == nil {
+			fmt.Println("Database closed")
+		}
 	}
 }
 
-func SaveUsers(bot *telego.Bot, update telego.Update, next telegohandler.Handler) {
-	message := update.Message
-	var username string
+func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
+	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
+		message := update.Message
+		var username string
 
-	if message == nil {
-		if update.CallbackQuery == nil {
-			next(bot, update)
+		if update.Message == nil {
+			message = update.CallbackQuery.Message.Message
+			if update.CallbackQuery.Message.Type == 1 || message == nil {
+				next(ctx, b, update)
+				return
+			}
+		}
+
+		if message.SenderChat != nil {
 			return
 		}
 
-		switch msg := update.CallbackQuery.Message.(type) {
-		case *telego.Message:
-			message = msg
-		default:
-			next(bot, update)
-			return
+		if message.From.ID != message.Chat.ID {
+			query := "INSERT OR IGNORE INTO groups (id) VALUES (?);"
+			_, err := DB.Exec(query, message.Chat.ID)
+			if err != nil {
+				slog.Error("Couldn't insert group", "ChatID", message.Chat.ID, "Error", err.Error())
+			}
 		}
-	}
 
-	if message.SenderChat != nil {
-		return
-	}
-
-	if message.From.ID != message.Chat.ID {
-		query := "INSERT OR IGNORE INTO groups (id) VALUES (?);"
-		_, err := DB.Exec(query, message.Chat.ID)
-		if err != nil {
-			slog.Error("Couldn't insert group", "ChatID", message.Chat.ID, "Error", err.Error())
-		}
-	}
-
-	query := `
+		query := `
 		INSERT INTO users (id, language, username)
     	VALUES (?, ?, ?)
     	ON CONFLICT(id) DO UPDATE SET 
 			username = excluded.username;
 	`
 
-	if message.From.Username != "" {
-		username = "@" + message.From.Username
-	}
+		if message.From.Username != "" {
+			username = "@" + message.From.Username
+		}
 
-	lang := message.From.LanguageCode
-	if !slices.Contains(AvailableLocales, lang) {
-		lang = "en-us"
-	}
-	_, err := DB.Exec(query, message.From.ID, lang, username)
-	if err != nil {
-		slog.Error("Couldn't insert user", "UserID", message.From.ID, "Username", username, "Error", err.Error())
-	}
+		lang := message.From.LanguageCode
+		if !slices.Contains(AvailableLocales, lang) {
+			lang = "en-us"
+		}
+		_, err := DB.Exec(query, message.From.ID, lang, username)
+		if err != nil {
+			slog.Error("Couldn't insert user", "UserID", message.From.ID, "Username", username, "Error", err.Error())
+		}
 
-	next(bot, update)
+		if update.Message != nil {
+			log.Printf("%d say: %s", update.Message.From.ID, update.Message.Text)
+		}
+
+		next(ctx, b, update)
+	}
 }

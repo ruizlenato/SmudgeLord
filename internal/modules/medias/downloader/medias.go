@@ -20,11 +20,11 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/go-telegram/bot/models"
 	"github.com/grafov/m3u8"
+
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-
-	"github.com/mymmrac/telego"
 )
 
 var GenericHeaders = map[string]string{
@@ -51,7 +51,7 @@ type YouTube struct {
 
 func getFileExtension(response *http.Response) string {
 	if mediatype, _, err := mime.ParseMediaType(string(response.Header.Get("Content-Type"))); err == nil {
-		if mediatype == "text/plain" {
+		if mediatype == "text/plain" || mediatype == "application/octet-stream" {
 			if ext := strings.TrimPrefix(filepath.Ext(response.Request.URL.Path), "."); ext != "" {
 				return ext
 			}
@@ -334,12 +334,12 @@ func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
 	return err
 }
 
-func RemoveMediaFiles(mediaItems []telego.InputMedia) {
+func RemoveMediaFiles(mediaItems []models.InputMedia) {
 	var wg sync.WaitGroup
 
 	for _, media := range mediaItems {
 		wg.Add(1)
-		go func(media telego.InputMedia) {
+		go func(media models.InputMedia) {
 			defer wg.Done()
 			removeMediaFile(media)
 		}(media)
@@ -348,39 +348,62 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 	wg.Wait()
 }
 
-func removeMediaFile(media telego.InputMedia) {
-	switch media.MediaType() {
+func removeMediaFile(media models.InputMedia) {
+	type mediaInfo struct {
+		Type  string `json:"type"`
+		Media string `json:"media"`
+	}
+	var mInfo mediaInfo
+
+	marshalInputMedia, err := media.MarshalInputMedia()
+	if err != nil {
+		slog.Error("Couldn't marshal media info",
+			"Error", err.Error())
+		return
+	}
+
+	err = json.Unmarshal(marshalInputMedia, &mInfo)
+	if err != nil {
+		slog.Error("Couldn't unmarshal media info",
+			"Error", err.Error())
+		return
+	}
+
+	switch mInfo.Type {
 	case "photo":
-		if photo, ok := media.(*telego.InputMediaPhoto); ok {
-			os.Remove(photo.Media.String())
+		if file, ok := media.(*models.InputMediaPhoto).Attachment().(*os.File); ok {
+			os.Remove(file.Name())
 		}
 	case "video":
-		if video, ok := media.(*telego.InputMediaVideo); ok {
-			os.Remove(video.Media.String())
-			if video.Thumbnail != nil && video.Thumbnail.File.(*os.File) != nil {
-				os.Remove(video.Thumbnail.String())
+		if file, ok := media.(*models.InputMediaVideo).Attachment().(*os.File); ok {
+			os.Remove(file.Name())
+		}
+		if media.(*models.InputMediaVideo).Thumbnail != nil {
+			err = os.Remove(media.(*models.InputMediaVideo).Thumbnail.(*models.InputFileUpload).Filename)
+			if err != nil {
+				return
 			}
 		}
 	}
 }
 
-func extractMediaInfo(replied []telego.Message) ([]string, []string, bool) {
+func extractMediaInfo(replied []*models.Message) ([]string, []string, bool) {
 	var files, mediasType []string
 
 	for _, message := range replied {
 		if message.Video != nil {
 			files = append(files, message.Video.FileID)
-			mediasType = append(mediasType, telego.MediaTypeVideo)
+			mediasType = append(mediasType, "video")
 		} else if message.Photo != nil {
 			files = append(files, message.Photo[0].FileID)
-			mediasType = append(mediasType, telego.MediaTypePhoto)
+			mediasType = append(mediasType, "photo")
 		}
 	}
 
 	return files, mediasType, replied[0].ShowCaptionAboveMedia
 }
 
-func SetMediaCache(replied []telego.Message, result []string) error {
+func SetMediaCache(replied []*models.Message, result []string) error {
 	files, mediasType, showCaptionAboveMedia := extractMediaInfo(replied)
 
 	album := Medias{Caption: result[0], Files: files, Type: mediasType, ShowCaptionAboveMedia: showCaptionAboveMedia}
@@ -399,7 +422,7 @@ func SetMediaCache(replied []telego.Message, result []string) error {
 	return nil
 }
 
-func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
+func GetMediaCache(postID string) ([]models.InputMedia, string, error) {
 	cached, err := cache.GetCache("media-cache:" + postID)
 	if err != nil {
 		return nil, "", err
@@ -410,19 +433,17 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 		return nil, "", fmt.Errorf("couldn't unmarshal medias JSON: %v", err)
 	}
 
-	inputMedias := make([]telego.InputMedia, 0, len(medias.Files))
+	inputMedias := make([]models.InputMedia, 0, len(medias.Files))
 	for i, media := range medias.Files {
 		switch medias.Type[i] {
-		case telego.MediaTypeVideo:
-			inputMedias = append(inputMedias, &telego.InputMediaVideo{
-				Type:                  telego.MediaTypeVideo,
-				Media:                 telego.InputFile{FileID: media},
+		case "video":
+			inputMedias = append(inputMedias, &models.InputMediaVideo{
+				Media:                 media,
 				ShowCaptionAboveMedia: medias.ShowCaptionAboveMedia,
 			})
-		case telego.MediaTypePhoto:
-			inputMedias = append(inputMedias, &telego.InputMediaPhoto{
-				Type:                  telego.MediaTypePhoto,
-				Media:                 telego.InputFile{FileID: media},
+		case "photo":
+			inputMedias = append(inputMedias, &models.InputMediaPhoto{
+				Media:                 media,
 				ShowCaptionAboveMedia: medias.ShowCaptionAboveMedia,
 			})
 		}
@@ -431,7 +452,7 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 	return inputMedias, medias.Caption, nil
 }
 
-func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
+func SetYoutubeCache(replied *models.Message, youtubeID string) error {
 	var youtube YouTube
 
 	cached, _ := cache.GetCache("youtube-cache:" + youtubeID)
@@ -478,12 +499,12 @@ func GetYoutubeCache(youtubeID string, format string) (string, string, error) {
 	}
 
 	switch format {
-	case telego.MediaTypeVideo:
+	case "video":
 		if youtube.Video == "" {
 			return "", "", errors.New("video not found")
 		}
 		return youtube.Video, youtube.Caption, nil
-	case telego.MediaTypeAudio:
+	case "audio":
 		if youtube.Audio == "" {
 			return "", "", errors.New("audio not found")
 		}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"strconv"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
@@ -68,7 +69,7 @@ func (lfm *LastFM) GetRecentTrackAPI(username string) *recentTracks {
 		},
 	})
 
-	if err != nil || response.StatusCode != 200 {
+	if err != nil || response.StatusCode != http.StatusOK {
 		return nil
 	}
 	defer response.Body.Close()
@@ -92,7 +93,6 @@ func (lfm *LastFM) GetRecentTrack(methodType, username string) (lastFMRecentTrac
 
 	recentTracks := lfm.GetRecentTrackAPI(username)
 
-	// Check if recentTracks is nil or empty
 	if recentTracks == nil {
 		return lastFMRecentTrack{}, fmt.Errorf("lastFM error")
 	}
@@ -147,6 +147,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 
 	if err != nil {
 		slog.Error("Couldn't request get info", "Error", err.Error())
+		return 0
 	}
 	defer response.Body.Close()
 

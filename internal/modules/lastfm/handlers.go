@@ -1,19 +1,71 @@
 package lastfm
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"strings"
 
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/localization"
-	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
-
 	lastFMAPI "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
+
+var lastFM = lastFMAPI.Init()
+
+func setUserHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	message := update.Message
+
+	if message.Chat.Type == models.ChatTypeGroup || message.Chat.Type == models.ChatTypeSupergroup && message.From.ID == message.Chat.ID {
+		return
+	}
+
+	i18n := localization.Get(update)
+	var lastFMUsername string
+
+	if len(strings.Fields(message.Text)) > 1 {
+		lastFMUsername = strings.Fields(message.Text)[1]
+	} else {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("no-lastfm-username-provided"),
+			ParseMode: "HTML",
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
+	}
+
+	if lastFM.GetUser(lastFMUsername) != nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("invalid-lastfm-username"),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
+	}
+
+	if err := setLastFMUsername(message.From.ID, lastFMUsername); err != nil {
+		slog.Error("Couldn't set lastFM username: %v", "Error", err.Error())
+		return
+	}
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      i18n("lastfm-username-saved"),
+		ParseMode: "HTML",
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
+}
 
 func getErrorMessage(err error, i18n func(string, ...map[string]interface{}) string) string {
 	switch {
@@ -26,82 +78,28 @@ func getErrorMessage(err error, i18n func(string, ...map[string]interface{}) str
 	}
 }
 
-var lastFM = lastFMAPI.Init()
-
-func handleSetUser(bot *telego.Bot, message telego.Message) {
-	if strings.Contains(message.Chat.Type, "group") && message.From.ID == message.Chat.ID {
-		return
-	}
-
-	i18n := localization.Get(message)
-	var lastFMUsername string
-
-	if len(strings.Fields(message.Text)) > 1 {
-		lastFMUsername = strings.Fields(message.Text)[1]
-	} else {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
-			Text:      i18n("no-lastfm-username-provided"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	if lastFM.GetUser(lastFMUsername) != nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("invalid-lastfm-username"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-		return
-	}
-
-	if err := setLastFMUsername(message.From.ID, lastFMUsername); err != nil {
-		slog.Error("Couldn't set lastFM username: %v", "Error", err.Error())
-		return
-	}
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("lastfm-username-saved"),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
+func musicHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	lastfm(ctx, b, update, "track")
 }
 
-func handleMusic(bot *telego.Bot, message telego.Message) {
-	lastfm(bot, message, "track")
-	return
+func albmHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	lastfm(ctx, b, update, "album")
 }
 
-func handleAlbum(bot *telego.Bot, message telego.Message) {
-	lastfm(bot, message, "album")
-	return
+func artistHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	lastfm(ctx, b, update, "artist")
 }
 
-func handleArtist(bot *telego.Bot, message telego.Message) {
-	lastfm(bot, message, "artist")
-	return
-}
-
-func lastfm(bot *telego.Bot, message telego.Message, methodType string) {
-	i18n := localization.Get(message)
-	lastFMUsername, err := getUserLastFMUsername(message.From.ID)
+func lastfm(ctx context.Context, b *bot.Bot, update *models.Update, methodType string) {
+	i18n := localization.Get(update)
+	lastFMUsername, err := getUserLastFMUsername(update.Message.From.ID)
 	if err != nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("lastfm-username-not-defined"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
 			},
 		})
 		return
@@ -109,12 +107,12 @@ func lastfm(bot *telego.Bot, message telego.Message, methodType string) {
 
 	recentTracks, err := lastFM.GetRecentTrack(methodType, lastFMUsername)
 	if err != nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
 			Text:      getErrorMessage(err, i18n),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
 			},
 		})
 		return
@@ -124,7 +122,7 @@ func lastfm(bot *telego.Bot, message telego.Message, methodType string) {
 	text += i18n("lastfm-playing", map[string]interface{}{
 		"nowplaying":     fmt.Sprintf("%v", recentTracks.Nowplaying),
 		"lastFMUsername": lastFMUsername,
-		"firstName":      message.From.FirstName,
+		"firstName":      update.Message.From.FirstName,
 		"playcount":      recentTracks.Playcount,
 	})
 
@@ -139,41 +137,34 @@ func lastfm(bot *telego.Bot, message telego.Message, methodType string) {
 	case "artist":
 		text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
 	}
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
 		Text:      text,
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			PreferLargeMedia: true,
-			ShowAboveText:    true,
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			PreferLargeMedia: bot.True(),
+			ShowAboveText:    bot.True(),
 		},
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
 		},
 	})
-
-	return
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	helpers.Store("lastfm")
-	bh.HandleMessage(handleSetUser, telegohandler.CommandEqual("setuser"))
-	bh.HandleMessage(handleMusic, telegohandler.Or(
-		telegohandler.CommandEqual("lastfm"),
-		telegohandler.CommandEqual("lt"),
-		telegohandler.CommandEqual("np"),
-		telegohandler.CommandEqual("lmu"),
-	))
-	bh.HandleMessage(handleAlbum, telegohandler.Or(
-		telegohandler.CommandEqual("album"),
-		telegohandler.CommandEqual("alb"),
-		telegohandler.CommandEqual("lalb"),
-	))
-	bh.HandleMessage(handleArtist, telegohandler.Or(
-		telegohandler.CommandEqual("artist"),
-		telegohandler.CommandEqual("art"),
-		telegohandler.CommandEqual("lart")),
-	)
-	helpers.DisableableCommands = append(helpers.DisableableCommands, "lastfm", "lmu", "lt", "np", "album", "lalb", "alb", "artist", "lart", "art")
+func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/setuser", bot.MatchTypePrefix, setUserHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/lastfm", bot.MatchTypeExact, musicHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/lmu", bot.MatchTypeExact, musicHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/lt", bot.MatchTypeExact, musicHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/np", bot.MatchTypeExact, musicHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/album", bot.MatchTypeExact, albmHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/alb", bot.MatchTypeExact, albmHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/lalb", bot.MatchTypeExact, albmHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/artist", bot.MatchTypeExact, artistHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/art", bot.MatchTypeExact, artistHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/lart", bot.MatchTypeExact, artistHandler)
+
+	utils.SaveHelp("lastfm")
+	utils.DisableableCommands = append(utils.DisableableCommands,
+		"lastfm", "lmu", "lt", "np", "album", "lalb", "alb", "artist", "lart", "art")
 }

@@ -3,13 +3,15 @@ package tiktok
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"regexp"
 	"slices"
 	"time"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -19,7 +21,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return nil, []string{}
@@ -120,7 +122,7 @@ func getCaption(tikTokData TikTokData) string {
 	return ""
 }
 
-func (h *Handler) downloadImages(tikTokData TikTokData) []telego.InputMedia {
+func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
 	type mediaResult struct {
 		index int
 		file  *os.File
@@ -128,7 +130,7 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []telego.InputMedia {
 	}
 
 	mediaCount := len(tikTokData.AwemeList[0].ImagePostInfo.Images)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
@@ -153,9 +155,9 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []telego.InputMedia {
 			continue
 		}
 		if result.file != nil {
-			mediaItems[result.index] = &telego.InputMediaPhoto{
-				Type:  telego.MediaTypePhoto,
-				Media: telego.InputFile{File: result.file},
+			mediaItems[result.index] = &models.InputMediaPhoto{
+				Media:           "attach://" + result.file.Name(),
+				MediaAttachment: result.file,
 			}
 		}
 	}
@@ -163,7 +165,7 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []telego.InputMedia {
 	return mediaItems
 }
 
-func (h *Handler) downloadVideo(tikTokData TikTokData) []telego.InputMedia {
+func (h *Handler) downloadVideo(tikTokData TikTokData) []models.InputMedia {
 	file, err := downloader.Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0], fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID))
 	if err != nil {
 		slog.Error("Failed to download video",
@@ -187,13 +189,16 @@ func (h *Handler) downloadVideo(tikTokData TikTokData) []telego.InputMedia {
 			"Error", err.Error())
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
-		Thumbnail:         &telego.InputFile{File: thumbnail},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media: "attach://" + file.Name(),
+		Thumbnail: &models.InputFileUpload{
+			Filename: thumbnail.Name(),
+			Data:     io.Reader(thumbnail),
+		},
 		Width:             tikTokData.AwemeList[0].Video.PlayAddr.Width,
 		Height:            tikTokData.AwemeList[0].Video.PlayAddr.Height,
 		Duration:          tikTokData.AwemeList[0].Video.Duration / 1000,
 		SupportsStreaming: true,
+		MediaAttachment:   file,
 	}}
 }

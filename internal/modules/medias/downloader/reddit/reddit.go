@@ -11,8 +11,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/go-telegram/bot/models"
 	"github.com/grafov/m3u8"
-	"github.com/mymmrac/telego"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -37,7 +38,7 @@ type Handler struct {
 	postID    string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.getPostInfo(text) {
 		return nil, []string{}
@@ -67,7 +68,7 @@ func (h *Handler) getPostInfo(url string) bool {
 	return true
 }
 
-func (h *Handler) processMedia() ([]telego.InputMedia, string) {
+func (h *Handler) processMedia() ([]models.InputMedia, string) {
 	medias, caption := h.getRedlibData()
 	if medias != nil {
 		return medias, caption
@@ -84,7 +85,7 @@ func (h *Handler) processMedia() ([]telego.InputMedia, string) {
 	return nil, ""
 }
 
-func (h *Handler) getRedlibData() ([]telego.InputMedia, string) {
+func (h *Handler) getRedlibData() ([]models.InputMedia, string) {
 	response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
 		utils.RequestParams{
 			Method:  "GET",
@@ -162,7 +163,7 @@ func extractRedlibCaption(body []byte) string {
 	return fmt.Sprintf("<b>%s — %s</b>: %s", postAuthor, postSubreddit, postTitle)
 }
 
-func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []telego.InputMedia {
+func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []models.InputMedia {
 	if videoMatch := videoRegex.FindSubmatch(content); len(videoMatch) > 1 {
 		playlistURL := buildMediaURL(response, string(playlistRegex.FindSubmatch(content)[1]))
 
@@ -190,14 +191,17 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 			return nil
 		}
 
-		video := []telego.InputMedia{&telego.InputMediaVideo{
-			Type:              telego.MediaTypeVideo,
-			Media:             telego.InputFile{File: videoFile},
+		video := []models.InputMedia{&models.InputMediaVideo{
+			Media:             "attach://" + videoFile.Name(),
 			SupportsStreaming: true,
+			MediaAttachment:   videoFile,
 		}}
 
 		if thumbnail != nil {
-			video[0].(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: thumbnail}
+			video[0].(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
+				Filename: thumbnail.Name(),
+				Data:     io.Reader(thumbnail),
+			}
 		}
 		return video
 	}
@@ -210,11 +214,11 @@ func downloadAudio(playlistURL string) (*os.File, error) {
 	}
 
 	response, err := utils.Request(playlistURL, utils.RequestParams{Method: "GET"})
-	defer response.Body.Close()
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch audio playlist: %s", err)
 	}
+	defer response.Body.Close()
 
 	playlist, listType, err := m3u8.DecodeFrom(response.Body, true)
 	if err != nil || listType != m3u8.MASTER {
@@ -273,7 +277,7 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) *os
 	return nil
 }
 
-func (h *Handler) processRedlibImage(content []byte, response *http.Response) []telego.InputMedia {
+func (h *Handler) processRedlibImage(content []byte, response *http.Response) []models.InputMedia {
 	if imageMatch := imageRegex.FindSubmatch(content); len(imageMatch) > 1 {
 		imageURL := buildMediaURL(response, string(imageMatch[1]))
 
@@ -283,27 +287,27 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response) []
 			return nil
 		}
 
-		return []telego.InputMedia{&telego.InputMediaPhoto{
-			Type:  telego.MediaTypePhoto,
-			Media: telego.InputFile{File: file},
+		return []models.InputMedia{&models.InputMediaPhoto{
+			Media:           "attach://" + file.Name(),
+			MediaAttachment: file,
 		}}
 	}
 	return nil
 }
 
-func processRedlibGallery(content [][][]byte, response *http.Response) []telego.InputMedia {
+func processRedlibGallery(content [][][]byte, response *http.Response) []models.InputMedia {
 	if len(content) < 1 {
 		return nil
 	}
 
 	type mediaResult struct {
 		index int
-		media telego.InputMedia
+		media models.InputMedia
 		err   error
 	}
 
 	mediaCount := len(content)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, item := range content {
@@ -315,9 +319,9 @@ func processRedlibGallery(content [][][]byte, response *http.Response) []telego.
 				return
 			}
 
-			inputMedia := &telego.InputMediaPhoto{
-				Type:  telego.MediaTypePhoto,
-				Media: telego.InputFile{File: file},
+			inputMedia := &models.InputMediaPhoto{
+				Media:           "attach://" + file.Name(),
+				MediaAttachment: file,
 			}
 			results <- mediaResult{index: index, media: inputMedia, err: nil}
 		}(i)
@@ -369,7 +373,7 @@ func (h *Handler) getAPIData() *Data {
 	return &data[0].Data.Children[0].Data
 }
 
-func (h *Handler) processAPIMedia(data *Data) []telego.InputMedia {
+func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 	filename := fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)
 	if data.IsVideo {
 		video, err := downloader.Downloader(data.Media.RedditVideo.FallbackURL, filename)
@@ -386,25 +390,28 @@ func (h *Handler) processAPIMedia(data *Data) []telego.InputMedia {
 			return nil
 		}
 
-		return []telego.InputMedia{&telego.InputMediaVideo{
-			Type:              telego.MediaTypeVideo,
-			Media:             telego.InputFile{File: video},
-			Width:             data.Media.RedditVideo.Width,
-			Height:            data.Media.RedditVideo.Height,
-			Thumbnail:         &telego.InputFile{File: thumbnail},
+		return []models.InputMedia{&models.InputMediaVideo{
+			Media:  "attach://" + video.Name(),
+			Width:  data.Media.RedditVideo.Width,
+			Height: data.Media.RedditVideo.Height,
+			Thumbnail: &models.InputFileUpload{
+				Filename: thumbnail.Name(),
+				Data:     io.Reader(thumbnail),
+			},
 			SupportsStreaming: true,
+			MediaAttachment:   video,
 		}}
 	}
 
 	if data.MediaMetadata != nil {
 		type mediaResult struct {
 			index int
-			media telego.InputMedia
+			media models.InputMedia
 			err   error
 		}
 
 		mediaCount := len(data.GalleryData.Items)
-		mediaItems := make([]telego.InputMedia, mediaCount)
+		mediaItems := make([]models.InputMedia, mediaCount)
 		results := make(chan mediaResult, mediaCount)
 
 		for i, item := range data.GalleryData.Items {
@@ -416,11 +423,11 @@ func (h *Handler) processAPIMedia(data *Data) []telego.InputMedia {
 					return
 				}
 
-				var inputMedia telego.InputMedia
+				var inputMedia models.InputMedia
 				if media.E == "Image" {
-					inputMedia = &telego.InputMediaPhoto{
-						Type:  telego.MediaTypePhoto,
-						Media: telego.InputFile{File: file},
+					inputMedia = &models.InputMediaPhoto{
+						Media:           "attach://" + file.Name(),
+						MediaAttachment: file,
 					}
 				}
 				results <- mediaResult{index: index, media: inputMedia, err: nil}
@@ -448,9 +455,9 @@ func (h *Handler) processAPIMedia(data *Data) []telego.InputMedia {
 			return nil
 		}
 
-		return []telego.InputMedia{&telego.InputMediaPhoto{
-			Type:  telego.MediaTypePhoto,
-			Media: telego.InputFile{File: image},
+		return []models.InputMedia{&models.InputMediaPhoto{
+			Media:           "attach://" + image.Name(),
+			MediaAttachment: image,
 		}}
 	}
 

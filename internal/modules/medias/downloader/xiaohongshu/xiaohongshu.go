@@ -11,7 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -21,7 +22,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	postURL := handler.getPostURL(text)
 	if postURL == "" {
@@ -151,7 +152,7 @@ func getCaption(noteData Note) string {
 	return caption
 }
 
-func (h *Handler) downloadVideo(noteData Note) []telego.InputMedia {
+func (h *Handler) downloadVideo(noteData Note) []models.InputMedia {
 	videoInfo := h.findFirstAvailableVideoFormat(noteData.Note.Video.Media.Stream)
 	if videoInfo == nil {
 		slog.Error("No valid video format found",
@@ -167,13 +168,14 @@ func (h *Handler) downloadVideo(noteData Note) []telego.InputMedia {
 		return nil
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media:             "attach://" + file.Name(),
 		Width:             videoInfo.Width,
 		Height:            videoInfo.Height,
 		Duration:          videoInfo.Duration / 1000,
-		SupportsStreaming: true}}
+		SupportsStreaming: true,
+		MediaAttachment:   file,
+	}}
 }
 
 // following the priority: AV1 > H266 > H265 > H264
@@ -193,7 +195,7 @@ func (h *Handler) findFirstAvailableVideoFormat(stream VideoStream) VideoInfo {
 	return nil
 }
 
-func (h *Handler) downloadImages(noteData Note) []telego.InputMedia {
+func (h *Handler) downloadImages(noteData Note) []models.InputMedia {
 	type mediaResult struct {
 		index int
 		file  *os.File
@@ -201,7 +203,7 @@ func (h *Handler) downloadImages(noteData Note) []telego.InputMedia {
 	}
 
 	mediaCount := len(noteData.Note.ImageList)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range noteData.Note.ImageList {
@@ -234,15 +236,15 @@ func (h *Handler) downloadImages(noteData Note) []telego.InputMedia {
 		}
 		if result.file != nil {
 			if noteData.Note.ImageList[result.index].LivePhoto {
-				mediaItems[result.index] = &telego.InputMediaVideo{
-					Type:              telego.MediaTypeVideo,
-					Media:             telego.InputFile{File: result.file},
+				mediaItems[result.index] = &models.InputMediaVideo{
+					Media:             "attach://" + result.file.Name(),
 					SupportsStreaming: true,
+					MediaAttachment:   result.file,
 				}
 			} else {
-				mediaItems[result.index] = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: result.file},
+				mediaItems[result.index] = &models.InputMediaPhoto{
+					Media:           "attach://" + result.file.Name(),
+					MediaAttachment: result.file,
 				}
 			}
 		}

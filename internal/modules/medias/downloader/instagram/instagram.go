@@ -9,7 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -19,7 +20,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return nil, []string{}
@@ -92,7 +93,7 @@ func (h *Handler) getInstagramData() *ShortcodeMedia {
 	return nil
 }
 
-func (h *Handler) processMedia(data *ShortcodeMedia) []telego.InputMedia {
+func (h *Handler) processMedia(data *ShortcodeMedia) []models.InputMedia {
 	switch data.Typename {
 	case "GraphVideo", "XDTGraphVideo":
 		return h.handleVideo(data)
@@ -263,7 +264,7 @@ func (h *Handler) getGQLData() InstagramData {
 	return data
 }
 
-func (h *Handler) handleVideo(data *ShortcodeMedia) []telego.InputMedia {
+func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
 	file, err := downloader.Downloader(data.VideoURL)
 	if err != nil {
 		slog.Error("Failed to download video",
@@ -287,17 +288,20 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []telego.InputMedia {
 			"Error", err)
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
-		Thumbnail:         &telego.InputFile{File: thumbnail},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media: "attach://" + file.Name(),
+		Thumbnail: &models.InputFileUpload{
+			Filename: thumbnail.Name(),
+			Data:     io.Reader(thumbnail),
+		},
 		Width:             data.Dimensions.Width,
 		Height:            data.Dimensions.Height,
 		SupportsStreaming: true,
+		MediaAttachment:   file,
 	}}
 }
 
-func (h *Handler) handleImage(data *ShortcodeMedia) []telego.InputMedia {
+func (h *Handler) handleImage(data *ShortcodeMedia) []models.InputMedia {
 	file, err := downloader.Downloader(data.DisplayURL)
 	if err != nil {
 		slog.Error("Failed to download image",
@@ -306,13 +310,13 @@ func (h *Handler) handleImage(data *ShortcodeMedia) []telego.InputMedia {
 		return nil
 	}
 
-	return []telego.InputMedia{&telego.InputMediaPhoto{
-		Type:  telego.MediaTypePhoto,
-		Media: telego.InputFile{File: file},
+	return []models.InputMedia{&models.InputMediaPhoto{
+		Media:           "attach://" + file.Name(),
+		MediaAttachment: file,
 	}}
 }
 
-func (h *Handler) handleSidecar(data *ShortcodeMedia) []telego.InputMedia {
+func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
@@ -320,7 +324,7 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []telego.InputMedia {
 	}
 
 	mediaCount := len(data.EdgeSidecarToChildren.Edges)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range data.EdgeSidecarToChildren.Edges {
@@ -339,22 +343,25 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []telego.InputMedia {
 			continue
 		}
 		if result.media.File != nil {
-			var mediaItem telego.InputMedia
+			var mediaItem models.InputMedia
 			if !data.EdgeSidecarToChildren.Edges[result.index].Node.IsVideo {
-				mediaItem = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: result.media.File},
+				mediaItem = &models.InputMediaPhoto{
+					Media:           "attach://" + result.media.File.Name(),
+					MediaAttachment: result.media.File,
 				}
 			} else {
-				mediaItem = &telego.InputMediaVideo{
-					Type:              telego.MediaTypeVideo,
-					Media:             telego.InputFile{File: result.media.File},
+				mediaItem = &models.InputMediaVideo{
+					Media:             "attach://" + result.media.File.Name(),
 					Width:             data.Dimensions.Width,
 					Height:            data.Dimensions.Height,
 					SupportsStreaming: true,
+					MediaAttachment:   result.media.File,
 				}
 				if result.media.Thumbnail != nil {
-					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
+					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
+						Filename: result.media.Thumbnail.Name(),
+						Data:     io.Reader(result.media.Thumbnail),
+					}
 				}
 			}
 			mediaItems[result.index] = mediaItem
