@@ -7,7 +7,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"path"
 	"regexp"
 	"strings"
@@ -264,18 +263,10 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 	if thumbMatch := thumbRegex.FindSubmatch(content); len(thumbMatch) > 1 {
 		thumbnailURL := buildMediaURL(response, string(thumbMatch[1]))
 
-		unescapedURL, err := url.QueryUnescape(thumbnailURL)
-		if err != nil {
-			slog.Error("Failed to unescape thumbnail URL",
-				"Thumbnail URL", thumbnailURL,
-				"Error", err.Error())
-			return nil
-		}
-
-		thumbnail, err := downloader.FetchBytesFromURL(unescapedURL)
+		thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 		if err != nil {
 			slog.Error("Failed to download thumbnail",
-				"Thumbnail URL", unescapedURL,
+				"Thumbnail URL", thumbnailURL,
 				"Error", err.Error())
 			return nil
 		}
@@ -283,7 +274,7 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 		thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 		if err != nil {
 			slog.Error("Failed to resize thumbnail",
-				"Thumbnail URL", unescapedURL,
+				"Thumbnail URL", thumbnailURL,
 				"Error", err.Error())
 		}
 

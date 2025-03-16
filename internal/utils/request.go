@@ -35,15 +35,19 @@ func (a HTTPCaller) Call(url string, params RequestParams) (*http.Response, erro
 	}
 
 	switch params.Method {
-	case http.MethodGet, http.MethodOptions:
+	case http.MethodGet, http.MethodOptions, http.MethodHead:
 		q := req.URL.Query()
 		for key, value := range params.Query {
 			q.Add(key, value)
 		}
-		req.URL.RawQuery = q.Encode()
-	case http.MethodPost:
+		if req.URL.RawQuery == "" {
+			req.URL.RawQuery = q.Encode()
+		}
+	case http.MethodPost, http.MethodPut, http.MethodPatch:
 		body := strings.Join(params.BodyString, "&")
 		req.Body = io.NopCloser(strings.NewReader(body))
+	default:
+		return nil, fmt.Errorf("unsupported method: %s", params.Method)
 	}
 
 	if params.Proxy {
