@@ -1,11 +1,11 @@
 package threads
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
-	"os"
 	"strings"
 
 	"github.com/go-telegram/bot/models"
@@ -143,11 +143,6 @@ func getCaption(threadsData ThreadsData) string {
 		threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text)
 }
 
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
-}
-
 func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 	type mediaResult struct {
 		index int
@@ -164,11 +159,11 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 			var media InputMedia
 			var err error
 			if (*post.CarouselMedia)[index].VideoVersions == nil {
-				media.File, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL, fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", index, h.username, h.postID))
+				media.File, err = downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
 			} else {
-				media.File, err = downloader.Downloader(threadsMedia.VideoVersions[0].URL, fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", index, h.username, h.postID))
+				media.File, err = downloader.FetchBytesFromURL(threadsMedia.VideoVersions[0].URL)
 				if err == nil {
-					media.Thumbnail, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
+					media.Thumbnail, err = downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
 				}
 			}
 			results <- mediaResult{index: index, media: &media, err: err}
@@ -188,21 +183,24 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 			var mediaItem models.InputMedia
 			if (*post.CarouselMedia)[result.index].VideoVersions == nil {
 				mediaItem = &models.InputMediaPhoto{
-					Media:           "attach://" + result.media.File.Name(),
-					MediaAttachment: result.media.File,
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", result.index, h.username, h.postID)),
+					MediaAttachment: bytes.NewBuffer(result.media.File),
 				}
 			} else {
 				mediaItem = &models.InputMediaVideo{
-					Media:             "attach://" + result.media.File.Name(),
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", result.index, h.username, h.postID)),
 					Width:             (*post.CarouselMedia)[result.index].OriginalWidth,
 					Height:            (*post.CarouselMedia)[result.index].OriginalHeight,
 					SupportsStreaming: true,
-					MediaAttachment:   result.media.File,
+					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
 					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-						Filename: result.media.Thumbnail.Name(),
-						Data:     io.Reader(result.media.Thumbnail),
+						Filename: utils.SanitizeString(
+							fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", result.index, h.username, h.postID)),
+						Data: bytes.NewBuffer(result.media.Thumbnail),
 					}
 				}
 			}
@@ -214,7 +212,8 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 }
 
 func (h *Handler) handleVideo(post Post) []models.InputMedia {
-	file, err := downloader.Downloader(post.VideoVersions[0].URL)
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Threads_%s_%s", h.username, h.postID))
+	file, err := downloader.FetchBytesFromURL(post.VideoVersions[0].URL)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"PostID", h.postID,
@@ -222,7 +221,7 @@ func (h *Handler) handleVideo(post Post) []models.InputMedia {
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
+	thumbnail, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
 		slog.Error("Failed to download thumbnail",
 			"PostID", h.postID,
@@ -230,7 +229,7 @@ func (h *Handler) handleVideo(post Post) []models.InputMedia {
 		return nil
 	}
 
-	err = utils.ResizeThumbnail(thumbnail)
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"PostID", h.postID,
@@ -238,20 +237,21 @@ func (h *Handler) handleVideo(post Post) []models.InputMedia {
 	}
 
 	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + file.Name(),
+		Media: "attach://" + filename,
 		Thumbnail: &models.InputFileUpload{
-			Filename: thumbnail.Name(),
-			Data:     io.Reader(thumbnail),
+			Filename: filename,
+			Data:     bytes.NewBuffer(thumbnail),
 		},
 		Width:             post.OriginalWidth,
 		Height:            post.OriginalHeight,
 		SupportsStreaming: true,
-		MediaAttachment:   file,
+		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }
 
 func (h *Handler) handleImage(post Post) []models.InputMedia {
-	file, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Threads_%s_%s", h.username, h.postID))
+	file, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
 		slog.Error("Failed to download image",
 			"Post Info", []string{h.username, h.postID},
@@ -260,7 +260,7 @@ func (h *Handler) handleImage(post Post) []models.InputMedia {
 	}
 
 	return []models.InputMedia{&models.InputMediaPhoto{
-		Media:           "attach://" + file.Name(),
-		MediaAttachment: file,
+		Media:           "attach://" + filename,
+		MediaAttachment: bytes.NewBuffer(file),
 	}}
 }

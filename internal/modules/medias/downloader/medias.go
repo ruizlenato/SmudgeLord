@@ -65,7 +65,7 @@ func getFileExtension(response *http.Response) string {
 	return "tmp"
 }
 
-func Downloader(media string, filename ...string) (*os.File, error) {
+func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 	retryCaller := &utils.RetryCaller{
 		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
@@ -73,27 +73,58 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 		StartDelay:   1 * time.Second,
 		MaxDelay:     5 * time.Second,
 	}
-
 	response, err := retryCaller.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
-
 	if err != nil || response == nil {
-		return nil, errors.New("get error")
+		return nil, nil, errors.New("get error")
 	}
-	defer response.Body.Close()
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
+		response.Body.Close()
+		return nil, nil, err
+	}
+
+	return bodyBytes, response, nil
+}
+
+func FetchBytesFromURL(media string) ([]byte, error) {
+	bodyBytes, response, err := fetchURLResponse(media)
+	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
+
+	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
+		tmpFile, err := downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
+		if err != nil {
+			return nil, err
+		}
+		defer tmpFile.Close()
+
+		newBytes, err := io.ReadAll(tmpFile)
+		if err != nil {
+			return nil, err
+		}
+		return newBytes, nil
+	}
+
+	return bodyBytes, nil
+}
+
+func Downloader(media string, filename ...string) (*os.File, error) {
+	bodyBytes, response, err := fetchURLResponse(media)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
 
 	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
 		return downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
 	}
 
 	extension := getFileExtension(response)
-
 	var file *os.File
 	defer func() {
 		if err != nil {
@@ -170,7 +201,7 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	}
 
 	var downloadErrors []error
-	for i := 0; i < segmentCount; i++ {
+	for range segmentCount {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Couldn't download segment", "Segment", result.index, "Error", result.err)
@@ -332,6 +363,67 @@ func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
 	}
 
 	return err
+}
+
+func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {
+	videoFile, err := os.CreateTemp("", "merge-video-*.mp4")
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		videoFile.Close()
+		os.Remove(videoFile.Name())
+	}()
+
+	audioFile, err := os.CreateTemp("", "merge-audio-*.mp3")
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		audioFile.Close()
+		os.Remove(audioFile.Name())
+	}()
+
+	if _, err := videoFile.Write(videoData); err != nil {
+		return nil, err
+	}
+	if _, err := audioFile.Write(audioData); err != nil {
+		return nil, err
+	}
+
+	if _, err := videoFile.Seek(0, 0); err != nil {
+		return nil, err
+	}
+	if _, err := audioFile.Seek(0, 0); err != nil {
+		return nil, err
+	}
+
+	tempOutput := videoFile.Name() + ".tmp.mp4"
+	defer os.Remove(tempOutput)
+
+	cmd := exec.Command("ffmpeg",
+		"-i", videoFile.Name(),
+		"-i", audioFile.Name(),
+		"-c", "copy",
+		"-shortest",
+		"-y", tempOutput,
+	)
+
+	if err = cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	outFile, err := os.Open(tempOutput)
+	if err != nil {
+		return nil, err
+	}
+	defer outFile.Close()
+
+	mergedBytes, err := io.ReadAll(outFile)
+	if err != nil {
+		return nil, err
+	}
+	return mergedBytes, nil
 }
 
 func RemoveMediaFiles(mediaItems []models.InputMedia) {

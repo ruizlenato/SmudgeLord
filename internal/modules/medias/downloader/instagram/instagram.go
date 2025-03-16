@@ -1,6 +1,7 @@
 package instagram
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -265,7 +266,8 @@ func (h *Handler) getGQLData() InstagramData {
 }
 
 func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
-	file, err := downloader.Downloader(data.VideoURL)
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%s_%s", h.username, h.postID))
+	file, err := downloader.FetchBytesFromURL(data.VideoURL)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"Post Info", []string{h.username, h.postID},
@@ -273,7 +275,7 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(data.DisplayResources[len(data.DisplayResources)-1].Src)
+	thumbnail, err := downloader.FetchBytesFromURL(data.DisplayResources[len(data.DisplayResources)-1].Src)
 	if err != nil {
 		slog.Error("Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -281,7 +283,7 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
 		return nil
 	}
 
-	err = utils.ResizeThumbnail(thumbnail)
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -289,20 +291,21 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
 	}
 
 	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + file.Name(),
+		Media: "attach://" + filename,
 		Thumbnail: &models.InputFileUpload{
-			Filename: thumbnail.Name(),
-			Data:     io.Reader(thumbnail),
+			Filename: filename,
+			Data:     bytes.NewBuffer(thumbnail),
 		},
 		Width:             data.Dimensions.Width,
 		Height:            data.Dimensions.Height,
 		SupportsStreaming: true,
-		MediaAttachment:   file,
+		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }
 
 func (h *Handler) handleImage(data *ShortcodeMedia) []models.InputMedia {
-	file, err := downloader.Downloader(data.DisplayURL)
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%s_%s", h.username, h.postID))
+	file, err := downloader.FetchBytesFromURL(data.DisplayURL)
 	if err != nil {
 		slog.Error("Failed to download image",
 			"Post Info", []string{h.username, h.postID},
@@ -311,8 +314,8 @@ func (h *Handler) handleImage(data *ShortcodeMedia) []models.InputMedia {
 	}
 
 	return []models.InputMedia{&models.InputMediaPhoto{
-		Media:           "attach://" + file.Name(),
-		MediaAttachment: file,
+		Media:           "attach://" + filename,
+		MediaAttachment: bytes.NewBuffer(file),
 	}}
 }
 
@@ -329,7 +332,7 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 
 	for i, media := range data.EdgeSidecarToChildren.Edges {
 		go func(index int, edge Edges) {
-			media, err := h.downloadMedia(index, edge)
+			media, err := h.downloadMedia(edge)
 			results <- mediaResult{index: index, media: media, err: err}
 		}(i, media)
 	}
@@ -343,24 +346,25 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 			continue
 		}
 		if result.media.File != nil {
+			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%d_%s_%s", result.index, h.username, h.postID))
 			var mediaItem models.InputMedia
 			if !data.EdgeSidecarToChildren.Edges[result.index].Node.IsVideo {
 				mediaItem = &models.InputMediaPhoto{
-					Media:           "attach://" + result.media.File.Name(),
-					MediaAttachment: result.media.File,
+					Media:           "attach://" + filename,
+					MediaAttachment: bytes.NewBuffer(result.media.File),
 				}
 			} else {
 				mediaItem = &models.InputMediaVideo{
-					Media:             "attach://" + result.media.File.Name(),
+					Media:             "attach://" + filename,
 					Width:             data.Dimensions.Width,
 					Height:            data.Dimensions.Height,
 					SupportsStreaming: true,
-					MediaAttachment:   result.media.File,
+					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
 					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-						Filename: result.media.Thumbnail.Name(),
-						Data:     io.Reader(result.media.Thumbnail),
+						Filename: filename,
+						Data:     bytes.NewBuffer(result.media.Thumbnail),
 					}
 				}
 			}
@@ -371,17 +375,16 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 	return mediaItems
 }
 
-func (h *Handler) downloadMedia(index int, data Edges) (*InputMedia, error) {
+func (h *Handler) downloadMedia(data Edges) (*InputMedia, error) {
 	var media InputMedia
 	var err error
-	filename := fmt.Sprintf("SmudgeLord-Instagram_%d_%s_%s", index, h.username, h.postID)
 
 	if !data.Node.IsVideo {
-		media.File, err = downloader.Downloader(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src, filename)
+		media.File, err = downloader.FetchBytesFromURL(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
 	} else {
-		media.File, err = downloader.Downloader(data.Node.VideoURL, filename)
+		media.File, err = downloader.FetchBytesFromURL(data.Node.VideoURL)
 		if err == nil {
-			media.Thumbnail, err = downloader.Downloader(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
+			media.Thumbnail, err = downloader.FetchBytesFromURL(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
 		}
 	}
 	if err != nil {

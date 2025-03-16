@@ -1,12 +1,13 @@
 package reddit
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
+	"net/url"
 	"path"
 	"regexp"
 	"strings"
@@ -130,7 +131,7 @@ func (h *Handler) getRedlibData() ([]models.InputMedia, string) {
 	if string(postType[1]) == "gallery" {
 		match := galleryRegex.FindAllSubmatch(body, -1)
 
-		if galleryMedia := processRedlibGallery(match, response); galleryMedia != nil {
+		if galleryMedia := h.processRedlibGallery(match, response); galleryMedia != nil {
 			return galleryMedia, extractRedlibCaption(body)
 		}
 	}
@@ -177,14 +178,14 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 		thumbnail := h.downloadThumbnail(content, response)
 		videoURL := buildMediaURL(response, string(videoMatch[1]))
 
-		videoFile, err := downloader.Downloader(videoURL)
+		videoFile, err := downloader.FetchBytesFromURL(videoURL)
 		if err != nil {
 			slog.Error("Failed to download video",
 				"Error", err.Error())
 			return nil
 		}
 
-		err = downloader.MergeAudioVideo(videoFile, audioFile)
+		videoFile, err = downloader.MergeAudioVideoBytes(videoFile, audioFile)
 		if err != nil {
 			slog.Error("Failed to merge audio and video",
 				"Error", err.Error())
@@ -192,15 +193,17 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 		}
 
 		video := []models.InputMedia{&models.InputMediaVideo{
-			Media:             "attach://" + videoFile.Name(),
+			Media: "attach://" + utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
 			SupportsStreaming: true,
-			MediaAttachment:   videoFile,
+			MediaAttachment:   bytes.NewBuffer(videoFile),
 		}}
 
 		if thumbnail != nil {
 			video[0].(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-				Filename: thumbnail.Name(),
-				Data:     io.Reader(thumbnail),
+				Filename: utils.SanitizeString(
+					fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
+				Data: bytes.NewBuffer(thumbnail),
 			}
 		}
 		return video
@@ -208,7 +211,7 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 	return nil
 }
 
-func downloadAudio(playlistURL string) (*os.File, error) {
+func downloadAudio(playlistURL string) ([]byte, error) {
 	if playlistURL == "" {
 		return nil, fmt.Errorf("empty playlist URL")
 	}
@@ -237,7 +240,7 @@ func downloadAudio(playlistURL string) (*os.File, error) {
 			path.Dir(string(response.Request.URL.Path)),
 			audioVariant.URI,
 		), "m3u8", "aac")
-	audioFile, err := downloader.Downloader(audioURL)
+	audioFile, err := downloader.FetchBytesFromURL(audioURL)
 	if err != nil {
 		return nil, err
 	}
@@ -257,19 +260,31 @@ func getHighestQualityAudio(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
 	return bestAudio
 }
 
-func (h *Handler) downloadThumbnail(content []byte, response *http.Response) *os.File {
+func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []byte {
 	if thumbMatch := thumbRegex.FindSubmatch(content); len(thumbMatch) > 1 {
 		thumbnailURL := buildMediaURL(response, string(thumbMatch[1]))
 
-		thumbnail, err := downloader.Downloader(thumbnailURL)
+		unescapedURL, err := url.QueryUnescape(thumbnailURL)
 		if err != nil {
-			slog.Error("Failed to download thumbnail", "Error", err.Error(), "Thumbnail URL", thumbnailURL)
+			slog.Error("Failed to unescape thumbnail URL",
+				"Thumbnail URL", thumbnailURL,
+				"Error", err.Error())
 			return nil
 		}
 
-		err = utils.ResizeThumbnail(thumbnail)
+		thumbnail, err := downloader.FetchBytesFromURL(unescapedURL)
 		if err != nil {
-			slog.Error("Failed to resize thumbnail", "Error", err.Error())
+			slog.Error("Failed to download thumbnail",
+				"Thumbnail URL", unescapedURL,
+				"Error", err.Error())
+			return nil
+		}
+
+		thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+		if err != nil {
+			slog.Error("Failed to resize thumbnail",
+				"Thumbnail URL", unescapedURL,
+				"Error", err.Error())
 		}
 
 		return thumbnail
@@ -281,21 +296,22 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response) []
 	if imageMatch := imageRegex.FindSubmatch(content); len(imageMatch) > 1 {
 		imageURL := buildMediaURL(response, string(imageMatch[1]))
 
-		file, err := downloader.Downloader(imageURL)
+		file, err := downloader.FetchBytesFromURL(imageURL)
 		if err != nil {
 			slog.Error("Failed to download image", "Error", err.Error())
 			return nil
 		}
 
 		return []models.InputMedia{&models.InputMediaPhoto{
-			Media:           "attach://" + file.Name(),
-			MediaAttachment: file,
+			Media: "attach://" + utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
+			MediaAttachment: bytes.NewBuffer(file),
 		}}
 	}
 	return nil
 }
 
-func processRedlibGallery(content [][][]byte, response *http.Response) []models.InputMedia {
+func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Response) []models.InputMedia {
 	if len(content) < 1 {
 		return nil
 	}
@@ -313,15 +329,16 @@ func processRedlibGallery(content [][][]byte, response *http.Response) []models.
 	for i, item := range content {
 		go func(index int) {
 			media := buildMediaURL(response, string(item[1]))
-			file, err := downloader.Downloader(media)
+			file, err := downloader.FetchBytesFromURL(media)
 			if err != nil {
 				results <- mediaResult{index: index, err: err}
 				return
 			}
 
 			inputMedia := &models.InputMediaPhoto{
-				Media:           "attach://" + file.Name(),
-				MediaAttachment: file,
+				Media: "attach://" + utils.SanitizeString(
+					fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID)),
+				MediaAttachment: bytes.NewBuffer(file),
 			}
 			results <- mediaResult{index: index, media: inputMedia, err: nil}
 		}(i)
@@ -374,16 +391,16 @@ func (h *Handler) getAPIData() *Data {
 }
 
 func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
-	filename := fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
 	if data.IsVideo {
-		video, err := downloader.Downloader(data.Media.RedditVideo.FallbackURL, filename)
+		video, err := downloader.FetchBytesFromURL(data.Media.RedditVideo.FallbackURL)
 		if err != nil {
 			slog.Error("Failed to download video",
 				"Error", err.Error())
 			return nil
 		}
 
-		thumbnail, err := downloader.Downloader(data.Preview.Images[0].Source.URL)
+		thumbnail, err := downloader.FetchBytesFromURL(data.Preview.Images[0].Source.URL)
 		if err != nil {
 			slog.Error("Failed to download thumbnail",
 				"Error", err.Error())
@@ -391,15 +408,15 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 		}
 
 		return []models.InputMedia{&models.InputMediaVideo{
-			Media:  "attach://" + video.Name(),
+			Media:  "attach://" + filename,
 			Width:  data.Media.RedditVideo.Width,
 			Height: data.Media.RedditVideo.Height,
 			Thumbnail: &models.InputFileUpload{
-				Filename: thumbnail.Name(),
-				Data:     io.Reader(thumbnail),
+				Filename: filename,
+				Data:     bytes.NewBuffer(thumbnail),
 			},
 			SupportsStreaming: true,
-			MediaAttachment:   video,
+			MediaAttachment:   bytes.NewBuffer(video),
 		}}
 	}
 
@@ -417,7 +434,7 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 		for i, item := range data.GalleryData.Items {
 			go func(index int, mediaID string) {
 				media := (*data.MediaMetadata)[mediaID]
-				file, err := downloader.Downloader(media.S.U)
+				file, err := downloader.FetchBytesFromURL(media.S.U)
 				if err != nil {
 					results <- mediaResult{index: index, err: err}
 					return
@@ -426,8 +443,8 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 				var inputMedia models.InputMedia
 				if media.E == "Image" {
 					inputMedia = &models.InputMediaPhoto{
-						Media:           "attach://" + file.Name(),
-						MediaAttachment: file,
+						Media:           "attach://" + filename,
+						MediaAttachment: bytes.NewBuffer(file),
 					}
 				}
 				results <- mediaResult{index: index, media: inputMedia, err: nil}
@@ -448,7 +465,7 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 	}
 
 	if data.IsRedditMediaDomain && data.Domain == "i.redd.it" {
-		image, err := downloader.Downloader(data.URL)
+		image, err := downloader.FetchBytesFromURL(data.URL)
 		if err != nil {
 			slog.Error("Failed to download image",
 				"Error", err.Error())
@@ -456,8 +473,8 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 		}
 
 		return []models.InputMedia{&models.InputMediaPhoto{
-			Media:           "attach://" + image.Name(),
-			MediaAttachment: image,
+			Media:           "attach://" + filename,
+			MediaAttachment: bytes.NewBuffer(image),
 		}}
 	}
 

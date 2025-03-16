@@ -1,6 +1,7 @@
 package medias
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -353,15 +354,15 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 	})
 
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
-	thumbnail, _ := downloader.Downloader(thumbURL)
+	thumbnail, _ := downloader.FetchBytesFromURL(thumbURL)
 
 	defer func() {
-		os.Remove(thumbnail.Name())
 		os.Remove(outputFile.Name())
 	}()
 
 	var replied *models.Message
 	caption := fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title)
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-%s_%s", video.Author, video.Title))
 	switch callbackData[0] {
 	case "_aud":
 		replied, err = b.SendAudio(ctx, &bot.SendAudioParams{
@@ -374,8 +375,8 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 			Title:     video.Title,
 			Performer: video.Author,
 			Thumbnail: &models.InputFileUpload{
-				Filename: thumbnail.Name(),
-				Data:     io.Reader(thumbnail),
+				Filename: filename,
+				Data:     bytes.NewBuffer(thumbnail),
 			},
 			ParseMode: models.ParseModeHTML,
 			ReplyParameters: &models.ReplyParameters{
@@ -392,8 +393,8 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 			Width:  video.Formats.Itag(itag)[0].Width,
 			Height: video.Formats.Itag(itag)[0].Height,
 			Thumbnail: &models.InputFileUpload{
-				Filename: thumbnail.Name(),
-				Data:     io.Reader(thumbnail),
+				Filename: filename,
+				Data:     bytes.NewBuffer(thumbnail),
 			},
 			Caption:           caption,
 			ParseMode:         models.ParseModeHTML,

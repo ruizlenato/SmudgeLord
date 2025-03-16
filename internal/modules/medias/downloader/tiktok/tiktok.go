@@ -1,11 +1,10 @@
 package tiktok
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
-	"os"
 	"regexp"
 	"slices"
 	"time"
@@ -125,7 +124,7 @@ func getCaption(tikTokData TikTokData) string {
 func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
 	type mediaResult struct {
 		index int
-		file  *os.File
+		file  []byte
 		err   error
 	}
 
@@ -135,7 +134,7 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
 
 	for i, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
 		go func(index int, media Image) {
-			file, err := downloader.Downloader(media.DisplayImage.URLList[1], fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", index, h.username, h.postID))
+			file, err := downloader.FetchBytesFromURL(media.DisplayImage.URLList[1])
 			if err != nil {
 				slog.Error("Failed to download thumbnail",
 					"Post Info", []string{h.username, h.postID},
@@ -156,8 +155,9 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
 		}
 		if result.file != nil {
 			mediaItems[result.index] = &models.InputMediaPhoto{
-				Media:           "attach://" + result.file.Name(),
-				MediaAttachment: result.file,
+				Media: "attach://" + utils.SanitizeString(
+					fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", result.index, h.username, h.postID)),
+				MediaAttachment: bytes.NewBuffer(result.file),
 			}
 		}
 	}
@@ -166,15 +166,15 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
 }
 
 func (h *Handler) downloadVideo(tikTokData TikTokData) []models.InputMedia {
-	file, err := downloader.Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0], fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID))
+	file, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 	if err != nil {
 		slog.Error("Failed to download video",
-			"PostID", tikTokData.AwemeList[0].AwemeID,
+			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(tikTokData.AwemeList[0].Video.Cover.URLList[0])
+	thumbnail, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.Cover.URLList[0])
 	if err != nil {
 		slog.Error("Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -182,7 +182,7 @@ func (h *Handler) downloadVideo(tikTokData TikTokData) []models.InputMedia {
 		return nil
 	}
 
-	err = utils.ResizeThumbnail(thumbnail)
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -190,15 +190,17 @@ func (h *Handler) downloadVideo(tikTokData TikTokData) []models.InputMedia {
 	}
 
 	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + file.Name(),
+		Media: "attach://" + utils.SanitizeString(
+			fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)),
 		Thumbnail: &models.InputFileUpload{
-			Filename: thumbnail.Name(),
-			Data:     io.Reader(thumbnail),
+			Filename: "attach://" + utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)),
+			Data: bytes.NewBuffer(thumbnail),
 		},
 		Width:             tikTokData.AwemeList[0].Video.PlayAddr.Width,
 		Height:            tikTokData.AwemeList[0].Video.PlayAddr.Height,
 		Duration:          tikTokData.AwemeList[0].Video.Duration / 1000,
 		SupportsStreaming: true,
-		MediaAttachment:   file,
+		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }

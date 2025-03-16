@@ -1,11 +1,10 @@
 package bluesky
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
-	"os"
 	"path"
 	"regexp"
 	"strconv"
@@ -89,11 +88,6 @@ func getCaption(bluesky BlueskyData) string {
 		bluesky.Thread.Post.Author.DisplayName,
 		bluesky.Thread.Post.Author.Handle,
 		bluesky.Thread.Post.Record.Text)
-}
-
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
 }
 
 func (h *Handler) processMedia(data BlueskyData) []models.InputMedia {
@@ -193,7 +187,7 @@ func (h *Handler) handleVideo(data BlueskyData) []models.InputMedia {
 		return nil
 	}
 
-	file, err := downloader.Downloader(url)
+	file, err := downloader.FetchBytesFromURL(url)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"Post Info", []string{h.username, h.postID},
@@ -202,7 +196,7 @@ func (h *Handler) handleVideo(data BlueskyData) []models.InputMedia {
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(thumbnailURL)
+	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 	if err != nil {
 		slog.Error("Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -211,7 +205,7 @@ func (h *Handler) handleVideo(data BlueskyData) []models.InputMedia {
 		return nil
 	}
 
-	err = utils.ResizeThumbnail(thumbnail)
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -220,22 +214,24 @@ func (h *Handler) handleVideo(data BlueskyData) []models.InputMedia {
 	}
 
 	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + file.Name(),
+		Media: "attach://" + utils.SanitizeString(
+			fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
 		Thumbnail: &models.InputFileUpload{
-			Filename: thumbnail.Name(),
-			Data:     io.Reader(thumbnail),
+			Filename: utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
+			Data: bytes.NewBuffer(thumbnail),
 		},
 		Width:             width,
 		Height:            height,
 		SupportsStreaming: true,
-		MediaAttachment:   file,
+		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }
 
 func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
 	type mediaResult struct {
 		index int
-		file  *os.File
+		file  []byte
 		err   error
 	}
 
@@ -245,7 +241,7 @@ func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
 
 	for i, media := range blueskyImages {
 		go func(index int, media Image) {
-			file, err := downloader.Downloader(media.Fullsize)
+			file, err := downloader.FetchBytesFromURL(media.Fullsize)
 			if err != nil {
 				slog.Error("Failed to download image",
 					"Post Info", []string{h.username, h.postID},
@@ -267,8 +263,9 @@ func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
 		}
 		if result.file != nil {
 			mediaItems[result.index] = &models.InputMediaPhoto{
-				Media:           "attach://" + result.file.Name(),
-				MediaAttachment: result.file,
+				Media: "attach://" + utils.SanitizeString(
+					fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
+				MediaAttachment: bytes.NewBuffer(result.file),
 			}
 		}
 	}

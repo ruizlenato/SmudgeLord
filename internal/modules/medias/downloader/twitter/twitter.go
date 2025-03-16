@@ -1,11 +1,10 @@
 package twitter
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
-	"os"
 	"regexp"
 	"slices"
 	"sort"
@@ -74,11 +73,6 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
-}
-
 func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []models.InputMedia {
 	type mediaResult struct {
 		index int
@@ -103,7 +97,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []models.InputM
 
 	for i, media := range mediasEntities {
 		go func(index int, twitterMedia Media) {
-			media, err := h.downloadMedia(index, twitterMedia)
+			media, err := h.downloadMedia(twitterMedia)
 			results <- mediaResult{index: index, media: media, err: err}
 		}(i, media)
 	}
@@ -121,29 +115,32 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []models.InputM
 			var mediaItem models.InputMedia
 			if mediasEntities[result.index].Type == "photo" {
 				mediaItem = &models.InputMediaPhoto{
-					Media:                 "attach://" + result.media.File.Name(),
-					MediaAttachment:       result.media.File,
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+					MediaAttachment:       bytes.NewBuffer(result.media.File),
 					ShowCaptionAboveMedia: quoted,
 				}
 			} else {
 				mediaItem = &models.InputMediaVideo{
-					Media:                 "attach://" + result.media.File.Name(),
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
 					ShowCaptionAboveMedia: quoted,
 					Width:                 (mediasEntities)[result.index].OriginalInfo.Width,
 					Height:                (mediasEntities)[result.index].OriginalInfo.Height,
 					SupportsStreaming:     true,
-					MediaAttachment:       result.media.File,
+					MediaAttachment:       bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
-					err := utils.ResizeThumbnail(result.media.Thumbnail)
+					thumbnail, err := utils.ResizeThumbnailFromBytes(result.media.Thumbnail)
 					if err != nil {
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Error", err.Error())
 					}
 					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-						Filename: result.media.Thumbnail.Name(),
-						Data:     io.Reader(result.media.Thumbnail),
+						Filename: utils.SanitizeString(
+							fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+						Data: bytes.NewBuffer(thumbnail),
 					}
 				}
 			}
@@ -154,21 +151,20 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []models.InputM
 	return mediaItems
 }
 
-func (h *Handler) downloadMedia(index int, twitterMedia Media) (*InputMedia, error) {
+func (h *Handler) downloadMedia(twitterMedia Media) (*InputMedia, error) {
 	var media InputMedia
 	var err error
-	filename := fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", index, h.username, h.postID)
 
 	if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
 		sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
 			return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
 		})
-		media.File, err = downloader.Downloader(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL, filename)
+		media.File, err = downloader.FetchBytesFromURL(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
 		if err == nil {
-			media.Thumbnail, _ = downloader.Downloader(twitterMedia.MediaURLHTTPS)
+			media.Thumbnail, _ = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
 		}
 	} else {
-		media.File, err = downloader.Downloader(twitterMedia.MediaURLHTTPS, filename)
+		media.File, err = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
 	}
 
 	if err != nil {
@@ -403,9 +399,9 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]models.I
 		go func(index int, twitterMedia FxTwitterMedia) {
 			var media InputMedia
 			var err error
-			media.File, err = downloader.Downloader(twitterMedia.URL, fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", index, h.username, h.postID))
+			media.File, err = downloader.FetchBytesFromURL(twitterMedia.URL)
 			if err == nil && twitterMedia.Type == "video" {
-				media.Thumbnail, _ = downloader.Downloader(twitterMedia.ThumbnailURL)
+				media.Thumbnail, _ = downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
 			}
 			results <- mediaResult{index: index, media: &media, err: err}
 		}(i, media)
@@ -424,27 +420,30 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]models.I
 			var mediaItem models.InputMedia
 			if twitterData.Tweet.Media.All[result.index].Type != "video" {
 				mediaItem = &models.InputMediaPhoto{
-					Media:           "attach://" + result.media.File.Name(),
-					MediaAttachment: result.media.File,
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+					MediaAttachment: bytes.NewBuffer(result.media.File),
 				}
 			} else {
 				mediaItem = &models.InputMediaVideo{
-					Media:             "attach://" + result.media.File.Name(),
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
 					Width:             twitterData.Tweet.Media.All[result.index].Width,
 					Height:            twitterData.Tweet.Media.All[result.index].Height,
 					SupportsStreaming: true,
-					MediaAttachment:   result.media.File,
+					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
-					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-						Filename: result.media.Thumbnail.Name(),
-						Data:     io.Reader(result.media.Thumbnail),
-					}
-					err := utils.ResizeThumbnail(result.media.Thumbnail)
+					thumbnail, err := utils.ResizeThumbnailFromBytes(result.media.Thumbnail)
 					if err != nil {
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Error", err.Error())
+					}
+					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
+						Filename: utils.SanitizeString(
+							fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+						Data: bytes.NewBuffer(thumbnail),
 					}
 				}
 			}
