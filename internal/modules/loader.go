@@ -11,16 +11,20 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
+	"github.com/ruizlenato/smudgelord/internal/modules/misc"
+	"github.com/ruizlenato/smudgelord/internal/modules/stickers"
 )
 
 var (
 	packageLoadersMutex sync.Mutex
 	packageLoaders      = map[string]func(*bot.Bot){
-		"afk":    afk.Load,
-		"config": config.Load,
-		"lastfm": lastfm.Load,
-		"medias": medias.Load,
-		"menu":   menu.Load,
+		"afk":      afk.Load,
+		"config":   config.Load,
+		"lastfm":   lastfm.Load,
+		"medias":   medias.Load,
+		"menu":     menu.Load,
+		"misc":     misc.Load,
+		"stickers": stickers.Load,
 	}
 )
 
