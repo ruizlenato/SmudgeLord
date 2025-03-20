@@ -1,13 +1,13 @@
 package sudoers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
@@ -16,12 +16,12 @@ import (
 
 var announceMessageText string
 
-func announce(bot *telego.Bot, update telego.Update) {
+func announceHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	var lang string
 	message := update.Message
 
 	if message == nil {
-		message = update.CallbackQuery.Message.(*telego.Message)
+		message = update.CallbackQuery.Message.Message
 		lang = strings.ReplaceAll(update.CallbackQuery.Data, "announce ", "")
 	}
 
@@ -31,7 +31,7 @@ func announce(bot *telego.Bot, update telego.Update) {
 	}
 
 	if lang == "" {
-		buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
+		buttons := make([][]models.InlineKeyboardButton, 0, len(database.AvailableLocales))
 		for _, lang := range database.AvailableLocales {
 			loaded, ok := localization.LangBundles[lang]
 			if !ok {
@@ -40,18 +40,20 @@ func announce(bot *telego.Bot, update telego.Update) {
 			languageFlag, _, _ := loaded.FormatMessage("language-flag")
 			languageName, _, _ := loaded.FormatMessage("language-name")
 
-			buttons = append(buttons, []telego.InlineKeyboardButton{{
+			buttons = append(buttons, []models.InlineKeyboardButton{{
 				Text: languageFlag +
 					languageName,
 				CallbackData: fmt.Sprintf("announce %s", lang),
 			}})
 		}
 
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:      telegoutil.ID(config.OwnerID),
-			Text:        "Choose a language:",
-			ParseMode:   "HTML",
-			ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      "Choose a language:",
+			ParseMode: models.ParseModeHTML,
+			ReplyMarkup: &models.InlineKeyboardMarkup{
+				InlineKeyboard: buttons,
+			},
 		})
 		announceMessageText = utils.FormatText(message.Text, message.Entities)
 		return
@@ -90,10 +92,10 @@ func announce(bot *telego.Bot, update telego.Update) {
 		if err := rows.Scan(&chatID); err != nil {
 			continue
 		}
-		_, err := bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(chatID),
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
 			Text:      announceMessageText,
-			ParseMode: "HTML",
+			ParseMode: models.ParseModeHTML,
 		})
 		if err != nil {
 			errorCount++
@@ -107,18 +109,16 @@ func announce(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(config.OwnerID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
 		Text:      fmt.Sprintf("<b>Messages sent successfully:</b> <code>%d</code>\n<b>Messages unsent:</b> <code>%d</code>", successCount, errorCount),
-		ParseMode: "HTML",
+		ParseMode: models.ParseModeHTML,
 	})
 	announceMessageText = ""
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	bh.Handle(announce, telegohandler.Or(
-		telegohandler.CommandEqual("announce"),
-		telegohandler.CallbackDataPrefix("announce"),
-	))
+func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/announce", bot.MatchTypePrefix, announceHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "announce", bot.MatchTypePrefix, announceHandler)
 }

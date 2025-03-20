@@ -13,8 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-telegram/bot/models"
 	"github.com/kkdai/youtube/v2"
-	"github.com/mymmrac/telego"
+
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -53,7 +54,7 @@ func copyStreamWithRetries(youtubeClient *youtube.Client, video *youtube.Video, 
 	for attempt := 1; attempt <= 5; attempt++ {
 		stream, _, err := youtubeClient.GetStream(video, format)
 		if err != nil {
-			time.Sleep(2 * time.Second)
+			time.Sleep(3 * time.Second)
 			continue
 		}
 
@@ -76,7 +77,8 @@ func copyStreamWithRetries(youtubeClient *youtube.Client, video *youtube.Video, 
 func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format *youtube.Format, outputFile *os.File) error {
 	err := copyStreamWithRetries(youtubeClient, video, format, outputFile)
 	if err != nil {
-		slog.Error("Could't download video, all attempts failed", "Error", err.Error())
+		slog.Error("Could't download video, all attempts failed",
+			"Error", err.Error())
 		return err
 	}
 	return nil
@@ -178,7 +180,7 @@ func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
 	return bestFormat
 }
 
-func Handle(videoURL string) ([]telego.InputMedia, []string) {
+func Handle(videoURL string) ([]models.InputMedia, []string) {
 	youtubeClient := configureYoutubeClient()
 	video, err := youtubeClient.GetVideo(videoURL)
 	if err != nil {
@@ -217,11 +219,11 @@ func Handle(videoURL string) ([]telego.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: outputFile},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media:             "attach://" + outputFile.Name(),
 		Width:             video.Formats.Itag(videoStream.ItagNo)[0].Width,
 		Height:            video.Formats.Itag(videoStream.ItagNo)[0].Height,
 		SupportsStreaming: true,
+		MediaAttachment:   outputFile,
 	}}, []string{fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title), video.ID}
 }

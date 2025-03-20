@@ -78,3 +78,8 @@ type ImageCandidate struct {
 type Caption struct {
 	Text string `json:"text"`
 }
+
+type InputMedia struct {
+	File      []byte
+	Thumbnail []byte
+}

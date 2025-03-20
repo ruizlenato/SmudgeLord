@@ -1,10 +1,10 @@
-package helpers
+package utils
 
 import (
 	"fmt"
 	"sort"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
 )
 
 type module struct {
@@ -13,13 +13,13 @@ type module struct {
 
 var helpModule = make(map[string]module)
 
-func Store(name string) {
+func SaveHelp(name string) {
 	helpModule[name] = module{
 		Name: name,
 	}
 }
 
-func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) [][]telego.InlineKeyboardButton {
+func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) [][]models.InlineKeyboardButton {
 	modules := make([]struct {
 		name string
 		text string
@@ -35,11 +35,11 @@ func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) [][]te
 		return modules[i].text < modules[j].text
 	})
 
-	buttons := make([][]telego.InlineKeyboardButton, 0, (len(modules)+2)/3)
+	buttons := make([][]models.InlineKeyboardButton, 0, (len(modules)+2)/3)
 	for i := 0; i < len(modules); i += 3 {
-		row := make([]telego.InlineKeyboardButton, 0, 3)
+		row := make([]models.InlineKeyboardButton, 0, 3)
 		for j := i; j < i+3 && j < len(modules); j++ {
-			row = append(row, telego.InlineKeyboardButton{
+			row = append(row, models.InlineKeyboardButton{
 				Text:         modules[j].text,
 				CallbackData: fmt.Sprintf("helpMessage %s", modules[j].name),
 			})
@@ -47,7 +47,7 @@ func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) [][]te
 		buttons = append(buttons, row)
 	}
 
-	buttons = append(buttons, []telego.InlineKeyboardButton{{
+	buttons = append(buttons, []models.InlineKeyboardButton{{
 		Text:         i18n("back-button"),
 		CallbackData: "start",
 	}})
