@@ -77,7 +77,13 @@ func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
 		var username string
 
 		if update.Message == nil {
+			if update.CallbackQuery == nil {
+				next(ctx, b, update)
+				return
+			}
+
 			message = update.CallbackQuery.Message.Message
+
 			if update.CallbackQuery.Message.Type == 1 || message == nil {
 				next(ctx, b, update)
 				return

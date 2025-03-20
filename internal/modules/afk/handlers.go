@@ -17,11 +17,19 @@ import (
 func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		message := update.Message
-		if message == nil && update.CallbackQuery != nil {
-			if update.CallbackQuery.Message.Message == nil {
+
+		if update.Message == nil {
+			if update.CallbackQuery == nil {
 				next(ctx, b, update)
+				return
 			}
+
 			message = update.CallbackQuery.Message.Message
+
+			if update.CallbackQuery.Message.Type == 1 || message == nil {
+				next(ctx, b, update)
+				return
+			}
 		}
 
 		if message.From == nil ||
