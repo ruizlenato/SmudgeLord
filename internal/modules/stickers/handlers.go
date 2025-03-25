@@ -320,10 +320,28 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 		ParseMode: models.ParseModeHTML,
 	})
 
+	stickerFilename := filepath.Base(b.FileDownloadLink(file))
+	if stickerAction == "resize" && filepath.Ext(stickerFilename) != ".webp" || filepath.Ext(stickerFilename) != ".png" {
+		stickerFilename = strings.TrimSuffix(stickerFilename, filepath.Ext(stickerFilename)) + ".webp"
+	}
+
+	stickerFile, err := b.UploadStickerFile(ctx, &bot.UploadStickerFileParams{
+		UserID: update.Message.From.ID,
+		Sticker: &models.InputFileUpload{
+			Filename: stickerFilename,
+			Data:     bytes.NewBuffer(bodyBytes),
+		},
+		StickerFormat: stickerType,
+	})
+	if err != nil {
+		sendGetStickerError(ctx, b, update, i18n, "Couldn't upload sticker file", err)
+		return
+	}
+
 	StickerSet, err := b.GetStickerSet(ctx, &bot.GetStickerSetParams{
 		Name: stickerSetShortName,
 	})
-	if StickerSet.Name == "" && StickerSet.Title == "" || strings.Contains(err.Error(), "STICKERSET_INVALID") {
+	if StickerSet.Name == "" && StickerSet.Title == "" || err != nil && strings.Contains(err.Error(), "STICKERSET_INVALID") {
 		b.EditMessageText(ctx, &bot.EditMessageTextParams{
 			ChatID:    update.Message.Chat.ID,
 			MessageID: progMSG.ID,
@@ -336,9 +354,8 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 			Title:  stickerSetTitle,
 			Stickers: []models.InputSticker{
 				{
-					Sticker: &models.InputFileUpload{
-						Filename: filepath.Base(b.FileDownloadLink(file)),
-						Data:     bytes.NewBuffer(bodyBytes),
+					Sticker: &models.InputFileString{
+						Data: stickerFile.FileID,
 					},
 					Format:    stickerType,
 					EmojiList: emoji,
@@ -350,9 +367,8 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 			UserID: update.Message.From.ID,
 			Name:   stickerSetShortName,
 			Sticker: models.InputSticker{
-				Sticker: &models.InputFileUpload{
-					Filename: filepath.Base(b.FileDownloadLink(file)),
-					Data:     bytes.NewBuffer(bodyBytes),
+				Sticker: &models.InputFileString{
+					Data: stickerFile.FileID,
 				},
 				Format:    stickerType,
 				EmojiList: emoji,
