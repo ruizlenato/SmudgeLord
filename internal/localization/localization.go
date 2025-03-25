@@ -5,14 +5,14 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
 
+	"github.com/go-telegram/bot/models"
 	"github.com/lus/fluent.go/fluent"
-	"github.com/mymmrac/telego"
-	"github.com/ruizlenato/smudgelord/internal/database"
 	"golang.org/x/text/language"
+
+	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
 const defaultLanguage = "en-us"
@@ -50,19 +50,25 @@ func processLanguageFile(path string, wg *sync.WaitGroup) {
 	langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 	data, err := os.ReadFile(path)
 	if err != nil {
-		slog.Error("Couldn't read language file", "Path", path, "Error", err.Error())
+		slog.Error("Couldn't read language file",
+			"Path", path,
+			"Error", err.Error())
 		return
 	}
 
 	resource, parseErrors := fluent.NewResource(string(data))
 	if len(parseErrors) > 0 {
-		slog.Error("Couldn't parse language file", "Path", path, "Errors", parseErrors)
+		slog.Error("Couldn't parse language file",
+			"Path", path,
+			"Errors", parseErrors)
 		return
 	}
 
 	langBundle := fluent.NewBundle(language.MustParse(langCode))
 	if errs := langBundle.AddResource(resource); len(errs) > 0 {
-		slog.Error("Couldn't add resource to language bundle", "LangCode", langCode, "Errors", errs)
+		slog.Error("Couldn't add resource to language bundle",
+			"LangCode", langCode,
+			"Errors", errs)
 		return
 	}
 
@@ -75,9 +81,10 @@ func processLanguageFile(path string, wg *sync.WaitGroup) {
 	database.AvailableLocales = append(database.AvailableLocales, langCode)
 }
 
-func GetChatLanguage(chat telego.Chat) (string, error) {
+func GetChatLanguage(chat models.Chat) (string, error) {
 	var tableName, idColumn string
-	if strings.Contains(chat.Type, "group") {
+
+	if chat.Type == models.ChatTypeGroup || chat.Type == models.ChatTypeSupergroup {
 		tableName = "groups"
 		idColumn = "id"
 	} else {
@@ -91,20 +98,16 @@ func GetChatLanguage(chat telego.Chat) (string, error) {
 	return language, err
 }
 
-func Get(update interface{}) func(string, ...map[string]interface{}) string {
-	var chat telego.Chat
-	switch u := update.(type) {
-	case telego.Message:
-		chat = u.Chat
-	case telego.Update:
-		if u.CallbackQuery != nil && u.CallbackQuery.Message != nil {
-			chat = u.CallbackQuery.Message.GetChat()
-		} else if u.Message != nil {
-			chat = u.Message.Chat
-		}
+func Get(update *models.Update) func(string, ...map[string]any) string {
+	var chat models.Chat
+
+	if update.Message != nil {
+		chat = update.Message.Chat
+	} else {
+		chat = update.CallbackQuery.Message.Message.Chat
 	}
 
-	return func(key string, args ...map[string]interface{}) string {
+	return func(key string, args ...map[string]any) string {
 		language, err := GetChatLanguage(chat)
 		if err != nil {
 			slog.Error("Couldn't get chat language", "ChatID", chat.ID, "Error", err.Error())
@@ -125,11 +128,11 @@ func Get(update interface{}) func(string, ...map[string]interface{}) string {
 			}
 		}
 
-		var variables map[string]interface{}
+		var variables map[string]any
 		if len(args) > 0 && args[0] != nil {
 			variables = args[0]
 		} else {
-			variables = make(map[string]interface{})
+			variables = make(map[string]any)
 		}
 
 		context := createFormatContext(variables)
@@ -143,11 +146,11 @@ func Get(update interface{}) func(string, ...map[string]interface{}) string {
 	}
 }
 
-func createFormatContext(args map[string]interface{}) *fluent.FormatContext {
+func createFormatContext(args map[string]any) *fluent.FormatContext {
 	return fluent.WithVariables(args)
 }
 
-func HumanizeTimeSince(duration time.Duration, update telego.Update) string {
+func HumanizeTimeSince(duration time.Duration, update *models.Update) string {
 	var timeDuration int
 	var stringKey string
 
@@ -173,10 +176,10 @@ func HumanizeTimeSince(duration time.Duration, update telego.Update) string {
 		stringKey = "relative-duration-months"
 	}
 
-	return i18n(stringKey, map[string]interface{}{"count": timeDuration})
+	return i18n(stringKey, map[string]any{"count": timeDuration})
 }
 
-func getTranslatedTimeSince(i18n func(string, ...interface{}) string, stringKey string, timeDuration int) string {
+func getTranslatedTimeSince(i18n func(string, ...any) string, stringKey string, timeDuration int) string {
 	singularKey := fmt.Sprintf("%s.singular", stringKey)
 	pluralKey := fmt.Sprintf("%s.plural", stringKey)
 

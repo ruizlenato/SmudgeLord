@@ -1,14 +1,17 @@
 package instagram
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -18,7 +21,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return nil, []string{}
@@ -47,24 +50,24 @@ func (h *Handler) setPostID(url string) bool {
 	}
 
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   1 * time.Second,
 		MaxDelay:     5 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(url, utils.RequestParams{
+	response, err := retryCaller.Request(url, utils.RequestParams{
 		Method:    "GET",
 		Redirects: 2,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return false
 	}
+	defer response.Body.Close()
 
-	if matches := postIDRegex.FindStringSubmatch(request.URI().String()); len(matches) > 1 {
+	if matches := postIDRegex.FindStringSubmatch(response.Request.URL.User.String()); len(matches) > 1 {
 		h.postID = matches[1]
 		return true
 	}
@@ -91,7 +94,7 @@ func (h *Handler) getInstagramData() *ShortcodeMedia {
 	return nil
 }
 
-func (h *Handler) processMedia(data *ShortcodeMedia) []telego.InputMedia {
+func (h *Handler) processMedia(data *ShortcodeMedia) []models.InputMedia {
 	switch data.Typename {
 	case "GraphVideo", "XDTGraphVideo":
 		return h.handleVideo(data)
@@ -141,17 +144,25 @@ var (
 func (h *Handler) getEmbedData() InstagramData {
 	var data InstagramData
 
-	request, response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", h.postID), utils.RequestParams{
+	response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", h.postID), utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
+		return nil
+	}
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		slog.Error("Failed to read response body",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 		return nil
 	}
 
-	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(response.Body()); len(match) == 2 {
+	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body); len(match) == 2 {
 		s := strings.ReplaceAll(string(match[1]), `\"`, `"`)
 		s = strings.ReplaceAll(s, `\\/`, `/`)
 		s = strings.ReplaceAll(s, `\\`, `\`)
@@ -159,14 +170,14 @@ func (h *Handler) getEmbedData() InstagramData {
 		json.Unmarshal([]byte(s), &data)
 	}
 
-	mediaTypeData := mediaTypeRegex.FindAllStringSubmatch(string(response.Body()), -1)
+	mediaTypeData := regexp.MustCompile(`(?s)data-media-type="(.*?)"`).FindAllStringSubmatch(string(body), -1)
 	if data == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
-		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(response.Body()), -1)
+		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(body), -1)
 		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
 
 		var caption string
 		var owner string
-		captionData := captionRegex.FindAllStringSubmatch(string(response.Body()), -1)
+		captionData := captionRegex.FindAllStringSubmatch(string(body), -1)
 
 		if len(captionData) > 0 && len(captionData[0]) > 2 {
 			owner = strings.TrimSpace(htmlTagRegex.ReplaceAllString(captionData[0][2], ""))
@@ -204,18 +215,19 @@ func (h *Handler) getEmbedData() InstagramData {
 func (h *Handler) getScrapperAPIData() InstagramData {
 	var data InstagramData
 
-	request, response, err := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
+	response, err := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"id": h.postID,
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
-	if err != nil || response.Body() == nil {
+
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &data)
+	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		return nil
 	}
@@ -231,7 +243,7 @@ func (h *Handler) getGQLData() InstagramData {
 	downloader.GenericHeaders["X-IG-App-ID"] = "936619743392459"
 	downloader.GenericHeaders["X-FB-LSD"] = "AVqBX1zadbA"
 	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
-	request, response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
+	response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
 		Method:  "POST",
 		Headers: downloader.GenericHeaders,
 		BodyString: []string{
@@ -239,13 +251,13 @@ func (h *Handler) getGQLData() InstagramData {
 			`doc_id=8845758582119845`,
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &data)
+	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		return nil
 	}
@@ -253,8 +265,9 @@ func (h *Handler) getGQLData() InstagramData {
 	return data
 }
 
-func (h *Handler) handleVideo(data *ShortcodeMedia) []telego.InputMedia {
-	file, err := downloader.Downloader(data.VideoURL)
+func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%s_%s", h.username, h.postID))
+	file, err := downloader.FetchBytesFromURL(data.VideoURL)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"Post Info", []string{h.username, h.postID},
@@ -262,7 +275,7 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []telego.InputMedia {
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(data.DisplayResources[len(data.DisplayResources)-1].Src)
+	thumbnail, err := downloader.FetchBytesFromURL(data.DisplayResources[len(data.DisplayResources)-1].Src)
 	if err != nil {
 		slog.Error("Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -270,25 +283,29 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []telego.InputMedia {
 		return nil
 	}
 
-	err = utils.ResizeThumbnail(thumbnail)
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err)
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
-		Thumbnail:         &telego.InputFile{File: thumbnail},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media: "attach://" + filename,
+		Thumbnail: &models.InputFileUpload{
+			Filename: filename,
+			Data:     bytes.NewBuffer(thumbnail),
+		},
 		Width:             data.Dimensions.Width,
 		Height:            data.Dimensions.Height,
 		SupportsStreaming: true,
+		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }
 
-func (h *Handler) handleImage(data *ShortcodeMedia) []telego.InputMedia {
-	file, err := downloader.Downloader(data.DisplayURL)
+func (h *Handler) handleImage(data *ShortcodeMedia) []models.InputMedia {
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%s_%s", h.username, h.postID))
+	file, err := downloader.FetchBytesFromURL(data.DisplayURL)
 	if err != nil {
 		slog.Error("Failed to download image",
 			"Post Info", []string{h.username, h.postID},
@@ -296,13 +313,13 @@ func (h *Handler) handleImage(data *ShortcodeMedia) []telego.InputMedia {
 		return nil
 	}
 
-	return []telego.InputMedia{&telego.InputMediaPhoto{
-		Type:  telego.MediaTypePhoto,
-		Media: telego.InputFile{File: file},
+	return []models.InputMedia{&models.InputMediaPhoto{
+		Media:           "attach://" + filename,
+		MediaAttachment: bytes.NewBuffer(file),
 	}}
 }
 
-func (h *Handler) handleSidecar(data *ShortcodeMedia) []telego.InputMedia {
+func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
@@ -310,12 +327,12 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []telego.InputMedia {
 	}
 
 	mediaCount := len(data.EdgeSidecarToChildren.Edges)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range data.EdgeSidecarToChildren.Edges {
 		go func(index int, edge Edges) {
-			media, err := h.downloadMedia(index, edge)
+			media, err := h.downloadMedia(edge)
 			results <- mediaResult{index: index, media: media, err: err}
 		}(i, media)
 	}
@@ -329,22 +346,26 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []telego.InputMedia {
 			continue
 		}
 		if result.media.File != nil {
-			var mediaItem telego.InputMedia
+			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%d_%s_%s", result.index, h.username, h.postID))
+			var mediaItem models.InputMedia
 			if !data.EdgeSidecarToChildren.Edges[result.index].Node.IsVideo {
-				mediaItem = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: result.media.File},
+				mediaItem = &models.InputMediaPhoto{
+					Media:           "attach://" + filename,
+					MediaAttachment: bytes.NewBuffer(result.media.File),
 				}
 			} else {
-				mediaItem = &telego.InputMediaVideo{
-					Type:              telego.MediaTypeVideo,
-					Media:             telego.InputFile{File: result.media.File},
+				mediaItem = &models.InputMediaVideo{
+					Media:             "attach://" + filename,
 					Width:             data.Dimensions.Width,
 					Height:            data.Dimensions.Height,
 					SupportsStreaming: true,
+					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
-					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
+					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
+						Filename: filename,
+						Data:     bytes.NewBuffer(result.media.Thumbnail),
+					}
 				}
 			}
 			mediaItems[result.index] = mediaItem
@@ -354,17 +375,16 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []telego.InputMedia {
 	return mediaItems
 }
 
-func (h *Handler) downloadMedia(index int, data Edges) (*InputMedia, error) {
+func (h *Handler) downloadMedia(data Edges) (*InputMedia, error) {
 	var media InputMedia
 	var err error
-	filename := fmt.Sprintf("SmudgeLord-Instagram_%d_%s_%s", index, h.username, h.postID)
 
 	if !data.Node.IsVideo {
-		media.File, err = downloader.Downloader(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src, filename)
+		media.File, err = downloader.FetchBytesFromURL(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
 	} else {
-		media.File, err = downloader.Downloader(data.Node.VideoURL, filename)
+		media.File, err = downloader.FetchBytesFromURL(data.Node.VideoURL)
 		if err == nil {
-			media.Thumbnail, err = downloader.Downloader(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
+			media.Thumbnail, err = downloader.FetchBytesFromURL(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
 		}
 	}
 	if err != nil {

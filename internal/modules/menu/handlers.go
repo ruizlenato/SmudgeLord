@@ -1,282 +1,299 @@
 package menu
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
 
-	"github.com/ruizlenato/smudgelord/internal/localization"
-	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
+	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func createStartKeyboard(i18n func(string, ...map[string]interface{}) string) *telego.InlineKeyboardMarkup {
-	return telegoutil.InlineKeyboard(
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         i18n("about-button"),
-				CallbackData: "about",
-			},
-			telego.InlineKeyboardButton{
-				Text:         fmt.Sprintf("%s %s", i18n("language-flag"), i18n("language-button")),
-				CallbackData: "languageMenu",
-			},
-		),
-		telegoutil.InlineKeyboardRow(
-			telego.InlineKeyboardButton{
-				Text:         i18n("help-button"),
-				CallbackData: "helpMenu",
-			},
-		),
-	)
-}
-
-func handleStart(bot *telego.Bot, message telego.Message) {
-	botUser, err := bot.GetMe()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if messageFields := strings.Fields(message.Text); len(messageFields) > 1 && messageFields[1] == "privacy" {
-		handlePrivacy(bot, message)
-		return
-	}
-
-	i18n := localization.Get(message)
-
-	if strings.Contains(message.Chat.Type, "group") {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID: telegoutil.ID(message.Chat.ID),
-			Text: i18n("start-message-group",
-				map[string]interface{}{
-					"botName": botUser.FirstName,
-				}),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-			ReplyMarkup: telegoutil.InlineKeyboard(telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text: i18n("start-button"),
-					URL:  fmt.Sprintf("https://t.me/%s?start=start", botUser.Username),
-				})),
-		})
-		return
-	}
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID: telegoutil.ID(message.Chat.ID),
-		Text: i18n("start-message",
-			map[string]interface{}{
-				"userFirstName": message.From.FirstName,
-				"botName":       botUser.FirstName,
-			}),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: createStartKeyboard(i18n),
-	})
-}
-
-func callbackStart(bot *telego.Bot, update telego.Update) {
-	botUser, err := bot.GetMe()
-	if err != nil {
-		log.Fatal(err)
-	}
-	i18n := localization.Get(update)
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text: i18n("start-message",
-			map[string]interface{}{
-				"userFirstName": update.CallbackQuery.Message.GetChat().FirstName,
-				"botName":       botUser.FirstName,
-			}),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: createStartKeyboard(i18n),
-	})
-}
-
-func handlePrivacy(bot *telego.Bot, message telego.Message) {
-	botUser, err := bot.GetMe()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	i18n := localization.Get(message)
-
-	if strings.Contains(message.Chat.Type, "group") {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("privacy-policy-group"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-			ReplyMarkup: telegoutil.InlineKeyboard(telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text: i18n("privacy-policy-button"),
-					URL:  fmt.Sprintf("https://t.me/%s?start=privacy", botUser.Username),
-				})),
-		})
-		return
-	}
-
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("privacy-policy-private"),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("about-your-data-button"),
-					CallbackData: "aboutYourData",
-				},
-			),
-		),
-	})
-}
-
-func callbackPrivacy(bot *telego.Bot, update telego.Update) {
-	i18n := localization.Get(update)
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("privacy-policy-private"),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("about-your-data-button"),
-					CallbackData: "aboutYourData",
-				},
-			),
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("back-button"),
+func createStartKeyboard(i18n func(string, ...map[string]any) string) *models.InlineKeyboardMarkup {
+	return &models.InlineKeyboardMarkup{
+		InlineKeyboard: [][]models.InlineKeyboardButton{
+			{
+				{
+					Text:         i18n("about-button"),
 					CallbackData: "about",
 				},
-			),
-		),
-	})
-}
-
-func callbackAboutYourData(bot *telego.Bot, update telego.Update) {
-	i18n := localization.Get(update)
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
-		Text:      i18n("about-your-data"),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("back-button"),
-					CallbackData: "privacy",
+				{
+					Text:         fmt.Sprintf("%s %s", i18n("language-flag"), i18n("language-button")),
+					CallbackData: "languageMenu",
 				},
-			),
-		),
+			},
+			{
+				{
+					Text:         i18n("help-button"),
+					CallbackData: "helpMenu",
+				},
+			},
+		},
+	}
+}
+
+func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+	botUser, err := b.GetMe(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if messageFields := strings.Fields(update.Message.Text); len(messageFields) > 1 && messageFields[1] == "privacy" {
+		privacyHandler(ctx, b, update)
+		return
+	}
+
+	if update.Message.Chat.Type == models.ChatTypeGroup || update.Message.Chat.Type == models.ChatTypeSupergroup {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text: i18n("start-message-group",
+				map[string]any{
+					"botName": botUser.FirstName,
+				}),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+			ReplyMarkup: &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{{{
+					Text: i18n("start-button"),
+					URL:  fmt.Sprintf("https://t.me/%s?start=start", botUser.Username),
+				}}},
+			},
+		})
+		return
+	}
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text: i18n("start-message",
+			map[string]any{
+				"userFirstName": update.Message.From.FirstName,
+				"botName":       botUser.FirstName,
+			}),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			IsDisabled: bot.True(),
+		},
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+		ReplyMarkup: createStartKeyboard(i18n),
 	})
 }
 
-func callbackAboutMenu(bot *telego.Bot, update telego.Update) {
+func startCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+	botUser, err := b.GetMe(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
+		Text: i18n("start-message",
+			map[string]any{
+				"userFirstName": update.CallbackQuery.Message.Message.From.FirstName,
+				"botName":       botUser.FirstName,
+			}),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			IsDisabled: bot.True(),
+		},
+		ReplyMarkup: createStartKeyboard(i18n),
+	})
+}
+
+func privacyHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+	botUser, err := b.GetMe(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if update.Message.Chat.Type == models.ChatTypeGroup || update.Message.Chat.Type == models.ChatTypeSupergroup {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("privacy-policy-group"),
+			ParseMode: "HTML",
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+			ReplyMarkup: &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{{{
+					Text: i18n("privacy-policy-button"),
+					URL:  fmt.Sprintf("https://t.me/%s?start=privacy", botUser.Username),
+				}}},
+			},
+		})
+		return
+	}
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      i18n("privacy-policy-private"),
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: [][]models.InlineKeyboardButton{{{
+				Text:         i18n("about-your-data-button"),
+				CallbackData: "aboutYourData",
+			}}},
+		},
+	})
+}
+
+func privacyCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
+		Text:      i18n("privacy-policy-private"),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			IsDisabled: bot.True(),
+		},
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: [][]models.InlineKeyboardButton{
+				{
+					{
+						Text:         i18n("about-your-data-button"),
+						CallbackData: "aboutYourData",
+					},
+				},
+				{
+					{
+						Text:         i18n("back-button"),
+						CallbackData: "about",
+					},
+				},
+			},
+		},
+	})
+}
+
+func aboutMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
 		Text:      i18n("about"),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			IsDisabled: bot.True(),
 		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text: i18n("donation-button"),
-					URL:  "https://ko-fi.com/ruizlenato",
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: [][]models.InlineKeyboardButton{
+				{
+					{
+						Text: i18n("donation-button"),
+						URL:  "https://ko-fi.com/ruizlenato",
+					},
+					{
+						Text: i18n("news-channel-button"),
+						URL:  "https://t.me/SmudgeLordChannel",
+					},
 				},
-				telego.InlineKeyboardButton{
-					Text: i18n("news-channel-button"),
-					URL:  "https://t.me/SmudgeLordChannel",
+				{
+					{
+						Text:         i18n("privacy-policy-button"),
+						CallbackData: "privacy",
+					},
 				},
-			),
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("privacy-policy-button"),
-					CallbackData: "privacy",
+				{
+					{
+						Text:         i18n("back-button"),
+						CallbackData: "start",
+					},
 				},
-			),
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("back-button"),
-					CallbackData: "start",
-				},
-			),
-		),
+			},
+		},
 	})
 }
 
-func callbackHelpMenu(bot *telego.Bot, update telego.Update) {
+func aboutYourDataCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:      telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID:   update.CallbackQuery.Message.GetMessageID(),
-		Text:        i18n("help"),
-		ParseMode:   "HTML",
-		ReplyMarkup: telegoutil.InlineKeyboard(helpers.GetHelpKeyboard(i18n)...),
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
+		Text:      i18n("about-your-data"),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			IsDisabled: bot.True(),
+		},
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: [][]models.InlineKeyboardButton{
+				{
+					{
+						Text:         i18n("back-button"),
+						CallbackData: "privacy",
+					},
+				},
+			},
+		},
 	})
 }
 
-func callbackHelpMessage(bot *telego.Bot, update telego.Update) {
+func helpMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
+		Text:      i18n("help"),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			IsDisabled: bot.True(),
+		},
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: utils.GetHelpKeyboard(i18n),
+		},
+	})
+}
+
+func helpMessageCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 	module := strings.ReplaceAll(update.CallbackQuery.Data, "helpMessage ", "")
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
 		Text:      i18n(fmt.Sprintf("%s-help", module)),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			IsDisabled: bot.True(),
 		},
-		ReplyMarkup: telegoutil.InlineKeyboard(
-			telegoutil.InlineKeyboardRow(
-				telego.InlineKeyboardButton{
-					Text:         i18n("back-button"),
-					CallbackData: "helpMenu",
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: [][]models.InlineKeyboardButton{
+				{
+					{
+						Text:         i18n("back-button"),
+						CallbackData: "helpMenu",
+					},
 				},
-			),
-		),
+			},
+		},
 	})
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	bh.HandleMessage(handleStart, telegohandler.CommandEqual("start"))
-	bh.Handle(callbackStart, telegohandler.CallbackDataEqual("start"))
-	bh.HandleMessage(handlePrivacy, telegohandler.CommandEqual("privacy"))
-	bh.Handle(callbackPrivacy, telegohandler.CallbackDataEqual("privacy"))
-	bh.Handle(callbackAboutYourData, telegohandler.CallbackDataEqual("aboutYourData"))
-	bh.Handle(callbackHelpMenu, telegohandler.CallbackDataEqual("helpMenu"))
-	bh.Handle(callbackAboutMenu, telegohandler.CallbackDataEqual("about"))
-	bh.Handle(callbackHelpMessage, telegohandler.CallbackDataPrefix("helpMessage"))
+func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeContains, startHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "start", bot.MatchTypeExact, startCallback)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/privacy", bot.MatchTypeContains, privacyHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "privacy", bot.MatchTypeExact, privacyCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "about", bot.MatchTypeExact, aboutMenuCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "aboutYourData", bot.MatchTypeExact, aboutYourDataCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "helpMenu", bot.MatchTypeExact, helpMenuCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "helpMessage", bot.MatchTypePrefix, helpMessageCallback)
 }

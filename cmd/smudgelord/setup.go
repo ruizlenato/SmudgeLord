@@ -5,45 +5,54 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
 
+	"github.com/go-telegram/bot"
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/localization"
-
-	"github.com/mymmrac/telego"
 )
 
-func InitializeServices() error {
+func InitializeServices(b *bot.Bot, ctx context.Context) error {
 	if err := localization.LoadLanguages(); err != nil {
 		return fmt.Errorf("load languages: %w", err)
 	}
 
 	if err := database.Open(config.DatabaseFile); err != nil {
-		return fmt.Errorf("open database: %w", err)
+		return fmt.Errorf("failed to open database: %w", err)
 	}
 
 	if err := database.CreateTables(); err != nil {
-		return fmt.Errorf("create tables: %w", err)
+		return fmt.Errorf("failed to create tables: %w", err)
 	}
 
 	if err := cache.RedisClient("localhost:6379", "", 0); err != nil {
+		fmt.Println(err)
 		slog.Warn("Redis cache is currently unavailable.")
 	}
 
-	return nil
-}
-
-func StartWebhookServer(bot *telego.Bot) {
-	if err := bot.StartWebhook(fmt.Sprintf("0.0.0.0:%d", config.WebhookPort)); err != nil {
-		log.Fatal(err)
+	if config.WebhookURL != "" {
+		_, err := b.SetWebhook(context.Background(), &bot.SetWebhookParams{
+			URL: config.WebhookURL + "/webhook",
+		})
+		if err != nil {
+			return fmt.Errorf("failed to set webhook: %w", err)
+		}
+	} else {
+		_, err := b.DeleteWebhook(context.Background(), &bot.DeleteWebhookParams{
+			DropPendingUpdates: true,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to delete webhook: %w", err)
+		}
 	}
+
+	return nil
 }
 
 type ColorHandler struct {

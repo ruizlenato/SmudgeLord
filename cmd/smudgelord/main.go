@@ -1,21 +1,25 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"os"
 	"os/signal"
-	"syscall"
+	"strings"
+
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/modules"
-	"github.com/ruizlenato/smudgelord/internal/telegram"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
+	"github.com/ruizlenato/smudgelord/internal/modules/afk"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
+
+var botInfo *models.User
 
 func main() {
 	logger := slog.New(NewColorHandler(os.Stdout, &slog.HandlerOptions{
@@ -24,73 +28,78 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	bot, err := telegram.CreateBot()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
+	done := make(chan struct{}, 1)
+
+	go handleSignals(ctx, done)
+
+	opts := []bot.Option{
+		bot.WithMiddlewares(
+			database.SaveUsers,
+			afk.CheckAFKMiddleware,
+			utils.CheckDisabledMiddleware,
+			checkUsername,
+		),
+	}
+
+	if config.BotAPIURL != "" {
+		opts = append(opts, bot.WithServerURL(config.BotAPIURL))
+	}
+
+	b, err := bot.New(config.TelegramToken, opts...)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	done := make(chan struct{})
-
-	var updates <-chan telego.Update
-
-	if config.WebhookURL != "" {
-		updates, err = telegram.SetupWebhook(bot)
-	} else {
-		updates, err = telegram.SetupLongPolling(bot)
-	}
-	if err != nil {
-		log.Fatal("Setup updates:", err)
-	}
-
-	bh, err := telegohandler.NewBotHandler(bot, updates)
-	if err != nil {
-		log.Fatal(err)
-	}
-	handler := modules.NewHandler(bot, bh)
-
-	botUser, err := bot.GetMe()
-	if err != nil {
+	if err := InitializeServices(b, ctx); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := InitializeServices(); err != nil {
-		log.Fatal(err)
+	botInfo, err = b.GetMe(ctx)
+	if err != nil {
+		log.Fatal("failed to get bot info:", err)
 	}
 
-	go handleSignals(sigs, bot, bh, done)
-
-	go bh.Start()
 	fmt.Println("\033[0;32m\U0001F680 Bot Started\033[0m")
-	fmt.Printf("\033[0;36mBot Info:\033[0m %v - @%v\n", botUser.FirstName, botUser.Username)
-	handler.RegisterHandlers()
+	fmt.Printf("\033[0;36mBot Info:\033[0m %v - @%v\n", botInfo.FirstName, botInfo.Username)
+	modules.RegisterHandlers(b)
 
 	if config.WebhookURL != "" {
-		go StartWebhookServer(bot)
+		b.StartWebhook(ctx)
+	} else {
+		b.Start(ctx)
 	}
 
 	<-done
 	fmt.Println("Done")
 }
 
-func handleSignals(sigs chan os.Signal, bot *telego.Bot, bh *telegohandler.BotHandler, done chan struct{}) {
-	<-sigs
-	fmt.Println("\033[0;31mStopping...\033[0m")
+func handleSignals(ctx context.Context, done chan struct{}) {
+	<-ctx.Done()
+	fmt.Println("\n\033[0;31mStopping...\033[0m")
 
-	if config.WebhookURL != "" {
-		if err := bot.StopWebhook(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		bot.StopLongPolling()
-	}
-	fmt.Println("Updates stopped")
-
-	bh.Stop()
-	fmt.Println("Bot handler stopped")
-
+	fmt.Println("Bot stopped")
 	database.Close()
 
 	done <- struct{}{}
+}
+
+func checkUsername(next bot.HandlerFunc) bot.HandlerFunc {
+	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
+		if update.Message == nil {
+			next(ctx, b, update)
+			return
+		}
+
+		commandSlices := strings.Split(update.Message.Text, "@")
+		if len(commandSlices) > 1 && strings.HasPrefix(commandSlices[0], "/") {
+			if commandSlices[1] != botInfo.Username {
+				return
+			}
+		}
+
+		next(ctx, b, update)
+	}
 }

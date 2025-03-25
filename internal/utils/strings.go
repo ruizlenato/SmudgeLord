@@ -6,10 +6,10 @@ import (
 	"strings"
 	"unicode/utf16"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
 )
 
-func FormatText(text string, entities []telego.MessageEntity) string {
+func FormatText(text string, entities []models.MessageEntity) string {
 	textRunes := utf16.Encode([]rune(text))
 
 	for i := len(entities) - 1; i >= 0; i-- {
@@ -51,7 +51,6 @@ func EscapeHTML(s string) string {
 	return replacer.Replace(s)
 }
 
-// Some file systems do not support certain characters in file names.
 func SanitizeString(input string) string {
 	illegalChars := []rune{'}', '{', '%', '>', '<', '^', ';', ':', '`', '$', '"', '@', '=', '?', '|', '*'}
 

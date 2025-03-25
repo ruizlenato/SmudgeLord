@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"os"
 	"path"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"github.com/go-telegram/bot/models"
 	"github.com/grafov/m3u8"
-	"github.com/mymmrac/telego"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -22,7 +22,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.setUsernameAndPostID(text) {
 		return nil, []string{}
@@ -54,7 +54,7 @@ func (h *Handler) setUsernameAndPostID(url string) bool {
 }
 
 func (h *Handler) getBlueskyData() BlueskyData {
-	request, response, err := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
+	response, err := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
 			"User-Agent":   downloader.GenericHeaders["User-Agent"],
@@ -65,14 +65,14 @@ func (h *Handler) getBlueskyData() BlueskyData {
 			"depth": "0",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var data BlueskyData
-	err = json.Unmarshal(response.Body(), &data)
+	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		slog.Error("Failed to unmarshal JSON",
 			"Post Info", []string{h.username, h.postID},
@@ -90,12 +90,7 @@ func getCaption(bluesky BlueskyData) string {
 		bluesky.Thread.Post.Record.Text)
 }
 
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
-}
-
-func (h *Handler) processMedia(data BlueskyData) []telego.InputMedia {
+func (h *Handler) processMedia(data BlueskyData) []models.InputMedia {
 	switch {
 	case strings.Contains(data.Thread.Post.Embed.Type, "image"):
 		return h.handleImage(data.Thread.Post.Embed.Images)
@@ -140,7 +135,7 @@ func getPlaylistAndThumbnailURLs(data BlueskyData) (string, string) {
 	return data.Thread.Post.Embed.Media.Playlist, data.Thread.Post.Embed.Media.Thumbnail
 }
 
-func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
+func (h *Handler) handleVideo(data BlueskyData) []models.InputMedia {
 	playlistURL, thumbnailURL := getPlaylistAndThumbnailURLs(data)
 	if playlistURL == "" || thumbnailURL == "" {
 		return nil
@@ -150,18 +145,17 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 		return nil
 	}
 
-	request, response, err := utils.Request(playlistURL, utils.RequestParams{
+	response, err := utils.Request(playlistURL, utils.RequestParams{
 		Method: "GET",
 	})
-	defer utils.ReleaseRequestResources(request, response)
-
 	if err != nil {
 		slog.Error("Failed to request playlist",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 	}
+	defer response.Body.Close()
 
-	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
+	playlist, listType, err := m3u8.DecodeFrom(response.Body, true)
 	if err != nil {
 		slog.Error("Failed to decode m3u8 playlist",
 			"Post Info", []string{h.username, h.postID},
@@ -180,9 +174,9 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 	}
 
 	url := fmt.Sprintf("%s://%s%s/%s",
-		string(request.URI().Scheme()),
-		string(request.URI().Host()),
-		path.Dir(string(request.URI().Path())),
+		string(response.Request.URL.Scheme),
+		string(response.Request.URL.Host),
+		path.Dir(string(response.Request.URL.Path)),
 		highestBandwidthVariant.URI)
 
 	width, height, err := parseResolution(highestBandwidthVariant.Resolution)
@@ -193,7 +187,7 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 		return nil
 	}
 
-	file, err := downloader.Downloader(url)
+	file, err := downloader.FetchBytesFromURL(url)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"Post Info", []string{h.username, h.postID},
@@ -202,7 +196,7 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(thumbnailURL)
+	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 	if err != nil {
 		slog.Error("Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -211,7 +205,7 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 		return nil
 	}
 
-	err = utils.ResizeThumbnail(thumbnail)
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -219,30 +213,35 @@ func (h *Handler) handleVideo(data BlueskyData) []telego.InputMedia {
 			"Error", err.Error())
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
-		Thumbnail:         &telego.InputFile{File: thumbnail},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media: "attach://" + utils.SanitizeString(
+			fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
+		Thumbnail: &models.InputFileUpload{
+			Filename: utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
+			Data: bytes.NewBuffer(thumbnail),
+		},
 		Width:             width,
 		Height:            height,
 		SupportsStreaming: true,
+		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }
 
-func (h *Handler) handleImage(blueskyImages []Image) []telego.InputMedia {
+func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
 	type mediaResult struct {
 		index int
-		file  *os.File
+		file  []byte
 		err   error
 	}
 
 	mediaCount := len(blueskyImages)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range blueskyImages {
 		go func(index int, media Image) {
-			file, err := downloader.Downloader(media.Fullsize)
+			file, err := downloader.FetchBytesFromURL(media.Fullsize)
 			if err != nil {
 				slog.Error("Failed to download image",
 					"Post Info", []string{h.username, h.postID},
@@ -263,9 +262,10 @@ func (h *Handler) handleImage(blueskyImages []Image) []telego.InputMedia {
 			continue
 		}
 		if result.file != nil {
-			mediaItems[result.index] = &telego.InputMediaPhoto{
-				Type:  telego.MediaTypePhoto,
-				Media: telego.InputFile{File: result.file},
+			mediaItems[result.index] = &models.InputMediaPhoto{
+				Media: "attach://" + utils.SanitizeString(
+					fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
+				MediaAttachment: bytes.NewBuffer(result.file),
 			}
 		}
 	}
