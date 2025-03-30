@@ -1,6 +1,7 @@
 package misc
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -9,46 +10,43 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
 )
 
-func handleTranslate(bot *telego.Bot, message telego.Message) {
+func translateHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	var text string
-	i18n := localization.Get(message)
+	i18n := localization.Get(update)
 
-	if message.ReplyToMessage != nil {
+	if update.Message.ReplyToMessage != nil {
 		replyText := ""
-		if messageText := message.ReplyToMessage.Text; messageText != "" {
+		if messageText := update.Message.ReplyToMessage.Text; messageText != "" {
 			replyText = messageText
-		} else if caption := message.ReplyToMessage.Caption; caption != "" {
+		} else if caption := update.Message.ReplyToMessage.Caption; caption != "" {
 			replyText = caption
 		}
 		text = replyText
-		if len(message.Text) > 4 {
-			text = message.Text[4:] + " " + replyText
+		if len(update.Message.Text) > 4 {
+			text = update.Message.Text[4:] + " " + replyText
 		}
-	} else if len(message.Text) > 4 && strings.Fields(message.Text)[0] == "/tr" {
-		text = message.Text[4:]
+	} else if len(update.Message.Text) > 4 && strings.Fields(update.Message.Text)[0] == "/tr" {
+		text = update.Message.Text[4:]
 	}
 
-	if messageFields := strings.Fields(message.Text); messageFields[0] == "/translate" && len(message.Text) > 11 {
-		text = message.Text[11:]
+	if messageFields := strings.Fields(update.Message.Text); messageFields[0] == "/translate" && len(update.Message.Text) > 11 {
+		text = update.Message.Text[11:]
 	}
 
 	if text == "" {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("translator-no-args-provided"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
 			},
 		})
 		return
@@ -57,19 +55,19 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 	var sourceLang string
 	var targetLang string
 
-	language := getTranslateLang(text, message.Chat)
+	language := getTranslateLang(text, update.Message.Chat)
 	if strings.HasPrefix(text, language) {
 		text = strings.Replace(text, language, "", 1)
 		text = strings.TrimSpace(text)
 	}
 
 	if text == "" {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("translator-no-args-provided"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
 			},
 		})
 		return
@@ -113,7 +111,7 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 		"Linux; U; Android 12; Pixel 6 Pro",
 	}
 
-	request, response, err := utils.Request(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
+	response, err := utils.Request(fmt.Sprintf("https://translate.google.com/translate_a/single?client=at&dt=t&dj=1&sl=%s&tl=%s&q=%s",
 		sourceLang, targetLang, url.QueryEscape(text)), utils.RequestParams{
 		Method: "POST",
 		Headers: map[string]string{
@@ -121,16 +119,18 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 			`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		slog.Error("Couldn't request translation", "Error", err.Error())
+		slog.Error("Couldn't request translation",
+			"Error", err.Error())
 		return
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &translation)
+	err = json.NewDecoder(response.Body).Decode(&translation)
 	if err != nil {
-		slog.Error("Couldn't unmarshal translation data", "Error", err.Error())
+		slog.Error("Couldn't unmarshal translation data",
+			"Error", err.Error())
 	}
 
 	var translations []string
@@ -139,17 +139,17 @@ func handleTranslate(bot *telego.Bot, message telego.Message) {
 	}
 	textUnescaped, _ := (url.QueryUnescape(strings.Join(translations, "")))
 
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
 		Text:      fmt.Sprintf("<b>%s</b> -> <b>%s</b>\n<code>%s</code>", translation.Source, targetLang, textUnescaped),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
 		},
 	})
 }
 
-func getTranslateLang(text string, chat telego.Chat) string {
+func getTranslateLang(text string, chat models.Chat) string {
 	languages := [135]string{
 		`af`, `sq`, `am`, `ar`, `hy`,
 		`as`, `ay`, `az`, `bm`, `eu`,
@@ -222,33 +222,32 @@ type weatherSearch struct {
 	} `json:"location"`
 }
 
-func handleWeather(bot *telego.Bot, message telego.Message) {
+func weatherHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	var weatherQuery string
-	i18n := localization.Get(message)
+	i18n := localization.Get(update)
 
-	if len(strings.Fields(message.Text)) > 1 {
-		_, _, args := telegoutil.ParseCommand(message.Text)
-		weatherQuery = strings.Join(args, " ")
+	if len(strings.Fields(update.Message.Text)) > 1 {
+		weatherQuery = strings.Fields(update.Message.Text)[1]
 	} else {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.From.ID),
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("weather-no-location-provided"),
 			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
 			},
 		})
 		return
 	}
 
-	chatLang, err := localization.GetChatLanguage(message.Chat)
+	chatLang, err := localization.GetChatLanguage(update.Message.Chat)
 	if err != nil {
 		return
 	}
 
 	var weatherSearchData weatherSearch
 
-	request, response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
+	response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"apiKey": weatherAPIKey,
@@ -259,21 +258,22 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 			"format": "json",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
-		slog.Error("Couldn't request weather search", "Error", err.Error())
+		slog.Error("Couldn't request weather search",
+			"Error", err.Error())
+		return
+	}
+	defer response.Body.Close()
+
+	err = json.NewDecoder(response.Body).Decode(&weatherSearchData)
+	if err != nil {
 		return
 	}
 
-	err = json.Unmarshal(response.Body(), &weatherSearchData)
-	if err != nil {
-		return
-	}
-
-	buttons := make([][]telego.InlineKeyboardButton, 0, len(database.AvailableLocales))
+	buttons := make([][]models.InlineKeyboardButton, 0, len(database.AvailableLocales))
 	for i := 0; i < len(weatherSearchData.Location.Address) && i < 5; i++ {
-		buttons = append(buttons, []telego.InlineKeyboardButton{{
+		buttons = append(buttons, []models.InlineKeyboardButton{{
 			Text: weatherSearchData.Location.Address[i],
 			CallbackData: fmt.Sprintf("_weather|%f|%f",
 				weatherSearchData.Location.Latitude[i],
@@ -282,14 +282,16 @@ func handleWeather(bot *telego.Bot, message telego.Message) {
 		}})
 	}
 
-	bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
 		Text:      i18n("weather-select-location"),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
 		},
-		ReplyMarkup: telegoutil.InlineKeyboard(buttons...),
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: buttons,
+		},
 	})
 }
 
@@ -317,12 +319,11 @@ type weatherResult struct {
 	} `json:"v3-location-point"`
 }
 
-func callbackWeather(bot *telego.Bot, update telego.Update) {
+func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
 	var weatherResultData weatherResult
 	i18n := localization.Get(update)
-	message := update.CallbackQuery.Message.(*telego.Message)
 
-	chatLang, err := localization.GetChatLanguage(message.Chat)
+	chatLang, err := localization.GetChatLanguage(update.CallbackQuery.Message.Message.Chat)
 	if err != nil {
 		return
 	}
@@ -337,27 +338,27 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 		return
 	}
 
-	request, response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point",
-		utils.RequestParams{
-			Method: "GET",
-			Query: map[string]string{
-				"apiKey":  weatherAPIKey,
-				"geocode": fmt.Sprintf("%.3f,%.3f", latitude, longitude),
-				"language": strings.Split(chatLang, "-")[0] +
-					"-" +
-					strings.ToUpper(strings.Split(chatLang, "-")[1]),
-				"units":  i18n("measurement-unit"),
-				"format": "json",
-			},
-		})
-	defer utils.ReleaseRequestResources(request, response)
+	response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"apiKey":  weatherAPIKey,
+			"geocode": fmt.Sprintf("%.3f,%.3f", latitude, longitude),
+			"language": strings.Split(chatLang, "-")[0] +
+				"-" +
+				strings.ToUpper(strings.Split(chatLang, "-")[1]),
+			"units":  i18n("measurement-unit"),
+			"format": "json",
+		},
+	})
 
 	if err != nil {
-		slog.Error("Couldn't request weather data", "Error", err.Error())
+		slog.Error("Couldn't request weather data",
+			"Error", err.Error())
 		return
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &weatherResultData)
+	err = json.NewDecoder(response.Body).Decode(&weatherResultData)
 	if err != nil {
 		return
 	}
@@ -378,9 +379,9 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 
 	localName := strings.Join(localNameParts, ", ")
 
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(update.CallbackQuery.Message.GetChat().ID),
-		MessageID: update.CallbackQuery.Message.GetMessageID(),
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
+		MessageID: update.CallbackQuery.Message.Message.ID,
 		Text: i18n("weather-details",
 			map[string]interface{}{
 				"localname":            localName,
@@ -389,18 +390,18 @@ func callbackWeather(bot *telego.Bot, update telego.Update) {
 				"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
 				"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
 			}),
-		ParseMode: "HTML",
+		ParseMode: models.ParseModeHTML,
 	})
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	helpers.Store("misc")
-	bh.HandleMessage(handleWeather, telegohandler.Or(telegohandler.CommandEqual("weather"), telegohandler.CommandEqual("clima")))
-	bh.Handle(callbackWeather, telegohandler.CallbackDataContains("_weather"))
-	bh.HandleMessage(handleTranslate, telegohandler.Or(
-		telegohandler.CommandEqual("translate"),
-		telegohandler.CommandEqual("tr")),
-	)
+func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeMessageText, "weather", bot.MatchTypeCommand, weatherHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "clima", bot.MatchTypeCommand, weatherHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "_weather", bot.MatchTypePrefix, callbackWeather)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "translate", bot.MatchTypeCommand, translateHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "tr", bot.MatchTypeCommand, translateHandler)
 
-	helpers.DisableableCommands = append(helpers.DisableableCommands, "tr", "translate", "weather", "clima")
+	utils.SaveHelp("misc")
+	utils.DisableableCommands = append(utils.DisableableCommands,
+		"tr", "translate", "weather", "clima")
 }

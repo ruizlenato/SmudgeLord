@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
-	"os"
+	"net/http"
 	"path"
 	"regexp"
 	"strings"
 
+	"github.com/go-telegram/bot/models"
 	"github.com/grafov/m3u8"
-	"github.com/mymmrac/telego"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
 )
 
 var redlibInstance = "https://rl.bloat.cat"
@@ -37,7 +38,7 @@ type Handler struct {
 	postID    string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.getPostInfo(text) {
 		return nil, []string{}
@@ -67,7 +68,7 @@ func (h *Handler) getPostInfo(url string) bool {
 	return true
 }
 
-func (h *Handler) processMedia() ([]telego.InputMedia, string) {
+func (h *Handler) processMedia() ([]models.InputMedia, string) {
 	medias, caption := h.getRedlibData()
 	if medias != nil {
 		return medias, caption
@@ -84,55 +85,63 @@ func (h *Handler) processMedia() ([]telego.InputMedia, string) {
 	return nil, ""
 }
 
-func (h *Handler) getRedlibData() ([]telego.InputMedia, string) {
-	request, response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
+func (h *Handler) getRedlibData() ([]models.InputMedia, string) {
+	response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
 		utils.RequestParams{
 			Method:  "GET",
 			Headers: downloader.GenericHeaders,
 		})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		slog.Error("Failed to fetch media content",
 			"Error", err.Error())
 		return nil, ""
 	}
+	defer response.Body.Close()
 
-	postType := postTypeRegex.FindSubmatch(response.Body())
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		slog.Error("Failed to read response body",
+			"Post Info", []string{h.subreddit, h.postID},
+			"Error", err.Error())
+		return nil, ""
+	}
+
+	postType := postTypeRegex.FindSubmatch(body)
 	if len(postType) < 1 || string(postType[1]) == "self" {
 		return nil, ""
 	}
 
 	if string(postType[1]) == "video" || string(postType[1]) == "image" {
-		match := mediaContentRegex.FindSubmatch(response.Body())
+		match := mediaContentRegex.FindSubmatch(body)
 		if len(match) < 2 {
 			return nil, ""
 		}
 
-		if videoMedia := h.processRedlibVideo(match[1], request); videoMedia != nil {
-			return videoMedia, extractRedlibCaption(response.Body())
+		if videoMedia := h.processRedlibVideo(match[1], response); videoMedia != nil {
+			return videoMedia, extractRedlibCaption(body)
 		}
 
-		if imageMedia := h.processRedlibImage(match[1], request); imageMedia != nil {
-			return imageMedia, extractRedlibCaption(response.Body())
+		if imageMedia := h.processRedlibImage(match[1], response); imageMedia != nil {
+			return imageMedia, extractRedlibCaption(body)
 		}
 	}
 
 	if string(postType[1]) == "gallery" {
-		match := galleryRegex.FindAllSubmatch(response.Body(), -1)
+		match := galleryRegex.FindAllSubmatch(body, -1)
 
-		if galleryMedia := processRedlibGallery(match, request); galleryMedia != nil {
-			return galleryMedia, extractRedlibCaption(response.Body())
+		if galleryMedia := h.processRedlibGallery(match, response); galleryMedia != nil {
+			return galleryMedia, extractRedlibCaption(body)
 		}
 	}
 
 	return nil, ""
 }
 
-func buildMediaURL(request *fasthttp.Request, path string) string {
+func buildMediaURL(response *http.Response, path string) string {
 	url := fmt.Sprintf("%s://%s%s",
-		string(request.URI().Scheme()),
-		string(request.URI().Host()),
+		string(response.Request.URL.Scheme),
+		string(response.Request.URL.Host),
 		path,
 	)
 	return cleanupRegex.ReplaceAllString(url, "")
@@ -154,9 +163,9 @@ func extractRedlibCaption(body []byte) string {
 	return fmt.Sprintf("<b>%s — %s</b>: %s", postAuthor, postSubreddit, postTitle)
 }
 
-func (h *Handler) processRedlibVideo(content []byte, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []models.InputMedia {
 	if videoMatch := videoRegex.FindSubmatch(content); len(videoMatch) > 1 {
-		playlistURL := buildMediaURL(request, string(playlistRegex.FindSubmatch(content)[1]))
+		playlistURL := buildMediaURL(response, string(playlistRegex.FindSubmatch(content)[1]))
 
 		audioFile, err := downloadAudio(playlistURL)
 		if err != nil {
@@ -165,50 +174,55 @@ func (h *Handler) processRedlibVideo(content []byte, request *fasthttp.Request) 
 			return nil
 		}
 
-		thumbnail := h.downloadThumbnail(content, request)
-		videoURL := buildMediaURL(request, string(videoMatch[1]))
+		thumbnail := h.downloadThumbnail(content, response)
+		videoURL := buildMediaURL(response, string(videoMatch[1]))
 
-		videoFile, err := downloader.Downloader(videoURL)
+		videoFile, err := downloader.FetchBytesFromURL(videoURL)
 		if err != nil {
 			slog.Error("Failed to download video",
 				"Error", err.Error())
 			return nil
 		}
 
-		err = downloader.MergeAudioVideo(videoFile, audioFile)
+		videoFile, err = downloader.MergeAudioVideoBytes(videoFile, audioFile)
 		if err != nil {
 			slog.Error("Failed to merge audio and video",
 				"Error", err.Error())
 			return nil
 		}
 
-		video := []telego.InputMedia{&telego.InputMediaVideo{
-			Type:              telego.MediaTypeVideo,
-			Media:             telego.InputFile{File: videoFile},
+		video := []models.InputMedia{&models.InputMediaVideo{
+			Media: "attach://" + utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
 			SupportsStreaming: true,
+			MediaAttachment:   bytes.NewBuffer(videoFile),
 		}}
 
 		if thumbnail != nil {
-			video[0].(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: thumbnail}
+			video[0].(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
+				Filename: utils.SanitizeString(
+					fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
+				Data: bytes.NewBuffer(thumbnail),
+			}
 		}
 		return video
 	}
 	return nil
 }
 
-func downloadAudio(playlistURL string) (*os.File, error) {
+func downloadAudio(playlistURL string) ([]byte, error) {
 	if playlistURL == "" {
 		return nil, fmt.Errorf("empty playlist URL")
 	}
 
-	request, response, err := utils.Request(playlistURL, utils.RequestParams{Method: "GET"})
-	defer utils.ReleaseRequestResources(request, response)
+	response, err := utils.Request(playlistURL, utils.RequestParams{Method: "GET"})
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch audio playlist: %s", err)
 	}
+	defer response.Body.Close()
 
-	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
+	playlist, listType, err := m3u8.DecodeFrom(response.Body, true)
 	if err != nil || listType != m3u8.MASTER {
 		return nil, fmt.Errorf("failed to decode audio playlist: %s", err)
 	}
@@ -220,12 +234,12 @@ func downloadAudio(playlistURL string) (*os.File, error) {
 
 	audioURL := strings.ReplaceAll(
 		fmt.Sprintf("%s://%s%s/%s",
-			string(request.URI().Scheme()),
-			string(request.URI().Host()),
-			path.Dir(string(request.URI().Path())),
+			string(response.Request.URL.Scheme),
+			string(response.Request.URL.Host),
+			path.Dir(string(response.Request.URL.Path)),
 			audioVariant.URI,
 		), "m3u8", "aac")
-	audioFile, err := downloader.Downloader(audioURL)
+	audioFile, err := downloader.FetchBytesFromURL(audioURL)
 	if err != nil {
 		return nil, err
 	}
@@ -245,19 +259,23 @@ func getHighestQualityAudio(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
 	return bestAudio
 }
 
-func (h *Handler) downloadThumbnail(content []byte, request *fasthttp.Request) *os.File {
+func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []byte {
 	if thumbMatch := thumbRegex.FindSubmatch(content); len(thumbMatch) > 1 {
-		thumbnailURL := buildMediaURL(request, string(thumbMatch[1]))
+		thumbnailURL := buildMediaURL(response, string(thumbMatch[1]))
 
-		thumbnail, err := downloader.Downloader(thumbnailURL)
+		thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 		if err != nil {
-			slog.Error("Failed to download thumbnail", "Error", err.Error(), "Thumbnail URL", thumbnailURL)
+			slog.Error("Failed to download thumbnail",
+				"Thumbnail URL", thumbnailURL,
+				"Error", err.Error())
 			return nil
 		}
 
-		err = utils.ResizeThumbnail(thumbnail)
+		thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 		if err != nil {
-			slog.Error("Failed to resize thumbnail", "Error", err.Error())
+			slog.Error("Failed to resize thumbnail",
+				"Thumbnail URL", thumbnailURL,
+				"Error", err.Error())
 		}
 
 		return thumbnail
@@ -265,51 +283,53 @@ func (h *Handler) downloadThumbnail(content []byte, request *fasthttp.Request) *
 	return nil
 }
 
-func (h *Handler) processRedlibImage(content []byte, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processRedlibImage(content []byte, response *http.Response) []models.InputMedia {
 	if imageMatch := imageRegex.FindSubmatch(content); len(imageMatch) > 1 {
-		imageURL := buildMediaURL(request, string(imageMatch[1]))
+		imageURL := buildMediaURL(response, string(imageMatch[1]))
 
-		file, err := downloader.Downloader(imageURL)
+		file, err := downloader.FetchBytesFromURL(imageURL)
 		if err != nil {
 			slog.Error("Failed to download image", "Error", err.Error())
 			return nil
 		}
 
-		return []telego.InputMedia{&telego.InputMediaPhoto{
-			Type:  telego.MediaTypePhoto,
-			Media: telego.InputFile{File: file},
+		return []models.InputMedia{&models.InputMediaPhoto{
+			Media: "attach://" + utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
+			MediaAttachment: bytes.NewBuffer(file),
 		}}
 	}
 	return nil
 }
 
-func processRedlibGallery(content [][][]byte, request *fasthttp.Request) []telego.InputMedia {
+func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Response) []models.InputMedia {
 	if len(content) < 1 {
 		return nil
 	}
 
 	type mediaResult struct {
 		index int
-		media telego.InputMedia
+		media models.InputMedia
 		err   error
 	}
 
 	mediaCount := len(content)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, item := range content {
 		go func(index int) {
-			media := buildMediaURL(request, string(item[1]))
-			file, err := downloader.Downloader(media)
+			media := buildMediaURL(response, string(item[1]))
+			file, err := downloader.FetchBytesFromURL(media)
 			if err != nil {
 				results <- mediaResult{index: index, err: err}
 				return
 			}
 
-			inputMedia := &telego.InputMediaPhoto{
-				Type:  telego.MediaTypePhoto,
-				Media: telego.InputFile{File: file},
+			inputMedia := &models.InputMediaPhoto{
+				Media: "attach://" + utils.SanitizeString(
+					fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID)),
+				MediaAttachment: bytes.NewBuffer(file),
 			}
 			results <- mediaResult{index: index, media: inputMedia, err: nil}
 		}(i)
@@ -329,30 +349,31 @@ func processRedlibGallery(content [][][]byte, request *fasthttp.Request) []teleg
 }
 
 func (h *Handler) getAPIData() *Data {
-	request, response, err := utils.Request(fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s/.json?raw_json=1", h.subreddit, h.postID), utils.RequestParams{
+	response, err := utils.Request(fmt.Sprintf("https://www.reddit.com/r/%s/comments/%s/.json?raw_json=1", h.subreddit, h.postID), utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
-	defer utils.ReleaseRequestResources(request, response)
-	if err != nil || response.Body() == nil || response.StatusCode() != 200 {
-		request, response, err = utils.Request(fmt.Sprintf("https://api.reddit.com/api/info/?id=t3_%s", h.postID),
+
+	if err != nil || response.Body == nil || response.StatusCode != 200 {
+		response, err = utils.Request(fmt.Sprintf("https://api.reddit.com/api/info/?id=t3_%s", h.postID),
 			utils.RequestParams{Method: "GET",
-                    Headers: downloader.GenericHeaders,})
-		if err != nil || response.Body() == nil {
+				Headers: downloader.GenericHeaders})
+		if err != nil || response.Body == nil {
 			return nil
 		}
-		defer utils.ReleaseRequestResources(request, response)
+		defer response.Body.Close()
 
 		var data KindData
-		err = json.Unmarshal(response.Body(), &data)
+		err = json.NewDecoder(response.Body).Decode(&data)
 		if err != nil {
 			return nil
 		}
 		return &data.Data.Children[0].Data
 	}
+	defer response.Body.Close()
 
 	var data RedditPost
-	err = json.Unmarshal(response.Body(), &data)
+	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
 		return nil
 	}
@@ -360,58 +381,61 @@ func (h *Handler) getAPIData() *Data {
 	return &data[0].Data.Children[0].Data
 }
 
-func (h *Handler) processAPIMedia(data *Data) []telego.InputMedia {
-	filename := fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)
+func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
 	if data.IsVideo {
-		video, err := downloader.Downloader(data.Media.RedditVideo.FallbackURL, filename)
+		video, err := downloader.FetchBytesFromURL(data.Media.RedditVideo.FallbackURL)
 		if err != nil {
 			slog.Error("Failed to download video",
 				"Error", err.Error())
 			return nil
 		}
 
-		thumbnail, err := downloader.Downloader(data.Preview.Images[0].Source.URL)
+		thumbnail, err := downloader.FetchBytesFromURL(data.Preview.Images[0].Source.URL)
 		if err != nil {
 			slog.Error("Failed to download thumbnail",
 				"Error", err.Error())
 			return nil
 		}
 
-		return []telego.InputMedia{&telego.InputMediaVideo{
-			Type:              telego.MediaTypeVideo,
-			Media:             telego.InputFile{File: video},
-			Width:             data.Media.RedditVideo.Width,
-			Height:            data.Media.RedditVideo.Height,
-			Thumbnail:         &telego.InputFile{File: thumbnail},
+		return []models.InputMedia{&models.InputMediaVideo{
+			Media:  "attach://" + filename,
+			Width:  data.Media.RedditVideo.Width,
+			Height: data.Media.RedditVideo.Height,
+			Thumbnail: &models.InputFileUpload{
+				Filename: filename,
+				Data:     bytes.NewBuffer(thumbnail),
+			},
 			SupportsStreaming: true,
+			MediaAttachment:   bytes.NewBuffer(video),
 		}}
 	}
 
 	if data.MediaMetadata != nil {
 		type mediaResult struct {
 			index int
-			media telego.InputMedia
+			media models.InputMedia
 			err   error
 		}
 
 		mediaCount := len(data.GalleryData.Items)
-		mediaItems := make([]telego.InputMedia, mediaCount)
+		mediaItems := make([]models.InputMedia, mediaCount)
 		results := make(chan mediaResult, mediaCount)
 
 		for i, item := range data.GalleryData.Items {
 			go func(index int, mediaID string) {
 				media := (*data.MediaMetadata)[mediaID]
-				file, err := downloader.Downloader(media.S.U)
+				file, err := downloader.FetchBytesFromURL(media.S.U)
 				if err != nil {
 					results <- mediaResult{index: index, err: err}
 					return
 				}
 
-				var inputMedia telego.InputMedia
+				var inputMedia models.InputMedia
 				if media.E == "Image" {
-					inputMedia = &telego.InputMediaPhoto{
-						Type:  telego.MediaTypePhoto,
-						Media: telego.InputFile{File: file},
+					inputMedia = &models.InputMediaPhoto{
+						Media:           "attach://" + filename,
+						MediaAttachment: bytes.NewBuffer(file),
 					}
 				}
 				results <- mediaResult{index: index, media: inputMedia, err: nil}
@@ -432,16 +456,16 @@ func (h *Handler) processAPIMedia(data *Data) []telego.InputMedia {
 	}
 
 	if data.IsRedditMediaDomain && data.Domain == "i.redd.it" {
-		image, err := downloader.Downloader(data.URL)
+		image, err := downloader.FetchBytesFromURL(data.URL)
 		if err != nil {
 			slog.Error("Failed to download image",
 				"Error", err.Error())
 			return nil
 		}
 
-		return []telego.InputMedia{&telego.InputMediaPhoto{
-			Type:  telego.MediaTypePhoto,
-			Media: telego.InputFile{File: image},
+		return []models.InputMedia{&models.InputMediaPhoto{
+			Media:           "attach://" + filename,
+			MediaAttachment: bytes.NewBuffer(image),
 		}}
 	}
 

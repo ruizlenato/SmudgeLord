@@ -1,16 +1,18 @@
 package xiaohongshu
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/url"
-	"os"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -20,7 +22,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	postURL := handler.getPostURL(text)
 	if postURL == "" {
@@ -66,25 +68,25 @@ func (h *Handler) getPostURL(text string) string {
 
 	if strings.Contains(text, "xhslink") {
 		retryCaller := &utils.RetryCaller{
-			Caller:       utils.DefaultFastHTTPCaller,
+			Caller:       utils.DefaultHTTPCaller,
 			MaxAttempts:  3,
 			ExponentBase: 2,
 			StartDelay:   1 * time.Second,
 			MaxDelay:     5 * time.Second,
 		}
 
-		request, response, err := retryCaller.Request(text, utils.RequestParams{
+		response, err := retryCaller.Request(text, utils.RequestParams{
 			Headers:   downloader.GenericHeaders,
 			Method:    "GET",
 			Redirects: 2,
 		})
 
-		defer utils.ReleaseRequestResources(request, response)
 		if err != nil {
 			return ""
 		}
+		defer response.Body.Close()
 
-		text = request.URI().String()
+		text = response.Request.URL.String()
 		parsedURL, err := url.Parse(text)
 		if err != nil {
 			slog.Error("Error parsing URL",
@@ -106,17 +108,25 @@ var (
 func (h *Handler) getPostData(url string) XiaohongshuData {
 	var xiaohongshuData XiaohongshuData
 
-	request, response, err := utils.Request(url, utils.RequestParams{
+	response, err := utils.Request(url, utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return nil
 	}
+	defer response.Body.Close()
 
-	if matches := scriptRegex.FindSubmatch(response.Body()); len(matches) > 1 {
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		slog.Error("Failed to read response body",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
+		return nil
+	}
+
+	if matches := scriptRegex.FindSubmatch(body); len(matches) > 1 {
 		xiaohongshuJson := strings.ReplaceAll(string(matches[1]), "undefined", "null")
 		err := json.Unmarshal([]byte(xiaohongshuJson), &xiaohongshuData)
 		if err != nil {
@@ -142,7 +152,7 @@ func getCaption(noteData Note) string {
 	return caption
 }
 
-func (h *Handler) downloadVideo(noteData Note) []telego.InputMedia {
+func (h *Handler) downloadVideo(noteData Note) []models.InputMedia {
 	videoInfo := h.findFirstAvailableVideoFormat(noteData.Note.Video.Media.Stream)
 	if videoInfo == nil {
 		slog.Error("No valid video format found",
@@ -150,7 +160,7 @@ func (h *Handler) downloadVideo(noteData Note) []telego.InputMedia {
 		return nil
 	}
 
-	file, err := downloader.Downloader(videoInfo.MasterURL, fmt.Sprintf("SmudgeLord-Xiaohongshu_%s", h.postID))
+	file, err := downloader.FetchBytesFromURL(videoInfo.MasterURL)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"PostID", h.postID,
@@ -158,13 +168,15 @@ func (h *Handler) downloadVideo(noteData Note) []telego.InputMedia {
 		return nil
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media: "attach://" + utils.SanitizeString(
+			fmt.Sprintf("SmudgeLord-Xiaohongshu_%s", h.postID)),
 		Width:             videoInfo.Width,
 		Height:            videoInfo.Height,
 		Duration:          videoInfo.Duration / 1000,
-		SupportsStreaming: true}}
+		SupportsStreaming: true,
+		MediaAttachment:   bytes.NewBuffer(file),
+	}}
 }
 
 // following the priority: AV1 > H266 > H265 > H264
@@ -184,15 +196,15 @@ func (h *Handler) findFirstAvailableVideoFormat(stream VideoStream) VideoInfo {
 	return nil
 }
 
-func (h *Handler) downloadImages(noteData Note) []telego.InputMedia {
+func (h *Handler) downloadImages(noteData Note) []models.InputMedia {
 	type mediaResult struct {
 		index int
-		file  *os.File
+		file  []byte
 		err   error
 	}
 
 	mediaCount := len(noteData.Note.ImageList)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range noteData.Note.ImageList {
@@ -203,7 +215,7 @@ func (h *Handler) downloadImages(noteData Note) []telego.InputMedia {
 				url = videoInfo.MasterURL
 			}
 
-			file, err := downloader.Downloader(url, fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s", index, h.postID))
+			file, err := downloader.FetchBytesFromURL(url)
 			if err != nil {
 				slog.Error("Failed to download image",
 					"Post Info", []string{h.username, h.postID},
@@ -225,15 +237,17 @@ func (h *Handler) downloadImages(noteData Note) []telego.InputMedia {
 		}
 		if result.file != nil {
 			if noteData.Note.ImageList[result.index].LivePhoto {
-				mediaItems[result.index] = &telego.InputMediaVideo{
-					Type:              telego.MediaTypeVideo,
-					Media:             telego.InputFile{File: result.file},
+				mediaItems[result.index] = &models.InputMediaVideo{
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s", result.index, h.postID)),
 					SupportsStreaming: true,
+					MediaAttachment:   bytes.NewBuffer(result.file),
 				}
 			} else {
-				mediaItems[result.index] = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: result.file},
+				mediaItems[result.index] = &models.InputMediaPhoto{
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s", result.index, h.postID)),
+					MediaAttachment: bytes.NewBuffer(result.file),
 				}
 			}
 		}

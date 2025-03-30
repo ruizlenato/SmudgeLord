@@ -8,6 +8,8 @@ import (
 	"io"
 	"log/slog"
 	"mime"
+	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path"
@@ -18,12 +20,11 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/go-telegram/bot/models"
 	"github.com/grafov/m3u8"
+
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/valyala/fasthttp"
-
-	"github.com/mymmrac/telego"
 )
 
 var GenericHeaders = map[string]string{
@@ -48,10 +49,10 @@ type YouTube struct {
 	Caption string `json:"caption"`
 }
 
-func getFileExtension(response *fasthttp.Response, request *fasthttp.Request) string {
-	if mediatype, _, err := mime.ParseMediaType(string(response.Header.ContentType())); err == nil {
-		if mediatype == "text/plain" {
-			if ext := strings.TrimPrefix(filepath.Ext(string(request.URI().Path())), "."); ext != "" {
+func getFileExtension(response *http.Response) string {
+	if mediatype, _, err := mime.ParseMediaType(string(response.Header.Get("Content-Type"))); err == nil {
+		if mediatype == "text/plain" || mediatype == "application/octet-stream" {
+			if ext := strings.TrimPrefix(filepath.Ext(response.Request.URL.Path), "."); ext != "" {
 				return ext
 			}
 		}
@@ -64,30 +65,66 @@ func getFileExtension(response *fasthttp.Response, request *fasthttp.Request) st
 	return "tmp"
 }
 
-func Downloader(media string, filename ...string) (*os.File, error) {
+func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   1 * time.Second,
 		MaxDelay:     5 * time.Second,
 	}
-
-	request, response, err := retryCaller.Request(media, utils.RequestParams{
+	response, err := retryCaller.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
-	defer utils.ReleaseRequestResources(request, response)
-
 	if err != nil || response == nil {
-		return nil, errors.New("get error")
+		return nil, nil, errors.New("get error")
 	}
 
-	if bytes.Contains(response.Body(), []byte("#EXTM3U")) {
-		return downloadM3U8(request, response)
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		response.Body.Close()
+		return nil, nil, err
 	}
 
-	extension := getFileExtension(response, request)
+	return bodyBytes, response, nil
+}
 
+func FetchBytesFromURL(media string) ([]byte, error) {
+	bodyBytes, response, err := fetchURLResponse(media)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
+		tmpFile, err := downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
+		if err != nil {
+			return nil, err
+		}
+		defer tmpFile.Close()
+
+		newBytes, err := io.ReadAll(tmpFile)
+		if err != nil {
+			return nil, err
+		}
+		return newBytes, nil
+	}
+
+	return bodyBytes, nil
+}
+
+func Downloader(media string, filename ...string) (*os.File, error) {
+	bodyBytes, response, err := fetchURLResponse(media)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
+		return downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
+	}
+
+	extension := getFileExtension(response)
 	var file *os.File
 	defer func() {
 		if err != nil {
@@ -108,7 +145,7 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 		return nil, fmt.Errorf("failed to create temp file: %w", err)
 	}
 
-	if _, err = file.Write(response.Body()); err != nil {
+	if _, err = file.Write(bodyBytes); err != nil {
 		return nil, err
 	}
 
@@ -119,8 +156,8 @@ func Downloader(media string, filename ...string) (*os.File, error) {
 	return file, err
 }
 
-func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.File, error) {
-	playlist, _, err := m3u8.DecodeFrom(bytes.NewReader(response.Body()), true)
+func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
+	playlist, _, err := m3u8.DecodeFrom(body, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode m3u8 playlist: %s", err)
 	}
@@ -149,9 +186,9 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 
 		go func(index int, segment *m3u8.MediaSegment) {
 			urlSegment := fmt.Sprintf("%s://%s%s/%s",
-				string(request.URI().Scheme()),
-				string(request.URI().Host()),
-				path.Dir(string(request.URI().Path())),
+				url.Scheme,
+				url.Host,
+				path.Dir(url.Path),
 				segment.URI)
 
 			fileName, err := downloadSegment(urlSegment)
@@ -164,7 +201,7 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 	}
 
 	var downloadErrors []error
-	for i := 0; i < segmentCount; i++ {
+	for range segmentCount {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Couldn't download segment", "Segment", result.index, "Error", result.err)
@@ -189,15 +226,15 @@ func downloadM3U8(request *fasthttp.Request, response *fasthttp.Response) (*os.F
 }
 
 func downloadSegment(url string) (string, error) {
-	request, response, err := utils.Request(url, utils.RequestParams{
+	response, err := utils.Request(url, utils.RequestParams{
 		Method:    "GET",
 		Redirects: 5,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return "", err
 	}
+	defer response.Body.Close()
 
 	tmpFile, err := os.CreateTemp("", "*.ts")
 	if err != nil {
@@ -205,7 +242,7 @@ func downloadSegment(url string) (string, error) {
 	}
 	defer tmpFile.Close()
 
-	if _, err := io.Copy(tmpFile, bytes.NewReader(response.Body())); err != nil {
+	if _, err := io.Copy(tmpFile, response.Body); err != nil {
 		return "", err
 	}
 
@@ -328,12 +365,73 @@ func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
 	return err
 }
 
-func RemoveMediaFiles(mediaItems []telego.InputMedia) {
+func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {
+	videoFile, err := os.CreateTemp("", "merge-video-*.mp4")
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		videoFile.Close()
+		os.Remove(videoFile.Name())
+	}()
+
+	audioFile, err := os.CreateTemp("", "merge-audio-*.mp3")
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		audioFile.Close()
+		os.Remove(audioFile.Name())
+	}()
+
+	if _, err := videoFile.Write(videoData); err != nil {
+		return nil, err
+	}
+	if _, err := audioFile.Write(audioData); err != nil {
+		return nil, err
+	}
+
+	if _, err := videoFile.Seek(0, 0); err != nil {
+		return nil, err
+	}
+	if _, err := audioFile.Seek(0, 0); err != nil {
+		return nil, err
+	}
+
+	tempOutput := videoFile.Name() + ".tmp.mp4"
+	defer os.Remove(tempOutput)
+
+	cmd := exec.Command("ffmpeg",
+		"-i", videoFile.Name(),
+		"-i", audioFile.Name(),
+		"-c", "copy",
+		"-shortest",
+		"-y", tempOutput,
+	)
+
+	if err = cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	outFile, err := os.Open(tempOutput)
+	if err != nil {
+		return nil, err
+	}
+	defer outFile.Close()
+
+	mergedBytes, err := io.ReadAll(outFile)
+	if err != nil {
+		return nil, err
+	}
+	return mergedBytes, nil
+}
+
+func RemoveMediaFiles(mediaItems []models.InputMedia) {
 	var wg sync.WaitGroup
 
 	for _, media := range mediaItems {
 		wg.Add(1)
-		go func(media telego.InputMedia) {
+		go func(media models.InputMedia) {
 			defer wg.Done()
 			removeMediaFile(media)
 		}(media)
@@ -342,39 +440,62 @@ func RemoveMediaFiles(mediaItems []telego.InputMedia) {
 	wg.Wait()
 }
 
-func removeMediaFile(media telego.InputMedia) {
-	switch media.MediaType() {
+func removeMediaFile(media models.InputMedia) {
+	type mediaInfo struct {
+		Type  string `json:"type"`
+		Media string `json:"media"`
+	}
+	var mInfo mediaInfo
+
+	marshalInputMedia, err := media.MarshalInputMedia()
+	if err != nil {
+		slog.Error("Couldn't marshal media info",
+			"Error", err.Error())
+		return
+	}
+
+	err = json.Unmarshal(marshalInputMedia, &mInfo)
+	if err != nil {
+		slog.Error("Couldn't unmarshal media info",
+			"Error", err.Error())
+		return
+	}
+
+	switch mInfo.Type {
 	case "photo":
-		if photo, ok := media.(*telego.InputMediaPhoto); ok {
-			os.Remove(photo.Media.String())
+		if file, ok := media.(*models.InputMediaPhoto).Attachment().(*os.File); ok {
+			os.Remove(file.Name())
 		}
 	case "video":
-		if video, ok := media.(*telego.InputMediaVideo); ok {
-			os.Remove(video.Media.String())
-			if video.Thumbnail != nil && video.Thumbnail.File.(*os.File) != nil {
-				os.Remove(video.Thumbnail.String())
+		if file, ok := media.(*models.InputMediaVideo).Attachment().(*os.File); ok {
+			os.Remove(file.Name())
+		}
+		if media.(*models.InputMediaVideo).Thumbnail != nil {
+			err = os.Remove(media.(*models.InputMediaVideo).Thumbnail.(*models.InputFileUpload).Filename)
+			if err != nil {
+				return
 			}
 		}
 	}
 }
 
-func extractMediaInfo(replied []telego.Message) ([]string, []string, bool) {
+func extractMediaInfo(replied []*models.Message) ([]string, []string, bool) {
 	var files, mediasType []string
 
 	for _, message := range replied {
 		if message.Video != nil {
 			files = append(files, message.Video.FileID)
-			mediasType = append(mediasType, telego.MediaTypeVideo)
+			mediasType = append(mediasType, "video")
 		} else if message.Photo != nil {
 			files = append(files, message.Photo[0].FileID)
-			mediasType = append(mediasType, telego.MediaTypePhoto)
+			mediasType = append(mediasType, "photo")
 		}
 	}
 
 	return files, mediasType, replied[0].ShowCaptionAboveMedia
 }
 
-func SetMediaCache(replied []telego.Message, result []string) error {
+func SetMediaCache(replied []*models.Message, result []string) error {
 	files, mediasType, showCaptionAboveMedia := extractMediaInfo(replied)
 
 	album := Medias{Caption: result[0], Files: files, Type: mediasType, ShowCaptionAboveMedia: showCaptionAboveMedia}
@@ -393,7 +514,7 @@ func SetMediaCache(replied []telego.Message, result []string) error {
 	return nil
 }
 
-func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
+func GetMediaCache(postID string) ([]models.InputMedia, string, error) {
 	cached, err := cache.GetCache("media-cache:" + postID)
 	if err != nil {
 		return nil, "", err
@@ -404,19 +525,17 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 		return nil, "", fmt.Errorf("couldn't unmarshal medias JSON: %v", err)
 	}
 
-	inputMedias := make([]telego.InputMedia, 0, len(medias.Files))
+	inputMedias := make([]models.InputMedia, 0, len(medias.Files))
 	for i, media := range medias.Files {
 		switch medias.Type[i] {
-		case telego.MediaTypeVideo:
-			inputMedias = append(inputMedias, &telego.InputMediaVideo{
-				Type:                  telego.MediaTypeVideo,
-				Media:                 telego.InputFile{FileID: media},
+		case "video":
+			inputMedias = append(inputMedias, &models.InputMediaVideo{
+				Media:                 media,
 				ShowCaptionAboveMedia: medias.ShowCaptionAboveMedia,
 			})
-		case telego.MediaTypePhoto:
-			inputMedias = append(inputMedias, &telego.InputMediaPhoto{
-				Type:                  telego.MediaTypePhoto,
-				Media:                 telego.InputFile{FileID: media},
+		case "photo":
+			inputMedias = append(inputMedias, &models.InputMediaPhoto{
+				Media:                 media,
 				ShowCaptionAboveMedia: medias.ShowCaptionAboveMedia,
 			})
 		}
@@ -425,7 +544,7 @@ func GetMediaCache(postID string) ([]telego.InputMedia, string, error) {
 	return inputMedias, medias.Caption, nil
 }
 
-func SetYoutubeCache(replied *telego.Message, youtubeID string) error {
+func SetYoutubeCache(replied *models.Message, youtubeID string) error {
 	var youtube YouTube
 
 	cached, _ := cache.GetCache("youtube-cache:" + youtubeID)
@@ -472,12 +591,12 @@ func GetYoutubeCache(youtubeID string, format string) (string, string, error) {
 	}
 
 	switch format {
-	case telego.MediaTypeVideo:
+	case "video":
 		if youtube.Video == "" {
 			return "", "", errors.New("video not found")
 		}
 		return youtube.Video, youtube.Caption, nil
-	case telego.MediaTypeAudio:
+	case "audio":
 		if youtube.Audio == "" {
 			return "", "", errors.New("audio not found")
 		}

@@ -1,15 +1,16 @@
 package tiktok
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"os"
 	"regexp"
 	"slices"
 	"time"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -19,7 +20,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return nil, []string{}
@@ -51,24 +52,24 @@ func (h *Handler) setPostID(url string) bool {
 	}
 
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   1 * time.Second,
 		MaxDelay:     5 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(url, utils.RequestParams{
+	response, err := retryCaller.Request(url, utils.RequestParams{
 		Method:    "GET",
 		Redirects: 2,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		return false
 	}
+	defer response.Body.Close()
 
-	if matches := postIDRegex.FindStringSubmatch(request.URI().String()); len(matches) > 1 {
+	if matches := postIDRegex.FindStringSubmatch(response.Request.URL.String()); len(matches) > 1 {
 		h.postID = matches[1]
 		return true
 	}
@@ -76,10 +77,10 @@ func (h *Handler) setPostID(url string) bool {
 }
 
 func (h *Handler) getTikTokData() TikTokData {
-	request, response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
+	response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method:  "OPTIONS",
 		Headers: downloader.GenericHeaders,
-        Query: map[string]string{
+		Query: map[string]string{
 			"iid":             "7318518857994389254",
 			"device_id":       "7318517321748022790",
 			"channel":         "googleplay",
@@ -91,13 +92,14 @@ func (h *Handler) getTikTokData() TikTokData {
 			"aid":             "1128",
 		},
 	})
-	defer utils.ReleaseRequestResources(request, response)
-	if err != nil || response.Body() == nil {
+
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var tikTokData TikTokData
-	err = json.Unmarshal(response.Body(), &tikTokData)
+	err = json.NewDecoder(response.Body).Decode(&tikTokData)
 	if err != nil {
 		return nil
 	}
@@ -119,20 +121,20 @@ func getCaption(tikTokData TikTokData) string {
 	return ""
 }
 
-func (h *Handler) downloadImages(tikTokData TikTokData) []telego.InputMedia {
+func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
 	type mediaResult struct {
 		index int
-		file  *os.File
+		file  []byte
 		err   error
 	}
 
 	mediaCount := len(tikTokData.AwemeList[0].ImagePostInfo.Images)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
 		go func(index int, media Image) {
-			file, err := downloader.Downloader(media.DisplayImage.URLList[1], fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", index, h.username, h.postID))
+			file, err := downloader.FetchBytesFromURL(media.DisplayImage.URLList[1])
 			if err != nil {
 				slog.Error("Failed to download thumbnail",
 					"Post Info", []string{h.username, h.postID},
@@ -152,9 +154,10 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []telego.InputMedia {
 			continue
 		}
 		if result.file != nil {
-			mediaItems[result.index] = &telego.InputMediaPhoto{
-				Type:  telego.MediaTypePhoto,
-				Media: telego.InputFile{File: result.file},
+			mediaItems[result.index] = &models.InputMediaPhoto{
+				Media: "attach://" + utils.SanitizeString(
+					fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", result.index, h.username, h.postID)),
+				MediaAttachment: bytes.NewBuffer(result.file),
 			}
 		}
 	}
@@ -162,16 +165,16 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []telego.InputMedia {
 	return mediaItems
 }
 
-func (h *Handler) downloadVideo(tikTokData TikTokData) []telego.InputMedia {
-	file, err := downloader.Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0], fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID))
+func (h *Handler) downloadVideo(tikTokData TikTokData) []models.InputMedia {
+	file, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 	if err != nil {
 		slog.Error("Failed to download video",
-			"PostID", tikTokData.AwemeList[0].AwemeID,
+			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(tikTokData.AwemeList[0].Video.Cover.URLList[0])
+	thumbnail, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.Cover.URLList[0])
 	if err != nil {
 		slog.Error("Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
@@ -179,20 +182,25 @@ func (h *Handler) downloadVideo(tikTokData TikTokData) []telego.InputMedia {
 		return nil
 	}
 
-	err = utils.ResizeThumbnail(thumbnail)
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 	}
 
-	return []telego.InputMedia{&telego.InputMediaVideo{
-		Type:              telego.MediaTypeVideo,
-		Media:             telego.InputFile{File: file},
-		Thumbnail:         &telego.InputFile{File: thumbnail},
+	return []models.InputMedia{&models.InputMediaVideo{
+		Media: "attach://" + utils.SanitizeString(
+			fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)),
+		Thumbnail: &models.InputFileUpload{
+			Filename: "attach://" + utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)),
+			Data: bytes.NewBuffer(thumbnail),
+		},
 		Width:             tikTokData.AwemeList[0].Video.PlayAddr.Width,
 		Height:            tikTokData.AwemeList[0].Video.PlayAddr.Height,
 		Duration:          tikTokData.AwemeList[0].Video.Duration / 1000,
 		SupportsStreaming: true,
+		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }

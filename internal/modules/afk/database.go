@@ -9,7 +9,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
-// Custom error type for consistency
 type AFKError struct {
 	msg string
 }

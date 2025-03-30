@@ -1,17 +1,18 @@
 package twitter
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"os"
 	"regexp"
 	"slices"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/mymmrac/telego"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -37,7 +38,7 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]telego.InputMedia, []string) {
+func Handle(text string) ([]models.InputMedia, []string) {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return nil, []string{}
@@ -72,12 +73,7 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
-}
-
-func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputMedia {
+func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []models.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
@@ -96,12 +92,12 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputM
 	}
 
 	mediaCount := len(mediasEntities)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range mediasEntities {
 		go func(index int, twitterMedia Media) {
-			media, err := h.downloadMedia(index, twitterMedia)
+			media, err := h.downloadMedia(twitterMedia)
 			results <- mediaResult{index: index, media: media, err: err}
 		}(i, media)
 	}
@@ -116,30 +112,36 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputM
 			continue
 		}
 		if result.media.File != nil {
-			var mediaItem telego.InputMedia
+			var mediaItem models.InputMedia
 			if mediasEntities[result.index].Type == "photo" {
-				mediaItem = &telego.InputMediaPhoto{
-					Type:                  telego.MediaTypePhoto,
-					Media:                 telego.InputFile{File: result.media.File},
+				mediaItem = &models.InputMediaPhoto{
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+					MediaAttachment:       bytes.NewBuffer(result.media.File),
 					ShowCaptionAboveMedia: quoted,
 				}
 			} else {
-				mediaItem = &telego.InputMediaVideo{
-					Type:                  telego.MediaTypeVideo,
-					Media:                 telego.InputFile{File: result.media.File},
+				mediaItem = &models.InputMediaVideo{
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
 					ShowCaptionAboveMedia: quoted,
 					Width:                 (mediasEntities)[result.index].OriginalInfo.Width,
 					Height:                (mediasEntities)[result.index].OriginalInfo.Height,
 					SupportsStreaming:     true,
+					MediaAttachment:       bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
-					err := utils.ResizeThumbnail(result.media.Thumbnail)
+					thumbnail, err := utils.ResizeThumbnailFromBytes(result.media.Thumbnail)
 					if err != nil {
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Error", err.Error())
 					}
-					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
+					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
+						Filename: utils.SanitizeString(
+							fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+						Data: bytes.NewBuffer(thumbnail),
+					}
 				}
 			}
 			mediaItems[result.index] = mediaItem
@@ -149,21 +151,20 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []telego.InputM
 	return mediaItems
 }
 
-func (h *Handler) downloadMedia(index int, twitterMedia Media) (*InputMedia, error) {
+func (h *Handler) downloadMedia(twitterMedia Media) (*InputMedia, error) {
 	var media InputMedia
 	var err error
-	filename := fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", index, h.username, h.postID)
 
 	if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
 		sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
 			return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
 		})
-		media.File, err = downloader.Downloader(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL, filename)
+		media.File, err = downloader.FetchBytesFromURL(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
 		if err == nil {
-			media.Thumbnail, _ = downloader.Downloader(twitterMedia.MediaURLHTTPS)
+			media.Thumbnail, _ = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
 		}
 	} else {
-		media.File, err = downloader.Downloader(twitterMedia.MediaURLHTTPS, filename)
+		media.File, err = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
 	}
 
 	if err != nil {
@@ -183,19 +184,18 @@ func (h *Handler) getGuestToken() string {
 	var res guestToken
 
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   5 * time.Second,
 		MaxDelay:     10 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(guestTokenURL, utils.RequestParams{
+	response, err := retryCaller.Request(guestTokenURL, utils.RequestParams{
 		Method:    "POST",
 		Headers:   defaultHeaders,
 		Redirects: 3,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
 	if err != nil {
 		slog.Error("Failed to get guest token",
@@ -203,8 +203,9 @@ func (h *Handler) getGuestToken() string {
 			"Error", err.Error())
 		return ""
 	}
+	defer response.Body.Close()
 
-	err = json.Unmarshal(response.Body(), &res)
+	err = json.NewDecoder(response.Body).Decode(&res)
 	if err != nil {
 		slog.Error("Failed to unmarshal guest token",
 			"Post Info", []string{h.username, h.postID},
@@ -266,14 +267,14 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 	}
 
 	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultFastHTTPCaller,
+		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
 		StartDelay:   5 * time.Second,
 		MaxDelay:     10 * time.Second,
 	}
 
-	request, response, err := retryCaller.Request(twitterAPIURL, utils.RequestParams{
+	response, err := retryCaller.Request(twitterAPIURL, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"variables":    string(jsonMarshal(variables)),
@@ -282,14 +283,14 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 		},
 		Headers: defaultHeaders,
 	})
-	defer utils.ReleaseRequestResources(request, response)
 
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var twitterAPIData *TwitterAPIData
-	err = json.Unmarshal(response.Body(), &twitterAPIData)
+	err = json.NewDecoder(response.Body).Decode(&twitterAPIData)
 	if err != nil {
 		return nil
 	}
@@ -362,17 +363,16 @@ func getCaption(twitterData *TwitterAPIData) string {
 }
 
 func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
-	request, response, err := utils.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
+	response, err := utils.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
-	if err != nil || response.Body() == nil {
+	if err != nil || response.Body == nil {
 		return nil
 	}
-	defer utils.ReleaseRequestResources(request, response)
 
 	var fxTwitterAPIData *FxTwitterAPIData
-	err = json.Unmarshal(response.Body(), &fxTwitterAPIData)
+	err = json.NewDecoder(response.Body).Decode(&fxTwitterAPIData)
 	if err != nil {
 		return nil
 	}
@@ -384,7 +384,7 @@ func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
 	return fxTwitterAPIData
 }
 
-func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]telego.InputMedia, string) {
+func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]models.InputMedia, string) {
 	type mediaResult struct {
 		index int
 		media *InputMedia
@@ -392,16 +392,16 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]telego.I
 	}
 
 	mediaCount := len(twitterData.Tweet.Media.All)
-	mediaItems := make([]telego.InputMedia, mediaCount)
+	mediaItems := make([]models.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range twitterData.Tweet.Media.All {
 		go func(index int, twitterMedia FxTwitterMedia) {
 			var media InputMedia
 			var err error
-			media.File, err = downloader.Downloader(twitterMedia.URL, fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", index, h.username, h.postID))
+			media.File, err = downloader.FetchBytesFromURL(twitterMedia.URL)
 			if err == nil && twitterMedia.Type == "video" {
-				media.Thumbnail, _ = downloader.Downloader(twitterMedia.ThumbnailURL)
+				media.Thumbnail, _ = downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
 			}
 			results <- mediaResult{index: index, media: &media, err: err}
 		}(i, media)
@@ -417,27 +417,33 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]telego.I
 			continue
 		}
 		if result.media.File != nil {
-			var mediaItem telego.InputMedia
+			var mediaItem models.InputMedia
 			if twitterData.Tweet.Media.All[result.index].Type != "video" {
-				mediaItem = &telego.InputMediaPhoto{
-					Type:  telego.MediaTypePhoto,
-					Media: telego.InputFile{File: result.media.File},
+				mediaItem = &models.InputMediaPhoto{
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+					MediaAttachment: bytes.NewBuffer(result.media.File),
 				}
 			} else {
-				mediaItem = &telego.InputMediaVideo{
-					Type:              telego.MediaTypeVideo,
-					Media:             telego.InputFile{File: result.media.File},
+				mediaItem = &models.InputMediaVideo{
+					Media: "attach://" + utils.SanitizeString(
+						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
 					Width:             twitterData.Tweet.Media.All[result.index].Width,
 					Height:            twitterData.Tweet.Media.All[result.index].Height,
 					SupportsStreaming: true,
+					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
-					mediaItem.(*telego.InputMediaVideo).Thumbnail = &telego.InputFile{File: result.media.Thumbnail}
-					err := utils.ResizeThumbnail(result.media.Thumbnail)
+					thumbnail, err := utils.ResizeThumbnailFromBytes(result.media.Thumbnail)
 					if err != nil {
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Error", err.Error())
+					}
+					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
+						Filename: utils.SanitizeString(
+							fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+						Data: bytes.NewBuffer(thumbnail),
 					}
 				}
 			}

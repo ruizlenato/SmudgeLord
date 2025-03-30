@@ -1,267 +1,100 @@
 package stickers
 
 import (
+	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
+	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
+
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/ruizlenato/smudgelord/internal/utils/helpers"
-
-	"github.com/mymmrac/telego"
-	"github.com/mymmrac/telego/telegohandler"
-	"github.com/mymmrac/telego/telegoutil"
 )
 
-func handleGetSticker(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message)
-	if message.ReplyToMessage == nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
+func sendGetStickerError(ctx context.Context, b *bot.Bot, update *models.Update, i18n func(string, ...map[string]any) string, logMsg string, err error) {
+	slog.Error(logMsg,
+		"Error", err.Error())
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      i18n("kang-error"),
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
+}
+
+func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+	if update.Message.ReplyToMessage == nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("get-sticker-no-reply-provided"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
-			},
-		})
-
-		return
-	}
-
-	if replySticker := message.ReplyToMessage.Sticker; replySticker != nil && !replySticker.IsAnimated {
-		file, err := bot.GetFile(&telego.GetFileParams{FileID: replySticker.FileID})
-		if err != nil {
-			slog.Error("Couldn't get file", "Error", err.Error())
-			return
-		}
-		fileData, err := telegoutil.DownloadFile(bot.FileDownloadURL(file.FilePath))
-		if err != nil {
-			slog.Error("Couldn't download file", "Error", err.Error())
-			return
-		}
-		var extension string
-		switch replySticker.IsVideo {
-		case true:
-			extension = ".mp4"
-		case false:
-			extension = ".png"
-		}
-
-		stickerFile, err := bytesToFile(fileData, extension)
-		if err != nil {
-			slog.Error("Couldn't create file", "Error", err.Error())
-			bot.SendMessage(&telego.SendMessageParams{
-				ChatID:    telegoutil.ID(message.Chat.ID),
-				Text:      i18n("kang-error"),
-				ParseMode: "HTML",
-				ReplyParameters: &telego.ReplyParameters{
-					MessageID: message.MessageID,
-				},
-			})
-			return
-		}
-
-		defer stickerFile.Close()
-		defer os.Remove(stickerFile.Name())
-
-		bot.SendDocument(&telego.SendDocumentParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Document:  telegoutil.File(stickerFile),
-			Caption:   fmt.Sprintf("<b>Emoji: %s</b>\n<b>ID:</b> <code>%s</code>", replySticker.Emoji, replySticker.FileID),
-			ParseMode: "HTML",
-		})
-	}
-}
-
-func handleKangSticker(bot *telego.Bot, message telego.Message) {
-	i18n := localization.Get(message)
-	if message.ReplyToMessage == nil {
-		bot.SendMessage(&telego.SendMessageParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			Text:      i18n("kang-no-reply-provided"),
-			ParseMode: "HTML",
-			ReplyParameters: &telego.ReplyParameters{
-				MessageID: message.MessageID,
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
 			},
 		})
 		return
 	}
-	progMSG, err := bot.SendMessage(&telego.SendMessageParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		Text:      i18n("kanging"),
-		ParseMode: "HTML",
-		ReplyParameters: &telego.ReplyParameters{
-			MessageID: message.MessageID,
-		},
-	})
-	if err != nil {
-		slog.Error("Couldn't send message", "Error", err.Error())
-		return
-	}
 
-	stickerAction, stickerType, fileID := getFileIDAndType(message.ReplyToMessage)
-	if stickerType == "" {
-		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			MessageID: progMSG.GetMessageID(),
-			Text:      i18n("sticker-invalid-media-type"),
-			ParseMode: "HTML",
+	if replySticker := update.Message.ReplyToMessage.Sticker; replySticker != nil && !replySticker.IsAnimated {
+		file, err := b.GetFile(ctx, &bot.GetFileParams{FileID: replySticker.FileID})
+		if err != nil {
+			sendGetStickerError(ctx, b, update, i18n, "Couldn't get file", err)
+			return
+		}
+
+		response, err := http.Get(b.FileDownloadLink(file))
+		if err != nil {
+			sendGetStickerError(ctx, b, update, i18n, "Couldn't download file", err)
+			return
+		}
+		defer response.Body.Close()
+
+		bodyBytes, err := io.ReadAll(response.Body)
+		if err != nil {
+			sendGetStickerError(ctx, b, update, i18n, "Couldn't read body", err)
+			return
+		}
+
+		_, err = b.SendDocument(ctx, &bot.SendDocumentParams{
+			ChatID: update.Message.Chat.ID,
+			Document: &models.InputFileUpload{
+				Filename: filepath.Base(b.FileDownloadLink(file)),
+				Data:     bytes.NewBuffer(bodyBytes),
+			},
+			Caption:                     fmt.Sprintf("<b>Emoji: %s</b>\n<b>ID:</b> <code>%s</code>", replySticker.Emoji, replySticker.FileID),
+			ParseMode:                   models.ParseModeHTML,
+			DisableContentTypeDetection: *bot.True(),
 		})
-		return
-	}
-
-	var (
-		emoji       []string
-		stickerFile *os.File
-	)
-
-	file, err := bot.GetFile(&telego.GetFileParams{FileID: fileID})
-	if err != nil {
-		slog.Error("Couldn't get file", "Error", err.Error())
-		return
-	}
-
-	fileData, err := telegoutil.DownloadFile(bot.FileDownloadURL(file.FilePath))
-	if err != nil {
-		slog.Error("Couldn't download file", "Error", err.Error())
-		return
-	}
-
-	switch stickerAction {
-	case "resize":
-		stickerFile, err = utils.ResizeSticker(fileData)
 		if err != nil {
-			slog.Error("Couldn't resize image", "Error", err.Error())
-			bot.EditMessageText(&telego.EditMessageTextParams{
-				ChatID:    telegoutil.ID(message.Chat.ID),
-				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("kang-error"),
-				ParseMode: "HTML",
-			})
-			return
-		}
-	case "convert":
-		bot.EditMessageText(&telego.EditMessageTextParams{
-			ChatID:    telegoutil.ID(message.Chat.ID),
-			MessageID: progMSG.GetMessageID(),
-			Text:      i18n("converting-video-to-sticker"),
-			ParseMode: "HTML",
-		})
-		stickerFile, err = convertVideo(fileData)
-		if err != nil {
-			slog.Error("Couldn't convert video", "Error", err.Error())
-			bot.EditMessageText(&telego.EditMessageTextParams{
-				ChatID:    telegoutil.ID(message.Chat.ID),
-				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("kang-error"),
-				ParseMode: "HTML",
-			})
-			return
-		}
-	default:
-		var extension string
-		switch stickerType {
-		case "video":
-			extension = ".webm"
-		case "photo":
-			extension = ".png"
-		}
-
-		stickerFile, err = bytesToFile(fileData, extension)
-		if err != nil {
-			slog.Error("Couldn't create file", "Error", err.Error())
-			bot.EditMessageText(&telego.EditMessageTextParams{
-				ChatID:    telegoutil.ID(message.Chat.ID),
-				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("kang-error"),
-				ParseMode: "HTML",
-			})
-			return
+			sendGetStickerError(ctx, b, update, i18n, "Couldn't send document", err)
 		}
 	}
-	defer os.Remove(stickerFile.Name())
-
-	stickerSetShortName, stickerSetTitle := generateStickerSetName(bot, message)
-
-	reEmoji := regexp.MustCompile(`[\x{1F000}-\x{1FAFF}]|[\x{2600}-\x{27BF}]|\x{200D}|[\x{FE00}-\x{FE0F}]|[\x{E0020}-\x{E007F}]|[\x{1F1E6}-\x{1F1FF}][\x{1F1E6}-\x{1F1FF}]`)
-	emoji = append(emoji, reEmoji.FindAllString(message.Text, -1)...)
-
-	if len(emoji) == 0 && message.ReplyToMessage.Sticker != nil {
-		emoji = append(emoji, message.ReplyToMessage.Sticker.Emoji)
-	}
-
-	if len(emoji) == 0 {
-		emoji = append(emoji, "🤔")
-	}
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		MessageID: progMSG.GetMessageID(),
-		Text:      i18n("sticker-pack-already-exists"),
-		ParseMode: "HTML",
-	})
-
-	sticker := &telego.InputSticker{
-		Sticker:   telegoutil.File(stickerFile),
-		EmojiList: emoji,
-		Format:    stickerType,
-	}
-
-	err = bot.AddStickerToSet(&telego.AddStickerToSetParams{
-		UserID:  message.From.ID,
-		Name:    stickerSetShortName,
-		Sticker: *sticker,
-	})
-	if err != nil {
-		if strings.Contains(err.Error(), "STICKERSET_INVALID") {
-			bot.EditMessageText(&telego.EditMessageTextParams{
-				ChatID:    telegoutil.ID(message.Chat.ID),
-				MessageID: progMSG.GetMessageID(),
-				Text:      i18n("sticker-new-pack"),
-				ParseMode: "HTML",
-			})
-			stickerFile.Seek(0, 0)
-			bot.CreateNewStickerSet(&telego.CreateNewStickerSetParams{
-				UserID:   message.From.ID,
-				Name:     stickerSetShortName,
-				Title:    stickerSetTitle,
-				Stickers: []telego.InputSticker{*sticker},
-			})
-		}
-	}
-	defer stickerFile.Close()
-
-	bot.EditMessageText(&telego.EditMessageTextParams{
-		ChatID:    telegoutil.ID(message.Chat.ID),
-		MessageID: progMSG.GetMessageID(),
-		Text: i18n("sticker-stoled",
-			map[string]interface{}{
-				"stickerSetName": stickerSetShortName,
-				"emoji":          strings.Join(emoji, ""),
-			}),
-		ParseMode: "HTML",
-		LinkPreviewOptions: &telego.LinkPreviewOptions{
-			IsDisabled: true,
-		},
-	})
 }
 
-func generateStickerSetName(bot *telego.Bot, message telego.Message) (string, string) {
-	botUser, err := bot.GetMe()
+func generateStickerSetName(ctx context.Context, b *bot.Bot, update *models.Update) (string, string) {
+	botInfo, err := b.GetMe(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	shortNamePrefix := "a_"
-	shortNameSuffix := fmt.Sprintf("%d_by_%s", message.From.ID, botUser.Username)
+	shortNameSuffix := fmt.Sprintf("%d_by_%s", update.Message.From.ID, botInfo.Username)
 
-	nameTitle := message.From.FirstName
-	if username := message.From.Username; username != "" {
+	nameTitle := update.Message.From.FirstName
+	if username := update.Message.From.Username; username != "" {
 		nameTitle = "@" + username
 	}
 	if len(nameTitle) > 35 {
@@ -270,14 +103,14 @@ func generateStickerSetName(bot *telego.Bot, message telego.Message) (string, st
 	stickerSetTitle := fmt.Sprintf("%s's SmudgeLord", nameTitle)
 	stickerSetShortName := shortNamePrefix + shortNameSuffix
 
-	for i := 0; checkStickerSetCount(bot, stickerSetShortName); i++ {
+	for i := 0; checkStickerSetCount(ctx, b, stickerSetShortName); i++ {
 		stickerSetShortName = fmt.Sprintf("%s%d_%s", shortNamePrefix, i, shortNameSuffix)
 	}
 	return stickerSetShortName, stickerSetTitle
 }
 
-func checkStickerSetCount(bot *telego.Bot, stickerSetShortName string) bool {
-	stickerSet, err := bot.GetStickerSet(&telego.GetStickerSetParams{
+func checkStickerSetCount(ctx context.Context, b *bot.Bot, stickerSetShortName string) bool {
+	stickerSet, err := b.GetStickerSet(ctx, &bot.GetStickerSetParams{
 		Name: stickerSetShortName,
 	})
 	if err != nil {
@@ -289,7 +122,7 @@ func checkStickerSetCount(bot *telego.Bot, stickerSetShortName string) bool {
 	return false
 }
 
-func getFileIDAndType(reply *telego.Message) (stickerAction string, stickerType string, fileID string) {
+func getFileIDAndType(reply *models.Message) (stickerAction string, stickerType string, fileID string) {
 	if document := reply.Document; document != nil {
 		fileID = document.FileID
 		switch {
@@ -333,33 +166,7 @@ func getFileIDAndType(reply *telego.Message) (stickerAction string, stickerType 
 	return stickerAction, stickerType, fileID
 }
 
-func bytesToFile(data []byte, extension string) (*os.File, error) {
-	tempFile, err := os.CreateTemp("", fmt.Sprintf("Smudge*.%s", extension))
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		if err != nil {
-			tempFile.Close()
-			os.Remove(tempFile.Name())
-		}
-	}()
-
-	_, err = tempFile.Write(data)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = tempFile.Seek(0, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	return tempFile, nil
-}
-
-func convertVideo(input []byte) (*os.File, error) {
+func convertVideo(input []byte) ([]byte, error) {
 	inputFile, err := os.CreateTemp("", "Smudgeinput_*.mp4")
 	if err != nil {
 		return nil, err
@@ -370,10 +177,8 @@ func convertVideo(input []byte) (*os.File, error) {
 		return nil, err
 	}
 
-	outputFile, err := os.CreateTemp("", "Smudge*.webm")
-	if err != nil {
-		return nil, err
-	}
+	tempOutput := inputFile.Name() + ".tmp.mp4"
+	defer os.Remove(tempOutput)
 
 	cmd := exec.Command("ffmpeg",
 		"-loglevel", "quiet", "-i", inputFile.Name(),
@@ -381,21 +186,216 @@ func convertVideo(input []byte) (*os.File, error) {
 		"-c:v", "vp9", "-b:v", "500k",
 		"-preset", "ultrafast", "-s", "512x512",
 		"-y", "-an", "-f", "webm",
-		outputFile.Name())
+		tempOutput)
 
-	err = cmd.Run()
+	if err = cmd.Run(); err != nil {
+		return nil, err
+	}
+
+	outFile, err := os.Open(tempOutput)
 	if err != nil {
 		return nil, err
 	}
-	outputFile.Seek(0, 0)
+	defer outFile.Close()
 
-	return outputFile, nil
+	convertedBytes, err := io.ReadAll(outFile)
+	if err != nil {
+		return nil, err
+	}
+	return convertedBytes, nil
 }
 
-func Load(bh *telegohandler.BotHandler, bot *telego.Bot) {
-	helpers.Store("stickers")
-	bh.HandleMessage(handleGetSticker, telegohandler.CommandEqual("getsticker"))
-	bh.HandleMessage(handleKangSticker, telegohandler.CommandEqual("kang"))
+func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+	if update.Message.ReplyToMessage == nil {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("kang-no-reply-provided"),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
+	}
+	progMSG, err := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      i18n("kanging"),
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
+	if err != nil {
+		slog.Error("Couldn't send message", "Error", err.Error())
+		return
+	}
 
-	helpers.DisableableCommands = append(helpers.DisableableCommands, "getsticker", "kang")
+	stickerAction, stickerType, fileID := getFileIDAndType(update.Message.ReplyToMessage)
+	if stickerType == "" {
+		b.EditMessageText(ctx, &bot.EditMessageTextParams{
+			ChatID:    update.Message.Chat.ID,
+			MessageID: progMSG.ID,
+			Text:      i18n("sticker-invalid-media-type"),
+			ParseMode: models.ParseModeHTML,
+		})
+		return
+	}
+
+	var (
+		emoji []string
+	)
+
+	file, err := b.GetFile(ctx, &bot.GetFileParams{FileID: fileID})
+	if err != nil {
+		sendGetStickerError(ctx, b, update, i18n, "Couldn't get file", err)
+		return
+	}
+
+	response, err := http.Get(b.FileDownloadLink(file))
+	if err != nil {
+		sendGetStickerError(ctx, b, update, i18n, "Couldn't download file", err)
+		return
+	}
+	defer response.Body.Close()
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		sendGetStickerError(ctx, b, update, i18n, "Couldn't read body", err)
+		return
+	}
+
+	switch stickerAction {
+	case "resize":
+		fmt.Println("Resizing image")
+		bodyBytes, err = utils.ResizeSticker(bodyBytes)
+		if err != nil {
+			slog.Error("Couldn't resize image",
+				"Error", err.Error())
+			b.EditMessageText(ctx, &bot.EditMessageTextParams{
+				ChatID:    update.Message.Chat.ID,
+				MessageID: progMSG.ID,
+				Text:      i18n("kang-error"),
+				ParseMode: models.ParseModeHTML,
+			})
+			return
+		}
+	case "convert":
+		b.EditMessageText(ctx, &bot.EditMessageTextParams{
+			ChatID:    update.Message.Chat.ID,
+			MessageID: progMSG.ID,
+			Text:      i18n("converting-video-to-sticker"),
+			ParseMode: models.ParseModeHTML,
+		})
+		bodyBytes, err = convertVideo(bodyBytes)
+		if err != nil {
+			slog.Error("Couldn't convert video",
+				"Error", err.Error())
+			b.EditMessageText(ctx, &bot.EditMessageTextParams{
+				ChatID:    update.Message.Chat.ID,
+				MessageID: progMSG.ID,
+				Text:      i18n("kang-error"),
+				ParseMode: models.ParseModeHTML,
+			})
+			return
+		}
+	}
+
+	stickerSetShortName, stickerSetTitle := generateStickerSetName(ctx, b, update)
+	reEmoji := regexp.MustCompile(`[\x{1F000}-\x{1FAFF}]|[\x{2600}-\x{27BF}]|\x{200D}|[\x{FE00}-\x{FE0F}]|[\x{E0020}-\x{E007F}]|[\x{1F1E6}-\x{1F1FF}][\x{1F1E6}-\x{1F1FF}]`)
+	emoji = append(emoji, reEmoji.FindAllString(update.Message.Text, -1)...)
+
+	if len(emoji) == 0 && update.Message.ReplyToMessage.Sticker != nil {
+		emoji = append(emoji, update.Message.ReplyToMessage.Sticker.Emoji)
+	}
+
+	if len(emoji) == 0 {
+		emoji = append(emoji, "🤔")
+	}
+
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.Message.Chat.ID,
+		MessageID: progMSG.ID,
+		Text:      i18n("sticker-pack-already-exists"),
+		ParseMode: models.ParseModeHTML,
+	})
+
+	stickerFilename := filepath.Base(b.FileDownloadLink(file))
+	if stickerAction == "resize" && filepath.Ext(stickerFilename) != ".webp" || filepath.Ext(stickerFilename) != ".png" {
+		stickerFilename = strings.TrimSuffix(stickerFilename, filepath.Ext(stickerFilename)) + ".webp"
+	}
+
+	stickerFile, err := b.UploadStickerFile(ctx, &bot.UploadStickerFileParams{
+		UserID: update.Message.From.ID,
+		Sticker: &models.InputFileUpload{
+			Filename: stickerFilename,
+			Data:     bytes.NewBuffer(bodyBytes),
+		},
+		StickerFormat: stickerType,
+	})
+	if err != nil {
+		sendGetStickerError(ctx, b, update, i18n, "Couldn't upload sticker file", err)
+		return
+	}
+
+	StickerSet, err := b.GetStickerSet(ctx, &bot.GetStickerSetParams{
+		Name: stickerSetShortName,
+	})
+	if StickerSet.Name == "" && StickerSet.Title == "" || err != nil && strings.Contains(err.Error(), "STICKERSET_INVALID") {
+		b.EditMessageText(ctx, &bot.EditMessageTextParams{
+			ChatID:    update.Message.Chat.ID,
+			MessageID: progMSG.ID,
+			Text:      i18n("sticker-new-pack"),
+			ParseMode: models.ParseModeHTML,
+		})
+		b.CreateNewStickerSet(ctx, &bot.CreateNewStickerSetParams{
+			UserID: update.Message.From.ID,
+			Name:   stickerSetShortName,
+			Title:  stickerSetTitle,
+			Stickers: []models.InputSticker{
+				{
+					Sticker: &models.InputFileString{
+						Data: stickerFile.FileID,
+					},
+					Format:    stickerType,
+					EmojiList: emoji,
+				},
+			},
+		})
+	} else {
+		b.AddStickerToSet(ctx, &bot.AddStickerToSetParams{
+			UserID: update.Message.From.ID,
+			Name:   stickerSetShortName,
+			Sticker: models.InputSticker{
+				Sticker: &models.InputFileString{
+					Data: stickerFile.FileID,
+				},
+				Format:    stickerType,
+				EmojiList: emoji,
+			},
+		})
+	}
+
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.Message.Chat.ID,
+		MessageID: progMSG.ID,
+		Text: i18n("sticker-stoled",
+			map[string]any{
+				"stickerSetName": stickerSetShortName,
+				"emoji":          strings.Join(emoji, ""),
+			}),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			IsDisabled: bot.True(),
+		},
+	})
+}
+
+func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeMessageText, "getsticker", bot.MatchTypeCommand, getStickerHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "kang", bot.MatchTypeCommand, kangStickerHandler)
+
+	utils.SaveHelp("stickers")
+	utils.DisableableCommands = append(utils.DisableableCommands,
+		"getsticker")
 }
