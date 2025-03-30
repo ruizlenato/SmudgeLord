@@ -395,11 +395,11 @@ func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/weather", bot.MatchTypePrefix, weatherHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/clima", bot.MatchTypePrefix, weatherHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "weather", bot.MatchTypeCommand, weatherHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "clima", bot.MatchTypeCommand, weatherHandler)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "_weather", bot.MatchTypePrefix, callbackWeather)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/translate", bot.MatchTypePrefix, translateHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/tr", bot.MatchTypePrefix, translateHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "translate", bot.MatchTypeCommand, translateHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "tr", bot.MatchTypeCommand, translateHandler)
 
 	utils.SaveHelp("misc")
 	utils.DisableableCommands = append(utils.DisableableCommands,

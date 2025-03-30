@@ -392,8 +392,8 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/getsticker", bot.MatchTypePrefix, getStickerHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/kang", bot.MatchTypePrefix, kangStickerHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "getsticker", bot.MatchTypeCommand, getStickerHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "kang", bot.MatchTypeCommand, kangStickerHandler)
 
 	utils.SaveHelp("stickers")
 	utils.DisableableCommands = append(utils.DisableableCommands,

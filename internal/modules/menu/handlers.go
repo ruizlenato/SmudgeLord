@@ -288,9 +288,9 @@ func helpMessageCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeContains, startHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "start", bot.MatchTypeCommand, startHandler)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "start", bot.MatchTypeExact, startCallback)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/privacy", bot.MatchTypeContains, privacyHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "privacy", bot.MatchTypeCommand, privacyHandler)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "privacy", bot.MatchTypeExact, privacyCallback)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "about", bot.MatchTypeExact, aboutMenuCallback)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "aboutYourData", bot.MatchTypeExact, aboutYourDataCallback)

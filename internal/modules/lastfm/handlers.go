@@ -152,17 +152,17 @@ func lastfm(ctx context.Context, b *bot.Bot, update *models.Update, methodType s
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/setuser", bot.MatchTypePrefix, setUserHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/lastfm", bot.MatchTypeExact, musicHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/lmu", bot.MatchTypeExact, musicHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/lt", bot.MatchTypeExact, musicHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/np", bot.MatchTypeExact, musicHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/album", bot.MatchTypeExact, albmHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/alb", bot.MatchTypeExact, albmHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/lalb", bot.MatchTypeExact, albmHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/artist", bot.MatchTypeExact, artistHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/art", bot.MatchTypeExact, artistHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/lart", bot.MatchTypeExact, artistHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "setuser", bot.MatchTypeCommand, setUserHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "lastfm", bot.MatchTypeCommand, musicHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "lmu", bot.MatchTypeCommand, musicHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "lt", bot.MatchTypeCommand, musicHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "np", bot.MatchTypeCommand, musicHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "album", bot.MatchTypeCommand, albmHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "alb", bot.MatchTypeCommand, albmHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "lalb", bot.MatchTypeCommand, albmHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "artist", bot.MatchTypeCommand, artistHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "art", bot.MatchTypeCommand, artistHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "lart", bot.MatchTypeCommand, artistHandler)
 
 	utils.SaveHelp("lastfm")
 	utils.DisableableCommands = append(utils.DisableableCommands,

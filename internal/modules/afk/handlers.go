@@ -193,7 +193,7 @@ func extractReason(text string) string {
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/afk", bot.MatchTypePrefix, setAFKHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "afk", bot.MatchTypeCommand, setAFKHandler)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "brb", bot.MatchTypePrefix, setAFKHandler)
 
 	utils.SaveHelp("afk")
