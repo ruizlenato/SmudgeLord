@@ -1,6 +1,7 @@
 package youtube
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -8,20 +9,19 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-telegram/bot/models"
-	"github.com/kkdai/youtube/v2"
+	"github.com/steino/youtubedl"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func getVideoFormat(video *youtube.Video, itag int) (*youtube.Format, error) {
+func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error) {
 	formats := video.Formats.Itag(itag)
 	if len(formats) == 0 {
 		return nil, errors.New("invalid itag")
@@ -29,7 +29,9 @@ func getVideoFormat(video *youtube.Video, itag int) (*youtube.Format, error) {
 	return &formats[0], nil
 }
 
-func configureYoutubeClient() youtube.Client {
+func ConfigureYoutubeClient() *youtubedl.Client {
+	var ytClient *youtubedl.Client
+
 	if config.Socks5Proxy != "" {
 		proxyURL, _ := url.Parse(config.Socks5Proxy)
 		client := &http.Client{
@@ -41,16 +43,26 @@ func configureYoutubeClient() youtube.Client {
 			},
 			Timeout: 120 * time.Second,
 		}
-		resp, err := client.Get("https://www.google.com")
-		if err == nil && resp.StatusCode == http.StatusOK {
-			return youtube.Client{HTTPClient: client}
+		ytClient, err := youtubedl.New(youtubedl.WithHTTPClient(client))
+		if err != nil {
+			slog.Error("Couldn't create youtube-dl client with proxy",
+				"Error", err.Error())
+			return nil
 		}
-		slog.Warn("Proxy connection failed, falling back to direct connection")
+		return ytClient
 	}
-	return youtube.Client{}
+
+	ytClient, err := youtubedl.New()
+	if err != nil {
+		slog.Error("Couldn't create youtube-dl client",
+			"Error", err.Error())
+		return nil
+	}
+
+	return ytClient
 }
 
-func copyStreamWithRetries(youtubeClient *youtube.Client, video *youtube.Video, format *youtube.Format, outputFile *os.File) error {
+func copyStreamWithRetries(youtubeClient *youtubedl.Client, video *youtubedl.Video, format *youtubedl.Format, outputFile *os.File) error {
 	for attempt := 1; attempt <= 5; attempt++ {
 		stream, _, err := youtubeClient.GetStream(video, format)
 		if err != nil {
@@ -74,19 +86,29 @@ func copyStreamWithRetries(youtubeClient *youtube.Client, video *youtube.Video, 
 	return errors.New("YouTube — Failed after 5 attempts")
 }
 
-func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format *youtube.Format, outputFile *os.File) error {
-	err := copyStreamWithRetries(youtubeClient, video, format, outputFile)
-	if err != nil {
-		slog.Error("Could't download video, all attempts failed",
-			"Error", err.Error())
-		return err
+func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, format *youtubedl.Format) ([]byte, error) {
+	for attempt := 1; attempt <= 5; attempt++ {
+		stream, _, err := youtubeClient.GetStream(video, format)
+		if err != nil {
+			time.Sleep(3 * time.Second)
+			continue
+		}
+		defer stream.Close()
+
+		var buf strings.Builder
+		if _, err := io.Copy(&buf, stream); err == nil {
+			return []byte(buf.String()), nil
+		}
+
+		time.Sleep(2 * time.Second)
 	}
-	return nil
+
+	return nil, errors.New("YouTube — Failed after 5 attempts")
 }
 
-func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
-	youtubeClient := configureYoutubeClient()
-	video, err := youtubeClient.GetVideo(callbackData[1])
+func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
+	youtubeClient := ConfigureYoutubeClient()
+	video, err := youtubeClient.GetVideo(callbackData[1], youtubedl.WithClient("ANDROID"))
 	if err != nil {
 		return nil, video, err
 	}
@@ -97,67 +119,35 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 		return nil, video, err
 	}
 
-	var outputFile *os.File
-	filename := fmt.Sprintf("SmudgeLord-YouTube_%s_%s", utils.SanitizeString(video.Author), utils.SanitizeString(video.Title))
-	if len(filename) > 255 {
-		filename = filename[:255]
-	}
-	switch callbackData[0] {
-	case "_aud":
-		outputFile, err = os.Create(filepath.Join(os.TempDir(), filename+".m4a"))
-	case "_vid":
-		outputFile, err = os.Create(filepath.Join(os.TempDir(), filename+".mp4"))
-	}
+	fileBytes, err := downloadStream(youtubeClient, video, format)
 	if err != nil {
-		slog.Error("Couldn't create temporary file", "Error", err.Error())
-		return nil, video, err
-	}
-
-	defer func() {
-		if err != nil {
-			outputFile.Close()
-			os.Remove(outputFile.Name())
-		}
-	}()
-
-	err = downloadStream(&youtubeClient, video, format, outputFile)
-	if err != nil {
+		slog.Error("Could't download video, all attempts failed",
+			"Error", err.Error())
 		return nil, video, err
 	}
 
 	if callbackData[0] == "_vid" {
-		err = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+		audioFormat, err := getVideoFormat(video, 140)
 		if err != nil {
+			return nil, video, err
+		}
+		audioBytes, err := downloadStream(youtubeClient, video, audioFormat)
+		if err != nil {
+			return nil, video, err
+		}
+		fileBytes, err = downloader.MergeAudioVideoBytes(fileBytes, audioBytes)
+		if err != nil {
+			slog.Error("Could't merge audio and video",
+				"Error", err.Error())
 			return nil, video, err
 		}
 	}
 
-	outputFile.Seek(0, 0)
-	return outputFile, video, nil
+	return fileBytes, video, nil
 }
 
-func downloadAndMergeAudio(youtubeClient *youtube.Client, video *youtube.Video, videoFile *os.File) error {
-	audioFormat, err := getVideoFormat(video, 140)
-	if err != nil {
-		return err
-	}
-
-	audioFile, err := os.CreateTemp("", "SmudgeYoutube_*.m4a")
-	if err != nil {
-		return err
-	}
-	defer audioFile.Close()
-
-	err = downloadStream(youtubeClient, video, audioFormat, audioFile)
-	if err != nil {
-		return err
-	}
-
-	return downloader.MergeAudioVideo(videoFile, audioFile)
-}
-
-func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
-	var bestFormat youtube.Format
+func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
+	var bestFormat youtubedl.Format
 	var maxBitrate int
 
 	isDesiredQuality := func(qualityLabel string) bool {
@@ -177,12 +167,12 @@ func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
 		}
 	}
 
-	return bestFormat
+	return &bestFormat
 }
 
 func Handle(videoURL string) ([]models.InputMedia, []string) {
-	youtubeClient := configureYoutubeClient()
-	video, err := youtubeClient.GetVideo(videoURL)
+	youtubeClient := ConfigureYoutubeClient()
+	video, err := youtubeClient.GetVideo(videoURL, youtubedl.WithClient("ANDROID"))
 	if err != nil {
 		if strings.Contains(err.Error(), "can't bypass age restriction") {
 			slog.Warn("Age restricted video",
@@ -202,28 +192,39 @@ func Handle(videoURL string) ([]models.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	outputFile, err := os.Create(filepath.Join(os.TempDir(), fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)))
+	fileBytes, err := downloadStream(youtubeClient, video, format)
 	if err != nil {
-		slog.Error("Couldn't create temporary file",
+		slog.Error("Couldn't download video stream",
 			"Error", err.Error())
 		return nil, []string{}
 	}
 
-	if err = downloadStream(&youtubeClient, video, format, outputFile); err != nil {
+	audioFormat, err := getVideoFormat(video, 140)
+	if err != nil {
+		slog.Error("Couldn't get audio format",
+			"Error", err.Error())
 		return nil, []string{}
 	}
 
-	err = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+	audioBytes, err := downloadStream(youtubeClient, video, audioFormat)
 	if err != nil {
-		slog.Error("Could't merge audio and video")
+		slog.Error("Couldn't download audio stream",
+			"Error", err.Error())
+		return nil, []string{}
+	}
+
+	fileBytes, err = downloader.MergeAudioVideoBytes(fileBytes, audioBytes)
+	if err != nil {
+		slog.Error("Couldn't merge audio and video",
+			"Error", err.Error())
 		return nil, []string{}
 	}
 
 	return []models.InputMedia{&models.InputMediaVideo{
-		Media:             "attach://" + outputFile.Name(),
+		Media:             "attach://" + utils.SanitizeString(fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)),
 		Width:             video.Formats.Itag(videoStream.ItagNo)[0].Width,
 		Height:            video.Formats.Itag(videoStream.ItagNo)[0].Height,
 		SupportsStreaming: true,
-		MediaAttachment:   outputFile,
+		MediaAttachment:   bytes.NewBuffer(fileBytes),
 	}}, []string{fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title), video.ID}
 }

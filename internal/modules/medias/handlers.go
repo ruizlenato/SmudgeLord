@@ -5,11 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log/slog"
-	"net/http"
-	"net/url"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,7 +13,7 @@ import (
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"github.com/kkdai/youtube/v2"
+	"github.com/steino/youtubedl"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
@@ -30,7 +26,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/xiaohongshu"
-	yt "github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
@@ -207,16 +203,9 @@ func youtubeDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 		return
 	}
 
-	ytClient := youtube.Client{}
-	var client *http.Client
-	if config.Socks5Proxy != "" {
-		proxyURL, _ := url.Parse(config.Socks5Proxy)
-		client = &http.Client{Transport: &http.Transport{
-			Proxy: http.ProxyURL(proxyURL),
-		}}
-		ytClient = youtube.Client{HTTPClient: client}
-	}
+	ytClient := youtube.ConfigureYoutubeClient()
 	video, err := ytClient.GetVideo(videoURL)
+
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
@@ -229,13 +218,13 @@ func youtubeDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 		return
 	}
 
-	videoStream := yt.GetBestQualityVideoStream(video.Formats.Type("video/mp4"))
+	videoStream := youtube.GetBestQualityVideoStream(video.Formats.Type("video/mp4"))
 
-	var audioStream youtube.Format
+	var audioStream youtubedl.Format
 	if len(video.Formats.Itag(140)) > 0 {
 		audioStream = video.Formats.Itag(140)[0]
 	} else {
-		audioStream = video.Formats.WithAudioChannels().Type("audio/mp4")[1]
+		audioStream = video.Formats.WithAudioChannels().Type("audio/mp4")[0]
 	}
 
 	text := i18n("youtube-video-info",
@@ -320,7 +309,7 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 		return
 	}
 
-	outputFile, video, err := yt.Downloader(callbackData)
+	fileBytes, video, err := youtube.Downloader(callbackData)
 	if err != nil {
 		b.EditMessageText(ctx, &bot.EditMessageTextParams{
 			ChatID:    message.Chat.ID,
@@ -356,20 +345,16 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
 	thumbnail, _ := downloader.FetchBytesFromURL(thumbURL)
 
-	defer func() {
-		os.Remove(outputFile.Name())
-	}()
-
 	var replied *models.Message
 	caption := fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title)
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-%s_%s", video.Author, video.Title))
 	switch callbackData[0] {
 	case "_aud":
 		replied, err = b.SendAudio(ctx, &bot.SendAudioParams{
-			ChatID: update.Message.Chat.ID,
+			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
 			Audio: &models.InputFileUpload{
-				Filename: outputFile.Name(),
-				Data:     io.Reader(outputFile),
+				Filename: filename,
+				Data:     bytes.NewBuffer(fileBytes),
 			},
 			Caption:   caption,
 			Title:     video.Title,
@@ -385,10 +370,10 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 		})
 	case "_vid":
 		replied, err = b.SendVideo(ctx, &bot.SendVideoParams{
-			ChatID: update.Message.Chat.ID,
+			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
 			Video: &models.InputFileUpload{
-				Filename: outputFile.Name(),
-				Data:     io.Reader(outputFile),
+				Filename: filename,
+				Data:     bytes.NewBuffer(fileBytes),
 			},
 			Width:  video.Formats.Itag(itag)[0].Width,
 			Height: video.Formats.Itag(itag)[0].Height,
@@ -467,7 +452,7 @@ func trySendCachedYoutubeMedia(ctx context.Context, b *bot.Bot, update *models.U
 
 func Load(b *bot.Bot) {
 	b.RegisterHandlerRegexp(bot.HandlerTypeMessageText, regexp.MustCompile(regexMedia), mediaDownloadHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/ytdl", bot.MatchTypePrefix, youtubeDownloadHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "ytdl", bot.MatchTypeCommand, youtubeDownloadHandler)
 	b.RegisterHandlerRegexp(bot.HandlerTypeCallbackQueryData, regexp.MustCompile(`^(_(vid|aud))`), youtubeDownloadCallback)
 
 	utils.SaveHelp("medias")
