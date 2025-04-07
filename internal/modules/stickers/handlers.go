@@ -21,19 +21,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func sendGetStickerError(ctx context.Context, b *bot.Bot, update *models.Update, i18n func(string, ...map[string]any) string, logMsg string, err error) {
-	slog.Error(logMsg,
-		"Error", err.Error())
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      i18n("kang-error"),
-		ParseMode: models.ParseModeHTML,
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-	})
-}
-
 func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 	if update.Message.ReplyToMessage == nil {
@@ -51,20 +38,47 @@ func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if replySticker := update.Message.ReplyToMessage.Sticker; replySticker != nil && !replySticker.IsAnimated {
 		file, err := b.GetFile(ctx, &bot.GetFileParams{FileID: replySticker.FileID})
 		if err != nil {
-			sendGetStickerError(ctx, b, update, i18n, "Couldn't get file", err)
+			slog.Error("Couldn't get file",
+				"Error", err.Error())
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				Text:      i18n("kang-error"),
+				ParseMode: models.ParseModeHTML,
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: update.Message.ID,
+				},
+			})
 			return
 		}
 
 		response, err := http.Get(b.FileDownloadLink(file))
 		if err != nil {
-			sendGetStickerError(ctx, b, update, i18n, "Couldn't download file", err)
+			slog.Error("Couldn't download file",
+				"Error", err.Error())
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				Text:      i18n("kang-error"),
+				ParseMode: models.ParseModeHTML,
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: update.Message.ID,
+				},
+			})
 			return
 		}
 		defer response.Body.Close()
 
 		bodyBytes, err := io.ReadAll(response.Body)
 		if err != nil {
-			sendGetStickerError(ctx, b, update, i18n, "Couldn't read body", err)
+			slog.Error("Couldn't read body",
+				"Error", err.Error())
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				Text:      i18n("kang-error"),
+				ParseMode: models.ParseModeHTML,
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: update.Message.ID,
+				},
+			})
 			return
 		}
 
@@ -79,9 +93,29 @@ func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 			DisableContentTypeDetection: *bot.True(),
 		})
 		if err != nil {
-			sendGetStickerError(ctx, b, update, i18n, "Couldn't send document", err)
+			slog.Error("Couldn't send document",
+				"Error", err.Error())
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				Text:      i18n("kang-error"),
+				ParseMode: models.ParseModeHTML,
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: update.Message.ID,
+				},
+			})
 		}
 	}
+}
+
+func editStickerError(ctx context.Context, b *bot.Bot, update *models.Update, progMSG *models.Message, i18n func(string, ...map[string]any) string, logMsg string, err error) {
+	slog.Error(logMsg,
+		"Error", err.Error())
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		ChatID:    update.Message.Chat.ID,
+		MessageID: progMSG.ID,
+		Text:      i18n("kang-error"),
+		ParseMode: models.ParseModeHTML,
+	})
 }
 
 func generateStickerSetName(ctx context.Context, b *bot.Bot, update *models.Update) (string, string) {
@@ -248,26 +282,25 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 
 	file, err := b.GetFile(ctx, &bot.GetFileParams{FileID: fileID})
 	if err != nil {
-		sendGetStickerError(ctx, b, update, i18n, "Couldn't get file", err)
+		editStickerError(ctx, b, update, progMSG, i18n, "Couldn't get file", err)
 		return
 	}
 
 	response, err := http.Get(b.FileDownloadLink(file))
 	if err != nil {
-		sendGetStickerError(ctx, b, update, i18n, "Couldn't download file", err)
+		editStickerError(ctx, b, update, progMSG, i18n, "Couldn't download file", err)
 		return
 	}
 	defer response.Body.Close()
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		sendGetStickerError(ctx, b, update, i18n, "Couldn't read body", err)
+		editStickerError(ctx, b, update, progMSG, i18n, "Couldn't read body", err)
 		return
 	}
 
 	switch stickerAction {
 	case "resize":
-		fmt.Println("Resizing image")
 		bodyBytes, err = utils.ResizeSticker(bodyBytes)
 		if err != nil {
 			slog.Error("Couldn't resize image",
@@ -321,8 +354,8 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 	})
 
 	stickerFilename := filepath.Base(b.FileDownloadLink(file))
-	if stickerAction == "resize" && filepath.Ext(stickerFilename) != ".webp" || filepath.Ext(stickerFilename) != ".png" {
-		stickerFilename = strings.TrimSuffix(stickerFilename, filepath.Ext(stickerFilename)) + ".webp"
+	if stickerAction == "resize" && filepath.Ext(stickerFilename) != ".webp" || stickerAction == "resize" && filepath.Ext(stickerFilename) != ".png" {
+		stickerFilename = strings.TrimSuffix(stickerFilename, filepath.Ext(stickerFilename)) + ".png"
 	}
 
 	stickerFile, err := b.UploadStickerFile(ctx, &bot.UploadStickerFileParams{
@@ -334,21 +367,30 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 		StickerFormat: stickerType,
 	})
 	if err != nil {
-		sendGetStickerError(ctx, b, update, i18n, "Couldn't upload sticker file", err)
+		editStickerError(ctx, b, update, progMSG, i18n, "Couldn't upload sticker file", err)
 		return
 	}
 
-	StickerSet, err := b.GetStickerSet(ctx, &bot.GetStickerSetParams{
-		Name: stickerSetShortName,
+	_, err = b.AddStickerToSet(ctx, &bot.AddStickerToSetParams{
+		UserID: update.Message.From.ID,
+		Name:   stickerSetShortName,
+		Sticker: models.InputSticker{
+			Sticker: &models.InputFileString{
+				Data: stickerFile.FileID,
+			},
+			Format:    stickerType,
+			EmojiList: emoji,
+		},
 	})
-	if StickerSet.Name == "" && StickerSet.Title == "" || err != nil && strings.Contains(err.Error(), "STICKERSET_INVALID") {
+	if err != nil {
 		b.EditMessageText(ctx, &bot.EditMessageTextParams{
 			ChatID:    update.Message.Chat.ID,
 			MessageID: progMSG.ID,
 			Text:      i18n("sticker-new-pack"),
 			ParseMode: models.ParseModeHTML,
 		})
-		b.CreateNewStickerSet(ctx, &bot.CreateNewStickerSetParams{
+
+		_, err = b.CreateNewStickerSet(ctx, &bot.CreateNewStickerSetParams{
 			UserID: update.Message.From.ID,
 			Name:   stickerSetShortName,
 			Title:  stickerSetTitle,
@@ -362,18 +404,10 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 				},
 			},
 		})
-	} else {
-		b.AddStickerToSet(ctx, &bot.AddStickerToSetParams{
-			UserID: update.Message.From.ID,
-			Name:   stickerSetShortName,
-			Sticker: models.InputSticker{
-				Sticker: &models.InputFileString{
-					Data: stickerFile.FileID,
-				},
-				Format:    stickerType,
-				EmojiList: emoji,
-			},
-		})
+		if err != nil {
+			editStickerError(ctx, b, update, progMSG, i18n, "Couldn't add sticker to set", err)
+			return
+		}
 	}
 
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
