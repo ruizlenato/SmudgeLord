@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -37,14 +38,18 @@ func InitializeServices(b *bot.Bot, ctx context.Context) error {
 	}
 
 	if config.WebhookURL != "" {
-		_, err := b.SetWebhook(context.Background(), &bot.SetWebhookParams{
-			URL: config.WebhookURL + "/webhook",
+		_, err := b.SetWebhook(ctx, &bot.SetWebhookParams{
+			URL: config.WebhookURL,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to set webhook: %w", err)
 		}
+
+		go func() {
+			http.ListenAndServe(":"+strconv.Itoa(config.WebhookPort), b.WebhookHandler())
+		}()
 	} else {
-		_, err := b.DeleteWebhook(context.Background(), &bot.DeleteWebhookParams{
+		_, err := b.DeleteWebhook(ctx, &bot.DeleteWebhookParams{
 			DropPendingUpdates: true,
 		})
 		if err != nil {
