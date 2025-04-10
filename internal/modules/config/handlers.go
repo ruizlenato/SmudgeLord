@@ -131,15 +131,15 @@ func handlerDisabled(message *telegram.NewMessage) error {
 }
 
 func createConfigKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
-	return telegram.Button{}.Keyboard(
-		telegram.Button{}.Row(
-			telegram.Button{}.Data(
+	return telegram.ButtonBuilder{}.Keyboard(
+		telegram.ButtonBuilder{}.Row(
+			telegram.ButtonBuilder{}.Data(
 				i18n("medias"),
 				"mediaConfig",
 			),
 		),
-		telegram.Button{}.Row(
-			telegram.Button{}.Data(
+		telegram.ButtonBuilder{}.Row(
+			telegram.ButtonBuilder{}.Data(
 				i18n("language-flag")+i18n("language-button"),
 				"languageMenu",
 			),
@@ -172,7 +172,7 @@ func callbackConfig(update *telegram.CallbackQuery) error {
 func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 
-	buttons := telegram.Button{}.Keyboard()
+	buttons := telegram.ButtonBuilder{}.Keyboard()
 	for _, lang := range database.AvailableLocales {
 		loaded, ok := localization.LangBundles[lang]
 		if !ok {
@@ -181,7 +181,7 @@ func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 		languageFlag, _, _ := loaded.FormatMessage("language-flag")
 		languageName, _, _ := loaded.FormatMessage("language-name")
 
-		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+		buttons.Rows = append(buttons.Rows, telegram.ButtonBuilder{}.Row(telegram.ButtonBuilder{}.Data(
 			languageFlag+languageName,
 			"setLang "+lang,
 		)))
@@ -217,15 +217,15 @@ func callbackLanguageSet(update *telegram.CallbackQuery) error {
 		log.Print("[start/languageSet] Error updating language: ", err)
 	}
 
-	buttons := telegram.Button{}.Keyboard()
+	buttons := telegram.ButtonBuilder{}.Keyboard()
 
 	if update.ChatType() == "user" {
-		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+		buttons.Rows = append(buttons.Rows, telegram.ButtonBuilder{}.Row(telegram.ButtonBuilder{}.Data(
 			i18n("back-button"),
 			"start",
 		)))
 	} else {
-		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+		buttons.Rows = append(buttons.Rows, telegram.ButtonBuilder{}.Row(telegram.ButtonBuilder{}.Data(
 			i18n("back-button"),
 			"config",
 		)))
@@ -278,30 +278,30 @@ func callbackMediaConfig(update *telegram.CallbackQuery) error {
 		return "☑️"
 	}
 
-	keyboard := telegram.Button{}.Keyboard(
-		telegram.Button{}.Row(
-			telegram.Button{}.Data(
+	keyboard := telegram.ButtonBuilder{}.Keyboard(
+		telegram.ButtonBuilder{}.Row(
+			telegram.ButtonBuilder{}.Data(
 				i18n("caption-button"),
 				"ieConfig mediasCaption",
 			),
-			telegram.Button{}.Data(
+			telegram.ButtonBuilder{}.Data(
 				state(mediasCaption),
 				"mediaConfig mediasCaption",
 			),
 		),
-		telegram.Button{}.Row(
-			telegram.Button{}.Data(
+		telegram.ButtonBuilder{}.Row(
+			telegram.ButtonBuilder{}.Data(
 				i18n("automatic-button"),
 				"ieConfig mediasAuto",
 			),
-			telegram.Button{}.Data(
+			telegram.ButtonBuilder{}.Data(
 				state(mediasAuto),
 				"mediaConfig mediasAuto",
 			),
 		),
 	)
 
-	keyboard.Rows = append(keyboard.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+	keyboard.Rows = append(keyboard.Rows, telegram.ButtonBuilder{}.Row(telegram.ButtonBuilder{}.Data(
 		i18n("back-button"),
 		"configMenu",
 	)))

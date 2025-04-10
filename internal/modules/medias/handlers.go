@@ -157,13 +157,13 @@ func handleYoutubeDownload(message *telegram.NewMessage) error {
 			"duration":  video.Duration.String(),
 		})
 
-	keyboard := telegram.Button{}.Keyboard(
-		telegram.Button{}.Row(
-			telegram.Button{}.Data(
+	keyboard := telegram.ButtonBuilder{}.Keyboard(
+		telegram.ButtonBuilder{}.Row(
+			telegram.ButtonBuilder{}.Data(
 				i18n("youtube-download-audio-button"),
 				fmt.Sprintf("_aud|%s|%d|%d|%d", video.ID, audioStream.ItagNo, audioStream.ContentLength, message.SenderID()),
 			),
-			telegram.Button{}.Data(
+			telegram.ButtonBuilder{}.Data(
 				i18n("youtube-download-video-button"),
 				fmt.Sprintf("_vid|%s|%d|%d|%d", video.ID, videoStream.ItagNo, videoStream.ContentLength+audioStream.ContentLength, message.SenderID()),
 			),

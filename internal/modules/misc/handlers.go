@@ -106,9 +106,9 @@ func handlerWeather(message *telegram.NewMessage) error {
 		return err
 	}
 
-	buttons := telegram.Button{}.Keyboard()
+	buttons := telegram.ButtonBuilder{}.Keyboard()
 	for i := 0; i < len(weatherSearchData.Location.Address) && i < 5; i++ {
-		buttons.Rows = append(buttons.Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+		buttons.Rows = append(buttons.Rows, telegram.ButtonBuilder{}.Row(telegram.ButtonBuilder{}.Data(
 			weatherSearchData.Location.Address[i],
 			fmt.Sprintf("_weather|%f|%f",
 				weatherSearchData.Location.Latitude[i],

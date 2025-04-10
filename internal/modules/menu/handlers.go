@@ -11,19 +11,19 @@ import (
 )
 
 func createStartKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
-	return telegram.Button{}.Keyboard(
-		telegram.Button{}.Row(
-			telegram.Button{}.Data(
+	return telegram.ButtonBuilder{}.Keyboard(
+		telegram.ButtonBuilder{}.Row(
+			telegram.ButtonBuilder{}.Data(
 				i18n("about-button"),
 				"aboutMenu",
 			),
-			telegram.Button{}.Data(
+			telegram.ButtonBuilder{}.Data(
 				fmt.Sprintf("%s %s", i18n("language-flag"), i18n("language-button")),
 				"languageMenu",
 			),
 		),
-		telegram.Button{}.Row(
-			telegram.Button{}.Data(
+		telegram.ButtonBuilder{}.Row(
+			telegram.ButtonBuilder{}.Data(
 				i18n("help-button"),
 				"helpMenu",
 			),
@@ -57,9 +57,9 @@ func handlerStart(message *telegram.NewMessage) error {
 		}),
 		telegram.SendOptions{
 			ParseMode: telegram.HTML,
-			ReplyMarkup: telegram.Button{}.Keyboard(
-				telegram.Button{}.Row(
-					telegram.Button{}.URL(
+			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+				telegram.ButtonBuilder{}.Row(
+					telegram.ButtonBuilder{}.URL(
 						i18n("start-button"),
 						fmt.Sprintf("https://t.me/%s?start=start", message.Client.Me().Username),
 					))),
@@ -84,9 +84,9 @@ func callbackStart(update *telegram.CallbackQuery) error {
 }
 
 func createPrivacyKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
-	return telegram.Button{}.Keyboard(
-		telegram.Button{}.Row(
-			telegram.Button{}.Data(
+	return telegram.ButtonBuilder{}.Keyboard(
+		telegram.ButtonBuilder{}.Row(
+			telegram.ButtonBuilder{}.Data(
 				i18n("about-your-data-button"),
 				"aboutYourData",
 			),
@@ -108,9 +108,9 @@ func handlerPrivacy(message *telegram.NewMessage) error {
 	_, err := message.Reply(i18n("privacy-policy-group"),
 		telegram.SendOptions{
 			ParseMode: telegram.HTML,
-			ReplyMarkup: telegram.Button{}.Keyboard(
-				telegram.Button{}.Row(
-					telegram.Button{}.URL(
+			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+				telegram.ButtonBuilder{}.Row(
+					telegram.ButtonBuilder{}.URL(
 						i18n("about-your-data-button"),
 						fmt.Sprintf("https://t.me/%s?start=privacy", message.Client.Me().Username),
 					),
@@ -123,7 +123,7 @@ func handlerPrivacy(message *telegram.NewMessage) error {
 func callbackPrivacy(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	keyboard := createPrivacyKeyboard(i18n)
-	keyboard.(*telegram.ReplyInlineMarkup).Rows = append(keyboard.(*telegram.ReplyInlineMarkup).Rows, telegram.Button{}.Row(telegram.Button{}.Data(
+	keyboard.(*telegram.ReplyInlineMarkup).Rows = append(keyboard.(*telegram.ReplyInlineMarkup).Rows, telegram.ButtonBuilder{}.Row(telegram.ButtonBuilder{}.Data(
 		i18n("back-button"),
 		"aboutMenu",
 	)))
@@ -139,9 +139,9 @@ func callbackAboutYourData(update *telegram.CallbackQuery) error {
 
 	_, err := update.Edit(i18n("about-your-data"), &telegram.SendOptions{
 		ParseMode: telegram.HTML,
-		ReplyMarkup: telegram.Button{}.Keyboard(
-			telegram.Button{}.Row(
-				telegram.Button{}.Data(
+		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.Data(
 					i18n("back-button"),
 					"privacy",
 				),
@@ -155,25 +155,25 @@ func callbackAboutMenu(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	_, err := update.Edit(i18n("about-message"), &telegram.SendOptions{
 		ParseMode: telegram.HTML,
-		ReplyMarkup: telegram.Button{}.Keyboard(
-			telegram.Button{}.Row(
-				telegram.Button{}.URL(
+		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.URL(
 					i18n("donation-button"),
 					"https://ko-fi.com/ruizlenato",
 				),
-				telegram.Button{}.URL(
+				telegram.ButtonBuilder{}.URL(
 					i18n("news-channel-button"),
 					"https://t.me/SmudgeLordChannel",
 				),
 			),
-			telegram.Button{}.Row(
-				telegram.Button{}.Data(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.Data(
 					i18n("privacy-policy-button"),
 					"privacy",
 				),
 			),
-			telegram.Button{}.Row(
-				telegram.Button{}.Data(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.Data(
 					i18n("back-button"),
 					"start",
 				),
@@ -197,9 +197,9 @@ func callbackHelpMessage(update *telegram.CallbackQuery) error {
 	module := strings.TrimPrefix(update.DataString(), "helpMessage ")
 	_, err := update.Edit(i18n(module+"-help"), &telegram.SendOptions{
 		ParseMode: telegram.HTML,
-		ReplyMarkup: telegram.Button{}.Keyboard(
-			telegram.Button{}.Row(
-				telegram.Button{}.Data(
+		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.Data(
 					i18n("back-button"),
 					"helpMenu",
 				),

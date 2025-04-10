@@ -31,18 +31,18 @@ func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) telegr
 	row := make([]telegram.KeyboardButton, 0, len(moduleNames))
 	for _, name := range moduleNames {
 		if len(row) == 3 {
-			keyboard = append(keyboard, telegram.Button{}.Row(row...))
+			keyboard = append(keyboard, telegram.ButtonBuilder{}.Row(row...))
 			row = nil
 		}
-		row = append(row, telegram.Button{}.Data(i18n(name), "helpMessage "+name))
+		row = append(row, telegram.ButtonBuilder{}.Data(i18n(name), "helpMessage "+name))
 	}
 
 	if len(row) > 0 {
-		keyboard = append(keyboard, telegram.Button{}.Row(row...))
+		keyboard = append(keyboard, telegram.ButtonBuilder{}.Row(row...))
 	}
 
-	backButton := telegram.Button{}.Data(i18n("back-button"), "start")
-	keyboard = append(keyboard, telegram.Button{}.Row(backButton))
+	backButton := telegram.ButtonBuilder{}.Data(i18n("back-button"), "start")
+	keyboard = append(keyboard, telegram.ButtonBuilder{}.Row(backButton))
 
-	return telegram.Button{}.Keyboard(keyboard...)
+	return telegram.ButtonBuilder{}.Keyboard(keyboard...)
 }
