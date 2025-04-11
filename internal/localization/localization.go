@@ -2,7 +2,7 @@ package localization
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,19 +52,25 @@ func processLanguageFile(path string, wg *sync.WaitGroup) {
 	langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 	data, err := os.ReadFile(path)
 	if err != nil {
-		log.Printf("localization/LoadLanguages — Error reading file %s: %v", path, err)
+		slog.Error("Couldn't read language file",
+			"Path", path,
+			"Error", err.Error())
 		return
 	}
 
 	resource, parseErrors := fluent.NewResource(string(data))
 	if len(parseErrors) > 0 {
-		log.Printf("localization/LoadLanguages — Errors parsing file %s: %v", path, parseErrors)
+		slog.Error("Couldn't parse language file",
+			"Path", path,
+			"Errors", parseErrors)
 		return
 	}
 
 	langBundle := fluent.NewBundle(language.MustParse(langCode))
 	if errs := langBundle.AddResource(resource); len(errs) > 0 {
-		log.Printf("localization/LoadLanguages — Errors adding resource for %s: %v", langCode, errs)
+		slog.Error("Couldn't add resource to language bundle",
+			"LangCode", langCode,
+			"Errors", errs)
 		return
 	}
 
@@ -116,7 +122,9 @@ func Get(update interface{}) func(string, ...map[string]interface{}) string {
 	return func(key string, args ...map[string]interface{}) string {
 		language, err := GetChatLanguage(chatID, chatType)
 		if err != nil {
-			log.Printf("Error retrieving language for chat %v: %v", chatID, err)
+			slog.Error("Couldn't get chat language",
+				"ChatID", chatID,
+				"Error", err.Error())
 			return fmt.Sprintf("Key '%s' not found.", key)
 		}
 
@@ -144,7 +152,9 @@ func Get(update interface{}) func(string, ...map[string]interface{}) string {
 		context := createFormatContext(variables)
 		message, _, err := bundle.FormatMessage(key, context)
 		if err != nil {
-			log.Printf("Error formatting message with key %s: %v", key, err)
+			slog.Error("Couldn't format message",
+				"Key", key,
+				"Error", err.Error())
 			return fmt.Sprintf("Key '%s' not found.", key)
 		}
 

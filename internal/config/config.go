@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"log/slog"
 	"os"
 	"strconv"
 
@@ -12,6 +13,7 @@ var (
 	TelegramAPIID    int32
 	TelegramAPIHash  string
 	TelegramBotToken string
+	LogLevel         slog.Leveler
 	DatabaseFile     string
 	OwnerID          int64
 	ChannelLogID     int64
@@ -40,6 +42,12 @@ func init() {
 		log.Fatalf(`You need to set the "TELEGRAM_BOT_TOKEN" in the .env file!`)
 	}
 
+	logLevelStr := os.Getenv("LOG_LEVEL")
+	if logLevelStr == "" {
+		logLevelStr = "ERROR"
+	}
+	LogLevel = parseLogLevel(logLevelStr)
+
 	DatabaseFile = os.Getenv("DATABASE_FILE")
 
 	OwnerID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
@@ -58,4 +66,21 @@ func init() {
 	if LastFMAPIKey == "" {
 		log.Fatalf(`You need to set the "LASTFM_API_KEY" in the .env file!`)
 	}
+}
+
+func parseLogLevel(level string) slog.Leveler {
+	levels := map[string]slog.Level{
+		"ERROR":   slog.LevelError,
+		"INFO":    slog.LevelInfo,
+		"DEBUG":   slog.LevelDebug,
+		"WARNING": slog.LevelWarn,
+		"WARN":    slog.LevelWarn,
+	}
+
+	l, ok := levels[level]
+	if !ok {
+		l = slog.LevelError
+	}
+
+	return l
 }

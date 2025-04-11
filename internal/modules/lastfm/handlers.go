@@ -2,6 +2,7 @@ package lastfm
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/amarnathcjd/gogram/telegram"
@@ -38,6 +39,8 @@ func handleSetUser(message *telegram.NewMessage) error {
 			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
+			slog.Error("Could not set lastfm username",
+				"error", err.Error())
 			return err
 		}
 
@@ -78,6 +81,8 @@ func handleSetUser(message *telegram.NewMessage) error {
 			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
+			slog.Error("Could not set lastfm username",
+				"error", err.Error())
 			return err
 		}
 

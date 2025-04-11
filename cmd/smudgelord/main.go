@@ -3,16 +3,22 @@ package main
 import (
 	"fmt"
 	"log"
+	"log/slog"
+	"os"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
-	"github.com/ruizlenato/smudgelord/internal/database/cache"
-	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules"
 	"github.com/ruizlenato/smudgelord/internal/telegram"
 )
 
 func main() {
+	logger := slog.New(newColorHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     config.LogLevel,
+	}))
+	slog.SetDefault(logger)
+
 	client, err := telegram.Init()
 	if err != nil {
 		log.Fatal(err)
@@ -45,24 +51,4 @@ func main() {
 	modules.Load(client)
 
 	client.Idle()
-}
-
-func initializeServices() error {
-	if err := localization.LoadLanguages(); err != nil {
-		return fmt.Errorf("load languages: %v", err)
-	}
-
-	if err := database.Open(config.DatabaseFile); err != nil {
-		return fmt.Errorf("open database: %w", err)
-	}
-
-	if err := database.CreateTables(); err != nil {
-		return fmt.Errorf("create tables: %w", err)
-	}
-
-	if err := cache.RedisClient("localhost:6379", "", 0); err != nil {
-		log.Println("\033[0;31mRedis cache is currently unavailable.\033[0m")
-	}
-
-	return nil
 }

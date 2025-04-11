@@ -1,15 +1,12 @@
 package lastfm
 
 import (
-	"log"
-
 	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
 func setLastFMUsername(userID int64, lastFMUsername string) error {
 	_, err := database.DB.Exec("UPDATE users SET lastfm_username = ? WHERE id = ?;", lastFMUsername, userID)
 	if err != nil {
-		log.Printf("Error setting LastFM username for user %d: %v", userID, err)
 		return err
 	}
 	return nil

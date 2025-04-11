@@ -3,7 +3,7 @@ package helpers
 import (
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/amarnathcjd/gogram/telegram"
@@ -95,7 +95,9 @@ func GetInputFile(message *telegram.NewMessage, file string) (telegram.InputFile
 	}
 	defer func() {
 		if err := os.Remove(file); err != nil {
-			log.Print("Failed to remove file: ", err)
+			slog.Error("Failed to remove file",
+				"File", file,
+				"Error", err.Error())
 		}
 	}()
 	return uploadedMedia, nil

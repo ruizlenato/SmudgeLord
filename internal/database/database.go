@@ -3,11 +3,11 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"slices"
 
 	"github.com/amarnathcjd/gogram/telegram"
 	_ "github.com/mattn/go-sqlite3"
+	"golang.org/x/exp/slog"
 )
 
 var DB *sql.DB
@@ -56,7 +56,8 @@ func CreateTables() error {
 func Close() {
 	if DB != nil {
 		if err := DB.Close(); err != nil {
-			log.Printf("Error closing database: %v", err)
+			slog.Error("Error closing database",
+				"error", err)
 		} else {
 			fmt.Println("[!] — Database closed")
 		}
@@ -69,11 +70,15 @@ func SaveUsers(message *telegram.NewMessage) error {
 	}
 
 	if err := saveChat(message.ChatID()); err != nil {
-		log.Printf("[database/SaveUsers] Error inserting group: %v", err)
+		slog.Error("Could not save chat",
+			"ChatID", message.ChatID(),
+			"error", err)
 	}
 
 	if err := saveUser(message); err != nil {
-		log.Printf("[database/SaveUsers] Error upserting user: %v", err)
+		slog.Error("Could not save user",
+			"UserID", message.Sender.ID,
+			"error", err)
 	}
 
 	return nil

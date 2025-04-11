@@ -234,7 +234,7 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	}
 
 	if len(downloadErrors) > segmentCount/2 {
-		return nil, fmt.Errorf("Too many segments failed to download: %d errors", len(downloadErrors))
+		return nil, fmt.Errorf("too many segments failed to download: %d errors", len(downloadErrors))
 	}
 
 	cleanSegmentFiles := make([]string, 0, len(segmentFiles))

@@ -141,7 +141,9 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 		},
 	})
 	if err != nil {
-		return 1
+slog.Error("Couldn't request get info",
+			"Error", err.Error())
+		return 0
 	}
 
 	defer response.Body.Close()
@@ -149,8 +151,9 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 	var getInfo getInfo
 	err = json.NewDecoder(response.Body).Decode(&getInfo)
 	if err != nil {
-		log.Printf("lastfm/PlayCount — Error unmarshalling get info: %v", err)
-		return 1
+s		log.Error("Couldn't unmarshal get info",
+			"Error", err.Error())
+		return 0
 	}
 
 	var userPlaycount int
