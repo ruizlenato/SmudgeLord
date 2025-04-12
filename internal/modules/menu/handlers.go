@@ -10,7 +10,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func createStartKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
+func createStartKeyboard(i18n func(string, ...map[string]any) string) telegram.ReplyMarkup {
 	return telegram.ButtonBuilder{}.Keyboard(
 		telegram.ButtonBuilder{}.Row(
 			telegram.ButtonBuilder{}.Data(
@@ -40,7 +40,7 @@ func handlerStart(message *telegram.NewMessage) error {
 
 	if message.ChatType() == telegram.EntityUser {
 		_, err := message.Reply(i18n("start-message",
-			map[string]interface{}{
+			map[string]any{
 				"userFirstName": message.Sender.FirstName,
 				"botName":       message.Client.Me().FirstName,
 			}),
@@ -52,7 +52,7 @@ func handlerStart(message *telegram.NewMessage) error {
 	}
 
 	_, err := message.Reply(i18n("start-message-group",
-		map[string]interface{}{
+		map[string]any{
 			"botName": message.Client.Me().FirstName,
 		}),
 		telegram.SendOptions{
@@ -72,7 +72,7 @@ func callbackStart(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 
 	_, err := update.Edit(i18n("start-message",
-		map[string]interface{}{
+		map[string]any{
 			"userFirstName": update.Sender.FirstName,
 			"botName":       update.Client.Me().FirstName,
 		}), &telegram.SendOptions{
@@ -83,7 +83,7 @@ func callbackStart(update *telegram.CallbackQuery) error {
 	return err
 }
 
-func createPrivacyKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
+func createPrivacyKeyboard(i18n func(string, ...map[string]any) string) telegram.ReplyMarkup {
 	return telegram.ButtonBuilder{}.Keyboard(
 		telegram.ButtonBuilder{}.Row(
 			telegram.ButtonBuilder{}.Data(

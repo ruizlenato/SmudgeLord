@@ -32,7 +32,7 @@ func handlerDisable(message *telegram.NewMessage) error {
 
 	if handlers.CheckDisabledCommand(message, command) {
 		_, err := message.Reply(i18n("command-already-disabled",
-			map[string]interface{}{
+			map[string]any{
 				"command": command,
 			}))
 		return err
@@ -45,7 +45,7 @@ func handlerDisable(message *telegram.NewMessage) error {
 		return err
 	}
 	_, err = message.Reply(i18n("command-disabled",
-		map[string]interface{}{
+		map[string]any{
 			"command": command,
 		}))
 	return err
@@ -70,7 +70,7 @@ func handlerEnable(message *telegram.NewMessage) error {
 
 	if !handlers.CheckDisabledCommand(message, command) {
 		_, err := message.Reply(i18n("command-already-enabled",
-			map[string]interface{}{
+			map[string]any{
 				"command": command,
 			}))
 		return err
@@ -83,7 +83,7 @@ func handlerEnable(message *telegram.NewMessage) error {
 		return err
 	}
 	_, err = message.Reply(i18n("command-enabled",
-		map[string]interface{}{
+		map[string]any{
 			"command": command,
 		}))
 
@@ -130,7 +130,7 @@ func handlerDisabled(message *telegram.NewMessage) error {
 	return err
 }
 
-func createConfigKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
+func createConfigKeyboard(i18n func(string, ...map[string]any) string) telegram.ReplyMarkup {
 	return telegram.ButtonBuilder{}.Keyboard(
 		telegram.ButtonBuilder{}.Row(
 			telegram.ButtonBuilder{}.Data(

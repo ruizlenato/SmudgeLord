@@ -12,7 +12,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func getErrorMessage(err error, i18n func(string, ...map[string]interface{}) string) string {
+func getErrorMessage(err error, i18n func(string, ...map[string]any) string) string {
 	switch {
 	case strings.Contains(err.Error(), "no recent tracks"):
 		return i18n("no-scrobbled-yet")
@@ -132,7 +132,7 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 	}
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
-	text += i18n("lastfm-playing", map[string]interface{}{
+	text += i18n("lastfm-playing", map[string]any{
 		"nowplaying":     fmt.Sprintf("%v", recentTracks.Nowplaying),
 		"lastFMUsername": lastFMUsername,
 		"firstName":      message.Sender.FirstName,

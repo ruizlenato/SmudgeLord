@@ -94,11 +94,11 @@ func handlerWeather(message *telegram.NewMessage) error {
 			"format":   "json",
 		},
 	})
-	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	var weatherSearchData weatherSearch
 	err = json.NewDecoder(response.Body).Decode(&weatherSearchData)
@@ -176,11 +176,11 @@ func callbackWeather(update *telegram.CallbackQuery) error {
 			"format":   "json",
 		},
 	})
-	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
 		return err
 	}
+	defer response.Body.Close()
 
 	var weatherResultData weatherResult
 	err = json.NewDecoder(response.Body).Decode(&weatherResultData)
@@ -204,7 +204,7 @@ func callbackWeather(update *telegram.CallbackQuery) error {
 
 	localName := strings.Join(localNameParts, ", ")
 
-	_, err = update.Edit(i18n("weather-details", map[string]interface{}{
+	_, err = update.Edit(i18n("weather-details", map[string]any{
 		"localname":            localName,
 		"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
 		"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,

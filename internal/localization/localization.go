@@ -101,7 +101,7 @@ type TelegramUpdate interface {
 	ChatID() int64
 }
 
-func Get(update interface{}) func(string, ...map[string]interface{}) string {
+func Get(update any) func(string, ...map[string]any) string {
 	var chatID int64
 	var chatType string
 	switch u := update.(type) {
@@ -119,7 +119,7 @@ func Get(update interface{}) func(string, ...map[string]interface{}) string {
 		}
 	}
 
-	return func(key string, args ...map[string]interface{}) string {
+	return func(key string, args ...map[string]any) string {
 		language, err := GetChatLanguage(chatID, chatType)
 		if err != nil {
 			slog.Error("Couldn't get chat language",
@@ -142,11 +142,11 @@ func Get(update interface{}) func(string, ...map[string]interface{}) string {
 			}
 		}
 
-		var variables map[string]interface{}
+		var variables map[string]any
 		if len(args) > 0 && args[0] != nil {
 			variables = args[0]
 		} else {
-			variables = make(map[string]interface{})
+			variables = make(map[string]any)
 		}
 
 		context := createFormatContext(variables)
@@ -162,11 +162,11 @@ func Get(update interface{}) func(string, ...map[string]interface{}) string {
 	}
 }
 
-func createFormatContext(args map[string]interface{}) *fluent.FormatContext {
+func createFormatContext(args map[string]any) *fluent.FormatContext {
 	return fluent.WithVariables(args)
 }
 
-func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
+func GetStringFromNestedMap(langMap map[string]any, key string) string {
 	keys := strings.Split(key, ".")
 	currentMap := langMap
 
@@ -176,7 +176,7 @@ func GetStringFromNestedMap(langMap map[string]interface{}, key string) string {
 			return "KEY_NOT_FOUND"
 		}
 
-		if nestedMap, isMap := value.(map[string]interface{}); isMap {
+		if nestedMap, isMap := value.(map[string]any); isMap {
 			currentMap = nestedMap
 		} else if strValue, isString := value.(string); isString {
 			return strValue
@@ -214,17 +214,5 @@ func HumanizeTimeSince(duration time.Duration, message *telegram.NewMessage) str
 		stringKey = "relative-duration-months"
 	}
 
-	return i18n(stringKey, map[string]interface{}{"count": timeDuration})
-}
-
-func getTranslatedTimeSince(i18n func(string, ...interface{}) string, stringKey string, timeDuration int) string {
-	singularKey := fmt.Sprintf("%s.singular", stringKey)
-	pluralKey := fmt.Sprintf("%s.plural", stringKey)
-
-	timeSince := fmt.Sprintf("%d %s", timeDuration, i18n(singularKey))
-	if timeDuration > 1 {
-		timeSince = fmt.Sprintf("%d %s", timeDuration, i18n(pluralKey))
-	}
-
-	return timeSince
+	return i18n(stringKey, map[string]any{"count": timeDuration})
 }

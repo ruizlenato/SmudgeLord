@@ -38,11 +38,11 @@ func (lfm *LastFM) GetUser(username string) error {
 			"format":  "json",
 		},
 	})
-	defer response.Body.Close()
 
 	if err != nil {
 		return fmt.Errorf("error requesting user info: %w", err)
 	}
+	defer response.Body.Close()
 
 	var userInfo userInfo
 	err = json.NewDecoder(response.Body).Decode(&userInfo)
@@ -68,11 +68,11 @@ func (lfm *LastFM) GetRecentTrackAPI(username string) (*recentTracks, error) {
 			"format":   "json",
 		},
 	})
-	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK || err != nil {
 		return nil, fmt.Errorf("failed to fetch recent tracks, status code: %d", response.StatusCode)
 	}
+	defer response.Body.Close()
 
 	var recentTracks recentTracks
 	err = json.NewDecoder(response.Body).Decode(&recentTracks)

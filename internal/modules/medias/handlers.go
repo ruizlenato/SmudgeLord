@@ -189,7 +189,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 	}
 
 	if size, _ := strconv.ParseInt(callbackData[3], 10, 64); size > int64(1572864000) {
-		_, err := update.Answer(i18n("video-exceeds-limit", map[string]interface{}{
+		_, err := update.Answer(i18n("video-exceeds-limit", map[string]any{
 			"size": int64(1572864000),
 		}), &telegram.CallbackOptions{
 			Alert: true,

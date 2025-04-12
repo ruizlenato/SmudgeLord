@@ -219,7 +219,7 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 	}
 
 	progressMessage, err = progressMessage.Edit(i18n("sticker-stoled",
-		map[string]interface{}{
+		map[string]any{
 			"stickerSetName": stickerSetShortName,
 			"emoji":          stickerEmoji,
 		}), telegram.SendOptions{

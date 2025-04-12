@@ -48,7 +48,7 @@ func checkAFK(message *telegram.NewMessage) error {
 		}
 
 		_, err := message.Reply(i18n("user-now-available",
-			map[string]interface{}{
+			map[string]any{
 				"userID":        message.Sender.ID,
 				"userFirstName": message.Sender.FirstName,
 				"duration":      humanizedDuration,
@@ -64,14 +64,14 @@ func checkAFK(message *telegram.NewMessage) error {
 		}
 
 		text := i18n("user-unavailable",
-			map[string]interface{}{
+			map[string]any{
 				"userID":        userID,
 				"userFirstName": user.FirstName,
 				"duration":      humanizedDuration,
 			})
 		if reason != "" {
 			text += "\n" + i18n("user-unavailable-reason",
-				map[string]interface{}{
+				map[string]any{
 					"reason": reason,
 				})
 		}
@@ -91,7 +91,7 @@ func handlerSetAFK(message *telegram.NewMessage) error {
 
 	i18n := localization.Get(message)
 	_, err = message.Reply(i18n("user-now-unavailable",
-		map[string]interface{}{
+		map[string]any{
 			"userFirstName": message.Sender.FirstName,
 		}),
 		telegram.SendOptions{

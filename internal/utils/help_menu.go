@@ -18,7 +18,7 @@ func SotreHelp(name string) {
 	}
 }
 
-func GetHelpKeyboard(i18n func(string, ...map[string]interface{}) string) telegram.ReplyMarkup {
+func GetHelpKeyboard(i18n func(string, ...map[string]any) string) telegram.ReplyMarkup {
 	moduleNames := make([]string, 0, len(helpModule))
 	for name := range helpModule {
 		moduleNames = append(moduleNames, name)

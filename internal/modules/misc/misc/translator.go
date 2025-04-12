@@ -42,11 +42,11 @@ func Translator(text string, message *telegram.NewMessage) (*Translation, error)
 			`Content-Type`: `application/x-www-form-urlencoded;charset=utf-8`,
 		},
 	})
-	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
 		return &translation, err
 	}
+	defer response.Body.Close()
 
 	err = json.NewDecoder(response.Body).Decode(&translation)
 	if err != nil {

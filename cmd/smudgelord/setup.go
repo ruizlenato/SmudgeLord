@@ -73,7 +73,7 @@ func (h *colorHandler) Handle(ctx context.Context, r slog.Record) error {
 	colorGray := "\033[90m"
 	colorWhiteBold := "\033[1;37m"
 
-	attrs := make(map[string]interface{})
+	attrs := make(map[string]any)
 	if h.opts.AddSource {
 		if pc := r.PC; pc != 0 {
 			fs := runtime.Frame{}

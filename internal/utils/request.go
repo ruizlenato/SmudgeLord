@@ -34,13 +34,14 @@ func (a HTTPCaller) Call(url string, params RequestParams) (*http.Response, erro
 		req.Header.Set(key, value)
 	}
 
-	if params.Method == http.MethodGet || params.Method == http.MethodOptions {
+	switch params.Method {
+	case http.MethodGet, http.MethodOptions:
 		q := req.URL.Query()
 		for key, value := range params.Query {
 			q.Add(key, value)
 		}
 		req.URL.RawQuery = q.Encode()
-	} else if params.Method == http.MethodPost {
+	case http.MethodPost:
 		body := strings.Join(params.BodyString, "&")
 		req.Body = io.NopCloser(strings.NewReader(body))
 	}
