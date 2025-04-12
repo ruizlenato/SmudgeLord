@@ -1,16 +1,15 @@
 package medias
 
 import (
+	"bytes"
 	"fmt"
-	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
 	"github.com/amarnathcjd/gogram/telegram"
-	"github.com/kkdai/youtube/v2"
+	"github.com/gabriel-vasile/mimetype"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -19,9 +18,10 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/threads"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
-	yt "github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/steino/youtubedl"
 )
 
 const (
@@ -54,7 +54,7 @@ func handlerMedias(message *telegram.NewMessage) error {
 		"instagram.com/":   instagram.Handle,
 		"tiktok.com/":      tiktok.Handle,
 		"(twitter|x).com/": twitter.Handle,
-		"youtube.com/":     yt.Handle,
+		"youtube.com/":     youtube.Handle,
 	}
 
 	for pattern, handler := range mediaHandlers {
@@ -67,7 +67,7 @@ func handlerMedias(message *telegram.NewMessage) error {
 		}
 	}
 
-	if mediaItems == nil || len(mediaItems) == 0 {
+	if len(mediaItems) == 0 {
 		return nil
 	}
 
@@ -114,7 +114,7 @@ func handleYoutubeDownload(message *telegram.NewMessage) error {
 		return err
 	}
 
-	ytClient := youtube.Client{}
+	ytClient := youtube.ConfigureYoutubeClient()
 	video, err := ytClient.GetVideo(videoURL)
 	if err != nil {
 		_, err := message.Reply(i18n("youtube-invalid-url"))
@@ -141,7 +141,7 @@ func handleYoutubeDownload(message *telegram.NewMessage) error {
 	}
 	videoStream := video.Formats.Type("video/mp4")[maxBitrateIndex]
 
-	var audioStream youtube.Format
+	var audioStream youtubedl.Format
 	if len(video.Formats.Itag(140)) > 0 {
 		audioStream = video.Formats.Itag(140)[0]
 	} else {
@@ -149,7 +149,7 @@ func handleYoutubeDownload(message *telegram.NewMessage) error {
 	}
 
 	text := i18n("youtube-video-info",
-		map[string]interface{}{
+		map[string]any{
 			"title":     video.Title,
 			"author":    video.Author,
 			"audioSize": fmt.Sprintf("%.2f", float64(audioStream.ContentLength)/(1024*1024)),
@@ -202,7 +202,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 		return err
 	}
 
-	outputFile, video, err := yt.Downloader(callbackData)
+	outputFile, video, err := youtube.Downloader(callbackData)
 	if err != nil {
 		_, err := update.Edit(i18n("youtube-error"))
 		return err
@@ -226,11 +226,6 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 		}
 	}
 
-	_, err = outputFile.Seek(0, 0)
-	if err != nil {
-		_, err := update.Edit(i18n("youtube-error"))
-		return err
-	}
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
 	thumbnail, err := downloader.Downloader(thumbURL)
 	if err != nil {
@@ -238,18 +233,16 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 		return err
 	}
 
-	defer func() {
-		if err := os.Remove(thumbnail.Name()); err != nil {
-			log.Printf("Failed to remove thumbnail: %v", err)
-		}
-		if err := os.Remove(outputFile.Name()); err != nil {
-			log.Printf("Failed to remove outputFile: %v", err)
-		}
-	}()
-
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-%s_%s", video.Author, video.Title))
+	mimeType, err := mimetype.DetectReader(bytes.NewReader(outputFile))
+	if err != nil {
+		return err
+	}
 	switch callbackData[0] {
 	case "_aud":
-		_, err := update.ReplyMedia(outputFile.Name(), &telegram.MediaOptions{
+		_, err := update.ReplyMedia(outputFile, &telegram.MediaOptions{
+			FileName: filename + mimeType.Extension(),
+			MimeType: mimeType.String(),
 			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeAudio{
 				Title:     video.Title,
 				Performer: video.Author,
@@ -262,7 +255,9 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 			return err
 		}
 	case "_vid":
-		_, err := update.ReplyMedia(outputFile.Name(), &telegram.MediaOptions{
+		_, err := update.ReplyMedia(outputFile, &telegram.MediaOptions{
+			FileName: filename + mimeType.Extension(),
+			MimeType: mimeType.String(),
 			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
 				SupportsStreaming: true,
 				W:                 int32(video.Formats.Itag(itag)[0].Width),

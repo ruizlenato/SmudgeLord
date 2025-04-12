@@ -4,23 +4,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/steino/youtubedl"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
-
-	"github.com/kkdai/youtube/v2"
 )
 
-func getVideoFormat(video *youtube.Video, itag int) (*youtube.Format, error) {
+func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error) {
 	formats := video.Formats.Itag(itag)
 	if len(formats) == 0 {
 		return nil, errors.New("invalid itag")
@@ -28,40 +27,62 @@ func getVideoFormat(video *youtube.Video, itag int) (*youtube.Format, error) {
 	return &formats[0], nil
 }
 
-func configureYoutubeClient() youtube.Client {
+func ConfigureYoutubeClient() *youtubedl.Client {
+	var ytClient *youtubedl.Client
+
 	if config.Socks5Proxy != "" {
 		proxyURL, _ := url.Parse(config.Socks5Proxy)
 		client := &http.Client{
 			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyURL),
+				Proxy:                 http.ProxyURL(proxyURL),
+				ResponseHeaderTimeout: 30 * time.Second,
+				IdleConnTimeout:       90 * time.Second,
+				TLSHandshakeTimeout:   10 * time.Second,
 			},
+			Timeout: 120 * time.Second,
 		}
-		return youtube.Client{HTTPClient: client}
+		ytClient, err := youtubedl.New(youtubedl.WithHTTPClient(client))
+		if err != nil {
+			slog.Error("Couldn't create youtube-dl client with proxy",
+				"Error", err.Error())
+			return nil
+		}
+		return ytClient
 	}
-	return youtube.Client{}
+
+	ytClient, err := youtubedl.New()
+	if err != nil {
+		slog.Error("Couldn't create youtube-dl client",
+			"Error", err.Error())
+		return nil
+	}
+
+	return ytClient
 }
 
-func downloadStream(youtubeClient *youtube.Client, video *youtube.Video, format *youtube.Format, outputFile *os.File) error {
-	stream, _, err := youtubeClient.GetStream(video, format)
-	if err != nil {
-		log.Println("YouTube/Downloader — Error getting stream: ", err)
-		return err
-	}
-	defer stream.Close()
+func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, format *youtubedl.Format) ([]byte, error) {
+	for attempt := 1; attempt <= 5; attempt++ {
+		stream, _, err := youtubeClient.GetStream(video, format)
+		if err != nil {
+			time.Sleep(3 * time.Second)
+			continue
+		}
+		defer stream.Close()
 
-	_, err = io.Copy(outputFile, stream)
-	if err != nil {
-		os.Remove(outputFile.Name())
-		log.Println("YouTube/Downloader — Error copying stream to file: ", err)
-		return err
+		var buf strings.Builder
+		if _, err := io.Copy(&buf, stream); err == nil {
+			return []byte(buf.String()), nil
+		}
+
+		time.Sleep(2 * time.Second)
 	}
 
-	return nil
+	return nil, errors.New("YouTube — Failed after 5 attempts")
 }
 
-func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
-	youtubeClient := configureYoutubeClient()
-	video, err := youtubeClient.GetVideo(callbackData[1])
+func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
+	youtubeClient := ConfigureYoutubeClient()
+	video, err := youtubeClient.GetVideo(callbackData[1], youtubedl.WithClient("ANDROID"))
 	if err != nil {
 		return nil, video, err
 	}
@@ -72,55 +93,35 @@ func Downloader(callbackData []string) (*os.File, *youtube.Video, error) {
 		return nil, video, err
 	}
 
-	var outputFile *os.File
-	switch callbackData[0] {
-	case "_aud":
-		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.m4a")
-	case "_vid":
-		outputFile, err = os.CreateTemp("", "SmudgeYoutube_*.mp4")
-	}
+	fileBytes, err := downloadStream(youtubeClient, video, format)
 	if err != nil {
-		log.Println("YouTube/Downloader — Error creating temporary file: ", err)
-		return nil, video, err
-	}
-
-	err = downloadStream(&youtubeClient, video, format, outputFile)
-	if err != nil {
+		slog.Error("Could't download video, all attempts failed",
+			"Error", err.Error())
 		return nil, video, err
 	}
 
 	if callbackData[0] == "_vid" {
-		err, outputFile = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+		audioFormat, err := getVideoFormat(video, 140)
 		if err != nil {
+			return nil, video, err
+		}
+		audioBytes, err := downloadStream(youtubeClient, video, audioFormat)
+		if err != nil {
+			return nil, video, err
+		}
+		fileBytes, err = downloader.MergeAudioVideoBytes(fileBytes, audioBytes)
+		if err != nil {
+			slog.Error("Could't merge audio and video",
+				"Error", err.Error())
 			return nil, video, err
 		}
 	}
 
-	return outputFile, video, nil
+	return fileBytes, video, nil
 }
 
-func downloadAndMergeAudio(youtubeClient *youtube.Client, video *youtube.Video, videoFile *os.File) (error, *os.File) {
-	audioFormat, err := getVideoFormat(video, 140)
-	if err != nil {
-		return err, nil
-	}
-
-	audioFile, err := os.CreateTemp("", "SmudgeYoutube_*.m4a")
-	if err != nil {
-		return err, nil
-	}
-	defer audioFile.Close()
-
-	err = downloadStream(youtubeClient, video, audioFormat, audioFile)
-	if err != nil {
-		return err, nil
-	}
-
-	return nil, downloader.MergeAudioVideo(videoFile, audioFile)
-}
-
-func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
-	var bestFormat youtube.Format
+func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
+	var bestFormat youtubedl.Format
 	var maxBitrate int
 
 	isDesiredQuality := func(qualityLabel string) bool {
@@ -140,11 +141,11 @@ func GetBestQualityVideoStream(formats []youtube.Format) youtube.Format {
 		}
 	}
 
-	return bestFormat
+	return &bestFormat
 }
 
 func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
-	youtubeClient := youtube.Client{}
+	youtubeClient := ConfigureYoutubeClient()
 	video, err := youtubeClient.GetVideo(message.Text())
 	if err != nil {
 		return nil, []string{}
@@ -157,23 +158,36 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	outputFile, err := os.CreateTemp("", "SmudgeYoutube_*.mp4")
+	fileBytes, err := downloadStream(youtubeClient, video, format)
 	if err != nil {
-		log.Println("YouTube — error creating temporary file: ", err)
+		slog.Error("Couldn't download video stream",
+			"Error", err.Error())
 		return nil, []string{}
 	}
 
-	if err = downloadStream(&youtubeClient, video, format, outputFile); err != nil {
-		return nil, []string{}
-	}
-
-	err, outputFile = downloadAndMergeAudio(&youtubeClient, video, outputFile)
+	audioFormat, err := getVideoFormat(video, 140)
 	if err != nil {
+		slog.Error("Couldn't get audio format",
+			"Error", err.Error())
 		return nil, []string{}
 	}
 
-	videoFile, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-		File: outputFile.Name(),
+	audioBytes, err := downloadStream(youtubeClient, video, audioFormat)
+	if err != nil {
+		slog.Error("Couldn't download audio stream",
+			"Error", err.Error())
+		return nil, []string{}
+	}
+
+	fileBytes, err = downloader.MergeAudioVideoBytes(fileBytes, audioBytes)
+	if err != nil {
+		slog.Error("Couldn't merge audio and video",
+			"Error", err.Error())
+		return nil, []string{}
+	}
+
+	videoFile, err := helpers.UploadDocumentBytes(message, helpers.UploadDocumentBytesParams{
+		File: fileBytes,
 		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
 			SupportsStreaming: true,
 			W:                 int32(video.Formats.Itag(videoStream.ItagNo)[0].Width),
