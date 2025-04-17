@@ -121,7 +121,7 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 	i18n := localization.Get(message)
 	lastFMUsername, err := getUserLastFMUsername(message.SenderID())
 	if err != nil {
-		_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{ParseMode: telegram.HTML})
+		_, err := message.Reply(i18n("lastfm-username-not-defined"), telegram.SendOptions{ParseMode: telegram.HTML})
 		return err
 	}
 

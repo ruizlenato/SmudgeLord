@@ -258,7 +258,7 @@ lastfm = Last.FM
 no-lastfm-username-provided =
     Você precisa especificar seu nome de usuário last.fm para que eu possa salvar meu banco de dados.
     
-    <b>Examplo:</b> <code>/setuser maozedong</code>.
+    <b>Exemplo:</b> <code>/setuser maozedong</code>.
 invalid-lastfm-username =
     <b>Usuário do last.fm inválido</b>
     Verifique se você digitou corretamente seu nome de usuário last.FM e tente novamente.
