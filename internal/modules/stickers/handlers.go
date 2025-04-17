@@ -2,7 +2,7 @@ package stickers
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"regexp"
@@ -126,7 +126,9 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 
 	defer func() {
 		if err := os.Remove(file.Name()); err != nil {
-			log.Print(err)
+			slog.Error("Could not remove file",
+				"file", file.Name(),
+				"error", err.Error())
 			return
 		}
 	}()
@@ -172,14 +174,16 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 		ForceDocument: true,
 	})
 	if err != nil {
-		progressMessage, err = progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
+		_, err = progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
 	}
 	defer func() {
 		if _, err := mediaMsg.Delete(); err != nil {
-			log.Println(err)
+			slog.Error("Could not delete media message",
+				"mediaMessageID", mediaMsg.ID,
+				"error", err.Error())
 		}
 	}()
 
@@ -211,14 +215,14 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 			}},
 		})
 		if err != nil {
-			progressMessage, err = progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
+			_, err = progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
 		}
 	}
 
-	progressMessage, err = progressMessage.Edit(i18n("sticker-stoled",
+	_, err = progressMessage.Edit(i18n("sticker-stoled",
 		map[string]any{
 			"stickerSetName": stickerSetShortName,
 			"emoji":          stickerEmoji,

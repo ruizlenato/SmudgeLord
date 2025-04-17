@@ -21,12 +21,13 @@ func main() {
 
 	client, err := telegram.Init()
 	if err != nil {
-		log.Fatal(err)
-		return
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if err := initializeServices(); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	defer func() {

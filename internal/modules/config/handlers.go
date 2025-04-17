@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/amarnathcjd/gogram/telegram"
@@ -194,7 +195,8 @@ func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 	var language string
 	err := row.Scan(&language)
 	if err != nil {
-		log.Print("[start/languageMenu] Error querying user: ", err)
+		slog.Error("Error querying user",
+			"error", err.Error())
 	}
 
 	_, err = update.Edit(i18n("language-menu"), &telegram.SendOptions{
@@ -214,7 +216,10 @@ func callbackLanguageSet(update *telegram.CallbackQuery) error {
 	}
 	_, err := database.DB.Exec(dbQuery, lang, update.ChatID)
 	if err != nil {
-		log.Print("[start/languageSet] Error updating language: ", err)
+		slog.Error("Error updating language",
+			"lang", lang,
+			"chat_id", update.ChatID,
+			"error", err.Error())
 	}
 
 	buttons := telegram.ButtonBuilder{}.Keyboard()

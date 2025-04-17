@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -141,7 +141,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 		},
 	})
 	if err != nil {
-slog.Error("Couldn't request get info",
+		slog.Error("Couldn't request get info",
 			"Error", err.Error())
 		return 0
 	}
@@ -151,7 +151,7 @@ slog.Error("Couldn't request get info",
 	var getInfo getInfo
 	err = json.NewDecoder(response.Body).Decode(&getInfo)
 	if err != nil {
-s		log.Error("Couldn't unmarshal get info",
+		slog.Error("Couldn't unmarshal get info",
 			"Error", err.Error())
 		return 0
 	}

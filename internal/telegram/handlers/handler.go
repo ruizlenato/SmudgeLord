@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 
 	"github.com/amarnathcjd/gogram/telegram"
@@ -18,7 +18,8 @@ func HandleCommand(handler func(m *telegram.NewMessage) error) func(m *telegram.
 			return nil
 		}
 		if err := database.SaveUsers(m); err != nil {
-			log.Printf("Error saving user: %v\n", err)
+			slog.Error("Could not save user",
+				"error", err.Error())
 		}
 		if err := handler(m); err != nil {
 			if strings.Contains(err.Error(), "CHAT_SEND_PLAIN_FORBIDDEN") ||
