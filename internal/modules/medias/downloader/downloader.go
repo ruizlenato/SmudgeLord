@@ -6,7 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -21,18 +22,16 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-var mimeExtensions = map[string]string{
-	"image/jpeg":      "jpg",
-	"image/png":       "png",
-	"image/gif":       "gif",
-	"image/webp":      "webp",
-	"video/mp4":       "mp4",
-	"video/webm":      "webm",
-	"video/quicktime": "mov",
-	"video/x-msvideo": "avi",
+var GenericHeaders = map[string]string{
+	`Accept`:             `*/*`,
+	`Accept-Language`:    `en`,
+	`User-Agent`:         `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36`,
+	`Sec-Ch-UA`:          `"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"`,
+	`Sec-Ch-UA-Mobile`:   `?0`,
+	`Sec-Ch-UA-Platform`: `"Windows"`,
 }
 
-func Downloader(media string) (*os.File, error) {
+func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 	retryCaller := &utils.RetryCaller{
 		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
@@ -40,64 +39,43 @@ func Downloader(media string) (*os.File, error) {
 		StartDelay:   1 * time.Second,
 		MaxDelay:     5 * time.Second,
 	}
-
 	response, err := retryCaller.Request(media, utils.RequestParams{
 		Method: "GET",
 	})
 	if err != nil || response == nil {
-		return nil, errors.New("get error")
+		return nil, nil, errors.New("get error")
 	}
-	defer response.Body.Close()
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
-		response.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
-		return downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
-	}
+	return bodyBytes, response, nil
+}
 
-	extension := func(contentType string) string {
-		extension, ok := mimeExtensions[contentType]
-		if !ok {
-			return ""
-		}
-		return extension
-	}
-
-	contentDisposition := response.Header.Get("Content-Disposition")
-	filename := "Smudge*." + extension(response.Header.Get("Content-Type"))
-
-	if contentDisposition != "" {
-		parts := strings.Split(contentDisposition, "filename=")
-		if len(parts) > 1 {
-			filename = "Smudge*" + strings.Trim(parts[1], `"`)
-		}
-	}
-
-	file, err := os.CreateTemp("", filename)
+func FetchBytesFromURL(media string) ([]byte, error) {
+	bodyBytes, response, err := fetchURLResponse(media)
 	if err != nil {
 		return nil, err
 	}
+	defer response.Body.Close()
 
-	defer func() {
+	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
+		tmpFile, err := downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
 		if err != nil {
-			file.Close()
-			os.Remove(file.Name())
+			return nil, err
 		}
-	}()
+		defer tmpFile.Close()
 
-	if _, err = file.Write(bodyBytes); err != nil {
-		return nil, err
+		newBytes, err := io.ReadAll(tmpFile)
+		if err != nil {
+			return nil, err
+		}
+		return newBytes, nil
 	}
 
-	if _, err = file.Seek(0, 0); err != nil {
-		return nil, err
-	}
-
-	return file, err
+	return bodyBytes, nil
 }
 
 type Medias struct {
@@ -181,7 +159,7 @@ func GetMediaCache(postID string) ([]telegram.InputMedia, string, error) {
 func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	playlist, _, err := m3u8.DecodeFrom(body, true)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to decode m3u8 playlist: %s", err)
+		return nil, fmt.Errorf("failed to decode m3u8 playlist: %s", err)
 	}
 
 	mediaPlaylist := playlist.(*m3u8.MediaPlaylist)
@@ -223,10 +201,12 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	}
 
 	var downloadErrors []error
-	for i := 0; i < segmentCount; i++ {
+	for range segmentCount {
 		result := <-results
 		if result.err != nil {
-			log.Printf("Error downloading segment %d: %s", result.index, result.err)
+			slog.Error("Error downloading segment",
+				"segment", result.index,
+				"error", result.err)
 			downloadErrors = append(downloadErrors, result.err)
 			continue
 		}
@@ -252,11 +232,11 @@ func downloadSegment(url string) (string, error) {
 		Method:    "GET",
 		Redirects: 5,
 	})
-	defer response.Body.Close()
 
 	if err != nil {
 		return "", err
 	}
+	defer response.Body.Close()
 
 	tmpFile, err := os.CreateTemp("", "SmudgeSegment-*.ts")
 	if err != nil {
@@ -332,40 +312,55 @@ func TruncateUTF8Caption(s, url string) string {
 	return string(truncated) + "..." + fmt.Sprintf("\n<a href='%s'>🔗 Link</a>", url)
 }
 
-func MergeAudioVideo(videoFile, audioFile *os.File) *os.File {
-	if _, err := videoFile.Seek(0, 0); err != nil {
-		log.Println("[MergeAudioVideo] Error seeking video file:", err)
-		return nil
-	}
-	if _, err := audioFile.Seek(0, 0); err != nil {
-		log.Println("[MergeAudioVideo] Error seeking audio file:", err)
-		return nil
-	}
+func MergeAudioVideo(videoData, audioData []byte) ([]byte, error) {
+	var output bytes.Buffer
 
-	defer os.Remove(videoFile.Name())
-	defer os.Remove(audioFile.Name())
+	cmd := exec.Command("ffmpeg")
 
-	outputFile, err := os.CreateTemp("", "SmudgeYoutube_*.mp4")
+	videoReader, videoWriter, err := os.Pipe()
 	if err != nil {
-		log.Println("[MergeAudioVideo] Error creating temp file:", err)
-		return nil
+		return nil, err
 	}
+	defer videoReader.Close()
 
-	ffmpegCMD := exec.Command("ffmpeg", "-y",
-		"-loglevel", "warning",
-		"-i", videoFile.Name(),
-		"-i", audioFile.Name(),
+	audioReader, audioWriter, err := os.Pipe()
+	if err != nil {
+		videoWriter.Close()
+		return nil, err
+	}
+	defer audioReader.Close()
+
+	cmd.Args = append(cmd.Args,
+		"-i", "pipe:0",
+		"-i", "pipe:3",
 		"-c", "copy",
 		"-shortest",
-		outputFile.Name(),
-	)
+		"-f", "mp4",
+		"pipe:1")
 
-	err = ffmpegCMD.Run()
-	if err != nil {
-		log.Println("[MergeAudioVideo] Error running ffmpeg:", err)
-		os.Remove(outputFile.Name())
-		return nil
+	cmd.Stdin = videoReader
+	cmd.Stdout = &output
+	cmd.ExtraFiles = []*os.File{audioReader}
+
+	if err := cmd.Start(); err != nil {
+		videoWriter.Close()
+		audioWriter.Close()
+		return nil, err
 	}
 
-	return outputFile
+	go func() {
+		defer videoWriter.Close()
+		videoWriter.Write(videoData)
+	}()
+
+	go func() {
+		defer audioWriter.Close()
+		audioWriter.Write(audioData)
+	}()
+
+	if err := cmd.Wait(); err != nil {
+		return nil, err
+	}
+
+	return output.Bytes(), nil
 }

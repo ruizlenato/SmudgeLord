@@ -17,6 +17,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
+	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
 func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error) {
@@ -109,9 +110,9 @@ func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 		if err != nil {
 			return nil, video, err
 		}
-		fileBytes, err = downloader.MergeAudioVideoBytes(fileBytes, audioBytes)
+		fileBytes, err = downloader.MergeAudioVideo(fileBytes, audioBytes)
 		if err != nil {
-			slog.Error("Could't merge audio and video",
+			slog.Error("Couldn't merge audio and video",
 				"Error", err.Error())
 			return nil, video, err
 		}
@@ -179,20 +180,19 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	fileBytes, err = downloader.MergeAudioVideoBytes(fileBytes, audioBytes)
+	fileBytes, err = downloader.MergeAudioVideo(fileBytes, audioBytes)
 	if err != nil {
 		slog.Error("Couldn't merge audio and video",
 			"Error", err.Error())
 		return nil, []string{}
 	}
 
-	videoFile, err := helpers.UploadDocumentBytes(message, helpers.UploadDocumentBytesParams{
-		File: fileBytes,
-		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-			SupportsStreaming: true,
-			W:                 int32(video.Formats.Itag(videoStream.ItagNo)[0].Width),
-			H:                 int32(video.Formats.Itag(videoStream.ItagNo)[0].Height),
-		}},
+	videoFile, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+		File:              fileBytes,
+		Filename:          utils.SanitizeString(fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)),
+		SupportsStreaming: true,
+		Width:             int32(video.Formats.Itag(videoStream.ItagNo)[0].Width),
+		Height:            int32(video.Formats.Itag(videoStream.ItagNo)[0].Height),
 	})
 	if err != nil {
 		fmt.Println("YouTube — Error uploading video: ", err)

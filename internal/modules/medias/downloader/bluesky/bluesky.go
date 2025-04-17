@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
-	"os"
+	"log/slog"
 	"path"
 	"regexp"
 	"strconv"
@@ -19,35 +18,43 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
-	username, postID := getUsernameAndPostID(message.Text())
-	if postID == "" {
+	handler := &Handler{}
+	if !handler.setUsernameAndPostID(message.Text()) {
 		return nil, []string{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
 	if err == nil {
-		return cachedMedias, []string{cachedCaption, postID}
+		return cachedMedias, []string{cachedCaption, handler.postID}
 	}
 
-	blueskyData := getBlueskyData(username, postID)
+	blueskyData := handler.getBlueskyData()
 	if blueskyData == nil {
 		return nil, []string{}
 	}
 
 	caption := getCaption(blueskyData)
 
-	return processMedia(blueskyData, message), []string{caption, postID}
+	return handler.processMedia(blueskyData, message), []string{caption, handler.postID}
 }
 
-func getUsernameAndPostID(url string) (username, postID string) {
+func (h *Handler) setUsernameAndPostID(url string) bool {
 	if matches := regexp.MustCompile(`([^/?#]+)/post/([A-Za-z0-9_-]+)`).FindStringSubmatch(url); len(matches) == 3 {
-		return matches[1], matches[2]
+		h.username = matches[1]
+		h.postID = matches[2]
+		return true
 	}
-	return username, postID
+
+	return false
 }
 
-func getBlueskyData(username, postID string) BlueskyData {
+func (h *Handler) getBlueskyData() BlueskyData {
 	response, err := utils.Request("https://public.api.bsky.app/xrpc/app.bsky.feed.getPostThread", utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
@@ -55,20 +62,22 @@ func getBlueskyData(username, postID string) BlueskyData {
 			"User-Agent":   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
 		},
 		Query: map[string]string{
-			"uri":   fmt.Sprintf("at://%s/app.bsky.feed.post/%s", username, postID),
+			"uri":   fmt.Sprintf("at://%s/app.bsky.feed.post/%s", h.username, h.postID),
 			"depth": "0",
 		},
 	})
-	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var blueskyData BlueskyData
 	err = json.NewDecoder(response.Body).Decode(&blueskyData)
 	if err != nil {
-		log.Print("Bluesky —  Error unmarshalling JSON: ", err)
+		slog.Error("Failed to decode Bluesky data",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 	}
 
 	return blueskyData
@@ -81,23 +90,18 @@ func getCaption(bluesky BlueskyData) string {
 		bluesky.Thread.Post.Record.Text)
 }
 
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
-}
-
-func processMedia(blueskyData BlueskyData, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) processMedia(blueskyData BlueskyData, message *telegram.NewMessage) []telegram.InputMedia {
 	switch {
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "image"):
-		return handleImage(blueskyData.Thread.Post.Embed.Images, message)
+		return h.handleImages(blueskyData.Thread.Post.Embed.Images, message)
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "video"):
-		return handleVideo(blueskyData, message)
+		return h.handleVideo(blueskyData, message)
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "recordWithMedia"):
 		if strings.Contains(blueskyData.Thread.Post.Embed.Media.Type, "image") {
-			return handleImage(blueskyData.Thread.Post.Embed.Media.Images, message)
+			return h.handleImages(blueskyData.Thread.Post.Embed.Media.Images, message)
 		}
 		if strings.Contains(blueskyData.Thread.Post.Embed.Media.Type, "video") {
-			return handleVideo(blueskyData, message)
+			return h.handleVideo(blueskyData, message)
 		}
 		return nil
 	}
@@ -131,7 +135,7 @@ func getPlaylistAndThumbnailURLs(blueskyData BlueskyData) (string, string) {
 	return blueskyData.Thread.Post.Embed.Media.Playlist, blueskyData.Thread.Post.Embed.Media.Thumbnail
 }
 
-func handleVideo(blueskyData BlueskyData, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleVideo(blueskyData BlueskyData, message *telegram.NewMessage) []telegram.InputMedia {
 	playlistURL, thumbnailURL := getPlaylistAndThumbnailURLs(blueskyData)
 	if playlistURL == "" || thumbnailURL == "" {
 		return nil
@@ -144,21 +148,30 @@ func handleVideo(blueskyData BlueskyData, message *telegram.NewMessage) []telegr
 	response, err := utils.Request(playlistURL, utils.RequestParams{
 		Method: "GET",
 	})
-	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
-		log.Print("Bluesky — Error requesting playlist: ", err)
+		slog.Error("Failed to request playlist",
+			"Post Info", []string{h.username, h.postID},
+			"Playlist URL", playlistURL,
+			"Error", err.Error())
 	}
+	defer response.Body.Close()
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Print("Bluesky — Error reading response body: ", err)
+		slog.Error("Failed to read playlist response body",
+			"Post Info", []string{h.username, h.postID},
+			"Playlist URL", playlistURL,
+			"Error", err.Error())
 		return nil
 	}
 
 	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(bodyBytes), true)
 	if err != nil {
-		log.Print("Bluesky — Failed to decode m3u8 playlist: ", err)
+		slog.Error("Failed to decode m3u8 playlist",
+			"Post Info", []string{h.username, h.postID},
+			"Playlist URL", playlistURL,
+			"Error", err.Error())
 	}
 
 	if listType != m3u8.MASTER {
@@ -180,43 +193,53 @@ func handleVideo(blueskyData BlueskyData, message *telegram.NewMessage) []telegr
 
 	width, height, err := parseResolution(highestBandwidthVariant.Resolution)
 	if err != nil {
-		log.Printf("Bluesky — Error parsing resolution: %s", err)
+		slog.Error("Failed to parse video resolution",
+			"Post Info", []string{h.username, h.postID},
+			"Resolution", highestBandwidthVariant.Resolution,
+			"Error", err.Error())
 		return nil
 	}
 
-	file, err := downloader.Downloader(url)
+	file, err := downloader.FetchBytesFromURL(url)
 	if err != nil {
-		log.Printf("Bluesky — Error downloading video from %s: %s", url, err)
+		slog.Error("Failed to download video",
+			"Post Info", []string{h.username, h.postID},
+			"Video URL", url,
+			"Error", err.Error())
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(thumbnailURL)
+	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 	if err != nil {
-		log.Printf("Bluesky — Error downloading thumbnail from %s: %s", thumbnailURL, err)
+		slog.Error("Failed to download thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Thumbnail URL", thumbnailURL,
+			"Error", err.Error())
 		return nil
 	}
 
-	video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-		File:  file.Name(),
-		Thumb: thumbnail.Name(),
-		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-			SupportsStreaming: true,
-			W:                 int32(width),
-			H:                 int32(height),
-		}},
+	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+		File:              file,
+		Thumb:             thumbnail,
+		SupportsStreaming: true,
+		Width:             int32(width),
+		Height:            int32(height),
 	})
 	if err != nil {
-		fmt.Println("Bluesky — Error uploading video: ", err)
+		slog.Error("Failed to upload video",
+			"Post Info", []string{h.username, h.postID},
+			"Video URL", url,
+			"Error", err.Error())
+		return nil
 	}
 
 	return []telegram.InputMedia{&video}
 }
 
-func handleImage(blueskyImages []Image, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleImages(blueskyImages []Image, message *telegram.NewMessage) []telegram.InputMedia {
 	type mediaResult struct {
 		index int
-		file  *os.File
-		err   error
+		file  []byte
 	}
 
 	mediaCount := len(blueskyImages)
@@ -225,21 +248,23 @@ func handleImage(blueskyImages []Image, message *telegram.NewMessage) []telegram
 
 	for i, media := range blueskyImages {
 		go func(index int, media Image) {
-			file, err := downloader.Downloader(media.Fullsize)
+			file, err := downloader.FetchBytesFromURL(media.Fullsize)
 			if err != nil {
-				log.Printf("BlueSky — Error downloading file from %s: %s", media.Fullsize, err)
+				slog.Error("Failed to download image",
+					"Post Info", []string{h.username, h.postID},
+					"Image URL", media.Fullsize,
+					"Error", err.Error())
 			}
-			results <- mediaResult{index, file, err}
+			results <- mediaResult{index, file}
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
-		if result.err != nil {
-			continue
-		}
 		if result.file != nil {
-			photo, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.file.Name()})
+			photo, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				File: result.file,
+			})
 			mediaItems[result.index] = &photo
 		}
 	}

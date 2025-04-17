@@ -3,11 +3,9 @@ package tiktok
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"os"
+	"log/slog"
 	"regexp"
 	"slices"
-	"sync"
 	"time"
 
 	"github.com/amarnathcjd/gogram/telegram"
@@ -16,18 +14,22 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
+type Handler struct {
+	postID string
+}
+
 func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
-	postID := getPostID(message.Text())
-	if postID == "" {
+	handler := &Handler{}
+	if !handler.setPostID(message.Text()) {
 		return nil, []string{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID)
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
 	if err == nil {
-		return cachedMedias, []string{cachedCaption, postID}
+		return cachedMedias, []string{cachedCaption, handler.postID}
 	}
 
-	tikTokData := getTikTokData(postID)
+	tikTokData := getTikTokData(handler.postID)
 	if tikTokData == nil {
 		return nil, []string{}
 	}
@@ -35,12 +37,18 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 	caption := getCaption(tikTokData)
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
-		return downloadImages(tikTokData, message), []string{caption, postID}
+		return handler.handleImages(tikTokData, message), []string{caption, handler.postID}
 	}
-	return downloadVideo(tikTokData, message), []string{caption, postID}
+	return handler.handleVideo(tikTokData, message), []string{caption, handler.postID}
 }
 
-func getPostID(url string) (postID string) {
+func (h *Handler) setPostID(url string) bool {
+	postIDRegex := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`)
+	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
+		h.postID = matches[1]
+		return true
+	}
+
 	retryCaller := &utils.RetryCaller{
 		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
@@ -53,18 +61,17 @@ func getPostID(url string) (postID string) {
 		Method:    "GET",
 		Redirects: 2,
 	})
-	defer response.Body.Close()
 
 	if err != nil {
-		return postID
+		return false
 	}
+	defer response.Body.Close()
 
-	matches := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`).FindStringSubmatch(response.Request.URL.String())
-	if len(matches) > 1 {
-		return matches[1]
+	if matches := postIDRegex.FindStringSubmatch(response.Request.URL.String()); len(matches) > 1 {
+		h.postID = matches[1]
+		return true
 	}
-
-	return postID
+	return false
 }
 
 func getTikTokData(postID string) TikTokData {
@@ -85,11 +92,11 @@ func getTikTokData(postID string) TikTokData {
 			"aid":             "1128",
 		},
 	})
-	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var tikTokData TikTokData
 	err = json.NewDecoder(response.Body).Decode(&tikTokData)
@@ -110,106 +117,82 @@ func getCaption(tikTokData TikTokData) string {
 	return ""
 }
 
-func downloadImages(tikTokData TikTokData, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessage) []telegram.InputMedia {
 	type mediaResult struct {
 		index int
-		file  *os.File
-		err   error
+		file  []byte
 	}
 
 	mediaCount := len(tikTokData.AwemeList[0].ImagePostInfo.Images)
-	mediaChan := make(chan mediaResult, mediaCount)
-	medias := make([]*os.File, mediaCount)
 	mediaItems := make([]telegram.InputMedia, mediaCount)
+	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
 		go func(index int, media Image) {
-			file, err := downloader.Downloader(media.DisplayImage.URLList[1])
+			file, err := downloader.FetchBytesFromURL(media.DisplayImage.URLList[1])
 			if err != nil {
-				log.Print("[tiktok/TikTok] Error downloading photo: ", err)
+				slog.Error("Failed to download image",
+					"Post ID", []string{h.postID},
+					"Image URL", media.DisplayImage.URLList[1],
+					"Error", err.Error())
 			}
-			mediaChan <- mediaResult{index, file, err}
+			results <- mediaResult{index, file}
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
-		result := <-mediaChan
-		medias[result.index] = result.file
-	}
+	for range mediaCount {
+		result := <-results
 
-	uploadChan := make(chan struct {
-		index int
-		media telegram.InputMedia
-		err   error
-	}, mediaCount)
-
-	var (
-		seqnoMutex sync.Mutex
-		seqno      int
-	)
-
-	for i, file := range medias {
-		go func(index int, file *os.File) {
-			seqnoMutex.Lock()
-			defer seqnoMutex.Unlock()
-			seqno++
-
-			if file != nil {
-				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
-					File: file.Name(),
-				})
-				if err != nil {
-					log.Print("[tiktok/TikTok] Error uploading photo: ", err)
-				}
-				uploadChan <- struct {
-					index int
-					media telegram.InputMedia
-					err   error
-				}{index, &photo, err}
-			} else {
-				uploadChan <- struct {
-					index int
-					media telegram.InputMedia
-					err   error
-				}{index, nil, nil}
+		if result.file != nil {
+			photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				File: result.file,
+			})
+			if err != nil {
+				slog.Error("Failed to upload image",
+					"Post ID", []string{h.postID},
+					"Image URL", tikTokData.AwemeList[0].ImagePostInfo.Images[result.index].DisplayImage.URLList[1],
+					"Error", err.Error())
+				continue
 			}
-		}(i, file)
-	}
-
-	for i := 0; i < mediaCount; i++ {
-		result := <-uploadChan
-		if result.err == nil {
-			mediaItems[result.index] = result.media
+			mediaItems[result.index] = &photo
 		}
 	}
 
 	return mediaItems
 }
 
-func downloadVideo(tikTokData TikTokData, message *telegram.NewMessage) []telegram.InputMedia {
-	file, err := downloader.Downloader(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
+func (h *Handler) handleVideo(tikTokData TikTokData, message *telegram.NewMessage) []telegram.InputMedia {
+	file, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 	if err != nil {
-		log.Print("[tiktok/TikTok] Error downloading video:", err)
+		slog.Error("Failed to download video",
+			"Post ID", []string{h.postID},
+			"Video URL", tikTokData.AwemeList[0].Video.PlayAddr.URLList[0],
+			"Error", err.Error())
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(tikTokData.AwemeList[0].Video.Cover.URLList[0])
+	thumbnail, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.Cover.URLList[0])
 	if err != nil {
-		log.Print("[tiktok/TikTok] Error downloading thumbnail: ", err)
+		slog.Error("Failed to download thumbnail",
+			"Post ID", []string{h.postID},
+			"Thumbnail URL", tikTokData.AwemeList[0].Video.Cover.URLList[0],
+			"Error", err.Error())
 		return nil
 	}
 
-	video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-		File:  file.Name(),
-		Thumb: thumbnail.Name(),
-		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-			SupportsStreaming: true,
-			W:                 int32(tikTokData.AwemeList[0].Video.PlayAddr.Width),
-			H:                 int32(tikTokData.AwemeList[0].Video.PlayAddr.Height),
-		}},
+	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+		File:              file,
+		Thumb:             thumbnail,
+		SupportsStreaming: true,
+		Width:             int32(tikTokData.AwemeList[0].Video.PlayAddr.Width),
+		Height:            int32(tikTokData.AwemeList[0].Video.PlayAddr.Height),
 	})
 	if err != nil {
-		log.Print("[instagram/Instagram] Error uploading video: ", err)
+		slog.Error("Failed to upload video",
+			"Post ID", []string{h.postID},
+			"Video URL", tikTokData.AwemeList[0].Video.PlayAddr.URLList[0],
+			"Thumbnail URL", tikTokData.AwemeList[0].Video.Cover.URLList[0],
+			"Error", err.Error())
 		return nil
 	}
 

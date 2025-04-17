@@ -4,225 +4,223 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
-	"os"
+	"log/slog"
 	"regexp"
 	"slices"
 	"sort"
 	"strings"
-	"sync"
+	"time"
 
 	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+)
+
+const (
+	twitterAPIURL   = "https://twitter.com/i/api/graphql/2ICDjqPd81tulZcYrtpTuQ/TweetResultByRestId"
+	guestTokenURL   = "https://api.twitter.com/1.1/guest/activate.json"
+	fxTwitterAPIURL = "https://api.fxtwitter.com/status/"
 )
 
 var headers = map[string]string{
 	"Authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
 	"x-twitter-client-language": "en",
 	"x-twitter-active-user":     "yes",
-	"Accept-language":           "en",
-	"User-Agent":                "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
 	"content-type":              "application/json",
 }
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
-	postID, err := getPostID(message.Text())
-	if err != nil {
-		log.Printf("Error getting post ID: %v", err)
+	handler := &Handler{}
+	if !handler.setPostID(message.Text()) {
 		return nil, []string{}
 	}
 
-	if cachedMedias, cachedCaption, err := downloader.GetMediaCache(postID); err == nil {
-		return cachedMedias, []string{cachedCaption, postID}
+	if cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID); err == nil {
+		return cachedMedias, []string{cachedCaption, handler.postID}
 	}
 
-	twitterData, err := getTwitterData(postID)
+	twitterData, err := handler.getTwitterData()
 	if err != nil || twitterData == nil ||
 		(*twitterData).Data.TweetResult == nil || (*twitterData).Data.TweetResult.Legacy == nil ||
 		(*twitterData).Data.TweetResult.Result.Reason != nil && *(*twitterData).Data.TweetResult.Result.Reason == "NsfwLoggedOut" {
-		fxTwitterData := getFxTwitterData(postID)
+		fxTwitterData := handler.getFxTwitterData()
 		if fxTwitterData == nil {
 			return nil, []string{}
 		}
-		medias, caption := processFxTwitterAPI(fxTwitterData, message)
-		return medias, []string{caption, postID}
+		medias, caption := handler.processFxTwitterAPI(fxTwitterData, message)
+		return medias, []string{caption, handler.postID}
 	}
 
-	medias, caption := processMedia(twitterData, message)
-	return medias, []string{caption, postID}
+	medias, caption := handler.processTwitterAPI(twitterData, message)
+	return medias, []string{caption, handler.postID}
 }
 
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
+func (h *Handler) setPostID(url string) bool {
+	if matches := regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`).FindStringSubmatch(url); len(matches) == 2 {
+		h.postID = matches[1]
+		return true
+	}
+
+	return false
 }
 
-func processMedia(twitterData *TwitterAPIData, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
 	type mediaResult struct {
 		index int
 		media *InputMedia
-		err   error
 	}
 
 	mediaCount := len((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)
 	mediaChan := make(chan mediaResult, mediaCount)
-	medias := make([]*InputMedia, mediaCount)
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 
 	for i, media := range (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media {
 		go func(index int, twitterMedia Media) {
-			media, err := downloadMedia(twitterMedia)
-			mediaChan <- mediaResult{index, media, err}
+			var media InputMedia
+			var err error
+
+			if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
+				sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
+					return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
+				})
+				media.File, err = downloader.FetchBytesFromURL(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
+				if err != nil {
+					slog.Error("Failed to download video",
+						"Post Info", []string{h.username, h.postID},
+						"Media URL", twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL,
+						"Error", err.Error())
+					mediaChan <- mediaResult{index, nil}
+					return
+				}
+				media.Thumbnail, err = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
+				if err != nil {
+					slog.Error("Failed to download thumbnail",
+						"Post Info", []string{h.username, h.postID},
+						"Thumbnail URL", twitterMedia.MediaURLHTTPS,
+						"Error", err.Error())
+					mediaChan <- mediaResult{index, nil}
+					return
+				}
+			} else {
+				media.File, err = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
+				if err != nil {
+					slog.Error("Failed to download image",
+						"Post Info", []string{h.username, h.postID},
+						"Image URL", twitterMedia.MediaURLHTTPS,
+						"Error", err.Error())
+					return
+				}
+			}
+
+			mediaChan <- mediaResult{index, &media}
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-mediaChan
-		if result.err != nil {
-			log.Print(result.err)
-			continue
+		if result.media.File != nil {
+			twitterMedia := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media[result.index]
+			if twitterMedia.Type == "photo" {
+				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.media.File})
+				if err != nil {
+					slog.Error("Failed to upload photo",
+						"Post Info", []string{h.username, h.postID},
+						"Photo URL", twitterMedia.MediaURLHTTPS,
+						"Error", err.Error())
+					continue
+				}
+
+				mediaItems[result.index] = &photo
+			} else {
+				video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+					File:              result.media.File,
+					Thumb:             result.media.Thumbnail,
+					SupportsStreaming: true,
+					Width:             int32(twitterMedia.OriginalInfo.Width),
+					Height:            int32(twitterMedia.OriginalInfo.Height),
+				})
+				if err != nil {
+					slog.Error("Failed to upload video",
+						"Post Info", []string{h.username, h.postID},
+						"Video URL", twitterMedia.MediaURLHTTPS,
+						"Error", err.Error())
+					continue
+				}
+
+				mediaItems[result.index] = &video
+			}
 		}
-		medias[result.index] = result.media
-	}
-
-	uploadChan := make(chan struct {
-		index int
-		media telegram.InputMedia
-		err   error
-	}, mediaCount)
-
-	var (
-		seqnoMutex sync.Mutex
-		seqno      int
-	)
-
-	for i, media := range medias {
-		if media == nil || media.File == nil {
-			continue
-		}
-
-		go func(index int, media *InputMedia) {
-			seqnoMutex.Lock()
-			defer seqnoMutex.Unlock()
-			seqno++
-
-			uploadedMedia, err := uploadMedia(twitterData, message, media, index)
-			uploadChan <- struct {
-				index int
-				media telegram.InputMedia
-				err   error
-			}{index, uploadedMedia, err}
-		}(i, media)
-	}
-
-	for i := 0; i < mediaCount; i++ {
-		result := <-uploadChan
-		if result.err != nil {
-			log.Print(result.err)
-			continue
-		}
-		mediaItems[result.index] = result.media
 	}
 
 	caption := getCaption(twitterData)
 	return mediaItems, caption
 }
 
-func downloadMedia(twitterMedia Media) (*InputMedia, error) {
-	var media InputMedia
-	var err error
-
-	if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
-		sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
-			return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
-		})
-		media.File, err = downloader.Downloader(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
-		if err == nil {
-			media.Thumbnail, _ = downloader.Downloader(twitterMedia.MediaURLHTTPS)
-		}
-	} else {
-		media.File, err = downloader.Downloader(twitterMedia.MediaURLHTTPS)
+func (h *Handler) getGuestToken() string {
+	if token, err := cache.GetCache("twitter_guest_token"); token != "" && err == nil {
+		return token
 	}
 
-	if err != nil {
-		return nil, err
-	}
-	return &media, nil
-}
-
-func uploadMedia(twitterData *TwitterAPIData, message *telegram.NewMessage, media *InputMedia, index int) (telegram.InputMedia, error) {
-	twitterMedia := (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media[index]
-	if twitterMedia.Type == "photo" {
-		photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: media.File.Name()})
-		if err != nil {
-			return nil, err
-		}
-		return &photo, nil
-	}
-
-	video, err := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-		File:  media.File.Name(),
-		Thumb: media.Thumbnail.Name(),
-		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-			SupportsStreaming: true,
-			W:                 int32(twitterMedia.OriginalInfo.Width),
-			H:                 int32(twitterMedia.OriginalInfo.Height),
-		}},
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &video, nil
-}
-
-func getPostID(url string) (string, error) {
-	if matches := regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`).FindStringSubmatch(url); len(matches) == 2 {
-		return matches[1], nil
-	} else {
-		return "", errors.New("could not find post ID")
-	}
-}
-
-func getGuestToken() string {
 	type guestToken struct {
 		GuestToken string `json:"guest_token"`
 	}
+	var res guestToken
 
-	response, err := utils.Request("https://api.twitter.com/1.1/guest/activate.json", utils.RequestParams{
-		Method:  "POST",
-		Headers: headers,
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   5 * time.Second,
+		MaxDelay:     10 * time.Second,
+	}
+
+	response, err := retryCaller.Request(guestTokenURL, utils.RequestParams{
+		Method:    "POST",
+		Headers:   headers,
+		Redirects: 3,
 	})
+
+	if err != nil {
+		slog.Error("Failed to get guest token",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
+		return ""
+	}
 	defer response.Body.Close()
 
-	if err != nil || response.Body == nil {
+	err = json.NewDecoder(response.Body).Decode(&res)
+	if err != nil {
+		slog.Error("Failed to unmarshal guest token",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 		return ""
 	}
 
-	var res guestToken
-	err = json.NewDecoder(response.Body).Decode(&res)
-	if err != nil {
-		log.Print("Error unmarshalling guest token: ", err)
-	}
+	cache.SetCache("twitter_guest_token", res.GuestToken, 3*time.Hour)
 	return res.GuestToken
 }
 
-func getTwitterData(postID string) (*TwitterAPIData, error) {
-	guestToken := getGuestToken()
+func (h *Handler) getTwitterData() (*TwitterAPIData, error) {
+	guestToken := h.getGuestToken()
+
 	headers["x-guest-token"] = guestToken
 	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
-	variables := map[string]interface{}{
-		"tweetId":                                postID,
-		"referrer":                               "messages",
-		"includePromotedContent":                 true,
-		"withCommunity":                          true,
-		"withQuickPromoteEligibilityTweetFields": true,
-		"withBirdwatchNotes":                     true,
-		"withVoice":                              true,
-		"withV2Timeline":                         true,
+
+	variables := map[string]any{
+		"tweetId":                h.postID,
+		"includePromotedContent": false,
+		"withCommunity":          false,
+		"withVoice":              false,
 	}
-	features := map[string]interface{}{
+
+	features := map[string]any{
 		"creator_subscriptions_tweet_preview_api_enabled":                         true,
 		"c9s_tweet_anatomy_moderator_badge_enabled":                               true,
 		"tweetypie_unmention_optimization_enabled":                                true,
@@ -246,24 +244,37 @@ func getTwitterData(postID string) (*TwitterAPIData, error) {
 		"responsive_web_enhance_cards_enabled":                                    false,
 	}
 
-	jsonMarshal := func(data interface{}) []byte {
+	fieldToggles := map[string]any{
+		"withArticleRichContentState": true,
+	}
+
+	jsonMarshal := func(data any) []byte {
 		result, _ := json.Marshal(data)
 		return result
 	}
 
-	response, err := utils.Request("https://twitter.com/i/api/graphql/5GOHgZe-8U2j5sVHQzEm9A/TweetResultByRestId", utils.RequestParams{
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   5 * time.Second,
+		MaxDelay:     10 * time.Second,
+	}
+
+	response, err := retryCaller.Request(twitterAPIURL, utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
-			"variables": string(jsonMarshal(variables)),
-			"features":  string(jsonMarshal(features)),
+			"variables":    string(jsonMarshal(variables)),
+			"features":     string(jsonMarshal(features)),
+			"fieldToggles": string(jsonMarshal(fieldToggles)),
 		},
 		Headers: headers,
 	})
-	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
 		return nil, errors.New("response body is nil")
 	}
+	defer response.Body.Close()
 
 	var twitterAPIData *TwitterAPIData
 	err = json.NewDecoder(response.Body).Decode(&twitterAPIData)
@@ -290,16 +301,16 @@ func getCaption(twitterData *TwitterAPIData) string {
 	return caption
 }
 
-func getFxTwitterData(postID string) *FxTwitterAPIData {
-	response, err := utils.Request("https://api.fxtwitter.com/status/"+postID, utils.RequestParams{
+func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
+	response, err := utils.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
 		Method:  "GET",
 		Headers: headers,
 	})
-	defer response.Body.Close()
 
 	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var fxTwitterAPIData *FxTwitterAPIData
 	err = json.NewDecoder(response.Body).Decode(&fxTwitterAPIData)
@@ -314,11 +325,10 @@ func getFxTwitterData(postID string) *FxTwitterAPIData {
 	return fxTwitterAPIData
 }
 
-func processFxTwitterAPI(twitterData *FxTwitterAPIData, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
 	type mediaResult struct {
 		index int
 		media *InputMedia
-		err   error
 	}
 
 	mediaCount := len(twitterData.Tweet.Media.All)
@@ -329,35 +339,55 @@ func processFxTwitterAPI(twitterData *FxTwitterAPIData, message *telegram.NewMes
 		go func(index int, twitterMedia FxTwitterMedia) {
 			var media InputMedia
 			var err error
-			media.File, err = downloader.Downloader(twitterMedia.URL)
+			media.File, err = downloader.FetchBytesFromURL(twitterMedia.URL)
 			if err == nil && twitterMedia.Type == "video" {
-				media.Thumbnail, _ = downloader.Downloader(twitterMedia.ThumbnailURL)
+				media.Thumbnail, err = downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
+				if err != nil {
+					slog.Error("Failed to download media",
+						"Post Info", []string{h.username, h.postID},
+						"Media URL", twitterMedia.URL,
+						"Error", err.Error())
+				}
 			}
-			results <- mediaResult{index: index, media: &media, err: err}
+			if err != nil {
+				slog.Error("Failed to download media",
+					"Post Info", []string{h.username, h.postID},
+					"Media URL", twitterMedia.URL,
+					"Error", err.Error())
+			}
+			results <- mediaResult{index: index, media: &media}
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
-		if result.err != nil {
-			log.Print(result.err)
-			continue
-		}
 		if result.media.File != nil {
 			var mediaItem telegram.InputMedia
 			if twitterData.Tweet.Media.All[result.index].Type != "video" {
-				uploadedPhoto, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.media.File.Name()})
+				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.media.File})
+				if err != nil {
+					slog.Error("Failed to upload photo",
+						"Post Info", []string{h.username, h.postID},
+						"Photo URL", twitterData.Tweet.Media.All[result.index].URL,
+						"Error", err.Error())
+					continue
+				}
 				mediaItem = &uploadedPhoto
 			} else {
-				uploadedVideo, _ := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-					File:  result.media.File.Name(),
-					Thumb: result.media.Thumbnail.Name(),
-					Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-						SupportsStreaming: true,
-						W:                 int32(twitterData.Tweet.Media.All[result.index].Width),
-						H:                 int32(twitterData.Tweet.Media.All[result.index].Height),
-					}},
+				uploadedVideo, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+					File:              result.media.File,
+					Thumb:             result.media.Thumbnail,
+					SupportsStreaming: true,
+					Width:             int32(twitterData.Tweet.Media.All[result.index].Width),
+					Height:            int32(twitterData.Tweet.Media.All[result.index].Height),
 				})
+				if err != nil {
+					slog.Error("Failed to upload video",
+						"Post Info", []string{h.username, h.postID},
+						"Video URL", twitterData.Tweet.Media.All[result.index].URL,
+						"Error", err.Error())
+					continue
+				}
 				mediaItem = &uploadedVideo
 			}
 			mediaItems[result.index] = mediaItem

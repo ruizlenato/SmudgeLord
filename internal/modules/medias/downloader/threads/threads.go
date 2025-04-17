@@ -4,115 +4,95 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
-	"os"
-	"regexp"
+	"log/slog"
 	"strings"
 
 	"github.com/amarnathcjd/gogram/telegram"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
 	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
-	var medias []telegram.InputMedia
-	shortcode := getShortcode(message.Text())
-	if shortcode == "" {
+	handler := &Handler{}
+	if !handler.setPostID(message.Text()) {
 		return nil, []string{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(shortcode)
+	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
 	if err == nil {
-		return cachedMedias, []string{cachedCaption, shortcode}
+		return cachedMedias, []string{cachedCaption, handler.postID}
 	}
 
-	postID := getPostID(message.Text())
-	if postID == "" {
+	graphQLData := getGQLData(handler.postID)
+	if graphQLData == nil || graphQLData.Data.Data.Edges == nil {
 		return nil, []string{}
 	}
 
-	graphQLData := getGQLData(postID)
-	if graphQLData == nil || graphQLData.Data.Data.Edges == nil || len(graphQLData.Data.Data.Edges) == 0 {
-		return nil, []string{}
+	if strings.HasPrefix(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.DisplayURL, "instagram.com") {
+		message.Message.Message = graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.URL
+		medias, result := instagram.Handle(message)
+		return medias, result
 	}
 
-	edge := graphQLData.Data.Data.Edges[0]
-	if edge.Node.ThreadItems == nil || len(edge.Node.ThreadItems) == 0 {
-		return nil, []string{}
-	}
-
-	threadsPost := edge.Node.ThreadItems[0].Post
-	switch {
-	case threadsPost.CarouselMedia != nil:
-		medias = handleCarousel(threadsPost, message)
-	case len(threadsPost.VideoVersions) > 0:
-		medias = handleVideo(threadsPost, message)
-	case len(threadsPost.ImageVersions.Candidates) > 0:
-		medias = handleImage(threadsPost, message)
-	}
-
-	caption := getCaption(graphQLData)
-
-	return medias, []string{caption, ""}
+	return handler.processMedia(graphQLData, message), []string{getCaption(graphQLData), handler.postID}
 }
 
-func getShortcode(url string) string {
-	re := regexp.MustCompile(`(?:post)/([A-Za-z0-9_-]+)`)
-	matches := re.FindStringSubmatch(url)
-	if len(matches) == 2 {
-		return matches[1]
-	}
-	return ""
-}
-
-func getPostID(message string) string {
-	response, err := utils.Request(message, utils.RequestParams{
+func (h *Handler) setPostID(url string) bool {
+	response, err := utils.Request(url, utils.RequestParams{
 		Method: "GET",
 		Headers: map[string]string{
-			"User-Agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+			"User-Agent":     downloader.GenericHeaders["User-Agent"],
 			"Sec-Fetch-Mode": "navigate",
 		},
 	})
-	defer response.Body.Close()
 
 	if err != nil {
-		return ""
+		return false
 	}
+	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		log.Print("Threads — Error reading body")
-		return ""
+		slog.Error("Failed to read response body",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
+		return false
 	}
 
 	idLocation := strings.Index(string(body), "post_id")
 	if idLocation == -1 {
-		return ""
+		return false
 	}
 
 	start := idLocation + 10
 	end := strings.Index(string(body)[start:], "\"")
 	if end == -1 {
-		return ""
+		return false
 	}
-
-	return string(body)[start : start+end]
+	h.postID = string(body)[start : start+end]
+	return true
 }
 
 func getGQLData(postID string) ThreadsData {
-	lsd := utils.RandomString(10)
+	var threadsData ThreadsData
 
+	lsd := utils.RandomString(10)
+	downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
+	downloader.GenericHeaders["X-Fb-Lsd"] = lsd
+	downloader.GenericHeaders["X-Ig-App-Id"] = "238260118697367"
+	downloader.GenericHeaders["Sec-Fetch-Mode"] = "cors"
+	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
 	response, err := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
-		Method: "POST",
-		Headers: map[string]string{
-			`User-Agent`:     `Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36`,
-			`Content-Type`:   `application/x-www-form-urlencoded`,
-			`X-Fb-Lsd`:       lsd,
-			`X-Ig-App-Id`:    `238260118697367`,
-			`Sec-Fetch-Mode`: `cors`,
-			`Sec-Fetch-Site`: `same-origin`,
-		},
+		Method:  "POST",
+		Headers: downloader.GenericHeaders,
 		BodyString: []string{
 			fmt.Sprintf(`variables={
 			"first":1,
@@ -128,19 +108,34 @@ func getGQLData(postID string) ThreadsData {
 			`lsd=` + lsd,
 		},
 	})
-	defer response.Body.Close()
 
 	if err != nil {
 		return nil
 	}
+	defer response.Body.Close()
 
-	var threadsData ThreadsData
 	err = json.NewDecoder(response.Body).Decode(&threadsData)
 	if err != nil {
+		slog.Error("Failed to unmarshal Threads GQLData", "Error", err.Error())
 		return nil
 	}
 
 	return threadsData
+}
+
+func (h *Handler) processMedia(data ThreadsData, message *telegram.NewMessage) []telegram.InputMedia {
+	post := data.Data.Data.Edges[0].Node.ThreadItems[0].Post
+
+	switch {
+	case post.CarouselMedia != nil:
+		return h.handleCarousel(post, message)
+	case len(post.VideoVersions) > 0:
+		return h.handleVideo(post, message)
+	case len(post.ImageVersions.Candidates) > 0:
+		return h.handleImage(post, message)
+	default:
+		return nil
+	}
 }
 
 func getCaption(threadsData ThreadsData) string {
@@ -149,16 +144,10 @@ func getCaption(threadsData ThreadsData) string {
 		threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text)
 }
 
-type InputMedia struct {
-	File      *os.File
-	Thumbnail *os.File
-}
-
-func handleCarousel(post Post, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []telegram.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
-		err   error
 	}
 
 	mediaCount := len(*post.CarouselMedia)
@@ -170,39 +159,52 @@ func handleCarousel(post Post, message *telegram.NewMessage) []telegram.InputMed
 			var media InputMedia
 			var err error
 			if (*post.CarouselMedia)[index].VideoVersions == nil {
-				media.File, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
+				media.File, err = downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
+				if err != nil {
+					slog.Error("Failed to download image",
+						"Post Info", []string{h.username, h.postID},
+						"Image URL", threadsMedia.ImageVersions.Candidates[0].URL,
+						"Error", err.Error())
+				}
 			} else {
-				media.File, err = downloader.Downloader(threadsMedia.VideoVersions[0].URL)
+				media.File, err = downloader.FetchBytesFromURL(threadsMedia.VideoVersions[0].URL)
+				if err != nil {
+					slog.Error("Failed to download video",
+						"Post Info", []string{h.username, h.postID},
+						"Video URL", threadsMedia.VideoVersions[0].URL,
+						"Error", err.Error())
+				}
 				if err == nil {
-					media.Thumbnail, err = downloader.Downloader(threadsMedia.ImageVersions.Candidates[0].URL)
+					media.Thumbnail, err = downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
+					if err != nil {
+						slog.Error("Failed to download thumbnail",
+							"Post Info", []string{h.username, h.postID},
+							"Thumbnail URL", threadsMedia.ImageVersions.Candidates[0].URL,
+							"Error", err.Error())
+					}
 				}
 			}
-			results <- mediaResult{index: index, media: &media, err: err}
+			results <- mediaResult{index: index, media: &media}
 		}(i, result)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
-		if result.err != nil {
-			log.Print(result.err)
-			continue
-		}
+
 		if result.media.File != nil {
 			var mediaItem telegram.InputMedia
 			if (*post.CarouselMedia)[result.index].VideoVersions == nil {
-				photo, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
-					File: result.media.File.Name(),
+				uploadedPhoto, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+					File: result.media.File,
 				})
-				mediaItem = &photo
+				mediaItem = &uploadedPhoto
 			} else {
-				uploadedVideo, _ := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-					File:  result.media.File.Name(),
-					Thumb: result.media.Thumbnail.Name(),
-					Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-						SupportsStreaming: true,
-						W:                 int32((*post.CarouselMedia)[result.index].OriginalWidth),
-						H:                 int32((*post.CarouselMedia)[result.index].OriginalHeight),
-					}},
+				uploadedVideo, _ := helpers.UploadVideo(message, helpers.UploadVideoParams{
+					File:              result.media.File,
+					Thumb:             result.media.Thumbnail,
+					SupportsStreaming: true,
+					Width:             int32((*post.CarouselMedia)[result.index].OriginalWidth),
+					Height:            int32((*post.CarouselMedia)[result.index].OriginalWidth),
 				})
 				mediaItem = &uploadedVideo
 			}
@@ -213,40 +215,45 @@ func handleCarousel(post Post, message *telegram.NewMessage) []telegram.InputMed
 	return mediaItems
 }
 
-func handleVideo(post Post, message *telegram.NewMessage) []telegram.InputMedia {
-	file, err := downloader.Downloader(post.VideoVersions[0].URL)
+func (h *Handler) handleVideo(post Post, message *telegram.NewMessage) []telegram.InputMedia {
+	file, err := downloader.FetchBytesFromURL(post.VideoVersions[0].URL)
 	if err != nil {
-		log.Print("Threads — Error downloading video: ", err)
+		slog.Error("Failed to download video",
+			"PostID", h.postID,
+			"Error", err.Error())
 		return nil
 	}
 
-	thumbnail, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
+	thumbnail, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		log.Print("Threads — Error downloading thumbnail: ", err)
+		slog.Error("Failed to download thumbnail",
+			"PostID", h.postID,
+			"Error", err.Error())
 		return nil
 	}
-	uploadedVideo, _ := helpers.UploadDocument(message, helpers.UploadDocumentParams{
-		File:  file.Name(),
-		Thumb: thumbnail.Name(),
-		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-			SupportsStreaming: true,
-			W:                 int32(post.OriginalWidth),
-			H:                 int32(post.OriginalHeight),
-		}},
+
+	uploadedVideo, _ := helpers.UploadVideo(message, helpers.UploadVideoParams{
+		File:              file,
+		Thumb:             thumbnail,
+		SupportsStreaming: true,
+		Width:             int32(post.OriginalWidth),
+		Height:            int32(post.OriginalHeight),
 	})
-
 	return []telegram.InputMedia{&uploadedVideo}
 }
 
-func handleImage(post Post, message *telegram.NewMessage) []telegram.InputMedia {
-	file, err := downloader.Downloader(post.ImageVersions.Candidates[0].URL)
+func (h *Handler) handleImage(post Post, message *telegram.NewMessage) []telegram.InputMedia {
+	file, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		log.Print("Threads: Error downloading image:", err)
+		slog.Error("Failed to download image",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
 		return nil
 	}
-	uploadedImage, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
-		File: file.Name(),
+
+	uploadedPhoto, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+		File: file,
 	})
 
-	return []telegram.InputMedia{&uploadedImage}
+	return []telegram.InputMedia{&uploadedPhoto}
 }

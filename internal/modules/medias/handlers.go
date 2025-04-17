@@ -227,7 +227,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 	}
 
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
-	thumbnail, err := downloader.Downloader(thumbURL)
+	thumbnail, err := downloader.FetchBytesFromURL(thumbURL)
 	if err != nil {
 		_, err := update.Edit(i18n("youtube-error"))
 		return err
@@ -248,7 +248,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 				Performer: video.Author,
 			}},
 			Caption: fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
-			Thumb:   thumbnail.Name(),
+			Thumb:   thumbnail,
 		})
 		if err != nil {
 			_, err := update.Edit(i18n("youtube-error"))
@@ -264,7 +264,7 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 				H:                 int32(video.Formats.Itag(itag)[0].Height),
 			}},
 			Caption: fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
-			Thumb:   thumbnail.Name(),
+			Thumb:   thumbnail,
 		})
 		if err != nil {
 			_, err := update.Edit(i18n("youtube-error"))

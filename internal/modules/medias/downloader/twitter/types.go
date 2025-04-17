@@ -92,3 +92,8 @@ type FxTwitterMedia struct {
 	Height       int    `json:"height"`
 	Type         string `json:"type"`
 }
+
+type InputMedia struct {
+	File      []byte
+	Thumbnail []byte
+}
