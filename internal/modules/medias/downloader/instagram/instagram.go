@@ -95,8 +95,10 @@ func (h *Handler) getInstagramData() *ShortcodeMedia {
 	} {
 		if data := fetchFunc(); data != nil {
 			if data.Status == "ok" && data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia == nil {
-				slog.Error("Failed to fetch Instagram data",
-					"Post Info", []string{h.username, h.postID})
+				slog.Error(
+					"Failed to fetch Instagram data",
+					"Post Info", []string{h.username, h.postID},
+				)
 			}
 
 			if data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia != nil {
@@ -161,9 +163,11 @@ func (h *Handler) getEmbedData() InstagramData {
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		slog.Error("Failed to read response body",
+		slog.Error(
+			"Failed to read response body",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body); len(match) == 2 {
@@ -173,9 +177,11 @@ func (h *Handler) getEmbedData() InstagramData {
 
 		err := json.Unmarshal([]byte(s), &instagramData)
 		if err != nil {
-			slog.Error("Failed to unmarshal Instagram data",
+			slog.Error(
+				"Failed to unmarshal Instagram data",
 				"Post Info", []string{h.username, h.postID},
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return nil
 		}
 	}
@@ -280,17 +286,21 @@ func (h *Handler) getGQLData() InstagramData {
 func (h *Handler) handleVideo(instagramData *ShortcodeMedia, message *telegram.NewMessage) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(instagramData.VideoURL)
 	if err != nil {
-		slog.Error("Failed to download video",
+		slog.Error(
+			"Failed to download video",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
 	thumbnail, err := downloader.FetchBytesFromURL(instagramData.DisplayResources[len(instagramData.DisplayResources)-1].Src)
 	if err != nil {
-		slog.Error("Failed to download thumbnail",
+		slog.Error(
+			"Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -311,9 +321,11 @@ func (h *Handler) handleVideo(instagramData *ShortcodeMedia, message *telegram.N
 		Height:            int32(instagramData.Dimensions.Height),
 	})
 	if err != nil {
-		slog.Error("Failed to upload video",
+		slog.Error(
+			"Failed to upload video",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -323,9 +335,11 @@ func (h *Handler) handleVideo(instagramData *ShortcodeMedia, message *telegram.N
 func (h *Handler) handleImage(instagramData *ShortcodeMedia, message *telegram.NewMessage) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(instagramData.DisplayURL)
 	if err != nil {
-		slog.Error("Failed to download image",
+		slog.Error(
+			"Failed to download image",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -333,9 +347,11 @@ func (h *Handler) handleImage(instagramData *ShortcodeMedia, message *telegram.N
 		File: file,
 	})
 	if err != nil {
-		slog.Error("Failed to upload photo",
+		slog.Error(
+			"Failed to upload photo",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -360,33 +376,41 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 			if !result.Node.IsVideo {
 				media.File, err = downloader.FetchBytesFromURL(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
 				if err != nil {
-					slog.Error("Failed to download image",
+					slog.Error(
+						"Failed to download image",
 						"Post Info", []string{h.username, h.postID},
 						"Image URL", result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 			} else {
 				media.File, err = downloader.FetchBytesFromURL(result.Node.VideoURL)
 				if err != nil {
-					slog.Error("Failed to download video",
+					slog.Error(
+						"Failed to download video",
 						"Post Info", []string{h.username, h.postID},
 						"Video URL", result.Node.VideoURL,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 				if err == nil {
 					media.Thumbnail, err = downloader.FetchBytesFromURL(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
 					if err != nil {
-slog.Error("Failed to download thumbnail",
+						slog.Error(
+							"Failed to download thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Thumbnail URL", result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src,
-							"Error", err.Error())
+							"Error", err.Error(),
+						)
 					}
 					media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
 					if err != nil {
-						slog.Error("Failed to resize thumbnail",
+						slog.Error(
+							"Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Thumbnail URL", result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src,
-							"Error", err.Error())
+							"Error", err.Error(),
+						)
 					}
 				}
 			}
@@ -403,10 +427,12 @@ slog.Error("Failed to download thumbnail",
 					File: result.file.File,
 				})
 				if err != nil {
-					slog.Error("Failed to upload photo",
+					slog.Error(
+						"Failed to upload photo",
 						"Post Info", []string{h.username, h.postID},
 						"Image URL", instagramData.EdgeSidecarToChildren.Edges[result.index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[result.index].Node.DisplayResources)-1].Src,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 				mediaItems[result.index] = &photo
 			} else {

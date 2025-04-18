@@ -19,7 +19,7 @@ import (
 
 var emojiRegex = regexp.MustCompile(`[\x{1F600}-\x{1F64F}]|[\x{2694}-\x{2697}]|[\x{2702}-\x{27B0}]|[\x{1F926}-\x{1F937}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{26FF}]`)
 
-func handlerGetSticker(message *telegram.NewMessage) error {
+func getStickerHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if !message.IsReply() {
 		_, err := message.Reply(i18n("get-sticker-no-reply-provided"))
@@ -55,7 +55,7 @@ func handlerGetSticker(message *telegram.NewMessage) error {
 	return err
 }
 
-func handlerKangSticker(message *telegram.NewMessage) error {
+func kangStickerHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if !message.IsReply() {
 		_, err := message.Reply(i18n("kang-no-reply-provided"), telegram.SendOptions{
@@ -126,9 +126,11 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 
 	defer func() {
 		if err := os.Remove(file.Name()); err != nil {
-			slog.Error("Could not remove file",
+			slog.Error(
+				"Could not remove file",
 				"file", file.Name(),
-				"error", err.Error())
+				"error", err.Error(),
+			)
 			return
 		}
 	}()
@@ -181,9 +183,11 @@ func handlerKangSticker(message *telegram.NewMessage) error {
 	}
 	defer func() {
 		if _, err := mediaMsg.Delete(); err != nil {
-			slog.Error("Could not delete media message",
+			slog.Error(
+				"Could not delete media message",
 				"mediaMessageID", mediaMsg.ID,
-				"error", err.Error())
+				"error", err.Error(),
+			)
 		}
 	}()
 
@@ -325,8 +329,8 @@ func convertVideo(inputFile string) (err error) {
 
 func Load(client *telegram.Client) {
 	utils.SotreHelp("stickers")
-	client.On("command:getsticker", handlers.HandleCommand(handlerGetSticker))
-	client.On("command:kang", handlers.HandleCommand(handlerKangSticker))
+	client.On("command:getsticker", handlers.HandleCommand(getStickerHandler))
+	client.On("command:kang", handlers.HandleCommand(kangStickerHandler))
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "getsticker", "kang")
 }

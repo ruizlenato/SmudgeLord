@@ -131,10 +131,12 @@ func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessa
 		go func(index int, media Image) {
 			file, err := downloader.FetchBytesFromURL(media.DisplayImage.URLList[1])
 			if err != nil {
-				slog.Error("Failed to download image",
+				slog.Error(
+					"Failed to download image",
 					"Post ID", []string{h.postID},
 					"Image URL", media.DisplayImage.URLList[1],
-					"Error", err.Error())
+					"Error", err.Error(),
+				)
 			}
 			results <- mediaResult{index, file}
 		}(i, media)
@@ -148,10 +150,12 @@ func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessa
 				File: result.file,
 			})
 			if err != nil {
-				slog.Error("Failed to upload image",
+				slog.Error(
+					"Failed to upload image",
 					"Post ID", []string{h.postID},
 					"Image URL", tikTokData.AwemeList[0].ImagePostInfo.Images[result.index].DisplayImage.URLList[1],
-					"Error", err.Error())
+					"Error", err.Error(),
+				)
 				continue
 			}
 			mediaItems[result.index] = &photo
@@ -164,28 +168,34 @@ func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessa
 func (h *Handler) handleVideo(tikTokData TikTokData, message *telegram.NewMessage) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 	if err != nil {
-		slog.Error("Failed to download video",
+		slog.Error(
+			"Failed to download video",
 			"Post ID", []string{h.postID},
 			"Video URL", tikTokData.AwemeList[0].Video.PlayAddr.URLList[0],
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
 	thumbnail, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.Cover.URLList[0])
 	if err != nil {
-		slog.Error("Failed to download thumbnail",
+		slog.Error(
+			"Failed to download thumbnail",
 			"Post ID", []string{h.postID},
 			"Thumbnail URL", tikTokData.AwemeList[0].Video.Cover.URLList[0],
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
 	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
-		slog.Error("Failed to resize thumbnail",
+		slog.Error(
+			"Failed to resize thumbnail",
 			"Post ID", []string{h.postID},
 			"Thumbnail URL", tikTokData.AwemeList[0].Video.Cover.URLList[0],
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 	}
 
 	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
@@ -196,11 +206,13 @@ func (h *Handler) handleVideo(tikTokData TikTokData, message *telegram.NewMessag
 		Height:            int32(tikTokData.AwemeList[0].Video.PlayAddr.Height),
 	})
 	if err != nil {
-		slog.Error("Failed to upload video",
+		slog.Error(
+			"Failed to upload video",
 			"Post ID", []string{h.postID},
 			"Video URL", tikTokData.AwemeList[0].Video.PlayAddr.URLList[0],
 			"Thumbnail URL", tikTokData.AwemeList[0].Video.Cover.URLList[0],
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 

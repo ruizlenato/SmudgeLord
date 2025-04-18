@@ -75,9 +75,11 @@ func (h *Handler) getBlueskyData() BlueskyData {
 	var blueskyData BlueskyData
 	err = json.NewDecoder(response.Body).Decode(&blueskyData)
 	if err != nil {
-		slog.Error("Failed to decode Bluesky data",
+		slog.Error(
+			"Failed to decode Bluesky data",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 	}
 
 	return blueskyData
@@ -150,28 +152,34 @@ func (h *Handler) handleVideo(blueskyData BlueskyData, message *telegram.NewMess
 	})
 
 	if err != nil || response.Body == nil {
-		slog.Error("Failed to request playlist",
+		slog.Error(
+			"Failed to request playlist",
 			"Post Info", []string{h.username, h.postID},
 			"Playlist URL", playlistURL,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 	}
 	defer response.Body.Close()
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
-		slog.Error("Failed to read playlist response body",
+		slog.Error(
+			"Failed to read playlist response body",
 			"Post Info", []string{h.username, h.postID},
 			"Playlist URL", playlistURL,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
 	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(bodyBytes), true)
 	if err != nil {
-		slog.Error("Failed to decode m3u8 playlist",
+		slog.Error(
+			"Failed to decode m3u8 playlist",
 			"Post Info", []string{h.username, h.postID},
 			"Playlist URL", playlistURL,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 	}
 
 	if listType != m3u8.MASTER {
@@ -193,31 +201,46 @@ func (h *Handler) handleVideo(blueskyData BlueskyData, message *telegram.NewMess
 
 	width, height, err := parseResolution(highestBandwidthVariant.Resolution)
 	if err != nil {
-		slog.Error("Failed to parse video resolution",
+		slog.Error(
+			"Failed to parse video resolution",
 			"Post Info", []string{h.username, h.postID},
 			"Resolution", highestBandwidthVariant.Resolution,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
 	file, err := downloader.FetchBytesFromURL(url)
 	if err != nil {
-		slog.Error("Failed to download video",
+		slog.Error(
+			"Failed to download video",
 			"Post Info", []string{h.username, h.postID},
 			"Video URL", url,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
 	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 	if err != nil {
-	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
-	if err != nil {
-		slog.Error("Failed to resize thumbnail",
+		slog.Error(
+			"Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
 			"Thumbnail URL", thumbnailURL,
-			"Error", err.Error())
-return nil
+			"Error", err.Error(),
+		)
+		return nil
+	}
+
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+	if err != nil {
+		slog.Error(
+			"Failed to resize thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Thumbnail URL", thumbnailURL,
+			"Error", err.Error(),
+		)
+		return nil
 	}
 
 	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
@@ -228,10 +251,12 @@ return nil
 		Height:            int32(height),
 	})
 	if err != nil {
-		slog.Error("Failed to upload video",
+		slog.Error(
+			"Failed to upload video",
 			"Post Info", []string{h.username, h.postID},
 			"Video URL", url,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -252,10 +277,12 @@ func (h *Handler) handleImages(blueskyImages []Image, message *telegram.NewMessa
 		go func(index int, media Image) {
 			file, err := downloader.FetchBytesFromURL(media.Fullsize)
 			if err != nil {
-				slog.Error("Failed to download image",
+				slog.Error(
+					"Failed to download image",
 					"Post Info", []string{h.username, h.postID},
 					"Image URL", media.Fullsize,
-					"Error", err.Error())
+					"Error", err.Error(),
+				)
 			}
 			results <- mediaResult{index, file}
 		}(i, media)

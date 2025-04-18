@@ -61,9 +61,11 @@ func (h *Handler) setPostID(url string) bool {
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		slog.Error("Failed to read response body",
+		slog.Error(
+			"Failed to read response body",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return false
 	}
 
@@ -116,7 +118,10 @@ func getGQLData(postID string) ThreadsData {
 
 	err = json.NewDecoder(response.Body).Decode(&threadsData)
 	if err != nil {
-		slog.Error("Failed to unmarshal Threads GQLData", "Error", err.Error())
+		slog.Error(
+			"Failed to unmarshal Threads GQLData",
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -161,33 +166,41 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 			if (*post.CarouselMedia)[index].VideoVersions == nil {
 				media.File, err = downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
 				if err != nil {
-					slog.Error("Failed to download image",
+					slog.Error(
+						"Failed to download image",
 						"Post Info", []string{h.username, h.postID},
 						"Image URL", threadsMedia.ImageVersions.Candidates[0].URL,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 			} else {
 				media.File, err = downloader.FetchBytesFromURL(threadsMedia.VideoVersions[0].URL)
 				if err != nil {
-					slog.Error("Failed to download video",
+					slog.Error(
+						"Failed to download video",
 						"Post Info", []string{h.username, h.postID},
 						"Video URL", threadsMedia.VideoVersions[0].URL,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 				if err == nil {
 					media.Thumbnail, err = downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
 					if err != nil {
-						slog.Error("Failed to download thumbnail",
+						slog.Error(
+							"Failed to download thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Thumbnail URL", threadsMedia.ImageVersions.Candidates[0].URL,
-							"Error", err.Error())
+							"Error", err.Error(),
+						)
 					}
 					media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
 					if err != nil {
-						slog.Error("Failed to resize thumbnail",
+						slog.Error(
+							"Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Thumbnail URL", threadsMedia.ImageVersions.Candidates[0].URL,
-							"Error", err.Error())
+							"Error", err.Error(),
+						)
 					}
 				}
 			}
@@ -225,26 +238,34 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 func (h *Handler) handleVideo(post Post, message *telegram.NewMessage) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(post.VideoVersions[0].URL)
 	if err != nil {
-		slog.Error("Failed to download video",
-			"PostID", h.postID,
-			"Error", err.Error())
+		slog.Error(
+			"Failed to download video",
+			"Post Info", []string{h.username, h.postID},
+			"Video URL", post.VideoVersions[0].URL,
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
 	thumbnail, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		slog.Error("Failed to download thumbnail",
-			"PostID", h.postID,
-			"Error", err.Error())
+		slog.Error(
+			"Failed to download thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Thumbnail URL", post.ImageVersions.Candidates[0].URL,
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
 	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
-		slog.Error("Failed to resize thumbnail",
+		slog.Error(
+			"Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
 			"Thumbnail URL", post.ImageVersions.Candidates[0].URL,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 	}
 
 	uploadedVideo, _ := helpers.UploadVideo(message, helpers.UploadVideoParams{
@@ -260,9 +281,12 @@ func (h *Handler) handleVideo(post Post, message *telegram.NewMessage) []telegra
 func (h *Handler) handleImage(post Post, message *telegram.NewMessage) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
-		slog.Error("Failed to download image",
+		slog.Error(
+			"Failed to download image",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Image URL", post.ImageVersions.Candidates[0].URL,
+			"Error", err.Error(),
+		)
 		return nil
 	}
 

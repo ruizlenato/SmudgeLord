@@ -13,7 +13,7 @@ import (
 	"github.com/amarnathcjd/gogram/telegram"
 )
 
-func checkAFK(message *telegram.NewMessage) error {
+func checkAFKUpdate(message *telegram.NewMessage) error {
 	if message.ChatType() == "user" {
 		return nil
 	}
@@ -83,7 +83,7 @@ func checkAFK(message *telegram.NewMessage) error {
 	}
 }
 
-func handlerSetAFK(message *telegram.NewMessage) error {
+func setAFKhandler(message *telegram.NewMessage) error {
 	err := setUserAway(message.Sender.ID, message.Args(), time.Now().UTC())
 	if err != nil {
 		return err
@@ -130,9 +130,9 @@ func getUserIDFromMessage(message *telegram.NewMessage) (int64, error) {
 
 func Load(client *telegram.Client) {
 	utils.SotreHelp("afk")
-	client.On(telegram.OnMessage, checkAFK)
-	client.On("command:afk", handlers.HandleCommand(handlerSetAFK))
-	client.On("message:^brb", handlers.HandleCommand(handlerSetAFK))
+	client.On(telegram.OnMessage, checkAFKUpdate)
+	client.On("command:afk", handlers.HandleCommand(setAFKhandler))
+	client.On("message:^brb", handlers.HandleCommand(setAFKhandler))
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "afk", "brb")
 }

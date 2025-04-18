@@ -90,40 +90,50 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 				sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
 					return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
 				})
+
 				media.File, err = downloader.FetchBytesFromURL(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
 				if err != nil {
-					slog.Error("Failed to download video",
+					slog.Error(
+						"Failed to download video",
 						"Post Info", []string{h.username, h.postID},
 						"Media URL", twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 					mediaChan <- mediaResult{index, nil}
 					return
 				}
+
 				media.Thumbnail, err = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
 				if err != nil {
-					slog.Error("Failed to download thumbnail",
+					slog.Error(
+						"Failed to download thumbnail",
 						"Post Info", []string{h.username, h.postID},
 						"Thumbnail URL", twitterMedia.MediaURLHTTPS,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 					mediaChan <- mediaResult{index, nil}
 					return
 				}
 
 				media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
 				if err != nil {
-					slog.Error("Failed to resize thumbnail",
+					slog.Error(
+						"Failed to resize thumbnail",
 						"Post Info", []string{h.username, h.postID},
 						"Thumbnail URL", twitterMedia.MediaURLHTTPS,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 
 			} else {
 				media.File, err = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
 				if err != nil {
-					slog.Error("Failed to download image",
+					slog.Error(
+						"Failed to download image",
 						"Post Info", []string{h.username, h.postID},
 						"Image URL", twitterMedia.MediaURLHTTPS,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 					return
 				}
 			}
@@ -139,10 +149,12 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 			if twitterMedia.Type == "photo" {
 				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.media.File})
 				if err != nil {
-					slog.Error("Failed to upload photo",
+					slog.Error(
+						"Failed to upload photo",
 						"Post Info", []string{h.username, h.postID},
 						"Photo URL", twitterMedia.MediaURLHTTPS,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 					continue
 				}
 
@@ -156,10 +168,12 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 					Height:            int32(twitterMedia.OriginalInfo.Height),
 				})
 				if err != nil {
-					slog.Error("Failed to upload video",
+					slog.Error(
+						"Failed to upload video",
 						"Post Info", []string{h.username, h.postID},
 						"Video URL", twitterMedia.MediaURLHTTPS,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 					continue
 				}
 
@@ -197,18 +211,22 @@ func (h *Handler) getGuestToken() string {
 	})
 
 	if err != nil {
-		slog.Error("Failed to get guest token",
+		slog.Error(
+			"Failed to get guest token",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return ""
 	}
 	defer response.Body.Close()
 
 	err = json.NewDecoder(response.Body).Decode(&res)
 	if err != nil {
-		slog.Error("Failed to unmarshal guest token",
+		slog.Error(
+			"Failed to unmarshal guest token",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return ""
 	}
 
@@ -352,25 +370,31 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 			if err == nil && twitterMedia.Type == "video" {
 				media.Thumbnail, err = downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
 				if err != nil {
-					slog.Error("Failed to download media",
+					slog.Error(
+						"Failed to download media",
 						"Post Info", []string{h.username, h.postID},
 						"Media URL", twitterMedia.URL,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 
 				media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
 				if err != nil {
-					slog.Error("Failed to resize thumbnail",
+					slog.Error(
+						"Failed to resize thumbnail",
 						"Post Info", []string{h.username, h.postID},
 						"Media URL", twitterMedia.URL,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 			}
 			if err != nil {
-				slog.Error("Failed to download media",
+				slog.Error(
+					"Failed to download media",
 					"Post Info", []string{h.username, h.postID},
 					"Media URL", twitterMedia.URL,
-					"Error", err.Error())
+					"Error", err.Error(),
+				)
 			}
 			results <- mediaResult{index: index, media: &media}
 		}(i, media)
@@ -383,10 +407,12 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 			if twitterData.Tweet.Media.All[result.index].Type != "video" {
 				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.media.File})
 				if err != nil {
-					slog.Error("Failed to upload photo",
+					slog.Error(
+						"Failed to upload photo",
 						"Post Info", []string{h.username, h.postID},
 						"Photo URL", twitterData.Tweet.Media.All[result.index].URL,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 					continue
 				}
 				mediaItem = &uploadedPhoto
@@ -399,10 +425,12 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 					Height:            int32(twitterData.Tweet.Media.All[result.index].Height),
 				})
 				if err != nil {
-					slog.Error("Failed to upload video",
+					slog.Error(
+						"Failed to upload video",
 						"Post Info", []string{h.username, h.postID},
 						"Video URL", twitterData.Tweet.Media.All[result.index].URL,
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 					continue
 				}
 				mediaItem = &uploadedVideo

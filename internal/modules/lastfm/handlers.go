@@ -25,7 +25,7 @@ func getErrorMessage(err error, i18n func(string, ...map[string]any) string) str
 
 var lastFM = lastFMAPI.Init()
 
-func handleSetUser(message *telegram.NewMessage) error {
+func setUserHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() != "" {
 		if err := lastFM.GetUser(message.Args()); err != nil {
@@ -39,8 +39,10 @@ func handleSetUser(message *telegram.NewMessage) error {
 			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
-			slog.Error("Could not set lastfm username",
-				"error", err.Error())
+			slog.Error(
+				"Could not set lastfm username",
+				"error", err.Error(),
+			)
 			return err
 		}
 
@@ -81,8 +83,10 @@ func handleSetUser(message *telegram.NewMessage) error {
 			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
-			slog.Error("Could not set lastfm username",
-				"error", err.Error())
+			slog.Error(
+				"Could not set lastfm username",
+				"error", err.Error(),
+			)
 			return err
 		}
 
@@ -105,15 +109,15 @@ func handleSetUser(message *telegram.NewMessage) error {
 	return err
 }
 
-func handleMusic(message *telegram.NewMessage) error {
+func musicHandler(message *telegram.NewMessage) error {
 	return lastfm(message, "track")
 }
 
-func handleAlbum(message *telegram.NewMessage) error {
+func albumHandler(message *telegram.NewMessage) error {
 	return lastfm(message, "album")
 }
 
-func handleArtist(message *telegram.NewMessage) error {
+func artistHandler(message *telegram.NewMessage) error {
 	return lastfm(message, "artist")
 }
 
@@ -162,16 +166,16 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 
 func Load(client *telegram.Client) {
 	utils.SotreHelp("lastfm")
-	client.On("command:setuser", handlers.HandleCommand(handleSetUser))
-	client.On("command:lastfm", handlers.HandleCommand(handleMusic))
-	client.On("command:lt", handlers.HandleCommand(handleMusic))
-	client.On("command:lmu", handlers.HandleCommand(handleMusic))
-	client.On("command:album", handlers.HandleCommand(handleAlbum))
-	client.On("command:lalb", handlers.HandleCommand(handleAlbum))
-	client.On("command:alb", handlers.HandleCommand(handleAlbum))
-	client.On("command:artist", handlers.HandleCommand(handleArtist))
-	client.On("command:lart", handlers.HandleCommand(handleArtist))
-	client.On("command:art", handlers.HandleCommand(handleArtist))
+	client.On("command:setuser", handlers.HandleCommand(setUserHandler))
+	client.On("command:lastfm", handlers.HandleCommand(musicHandler))
+	client.On("command:lt", handlers.HandleCommand(musicHandler))
+	client.On("command:lmu", handlers.HandleCommand(musicHandler))
+	client.On("command:album", handlers.HandleCommand(albumHandler))
+	client.On("command:lalb", handlers.HandleCommand(albumHandler))
+	client.On("command:alb", handlers.HandleCommand(albumHandler))
+	client.On("command:artist", handlers.HandleCommand(artistHandler))
+	client.On("command:lart", handlers.HandleCommand(artistHandler))
+	client.On("command:art", handlers.HandleCommand(artistHandler))
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands,
 		"setuser", "lastfm", "lt", "lmu", "album", "lalb", "alb", "artist", "lart", "art")

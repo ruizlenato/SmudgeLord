@@ -18,8 +18,10 @@ func HandleCommand(handler func(m *telegram.NewMessage) error) func(m *telegram.
 			return nil
 		}
 		if err := database.SaveUsers(m); err != nil {
-			slog.Error("Could not save user",
-				"error", err.Error())
+			slog.Error(
+				"Could not save user",
+				"error", err.Error(),
+			)
 		}
 		if err := handler(m); err != nil {
 			if strings.Contains(err.Error(), "CHAT_SEND_PLAIN_FORBIDDEN") ||

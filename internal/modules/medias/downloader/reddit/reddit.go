@@ -93,17 +93,22 @@ func (h *Handler) getRedlibData(message *telegram.NewMessage) ([]telegram.InputM
 		})
 
 	if err != nil || response.Body == nil {
-		slog.Error("Failed to fetch media content",
-			"Error", err.Error())
+		slog.Error(
+			"Failed to fetch media content",
+			"Post Info", []string{h.subreddit, h.postID},
+			"Error", err.Error(),
+		)
 		return nil, ""
 	}
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		slog.Error("Failed to read response body",
+		slog.Error(
+			"Failed to read response body",
 			"Post Info", []string{h.subreddit, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil, ""
 	}
 
@@ -169,8 +174,10 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response, me
 
 		audioFile, err := downloadAudio(playlistURL)
 		if err != nil {
-			slog.Error("Failed to download audio",
-				"Error", err.Error())
+			slog.Error(
+				"Failed to download audio",
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
@@ -179,15 +186,19 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response, me
 
 		videoFile, err := downloader.FetchBytesFromURL(videoURL)
 		if err != nil {
-			slog.Error("Failed to download video",
-				"Error", err.Error())
+			slog.Error(
+				"Failed to download video",
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
 		videoFile, err = downloader.MergeAudioVideo(videoFile, audioFile)
 		if err != nil {
-			slog.Error("Failed to merge audio and video",
-				"Error", err.Error())
+			slog.Error(
+				"Failed to merge audio and video",
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
@@ -260,18 +271,23 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 
 		thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 		if err != nil {
-			slog.Error("Failed to download thumbnail",
+			slog.Error(
+				"Failed to download thumbnail",
+				"Post Info", []string{h.subreddit, h.postID},
 				"Thumbnail URL", thumbnailURL,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
 		thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 		if err != nil {
-			slog.Error("Failed to resize thumbnail",
+			slog.Error(
+				"Failed to resize thumbnail",
 				"Post Info", []string{h.subreddit, h.postID},
 				"Thumbnail URL", thumbnailURL,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 		}
 
 		return thumbnail
@@ -285,8 +301,10 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response, me
 
 		file, err := downloader.FetchBytesFromURL(imageURL)
 		if err != nil {
-			slog.Error("Failed to download image",
-				"Error", err.Error())
+			slog.Error(
+				"Failed to download image",
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
@@ -294,10 +312,12 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response, me
 			File: file,
 		})
 		if err != nil {
-			slog.Error("Failed to upload photo",
+			slog.Error(
+				"Failed to upload photo",
 				"Post Info", []string{h.subreddit, h.postID},
 				"Image URL", imageURL,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
@@ -325,10 +345,12 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 			media := buildMediaURL(response, string(item[1]))
 			file, err := downloader.FetchBytesFromURL(media)
 			if err != nil {
-				slog.Error("Failed to download image",
+				slog.Error(
+					"Failed to download image",
 					"Post Info", []string{h.subreddit, h.postID},
 					"Image URL", media,
-					"Error", err.Error())
+					"Error", err.Error(),
+				)
 			}
 			results <- mediaResult{index, file}
 		}(i)
@@ -384,28 +406,34 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 	if data.IsVideo {
 		videoFile, err := downloader.FetchBytesFromURL(data.Media.RedditVideo.FallbackURL)
 		if err != nil {
-			slog.Error("Failed to download video",
+			slog.Error(
+				"Failed to download video",
 				"Post Info", []string{h.subreddit, h.postID},
 				"Video URL", data.Media.RedditVideo.FallbackURL,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
 		thumbnail, err := downloader.FetchBytesFromURL(data.Preview.Images[0].Source.URL)
 		if err != nil {
-			slog.Error("Failed to download thumbnail",
+			slog.Error(
+				"Failed to download thumbnail",
 				"Post Info", []string{h.subreddit, h.postID},
 				"Thumbnail URL", data.Preview.Images[0].Source.URL,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
 		thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 		if err != nil {
-			slog.Error("Failed to resize thumbnail",
+			slog.Error(
+				"Failed to resize thumbnail",
 				"Post Info", []string{h.subreddit, h.postID},
 				"Thumbnail URL", data.Preview.Images[0].Source.URL,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 		}
 
 		video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
@@ -416,10 +444,12 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 			Height:            int32(data.Media.RedditVideo.Height),
 		})
 		if err != nil {
-			slog.Error("Failed to upload video",
+			slog.Error(
+				"Failed to upload video",
 				"Post Info", []string{h.subreddit, h.postID},
 				"Video URL", data.Media.RedditVideo.FallbackURL,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
@@ -446,10 +476,12 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 				if media.E == "Image" {
 					file, err = downloader.FetchBytesFromURL(media.S.U)
 					if err != nil {
-						slog.Error("Failed to download image",
+						slog.Error(
+							"Failed to download image",
 							"Post Info", []string{h.subreddit, h.postID},
 							"Image URL", media.S.U,
-							"Error", err.Error())
+							"Error", err.Error(),
+						)
 					}
 				}
 				results <- mediaResult{index, file}
@@ -472,8 +504,10 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 	if data.IsRedditMediaDomain && data.Domain == "i.redd.it" {
 		photoByte, err := downloader.FetchBytesFromURL(data.URL)
 		if err != nil {
-			slog.Error("Failed to download image",
-				"Error", err.Error())
+			slog.Error(
+				"Failed to download image",
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
@@ -481,10 +515,12 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 			File: photoByte,
 		})
 		if err != nil {
-			slog.Error("Failed to upload photo",
+			slog.Error(
+				"Failed to upload photo",
 				"Post Info", []string{h.subreddit, h.postID},
 				"Image URL", data.URL,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return nil
 		}
 

@@ -52,25 +52,31 @@ func processLanguageFile(path string, wg *sync.WaitGroup) {
 	langCode := filepath.Base(path[:len(path)-len(filepath.Ext(path))])
 	data, err := os.ReadFile(path)
 	if err != nil {
-		slog.Error("Couldn't read language file",
+		slog.Error(
+			"Couldn't read language file",
 			"Path", path,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return
 	}
 
 	resource, parseErrors := fluent.NewResource(string(data))
 	if len(parseErrors) > 0 {
-		slog.Error("Couldn't parse language file",
+		slog.Error(
+			"Couldn't parse language file",
 			"Path", path,
-			"Errors", parseErrors)
+			"Errors", parseErrors,
+		)
 		return
 	}
 
 	langBundle := fluent.NewBundle(language.MustParse(langCode))
 	if errs := langBundle.AddResource(resource); len(errs) > 0 {
-		slog.Error("Couldn't add resource to language bundle",
+		slog.Error(
+			"Couldn't add resource to language bundle",
 			"LangCode", langCode,
-			"Errors", errs)
+			"Errors", errs,
+		)
 		return
 	}
 
@@ -122,9 +128,11 @@ func Get(update any) func(string, ...map[string]any) string {
 	return func(key string, args ...map[string]any) string {
 		language, err := GetChatLanguage(chatID, chatType)
 		if err != nil {
-			slog.Error("Couldn't get chat language",
+			slog.Error(
+				"Couldn't get chat language",
 				"ChatID", chatID,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return fmt.Sprintf("Key '%s' not found.", key)
 		}
 
@@ -152,9 +160,11 @@ func Get(update any) func(string, ...map[string]any) string {
 		context := createFormatContext(variables)
 		message, _, err := bundle.FormatMessage(key, context)
 		if err != nil {
-			slog.Error("Couldn't format message",
+			slog.Error(
+				"Couldn't format message",
 				"Key", key,
-				"Error", err.Error())
+				"Error", err.Error(),
+			)
 			return fmt.Sprintf("Key '%s' not found.", key)
 		}
 

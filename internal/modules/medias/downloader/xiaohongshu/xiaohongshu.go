@@ -89,8 +89,10 @@ func (h *Handler) getPostURL(text string) string {
 		text = response.Request.URL.String()
 		parsedURL, err := url.Parse(text)
 		if err != nil {
-			slog.Error("Error parsing URL",
-				"Error", err)
+			slog.Error(
+				"Error parsing URL",
+				"Error", err.Error(),
+			)
 			return ""
 		}
 		if parsedURL.Query().Has("redirectPath") {
@@ -120,9 +122,11 @@ func (h *Handler) getPostData(url string) XiaohongshuData {
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		slog.Error("Failed to read response body",
+		slog.Error(
+			"Failed to read response body",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -130,8 +134,11 @@ func (h *Handler) getPostData(url string) XiaohongshuData {
 		xiaohongshuJson := strings.ReplaceAll(string(matches[1]), "undefined", "null")
 		err := json.Unmarshal([]byte(xiaohongshuJson), &xiaohongshuData)
 		if err != nil {
-			slog.Error("Error unmarshalling JSON to struct",
-				"Error", err)
+			slog.Error(
+				"Error unmarshalling JSON to struct",
+				"Post Info", []string{h.username, h.postID},
+				"Error", err.Error(),
+			)
 			return nil
 		}
 
@@ -155,16 +162,20 @@ func getCaption(noteData Note) string {
 func (h *Handler) downloadVideo(noteData Note, message *telegram.NewMessage) []telegram.InputMedia {
 	videoInfo := h.findFirstAvailableVideoFormat(noteData.Note.Video.Media.Stream)
 	if videoInfo == nil {
-		slog.Error("No valid video format found",
-			"PostID", h.postID)
+		slog.Error(
+			"No valid video format found",
+			"Post Info", []string{h.username, h.postID},
+		)
 		return nil
 	}
 
 	file, err := downloader.FetchBytesFromURL(videoInfo.MasterURL)
 	if err != nil {
-		slog.Error("Failed to download video",
-			"PostID", h.postID,
-			"Error", err.Error())
+		slog.Error(
+			"Failed to download video",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -175,9 +186,11 @@ func (h *Handler) downloadVideo(noteData Note, message *telegram.NewMessage) []t
 		Height:            int32(videoInfo.Height),
 	})
 	if err != nil {
-		slog.Error("Failed to upload video",
+		slog.Error(
+			"Failed to upload video",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -205,7 +218,6 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 	type mediaResult struct {
 		index int
 		file  []byte
-		err   error
 	}
 
 	mediaCount := len(noteData.Note.ImageList)
@@ -222,24 +234,19 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 
 			file, err := downloader.FetchBytesFromURL(url)
 			if err != nil {
-				slog.Error("Failed to download image",
+				slog.Error(
+					"Failed to download image",
 					"Post Info", []string{h.username, h.postID},
-					"Error", err.Error())
+					"Error", err.Error(),
+				)
 
 			}
-			results <- mediaResult{index, file, err}
+			results <- mediaResult{index, file}
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
-		if result.err != nil {
-			slog.Error("Failed to download media in carousel",
-				"Post Info", []string{h.username, h.postID},
-				"Media Count", result.index,
-				"Error", result.err)
-			continue
-		}
 		if result.file != nil {
 			if noteData.Note.ImageList[result.index].LivePhoto {
 				video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
@@ -247,9 +254,11 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 					SupportsStreaming: true,
 				})
 				if err != nil {
-					slog.Error("Failed to upload video",
+					slog.Error(
+						"Failed to upload video",
 						"Post Info", []string{h.username, h.postID},
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 				mediaItems[result.index] = &video
 			} else {
@@ -257,9 +266,11 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 					File: result.file,
 				})
 				if err != nil {
-					slog.Error("Failed to upload photo",
+					slog.Error(
+						"Failed to upload photo",
 						"Post Info", []string{h.username, h.postID},
-						"Error", err.Error())
+						"Error", err.Error(),
+					)
 				}
 				mediaItems[result.index] = &photo
 			}

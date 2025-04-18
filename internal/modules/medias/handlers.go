@@ -32,7 +32,7 @@ const (
 	maxSizeCaption = 1024
 )
 
-func handlerMedias(message *telegram.NewMessage) error {
+func mediasHandler(message *telegram.NewMessage) error {
 	var mediaItems []telegram.InputMedia
 	var result []string
 	var caption string
@@ -102,7 +102,7 @@ func handlerMedias(message *telegram.NewMessage) error {
 	return err
 }
 
-func handleYoutubeDownload(message *telegram.NewMessage) error {
+func youtubeDownloadHandler(message *telegram.NewMessage) error {
 	var videoURL string
 	i18n := localization.Get(message)
 
@@ -182,7 +182,7 @@ func handleYoutubeDownload(message *telegram.NewMessage) error {
 	return err
 }
 
-func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
+func youtubeDownloadCallback(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	callbackData := strings.Split(update.DataString(), "|")
 
@@ -240,9 +240,11 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 
 	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
-		slog.Error("Failed to resize thumbnail",
+		slog.Error(
+			"Failed to resize thumbnail",
 			"Thumbnail URL", thumbURL,
-			"Error", err.Error())
+			"Error", err.Error(),
+		)
 	}
 
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-%s_%s", video.Author, video.Title))
@@ -289,10 +291,10 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 
 func Load(client *telegram.Client) {
 	utils.SotreHelp("medias")
-	client.On("message:"+regexMedia, handlers.HandleCommand(handlerMedias))
-	client.On("command:dl", handlers.HandleCommand(handlerMedias))
-	client.On("command:ytdl", handlers.HandleCommand(handleYoutubeDownload))
-	client.On("callback:^(_(vid|aud))", callbackYoutubeDownload)
+	client.On("message:"+regexMedia, handlers.HandleCommand(mediasHandler))
+	client.On("command:dl", handlers.HandleCommand(mediasHandler))
+	client.On("command:ytdl", handlers.HandleCommand(youtubeDownloadHandler))
+	client.On("callback:^(_(vid|aud))", youtubeDownloadCallback)
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "ytdl", "dl")
 }

@@ -18,7 +18,7 @@ const (
 	weatherAPIKey = "8de2d8b3a93542c9a2d8b3a935a2c909"
 )
 
-func handlerTranslate(message *telegram.NewMessage) error {
+func translateHandler(message *telegram.NewMessage) error {
 	var text string
 	i18n := localization.Get(message)
 
@@ -71,7 +71,7 @@ type weatherSearch struct {
 	} `json:"location"`
 }
 
-func handlerWeather(message *telegram.NewMessage) error {
+func weatherHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() == "" {
 		_, err := message.Reply(i18n("weather-no-location-provided"), telegram.SendOptions{
@@ -149,7 +149,7 @@ type weatherResult struct {
 	} `json:"v3-location-point"`
 }
 
-func callbackWeather(update *telegram.CallbackQuery) error {
+func weatherCallback(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	chatLang, err := localization.GetChatLanguage(update.ChatID, update.ChatType())
 	if err != nil {
@@ -216,11 +216,11 @@ func callbackWeather(update *telegram.CallbackQuery) error {
 
 func Load(client *telegram.Client) {
 	utils.SotreHelp("misc")
-	client.On("command:translate", handlers.HandleCommand(handlerTranslate))
-	client.On("command:tr", handlers.HandleCommand(handlerTranslate))
-	client.On("command:weather", handlers.HandleCommand(handlerWeather))
-	client.On("command:clima", handlers.HandleCommand(handlerWeather))
-	client.On("callback:weather", callbackWeather)
+	client.On("command:translate", handlers.HandleCommand(translateHandler))
+	client.On("command:tr", handlers.HandleCommand(translateHandler))
+	client.On("command:weather", handlers.HandleCommand(weatherHandler))
+	client.On("command:clima", handlers.HandleCommand(weatherHandler))
+	client.On("callback:weather", weatherCallback)
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "translate", "tr", "weather", "clima")
 }

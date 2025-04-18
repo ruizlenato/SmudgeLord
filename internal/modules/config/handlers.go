@@ -6,6 +6,8 @@ import (
 	"log/slog"
 	"strings"
 
+	"slices"
+
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
@@ -14,15 +16,10 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func handlerDisable(message *telegram.NewMessage) error {
+func disableHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	contains := func(array []string, str string) bool {
-		for _, item := range array {
-			if item == str {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(array, str)
 	}
 
 	command := strings.Split(message.Args(), " ")[0]
@@ -52,7 +49,7 @@ func handlerDisable(message *telegram.NewMessage) error {
 	return err
 }
 
-func handlerEnable(message *telegram.NewMessage) error {
+func enableHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	contains := func(array []string, str string) bool {
 		for _, item := range array {
@@ -91,7 +88,7 @@ func handlerEnable(message *telegram.NewMessage) error {
 	return err
 }
 
-func handlerDisableableCommands(message *telegram.NewMessage) error {
+func disableableHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	text := i18n("disableables-commands")
 	for _, command := range handlers.DisableableCommands {
@@ -102,7 +99,7 @@ func handlerDisableableCommands(message *telegram.NewMessage) error {
 	return err
 }
 
-func handlerDisabled(message *telegram.NewMessage) error {
+func disabledHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	text := i18n("disabled-commands")
 	rows, err := database.DB.Query("SELECT command FROM commandsDisabled WHERE chat_id = ?", message.Chat.ID)
@@ -148,7 +145,7 @@ func createConfigKeyboard(i18n func(string, ...map[string]any) string) telegram.
 	)
 }
 
-func handlerConfig(message *telegram.NewMessage) error {
+func configHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	keyboard := createConfigKeyboard(i18n)
 
@@ -160,7 +157,7 @@ func handlerConfig(message *telegram.NewMessage) error {
 	return err
 }
 
-func callbackConfig(update *telegram.CallbackQuery) error {
+func configCallback(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	keyboard := createConfigKeyboard(i18n)
 	_, err := update.Edit(i18n("config-message"), &telegram.SendOptions{
@@ -170,7 +167,7 @@ func callbackConfig(update *telegram.CallbackQuery) error {
 	return err
 }
 
-func callbackLanguageMenu(update *telegram.CallbackQuery) error {
+func languageMenuCallback(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 
 	buttons := telegram.ButtonBuilder{}.Keyboard()
@@ -195,8 +192,10 @@ func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 	var language string
 	err := row.Scan(&language)
 	if err != nil {
-		slog.Error("Error querying user",
-			"error", err.Error())
+		slog.Error(
+			"Error querying user",
+			"error", err.Error(),
+		)
 	}
 
 	_, err = update.Edit(i18n("language-menu"), &telegram.SendOptions{
@@ -206,7 +205,7 @@ func callbackLanguageMenu(update *telegram.CallbackQuery) error {
 	return err
 }
 
-func callbackLanguageSet(update *telegram.CallbackQuery) error {
+func languageSetCallback(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	lang := strings.ReplaceAll(update.DataString(), "setLang ", "")
 
@@ -216,10 +215,12 @@ func callbackLanguageSet(update *telegram.CallbackQuery) error {
 	}
 	_, err := database.DB.Exec(dbQuery, lang, update.ChatID)
 	if err != nil {
-		slog.Error("Error updating language",
+		slog.Error(
+			"Error updating language",
 			"lang", lang,
 			"chat_id", update.ChatID,
-			"error", err.Error())
+			"error", err.Error(),
+		)
 	}
 
 	buttons := telegram.ButtonBuilder{}.Keyboard()
@@ -243,7 +244,7 @@ func callbackLanguageSet(update *telegram.CallbackQuery) error {
 	return err
 }
 
-func callbackMediaConfig(update *telegram.CallbackQuery) error {
+func mediaConfigCallback(update *telegram.CallbackQuery) error {
 	var mediasCaption bool
 	var mediasAuto bool
 
@@ -319,7 +320,7 @@ func callbackMediaConfig(update *telegram.CallbackQuery) error {
 	return err
 }
 
-func callbackExplainConfig(update *telegram.CallbackQuery) error {
+func explainConfigCallback(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	ieConfig := strings.ReplaceAll(update.DataString(), "ieConfig medias", "")
 	_, err := update.Answer(i18n("medias."+strings.ToLower(ieConfig)+"Help"), &telegram.CallbackOptions{
@@ -330,14 +331,14 @@ func callbackExplainConfig(update *telegram.CallbackQuery) error {
 
 func Load(client *telegram.Client) {
 	utils.SotreHelp("config")
-	client.On("command:disable", handlers.HandleCommand(handlerDisable), telegram.Filter{Group: true, Func: helpers.IsAdmin})
-	client.On("command:enable", handlers.HandleCommand(handlerEnable), telegram.Filter{Group: true, Func: helpers.IsAdmin})
-	client.On("command:disableable", handlers.HandleCommand(handlerDisableableCommands), telegram.Filter{Func: helpers.IsAdmin})
-	client.On("command:disabled", handlers.HandleCommand(handlerDisabled), telegram.Filter{Group: true, Func: helpers.IsAdmin})
-	client.On("command:config", handlers.HandleCommand(handlerConfig), telegram.Filter{Group: true, Func: helpers.IsAdmin})
-	client.On("callback:config", callbackConfig, telegram.Filter{Func: helpers.IsAdmin})
-	client.On("callback:languageMenu", callbackLanguageMenu, telegram.Filter{Func: helpers.IsAdmin})
-	client.On("callback:setLang", callbackLanguageSet, telegram.Filter{Func: helpers.IsAdmin})
-	client.On("callback:mediaConfig", callbackMediaConfig, telegram.Filter{Func: helpers.IsAdmin})
-	client.On("callback:ieConfig", callbackExplainConfig, telegram.Filter{Func: helpers.IsAdmin})
+	client.On("command:disable", handlers.HandleCommand(disableHandler), telegram.Filter{Group: true, Func: helpers.IsAdmin})
+	client.On("command:enable", handlers.HandleCommand(enableHandler), telegram.Filter{Group: true, Func: helpers.IsAdmin})
+	client.On("command:disableable", handlers.HandleCommand(disableableHandler), telegram.Filter{Func: helpers.IsAdmin})
+	client.On("command:disabled", handlers.HandleCommand(disabledHandler), telegram.Filter{Group: true, Func: helpers.IsAdmin})
+	client.On("command:config", handlers.HandleCommand(configHandler), telegram.Filter{Group: true, Func: helpers.IsAdmin})
+	client.On("callback:config", configCallback, telegram.Filter{Func: helpers.IsAdmin})
+	client.On("callback:languageMenu", languageMenuCallback, telegram.Filter{Func: helpers.IsAdmin})
+	client.On("callback:setLang", languageSetCallback, telegram.Filter{Func: helpers.IsAdmin})
+	client.On("callback:mediaConfig", mediaConfigCallback, telegram.Filter{Func: helpers.IsAdmin})
+	client.On("callback:ieConfig", explainConfigCallback, telegram.Filter{Func: helpers.IsAdmin})
 }

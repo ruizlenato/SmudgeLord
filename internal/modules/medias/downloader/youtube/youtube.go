@@ -44,8 +44,10 @@ func ConfigureYoutubeClient() *youtubedl.Client {
 		}
 		ytClient, err := youtubedl.New(youtubedl.WithHTTPClient(client))
 		if err != nil {
-			slog.Error("Couldn't create youtube-dl client with proxy",
-				"Error", err.Error())
+			slog.Error(
+				"Couldn't create youtube-dl client with proxy",
+				"Error", err.Error(),
+			)
 			return nil
 		}
 		return ytClient
@@ -53,8 +55,10 @@ func ConfigureYoutubeClient() *youtubedl.Client {
 
 	ytClient, err := youtubedl.New()
 	if err != nil {
-		slog.Error("Couldn't create youtube-dl client",
-			"Error", err.Error())
+		slog.Error(
+			"Couldn't create youtube-dl client",
+			"Error", err.Error(),
+		)
 		return nil
 	}
 
@@ -96,8 +100,10 @@ func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 
 	fileBytes, err := downloadStream(youtubeClient, video, format)
 	if err != nil {
-		slog.Error("Could't download video, all attempts failed",
-			"Error", err.Error())
+		slog.Error(
+			"Could't download video, all attempts failed",
+			"Error", err.Error(),
+		)
 		return nil, video, err
 	}
 
@@ -112,8 +118,10 @@ func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 		}
 		fileBytes, err = downloader.MergeAudioVideo(fileBytes, audioBytes)
 		if err != nil {
-			slog.Error("Couldn't merge audio and video",
-				"Error", err.Error())
+			slog.Error(
+				"Couldn't merge audio and video",
+				"Error", err.Error(),
+			)
 			return nil, video, err
 		}
 	}
@@ -161,29 +169,37 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 
 	fileBytes, err := downloadStream(youtubeClient, video, format)
 	if err != nil {
-		slog.Error("Couldn't download video stream",
-			"Error", err.Error())
+		slog.Error(
+			"Couldn't download video stream",
+			"Error", err.Error(),
+		)
 		return nil, []string{}
 	}
 
 	audioFormat, err := getVideoFormat(video, 140)
 	if err != nil {
-		slog.Error("Couldn't get audio format",
-			"Error", err.Error())
+		slog.Error(
+			"Couldn't get audio format",
+			"Error", err.Error(),
+		)
 		return nil, []string{}
 	}
 
 	audioBytes, err := downloadStream(youtubeClient, video, audioFormat)
 	if err != nil {
-		slog.Error("Couldn't download audio stream",
-			"Error", err.Error())
+		slog.Error(
+			"Couldn't download audio stream",
+			"Error", err.Error(),
+		)
 		return nil, []string{}
 	}
 
 	fileBytes, err = downloader.MergeAudioVideo(fileBytes, audioBytes)
 	if err != nil {
-		slog.Error("Couldn't merge audio and video",
-			"Error", err.Error())
+		slog.Error(
+			"Couldn't merge audio and video",
+			"Error", err.Error(),
+		)
 		return nil, []string{}
 	}
 

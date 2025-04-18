@@ -56,8 +56,10 @@ func CreateTables() error {
 func Close() {
 	if DB != nil {
 		if err := DB.Close(); err != nil {
-			slog.Error("Error closing database",
-				"error", err)
+			slog.Error(
+				"Error closing database",
+				"error", err.Error(),
+			)
 		} else {
 			fmt.Println("[!] — Database closed")
 		}
@@ -70,15 +72,19 @@ func SaveUsers(message *telegram.NewMessage) error {
 	}
 
 	if err := saveChat(message.ChatID()); err != nil {
-		slog.Error("Could not save chat",
+		slog.Error(
+			"Could not save chat",
 			"ChatID", message.ChatID(),
-			"error", err)
+			"error", err.Error(),
+		)
 	}
 
 	if err := saveUser(message); err != nil {
-		slog.Error("Could not save user",
+		slog.Error(
+			"Could not save user",
 			"UserID", message.Sender.ID,
-			"error", err)
+			"error", err.Error(),
+		)
 	}
 
 	return nil
