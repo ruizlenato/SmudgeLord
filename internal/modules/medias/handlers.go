@@ -3,6 +3,7 @@ package medias
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strconv"
 	"strings"
@@ -235,6 +236,13 @@ func callbackYoutubeDownload(update *telegram.CallbackQuery) error {
 	if err != nil {
 		_, err := update.Edit(i18n("youtube-error"))
 		return err
+	}
+
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+	if err != nil {
+		slog.Error("Failed to resize thumbnail",
+			"Thumbnail URL", thumbURL,
+			"Error", err.Error())
 	}
 
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-%s_%s", video.Author, video.Title))

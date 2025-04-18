@@ -266,6 +266,14 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 			return nil
 		}
 
+		thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+		if err != nil {
+			slog.Error("Failed to resize thumbnail",
+				"Post Info", []string{h.subreddit, h.postID},
+				"Thumbnail URL", thumbnailURL,
+				"Error", err.Error())
+		}
+
 		return thumbnail
 	}
 	return nil
@@ -390,6 +398,14 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 				"Thumbnail URL", data.Preview.Images[0].Source.URL,
 				"Error", err.Error())
 			return nil
+		}
+
+		thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+		if err != nil {
+			slog.Error("Failed to resize thumbnail",
+				"Post Info", []string{h.subreddit, h.postID},
+				"Thumbnail URL", data.Preview.Images[0].Source.URL,
+				"Error", err.Error())
 		}
 
 		video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{

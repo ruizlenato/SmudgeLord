@@ -211,11 +211,13 @@ func (h *Handler) handleVideo(blueskyData BlueskyData, message *telegram.NewMess
 
 	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 	if err != nil {
-		slog.Error("Failed to download thumbnail",
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+	if err != nil {
+		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
 			"Thumbnail URL", thumbnailURL,
 			"Error", err.Error())
-		return nil
+return nil
 	}
 
 	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{

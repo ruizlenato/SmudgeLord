@@ -108,6 +108,15 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 					mediaChan <- mediaResult{index, nil}
 					return
 				}
+
+				media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
+				if err != nil {
+					slog.Error("Failed to resize thumbnail",
+						"Post Info", []string{h.username, h.postID},
+						"Thumbnail URL", twitterMedia.MediaURLHTTPS,
+						"Error", err.Error())
+				}
+
 			} else {
 				media.File, err = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
 				if err != nil {
@@ -344,6 +353,14 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 				media.Thumbnail, err = downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
 				if err != nil {
 					slog.Error("Failed to download media",
+						"Post Info", []string{h.username, h.postID},
+						"Media URL", twitterMedia.URL,
+						"Error", err.Error())
+				}
+
+				media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
+				if err != nil {
+					slog.Error("Failed to resize thumbnail",
 						"Post Info", []string{h.username, h.postID},
 						"Media URL", twitterMedia.URL,
 						"Error", err.Error())

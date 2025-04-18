@@ -294,6 +294,15 @@ func (h *Handler) handleVideo(instagramData *ShortcodeMedia, message *telegram.N
 		return nil
 	}
 
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+	if err != nil {
+		slog.Error(
+			"Failed to resize thumbnail",
+			"Thumbnail URL", instagramData.DisplayResources[len(instagramData.DisplayResources)-1].Src,
+			"Error", err.Error(),
+		)
+	}
+
 	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
 		File:              file,
 		Thumb:             thumbnail,
@@ -367,7 +376,14 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 				if err == nil {
 					media.Thumbnail, err = downloader.FetchBytesFromURL(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
 					if err != nil {
-						slog.Error("Failed to download thumbnail",
+slog.Error("Failed to download thumbnail",
+							"Post Info", []string{h.username, h.postID},
+							"Thumbnail URL", result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src,
+							"Error", err.Error())
+					}
+					media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
+					if err != nil {
+						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Thumbnail URL", result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src,
 							"Error", err.Error())

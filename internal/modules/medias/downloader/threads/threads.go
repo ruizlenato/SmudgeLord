@@ -182,6 +182,13 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 							"Thumbnail URL", threadsMedia.ImageVersions.Candidates[0].URL,
 							"Error", err.Error())
 					}
+					media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
+					if err != nil {
+						slog.Error("Failed to resize thumbnail",
+							"Post Info", []string{h.username, h.postID},
+							"Thumbnail URL", threadsMedia.ImageVersions.Candidates[0].URL,
+							"Error", err.Error())
+					}
 				}
 			}
 			results <- mediaResult{index: index, media: &media}
@@ -230,6 +237,14 @@ func (h *Handler) handleVideo(post Post, message *telegram.NewMessage) []telegra
 			"PostID", h.postID,
 			"Error", err.Error())
 		return nil
+	}
+
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+	if err != nil {
+		slog.Error("Failed to resize thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Thumbnail URL", post.ImageVersions.Candidates[0].URL,
+			"Error", err.Error())
 	}
 
 	uploadedVideo, _ := helpers.UploadVideo(message, helpers.UploadVideoParams{

@@ -180,6 +180,14 @@ func (h *Handler) handleVideo(tikTokData TikTokData, message *telegram.NewMessag
 		return nil
 	}
 
+	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+	if err != nil {
+		slog.Error("Failed to resize thumbnail",
+			"Post ID", []string{h.postID},
+			"Thumbnail URL", tikTokData.AwemeList[0].Video.Cover.URLList[0],
+			"Error", err.Error())
+	}
+
 	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
 		File:              file,
 		Thumb:             thumbnail,
