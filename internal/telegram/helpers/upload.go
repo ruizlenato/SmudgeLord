@@ -1,7 +1,6 @@
 package helpers
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"mime"
@@ -72,11 +71,7 @@ func UploadPhoto(message *telegram.NewMessage, params UploadPhotoParams) (telegr
 	}
 
 	if params.Filename == "" {
-		mimeType, err := mimetype.DetectReader(bytes.NewReader(params.File))
-		if err != nil {
-			return telegram.InputMediaPhoto{}, fmt.Errorf("failed to detect mime type: %w", err)
-		}
-		params.Filename = fmt.Sprintf("photo.%s", mimeType.Extension())
+		params.Filename = fmt.Sprintf("photo.%s", mimetype.Detect(params.File).Extension())
 	}
 
 	file, err := media.GetInputFile(params.File, params.Filename)
@@ -150,11 +145,7 @@ func UploadVideo(message *telegram.NewMessage, params UploadVideoParams) (telegr
 	}
 
 	if params.MimeType == "" {
-		mimeType, err := mimetype.DetectReader(bytes.NewReader(params.File))
-		if err != nil {
-			return telegram.InputMediaDocument{}, fmt.Errorf("failed to detect mime type: %w", err)
-		}
-		params.MimeType = mimeType.String()
+		params.MimeType = mimetype.Detect(params.File).String()
 	}
 
 	if params.Filename == "" {
