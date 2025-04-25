@@ -1,26 +1,35 @@
 package stickers
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"log/slog"
-	"os"
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/amarnathcjd/gogram/telegram"
-	"github.com/anthonynsimon/bild/imgio"
-	"github.com/anthonynsimon/bild/transform"
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
+const (
+	stickerTypeStatic   = "static"
+	stickerTypeAnimated = "animated"
+	stickerTypeVideo    = "video"
+	actionResize        = "resize"
+	actionConvert       = "convert"
+)
+
 var emojiRegex = regexp.MustCompile(`[\x{1F600}-\x{1F64F}]|[\x{2694}-\x{2697}]|[\x{2702}-\x{27B0}]|[\x{1F926}-\x{1F937}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{2600}-\x{26FF}]`)
 
 func getStickerHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
+
 	if !message.IsReply() {
 		_, err := message.Reply(i18n("get-sticker-no-reply-provided"))
 		return err
@@ -28,30 +37,51 @@ func getStickerHandler(message *telegram.NewMessage) error {
 
 	reply, err := message.GetReplyMessage()
 	if err != nil {
+		slog.Error(
+			"Failed to get reply message",
+			"error", err.Error(),
+		)
 		return err
 	}
 
-	stickerType, emoji := extractStickerInfo(reply)
-	if reply.Sticker() == nil || stickerType == "animated" {
+	if reply.Sticker() == nil {
 		_, err := message.Reply(i18n("get-sticker-no-reply-provided"))
 		return err
 	}
 
-	filename := "Smudge*.png"
+	stickerType, emoji := extractStickerInfo(reply)
+
+	if stickerType == stickerTypeAnimated {
+		_, err := message.Reply(i18n("get-sticker-animated-not-supported"))
+		return err
+	}
+
+	var buf bytes.Buffer
+	_, err = reply.Download(&telegram.DownloadOptions{Buffer: &buf})
+	if err != nil {
+		slog.Error(
+			"Failed to download sticker",
+			"error", err.Error(),
+		)
+		return err
+	}
+
+	filename := "sticker.png"
 	if stickerType == "video" {
-		filename = "Smudge*.gif"
-	}
-	file, err := os.CreateTemp("", filename)
-	if err != nil {
-		return err
+		filename = "sticker.webm"
 	}
 
-	stickerFile, err := reply.Download(&telegram.DownloadOptions{FileName: file.Name()})
+	_, err = message.ReplyMedia(buf.Bytes(), telegram.MediaOptions{
+		ForceDocument: true,
+		Caption:       "<b>Emoji:</b> " + emoji,
+		FileName:      filename,
+	})
 	if err != nil {
-		return err
+		slog.Error(
+			"Error sending sticker",
+			"error", err.Error(),
+		)
 	}
-
-	_, err = message.ReplyMedia(stickerFile, telegram.MediaOptions{ForceDocument: true, Caption: "<b>Emoji:</b> " + emoji})
 	return err
 }
 
@@ -72,11 +102,7 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 	}
 
 	reply, err := message.GetReplyMessage()
-	if err != nil {
-		return err
-	}
-
-	if !reply.IsMedia() && reply.Sticker() == nil {
+	if err != nil || !reply.IsMedia() && reply.Sticker() == nil {
 		return nil
 	}
 
@@ -92,94 +118,69 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 	var action string
 	if reply.IsMedia() && reply.Sticker() == nil {
 		if _, ok := reply.Media().(*telegram.MessageMediaPhoto); ok {
-			action = "resize"
+			action = actionResize
 		}
 		if media, ok := reply.Media().(*telegram.MessageMediaDocument); ok {
 			if document, ok := media.Document.(*telegram.DocumentObj); ok {
 				switch {
 				case strings.Contains(document.MimeType, "image"):
-					action = "resize"
+					action = actionResize
 				case strings.Contains(document.MimeType, "video"):
-					action = "convert"
+					action = actionConvert
 				}
 			}
 		}
 	}
 
-	var file *os.File
-	switch {
-	case action == "resize", stickerType == "static":
-		file, err = os.CreateTemp("", "*"+".png")
-	case action == "convert", stickerType == "video":
-		file, err = os.CreateTemp("", "*"+".webm")
-	case stickerType == "animated":
-		file, err = os.CreateTemp("", "*"+".tgs")
-	default:
-		_, err = progressMessage.Edit(i18n("sticker-invalid-media-type"), telegram.SendOptions{
-			ParseMode: telegram.HTML,
-		})
-		return err
-	}
+	var buf bytes.Buffer
+	_, err = reply.Download(&telegram.DownloadOptions{Buffer: &buf})
 	if err != nil {
+		slog.Error(
+			"Failed to download file",
+			"error", err.Error(),
+		)
 		return err
 	}
+	stickerBytes := buf.Bytes()
 
-	defer func() {
-		if err := os.Remove(file.Name()); err != nil {
-			slog.Error(
-				"Could not remove file",
-				"file", file.Name(),
-				"error", err.Error(),
-			)
-			return
-		}
-	}()
-
-	stickerFile, err := reply.Download(&telegram.DownloadOptions{FileName: file.Name()})
-	if err != nil {
-		return err
-	}
-
+	var filename string
 	switch action {
-	case "resize":
-		err = resizeImage(stickerFile)
+	case actionResize:
+		stickerBytes, err = utils.ResizeSticker(buf.Bytes())
 		if err != nil {
-			_, err := progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
-				ParseMode: telegram.HTML,
-			})
-			if err != nil {
-				return err
-			}
-			return err
+			return editProgressAndReturn(progressMessage, i18n("kang-error"), err)
 		}
-	case "convert":
-		progressMessage, err = progressMessage.Edit(i18n("converting-video-to-sticker"), telegram.SendOptions{
-			ParseMode: telegram.HTML,
-		})
+		filename = "sticker.png"
+	case actionConvert:
+		progressMessage, err = progressMessage.Edit(i18n("converting-video-to-sticker"), telegram.SendOptions{ParseMode: telegram.HTML})
 		if err != nil {
 			return err
 		}
-		err = convertVideo(stickerFile)
+		stickerBytes, err = convertVideoBytes(stickerBytes)
 		if err != nil {
-			_, err := progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
-				ParseMode: telegram.HTML,
-			})
-			if err != nil {
-				return err
-			}
-			return err
+			return editProgressAndReturn(progressMessage, i18n("kang-error"), err)
+		}
+		filename = "sticker.webm"
+	default:
+		switch stickerType {
+		case stickerTypeStatic:
+			filename = "sticker.png"
+		case stickerTypeVideo:
+			filename = "sticker.webm"
+		case stickerTypeAnimated:
+			filename = "sticker.tgs"
+		default:
+			return editProgressAndReturn(progressMessage, i18n("sticker-invalid-media-type"), nil)
 		}
 	}
 
 	stickerSetShortName, stickerSetTitle := generateStickerSetName(message)
-	mediaMsg, err := message.Client.SendMedia(config.ChannelLogID, stickerFile, &telegram.MediaOptions{
+	mediaMsg, err := message.Client.SendMedia(config.ChannelLogID, stickerBytes, &telegram.MediaOptions{
 		ForceDocument: true,
+		FileName:      filename,
 	})
 	if err != nil {
-		_, err = progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
-			ParseMode: telegram.HTML,
-		})
-		return err
+		return editProgressAndReturn(progressMessage, i18n("kang-error"), err)
 	}
 	defer func() {
 		if _, err := mediaMsg.Delete(); err != nil {
@@ -191,9 +192,7 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 		}
 	}()
 
-	progressMessage, err = progressMessage.Edit(i18n("sticker-pack-already-exists"), telegram.SendOptions{
-		ParseMode: telegram.HTML,
-	})
+	progressMessage, err = progressMessage.Edit(i18n("sticker-pack-already-exists"), telegram.SendOptions{ParseMode: telegram.HTML})
 	if err != nil {
 		return err
 	}
@@ -219,13 +218,9 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 			}},
 		})
 		if err != nil {
-			_, err = progressMessage.Edit(i18n("kang-error"), telegram.SendOptions{
-				ParseMode: telegram.HTML,
-			})
-			return err
+			return editProgressAndReturn(progressMessage, i18n("kang-error"), err)
 		}
 	}
-
 	_, err = progressMessage.Edit(i18n("sticker-stoled",
 		map[string]any{
 			"stickerSetName": stickerSetShortName,
@@ -234,6 +229,14 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 		ParseMode: telegram.HTML,
 	})
 	return err
+}
+
+func editProgressAndReturn(progressMessage *telegram.NewMessage, text string, originalErr error) error {
+	_, editErr := progressMessage.Edit(text, telegram.SendOptions{ParseMode: telegram.HTML})
+	if editErr != nil {
+		slog.Error("Failed to edit progress message on error", "editError", editErr, "originalError", originalErr)
+	}
+	return originalErr
 }
 
 func generateStickerSetName(message *telegram.NewMessage) (string, string) {
@@ -272,15 +275,16 @@ func extractStickerInfo(reply *telegram.NewMessage) (stickerType string, emoji s
 			if document, ok := media.Document.(*telegram.DocumentObj); ok {
 				switch {
 				case strings.Contains(document.MimeType, "image"):
-					stickerType = "static"
+					stickerType = stickerTypeStatic
 				case strings.Contains(document.MimeType, "tgsticker"):
-					stickerType = "animated"
+					stickerType = stickerTypeAnimated
 				case strings.Contains(document.MimeType, "video"):
-					stickerType = "video"
+					stickerType = stickerTypeVideo
 				}
 				for _, attr := range document.Attributes {
 					if attrSticker, ok := attr.(*telegram.DocumentAttributeSticker); ok {
 						emoji = attrSticker.Alt
+						break
 					}
 				}
 			}
@@ -291,40 +295,42 @@ func extractStickerInfo(reply *telegram.NewMessage) (stickerType string, emoji s
 	return stickerType, emoji
 }
 
-func resizeImage(input string) error {
-	img, err := imgio.Open(input)
-	if err != nil {
-		return err
-	}
+func convertVideoBytes(input []byte) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	resizedImg := transform.Resize(img, 512, 512, transform.Lanczos)
-	return imgio.Save(input, resizedImg, imgio.PNGEncoder())
-}
-
-func convertVideo(inputFile string) (err error) {
-	outputFile, err := os.CreateTemp("", "Smudge*.webm")
-	if err != nil {
-		return err
-	}
-	defer os.Remove(outputFile.Name())
-
-	err = exec.Command("ffmpeg",
-		"-i", inputFile,
-		"-t", "00:00:03",
-		"-vf", "fps=30,scale=512:512",
+	cmd := exec.CommandContext(ctx, "ffmpeg",
+		"-hide_banner", "-loglevel", "error",
+		"-i", "pipe:0",
+		"-t", "3",
+		"-vf", "scale='min(512,iw)':'min(512,ih)':force_original_aspect_ratio=decrease,fps=30,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white@0",
 		"-c:v", "libvpx-vp9",
 		"-b:v", "256k",
-		"-preset", "ultrafast",
+		"-pix_fmt", "yuv420p",
 		"-an",
+		"-f", "webm",
 		"-y",
-		outputFile.Name(),
-	).Run()
-	if err != nil {
-		return err
-	}
-	outputFile.Seek(0, 0)
+		"pipe:1",
+	)
 
-	return os.Rename(outputFile.Name(), inputFile)
+	cmd.Stdin = bytes.NewReader(input)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	err := cmd.Run()
+	if err != nil {
+		if ctx.Err() == context.DeadlineExceeded {
+			return nil, fmt.Errorf("ffmpeg conversion timed out: %w", ctx.Err())
+		}
+		return nil, fmt.Errorf("ffmpeg error: %w\nStderr: %s", err, stderr.String())
+	}
+
+	if stdout.Len() == 0 {
+		return nil, fmt.Errorf("ffmpeg produced no output\nStderr: %s", stderr.String())
+	}
+
+	return stdout.Bytes(), nil
 }
 
 func Load(client *telegram.Client) {

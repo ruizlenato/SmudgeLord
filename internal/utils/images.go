@@ -4,11 +4,26 @@ import (
 	"bytes"
 	"image"
 	"image/jpeg"
+	"image/png"
 	"os"
 
 	"github.com/anthonynsimon/bild/transform"
 )
 
+func ResizeSticker(input []byte) ([]byte, error) {
+	img, _, err := image.Decode(bytes.NewReader(input))
+	if err != nil {
+		return nil, err
+	}
+	resizedImg := transform.Resize(img, 512, 512, transform.Lanczos)
+
+	var buf bytes.Buffer
+	if err := png.Encode(&buf, resizedImg); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
 func processThumbnailImage(img image.Image) ([]byte, error) {
 	var buf bytes.Buffer
 
