@@ -220,7 +220,7 @@ func Load(client *telegram.Client) {
 	client.On("command:tr", handlers.HandleCommand(translateHandler))
 	client.On("command:weather", handlers.HandleCommand(weatherHandler))
 	client.On("command:clima", handlers.HandleCommand(weatherHandler))
-	client.On("callback:weather", weatherCallback)
+	client.On("callback:^weather", weatherCallback)
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "translate", "tr", "weather", "clima")
 }

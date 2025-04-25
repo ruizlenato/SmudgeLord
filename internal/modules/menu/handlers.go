@@ -211,11 +211,11 @@ func helpMessageCallback(update *telegram.CallbackQuery) error {
 
 func Load(client *telegram.Client) {
 	client.On("command:start", handlers.HandleCommand(startHandler))
-	client.On("callback:start", startCallback)
+	client.On("callback:^start", startCallback)
 	client.On("command:privacy", handlers.HandleCommand(privacyHandler))
-	client.On("callback:privacy", privacyCallback)
-	client.On("callback:aboutYourData", aboutYourDataCallback)
+	client.On("callback:^privacy", privacyCallback)
+	client.On("callback:^aboutYourData", aboutYourDataCallback)
 	client.On("callback:aboutMenu", aboutMenuCallback)
-	client.On("callback:helpMenu", helpMenuCallback)
-	client.On("callback:helpMessage", helpMessageCallback)
+	client.On("callback:^helpMenu", helpMenuCallback)
+	client.On("callback:^helpMessage", helpMessageCallback)
 }
