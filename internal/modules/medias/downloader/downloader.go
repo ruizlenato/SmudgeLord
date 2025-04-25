@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -315,54 +316,74 @@ func TruncateUTF8Caption(s, url string) string {
 }
 
 func MergeAudioVideo(videoData, audioData []byte) ([]byte, error) {
-	var output bytes.Buffer
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
 
-	cmd := exec.Command("ffmpeg")
+	cmd := exec.CommandContext(ctx, "ffmpeg",
+		"-hide_banner", "-loglevel", "error",
+		"-i", "pipe:0",
+		"-i", "pipe:3",
+		"-c", "copy",
+		"-shortest",
+		"-movflags", "frag_keyframe+empty_moov",
+		"-f", "mp4",
+		"pipe:1",
+	)
+
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
 	videoReader, videoWriter, err := os.Pipe()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create video pipe: %w", err)
 	}
 	defer videoReader.Close()
 
 	audioReader, audioWriter, err := os.Pipe()
 	if err != nil {
 		videoWriter.Close()
-		return nil, err
+		return nil, fmt.Errorf("failed to create audio pipe: %w", err)
 	}
 	defer audioReader.Close()
 
-	cmd.Args = append(cmd.Args,
-		"-i", "pipe:0",
-		"-i", "pipe:3",
-		"-c", "copy",
-		"-shortest",
-		"-f", "mp4",
-		"pipe:1")
-
 	cmd.Stdin = videoReader
-	cmd.Stdout = &output
 	cmd.ExtraFiles = []*os.File{audioReader}
 
-	if err := cmd.Start(); err != nil {
-		videoWriter.Close()
-		audioWriter.Close()
-		return nil, err
-	}
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- cmd.Run()
+	}()
 
 	go func() {
 		defer videoWriter.Close()
-		videoWriter.Write(videoData)
+		_, writeErr := videoWriter.Write(videoData)
+		if writeErr != nil {
+			slog.Error("Error writing video data to pipe", "error", writeErr)
+		}
 	}()
 
 	go func() {
 		defer audioWriter.Close()
-		audioWriter.Write(audioData)
+		_, writeErr := audioWriter.Write(audioData)
+		if writeErr != nil {
+			slog.Error("Error writing audio data to pipe", "error", writeErr)
+		}
 	}()
 
-	if err := cmd.Wait(); err != nil {
-		return nil, err
+	select {
+	case err = <-errChan:
+	case <-ctx.Done():
+		return nil, fmt.Errorf("ffmpeg merge timed out after 60s: %w\nStderr: %s", ctx.Err(), stderr.String())
 	}
 
-	return output.Bytes(), nil
+	if err != nil {
+		return nil, fmt.Errorf("ffmpeg error during merge: %w\nStderr: %s", err, stderr.String())
+	}
+
+	if stdout.Len() == 0 {
+		return nil, fmt.Errorf("ffmpeg produced no output during merge\nStderr: %s", stderr.String())
+	}
+
+	return stdout.Bytes(), nil
 }
