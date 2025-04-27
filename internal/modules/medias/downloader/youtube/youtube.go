@@ -211,7 +211,13 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 		Height:            int32(video.Formats.Itag(videoStream.ItagNo)[0].Height),
 	})
 	if err != nil {
-		fmt.Println("YouTube — Error uploading video: ", err)
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Couldn't upload video",
+				"Error", err.Error(),
+			)
+		}
+		return nil, []string{}
 	}
 
 	return []telegram.InputMedia{&videoFile}, []string{fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title), video.ID}

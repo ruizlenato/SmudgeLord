@@ -251,12 +251,14 @@ func (h *Handler) handleVideo(blueskyData BlueskyData, message *telegram.NewMess
 		Height:            int32(height),
 	})
 	if err != nil {
-		slog.Error(
-			"Failed to upload video",
-			"Post Info", []string{h.username, h.postID},
-			"Video URL", url,
-			"Error", err.Error(),
-		)
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload video",
+				"Post Info", []string{h.username, h.postID},
+				"Video URL", url,
+				"Error", err.Error(),
+			)
+		}
 		return nil
 	}
 
@@ -291,9 +293,20 @@ func (h *Handler) handleImages(blueskyImages []Image, message *telegram.NewMessa
 	for range mediaCount {
 		result := <-results
 		if result.file != nil {
-			photo, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+			photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 				File: result.file,
 			})
+			if err != nil {
+				if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+					slog.Error(
+						"Failed to upload image",
+						"Post Info", []string{h.username, h.postID},
+						"Image URL", blueskyImages[result.index].Fullsize,
+						"Error", err.Error(),
+					)
+				}
+				continue
+			}
 			mediaItems[result.index] = &photo
 		}
 	}

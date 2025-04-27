@@ -208,6 +208,15 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response, me
 			SupportsStreaming: true,
 		})
 		if err != nil {
+			if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+				slog.Error(
+					"Failed to upload video",
+					"Post Info", []string{h.subreddit, h.postID},
+					"Video URL", videoURL,
+					"Thumbnail URL", string(thumbnail),
+					"Error", err.Error(),
+				)
+			}
 			return nil
 		}
 
@@ -312,13 +321,15 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response, me
 			File: file,
 		})
 		if err != nil {
-			slog.Error(
-				"Failed to upload photo",
-				"Post Info", []string{h.subreddit, h.postID},
-				"Image URL", imageURL,
-				"Error", err.Error(),
-			)
-			return nil
+			if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+				slog.Error(
+					"Failed to upload photo",
+					"Post Info", []string{h.subreddit, h.postID},
+					"Image URL", imageURL,
+					"Error", err.Error(),
+				)
+				return nil
+			}
 		}
 
 		return []telegram.InputMedia{&photo}
@@ -359,9 +370,20 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 	for range mediaCount {
 		result := <-results
 		if result.file != nil {
-			photo, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+			photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 				File: result.file,
 			})
+			if err != nil {
+				if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+					slog.Error(
+						"Failed to upload photo",
+						"Post Info", []string{h.subreddit, h.postID},
+						"Image URL", string(content[result.index][1]),
+						"Error", err.Error(),
+					)
+				}
+				continue
+			}
 			mediaItems[result.index] = &photo
 		}
 	}
@@ -444,13 +466,15 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 			Height:            int32(data.Media.RedditVideo.Height),
 		})
 		if err != nil {
-			slog.Error(
-				"Failed to upload video",
-				"Post Info", []string{h.subreddit, h.postID},
-				"Video URL", data.Media.RedditVideo.FallbackURL,
-				"Error", err.Error(),
-			)
-			return nil
+			if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+				slog.Error(
+					"Failed to upload video",
+					"Post Info", []string{h.subreddit, h.postID},
+					"Video URL", data.Media.RedditVideo.FallbackURL,
+					"Error", err.Error(),
+				)
+				return nil
+			}
 		}
 
 		return []telegram.InputMedia{&video}
@@ -491,9 +515,19 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 		for range mediaCount {
 			result := <-results
 			if result.file != nil {
-				photo, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 					File: result.file,
 				})
+				if err != nil {
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload photo",
+							"Post Info", []string{h.subreddit, h.postID},
+							"Error", err.Error(),
+						)
+					}
+					continue
+				}
 				mediaItems[result.index] = &photo
 			}
 		}
@@ -515,13 +549,15 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 			File: photoByte,
 		})
 		if err != nil {
-			slog.Error(
-				"Failed to upload photo",
-				"Post Info", []string{h.subreddit, h.postID},
-				"Image URL", data.URL,
-				"Error", err.Error(),
-			)
-			return nil
+			if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+				slog.Error(
+					"Failed to upload photo",
+					"Post Info", []string{h.subreddit, h.postID},
+					"Image URL", data.URL,
+					"Error", err.Error(),
+				)
+				return nil
+			}
 		}
 
 		return []telegram.InputMedia{&photo}

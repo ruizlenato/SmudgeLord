@@ -186,11 +186,13 @@ func (h *Handler) downloadVideo(noteData Note, message *telegram.NewMessage) []t
 		Height:            int32(videoInfo.Height),
 	})
 	if err != nil {
-		slog.Error(
-			"Failed to upload video",
-			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error(),
-		)
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload video",
+				"Post Info", []string{h.username, h.postID},
+				"Error", err.Error(),
+			)
+		}
 		return nil
 	}
 
@@ -254,11 +256,14 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 					SupportsStreaming: true,
 				})
 				if err != nil {
-					slog.Error(
-						"Failed to upload video",
-						"Post Info", []string{h.username, h.postID},
-						"Error", err.Error(),
-					)
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload video",
+							"Post Info", []string{h.username, h.postID},
+							"Error", err.Error(),
+						)
+					}
+					continue
 				}
 				mediaItems[result.index] = &video
 			} else {
@@ -266,11 +271,14 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 					File: result.file,
 				})
 				if err != nil {
-					slog.Error(
-						"Failed to upload photo",
-						"Post Info", []string{h.username, h.postID},
-						"Error", err.Error(),
-					)
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload photo",
+							"Post Info", []string{h.username, h.postID},
+							"Error", err.Error(),
+						)
+					}
+					continue
 				}
 				mediaItems[result.index] = &photo
 			}

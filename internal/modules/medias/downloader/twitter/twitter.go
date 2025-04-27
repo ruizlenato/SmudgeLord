@@ -147,14 +147,18 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 		if result.media.File != nil {
 			twitterMedia := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media[result.index]
 			if twitterMedia.Type == "photo" {
-				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.media.File})
+				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+					File: result.media.File,
+				})
 				if err != nil {
-					slog.Error(
-						"Failed to upload photo",
-						"Post Info", []string{h.username, h.postID},
-						"Photo URL", twitterMedia.MediaURLHTTPS,
-						"Error", err.Error(),
-					)
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload photo",
+							"Post Info", []string{h.username, h.postID},
+							"Photo URL", twitterMedia.MediaURLHTTPS,
+							"Error", err.Error(),
+						)
+					}
 					continue
 				}
 
@@ -168,12 +172,14 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 					Height:            int32(twitterMedia.OriginalInfo.Height),
 				})
 				if err != nil {
-					slog.Error(
-						"Failed to upload video",
-						"Post Info", []string{h.username, h.postID},
-						"Video URL", twitterMedia.MediaURLHTTPS,
-						"Error", err.Error(),
-					)
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload video",
+							"Post Info", []string{h.username, h.postID},
+							"Video URL", twitterMedia.MediaURLHTTPS,
+							"Error", err.Error(),
+						)
+					}
 					continue
 				}
 
@@ -236,6 +242,9 @@ func (h *Handler) getGuestToken() string {
 
 func (h *Handler) getTwitterData() (*TwitterAPIData, error) {
 	guestToken := h.getGuestToken()
+	if guestToken == "" {
+		return nil, errors.New("failed to get guest token")
+	}
 
 	headers["x-guest-token"] = guestToken
 	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
@@ -405,14 +414,18 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 		if result.media.File != nil {
 			var mediaItem telegram.InputMedia
 			if twitterData.Tweet.Media.All[result.index].Type != "video" {
-				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{File: result.media.File})
+				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+					File: result.media.File,
+				})
 				if err != nil {
-					slog.Error(
-						"Failed to upload photo",
-						"Post Info", []string{h.username, h.postID},
-						"Photo URL", twitterData.Tweet.Media.All[result.index].URL,
-						"Error", err.Error(),
-					)
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload photo",
+							"Post Info", []string{h.username, h.postID},
+							"Photo URL", twitterData.Tweet.Media.All[result.index].URL,
+							"Error", err.Error(),
+						)
+					}
 					continue
 				}
 				mediaItem = &uploadedPhoto
@@ -425,12 +438,14 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 					Height:            int32(twitterData.Tweet.Media.All[result.index].Height),
 				})
 				if err != nil {
-					slog.Error(
-						"Failed to upload video",
-						"Post Info", []string{h.username, h.postID},
-						"Video URL", twitterData.Tweet.Media.All[result.index].URL,
-						"Error", err.Error(),
-					)
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload video",
+							"Post Info", []string{h.username, h.postID},
+							"Video URL", twitterData.Tweet.Media.All[result.index].URL,
+							"Error", err.Error(),
+						)
+					}
 					continue
 				}
 				mediaItem = &uploadedVideo

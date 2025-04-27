@@ -321,11 +321,13 @@ func (h *Handler) handleVideo(instagramData *ShortcodeMedia, message *telegram.N
 		Height:            int32(instagramData.Dimensions.Height),
 	})
 	if err != nil {
-		slog.Error(
-			"Failed to upload video",
-			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error(),
-		)
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload video",
+				"Post Info", []string{h.username, h.postID},
+				"Error", err.Error(),
+			)
+		}
 		return nil
 	}
 
@@ -347,11 +349,13 @@ func (h *Handler) handleImage(instagramData *ShortcodeMedia, message *telegram.N
 		File: file,
 	})
 	if err != nil {
-		slog.Error(
-			"Failed to upload photo",
-			"Post Info", []string{h.username, h.postID},
-			"Error", err.Error(),
-		)
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload photo",
+				"Post Info", []string{h.username, h.postID},
+				"Error", err.Error(),
+			)
+		}
 		return nil
 	}
 
@@ -427,22 +431,36 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 					File: result.file.File,
 				})
 				if err != nil {
-					slog.Error(
-						"Failed to upload photo",
-						"Post Info", []string{h.username, h.postID},
-						"Image URL", instagramData.EdgeSidecarToChildren.Edges[result.index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[result.index].Node.DisplayResources)-1].Src,
-						"Error", err.Error(),
-					)
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload photo",
+							"Post Info", []string{h.username, h.postID},
+							"Image URL", instagramData.EdgeSidecarToChildren.Edges[result.index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[result.index].Node.DisplayResources)-1].Src,
+							"Error", err.Error(),
+						)
+					}
+					continue
 				}
 				mediaItems[result.index] = &photo
 			} else {
-				video, _ := helpers.UploadVideo(message, helpers.UploadVideoParams{
+				video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
 					File:              result.file.File,
 					Thumb:             result.file.Thumbnail,
 					SupportsStreaming: true,
 					Width:             int32(instagramData.Dimensions.Width),
 					Height:            int32(instagramData.Dimensions.Height),
 				})
+				if err != nil {
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload video",
+							"Post Info", []string{h.username, h.postID},
+							"Video URL", instagramData.EdgeSidecarToChildren.Edges[result.index].Node.VideoURL,
+							"Error", err.Error(),
+						)
+					}
+					continue
+				}
 				mediaItems[result.index] = &video
 			}
 		}

@@ -150,12 +150,14 @@ func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessa
 				File: result.file,
 			})
 			if err != nil {
-				slog.Error(
-					"Failed to upload image",
-					"Post ID", []string{h.postID},
-					"Image URL", tikTokData.AwemeList[0].ImagePostInfo.Images[result.index].DisplayImage.URLList[1],
-					"Error", err.Error(),
-				)
+				if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+					slog.Error(
+						"Failed to upload image",
+						"Post ID", []string{h.postID},
+						"Image URL", tikTokData.AwemeList[0].ImagePostInfo.Images[result.index].DisplayImage.URLList[1],
+						"Error", err.Error(),
+					)
+				}
 				continue
 			}
 			mediaItems[result.index] = &photo
@@ -206,13 +208,15 @@ func (h *Handler) handleVideo(tikTokData TikTokData, message *telegram.NewMessag
 		Height:            int32(tikTokData.AwemeList[0].Video.PlayAddr.Height),
 	})
 	if err != nil {
-		slog.Error(
-			"Failed to upload video",
-			"Post ID", []string{h.postID},
-			"Video URL", tikTokData.AwemeList[0].Video.PlayAddr.URLList[0],
-			"Thumbnail URL", tikTokData.AwemeList[0].Video.Cover.URLList[0],
-			"Error", err.Error(),
-		)
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload video",
+				"Post ID", []string{h.postID},
+				"Video URL", tikTokData.AwemeList[0].Video.PlayAddr.URLList[0],
+				"Thumbnail URL", tikTokData.AwemeList[0].Video.Cover.URLList[0],
+				"Error", err.Error(),
+			)
+		}
 		return nil
 	}
 

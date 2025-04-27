@@ -71,7 +71,13 @@ func UploadPhoto(message *telegram.NewMessage, params UploadPhotoParams) (telegr
 	}
 
 	if params.Filename == "" {
-		params.Filename = fmt.Sprintf("photo.%s", mimetype.Detect(params.File).Extension())
+		extension := mimetype.Detect(params.File).Extension()
+		switch extension {
+		case "", ".webp", ".unknown":
+			extension = ".jpg"
+		}
+
+		params.Filename = fmt.Sprintf("photo%s", extension)
 	}
 
 	file, err := media.GetInputFile(params.File, params.Filename)

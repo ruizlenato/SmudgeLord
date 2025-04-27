@@ -214,18 +214,40 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 		if result.media.File != nil {
 			var mediaItem telegram.InputMedia
 			if (*post.CarouselMedia)[result.index].VideoVersions == nil {
-				uploadedPhoto, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 					File: result.media.File,
 				})
+				if err != nil {
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload photo",
+							"Post Info", []string{h.username, h.postID},
+							"Image URL", (*post.CarouselMedia)[result.index].ImageVersions.Candidates[0].URL,
+							"Error", err.Error(),
+						)
+					}
+					continue
+				}
 				mediaItem = &uploadedPhoto
 			} else {
-				uploadedVideo, _ := helpers.UploadVideo(message, helpers.UploadVideoParams{
+				uploadedVideo, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
 					File:              result.media.File,
 					Thumb:             result.media.Thumbnail,
 					SupportsStreaming: true,
 					Width:             int32((*post.CarouselMedia)[result.index].OriginalWidth),
 					Height:            int32((*post.CarouselMedia)[result.index].OriginalWidth),
 				})
+				if err != nil {
+					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+						slog.Error(
+							"Failed to upload video",
+							"Post Info", []string{h.username, h.postID},
+							"Image URL", (*post.CarouselMedia)[result.index].ImageVersions.Candidates[0].URL,
+							"Error", err.Error(),
+						)
+						continue
+					}
+				}
 				mediaItem = &uploadedVideo
 			}
 			mediaItems[result.index] = mediaItem
@@ -268,13 +290,25 @@ func (h *Handler) handleVideo(post Post, message *telegram.NewMessage) []telegra
 		)
 	}
 
-	uploadedVideo, _ := helpers.UploadVideo(message, helpers.UploadVideoParams{
+	uploadedVideo, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
 		File:              file,
 		Thumb:             thumbnail,
 		SupportsStreaming: true,
 		Width:             int32(post.OriginalWidth),
 		Height:            int32(post.OriginalHeight),
 	})
+	if err != nil {
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload video",
+				"Post Info", []string{h.username, h.postID},
+				"Video URL", post.VideoVersions[0].URL,
+				"Thumbnail URL", post.ImageVersions.Candidates[0].URL,
+				"Error", err.Error(),
+			)
+		}
+		return nil
+	}
 	return []telegram.InputMedia{&uploadedVideo}
 }
 
@@ -290,9 +324,20 @@ func (h *Handler) handleImage(post Post, message *telegram.NewMessage) []telegra
 		return nil
 	}
 
-	uploadedPhoto, _ := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+	uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 		File: file,
 	})
+	if err != nil {
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload photo",
+				"Post Info", []string{h.username, h.postID},
+				"Image URL", post.ImageVersions.Candidates[0].URL,
+				"Error", err.Error(),
+			)
+		}
+		return nil
+	}
 
 	return []telegram.InputMedia{&uploadedPhoto}
 }
