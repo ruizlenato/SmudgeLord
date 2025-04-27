@@ -274,7 +274,7 @@ func mergeSegments(segmentFiles []string) (*os.File, error) {
 	}()
 
 	for _, segmentFile := range segmentFiles {
-		if _, err := listFile.WriteString(fmt.Sprintf("file '%s'\n", segmentFile)); err != nil {
+		if _, err := fmt.Fprintf(listFile, "file '%s'\n", segmentFile); err != nil {
 			return nil, err
 		}
 	}
@@ -357,18 +357,12 @@ func MergeAudioVideo(videoData, audioData []byte) ([]byte, error) {
 
 	go func() {
 		defer videoWriter.Close()
-		_, writeErr := videoWriter.Write(videoData)
-		if writeErr != nil {
-			slog.Error("Error writing video data to pipe", "error", writeErr)
-		}
+		videoWriter.Write(videoData)
 	}()
 
 	go func() {
 		defer audioWriter.Close()
-		_, writeErr := audioWriter.Write(audioData)
-		if writeErr != nil {
-			slog.Error("Error writing audio data to pipe", "error", writeErr)
-		}
+		audioWriter.Write(audioData)
 	}()
 
 	select {
