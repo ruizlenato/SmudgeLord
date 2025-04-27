@@ -2,6 +2,8 @@ github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/amarnathcjd/gogram v1.5.10-0.20250421070508-a5256a3c1f81 h1:EQ/JuDYvXzmZr3JzMIkcZAXrja6y6ZQUDCf203NVaSY=
 github.com/amarnathcjd/gogram v1.5.10-0.20250421070508-a5256a3c1f81/go.mod h1:7Ns4qq3IQ5C2j0h4OmkDOzAkVh01bwUEdsfQ0tdRvMU=
+github.com/amarnathcjd/gogram v1.5.10-0.20250426204309-66d43ab3445a h1:Kn6437YHhWZDorGlsoLw8IruKp1+OxubCQt7X9v0rSU=
+github.com/amarnathcjd/gogram v1.5.10-0.20250426204309-66d43ab3445a/go.mod h1:7Ns4qq3IQ5C2j0h4OmkDOzAkVh01bwUEdsfQ0tdRvMU=
 github.com/anthonynsimon/bild v0.14.0 h1:IFRkmKdNdqmexXHfEU7rPlAmdUZ8BDZEGtGHDnGWync=
 github.com/anthonynsimon/bild v0.14.0/go.mod h1:hcvEAyBjTW69qkKJTfpcDQ83sSZHxwOunsseDfeQhUs=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=
