@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/anthonynsimon/bild/transform"
+	_ "golang.org/x/image/webp"
 )
 
 func ResizeSticker(input []byte) ([]byte, error) {
