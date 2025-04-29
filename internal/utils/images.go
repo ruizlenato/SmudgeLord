@@ -5,7 +5,6 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"os"
 
 	"github.com/anthonynsimon/bild/transform"
 )
@@ -59,26 +58,7 @@ func processThumbnailImage(img image.Image) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func ResizeThumbnail(thumbnail *os.File) error {
-	if _, err := thumbnail.Seek(0, 0); err != nil {
-		return err
-	}
-	img, _, err := image.Decode(thumbnail)
-	if err != nil {
-		return err
-	}
-	finalBytes, err := processThumbnailImage(img)
-	if err != nil {
-		return err
-	}
-	if err := os.WriteFile(thumbnail.Name(), finalBytes, 0o644); err != nil {
-		return err
-	}
-	_, err = thumbnail.Seek(0, 0)
-	return err
-}
-
-func ResizeThumbnailFromBytes(input []byte) ([]byte, error) {
+func ResizeThumbnail(input []byte) ([]byte, error) {
 	img, _, err := image.Decode(bytes.NewReader(input))
 	if err != nil {
 		return nil, err

@@ -182,7 +182,7 @@ func (h *Handler) downloadVideo(tikTokData TikTokData) []models.InputMedia {
 		return nil
 	}
 
-	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+	thumbnail, err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},

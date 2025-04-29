@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/go-telegram/bot"
@@ -121,8 +122,6 @@ func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update
 		}
 	}
 
-	defer downloader.RemoveMediaFiles(mediaItems)
-
 	if len(mediaItems) > 10 { // Telegram limits up to 10 images and videos in an album.
 		mediaItems = mediaItems[:10]
 	}
@@ -203,10 +202,21 @@ func youtubeDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 		return
 	}
 
-	ytClient := youtube.ConfigureYoutubeClient()
-	video, err := ytClient.GetVideo(videoURL)
+	youtubeClient := youtube.ConfigureYoutubeClient()
+	var video *youtubedl.Video
+	var err error
 
-	if err != nil {
+	for attempt := 1; attempt <= 10; attempt++ {
+		video, err = youtubeClient.GetVideo(videoURL, youtubedl.WithClient("ANDROID"))
+		if err == nil {
+			break
+		}
+		slog.Warn("GetVideo failed, retrying...",
+			"attempt", attempt, "error",
+			err.Error())
+		time.Sleep(5 * time.Second)
+	}
+	if err != nil || video == nil || video.Formats == nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("youtube-invalid-url"),

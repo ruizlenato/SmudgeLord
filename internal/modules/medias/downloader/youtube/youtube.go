@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -62,30 +61,6 @@ func ConfigureYoutubeClient() *youtubedl.Client {
 	return ytClient
 }
 
-func copyStreamWithRetries(youtubeClient *youtubedl.Client, video *youtubedl.Video, format *youtubedl.Format, outputFile *os.File) error {
-	for attempt := 1; attempt <= 5; attempt++ {
-		stream, _, err := youtubeClient.GetStream(video, format)
-		if err != nil {
-			time.Sleep(3 * time.Second)
-			continue
-		}
-
-		_, err = io.Copy(outputFile, stream)
-		stream.Close()
-
-		if err == nil {
-			return nil
-		}
-
-		outputFile.Seek(0, 0)
-		outputFile.Truncate(0)
-		time.Sleep(2 * time.Second)
-	}
-
-	os.Remove(outputFile.Name())
-	return errors.New("YouTube — Failed after 5 attempts")
-}
-
 func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, format *youtubedl.Format) ([]byte, error) {
 	for attempt := 1; attempt <= 5; attempt++ {
 		stream, _, err := youtubeClient.GetStream(video, format)
@@ -100,7 +75,7 @@ func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, for
 			return []byte(buf.String()), nil
 		}
 
-		time.Sleep(2 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 
 	return nil, errors.New("YouTube — Failed after 5 attempts")
@@ -108,7 +83,21 @@ func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, for
 
 func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 	youtubeClient := ConfigureYoutubeClient()
-	video, err := youtubeClient.GetVideo(callbackData[1], youtubedl.WithClient("ANDROID"))
+
+	var video *youtubedl.Video
+	var err error
+
+	for attempt := 1; attempt <= 5; attempt++ {
+		video, err = youtubeClient.GetVideo(callbackData[1], youtubedl.WithClient("ANDROID"))
+		if err == nil {
+			break
+		}
+		slog.Warn("GetVideo failed, retrying...",
+			"attempt", attempt,
+			"error", err.Error())
+		time.Sleep(3 * time.Second)
+	}
+
 	if err != nil {
 		return nil, video, err
 	}

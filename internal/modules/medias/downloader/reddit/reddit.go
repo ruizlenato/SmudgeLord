@@ -18,7 +18,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-var redlibInstance = "https://rl.bloat.cat"
+var redlibInstance = "https://reddit.idevicehacked.com"
 
 var (
 	postInfoRegex     = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
@@ -271,7 +271,7 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 			return nil
 		}
 
-		thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
+		thumbnail, err = utils.ResizeThumbnail(thumbnail)
 		if err != nil {
 			slog.Error("Failed to resize thumbnail",
 				"Thumbnail URL", thumbnailURL,

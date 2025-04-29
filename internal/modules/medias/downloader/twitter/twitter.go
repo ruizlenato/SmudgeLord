@@ -131,7 +131,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []models.InputM
 					MediaAttachment:       bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
-					thumbnail, err := utils.ResizeThumbnailFromBytes(result.media.Thumbnail)
+					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
 					if err != nil {
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
@@ -434,7 +434,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]models.I
 					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
-					thumbnail, err := utils.ResizeThumbnailFromBytes(result.media.Thumbnail)
+					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
 					if err != nil {
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},

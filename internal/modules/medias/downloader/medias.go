@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
-	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,7 +15,6 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
-	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -47,22 +45,6 @@ type YouTube struct {
 	Video   string `json:"video"`
 	Audio   string `json:"audio"`
 	Caption string `json:"caption"`
-}
-
-func getFileExtension(response *http.Response) string {
-	if mediatype, _, err := mime.ParseMediaType(string(response.Header.Get("Content-Type"))); err == nil {
-		if mediatype == "text/plain" || mediatype == "application/octet-stream" {
-			if ext := strings.TrimPrefix(filepath.Ext(response.Request.URL.Path), "."); ext != "" {
-				return ext
-			}
-		}
-
-		if exts, err := mime.ExtensionsByType(mediatype); err == nil && len(exts) > 0 {
-			return strings.TrimPrefix(exts[len(exts)-1], ".")
-		}
-	}
-
-	return "tmp"
 }
 
 func fetchURLResponse(media string) ([]byte, *http.Response, error) {
@@ -113,49 +95,6 @@ func FetchBytesFromURL(media string) ([]byte, error) {
 	return bodyBytes, nil
 }
 
-func Downloader(media string, filename ...string) (*os.File, error) {
-	bodyBytes, response, err := fetchURLResponse(media)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-
-	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
-		return downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
-	}
-
-	extension := getFileExtension(response)
-	var file *os.File
-	defer func() {
-		if err != nil {
-			file.Close()
-			os.Remove(file.Name())
-		}
-	}()
-
-	if len(filename) == 1 {
-		file, err = os.Create(filepath.Join(os.TempDir(), utils.SanitizeString(filename[0])+"."+extension))
-		if err != nil {
-			file, err = os.CreateTemp("", fmt.Sprintf("SmudgeLord*.%s", extension))
-		}
-	} else {
-		file, err = os.CreateTemp("", fmt.Sprintf("SmudgeLord*.%s", extension))
-	}
-	if err != nil {
-		return nil, fmt.Errorf("failed to create temp file: %w", err)
-	}
-
-	if _, err = file.Write(bodyBytes); err != nil {
-		return nil, err
-	}
-
-	if _, err = file.Seek(0, 0); err != nil {
-		return nil, err
-	}
-
-	return file, err
-}
-
 func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	playlist, _, err := m3u8.DecodeFrom(body, true)
 	if err != nil {
@@ -204,7 +143,11 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	for range segmentCount {
 		result := <-results
 		if result.err != nil {
-			slog.Error("Couldn't download segment", "Segment", result.index, "Error", result.err)
+			slog.Error(
+				"Couldn't download segment",
+				"Segment", result.index,
+				"Error", result.err.Error(),
+			)
 			downloadErrors = append(downloadErrors, result.err)
 			continue
 		}
@@ -424,59 +367,6 @@ func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {
 		return nil, err
 	}
 	return mergedBytes, nil
-}
-
-func RemoveMediaFiles(mediaItems []models.InputMedia) {
-	var wg sync.WaitGroup
-
-	for _, media := range mediaItems {
-		wg.Add(1)
-		go func(media models.InputMedia) {
-			defer wg.Done()
-			removeMediaFile(media)
-		}(media)
-	}
-
-	wg.Wait()
-}
-
-func removeMediaFile(media models.InputMedia) {
-	type mediaInfo struct {
-		Type  string `json:"type"`
-		Media string `json:"media"`
-	}
-	var mInfo mediaInfo
-
-	marshalInputMedia, err := media.MarshalInputMedia()
-	if err != nil {
-		slog.Error("Couldn't marshal media info",
-			"Error", err.Error())
-		return
-	}
-
-	err = json.Unmarshal(marshalInputMedia, &mInfo)
-	if err != nil {
-		slog.Error("Couldn't unmarshal media info",
-			"Error", err.Error())
-		return
-	}
-
-	switch mInfo.Type {
-	case "photo":
-		if file, ok := media.(*models.InputMediaPhoto).Attachment().(*os.File); ok {
-			os.Remove(file.Name())
-		}
-	case "video":
-		if file, ok := media.(*models.InputMediaVideo).Attachment().(*os.File); ok {
-			os.Remove(file.Name())
-		}
-		if media.(*models.InputMediaVideo).Thumbnail != nil {
-			err = os.Remove(media.(*models.InputMediaVideo).Thumbnail.(*models.InputFileUpload).Filename)
-			if err != nil {
-				return
-			}
-		}
-	}
 }
 
 func extractMediaInfo(replied []*models.Message) ([]string, []string, bool) {
