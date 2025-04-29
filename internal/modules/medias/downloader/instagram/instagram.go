@@ -107,31 +107,35 @@ func (h *Handler) processMedia(data *ShortcodeMedia) []models.InputMedia {
 	}
 }
 
-func getCaption(data *ShortcodeMedia) string {
-	if len(data.EdgeMediaToCaption.Edges) == 0 {
-		return ""
-	}
+func getCaption(instagramData *ShortcodeMedia) string {
+	if len(instagramData.EdgeMediaToCaption.Edges) > 0 {
+		var sb strings.Builder
 
-	var sb strings.Builder
-	if data.Owner.Username != "" {
-		fmt.Fprintf(&sb, "<b>%s</b>", data.Owner.Username)
-	}
+		if username := instagramData.Owner.Username; username != "" {
+			sb.WriteString(fmt.Sprintf("<a href='instagram.com/%v'><b>%v</b></a>", username, username))
+		}
 
-	if coauthors := data.CoauthorProducers; coauthors != nil {
-		for i, coauthor := range *coauthors {
-			if i > 0 {
+		if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
+			if sb.Len() > 0 {
 				sb.WriteString(" <b>&</b> ")
 			}
-			fmt.Fprintf(&sb, "<b>%s</b>", coauthor.Username)
+			for i, coauthor := range *coauthors {
+				if i > 0 {
+					sb.WriteString(" <b>&</b> ")
+				}
+
+				sb.WriteString(fmt.Sprintf("<a href='instagram.com/%v'><b>%v</b></a>", coauthor.Username, coauthor.Username))
+			}
 		}
-	}
 
-	if sb.Len() > 0 {
-		sb.WriteString("<b>:</b>\n")
-	}
-	sb.WriteString(data.EdgeMediaToCaption.Edges[0].Node.Text)
+		if sb.Len() > 0 {
+			sb.WriteString("<b>:</b>\n")
+		}
+		sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
 
-	return sb.String()
+		return sb.String()
+	}
+	return ""
 }
 
 var (
