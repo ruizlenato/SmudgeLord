@@ -98,7 +98,9 @@ func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
 			query := "INSERT OR IGNORE INTO groups (id) VALUES (?);"
 			_, err := DB.Exec(query, message.Chat.ID)
 			if err != nil {
-				slog.Error("Couldn't insert group", "ChatID", message.Chat.ID, "Error", err.Error())
+				slog.Error("Couldn't insert group",
+					"ChatID", message.Chat.ID,
+					"Error", err.Error())
 			}
 		}
 
@@ -119,7 +121,10 @@ func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
 		}
 		_, err := DB.Exec(query, message.From.ID, lang, username)
 		if err != nil {
-			slog.Error("Couldn't insert user", "UserID", message.From.ID, "Username", username, "Error", err.Error())
+			slog.Error("Couldn't insert user",
+				"UserID", message.From.ID,
+				"Username", username,
+				"Error", err.Error())
 		}
 
 		if update.Message != nil {

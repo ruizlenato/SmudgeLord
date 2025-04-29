@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
+	"os"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -199,7 +199,11 @@ func languageMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update
 	for _, lang := range database.AvailableLocales {
 		loaded, ok := localization.LangBundles[lang]
 		if !ok {
-			log.Fatalf("Language '%s' not found in the cache.", lang)
+			slog.Error("Language not found in the cache",
+				"lang", lang,
+				"availableLocales", database.AvailableLocales)
+			os.Exit(1)
+
 		}
 		languageFlag, _, _ := loaded.FormatMessage("language-flag")
 		languageName, _, _ := loaded.FormatMessage("language-name")
@@ -214,7 +218,7 @@ func languageMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update
 		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
 		MessageID: update.CallbackQuery.Message.Message.ID,
 		Text: i18n("language-menu",
-			map[string]interface{}{
+			map[string]any{
 				"languageFlag": i18n("language-flag"),
 				"languageName": i18n("language-name"),
 			}),

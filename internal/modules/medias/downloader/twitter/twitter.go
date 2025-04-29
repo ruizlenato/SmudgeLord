@@ -108,7 +108,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) []models.InputM
 			slog.Error("Failed to download media in carousel",
 				"Post Info", []string{h.username, h.postID},
 				"Media Count", result.index,
-				"Error", result.err)
+				"Error", result.err.Error())
 			continue
 		}
 		if result.media.File != nil {
@@ -413,7 +413,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]models.I
 			slog.Error("Failed to download media in carousel",
 				"Post Info", []string{h.username, h.postID},
 				"Media Count", result.index,
-				"Error", result.err)
+				"Error", result.err.Error())
 			continue
 		}
 		if result.media.File != nil {

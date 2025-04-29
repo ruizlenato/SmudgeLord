@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"log/slog"
 	"os"
 	"strconv"
@@ -23,12 +22,15 @@ var (
 
 func init() {
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		slog.Error("Error loading .env file",
+			"error", err.Error())
 	}
 
 	TelegramToken = os.Getenv("TELEGRAM_TOKEN")
 	if TelegramToken == "" {
-		log.Fatalf(`You need to set the "TELEGRAM_TOKEN" in the .env file!`)
+		slog.Error(`You need to set the "TELEGRAM_TOKEN" in the .env file!`)
+		os.Exit(1)
+
 	}
 
 	logLevelStr := os.Getenv("LOG_LEVEL")
@@ -39,7 +41,8 @@ func init() {
 
 	LastFMKey = os.Getenv("LASTFM_API_KEY")
 	if LastFMKey == "" {
-		log.Fatalf(`You need to set the "LASTFM_API_KEY" in the .env file!`)
+		slog.Error(`You need to set the "LASTFM_API_KEY" in the .env file!`)
+		os.Exit(1)
 	}
 
 	DatabaseFile = os.Getenv("DATABASE_FILE")
@@ -56,7 +59,9 @@ func init() {
 
 	OwnerID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
 	if OwnerID == 0 {
-		log.Fatalf(`You need to set the "OWNER_ID" in the .env file!`)
+		slog.Error(`You need to set the "OWNER_ID" in the .env file!`)
+		os.Exit(1)
+
 	}
 }
 

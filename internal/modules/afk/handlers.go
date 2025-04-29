@@ -165,7 +165,9 @@ func setAFKHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	reason := extractReason(update.Message.Text)
 	err := set_user_away(update.Message.From.ID, reason, time.Now().UTC())
 	if err != nil {
-		slog.Error("Couldn't set user away status", "UserID", update.Message.From.ID, "Error", err.Error())
+		slog.Error("Couldn't set user away status",
+			"UserID", update.Message.From.ID,
+			"Error", err.Error())
 		return
 	}
 

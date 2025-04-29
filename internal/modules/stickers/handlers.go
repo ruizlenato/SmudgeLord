@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -121,7 +120,10 @@ func editStickerError(ctx context.Context, b *bot.Bot, update *models.Update, pr
 func generateStickerSetName(ctx context.Context, b *bot.Bot, update *models.Update) (string, string) {
 	botInfo, err := b.GetMe(ctx)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Couldn't get bot info",
+			"Error", err.Error())
+		os.Exit(1)
+
 	}
 
 	shortNamePrefix := "a_"
@@ -261,7 +263,8 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 		},
 	})
 	if err != nil {
-		slog.Error("Couldn't send message", "Error", err.Error())
+		slog.Error("Couldn't send message",
+			"Error", err.Error())
 		return
 	}
 

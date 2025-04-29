@@ -177,7 +177,8 @@ func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update
 	}
 
 	if err := downloader.SetMediaCache(replied, result); err != nil {
-		slog.Error("Couldn't set media cache", "Error", err.Error())
+		slog.Error("Couldn't set media cache",
+			"Error", err.Error())
 	}
 
 }
@@ -417,7 +418,8 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 	})
 
 	if err := downloader.SetYoutubeCache(replied, callbackData[1]); err != nil {
-		slog.Error("Couldn't set youtube cache", "Error", err.Error())
+		slog.Error("Couldn't set youtube cache",
+			"Error", err.Error())
 	}
 }
 

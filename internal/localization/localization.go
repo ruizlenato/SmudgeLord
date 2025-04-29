@@ -110,7 +110,9 @@ func Get(update *models.Update) func(string, ...map[string]any) string {
 	return func(key string, args ...map[string]any) string {
 		language, err := GetChatLanguage(chat)
 		if err != nil {
-			slog.Error("Couldn't get chat language", "ChatID", chat.ID, "Error", err.Error())
+			slog.Error("Couldn't get chat language",
+				"ChatID", chat.ID,
+				"Error", err.Error())
 			return fmt.Sprintf("Key '%s' not found.", key)
 		}
 
@@ -138,7 +140,9 @@ func Get(update *models.Update) func(string, ...map[string]any) string {
 		context := createFormatContext(variables)
 		message, _, err := bundle.FormatMessage(key, context)
 		if err != nil {
-			slog.Error("Couldn't format message", "Key", key, "Error", err.Error())
+			slog.Error("Couldn't format message",
+				"Key", key,
+				"Error", err.Error())
 			return fmt.Sprintf("Key '%s' not found.", key)
 		}
 

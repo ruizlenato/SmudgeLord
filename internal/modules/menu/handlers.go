@@ -3,7 +3,8 @@ package menu
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
+	"os"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -40,7 +41,8 @@ func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 	botUser, err := b.GetMe(ctx)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if messageFields := strings.Fields(update.Message.Text); len(messageFields) > 1 && messageFields[1] == "privacy" {
@@ -91,7 +93,8 @@ func startCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 	botUser, err := b.GetMe(ctx)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
@@ -114,7 +117,8 @@ func privacyHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 	botUser, err := b.GetMe(ctx)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if update.Message.Chat.Type == models.ChatTypeGroup || update.Message.Chat.Type == models.ChatTypeSupergroup {

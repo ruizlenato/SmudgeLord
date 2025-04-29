@@ -287,7 +287,7 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
 			"Post Info", []string{h.username, h.postID},
-			"Error", err)
+			"Error", err.Error())
 	}
 
 	return []models.InputMedia{&models.InputMediaVideo{
@@ -342,7 +342,7 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 		if result.err != nil {
 			slog.Error("Failed to download media in sidecar",
 				"Post Info", []string{h.username, h.postID},
-				"Error", result.err)
+				"Error", result.err.Error())
 			continue
 		}
 		if result.media.File != nil {

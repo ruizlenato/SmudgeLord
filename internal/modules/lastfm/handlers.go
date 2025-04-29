@@ -53,7 +53,10 @@ func setUserHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	if err := setLastFMUsername(message.From.ID, lastFMUsername); err != nil {
-		slog.Error("Couldn't set lastFM username: %v", "Error", err.Error())
+		slog.Error("Couldn't set LastFM username",
+			"UserID", message.From.ID,
+			"Username", lastFMUsername,
+			"Error", err.Error())
 		return
 	}
 

@@ -115,7 +115,8 @@ func getGQLData(postID string) ThreadsData {
 
 	err = json.NewDecoder(response.Body).Decode(&threadsData)
 	if err != nil {
-		slog.Error("Failed to unmarshal Threads GQLData", "Error", err.Error())
+		slog.Error("Failed to unmarshal Threads GQLData",
+			"Error", err.Error())
 		return nil
 	}
 
@@ -176,7 +177,7 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 			slog.Error("Failed to download media in carousel",
 				"PostID", h.postID,
 				"Media Count", result.index,
-				"Error", result.err)
+				"Error", result.err.Error())
 			continue
 		}
 		if result.media.File != nil {

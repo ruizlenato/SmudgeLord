@@ -232,7 +232,7 @@ func (h *Handler) downloadImages(noteData Note) []models.InputMedia {
 			slog.Error("Failed to download media in carousel",
 				"Post Info", []string{h.username, h.postID},
 				"Media Count", result.index,
-				"Error", result.err)
+				"Error", result.err.Error())
 			continue
 		}
 		if result.file != nil {

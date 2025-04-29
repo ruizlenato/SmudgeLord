@@ -143,11 +143,9 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	for range segmentCount {
 		result := <-results
 		if result.err != nil {
-			slog.Error(
-				"Couldn't download segment",
+			slog.Error("Couldn't download segment",
 				"Segment", result.index,
-				"Error", result.err.Error(),
-			)
+				"Error", result.err.Error())
 			downloadErrors = append(downloadErrors, result.err)
 			continue
 		}

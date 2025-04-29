@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -50,16 +49,20 @@ func main() {
 
 	b, err := bot.New(config.TelegramToken, opts...)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	if err := InitializeServices(b, ctx); err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 
 	botInfo, err = b.GetMe(ctx)
 	if err != nil {
-		log.Fatal("failed to get bot info:", err)
+		slog.Error("failed to get bot info",
+			"error", err.Error())
+		os.Exit(1)
 	}
 
 	fmt.Println("\033[0;32m\U0001F680 Bot Started\033[0m")

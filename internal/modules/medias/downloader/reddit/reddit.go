@@ -289,7 +289,8 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response) []
 
 		file, err := downloader.FetchBytesFromURL(imageURL)
 		if err != nil {
-			slog.Error("Failed to download image", "Error", err.Error())
+			slog.Error("Failed to download image",
+				"Error", err.Error())
 			return nil
 		}
 
