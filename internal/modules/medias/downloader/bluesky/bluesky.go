@@ -272,6 +272,11 @@ func (h *Handler) handleImages(blueskyImages []Image, message *telegram.NewMessa
 	}
 
 	mediaCount := len(blueskyImages)
+	if mediaCount > 10 {
+		mediaCount = 10
+		blueskyImages = blueskyImages[:10]
+	}
+
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 

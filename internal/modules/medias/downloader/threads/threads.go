@@ -155,15 +155,21 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 		media *InputMedia
 	}
 
-	mediaCount := len(*post.CarouselMedia)
+	carouselMedias := *post.CarouselMedia
+	mediaCount := len(carouselMedias)
+	if mediaCount > 10 {
+		mediaCount = 10
+		carouselMedias = carouselMedias[:10]
+	}
+
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, result := range *post.CarouselMedia {
+	for i, result := range carouselMedias {
 		go func(index int, threadsMedia CarouselMedia) {
 			var media InputMedia
 			var err error
-			if (*post.CarouselMedia)[index].VideoVersions == nil {
+			if (carouselMedias)[index].VideoVersions == nil {
 				media.File, err = downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
 				if err != nil {
 					slog.Error(
@@ -213,7 +219,7 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 
 		if result.media.File != nil {
 			var mediaItem telegram.InputMedia
-			if (*post.CarouselMedia)[result.index].VideoVersions == nil {
+			if (carouselMedias)[result.index].VideoVersions == nil {
 				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 					File: result.media.File,
 				})
@@ -222,7 +228,7 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 						slog.Error(
 							"Failed to upload photo",
 							"Post Info", []string{h.username, h.postID},
-							"Image URL", (*post.CarouselMedia)[result.index].ImageVersions.Candidates[0].URL,
+							"Image URL", (carouselMedias)[result.index].ImageVersions.Candidates[0].URL,
 							"Error", err.Error(),
 						)
 					}
@@ -234,15 +240,15 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 					File:              result.media.File,
 					Thumb:             result.media.Thumbnail,
 					SupportsStreaming: true,
-					Width:             int32((*post.CarouselMedia)[result.index].OriginalWidth),
-					Height:            int32((*post.CarouselMedia)[result.index].OriginalWidth),
+					Width:             int32((carouselMedias)[result.index].OriginalWidth),
+					Height:            int32((carouselMedias)[result.index].OriginalWidth),
 				})
 				if err != nil {
 					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
 						slog.Error(
 							"Failed to upload video",
 							"Post Info", []string{h.username, h.postID},
-							"Image URL", (*post.CarouselMedia)[result.index].ImageVersions.Candidates[0].URL,
+							"Image URL", (carouselMedias)[result.index].ImageVersions.Candidates[0].URL,
 							"Error", err.Error(),
 						)
 						continue

@@ -77,11 +77,17 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 		media *InputMedia
 	}
 
-	mediaCount := len((*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media)
+	allTweetMedia := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media
+	mediaCount := len(allTweetMedia)
+	if mediaCount > 10 {
+		mediaCount = 10
+		allTweetMedia = allTweetMedia[:10]
+	}
+
 	mediaChan := make(chan mediaResult, mediaCount)
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 
-	for i, media := range (*twitterData).Data.TweetResult.Result.Legacy.ExtendedEntities.Media {
+	for i, media := range allTweetMedia {
 		go func(index int, twitterMedia Media) {
 			var media InputMedia
 			var err error
@@ -145,7 +151,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 	for range mediaCount {
 		result := <-mediaChan
 		if result.media.File != nil {
-			twitterMedia := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media[result.index]
+			twitterMedia := allTweetMedia[result.index]
 			if twitterMedia.Type == "photo" {
 				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 					File: result.media.File,

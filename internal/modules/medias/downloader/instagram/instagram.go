@@ -368,11 +368,17 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 		file  *InputMedia
 	}
 
-	mediaCount := len(instagramData.EdgeSidecarToChildren.Edges)
+	edges := instagramData.EdgeSidecarToChildren.Edges
+	mediaCount := len(edges)
+	if mediaCount > 10 {
+		mediaCount = 10
+		edges = edges[:10]
+	}
+
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, result := range instagramData.EdgeSidecarToChildren.Edges {
+	for i, result := range edges {
 		go func(index int, result Edges) {
 			var media InputMedia
 			var err error
@@ -426,7 +432,7 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 	for range mediaCount {
 		result := <-results
 		if result.file != nil {
-			if !instagramData.EdgeSidecarToChildren.Edges[result.index].Node.IsVideo {
+			if !edges[result.index].Node.IsVideo {
 				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 					File: result.file.File,
 				})
@@ -435,7 +441,7 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 						slog.Error(
 							"Failed to upload photo",
 							"Post Info", []string{h.username, h.postID},
-							"Image URL", instagramData.EdgeSidecarToChildren.Edges[result.index].Node.DisplayResources[len(instagramData.EdgeSidecarToChildren.Edges[result.index].Node.DisplayResources)-1].Src,
+							"Image URL", edges[result.index].Node.DisplayResources[len(edges[result.index].Node.DisplayResources)-1].Src,
 							"Error", err.Error(),
 						)
 					}
@@ -455,7 +461,7 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 						slog.Error(
 							"Failed to upload video",
 							"Post Info", []string{h.username, h.postID},
-							"Video URL", instagramData.EdgeSidecarToChildren.Edges[result.index].Node.VideoURL,
+							"Video URL", edges[result.index].Node.VideoURL,
 							"Error", err.Error(),
 						)
 					}

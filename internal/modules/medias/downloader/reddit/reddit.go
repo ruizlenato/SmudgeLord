@@ -348,6 +348,11 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 	}
 
 	mediaCount := len(content)
+	if mediaCount > 10 {
+		mediaCount = 10
+		content = content[:10]
+	}
+
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
@@ -486,11 +491,17 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 			file  []byte
 		}
 
-		mediaCount := len(data.GalleryData.Items)
+		items := data.GalleryData.Items
+		mediaCount := len(items)
+		if mediaCount > 10 {
+			mediaCount = 10
+			items = items[:10]
+		}
+
 		mediaItems := make([]telegram.InputMedia, mediaCount)
 		results := make(chan mediaResult, mediaCount)
 
-		for i, item := range data.GalleryData.Items {
+		for i, item := range items {
 			go func(index int, mediaID string) {
 				var file []byte
 				var err error

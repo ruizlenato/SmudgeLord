@@ -123,11 +123,17 @@ func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessa
 		file  []byte
 	}
 
-	mediaCount := len(tikTokData.AwemeList[0].ImagePostInfo.Images)
+	images := tikTokData.AwemeList[0].ImagePostInfo.Images
+	mediaCount := len(images)
+	if mediaCount > 10 {
+		mediaCount = 10
+		images = images[:10]
+	}
+
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range tikTokData.AwemeList[0].ImagePostInfo.Images {
+	for i, media := range images {
 		go func(index int, media Image) {
 			file, err := downloader.FetchBytesFromURL(media.DisplayImage.URLList[1])
 			if err != nil {
@@ -154,7 +160,7 @@ func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessa
 					slog.Error(
 						"Failed to upload image",
 						"Post ID", []string{h.postID},
-						"Image URL", tikTokData.AwemeList[0].ImagePostInfo.Images[result.index].DisplayImage.URLList[1],
+						"Image URL", images[result.index].DisplayImage.URLList[1],
 						"Error", err.Error(),
 					)
 				}

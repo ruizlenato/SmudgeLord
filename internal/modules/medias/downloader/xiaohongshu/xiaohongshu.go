@@ -222,11 +222,17 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 		file  []byte
 	}
 
-	mediaCount := len(noteData.Note.ImageList)
+	images := noteData.Note.ImageList
+	mediaCount := len(images)
+	if mediaCount > 10 {
+		mediaCount = 10
+		images = images[:10]
+	}
+
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range noteData.Note.ImageList {
+	for i, media := range images {
 		go func(index int, media Images) {
 			url := media.URLDefault
 			if media.LivePhoto {
@@ -250,7 +256,7 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 	for range mediaCount {
 		result := <-results
 		if result.file != nil {
-			if noteData.Note.ImageList[result.index].LivePhoto {
+			if images[result.index].LivePhoto {
 				video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
 					File:              result.file,
 					SupportsStreaming: true,
