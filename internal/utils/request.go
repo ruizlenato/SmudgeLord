@@ -37,10 +37,12 @@ func (a HTTPCaller) Call(url string, params RequestParams) (*http.Response, erro
 	switch params.Method {
 	case http.MethodGet, http.MethodOptions:
 		q := req.URL.Query()
-		for key, value := range params.Query {
-			q.Add(key, value)
+		if len(params.Query) > 0 {
+			for key, value := range params.Query {
+				q.Add(key, value)
+			}
+			req.URL.RawQuery = q.Encode()
 		}
-		req.URL.RawQuery = q.Encode()
 	case http.MethodPost:
 		body := strings.Join(params.BodyString, "&")
 		req.Body = io.NopCloser(strings.NewReader(body))
@@ -106,7 +108,7 @@ func (r *RetryCaller) Request(url string, params RequestParams) (*http.Response,
 	var resp *http.Response
 	var err error
 
-	for i := 0; i < r.MaxAttempts; i++ {
+	for i := range r.MaxAttempts {
 		resp, err = r.Caller.Call(url, params)
 		if err == nil {
 			return resp, nil
@@ -116,10 +118,7 @@ func (r *RetryCaller) Request(url string, params RequestParams) (*http.Response,
 			break
 		}
 
-		delay := time.Duration(math.Pow(r.ExponentBase, float64(i))) * r.StartDelay
-		if delay > r.MaxDelay {
-			delay = r.MaxDelay
-		}
+		delay := min(time.Duration(math.Pow(r.ExponentBase, float64(i)))*r.StartDelay, r.MaxDelay)
 		time.Sleep(delay)
 	}
 

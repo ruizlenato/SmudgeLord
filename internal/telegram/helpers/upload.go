@@ -85,27 +85,30 @@ func UploadPhoto(message *telegram.NewMessage, params UploadPhotoParams) (telegr
 		return telegram.InputMediaPhoto{}, err
 	}
 
-	senderPeer, err := media.Client.ResolvePeer(message.ChannelID())
-	if err != nil {
-		return telegram.InputMediaPhoto{}, err
-	}
-
-	messageMedia, err := message.Client.MessagesUploadMedia("", senderPeer, &telegram.InputMediaUploadedPhoto{
-		Spoiler: params.Spoiler,
-		File:    file,
+	messageMedia, err := message.Client.MessagesUploadMedia("", &telegram.InputPeerSelf{}, &telegram.InputMediaUploadedPhoto{
+		Spoiler:    false,
+		File:       file,
+		TtlSeconds: 0,
 	})
 	if err != nil {
 		return telegram.InputMediaPhoto{}, err
 	}
 
-	return telegram.InputMediaPhoto{
-		Spoiler: params.Spoiler,
-		ID: &telegram.InputPhotoObj{
-			ID:            messageMedia.(*telegram.MessageMediaPhoto).Photo.(*telegram.PhotoObj).ID,
-			AccessHash:    messageMedia.(*telegram.MessageMediaPhoto).Photo.(*telegram.PhotoObj).AccessHash,
-			FileReference: messageMedia.(*telegram.MessageMediaPhoto).Photo.(*telegram.PhotoObj).FileReference,
-		},
-	}, nil
+	switch photo := messageMedia.(*telegram.MessageMediaPhoto).Photo.(type) {
+	case *telegram.PhotoObj:
+		return telegram.InputMediaPhoto{
+			Spoiler: params.Spoiler,
+			ID: &telegram.InputPhotoObj{
+				ID:            photo.ID,
+				AccessHash:    photo.AccessHash,
+				FileReference: photo.FileReference,
+			},
+		}, nil
+	case *telegram.PhotoEmpty:
+		return telegram.InputMediaPhoto{ID: &telegram.InputPhotoEmpty{}}, nil
+	}
+
+	return telegram.InputMediaPhoto{}, errors.New("failed to upload photo")
 }
 
 type UploadVideoParams struct {
@@ -118,7 +121,7 @@ type UploadVideoParams struct {
 	Height            int32
 	SupportsStreaming bool
 	Thumb             []byte
-	NoSoundVideo      bool
+	NoSoundVideo      *bool
 	ForceFile         bool
 }
 
@@ -133,11 +136,6 @@ func UploadVideo(message *telegram.NewMessage, params UploadVideoParams) (telegr
 	}
 
 	file, err := media.GetInputFile(params.File, params.Filename)
-	if err != nil {
-		return telegram.InputMediaDocument{}, err
-	}
-
-	senderPeer, err := media.Client.ResolvePeer(message.ChannelID())
 	if err != nil {
 		return telegram.InputMediaDocument{}, err
 	}
@@ -163,8 +161,13 @@ func UploadVideo(message *telegram.NewMessage, params UploadVideoParams) (telegr
 		}
 	}
 
-	messageMedia, err := message.Client.MessagesUploadMedia("", senderPeer, &telegram.InputMediaUploadedDocument{
-		NosoundVideo: params.NoSoundVideo,
+	noSound := true
+	if params.NoSoundVideo != nil {
+		noSound = *params.NoSoundVideo
+	}
+
+	messageMedia, err := message.Client.MessagesUploadMedia("", &telegram.InputPeerSelf{}, &telegram.InputMediaUploadedDocument{
+		NosoundVideo: noSound,
 		ForceFile:    params.ForceFile,
 		Spoiler:      params.Spoiler,
 		File:         file,
@@ -181,12 +184,19 @@ func UploadVideo(message *telegram.NewMessage, params UploadVideoParams) (telegr
 		return telegram.InputMediaDocument{}, err
 	}
 
-	return telegram.InputMediaDocument{
-		Spoiler: params.Spoiler,
-		ID: &telegram.InputDocumentObj{
-			ID:            messageMedia.(*telegram.MessageMediaDocument).Document.(*telegram.DocumentObj).ID,
-			AccessHash:    messageMedia.(*telegram.MessageMediaDocument).Document.(*telegram.DocumentObj).AccessHash,
-			FileReference: messageMedia.(*telegram.MessageMediaDocument).Document.(*telegram.DocumentObj).FileReference,
-		},
-	}, nil
+	switch doc := messageMedia.(*telegram.MessageMediaDocument).Document.(type) {
+	case *telegram.DocumentObj:
+		return telegram.InputMediaDocument{
+			Spoiler: params.Spoiler,
+			ID: &telegram.InputDocumentObj{
+				ID:            doc.ID,
+				AccessHash:    doc.AccessHash,
+				FileReference: doc.FileReference,
+			},
+		}, nil
+	case *telegram.DocumentEmpty:
+		return telegram.InputMediaDocument{ID: &telegram.InputDocumentEmpty{}}, nil
+	}
+
+	return telegram.InputMediaDocument{}, errors.New("failed to upload video")
 }
