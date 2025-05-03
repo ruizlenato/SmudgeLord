@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -144,6 +145,7 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 	stickerBytes := buf.Bytes()
 
 	var filename string
+
 	switch action {
 	case actionResize:
 		stickerBytes, err = utils.ResizeSticker(buf.Bytes())
@@ -299,35 +301,39 @@ func convertVideoBytes(input []byte) ([]byte, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "ffmpeg",
-		"-hide_banner", "-loglevel", "error",
-		"-i", "pipe:0",
-		"-t", "3",
+	inputFile, err := os.CreateTemp("", "Smudgeinput_*.mp4")
+	if err != nil {
+		return nil, err
+	}
+	defer os.Remove(inputFile.Name())
+
+	_, err = inputFile.Write(input)
+	if err != nil {
+		return nil, err
+	}
+
+	cmd := exec.Command("ffmpeg",
+		"-loglevel", "quiet",
+		"-i", inputFile.Name(),
+		"-t", "00:00:03",
 		"-vf", "scale='min(512,iw)':'min(512,ih)':force_original_aspect_ratio=decrease,fps=30,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=white@0",
 		"-c:v", "libvpx-vp9",
 		"-b:v", "256k",
-		"-pix_fmt", "yuv420p",
-		"-an",
+		"-preset", "ultrafast",
+		"-y", "-an",
 		"-f", "webm",
-		"-y",
-		"pipe:1",
-	)
+		"pipe:1")
 
-	cmd.Stdin = bytes.NewReader(input)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		if ctx.Err() == context.DeadlineExceeded {
 			return nil, fmt.Errorf("ffmpeg conversion timed out: %w", ctx.Err())
 		}
 		return nil, fmt.Errorf("ffmpeg error: %w\nStderr: %s", err, stderr.String())
-	}
-
-	if stdout.Len() == 0 {
-		return nil, fmt.Errorf("ffmpeg produced no output\nStderr: %s", stderr.String())
 	}
 
 	return stdout.Bytes(), nil
