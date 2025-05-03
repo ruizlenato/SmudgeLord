@@ -25,7 +25,7 @@ func getErrorMessage(err error, i18n func(string, ...map[string]any) string) str
 
 var lastFM = lastFMAPI.Init()
 
-func setUserHandler(message *telegram.NewMessage) error {
+func SetUserHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() != "" {
 		if err := lastFM.GetUser(message.Args()); err != nil {
@@ -110,36 +110,86 @@ func setUserHandler(message *telegram.NewMessage) error {
 }
 
 func musicHandler(message *telegram.NewMessage) error {
-	return lastfm(message, "track")
+	_, err := message.Reply(lastfm(message, "track"), telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		InvertMedia: true,
+		LinkPreview: true,
+	})
+	return err
 }
 
 func albumHandler(message *telegram.NewMessage) error {
-	return lastfm(message, "album")
+	_, err := message.Reply(lastfm(message, "album"), telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		InvertMedia: true,
+		LinkPreview: true,
+	})
+	return err
 }
 
 func artistHandler(message *telegram.NewMessage) error {
-	return lastfm(message, "artist")
+	_, err := message.Reply(lastfm(message, "artist"), telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		InvertMedia: true,
+		LinkPreview: true,
+	})
+	return err
 }
 
-func lastfm(message *telegram.NewMessage, methodType string) error {
-	i18n := localization.Get(message)
-	lastFMUsername, err := getUserLastFMUsername(message.SenderID())
-	if err != nil {
-		_, err := message.Reply(i18n("lastfm-username-not-defined"), telegram.SendOptions{ParseMode: telegram.HTML})
+func LastfmInline(m *telegram.InlineSend, methodType string) error {
+	i18n := localization.Get(m)
+
+	lastFMUsername, err := getUserLastFMUsername(m.SenderID)
+	if err != nil || lastFMUsername == "" {
+		_, err := m.Edit(i18n("lastfm-username-not-found-inline"), &telegram.SendOptions{
+			ParseMode: telegram.HTML,
+			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+				telegram.ButtonBuilder{}.Row(
+					telegram.ButtonBuilder{}.URL(
+						i18n("start-button"),
+						fmt.Sprintf("https://t.me/%s?start=setuser", m.Client.Me().Username),
+					),
+				),
+			),
+		})
 		return err
+	}
+	_, err = m.Edit(lastfm(m, methodType), &telegram.SendOptions{
+		ParseMode:   telegram.HTML,
+		LinkPreview: true,
+		InvertMedia: true,
+	})
+	return err
+}
+
+func lastfm(update any, methodType string) string {
+	i18n := localization.Get(update)
+
+	var sender *telegram.UserObj
+	switch u := update.(type) {
+	case *telegram.NewMessage:
+		sender = u.Sender
+	case *telegram.InlineQuery:
+		sender = u.Sender
+	case *telegram.InlineSend:
+		sender = u.Sender
+	}
+
+	lastFMUsername, err := getUserLastFMUsername(sender.ID)
+	if err != nil {
+		return i18n("lastfm-username-not-found")
 	}
 
 	recentTracks, err := lastFM.GetRecentTrack(methodType, lastFMUsername)
 	if err != nil {
-		_, err := message.Reply(getErrorMessage(err, i18n), telegram.SendOptions{ParseMode: telegram.HTML})
-		return err
+		return getErrorMessage(err, i18n)
 	}
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
 	text += i18n("lastfm-playing", map[string]any{
 		"nowplaying":     fmt.Sprintf("%v", recentTracks.Nowplaying),
 		"lastFMUsername": lastFMUsername,
-		"firstName":      message.Sender.FirstName,
+		"firstName":      sender.FirstName,
 		"playcount":      recentTracks.Playcount,
 	})
 
@@ -155,18 +205,12 @@ func lastfm(message *telegram.NewMessage, methodType string) error {
 		text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
 	}
 
-	_, err = message.Reply(text, telegram.SendOptions{
-		ParseMode:   telegram.HTML,
-		InvertMedia: true,
-		LinkPreview: true,
-	})
-
-	return err
+	return text
 }
 
 func Load(client *telegram.Client) {
 	utils.SotreHelp("lastfm")
-	client.On("command:setuser", handlers.HandleCommand(setUserHandler))
+	client.On("command:setuser", handlers.HandleCommand(SetUserHandler))
 	client.On("command:lastfm", handlers.HandleCommand(musicHandler))
 	client.On("command:lt", handlers.HandleCommand(musicHandler))
 	client.On("command:lmu", handlers.HandleCommand(musicHandler))

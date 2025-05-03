@@ -251,9 +251,18 @@ no-lastfm-username-provided =
 invalid-lastfm-username =
     <b>Invalid last.fm username</b>
     Check that you have correctly typed your last.FM username and try again.
-lastfm-username-not-defined =
+lastfm-username-not-found =
     <b>You haven't set your last.fm username yet.</b>
     Use the command /setuser to set.
+lastfm-username-not-found-inline =
+    <b>You haven't set your last.fm username yet.</b>
+    Click the button below to set your last.fm username in my private chat.
+lastfm-inline-description = 
+    Shows { $lastfmType ->
+       [artist] the artist
+       [album] the album
+      *[track] the track
+   } you are listening to or have recently listened to.
 lastfm-username-saved = <b>Done</b>, your last.fm username has been saved!
 lastfm-error =
     <b>An error seems to have occurred.</b>

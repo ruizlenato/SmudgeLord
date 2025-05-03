@@ -66,23 +66,44 @@ func Close() {
 	}
 }
 
-func SaveUsers(message *telegram.NewMessage) error {
-	if message.Sender.ID == message.Client.Me().ID {
+func SaveUsers(update any) error {
+	var sender *telegram.UserObj
+	var client *telegram.Client
+	var chatID int64
+
+	switch u := update.(type) {
+	case *telegram.NewMessage:
+		sender = u.Sender
+		client = u.Client
+		chatID = u.ChatID()
+	case *telegram.InlineQuery:
+		sender = u.Sender
+		client = u.Client
+	case *telegram.InlineSend:
+		sender = u.Sender
+		client = u.Client
+	default:
 		return nil
 	}
 
-	if err := saveChat(message.ChatID()); err != nil {
-		slog.Error(
-			"Could not save chat",
-			"ChatID", message.ChatID(),
-			"error", err.Error(),
-		)
+	if sender.ID == client.Me().ID {
+		return nil
 	}
 
-	if err := saveUser(message); err != nil {
+	if chatID != sender.ID {
+		if err := saveChat(chatID); err != nil {
+			slog.Error(
+				"Could not save chat",
+				"ChatID", chatID,
+				"error", err.Error(),
+			)
+		}
+	}
+
+	if err := saveUser(sender); err != nil {
 		slog.Error(
 			"Could not save user",
-			"UserID", message.Sender.ID,
+			"UserID", sender.ID,
 			"error", err.Error(),
 		)
 	}
@@ -100,7 +121,7 @@ func saveChat(chatID int64) error {
 	return err
 }
 
-func saveUser(message *telegram.NewMessage) error {
+func saveUser(sender *telegram.UserObj) error {
 	query := `
 		INSERT INTO users (id, language, username)
 		VALUES (?, ?, ?)
@@ -109,15 +130,15 @@ func saveUser(message *telegram.NewMessage) error {
 	`
 
 	username := ""
-	if message.Sender.Username != "" {
-		username = "@" + message.Sender.Username
+	if sender.Username != "" {
+		username = "@" + sender.Username
 	}
 
-	lang := message.Sender.LangCode
+	lang := sender.LangCode
 	if !slices.Contains(AvailableLocales, lang) {
 		lang = "en-us"
 	}
 
-	_, err := DB.Exec(query, message.Sender.ID, lang, username)
+	_, err := DB.Exec(query, sender.ID, lang, username)
 	return err
 }

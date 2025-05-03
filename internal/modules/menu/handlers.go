@@ -6,6 +6,7 @@ import (
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -36,6 +37,9 @@ func startHandler(message *telegram.NewMessage) error {
 
 	if messageFields := strings.Fields(message.Text()); len(messageFields) > 1 && messageFields[1] == "privacy" {
 		return privacyHandler(message)
+	}
+	if messageFields := strings.Fields(message.Text()); len(messageFields) > 1 && messageFields[1] == "setuser" {
+		return lastfm.SetUserHandler(message)
 	}
 
 	if message.ChatType() == telegram.EntityUser {
@@ -209,6 +213,67 @@ func helpMessageCallback(update *telegram.CallbackQuery) error {
 	return err
 }
 
+func menuInline(i *telegram.InlineQuery) error {
+	builder := i.Builder()
+	i18n := localization.Get(i)
+
+	builder.Article("LastFM Music", i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}), "BALD!", &telegram.ArticleOptions{
+		ID:        "track",
+		ParseMode: telegram.HTML,
+		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.Data(
+					"🎵",
+					"NONE",
+				),
+			),
+		),
+	})
+
+	builder.Article("LastFM Album", i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}), "BALD!", &telegram.ArticleOptions{
+		ID:        "artist",
+		ParseMode: telegram.HTML,
+		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.Data(
+					"💿",
+					"NONE",
+				),
+			),
+		),
+	})
+
+	builder.Article("LastFM Artist", i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}), "BALD!", &telegram.ArticleOptions{
+		ID:        "album",
+		ParseMode: telegram.HTML,
+		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.Data(
+					"🎙",
+					"NONE",
+				),
+			),
+		),
+	})
+
+	_, err := i.Answer(builder.Results(), telegram.InlineSendOptions{
+		CacheTime: 0,
+	})
+	return err
+}
+
+func inlineSend(m *telegram.InlineSend) error {
+	switch m.ID {
+	case "track", "artist", "album":
+		return lastfm.LastfmInline(m, m.ID)
+	}
+
+	_, err := m.Edit("<b>Bar</b>", &telegram.SendOptions{
+		ParseMode: telegram.HTML,
+	})
+	return err
+}
+
 func Load(client *telegram.Client) {
 	client.On("command:start", handlers.HandleCommand(startHandler))
 	client.On("callback:^start", startCallback)
@@ -218,4 +283,6 @@ func Load(client *telegram.Client) {
 	client.On("callback:aboutMenu", aboutMenuCallback)
 	client.On("callback:^helpMenu", helpMenuCallback)
 	client.On("callback:^helpMessage", helpMessageCallback)
+	client.AddInlineHandler(telegram.OnInlineQuery, menuInline)
+	client.AddInlineSendHandler(inlineSend)
 }

@@ -110,6 +110,8 @@ type TelegramUpdate interface {
 func Get(update any) func(string, ...map[string]any) string {
 	var chatID int64
 	var chatType string
+	var sender *telegram.UserObj
+
 	switch u := update.(type) {
 	case *telegram.NewMessage:
 		chatID = u.ChatID()
@@ -123,17 +125,39 @@ func Get(update any) func(string, ...map[string]any) string {
 		if u.ChatType() == "user" {
 			chatType = "user"
 		}
+	case *telegram.InlineQuery:
+		chatID = u.SenderID
+		chatType = "user"
+		sender = u.Sender
+	case *telegram.InlineSend:
+		chatID = u.SenderID
+		chatType = "user"
+		sender = u.Sender
 	}
 
 	return func(key string, args ...map[string]any) string {
 		language, err := GetChatLanguage(chatID, chatType)
 		if err != nil {
-			slog.Error(
-				"Couldn't get chat language",
+			slog.Warn(
+				"Couldn't get chat language initially, attempting fallback",
 				"ChatID", chatID,
+				"ChatType", chatType,
 				"Error", err.Error(),
 			)
-			return fmt.Sprintf("Key '%s' not found.", key)
+
+			if chatType == "user" && sender != nil {
+				database.SaveUsers(update)
+			}
+
+			language, err = GetChatLanguage(chatID, chatType)
+			if err != nil {
+				slog.Error(
+					"Couldn't get chat language",
+					"ChatID", chatID,
+					"Error", err.Error(),
+				)
+				language = defaultLanguage
+			}
 		}
 
 		langBundlesMutex.RLock()
