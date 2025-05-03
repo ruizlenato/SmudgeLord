@@ -18,7 +18,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-var redlibInstance = "https://reddit.idevicehacked.com"
+var redlibInstance = "https://redlib.catsarch.com"
 
 var (
 	postInfoRegex     = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
@@ -176,6 +176,7 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response, me
 		if err != nil {
 			slog.Error(
 				"Failed to download audio",
+				"Post Info", []string{h.subreddit, h.postID},
 				"Error", err.Error(),
 			)
 			return nil
@@ -188,6 +189,7 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response, me
 		if err != nil {
 			slog.Error(
 				"Failed to download video",
+				"Post Info", []string{h.subreddit, h.postID},
 				"Error", err.Error(),
 			)
 			return nil
@@ -197,6 +199,7 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response, me
 		if err != nil {
 			slog.Error(
 				"Failed to merge audio and video",
+				"Post Info", []string{h.subreddit, h.postID},
 				"Error", err.Error(),
 			)
 			return nil
