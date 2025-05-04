@@ -326,6 +326,7 @@ func MergeAudioVideo(videoData, audioData []byte) ([]byte, error) {
 		"-c", "copy",
 		"-shortest",
 		"-movflags", "frag_keyframe+empty_moov",
+		"-bsf:a", "aac_adtstoasc",
 		"-f", "mp4",
 		"pipe:1",
 	)
