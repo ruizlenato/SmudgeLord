@@ -419,7 +419,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 		result := <-results
 		if result.media.File != nil {
 			var mediaItem telegram.InputMedia
-			if twitterData.Tweet.Media.All[result.index].Type != "video" {
+			if !slices.Contains([]string{"gif", "video"}, twitterData.Tweet.Media.All[result.index].Type) {
 				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
 					File: result.media.File,
 				})
