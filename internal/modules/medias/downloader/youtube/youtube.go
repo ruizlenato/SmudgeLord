@@ -160,6 +160,10 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 		return nil, []string{}
 	}
 
+	if cachedMedias, cachedCaption, err := downloader.GetMediaCache(video.ID); err == nil {
+		return cachedMedias, []string{cachedCaption, video.ID}
+	}
+
 	videoStream := GetBestQualityVideoStream(video.Formats.Type("video/mp4"))
 
 	format, err := getVideoFormat(video, videoStream.ItagNo)
