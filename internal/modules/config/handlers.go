@@ -36,28 +36,26 @@ func disableHandler(message *telegram.NewMessage) error {
 		return err
 	}
 
-	query := "INSERT INTO commandsDisabled (chat_id, command) VALUES (?, ?);"
-	_, err := database.DB.Exec(query, message.Chat.ID, command)
-	if err != nil {
-		fmt.Printf("Error inserting command: %v\n", err)
+	if err := insertDisabledCommand(message.ChatID(), command); err != nil {
+		slog.Error(
+			"Error inserting command",
+			"command", command,
+			"chat_id", message.ChatID(),
+			"error", err.Error(),
+		)
 		return err
 	}
-	_, err = message.Reply(i18n("command-disabled",
-		map[string]any{
-			"command": command,
-		}))
+
+	_, err := message.Reply(i18n("command-disabled",
+		map[string]any{"command": command},
+	))
 	return err
 }
 
 func enableHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	contains := func(array []string, str string) bool {
-		for _, item := range array {
-			if item == str {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(array, str)
 	}
 
 	command := strings.Split(message.Args(), " ")[0]
@@ -66,25 +64,19 @@ func enableHandler(message *telegram.NewMessage) error {
 		return err
 	}
 
-	if !handlers.CheckDisabledCommand(message, command) {
-		_, err := message.Reply(i18n("command-already-enabled",
-			map[string]any{
-				"command": command,
-			}))
+	if err := deleteDisabledCommand(message.ChatID(), command); err != nil {
+		slog.Error(
+			"Error deleting command",
+			"command", command,
+			"chat_id", message.ChatID(),
+			"error", err.Error(),
+		)
 		return err
 	}
 
-	query := "DELETE FROM commandsDisabled WHERE command = ? AND chat_id = ?;"
-	_, err := database.DB.Exec(query, command, message.Chat.ID)
-	if err != nil {
-		fmt.Printf("Error deleting command: %v\n", err)
-		return err
-	}
-	_, err = message.Reply(i18n("command-enabled",
-		map[string]any{
-			"command": command,
-		}))
-
+	_, err := message.Reply(i18n("command-enabled",
+		map[string]any{"command": command},
+	))
 	return err
 }
 
@@ -102,19 +94,10 @@ func disableableHandler(message *telegram.NewMessage) error {
 func disabledHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	text := i18n("disabled-commands")
-	rows, err := database.DB.Query("SELECT command FROM commandsDisabled WHERE chat_id = ?", message.Chat.ID)
+
+	commands, err := getDisabledCommands(message.ChatID())
 	if err != nil {
 		return err
-	}
-	defer rows.Close()
-
-	var commands []string
-	for rows.Next() {
-		var command string
-		if err := rows.Scan(&command); err != nil {
-			return err
-		}
-		commands = append(commands, command)
 	}
 
 	if len(commands) == 0 {

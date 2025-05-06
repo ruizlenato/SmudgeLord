@@ -41,7 +41,7 @@ func CheckDisabledCommand(message *telegram.NewMessage, command string) bool {
 	}
 
 	query := "SELECT EXISTS(SELECT 1 FROM commandsDisabled WHERE command = ? AND chat_id = ? LIMIT 1);"
-	if err := database.DB.QueryRow(query, command, message.Chat.ID).Scan(&exists); err != nil {
+	if err := database.DB.QueryRow(query, command, message.ChatID()).Scan(&exists); err != nil {
 		fmt.Printf("Error checking command: %v\n", err)
 		return false
 	}
