@@ -135,7 +135,7 @@ func parseAndGetTranslateLang(text string, message *telegram.NewMessage) (source
 		return false
 	}
 
-	chatLang, err := localization.GetChatLanguage(message.ChatID(), message.ChatType())
+	chatLang, err := localization.GetChatLanguage(message)
 	if err != nil {
 		chatLang = "en"
 	}
@@ -204,7 +204,7 @@ func weatherHandler(message *telegram.NewMessage) error {
 		return err
 	}
 
-	chatLang, err := localization.GetChatLanguage(message.ChatID(), message.ChatType())
+	chatLang, err := localization.GetChatLanguage(message)
 	if err != nil {
 		return err
 	}
@@ -275,7 +275,7 @@ type weatherResult struct {
 
 func weatherCallback(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
-	chatLang, err := localization.GetChatLanguage(update.ChatID, update.ChatType())
+	chatLang, err := localization.GetChatLanguage(update)
 	if err != nil {
 		return err
 	}

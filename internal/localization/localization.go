@@ -89,15 +89,30 @@ func processLanguageFile(path string, wg *sync.WaitGroup) {
 	database.AvailableLocales = append(database.AvailableLocales, langCode)
 }
 
-func GetChatLanguage(chatID int64, chatType string) (string, error) {
-	var tableName string
-	if chatType == "chat" {
-		tableName = "chats"
-	} else {
-		tableName = "users"
+func GetChatLanguage(update any) (string, error) {
+	var chatID int64
+	var chatType string
+
+	switch u := update.(type) {
+	case *telegram.NewMessage:
+		chatID = u.ChatID()
+		chatType = u.ChatType()
+		if u.ChatType() == "user" {
+			chatType = "user"
+		}
+	case *telegram.CallbackQuery:
+		chatID = u.GetChatID()
+		chatType = "chat"
+		if u.ChatType() == "user" {
+			chatType = "user"
+		}
 	}
 
-	row := database.DB.QueryRow(fmt.Sprintf("SELECT language FROM %s WHERE id = ?;", tableName), chatID)
+	row := database.DB.QueryRow("SELECT language FROM chats WHERE id = ?;", chatID)
+	if chatType == telegram.EntityUser {
+		row = database.DB.QueryRow("SELECT language FROM users WHERE id = ?;", chatID)
+	}
+
 	var language string
 	err := row.Scan(&language)
 	return language, err
@@ -136,7 +151,7 @@ func Get(update any) func(string, ...map[string]any) string {
 	}
 
 	return func(key string, args ...map[string]any) string {
-		language, err := GetChatLanguage(chatID, chatType)
+		language, err := GetChatLanguage(update)
 		if err != nil {
 			slog.Warn(
 				"Couldn't get chat language initially, attempting fallback",
@@ -149,7 +164,7 @@ func Get(update any) func(string, ...map[string]any) string {
 				database.SaveUsers(update)
 			}
 
-			language, err = GetChatLanguage(chatID, chatType)
+			language, err = GetChatLanguage(update)
 			if err != nil {
 				slog.Error(
 					"Couldn't get chat language",
