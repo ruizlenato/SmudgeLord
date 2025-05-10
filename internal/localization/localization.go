@@ -106,6 +106,12 @@ func GetChatLanguage(update any) (string, error) {
 		if u.ChatType() == "user" {
 			chatType = "user"
 		}
+	case *telegram.InlineQuery:
+		chatID = u.SenderID
+		chatType = "user"
+	case *telegram.InlineSend:
+		chatID = u.SenderID
+		chatType = "user"
 	}
 
 	row := database.DB.QueryRow("SELECT language FROM chats WHERE id = ?;", chatID)
@@ -169,6 +175,7 @@ func Get(update any) func(string, ...map[string]any) string {
 				slog.Error(
 					"Couldn't get chat language",
 					"ChatID", chatID,
+					"ChatType", chatType,
 					"Error", err.Error(),
 				)
 				language = defaultLanguage
