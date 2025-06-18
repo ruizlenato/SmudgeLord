@@ -266,7 +266,7 @@ func checkStickerSetCount(message *telegram.NewMessage, stickerSetName string) b
 		return false
 	}
 	if stickerSetObj, ok := stickerSet.(*telegram.MessagesStickerSetObj); ok {
-		return stickerSetObj.Set.Count > 120
+		return stickerSetObj.Set.Count >= 120
 	}
 	return false
 }
