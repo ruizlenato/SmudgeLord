@@ -200,9 +200,10 @@ func lastfm(update any, methodType string) string {
 			text += " ❤️"
 		}
 	case "album":
-		text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Album)
-	case "artist":
 		text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
+	case "artist":
+		text += fmt.Sprintf("\n\n<b>%s</b> - %s", recentTracks.Artist, recentTracks.Album)
+
 	}
 
 	return text
