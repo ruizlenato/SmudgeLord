@@ -112,7 +112,7 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 		stickerEmoji = "🤔"
 	}
 
-	if emoji := emojiRegex.FindString(reply.Text()); emoji != "" {
+	if emoji := emojiRegex.FindString(message.Text()); emoji != "" {
 		stickerEmoji = emoji
 	}
 
