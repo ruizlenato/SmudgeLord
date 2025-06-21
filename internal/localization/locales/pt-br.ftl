@@ -26,6 +26,8 @@ back-button = ↩️ Voltar
 denied-button-alert = Este botão não é para você.
 privacy-policy-button = 🔒 Política de Privacidade
 privacy-policy-group = Para acessar a política de privacidade do SmudgeLord, <b>clique no botão abaixo.</b>
+loading = <b>Carregando...</b>
+run-switch-inline = ▶️ Executar '{ $command }'
 about-message =
     <b>— SmudgeLord</b>
     SmudgeLord (Smudge The Cat) é um gato que se tornou um famoso meme na Internet. A sua veio de uma imagem onde aparece ao lado de uma mulher gritando com raiva.
@@ -217,6 +219,9 @@ translator-no-args-provided =
 translator-error =
     <b>Ocorreu um erro ao traduzir o texto.</b>
     Se o erro persistir, entre em contato com o meu desenvolvedor.
+weather = clima
+weather-inline-help = Exibe informações do clima da cidade especificada.
+weather-inline-handler = clima &lt;local&gt;
 weather-no-location-provided =
     Você precisa especificar o local para o qual deseja saber as informações meteorológicas.
     

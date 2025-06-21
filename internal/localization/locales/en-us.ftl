@@ -24,6 +24,8 @@ back-button = ↩️ Back
 denied-button-alert = This button is not for you.
 privacy-policy-button = 🔒 Privacy Policy
 privacy-policy-group = To acess SmudgeLord's privacy policy, <b>click on the button below.</b>
+loading = <b>Loading...</b>
+run-switch-inline = ▶️ Run '{ $command }'
 about-message =
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily
@@ -208,6 +210,9 @@ translator-no-args-provided =
     You need to specify the text you want to translate or reply to a text message, or a photo with a caption.
 
     <b>Usage:</b> <code>/tr (?language) (text for translation)</code>
+weather = weather
+weather-inline-help = Shows the current weather of a specified location.
+weather-inline-handler = weather &lt;location&gt;
 weather-no-location-provided =
     You need to specify the location for which you want to know the weather information.
     

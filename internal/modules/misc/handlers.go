@@ -195,6 +195,33 @@ type weatherSearch struct {
 	} `json:"location"`
 }
 
+func searchWeather(local, language string) (weatherSearch, error) {
+	var weatherSearchData weatherSearch
+	response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"apiKey":   weatherAPIKey,
+			"query":    local,
+			"language": language,
+			"format":   "json",
+		},
+	})
+	if err != nil {
+		return weatherSearchData, err
+	}
+	if response.Body == nil {
+		return weatherSearchData, fmt.Errorf("response body is nil")
+	}
+	defer response.Body.Close()
+
+	err = json.NewDecoder(response.Body).Decode(&weatherSearchData)
+	if err != nil {
+		return weatherSearchData, err
+	}
+
+	return weatherSearchData, nil
+}
+
 func weatherHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() == "" {
@@ -209,23 +236,7 @@ func weatherHandler(message *telegram.NewMessage) error {
 		return err
 	}
 
-	response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
-		Method: "GET",
-		Query: map[string]string{
-			"apiKey":   weatherAPIKey,
-			"query":    message.Args(),
-			"language": strings.Split(chatLang, "-")[0],
-			"format":   "json",
-		},
-	})
-
-	if err != nil || response.Body == nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	var weatherSearchData weatherSearch
-	err = json.NewDecoder(response.Body).Decode(&weatherSearchData)
+	weatherSearchData, err := searchWeather(message.Args(), strings.Split(chatLang, "-")[0])
 	if err != nil {
 		return err
 	}
@@ -273,6 +284,35 @@ type weatherResult struct {
 	} `json:"v3-location-point"`
 }
 
+func weatherSearchResult(geocode, language string, i18n func(string, ...map[string]any) string) (weatherResult, error) {
+	var weatherResultData weatherResult
+	response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"apiKey":   weatherAPIKey,
+			"geocode":  geocode,
+			"language": language,
+			"units":    i18n("measurement-unit"),
+			"format":   "json",
+		},
+	})
+
+	if err != nil {
+		return weatherResultData, err
+	}
+	if response.Body == nil {
+		return weatherResultData, fmt.Errorf("response body is nil")
+	}
+	defer response.Body.Close()
+
+	err = json.NewDecoder(response.Body).Decode(&weatherResultData)
+	if err != nil {
+		return weatherResultData, err
+	}
+
+	return weatherResultData, nil
+}
+
 func weatherCallback(update *telegram.CallbackQuery) error {
 	i18n := localization.Get(update)
 	chatLang, err := localization.GetChatLanguage(update)
@@ -290,24 +330,7 @@ func weatherCallback(update *telegram.CallbackQuery) error {
 		return err
 	}
 
-	response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point", utils.RequestParams{
-		Method: "GET",
-		Query: map[string]string{
-			"apiKey":   weatherAPIKey,
-			"geocode":  fmt.Sprintf("%.3f,%.3f", latitude, longitude),
-			"language": strings.Split(chatLang, "-")[0],
-			"units":    i18n("measurement-unit"),
-			"format":   "json",
-		},
-	})
-
-	if err != nil || response.Body == nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	var weatherResultData weatherResult
-	err = json.NewDecoder(response.Body).Decode(&weatherResultData)
+	weatherResultData, err := weatherSearchResult(fmt.Sprintf("%.3f,%.3f", latitude, longitude), strings.Split(chatLang, "-")[0], i18n)
 	if err != nil {
 		return err
 	}
@@ -338,13 +361,90 @@ func weatherCallback(update *telegram.CallbackQuery) error {
 	return err
 }
 
+func weatherInlineQuery(i *telegram.InlineQuery) error {
+	builder := i.Builder()
+	i18n := localization.Get(i)
+
+	chatLang, err := localization.GetChatLanguage(i)
+	if err != nil {
+		return err
+	}
+	weatherSearchData, err := searchWeather(i.Args(), strings.Split(chatLang, "-")[0])
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(weatherSearchData.Location.Address) && i < 5; i++ {
+		builder.Article(weatherSearchData.Location.Address[i], "", i18n("loading"), &telegram.ArticleOptions{
+			ID: fmt.Sprintf("weather-%f,%f",
+				weatherSearchData.Location.Latitude[i],
+				weatherSearchData.Location.Longitude[i],
+			),
+			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+				telegram.ButtonBuilder{}.Row(
+					telegram.ButtonBuilder{}.Data(
+						"⏳",
+						"NONE",
+					),
+				),
+			),
+		})
+	}
+
+	_, err = i.Answer(builder.Results(), telegram.InlineSendOptions{
+		CacheTime: 0,
+	})
+	return err
+}
+
+func WeatherInline(m *telegram.InlineSend, geocode string) error {
+	i18n := localization.Get(m)
+
+	chatLang, err := localization.GetChatLanguage(m)
+	if err != nil {
+		return err
+	}
+	weatherResultData, err := weatherSearchResult(geocode, strings.Split(chatLang, "-")[0], i18n)
+	if err != nil {
+		return err
+	}
+
+	var localNameParts []string
+	if locale4 := weatherResultData.V3LocationPoint.Location.Locale.Locale4; locale4 != "" {
+		localNameParts = append(localNameParts, locale4)
+	}
+
+	if locale3, ok := weatherResultData.V3LocationPoint.Location.Locale.Locale3.(string); ok && locale3 != "" {
+		localNameParts = append(localNameParts, locale3)
+	}
+
+	localNameParts = append(localNameParts,
+		weatherResultData.V3LocationPoint.Location.City,
+		weatherResultData.V3LocationPoint.Location.AdminDistrict,
+		weatherResultData.V3LocationPoint.Location.Country)
+
+	localName := strings.Join(localNameParts, ", ")
+
+	_, err = m.Edit(i18n("weather-details", map[string]any{
+		"localname":            localName,
+		"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
+		"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
+		"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
+		"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
+	}),
+		&telegram.SendOptions{
+			ParseMode: telegram.HTML,
+		})
+	return err
+}
+
 func Load(client *telegram.Client) {
 	utils.SotreHelp("misc")
 	client.On("command:translate", handlers.HandleCommand(translateHandler))
 	client.On("command:tr", handlers.HandleCommand(translateHandler))
-	client.On("command:weather", handlers.HandleCommand(weatherHandler))
-	client.On("command:clima", handlers.HandleCommand(weatherHandler))
+	client.On("command:(clima|weather)", handlers.HandleCommand(weatherHandler))
 	client.On("callback:^_weather", weatherCallback)
+	client.On("inline:^(weather|clima) .+", weatherInlineQuery)
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "translate", "tr", "weather", "clima")
 }

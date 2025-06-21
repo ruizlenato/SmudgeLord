@@ -2,11 +2,13 @@ package menu
 
 import (
 	"fmt"
+	"html"
 	"strings"
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
+	"github.com/ruizlenato/smudgelord/internal/modules/misc"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
@@ -213,48 +215,77 @@ func helpMessageCallback(update *telegram.CallbackQuery) error {
 	return err
 }
 
+type inlineArticle struct {
+	title       string
+	description string
+	text        string
+	options     *telegram.ArticleOptions
+}
+
 func menuInline(i *telegram.InlineQuery) error {
 	builder := i.Builder()
 	i18n := localization.Get(i)
 
-	builder.Article("LastFM Music", i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}), "BALD!", &telegram.ArticleOptions{
-		ID:        "track",
-		ParseMode: telegram.HTML,
-		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
-			telegram.ButtonBuilder{}.Row(
-				telegram.ButtonBuilder{}.Data(
-					"🎵",
-					"NONE",
-				),
-			),
-		),
-	})
+	articles := []inlineArticle{
+		{
+			title:       html.UnescapeString(i18n("weather-inline-handler")),
+			description: i18n("weather-inline-help"),
+			text:        fmt.Sprintf("<b>%s</b>: %s", i18n("weather-inline-handler"), i18n("weather-inline-help")),
+			options: &telegram.ArticleOptions{
+				ParseMode: telegram.HTML,
+				ReplyMarkup: telegram.NewKeyboard().AddRow(
+					telegram.Button.SwitchInline(i18n("run-switch-inline", map[string]any{"command": i18n("weather")}), true, i18n("weather")),
+				).Build(),
+			},
+		},
+		{
+			title:       "LastFM Music",
+			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
+			text:        "BALD!",
+			options: &telegram.ArticleOptions{
+				ID:        "track",
+				ParseMode: telegram.HTML,
+				ReplyMarkup: telegram.NewKeyboard().AddRow(
+					telegram.Button.Data("🎵", "NONE"),
+				).Build(),
+			},
+		},
+		{
+			title:       "LastFM Album",
+			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}),
+			text:        "BALD!",
+			options: &telegram.ArticleOptions{
+				ID:        "album",
+				ParseMode: telegram.HTML,
+				ReplyMarkup: telegram.NewKeyboard().AddRow(
+					telegram.Button.Data("💿", "NONE"),
+				).Build(),
+			},
+		},
+		{
+			title:       "LastFM Artist",
+			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}),
+			text:        "BALD!",
+			options: &telegram.ArticleOptions{
+				ID:        "artist",
+				ParseMode: telegram.HTML,
+				ReplyMarkup: telegram.NewKeyboard().AddRow(
+					telegram.Button.Data("🎙", "NONE"),
+				).Build(),
+			},
+		},
+	}
 
-	builder.Article("LastFM Album", i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}), "BALD!", &telegram.ArticleOptions{
-		ID:        "artist",
-		ParseMode: telegram.HTML,
-		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
-			telegram.ButtonBuilder{}.Row(
-				telegram.ButtonBuilder{}.Data(
-					"💿",
-					"NONE",
-				),
-			),
-		),
-	})
+	filteredArticles := filterArticles(articles, i.Query)
 
-	builder.Article("LastFM Artist", i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}), "BALD!", &telegram.ArticleOptions{
-		ID:        "album",
-		ParseMode: telegram.HTML,
-		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
-			telegram.ButtonBuilder{}.Row(
-				telegram.ButtonBuilder{}.Data(
-					"🎙",
-					"NONE",
-				),
-			),
-		),
-	})
+	for _, article := range filteredArticles {
+		builder.Article(
+			article.title,
+			article.description,
+			article.text,
+			article.options,
+		)
+	}
 
 	_, err := i.Answer(builder.Results(), telegram.InlineSendOptions{
 		CacheTime: 0,
@@ -262,16 +293,35 @@ func menuInline(i *telegram.InlineQuery) error {
 	return err
 }
 
+func filterArticles(articles []inlineArticle, query string) []inlineArticle {
+	trimmedQuery := strings.TrimSpace(query)
+	if trimmedQuery == "" {
+		return articles
+	}
+
+	lowerQuery := strings.ToLower(trimmedQuery)
+	filtered := make([]inlineArticle, 0, len(articles))
+
+	for _, article := range articles {
+		if strings.Contains(strings.ToLower(article.title), lowerQuery) {
+			filtered = append(filtered, article)
+		}
+	}
+
+	return filtered
+}
+
 func inlineSend(m *telegram.InlineSend) error {
 	switch m.ID {
 	case "track", "artist", "album":
 		return lastfm.LastfmInline(m, m.ID)
+	default:
+		if after, ok := strings.CutPrefix(m.ID, "weather-"); ok {
+			return misc.WeatherInline(m, after)
+		}
 	}
 
-	_, err := m.Edit("<b>Bar</b>", &telegram.SendOptions{
-		ParseMode: telegram.HTML,
-	})
-	return err
+	return nil
 }
 
 func Load(client *telegram.Client) {
