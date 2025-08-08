@@ -242,8 +242,10 @@ sticker-pack-already-exists = <code>Usando um pacote de figurinhas existente...<
 kang-error =
     <b>Ocorreu um erro ao processar a figurinha, tente novamente.</b>
     Se o erro persistir, entre em contato com o meu desenvolvedor.
-get-sticker-no-reply-provided =
-    Você precisa usar este comando respondendo a uma <b>figurinha estática (imagem) ou de vídeo.
+get-sticker-no-reply-provided = Você precisa usar este comando respondendo a uma <b>figurinha estática (imagem) ou de vídeo</b>.
+get-sticker-animated-not-supported =
+    <b>Figurinhas animadas não são suportadas.</b>
+    Você só pode converter figurinhas estáticas para arquivos .png ou figurinhas de vídeo para arquivos .gif.
 sticker-invalid-media-type = 
     O arquivo que você respondeu não é valido.
     Você precisa responder a uma <b>figurinha</b> (sticker), <b>vídeo</b> ou <b>foto</b>.

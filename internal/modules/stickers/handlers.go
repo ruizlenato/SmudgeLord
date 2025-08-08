@@ -69,12 +69,12 @@ func getStickerHandler(message *telegram.NewMessage) error {
 
 	filename := "sticker.png"
 	if stickerType == "video" {
-		filename = "sticker.webm"
+		filename = "sticker.gif"
 	}
 
 	_, err = message.ReplyMedia(buf.Bytes(), telegram.MediaOptions{
 		ForceDocument: true,
-		Caption:       "<b>Emoji:</b> " + emoji,
+		Caption:       fmt.Sprintf("<b>Emoji:</b> <code>%s</code>", emoji),
 		FileName:      filename,
 	})
 	if err != nil {
@@ -204,6 +204,10 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 		Emoji:    stickerEmoji,
 	})
 	if err != nil {
+		if strings.Contains(err.Error(), "STICKERS_TOO_MUCH") {
+			return editProgressAndReturn(progressMessage, "STICKERS_TOO_MUCH", err)
+
+		}
 		progressMessage, err = progressMessage.Edit(i18n("sticker-new-pack"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
