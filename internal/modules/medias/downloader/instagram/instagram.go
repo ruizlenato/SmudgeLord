@@ -170,6 +170,7 @@ func (h *Handler) getEmbedData() InstagramData {
 		)
 		return nil
 	}
+
 	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body); len(match) == 2 {
 		s := strings.ReplaceAll(string(match[1]), `\"`, `"`)
 		s = strings.ReplaceAll(s, `\\/`, `/`)
@@ -226,9 +227,10 @@ func (h *Handler) getEmbedData() InstagramData {
 		if err != nil {
 			return nil
 		}
+		return instagramData
 	}
 
-	return instagramData
+	return nil
 }
 
 func (h *Handler) getScrapperAPIData() InstagramData {
