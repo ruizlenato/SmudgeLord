@@ -262,10 +262,12 @@ stickers-help =
     <b>/kang (emoji):</b> Responda a qualquer figurinha para adicioná-la ao seu pacote de figurinhas criado por mim. <b>Funciona com figurinha <i>estáticas, de vídeo e animadas.</i></b>
     <b>/getsticker:</b> Responda a uma figurinha para que eu possa enviá-la como arquivo <i>.png</i> ou <i>.gif</i>. <b>Funciona apenas com figurinhas <i>de vídeo ou estáticas.</i></b>
 lastfm = Last.FM
-no-lastfm-username-provided =
-    Você precisa especificar seu nome de usuário last.fm para que eu possa salvar meu banco de dados.
-    
-    <b>Exemplo:</b> <code>/setuser maozedong</code>.
+reply-with-lastfm-username =
+    <b>Responda a esta mensagem com seu nome de usuário do Last.fm.</b>
+    Você pode encontrar seu nome de usuário nas <a href='https://www.last.fm/settings/username'>configurações do Last.fm</a>.
+didnt-replied-with-lastfm-username =
+    <b>Você não me respondeu com seu nome de usuário do last.fm.</b>
+    Caso ainda queira definir seu nome de usuário do last.fm, envie /setuser novamente.
 invalid-lastfm-username =
     <b>Usuário do last.fm inválido</b>
     Verifique se você digitou corretamente seu nome de usuário last.FM e tente novamente.

@@ -27,7 +27,7 @@ var lastFM = lastFMAPI.Init()
 
 func SetUserHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
-	if message.Args() != "" {
+	if message.Args() != "" && message.Args() != "setuser" {
 		if err := lastFM.GetUser(message.Args()); err != nil {
 			_, err := message.Reply(i18n("invalid-lastfm-username"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
@@ -56,11 +56,16 @@ func SetUserHandler(message *telegram.NewMessage) error {
 	if err != nil {
 		return err
 	}
+
 	defer conv.Close()
 
-	respond, err := conv.Respond(i18n("no-lastfm-username-provided"), &telegram.SendOptions{
-		ParseMode:   telegram.HTML,
-		ReplyMarkup: &telegram.ReplyKeyboardForceReply{},
+	respond, err := conv.Respond(i18n("reply-with-lastfm-username"), &telegram.SendOptions{
+		ParseMode: telegram.HTML,
+		ReplyID:   message.ID,
+		ReplyMarkup: &telegram.ReplyKeyboardForceReply{
+			SingleUse: true,
+			Selective: true,
+		},
 	})
 	if err != nil {
 		return err
@@ -71,40 +76,47 @@ func SetUserHandler(message *telegram.NewMessage) error {
 		return err
 	}
 
-	if respond.ID == resp.ReplyToMsgID() {
-		if err := lastFM.GetUser(resp.Text()); err != nil {
-			_, err := conv.Reply(i18n("invalid-lastfm-username"), &telegram.SendOptions{
-				ParseMode: telegram.HTML,
-			})
-			return err
-		}
-
-		if err := setLastFMUsername(message.SenderID(), resp.Text()); err != nil {
-			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
-				ParseMode: telegram.HTML,
-			})
-			slog.Error(
-				"Could not set lastfm username",
-				"error", err.Error(),
-			)
-			return err
-		}
-
-		_, err = conv.Respond(i18n("lastfm-username-saved"), &telegram.SendOptions{
+	getRespReply, err := resp.GetReplyMessage()
+	if getRespReply == nil || err != nil {
+		respond.Delete()
+		_, err := conv.Respond(i18n("didnt-replied-with-lastfm-username"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
+			ReplyID:   message.ID,
 		})
 		return err
 	}
 
-	_, err = respond.Delete()
-	if respond.IsReply() {
-		reply, err := respond.GetReplyMessage()
+	for resp.Sender.ID != message.Sender.ID {
+		resp, err = conv.GetReply()
 		if err != nil {
 			return err
 		}
-		_, err = reply.Delete()
+	}
+
+	if err := lastFM.GetUser(resp.Text()); err != nil {
+		_, err := message.Reply(i18n("invalid-lastfm-username"), telegram.SendOptions{
+			ParseMode: telegram.HTML,
+			ReplyID:   resp.ID,
+		})
 		return err
 	}
+
+	if err := setLastFMUsername(message.SenderID(), resp.Text()); err != nil {
+		_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
+			ParseMode: telegram.HTML,
+			ReplyID:   resp.ID,
+		})
+		slog.Error(
+			"Could not set lastfm username",
+			"error", err.Error(),
+		)
+		return err
+	}
+
+	_, err = conv.Respond(i18n("lastfm-username-saved"), &telegram.SendOptions{
+		ParseMode: telegram.HTML,
+		ReplyID:   resp.ID,
+	})
 
 	return err
 }
