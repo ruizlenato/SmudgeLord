@@ -30,8 +30,8 @@ func initializeServices() error {
 		return fmt.Errorf("create tables: %w", err)
 	}
 
-	if err := cache.RedisClient("localhost:6379", "", 0); err != nil {
-		fmt.Println("\033[0;31mRedis cache is currently unavailable.\033[0m")
+	if err := cache.ValkeyClient("localhost:6379"); err != nil {
+		fmt.Println("\033[0;31mValkey cache is currently unavailable.\033[0m")
 	}
 
 	return nil

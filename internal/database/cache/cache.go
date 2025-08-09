@@ -2,22 +2,26 @@ package cache
 
 import (
 	"context"
+	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/valkey-io/valkey-go"
 )
 
-var rdb *redis.Client
+var client valkey.Client
 
-func RedisClient(addr string, password string, db int) error {
-	rdb = redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
+func ValkeyClient(addr string) error {
+	var err error
+	client, err = valkey.NewClient(valkey.ClientOption{
+		InitAddress: []string{addr},
 	})
+	if err != nil {
+		return err
+	}
 
 	ctx := context.Background()
-	_, err := rdb.Ping(ctx).Result()
+
+	err = client.Do(ctx, client.B().Ping().Build()).Error()
 	if err != nil {
 		return err
 	}
@@ -25,20 +29,41 @@ func RedisClient(addr string, password string, db int) error {
 	return nil
 }
 
-func SetCache(key string, value interface{}, expiration time.Duration) error {
+func SetCache(key string, value any, expiration time.Duration) error {
 	ctx := context.Background()
-	err := rdb.Set(ctx, key, value, expiration).Err()
+
+	var strValue string
+	switch v := value.(type) {
+	case string:
+		strValue = v
+	case []byte:
+		strValue = string(v)
+	default:
+		strValue = fmt.Sprintf("%v", v)
+	}
+
+	var cmd valkey.Completed
+	if expiration > 0 {
+		cmd = client.B().Set().Key(key).Value(strValue).ExSeconds(int64(expiration.Seconds())).Build()
+	} else {
+		cmd = client.B().Set().Key(key).Value(strValue).Build()
+	}
+
+	err := client.Do(ctx, cmd).Error()
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func GetCache(key string) (string, error) {
 	ctx := context.Background()
-	val, err := rdb.Get(ctx, key).Result()
-	if err != nil {
-		return "", err
+	result := client.Do(ctx, client.B().Get().Key(key).Build())
+
+	if result.Error() != nil {
+		return "", result.Error()
 	}
-	return val, nil
+
+	return result.ToString()
 }
