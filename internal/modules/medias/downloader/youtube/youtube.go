@@ -155,7 +155,7 @@ func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
 
 func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 	youtubeClient := ConfigureYoutubeClient()
-	video, err := youtubeClient.GetVideo(message.Text())
+	video, err := youtubeClient.GetVideo(message.Text(), youtubedl.WithClient("ANDROID"))
 	if err != nil {
 		return nil, []string{}
 	}
