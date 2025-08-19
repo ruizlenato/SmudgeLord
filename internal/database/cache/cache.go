@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -29,7 +30,19 @@ func ValkeyClient(addr string) error {
 	return nil
 }
 
+func IsHealthy() bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	err := client.Do(ctx, client.B().Ping().Build()).Error()
+	return err == nil
+}
+
 func SetCache(key string, value any, expiration time.Duration) error {
+	if !IsHealthy() {
+		return errors.New("cache client is not healthy")
+	}
+
 	ctx := context.Background()
 
 	var strValue string
@@ -58,6 +71,10 @@ func SetCache(key string, value any, expiration time.Duration) error {
 }
 
 func GetCache(key string) (string, error) {
+	if !IsHealthy() {
+		return "", errors.New("cache client is not healthy")
+	}
+
 	ctx := context.Background()
 	result := client.Do(ctx, client.B().Get().Key(key).Build())
 
