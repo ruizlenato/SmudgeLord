@@ -22,9 +22,9 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+func Handle(message string) ([]telegram.InputMedia, []string) {
 	handler := &Handler{}
-	postURL := handler.getPostURL(message.Text())
+	postURL := handler.getPostURL(message)
 	if postURL == "" {
 		return nil, []string{}
 	}
@@ -46,9 +46,9 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 
 	switch noteData.Note.Type {
 	case "video":
-		return handler.downloadVideo(noteData, message), []string{getCaption(noteData), handler.postID}
+		return handler.downloadVideo(noteData), []string{getCaption(noteData), handler.postID}
 	case "normal":
-		return handler.downloadImages(noteData, message), []string{getCaption(noteData), handler.postID}
+		return handler.downloadImages(noteData), []string{getCaption(noteData), handler.postID}
 	default:
 		return nil, []string{}
 	}
@@ -159,7 +159,7 @@ func getCaption(noteData Note) string {
 	return caption
 }
 
-func (h *Handler) downloadVideo(noteData Note, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) downloadVideo(noteData Note) []telegram.InputMedia {
 	videoInfo := h.findFirstAvailableVideoFormat(noteData.Note.Video.Media.Stream)
 	if videoInfo == nil {
 		slog.Error(
@@ -179,7 +179,7 @@ func (h *Handler) downloadVideo(noteData Note, message *telegram.NewMessage) []t
 		return nil
 	}
 
-	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+	video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 		File:              file,
 		SupportsStreaming: true,
 		Width:             int32(videoInfo.Width),
@@ -216,7 +216,7 @@ func (h *Handler) findFirstAvailableVideoFormat(stream VideoStream) VideoInfo {
 	return nil
 }
 
-func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) downloadImages(noteData Note) []telegram.InputMedia {
 	type mediaResult struct {
 		index int
 		file  []byte
@@ -257,7 +257,7 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 		result := <-results
 		if result.file != nil {
 			if images[result.index].LivePhoto {
-				video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+				video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 					File:              result.file,
 					SupportsStreaming: true,
 				})
@@ -273,7 +273,7 @@ func (h *Handler) downloadImages(noteData Note, message *telegram.NewMessage) []
 				}
 				mediaItems[result.index] = &video
 			} else {
-				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 					File: result.file,
 				})
 				if err != nil {

@@ -22,7 +22,6 @@ var redlibInstance = "https://redlib.catsarch.com"
 
 var (
 	postInfoRegex     = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
-	redditURLRegex    = regexp.MustCompile(`(?:www.)?reddit.com`)
 	postTypeRegex     = regexp.MustCompile(`(?s)post_type:\s*(\w+)`)
 	mediaContentRegex = regexp.MustCompile(`(?s)<div class="post_media_content">(.*?)</div>`)
 	videoRegex        = regexp.MustCompile(`(?s)class="post_media_video.*?<source\s+src="([^"]+)"\s+type="video/mp4"`)
@@ -38,9 +37,9 @@ type Handler struct {
 	postID    string
 }
 
-func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+func Handle(message string) ([]telegram.InputMedia, []string) {
 	handler := &Handler{}
-	if !handler.getPostInfo(message.Text()) {
+	if !handler.getPostInfo(message) {
 		return nil, []string{}
 	}
 
@@ -49,7 +48,7 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 		return cachedMedias, []string{cachedCaption, fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)}
 	}
 
-	medias, caption := handler.processMedia(message)
+	medias, caption := handler.processMedia()
 	if medias == nil {
 		return nil, []string{}
 	}
@@ -68,14 +67,14 @@ func (h *Handler) getPostInfo(url string) bool {
 	return true
 }
 
-func (h *Handler) processMedia(message *telegram.NewMessage) ([]telegram.InputMedia, string) {
-	medias, caption := h.getRedlibData(message)
+func (h *Handler) processMedia() ([]telegram.InputMedia, string) {
+	medias, caption := h.getRedlibData()
 	if medias != nil {
 		return medias, caption
 	}
 
 	if data := h.getAPIData(); data != nil {
-		medias := h.processAPIMedia(data, message)
+		medias := h.processAPIMedia(data)
 		if medias == nil {
 			return nil, ""
 		}
@@ -85,7 +84,7 @@ func (h *Handler) processMedia(message *telegram.NewMessage) ([]telegram.InputMe
 	return nil, ""
 }
 
-func (h *Handler) getRedlibData(message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+func (h *Handler) getRedlibData() ([]telegram.InputMedia, string) {
 	response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
 		utils.RequestParams{
 			Method:  "GET",
@@ -123,11 +122,11 @@ func (h *Handler) getRedlibData(message *telegram.NewMessage) ([]telegram.InputM
 			return nil, ""
 		}
 
-		if videoMedia := h.processRedlibVideo(match[1], response, message); videoMedia != nil {
+		if videoMedia := h.processRedlibVideo(match[1], response); videoMedia != nil {
 			return videoMedia, extractRedlibCaption(body)
 		}
 
-		if imageMedia := h.processRedlibImage(match[1], response, message); imageMedia != nil {
+		if imageMedia := h.processRedlibImage(match[1], response); imageMedia != nil {
 			return imageMedia, extractRedlibCaption(body)
 		}
 	}
@@ -135,7 +134,7 @@ func (h *Handler) getRedlibData(message *telegram.NewMessage) ([]telegram.InputM
 	if string(postType[1]) == "gallery" {
 		match := galleryRegex.FindAllSubmatch(body, -1)
 
-		if galleryMedia := h.processRedlibGallery(match, response, message); galleryMedia != nil {
+		if galleryMedia := h.processRedlibGallery(match, response); galleryMedia != nil {
 			return galleryMedia, extractRedlibCaption(body)
 		}
 	}
@@ -168,7 +167,7 @@ func extractRedlibCaption(body []byte) string {
 	return fmt.Sprintf("<b>%s — %s</b>: %s", postAuthor, postSubreddit, postTitle)
 }
 
-func (h *Handler) processRedlibVideo(content []byte, response *http.Response, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []telegram.InputMedia {
 	if videoMatch := videoRegex.FindSubmatch(content); len(videoMatch) > 1 {
 		playlistURL := buildMediaURL(response, string(playlistRegex.FindSubmatch(content)[1]))
 
@@ -205,7 +204,7 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response, me
 			return nil
 		}
 
-		video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+		video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 			File:              videoFile,
 			Thumb:             thumbnail,
 			SupportsStreaming: true,
@@ -307,7 +306,7 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 	return nil
 }
 
-func (h *Handler) processRedlibImage(content []byte, response *http.Response, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) processRedlibImage(content []byte, response *http.Response) []telegram.InputMedia {
 	if imageMatch := imageRegex.FindSubmatch(content); len(imageMatch) > 1 {
 		imageURL := buildMediaURL(response, string(imageMatch[1]))
 
@@ -320,7 +319,7 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response, me
 			return nil
 		}
 
-		photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+		photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 			File: file,
 		})
 		if err != nil {
@@ -340,7 +339,7 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response, me
 	return nil
 }
 
-func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Response, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Response) []telegram.InputMedia {
 	if len(content) < 1 {
 		return nil
 	}
@@ -378,7 +377,7 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 	for range mediaCount {
 		result := <-results
 		if result.file != nil {
-			photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+			photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 				File: result.file,
 			})
 			if err != nil {
@@ -432,7 +431,7 @@ func (h *Handler) getAPIData() *Data {
 	return &data[0].Data.Children[0].Data
 }
 
-func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) processAPIMedia(data *Data) []telegram.InputMedia {
 	if data.IsVideo {
 		videoFile, err := downloader.FetchBytesFromURL(data.Media.RedditVideo.FallbackURL)
 		if err != nil {
@@ -466,7 +465,7 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 			)
 		}
 
-		video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+		video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 			File:              videoFile,
 			Thumb:             thumbnail,
 			SupportsStreaming: true,
@@ -529,7 +528,7 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 		for range mediaCount {
 			result := <-results
 			if result.file != nil {
-				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 					File: result.file,
 				})
 				if err != nil {
@@ -559,7 +558,7 @@ func (h *Handler) processAPIMedia(data *Data, message *telegram.NewMessage) []te
 			return nil
 		}
 
-		photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+		photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 			File: photoByte,
 		})
 		if err != nil {

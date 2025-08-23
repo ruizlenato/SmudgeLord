@@ -18,9 +18,9 @@ type Handler struct {
 	postID string
 }
 
-func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+func Handle(message string) ([]telegram.InputMedia, []string) {
 	handler := &Handler{}
-	if !handler.setPostID(message.Text()) {
+	if !handler.setPostID(message) {
 		return nil, []string{}
 	}
 
@@ -37,9 +37,9 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 	caption := getCaption(tikTokData)
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
-		return handler.handleImages(tikTokData, message), []string{caption, handler.postID}
+		return handler.handleImages(tikTokData), []string{caption, handler.postID}
 	}
-	return handler.handleVideo(tikTokData, message), []string{caption, handler.postID}
+	return handler.handleVideo(tikTokData), []string{caption, handler.postID}
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -117,7 +117,7 @@ func getCaption(tikTokData TikTokData) string {
 	return ""
 }
 
-func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleImages(tikTokData TikTokData) []telegram.InputMedia {
 	type mediaResult struct {
 		index int
 		file  []byte
@@ -152,7 +152,7 @@ func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessa
 		result := <-results
 
 		if result.file != nil {
-			photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+			photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 				File: result.file,
 			})
 			if err != nil {
@@ -173,7 +173,7 @@ func (h *Handler) handleImages(tikTokData TikTokData, message *telegram.NewMessa
 	return mediaItems
 }
 
-func (h *Handler) handleVideo(tikTokData TikTokData, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleVideo(tikTokData TikTokData) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 	if err != nil {
 		slog.Error(
@@ -206,7 +206,7 @@ func (h *Handler) handleVideo(tikTokData TikTokData, message *telegram.NewMessag
 		)
 	}
 
-	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+	video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 		File:              file,
 		Thumb:             thumbnail,
 		SupportsStreaming: true,

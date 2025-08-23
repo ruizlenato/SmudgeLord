@@ -36,9 +36,9 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+func Handle(message string) ([]telegram.InputMedia, []string) {
 	handler := &Handler{}
-	if !handler.setPostID(message.Text()) {
+	if !handler.setPostID(message) {
 		return nil, []string{}
 	}
 
@@ -54,11 +54,11 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 		if fxTwitterData == nil {
 			return nil, []string{}
 		}
-		medias, caption := handler.processFxTwitterAPI(fxTwitterData, message)
+		medias, caption := handler.processFxTwitterAPI(fxTwitterData)
 		return medias, []string{caption, handler.postID}
 	}
 
-	medias, caption := handler.processTwitterAPI(twitterData, message)
+	medias, caption := handler.processTwitterAPI(twitterData)
 	return medias, []string{caption, handler.postID}
 }
 
@@ -71,7 +71,7 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) ([]telegram.InputMedia, string) {
 	type mediaResult struct {
 		index int
 		media *InputMedia
@@ -153,7 +153,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 		if result.media.File != nil {
 			twitterMedia := allTweetMedia[result.index]
 			if twitterMedia.Type == "photo" {
-				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 					File: result.media.File,
 				})
 				if err != nil {
@@ -170,7 +170,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, message *telegr
 
 				mediaItems[result.index] = &photo
 			} else {
-				video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+				video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 					File:              result.media.File,
 					Thumb:             result.media.Thumbnail,
 					SupportsStreaming: true,
@@ -367,7 +367,7 @@ func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
 	return fxTwitterAPIData
 }
 
-func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *telegram.NewMessage) ([]telegram.InputMedia, string) {
+func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) ([]telegram.InputMedia, string) {
 	type mediaResult struct {
 		index int
 		media *InputMedia
@@ -420,7 +420,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 		if result.media.File != nil {
 			var mediaItem telegram.InputMedia
 			if !slices.Contains([]string{"gif", "video"}, twitterData.Tweet.Media.All[result.index].Type) {
-				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				uploadedPhoto, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 					File: result.media.File,
 				})
 				if err != nil {
@@ -436,7 +436,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, message *te
 				}
 				mediaItem = &uploadedPhoto
 			} else {
-				uploadedVideo, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+				uploadedVideo, err := helpers.UploadVideo(helpers.UploadVideoParams{
 					File:              result.media.File,
 					Thumb:             result.media.Thumbnail,
 					SupportsStreaming: true,

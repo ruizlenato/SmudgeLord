@@ -23,9 +23,9 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+func Handle(message string) ([]telegram.InputMedia, []string) {
 	handler := &Handler{}
-	if !handler.setUsernameAndPostID(message.Text()) {
+	if !handler.setUsernameAndPostID(message) {
 		return nil, []string{}
 	}
 
@@ -41,7 +41,7 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 
 	caption := getCaption(blueskyData)
 
-	return handler.processMedia(blueskyData, message), []string{caption, handler.postID}
+	return handler.processMedia(blueskyData), []string{caption, handler.postID}
 }
 
 func (h *Handler) setUsernameAndPostID(url string) bool {
@@ -92,18 +92,18 @@ func getCaption(bluesky BlueskyData) string {
 		bluesky.Thread.Post.Record.Text)
 }
 
-func (h *Handler) processMedia(blueskyData BlueskyData, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) processMedia(blueskyData BlueskyData) []telegram.InputMedia {
 	switch {
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "image"):
-		return h.handleImages(blueskyData.Thread.Post.Embed.Images, message)
+		return h.handleImages(blueskyData.Thread.Post.Embed.Images)
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "video"):
-		return h.handleVideo(blueskyData, message)
+		return h.handleVideo(blueskyData)
 	case strings.Contains(blueskyData.Thread.Post.Embed.Type, "recordWithMedia"):
 		if strings.Contains(blueskyData.Thread.Post.Embed.Media.Type, "image") {
-			return h.handleImages(blueskyData.Thread.Post.Embed.Media.Images, message)
+			return h.handleImages(blueskyData.Thread.Post.Embed.Media.Images)
 		}
 		if strings.Contains(blueskyData.Thread.Post.Embed.Media.Type, "video") {
-			return h.handleVideo(blueskyData, message)
+			return h.handleVideo(blueskyData)
 		}
 		return nil
 	}
@@ -137,7 +137,7 @@ func getPlaylistAndThumbnailURLs(blueskyData BlueskyData) (string, string) {
 	return blueskyData.Thread.Post.Embed.Media.Playlist, blueskyData.Thread.Post.Embed.Media.Thumbnail
 }
 
-func (h *Handler) handleVideo(blueskyData BlueskyData, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleVideo(blueskyData BlueskyData) []telegram.InputMedia {
 	playlistURL, thumbnailURL := getPlaylistAndThumbnailURLs(blueskyData)
 	if playlistURL == "" || thumbnailURL == "" {
 		return nil
@@ -243,7 +243,7 @@ func (h *Handler) handleVideo(blueskyData BlueskyData, message *telegram.NewMess
 		return nil
 	}
 
-	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+	video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 		File:              file,
 		Thumb:             thumbnail,
 		SupportsStreaming: true,
@@ -265,7 +265,7 @@ func (h *Handler) handleVideo(blueskyData BlueskyData, message *telegram.NewMess
 	return []telegram.InputMedia{&video}
 }
 
-func (h *Handler) handleImages(blueskyImages []Image, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleImages(blueskyImages []Image) []telegram.InputMedia {
 	type mediaResult struct {
 		index int
 		file  []byte
@@ -298,7 +298,7 @@ func (h *Handler) handleImages(blueskyImages []Image, message *telegram.NewMessa
 	for range mediaCount {
 		result := <-results
 		if result.file != nil {
-			photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+			photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 				File: result.file,
 			})
 			if err != nil {

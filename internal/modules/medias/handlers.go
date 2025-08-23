@@ -51,7 +51,7 @@ func mediasHandler(message *telegram.NewMessage) error {
 		return err
 	}
 
-	mediaHandlers := map[string]func(*telegram.NewMessage) ([]telegram.InputMedia, []string){
+	mediaHandlers := map[string]func(string) ([]telegram.InputMedia, []string){
 		"bsky.app/":                  bluesky.Handle,
 		"instagram.com/":             instagram.Handle,
 		"reddit.com/":                reddit.Handle,
@@ -64,7 +64,7 @@ func mediasHandler(message *telegram.NewMessage) error {
 
 	for pattern, handler := range mediaHandlers {
 		if match, _ := regexp.MatchString(pattern, message.Text()); match {
-			mediaItems, result = handler(message)
+			mediaItems, result = handler(message.Text())
 			if len(result) == 2 {
 				caption = result[0]
 			}

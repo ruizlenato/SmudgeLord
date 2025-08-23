@@ -7,31 +7,11 @@ import (
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/gabriel-vasile/mimetype"
+	tg "github.com/ruizlenato/smudgelord/internal/telegram"
 )
 
 type Media struct {
-	Message *telegram.NewMessage
-	Client  *telegram.Client
-}
-
-func GetInputFile(message *telegram.NewMessage, file []byte, filename ...string) (telegram.InputFile, error) {
-	if len(file) == 0 {
-		return nil, errors.New("file data is required")
-	}
-
-	var fileName string
-	if len(filename) > 0 {
-		fileName = filename[0]
-	}
-
-	uploadedMedia, err := message.Client.UploadFile(file, &telegram.UploadOptions{
-		FileName: fileName,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return uploadedMedia, nil
+	Client *telegram.Client
 }
 
 func (m *Media) GetInputFile(file []byte, filename ...string) (telegram.InputFile, error) {
@@ -51,7 +31,7 @@ func (m *Media) GetInputFile(file []byte, filename ...string) (telegram.InputFil
 		return nil, err
 	}
 
-	return uploadedMedia, err
+	return uploadedMedia, nil
 }
 
 type UploadPhotoParams struct {
@@ -60,14 +40,13 @@ type UploadPhotoParams struct {
 	Filename string
 }
 
-func UploadPhoto(message *telegram.NewMessage, params UploadPhotoParams) (telegram.InputMediaPhoto, error) {
+func UploadPhoto(params UploadPhotoParams) (telegram.InputMediaPhoto, error) {
 	if len(params.File) == 0 {
 		return telegram.InputMediaPhoto{}, errors.New("file is required")
 	}
 
 	media := &Media{
-		Message: message,
-		Client:  message.Client,
+		Client: tg.Client,
 	}
 
 	if params.Filename == "" {
@@ -85,8 +64,8 @@ func UploadPhoto(message *telegram.NewMessage, params UploadPhotoParams) (telegr
 		return telegram.InputMediaPhoto{}, err
 	}
 
-	messageMedia, err := message.Client.MessagesUploadMedia("", &telegram.InputPeerSelf{}, &telegram.InputMediaUploadedPhoto{
-		Spoiler:    false,
+	messageMedia, err := media.Client.MessagesUploadMedia("", &telegram.InputPeerSelf{}, &telegram.InputMediaUploadedPhoto{
+		Spoiler:    params.Spoiler,
 		File:       file,
 		TtlSeconds: 0,
 	})
@@ -125,14 +104,13 @@ type UploadVideoParams struct {
 	ForceFile         bool
 }
 
-func UploadVideo(message *telegram.NewMessage, params UploadVideoParams) (telegram.InputMediaDocument, error) {
+func UploadVideo(params UploadVideoParams) (telegram.InputMediaDocument, error) {
 	if len(params.File) == 0 {
 		return telegram.InputMediaDocument{}, errors.New("file is required")
 	}
 
 	media := &Media{
-		Message: message,
-		Client:  message.Client,
+		Client: tg.Client,
 	}
 
 	file, err := media.GetInputFile(params.File, params.Filename)
@@ -166,7 +144,7 @@ func UploadVideo(message *telegram.NewMessage, params UploadVideoParams) (telegr
 		noSound = *params.NoSoundVideo
 	}
 
-	messageMedia, err := message.Client.MessagesUploadMedia("", &telegram.InputPeerSelf{}, &telegram.InputMediaUploadedDocument{
+	messageMedia, err := media.Client.MessagesUploadMedia("", &telegram.InputPeerSelf{}, &telegram.InputMediaUploadedDocument{
 		NosoundVideo: noSound,
 		ForceFile:    params.ForceFile,
 		Spoiler:      params.Spoiler,

@@ -153,9 +153,9 @@ func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
 	return &bestFormat
 }
 
-func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+func Handle(message string) ([]telegram.InputMedia, []string) {
 	youtubeClient := ConfigureYoutubeClient()
-	video, err := youtubeClient.GetVideo(message.Text(), youtubedl.WithClient("ANDROID"))
+	video, err := youtubeClient.GetVideo(message, youtubedl.WithClient("ANDROID"))
 	if err != nil {
 		return nil, []string{}
 	}
@@ -207,7 +207,7 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 		return nil, []string{}
 	}
 
-	videoFile, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+	videoFile, err := helpers.UploadVideo(helpers.UploadVideoParams{
 		File:              fileBytes,
 		Filename:          utils.SanitizeString(fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)),
 		SupportsStreaming: true,

@@ -21,9 +21,9 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+func Handle(message string) ([]telegram.InputMedia, []string) {
 	handler := &Handler{}
-	if !handler.setPostID(message.MessageText()) {
+	if !handler.setPostID(message) {
 		return nil, []string{}
 	}
 
@@ -39,7 +39,7 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 
 	caption := getCaption(data)
 
-	return handler.processMedia(data, message), []string{caption, handler.postID}
+	return handler.processMedia(data), []string{caption, handler.postID}
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -76,14 +76,14 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-func (h *Handler) processMedia(instagramData *ShortcodeMedia, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) processMedia(instagramData *ShortcodeMedia) []telegram.InputMedia {
 	switch instagramData.Typename {
 	case "GraphVideo", "XDTGraphVideo":
-		return h.handleVideo(instagramData, message)
+		return h.handleVideo(instagramData)
 	case "GraphImage", "XDTGraphImage":
-		return h.handleImage(instagramData, message)
+		return h.handleImage(instagramData)
 	case "GraphSidecar", "XDTGraphSidecar":
-		return h.handleSidecar(instagramData, message)
+		return h.handleSidecar(instagramData)
 	default:
 		return nil
 	}
@@ -285,7 +285,7 @@ func (h *Handler) getGQLData() InstagramData {
 
 	return data
 }
-func (h *Handler) handleVideo(instagramData *ShortcodeMedia, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleVideo(instagramData *ShortcodeMedia) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(instagramData.VideoURL)
 	if err != nil {
 		slog.Error(
@@ -315,7 +315,7 @@ func (h *Handler) handleVideo(instagramData *ShortcodeMedia, message *telegram.N
 		)
 	}
 
-	video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+	video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 		File:              file,
 		Thumb:             thumbnail,
 		SupportsStreaming: true,
@@ -336,7 +336,7 @@ func (h *Handler) handleVideo(instagramData *ShortcodeMedia, message *telegram.N
 	return []telegram.InputMedia{&video}
 }
 
-func (h *Handler) handleImage(instagramData *ShortcodeMedia, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleImage(instagramData *ShortcodeMedia) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(instagramData.DisplayURL)
 	if err != nil {
 		slog.Error(
@@ -347,7 +347,7 @@ func (h *Handler) handleImage(instagramData *ShortcodeMedia, message *telegram.N
 		return nil
 	}
 
-	photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+	photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 		File: file,
 	})
 	if err != nil {
@@ -364,7 +364,7 @@ func (h *Handler) handleImage(instagramData *ShortcodeMedia, message *telegram.N
 	return []telegram.InputMedia{&photo}
 }
 
-func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleSidecar(instagramData *ShortcodeMedia) []telegram.InputMedia {
 	type mediaResult struct {
 		index int
 		file  *InputMedia
@@ -435,7 +435,7 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 		result := <-results
 		if result.file != nil {
 			if !edges[result.index].Node.IsVideo {
-				photo, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 					File: result.file.File,
 				})
 				if err != nil {
@@ -451,7 +451,7 @@ func (h *Handler) handleSidecar(instagramData *ShortcodeMedia, message *telegram
 				}
 				mediaItems[result.index] = &photo
 			} else {
-				video, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+				video, err := helpers.UploadVideo(helpers.UploadVideoParams{
 					File:              result.file.File,
 					Thumb:             result.file.Thumbnail,
 					SupportsStreaming: true,

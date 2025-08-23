@@ -20,9 +20,9 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
+func Handle(message string) ([]telegram.InputMedia, []string) {
 	handler := &Handler{}
-	if !handler.setPostID(message.Text()) {
+	if !handler.setPostID(message) {
 		return nil, []string{}
 	}
 
@@ -37,12 +37,11 @@ func Handle(message *telegram.NewMessage) ([]telegram.InputMedia, []string) {
 	}
 
 	if strings.HasPrefix(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.DisplayURL, "instagram.com") {
-		message.Message.Message = graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.URL
-		medias, result := instagram.Handle(message)
+		medias, result := instagram.Handle(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.URL)
 		return medias, result
 	}
 
-	return handler.processMedia(graphQLData, message), []string{getCaption(graphQLData), handler.postID}
+	return handler.processMedia(graphQLData), []string{getCaption(graphQLData), handler.postID}
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -128,16 +127,16 @@ func getGQLData(postID string) ThreadsData {
 	return threadsData
 }
 
-func (h *Handler) processMedia(data ThreadsData, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) processMedia(data ThreadsData) []telegram.InputMedia {
 	post := data.Data.Data.Edges[0].Node.ThreadItems[0].Post
 
 	switch {
 	case post.CarouselMedia != nil:
-		return h.handleCarousel(post, message)
+		return h.handleCarousel(post)
 	case len(post.VideoVersions) > 0:
-		return h.handleVideo(post, message)
+		return h.handleVideo(post)
 	case len(post.ImageVersions.Candidates) > 0:
-		return h.handleImage(post, message)
+		return h.handleImage(post)
 	default:
 		return nil
 	}
@@ -149,7 +148,7 @@ func getCaption(threadsData ThreadsData) string {
 		threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text)
 }
 
-func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleCarousel(post Post) []telegram.InputMedia {
 	type mediaResult struct {
 		index int
 		media *InputMedia
@@ -220,7 +219,7 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 		if result.media.File != nil {
 			var mediaItem telegram.InputMedia
 			if (carouselMedias)[result.index].VideoVersions == nil {
-				uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+				uploadedPhoto, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 					File: result.media.File,
 				})
 				if err != nil {
@@ -236,7 +235,7 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 				}
 				mediaItem = &uploadedPhoto
 			} else {
-				uploadedVideo, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+				uploadedVideo, err := helpers.UploadVideo(helpers.UploadVideoParams{
 					File:              result.media.File,
 					Thumb:             result.media.Thumbnail,
 					SupportsStreaming: true,
@@ -263,7 +262,7 @@ func (h *Handler) handleCarousel(post Post, message *telegram.NewMessage) []tele
 	return mediaItems
 }
 
-func (h *Handler) handleVideo(post Post, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleVideo(post Post) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(post.VideoVersions[0].URL)
 	if err != nil {
 		slog.Error(
@@ -296,7 +295,7 @@ func (h *Handler) handleVideo(post Post, message *telegram.NewMessage) []telegra
 		)
 	}
 
-	uploadedVideo, err := helpers.UploadVideo(message, helpers.UploadVideoParams{
+	uploadedVideo, err := helpers.UploadVideo(helpers.UploadVideoParams{
 		File:              file,
 		Thumb:             thumbnail,
 		SupportsStreaming: true,
@@ -318,7 +317,7 @@ func (h *Handler) handleVideo(post Post, message *telegram.NewMessage) []telegra
 	return []telegram.InputMedia{&uploadedVideo}
 }
 
-func (h *Handler) handleImage(post Post, message *telegram.NewMessage) []telegram.InputMedia {
+func (h *Handler) handleImage(post Post) []telegram.InputMedia {
 	file, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
 		slog.Error(
@@ -330,7 +329,7 @@ func (h *Handler) handleImage(post Post, message *telegram.NewMessage) []telegra
 		return nil
 	}
 
-	uploadedPhoto, err := helpers.UploadPhoto(message, helpers.UploadPhotoParams{
+	uploadedPhoto, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
 		File: file,
 	})
 	if err != nil {
