@@ -32,46 +32,62 @@ const (
 	maxSizeCaption = 1024
 )
 
-func mediasHandler(message *telegram.NewMessage) error {
+type MediaHandler struct {
+	Name    string
+	Handler func(string) ([]telegram.InputMedia, []string)
+}
+
+var mediaHandlers = map[string]MediaHandler{
+	"bsky.app/":                  {"BlueSky", bluesky.Handle},
+	"instagram.com/":             {"Instagram", instagram.Handle},
+	"reddit.com/":                {"Reddit", reddit.Handle},
+	"threads.net/":               {"Threads", threads.Handle},
+	"tiktok.com/":                {"TikTok", tiktok.Handle},
+	"(twitter|x).com/":           {"Twitter/X", twitter.Handle},
+	"youtube.com/":               {"YouTube", youtube.Handle},
+	"(xiaohongshu|xhslink).com/": {"XiaoHongShu", xiaohongshu.Handle},
+}
+
+func processMedia(text string) ([]telegram.InputMedia, []string, string) {
 	var mediaItems []telegram.InputMedia
 	var result []string
-	var caption string
+	var serviceName string
 
+	for pattern, handler := range mediaHandlers {
+		if match, _ := regexp.MatchString(pattern, text); match {
+			mediaItems, result = handler.Handler(text)
+			serviceName = handler.Name
+			break
+		}
+	}
+
+	return mediaItems, result, serviceName
+}
+
+func extractURL(text string) (string, bool) {
+	url := regexp.MustCompile(regexMedia).FindStringSubmatch(text)
+	if len(url) < 1 {
+		return "", false
+	}
+	return url[0], true
+}
+
+func mediasHandler(message *telegram.NewMessage) error {
 	if !regexp.MustCompile(`^/dl`).MatchString(message.Text()) && message.ChatType() != telegram.EntityUser {
 		var mediasAuto bool
 		if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.ChatID()).Scan(&mediasAuto); err != nil || !mediasAuto {
 			return nil
 		}
 	}
-	i18n := localization.Get(message)
 
-	url := regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text())
-	if len(url) < 1 {
+	i18n := localization.Get(message)
+	url, found := extractURL(message.Text())
+	if !found {
 		_, err := message.Reply(i18n("no-link-provided"))
 		return err
 	}
 
-	mediaHandlers := map[string]func(string) ([]telegram.InputMedia, []string){
-		"bsky.app/":                  bluesky.Handle,
-		"instagram.com/":             instagram.Handle,
-		"reddit.com/":                reddit.Handle,
-		"threads.net/":               threads.Handle,
-		"tiktok.com/":                tiktok.Handle,
-		"(twitter|x).com/":           twitter.Handle,
-		"youtube.com/":               youtube.Handle,
-		"(xiaohongshu|xhslink).com/": xiaohongshu.Handle,
-	}
-
-	for pattern, handler := range mediaHandlers {
-		if match, _ := regexp.MatchString(pattern, message.Text()); match {
-			mediaItems, result = handler(message.Text())
-			if len(result) == 2 {
-				caption = result[0]
-			}
-			break
-		}
-	}
-
+	mediaItems, postInfo, serviceName := processMedia(url)
 	if len(mediaItems) == 0 {
 		return nil
 	}
@@ -83,22 +99,50 @@ func mediasHandler(message *telegram.NewMessage) error {
 		return nil
 	}
 
-	if utf8.RuneCountInString(caption) > maxSizeCaption {
-		caption = downloader.TruncateUTF8Caption(
-			caption,
-			regexp.MustCompile(regexMedia).FindStringSubmatch(message.Text())[0],
+	if utf8.RuneCountInString(postInfo[0]) > maxSizeCaption {
+		switch len(mediaItems) {
+		case 1:
+			postInfo[0] = postInfo[0][:1021] + "..."
+		default:
+			postInfo[0] = downloader.TruncateUTF8Caption(postInfo[0],
+				url, i18n("open-link", map[string]any{
+					"service": serviceName,
+				}),
 		)
+		}
 	}
 
 	_, err := message.SendAction("upload_document")
 	if err != nil {
 		return err
 	}
-	replied, err := message.ReplyAlbum(mediaItems, &telegram.MediaOptions{Caption: caption})
+
+	mediaOptions := telegram.MediaOptions{
+			Caption: postInfo[0],
+			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+				telegram.ButtonBuilder{}.Row(
+					telegram.ButtonBuilder{}.URL(
+						i18n("open-link", map[string]any{
+							"service": serviceName,
+						}),
+						url,
+					),
+				),
+			),
+	}
+
+	var replied any
+	switch len(mediaItems) {
+	case 1:
+		replied, err = message.ReplyMedia(mediaItems[0], mediaOptions)
+	default:
+		replied, err = message.ReplyAlbum(mediaItems, &mediaOptions)
+	}
 	if err != nil {
 		return err
 	}
-	err = downloader.SetMediaCache(replied, result)
+
+	err = downloader.SetMediaCache(replied, postInfo)
 	return err
 }
 

@@ -191,7 +191,7 @@ auto-help = When enabled, the bot will automatically download photos and videos 
 caption-help = When enabled, the caption of medias downloaded via the bot will be sent along with the media.
 no-link-provided =
     <b>No link provided or the link is invalid.</b>
-    You need to specify a valid link from <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Reddit</i></b>, <b><i>Twitter/X</i></b>, <b><i>Threads</i></b>, <b><i>Reddit</i></b>, <b><i>BlueSky</i></b>, or <b><i>YouTube Shorts</i></b> to download the media.
+open-link = Open in { $service }
 misc = Misc
 misc-help =
     <b>Miscellaneous</b>

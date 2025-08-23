@@ -196,7 +196,7 @@ auto-help = Quando ativado, o bot baixará automaticamente fotos e vídeos de de
 caption-help = Quando ativado, a legenda das mídias baixada pelo bot serão enviadas junto com a mídia.
 no-link-provided =
     <b>Você não especificou um link ou especificou um link invalido.</b>
-    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b>, <b><i>Threads</i></b>, <b><i>Reddit</i></b>, <b><i>Bluesky</i></b> ou <b><i>YouTube Shorts</i></b> para que eu possa baixar a(s) mídia(s).
+open-link = Abrir em { $service }
 misc = Diversos
 misc-help =
     <b>Miscellaneous</b>

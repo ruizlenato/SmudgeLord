@@ -84,13 +84,23 @@ type Medias struct {
 	Medias  []string `json:"medias"`
 }
 
-func SetMediaCache(replied []*telegram.NewMessage, result []string) error {
+func SetMediaCache(replied any, result []string) error {
 	var (
 		medias  []string
 		caption string
 	)
 
-	for _, message := range replied {
+	var messages []*telegram.NewMessage
+	switch v := replied.(type) {
+	case []*telegram.NewMessage:
+		messages = v
+	case *telegram.NewMessage:
+		messages = []*telegram.NewMessage{v}
+	default:
+		return fmt.Errorf("unsupported type: expected []*telegram.NewMessage or *telegram.NewMessage, got %T", replied)
+	}
+
+	for _, message := range messages {
 		if caption == "" {
 			caption = utils.FormatText(message.MessageText(), message.Message.Entities)
 		}
@@ -295,12 +305,11 @@ func mergeSegments(segmentFiles []string) (*os.File, error) {
 	return file, nil
 }
 
-func TruncateUTF8Caption(s, url string) string {
-	if utf8.RuneCountInString(s) <= 1017 {
-		return s + fmt.Sprintf("\n<a href='%s'>🔗 Link</a>", url)
-	}
+func TruncateUTF8Caption(s, url, text string) string {
+	const maxSizeCaption = 1024
+	textLink := fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, text)
 
-	truncated := make([]rune, 0, 1017)
+	truncated := make([]rune, 0, 1024-len(textLink)-3)
 
 	currentLength := 0
 
@@ -312,7 +321,7 @@ func TruncateUTF8Caption(s, url string) string {
 		truncated = append(truncated, r)
 	}
 
-	return string(truncated) + "..." + fmt.Sprintf("\n<a href='%s'>🔗 Link</a>", url)
+	return string(truncated) + "..." + textLink
 }
 
 func MergeAudioVideo(videoData, audioData []byte) ([]byte, error) {
