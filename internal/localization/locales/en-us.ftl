@@ -156,9 +156,9 @@ medias-help =
 
     When sharing links on Telegram, some sites don't display an image or video preview. This module enables Smudge to automatically detect links from supported sites and send the videos and images contained within them.
 
-    <b>Currently supported sites:</b> <i>Instagram</i>, <i>TikTok</i>, <i>Twitter/X</i>, <i>Threads</i>, <i>Reddit</i>, <i>Bluesky</i> <i>YouTube Shorts</i>, 
+    <b>Currently supported sites:</b> <i>Bluesky</i>, <i>Instagram</i>, <i>Reddit</i>, <i>Threads</i>, <i>TikTok</i>, <i>Twitter/X</i>, <i>Xiaohongshu/Rednote</i> and <i>YouTube Shorts</i>. 
 
-    <b>Note:</b> 
+    <b>Note:</b>
     This module contains additional settings for groups. 
     You can disable automatic downloads and captions in the groups.
 
@@ -166,6 +166,7 @@ medias-help =
     <b>/dl | /sdl (link):</b> This command is for when you disable automatic downloads in groups.
     <b>/ytdl (link)</b>: Downloads videos from <b>YouTube</b>
     The maximum quality of video downloads is 1080p. You can also download just the audio of the video with this command.
+medias-supported-sites = <i>Bluesky</i>, <i>Instagram</i>, <i>Reddit</i>, <i>Threads</i>, <i>TikTok</i>, <i>Twitter/X</i>, <i>Xiaohongshu/Rednote</i> and <i>YouTube Shorts</i>.
 youtube-no-url =
     You need to specify a valid YouTube link to download.
     <b>Example:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
@@ -188,16 +189,29 @@ youtube-error =
     <b>An error occurred while processing the video, try again later.</b>
     If the problem persists, please contact my developer.
 auto-help = When enabled, the bot will automatically download photos and videos from certain social networks upon detecting a link, removing the need for the /sdl or /dl command.
-caption-help = When enabled, the caption of medias downloaded via the bot will be sent along with the media.
+caption-description = When enabled, the caption of medias downloaded via the bot will be sent along with the media.
 no-link-provided =
     <b>No link provided or the link is invalid.</b>
+    You need to specify a valid link from <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b>, <i><b>Xiaohongshu/Rednote</i></b> or <b><i>YouTube Shorts</i></b> to download the media.
+unsupported-link-title = Unsupported link.
+unsupported-link-help = Currently supported sites are Bluesky, Instagram, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote and YouTube Shorts.
+unsupported-link =
+    <b>{ unsupported-link-title }</b>
+    { unsupported-link-description }
+click-to-download-media = Click here to download the media from the link.
+no-media-found = 
+    No media found in the provided link or occurs an error while processing it.
+    <b>Try again later.</b>
+media-multiple-items =
+    <b>*Note:</b> This link contains <b>{ $count }</b> media items.
+    To view all media, send the link again in a private chat with me.
 open-link = Open in { $service }
 misc = Misc
 misc-help =
     <b>Miscellaneous</b>
-    
+
     This module combines some useful commands that don't fit into other specific categories.
-    
+
     <b>— Commands:</b>
     <b>/weather (city):</b> Displays the current weather of the specified city.
     <b>/tr (source)-(destination) (text):</b> Translates a text from the source language to the specified destination language.

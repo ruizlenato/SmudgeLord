@@ -108,7 +108,7 @@ func mediasHandler(message *telegram.NewMessage) error {
 				url, i18n("open-link", map[string]any{
 					"service": serviceName,
 				}),
-		)
+			)
 		}
 	}
 
@@ -118,17 +118,17 @@ func mediasHandler(message *telegram.NewMessage) error {
 	}
 
 	mediaOptions := telegram.MediaOptions{
-			Caption: postInfo[0],
-			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
-				telegram.ButtonBuilder{}.Row(
-					telegram.ButtonBuilder{}.URL(
-						i18n("open-link", map[string]any{
-							"service": serviceName,
-						}),
-						url,
-					),
+		Caption: postInfo[0],
+		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+			telegram.ButtonBuilder{}.Row(
+				telegram.ButtonBuilder{}.URL(
+					i18n("open-link", map[string]any{
+						"service": serviceName,
+					}),
+					url,
 				),
 			),
+		),
 	}
 
 	var replied any
@@ -333,12 +333,97 @@ func youtubeDownloadCallback(update *telegram.CallbackQuery) error {
 	return err
 }
 
+func mediasInlineQuery(i *telegram.InlineQuery) error {
+	builder := i.Builder()
+	i18n := localization.Get(i)
+	url := regexp.MustCompile(regexMedia).FindStringSubmatch(i.Query)
+
+	switch {
+	case len(url) < 1:
+		builder.Article(i18n("unsupported-link-title"), i18n("unsupported-link-description"), i18n("unsupported-link"), &telegram.ArticleOptions{
+			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+				telegram.ButtonBuilder{}.Row(
+					telegram.ButtonBuilder{}.Data(
+						"❌",
+						"NONE",
+					),
+				),
+			),
+		})
+	default:
+		builder.Article(i18n("click-to-download-media"), "Link: "+url[0], "Baixando...", &telegram.ArticleOptions{
+			ID: "media",
+			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+				telegram.ButtonBuilder{}.Row(
+					telegram.ButtonBuilder{}.Data(
+						"⏳",
+						"NONE",
+					),
+				),
+			),
+		})
+	}
+
+	_, err := i.Answer(builder.Results(), telegram.InlineSendOptions{
+		CacheTime: 0,
+	})
+	return err
+}
+
+func MediasInline(m *telegram.InlineSend) error {
+	i18n := localization.Get(m)
+
+	mediaItems, postInfo, serviceName := processMedia(m.OriginalUpdate.Query)
+	if len(mediaItems) == 0 {
+		_, err := m.Edit(i18n("no-media-found"),
+			&telegram.SendOptions{
+				ParseMode: telegram.HTML,
+			})
+		return err
+	}
+	var captionMultipleItems string
+	if len(mediaItems) > 1 {
+		captionMultipleItems = "\n\n" + i18n("media-multiple-items", map[string]any{
+			"count": len(mediaItems),
+		}) // Note: The Go Fluent library does not support line breaks at the beginning of strings.
+	}
+
+	availableSpace := maxSizeCaption - utf8.RuneCountInString(captionMultipleItems)
+
+	if utf8.RuneCountInString(postInfo[0]) > availableSpace {
+		truncateLength := availableSpace - 3 // "..." length
+		if truncateLength > 0 {
+			postInfo[0] = string([]rune(postInfo[0])[:truncateLength]) + "..."
+		}
+	}
+
+	postInfo[0] += captionMultipleItems
+
+	_, err := m.Edit(postInfo[0],
+		&telegram.SendOptions{
+			ParseMode: telegram.HTML,
+			Media:     mediaItems[0],
+			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
+				telegram.ButtonBuilder{}.Row(
+					telegram.ButtonBuilder{}.URL(
+						i18n("open-link", map[string]any{
+							"service": serviceName,
+						}),
+						m.OriginalUpdate.Query,
+					),
+				),
+			),
+		})
+	return err
+}
+
 func Load(client *telegram.Client) {
 	utils.SotreHelp("medias")
 	client.On("message:"+regexMedia, handlers.HandleCommand(mediasHandler))
 	client.On("command:dl", handlers.HandleCommand(mediasHandler))
 	client.On("command:ytdl", handlers.HandleCommand(youtubeDownloadHandler))
 	client.On("callback:^(_(vid|aud))", youtubeDownloadCallback)
+	client.On("inline:^http(?:s)?://.+", mediasInlineQuery)
 
 	handlers.DisableableCommands = append(handlers.DisableableCommands, "ytdl", "dl")
 }

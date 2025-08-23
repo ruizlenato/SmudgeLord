@@ -8,6 +8,7 @@ import (
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/misc"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -312,16 +313,17 @@ func filterArticles(articles []inlineArticle, query string) []inlineArticle {
 }
 
 func inlineSend(m *telegram.InlineSend) error {
-	switch m.ID {
-	case "track", "artist", "album":
+	switch {
+	case m.ID == "track" || m.ID == "artist" || m.ID == "album":
 		return lastfm.LastfmInline(m, m.ID)
+	case strings.HasPrefix(m.ID, "weather-"):
+		location := strings.TrimPrefix(m.ID, "weather-")
+		return misc.WeatherInline(m, location)
+	case m.ID == "media":
+		return medias.MediasInline(m)
 	default:
-		if after, ok := strings.CutPrefix(m.ID, "weather-"); ok {
-			return misc.WeatherInline(m, after)
-		}
+		return nil
 	}
-
-	return nil
 }
 
 func Load(client *telegram.Client) {
