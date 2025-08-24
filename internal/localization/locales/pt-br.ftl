@@ -208,6 +208,8 @@ click-to-download-media = Clique aqui para baixar a mídia do link.
 no-media-found = 
     Nenhuma mídia encontrada no link fornecido ou ocorreu um erro ao processar o link. 
     <b>Tente novamente mais tarde.</b>
+media-inline-handler = Baixador de mídias.
+media-inline-help = Baixa mídias de certas redes sociais. Apenas cole o link após o @.
 media-multiple-items =
     <b>*Observação:</b> Esse link contém <b>{ $count }</b> itens de mídias.
     Para ver todas as mídias, envie o link novamente em um chat privado comigo.

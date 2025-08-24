@@ -204,6 +204,8 @@ click-to-download-media = Click here to download the media from the link.
 no-media-found = 
     No media found in the provided link or occurs an error while processing it.
     <b>Try again later.</b>
+media-inline-handler = Media downloader.
+media-inline-help = Downloads media from certain social networks. Just paste the link after the @.
 media-multiple-items =
     <b>*Note:</b> This link contains <b>{ $count }</b> media items.
     To view all media, send the link again in a private chat with me.

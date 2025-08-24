@@ -229,6 +229,18 @@ func menuInline(i *telegram.InlineQuery) error {
 
 	articles := []inlineArticle{
 		{
+			title:       i18n("media-inline-handler"),
+			description: i18n("media-inline-help"),
+			text:        fmt.Sprintf("<b>%s</b>: %s", i18n("media-inline-handler"), i18n("media-inline-help")),
+			options: &telegram.ArticleOptions{
+				ID:        "media",
+				ParseMode: telegram.HTML,
+				ReplyMarkup: telegram.NewKeyboard().AddRow(
+					telegram.Button.Data("🎬", "NONE"),
+				).Build(),
+			},
+		},
+		{
 			title:       html.UnescapeString(i18n("weather-inline-handler")),
 			description: i18n("weather-inline-help"),
 			text:        fmt.Sprintf("<b>%s</b>: %s", i18n("weather-inline-handler"), i18n("weather-inline-help")),
