@@ -23,6 +23,8 @@ donation-button = 💵 Donation
 news-channel-button = 📢 Canal
 about-your-data-button = Sobre seus dados
 back-button = ↩️ Voltar
+cancel-button = ❌ Cancelar
+all-languages = Todos os idiomas
 denied-button-alert = Este botão não é para você.
 privacy-policy-button = 🔒 Política de Privacidade
 privacy-policy-group = Para acessar a política de privacidade do SmudgeLord, <b>clique no botão abaixo.</b>
@@ -322,3 +324,52 @@ lastfm-help =
     <b>/lastfm | /lp:</b> Exibe a música que você está ouvindo ou ouviu recentemente.
     <b>/album | /alb:</b> Exibe o álbum que você está ouvindo ou ouviu recentemente.
     <b>/artist   | /art:</b> Exibe o artista que você está ouvindo ou ouviu recentemente.
+announce-usage = 
+    <b>Você precisa fornecer a mensagem do anúncio junto com o comando.</b>
+
+    <b>Exemplo:</b> <code>/announce este é um anúncio importante!</code>
+select-type-announcement = 
+    <b>Selecione o tipo de anúncio:</b>
+    Você pode escolher entre anunciar para <b>grupos</b>, <b>usuários</b> ou <b>todos</b>.
+select-language-announcement = 
+    <b>Selecione o idioma para o anúncio:</b>
+    Você pode escolher anunciar em um idioma específico ou em <b>todos os idiomas</b>.
+
+    <b>Alvo selecionado:</b> { $targetType ->
+       [groups] Grupos
+       [users] Usuários
+      *[all] Todos
+    }
+announcement-config = 
+    <b>Alvo:</b> { $targetType ->
+       [groups] Grupos
+       [users] Usuários
+      *[all] Todos
+    }
+    <b>Idioma:</b> { $language ->
+       [all] Todos os idiomas
+      *[other] { $language }
+    }
+announcement-configured = 
+    <b>Configuração salva com sucesso!</b>
+    { announcement-config }
+sending-announcement =
+    { announcement-configured }
+
+    <b>Enviando para <i>{ $totalTargets }</i> { $targetType ->
+       [groups] grupos
+       [users] usuários
+      *[all] alvos
+    }.</b>
+announcement-error = <b>Ocorreu um erro ao enviar o anúncio.</b>
+announcement-cancelled = <b>Anúncio cancelado com sucesso.</b>
+sended-announcement =
+    <b>{ $successCount ->
+        [0] ⚠️ Anúncio não enviado!
+       *[other] Anúncio enviado com sucesso!
+    }</b>
+    { announcement-config }
+
+    <b>Total de alvos:</b> { $totalTargets }
+    <b>Enviado com sucesso para:</b> { $successCount }
+    <b>Falha ao enviar para:</b> { $failedCount }

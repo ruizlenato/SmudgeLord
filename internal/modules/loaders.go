@@ -13,6 +13,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
 	"github.com/ruizlenato/smudgelord/internal/modules/misc"
 	"github.com/ruizlenato/smudgelord/internal/modules/stickers"
+	"github.com/ruizlenato/smudgelord/internal/modules/sudoers"
 )
 
 var (
@@ -25,6 +26,7 @@ var (
 		"menu":     menu.Load,
 		"misc":     misc.Load,
 		"stickers": stickers.Load,
+		"sudoers":  sudoers.Load,
 	}
 )
 

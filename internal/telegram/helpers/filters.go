@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"github.com/amarnathcjd/gogram/telegram"
+	"github.com/ruizlenato/smudgelord/internal/config"
 )
 
 func IsAdmin(message *telegram.NewMessage) bool {
@@ -18,5 +19,12 @@ func IsAdmin(message *telegram.NewMessage) bool {
 		return true
 	}
 
+	return false
+}
+
+func IsBotOwner(message *telegram.NewMessage) bool {
+	if message.SenderID() == config.OwnerID {
+		return true
+	}
 	return false
 }
