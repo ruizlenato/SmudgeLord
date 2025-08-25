@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
+	"sync/atomic"
+	"time"
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/database"
@@ -118,7 +121,7 @@ func sendAnnouncement(client *telegram.Client, targetType, language string) (int
 	}
 	defer rows.Close()
 
-	var successCount, errorCount int
+	var ids []int64
 	for rows.Next() {
 		var id int64
 		if err := rows.Scan(&id); err != nil {
@@ -128,22 +131,58 @@ func sendAnnouncement(client *telegram.Client, targetType, language string) (int
 			)
 			continue
 		}
-
-		_, err := client.SendMessage(id, announceMessageText, &telegram.SendOptions{
-			ParseMode: telegram.HTML,
-		})
-		if err != nil {
-			errorCount++
-			continue
-		}
-		successCount++
+		ids = append(ids, id)
 	}
 
 	if err := rows.Err(); err != nil {
-		return successCount, errorCount, err
+		return 0, 0, err
 	}
 
-	return successCount, errorCount, nil
+	var wg sync.WaitGroup
+	var successCount, errorCount, sentCount int64
+
+	semaphore := make(chan struct{}, 40)
+
+	for _, id := range ids {
+		wg.Add(1)
+		go func(chatID int64) {
+			defer wg.Done()
+			semaphore <- struct{}{}
+			defer func() { <-semaphore }()
+
+			_, err := client.SendMessage(chatID, announceMessageText, &telegram.SendOptions{
+				ParseMode: telegram.HTML,
+			})
+
+			if err != nil {
+				slog.Error(
+					"Error sending announcement",
+					"chat_id", chatID,
+					"error", err.Error(),
+				)
+				atomic.AddInt64(&errorCount, 1)
+			} else {
+				atomic.AddInt64(&successCount, 1)
+			}
+
+			currentSent := atomic.AddInt64(&sentCount, 1)
+
+			slog.Debug(
+				"Announcement sent",
+				"chat_id", chatID,
+				"sent", currentSent,
+				"success", atomic.LoadInt64(&successCount),
+				"failed", atomic.LoadInt64(&errorCount),
+			)
+
+			if currentSent%40 == 0 {
+				time.Sleep(2 * time.Second)
+			}
+		}(id)
+	}
+
+	wg.Wait()
+	return int(atomic.LoadInt64(&successCount)), int(atomic.LoadInt64(&errorCount)), nil
 }
 
 func announceCallback(update *telegram.CallbackQuery) error {
@@ -154,7 +193,7 @@ func announceCallback(update *telegram.CallbackQuery) error {
 		targetType := strings.ReplaceAll(data, "announce_type ", "")
 
 		if targetType == "cancel" {
-			_, err := update.Edit("Announcement cancelled.", &telegram.SendOptions{
+			_, err := update.Edit(i18n("announcement-cancelled"), &telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
