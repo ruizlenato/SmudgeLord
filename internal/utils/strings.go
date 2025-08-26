@@ -26,7 +26,7 @@ func getTag(entity telegram.MessageEntity) (openTag, closeTag string) {
 		return "<s>", "</s>"
 	case *telegram.MessageEntityTextURL:
 		url := html.EscapeString(e.URL)
-		return fmt.Sprintf("<a href=\"%q\">", url), "</a>"
+		return fmt.Sprintf("<a href=%q>", url), "</a>"
 	default:
 		return "", ""
 	}
