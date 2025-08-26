@@ -102,7 +102,10 @@ func mediasHandler(message *telegram.NewMessage) error {
 	if utf8.RuneCountInString(postInfo[0]) > maxSizeCaption {
 		switch len(mediaItems) {
 		case 1:
-			postInfo[0] = postInfo[0][:1021] + "..."
+			runes := []rune(postInfo[0])
+			if len(runes) > 1021 {
+				postInfo[0] = string(runes[:1021]) + "..."
+			}
 		default:
 			postInfo[0] = downloader.TruncateUTF8Caption(postInfo[0],
 				url, i18n("open-link", map[string]any{
