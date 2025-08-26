@@ -14,7 +14,7 @@ import (
 )
 
 func checkAFKUpdate(message *telegram.NewMessage) error {
-	if message.ChatType() == "user" {
+	if message.ChatType() == telegram.EntityUser {
 		return nil
 	}
 
@@ -84,7 +84,7 @@ func checkAFKUpdate(message *telegram.NewMessage) error {
 }
 
 func setAFKhandler(message *telegram.NewMessage) error {
-	err := setUserAway(message.Sender.ID, message.Args(), time.Now().UTC())
+	err := setUserAway(message.Sender, message.Args(), time.Now().UTC())
 	if err != nil {
 		return err
 	}

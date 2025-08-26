@@ -40,6 +40,7 @@ func CreateTables() error {
 		);
 		CREATE TABLE IF NOT EXISTS afk (
 			id INTEGER PRIMARY KEY,
+			username TEXT,
 			reason TEXT,
 			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
@@ -67,78 +68,100 @@ func Close() {
 }
 
 func SaveUsers(update any) error {
-	var sender *telegram.UserObj
-	var client *telegram.Client
 	var chatID int64
+	var chatType string
+	var sender *telegram.UserObj
 
 	switch u := update.(type) {
 	case *telegram.NewMessage:
-		sender = u.Sender
-		client = u.Client
 		chatID = u.ChatID()
-	case *telegram.InlineQuery:
+		chatType = u.ChatType()
 		sender = u.Sender
-		client = u.Client
-	case *telegram.InlineSend:
-		sender = u.Sender
-		client = u.Client
 	default:
 		return nil
 	}
 
-	if sender.ID == client.Me().ID {
-		return nil
-	}
-
-	if chatID != sender.ID {
-		if err := saveChat(chatID); err != nil {
+	if !ChatExists(chatID, chatType, sender.Username) {
+		slog.Debug(
+			"Chat does not exist in database, saving...",
+			"ChatID", chatID,
+			"ChatType", chatType,
+		)
+		if err := SaveChat(chatID, chatType, sender); err != nil {
 			slog.Error(
-				"Could not save chat",
-				"ChatID", chatID,
+				"Error saving chat",
 				"error", err.Error(),
 			)
+			return err
 		}
-	}
-
-	if err := saveUser(sender); err != nil {
-		slog.Error(
-			"Could not save user",
-			"UserID", sender.ID,
-			"error", err.Error(),
-		)
 	}
 
 	return nil
 }
 
-func saveChat(chatID int64) error {
+func ChatExists(chatID int64, chatType, senderUsername string) bool {
+	if chatID == 0 {
+		return true
+	}
+
+	switch chatType {
+	case "user":
+		row := DB.QueryRow("SELECT username FROM users WHERE id = ?", chatID)
+
+		var savedUsername sql.NullString
+		err := row.Scan(&savedUsername)
+		if err != nil {
+			return false
+		}
+		currentUsername := FormatUsername(senderUsername)
+		return savedUsername.String == currentUsername
+	case "chat":
+		row := DB.QueryRow("SELECT id FROM chats WHERE id = ?", chatID)
+		var id int64
+		err := row.Scan(&id)
+		return err == nil
+	default:
+		return true
+	}
+}
+
+func SaveChat(chatID int64, chatType string, sender *telegram.UserObj) error {
 	if chatID == 0 {
 		return nil
 	}
 
-	query := "INSERT OR IGNORE INTO chats (id) VALUES (?);"
-	_, err := DB.Exec(query, chatID)
-	return err
+	switch chatType {
+	case "user":
+		query := `
+			INSERT INTO users (id, language, username) VALUES (?, ?, ?)
+			ON CONFLICT(id) DO UPDATE SET username = excluded.username
+        `
+
+		username := FormatUsername(sender.Username)
+		language := getValidLanguage(sender.LangCode)
+
+		_, err := DB.Exec(query, chatID, language, username)
+		return err
+	case "chat":
+		query := "INSERT OR IGNORE INTO chats (id) VALUES (?);"
+		_, err := DB.Exec(query, chatID)
+		return err
+	default:
+		return nil
+	}
+
 }
 
-func saveUser(sender *telegram.UserObj) error {
-	query := `
-		INSERT INTO users (id, language, username)
-		VALUES (?, ?, ?)
-		ON CONFLICT(id) DO UPDATE SET 
-			username = excluded.username;
-	`
-
-	username := ""
-	if sender.Username != "" {
-		username = "@" + sender.Username
+func FormatUsername(username string) string {
+	if username == "" {
+		return ""
 	}
+	return "@" + username
+}
 
-	lang := sender.LangCode
-	if !slices.Contains(AvailableLocales, lang) {
-		lang = "en-us"
+func getValidLanguage(langCode string) string {
+	if slices.Contains(AvailableLocales, langCode) {
+		return langCode
 	}
-
-	_, err := DB.Exec(query, sender.ID, lang, username)
-	return err
+	return "en-us"
 }

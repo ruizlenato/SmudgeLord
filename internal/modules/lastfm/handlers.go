@@ -35,7 +35,7 @@ func SetUserHandler(message *telegram.NewMessage) error {
 			return err
 		}
 
-		if err := setLastFMUsername(message.SenderID(), message.Args()); err != nil {
+		if err := setLastFMUsername(message.Sender, message.Args()); err != nil {
 			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
@@ -101,7 +101,7 @@ func SetUserHandler(message *telegram.NewMessage) error {
 		return err
 	}
 
-	if err := setLastFMUsername(message.SenderID(), resp.Text()); err != nil {
+	if err := setLastFMUsername(message.Sender, resp.Text()); err != nil {
 		_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
 			ParseMode: telegram.HTML,
 			ReplyID:   resp.ID,

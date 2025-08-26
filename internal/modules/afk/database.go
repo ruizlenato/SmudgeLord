@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
@@ -17,14 +18,18 @@ func userIsAway(userID int64) (bool, error) {
 	return exists, nil
 }
 
-func setUserAway(userID int64, reason string, time time.Time) error {
-	stmt, err := database.DB.Prepare("INSERT OR IGNORE INTO afk (id, reason, time) VALUES (?, ?, ?)")
-	if err != nil {
-		return errors.New("Error preparing setAFK statement: " + err.Error())
-	}
-	defer stmt.Close()
+func setUserAway(sender *telegram.UserObj, reason string, time time.Time) error {
+	query := `
+        INSERT INTO afk (id, username, reason, time) VALUES (?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET 
+            username = excluded.username,
+            reason = excluded.reason,
+            time = excluded.time
+    `
 
-	_, err = stmt.Exec(userID, reason, time)
+	username := database.FormatUsername(sender.Username)
+
+	_, err := database.DB.Exec(query, sender.ID, username, reason, time)
 	if err != nil {
 		return errors.New("Error setting AFK: " + err.Error())
 	}
@@ -63,7 +68,7 @@ func unsetUserAway(userID int64) error {
 
 func getIDFromUsername(username string) (int64, error) {
 	var id int64
-	row := database.DB.QueryRow("SELECT id FROM users WHERE username = ?", username)
+	row := database.DB.QueryRow("SELECT id FROM afk WHERE username = ?", username)
 
 	err := row.Scan(&id)
 	if err != nil {
