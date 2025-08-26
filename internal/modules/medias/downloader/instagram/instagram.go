@@ -200,8 +200,9 @@ func (h *Handler) getEmbedData() InstagramData {
 
 		if len(captionData) > 0 && len(captionData[0]) > 2 {
 			re = regexp.MustCompile(`<[^>]*>`)
+			captionText := strings.ReplaceAll(captionData[0][3], "<br />", "\n")
 			owner = strings.TrimSpace(re.ReplaceAllString(captionData[0][2], ""))
-			caption = strings.TrimSpace(re.ReplaceAllString(captionData[0][3], ""))
+			caption = strings.TrimSpace(re.ReplaceAllString(captionText, ""))
 		}
 
 		dataJSON := `{
