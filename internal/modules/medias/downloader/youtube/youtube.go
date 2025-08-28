@@ -25,6 +25,18 @@ func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error)
 	if len(formats) == 0 {
 		return nil, errors.New("invalid itag")
 	}
+
+	formatsWithAudio := formats.WithAudioChannels()
+	if len(formatsWithAudio) > 0 {
+		for _, format := range formats.WithAudioChannels() {
+			audioTrack := &format.AudioTrack
+			if (*audioTrack) != nil && (*audioTrack).AudioIsDefault {
+				return &format, nil
+			}
+		}
+		return &formatsWithAudio[0], nil
+	}
+
 	return &formats[0], nil
 }
 
