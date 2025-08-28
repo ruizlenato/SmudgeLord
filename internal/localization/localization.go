@@ -124,8 +124,13 @@ func GetChatLanguage(update any) (string, error) {
 	return language, err
 }
 
-type TelegramUpdate interface {
-	ChatID() int64
+func isInlineUpdate(update any) bool {
+	switch update.(type) {
+	case *telegram.InlineQuery, *telegram.InlineSend:
+		return true
+	default:
+		return false
+	}
 }
 
 func Get(update any) func(string, ...map[string]any) string {
@@ -158,7 +163,7 @@ func Get(update any) func(string, ...map[string]any) string {
 
 	return func(key string, args ...map[string]any) string {
 		language, err := GetChatLanguage(update)
-		if err != nil {
+		if err != nil && !isInlineUpdate(update) {
 			slog.Warn(
 				"Couldn't get chat language initially, attempting fallback",
 				"ChatID", chatID,
