@@ -17,6 +17,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/bluesky"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/reddit"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/soundcloud"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/threads"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
@@ -28,7 +29,7 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile|on)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|soundcloud|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
 	maxSizeCaption = 1024
 )
 
@@ -41,6 +42,7 @@ var mediaHandlers = map[string]MediaHandler{
 	"bsky.app/":                  {"BlueSky", bluesky.Handle},
 	"instagram.com/":             {"Instagram", instagram.Handle},
 	"reddit.com/":                {"Reddit", reddit.Handle},
+	"soundcloud.com/":            {"SoundCloud", soundcloud.Handle},
 	"threads.net/":               {"Threads", threads.Handle},
 	"tiktok.com/":                {"TikTok", tiktok.Handle},
 	"(twitter|x).com/":           {"Twitter/X", twitter.Handle},
