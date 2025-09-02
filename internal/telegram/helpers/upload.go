@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"mime"
+	"path/filepath"
 
 	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/gabriel-vasile/mimetype"
@@ -127,7 +128,11 @@ func UploadVideo(params UploadVideoParams) (telegram.InputMediaDocument, error) 
 	}
 
 	if params.MimeType == "" {
-		params.MimeType = mimetype.Detect(params.File).String()
+		if params.Filename != "" {
+			params.MimeType = mime.TypeByExtension(filepath.Ext(params.Filename))
+		} else {
+			params.MimeType = mimetype.Detect(params.File).String()
+		}
 	}
 
 	if params.Filename == "" {
@@ -151,12 +156,15 @@ func UploadVideo(params UploadVideoParams) (telegram.InputMediaDocument, error) 
 		File:         file,
 		Thumb:        thumbnail,
 		MimeType:     params.MimeType,
-		Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-			SupportsStreaming: params.SupportsStreaming,
-			W:                 params.Width,
-			H:                 params.Height,
-			Duration:          params.Duration,
-		}},
+		Attributes: []telegram.DocumentAttribute{
+			&telegram.DocumentAttributeVideo{
+				SupportsStreaming: params.SupportsStreaming,
+				W:                 params.Width,
+				H:                 params.Height,
+				Duration:          params.Duration,
+			},
+			&telegram.DocumentAttributeFilename{FileName: params.Filename},
+		},
 	})
 	if err != nil {
 		return telegram.InputMediaDocument{}, err
@@ -177,4 +185,86 @@ func UploadVideo(params UploadVideoParams) (telegram.InputMediaDocument, error) 
 	}
 
 	return telegram.InputMediaDocument{}, errors.New("failed to upload video")
+}
+
+type UploadAudioParams struct {
+	File      []byte
+	MimeType  string
+	Filename  string
+	Thumb     []byte
+	Duration  int32
+	Performer string
+	Title     string
+}
+
+func UploadAudio(params UploadAudioParams) (telegram.InputMediaDocument, error) {
+	if len(params.File) == 0 {
+		return telegram.InputMediaDocument{}, errors.New("file is required")
+	}
+
+	media := &Media{
+		Client: tg.Client,
+	}
+
+	file, err := media.GetInputFile(params.File, params.Filename)
+	if err != nil {
+		return telegram.InputMediaDocument{}, err
+	}
+
+	var thumbnail telegram.InputFile
+	if len(params.Thumb) > 0 {
+		thumbnail, err = media.GetInputFile(params.Thumb)
+		if err != nil {
+			return telegram.InputMediaDocument{}, err
+		}
+	}
+
+	if params.MimeType == "" {
+		if params.Filename != "" {
+			params.MimeType = mime.TypeByExtension(filepath.Ext(params.Filename))
+		} else {
+			params.MimeType = mimetype.Detect(params.File).String()
+		}
+	}
+
+	if params.Filename == "" {
+		exts, err := mime.ExtensionsByType(params.MimeType)
+		if err != nil {
+			params.Filename = "audio.mp3"
+		} else {
+			params.Filename = fmt.Sprintf("audio%s", exts[0])
+		}
+	}
+
+	messageMedia, err := media.Client.MessagesUploadMedia("", &telegram.InputPeerSelf{}, &telegram.InputMediaUploadedDocument{
+		File:     file,
+		MimeType: params.MimeType,
+		Thumb:    thumbnail,
+		Attributes: []telegram.DocumentAttribute{
+			&telegram.DocumentAttributeAudio{
+				Duration:  params.Duration,
+				Performer: params.Performer,
+				Title:     params.Title,
+			},
+			&telegram.DocumentAttributeFilename{FileName: params.Filename},
+		},
+	})
+	if err != nil {
+		return telegram.InputMediaDocument{}, err
+	}
+
+	switch doc := messageMedia.(*telegram.MessageMediaDocument).Document.(type) {
+	case *telegram.DocumentObj:
+		return telegram.InputMediaDocument{
+			ID: &telegram.InputDocumentObj{
+				ID:            doc.ID,
+				AccessHash:    doc.AccessHash,
+				FileReference: doc.FileReference,
+			},
+		}, nil
+	case *telegram.DocumentEmpty:
+		return telegram.InputMediaDocument{ID: &telegram.InputDocumentEmpty{}}, nil
+	}
+
+	return telegram.InputMediaDocument{}, errors.New("failed to upload audio")
 }
