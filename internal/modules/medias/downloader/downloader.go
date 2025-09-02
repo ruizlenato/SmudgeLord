@@ -7,12 +7,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
-	"path"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -37,8 +35,8 @@ func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 		Caller:       utils.DefaultHTTPCaller,
 		MaxAttempts:  3,
 		ExponentBase: 2,
-		StartDelay:   1 * time.Second,
-		MaxDelay:     5 * time.Second,
+		StartDelay:   2 * time.Second,
+		MaxDelay:     10 * time.Second,
 	}
 	response, err := retryCaller.Request(media, utils.RequestParams{
 		Method: "GET",
@@ -61,13 +59,13 @@ func FetchBytesFromURL(media string) ([]byte, error) {
 		return nil, err
 	}
 	defer response.Body.Close()
-
 	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
 		tmpFile, err := downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
 		if err != nil {
 			return nil, err
 		}
 		defer tmpFile.Close()
+		defer os.Remove(tmpFile.Name())
 
 		newBytes, err := io.ReadAll(tmpFile)
 		if err != nil {
@@ -167,142 +165,96 @@ func GetMediaCache(postID string) ([]telegram.InputMedia, string, error) {
 	return inputMedias, medias.Caption, nil
 }
 
-func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
-	playlist, _, err := m3u8.DecodeFrom(body, true)
+func downloadM3U8(body *bytes.Reader, playlistURL *url.URL) (*os.File, error) {
+	playlist, listType, err := m3u8.DecodeFrom(body, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode m3u8 playlist: %s", err)
 	}
 
+	if listType != m3u8.MEDIA {
+		return nil, fmt.Errorf("playlist is not a media playlist")
+	}
+
 	mediaPlaylist := playlist.(*m3u8.MediaPlaylist)
-	segmentCount := 0
-	for _, segment := range mediaPlaylist.Segments {
-		if segment != nil {
-			segmentCount++
+
+	tmpFile, err := os.CreateTemp("", "SmudgeOutput-*.temp")
+	if err != nil {
+		return nil, err
+	}
+
+	defer tmpFile.Close()
+	defer os.Remove(tmpFile.Name())
+
+	if mediaPlaylist.Map != nil && mediaPlaylist.Map.URI != "" {
+		initURL := resolveURL(playlistURL, mediaPlaylist.Map.URI)
+
+		response, err := utils.Request(initURL, utils.RequestParams{
+			Method:    "GET",
+			Redirects: 5,
+		})
+		if err != nil {
+			return nil, err
+		}
+		defer response.Body.Close()
+
+		if _, err := io.Copy(tmpFile, response.Body); err != nil {
+			return nil, fmt.Errorf("failed to write init segment: %w", err)
 		}
 	}
 
-	type segmentResult struct {
-		index    int
-		fileName string
-		err      error
-	}
-
-	results := make(chan segmentResult, segmentCount)
-	segmentFiles := make([]string, segmentCount)
-
-	for i, segment := range mediaPlaylist.Segments {
+	for _, segment := range mediaPlaylist.Segments {
 		if segment == nil {
 			continue
 		}
 
-		go func(index int, segment *m3u8.MediaSegment) {
-			urlSegment := fmt.Sprintf("%s://%s%s/%s",
-				url.Scheme,
-				url.Host,
-				path.Dir(url.Path),
-				segment.URI)
+		segmentURL := resolveURL(playlistURL, segment.URI)
 
-			fileName, err := downloadSegment(urlSegment)
-			results <- segmentResult{
-				index:    index,
-				fileName: fileName,
-				err:      err,
-			}
-		}(i, segment)
-	}
-
-	var downloadErrors []error
-	for range segmentCount {
-		result := <-results
-		if result.err != nil {
-			slog.Error(
-				"Error downloading segment",
-				"segment", result.index,
-				"error", result.err.Error(),
-			)
-			downloadErrors = append(downloadErrors, result.err)
-			continue
+		response, err := utils.Request(segmentURL, utils.RequestParams{
+			Method:    "GET",
+			Redirects: 5,
+		})
+		if err != nil {
+			return nil, err
 		}
-		segmentFiles[result.index] = result.fileName
-	}
+		defer response.Body.Close()
 
-	if len(downloadErrors) > segmentCount/2 {
-		return nil, fmt.Errorf("too many segments failed to download: %d errors", len(downloadErrors))
-	}
-
-	cleanSegmentFiles := make([]string, 0, len(segmentFiles))
-	for _, fileName := range segmentFiles {
-		if fileName != "" {
-			cleanSegmentFiles = append(cleanSegmentFiles, fileName)
-		}
-	}
-
-	return mergeSegments(cleanSegmentFiles)
-}
-
-func downloadSegment(url string) (string, error) {
-	response, err := utils.Request(url, utils.RequestParams{
-		Method:    "GET",
-		Redirects: 5,
-	})
-
-	if err != nil {
-		return "", err
-	}
-	defer response.Body.Close()
-
-	tmpFile, err := os.CreateTemp("", "SmudgeSegment-*.ts")
-	if err != nil {
-		return "", err
-	}
-	defer tmpFile.Close()
-
-	if _, err := io.Copy(tmpFile, response.Body); err != nil {
-		return "", err
-	}
-
-	return tmpFile.Name(), nil
-}
-
-func mergeSegments(segmentFiles []string) (*os.File, error) {
-	listFile, err := os.CreateTemp("", "SmudgeSegment*.txt")
-	if err != nil {
-		return nil, err
-	}
-	defer listFile.Close()
-	defer os.Remove(listFile.Name())
-
-	file, err := os.CreateTemp("", "Smudge*.mp4")
-	if err != nil {
-		return nil, err
-	}
-
-	defer func() {
-		for _, segmentFile := range segmentFiles {
-			os.Remove(segmentFile)
-		}
-	}()
-
-	for _, segmentFile := range segmentFiles {
-		if _, err := fmt.Fprintf(listFile, "file '%s'\n", segmentFile); err != nil {
+		_, err = io.Copy(tmpFile, response.Body)
+		if err != nil {
 			return nil, err
 		}
 	}
+	return remuxSegments(tmpFile)
+}
 
-	cmd := exec.Command("ffmpeg", "-y",
-		"-f", "concat",
-		"-safe", "0",
-		"-i", listFile.Name(),
-		"-c", "copy",
-		file.Name())
-	err = cmd.Run()
+func resolveURL(base *url.URL, ref string) string {
+	parsedURI, err := url.Parse(ref)
 	if err != nil {
-		file.Close()
-		os.Remove(file.Name())
+		return ref
+	}
+	return base.ResolveReference(parsedURI).String()
+}
+
+func remuxSegments(input *os.File) (*os.File, error) {
+	defer input.Close()
+
+	output, err := os.CreateTemp("", "Smudge*.mp4")
+	if err != nil {
 		return nil, err
 	}
 
-	return file, nil
+	cmd := exec.Command("ffmpeg", "-y",
+		"-i", input.Name(),
+		"-c", "copy",
+		output.Name())
+
+	err = cmd.Run()
+	if err != nil {
+		output.Close()
+		os.Remove(output.Name())
+		return nil, err
+	}
+
+	return output, nil
 }
 
 func TruncateUTF8Caption(s, url, text string) string {
