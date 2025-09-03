@@ -156,7 +156,7 @@ func GetMediaCache(postID string) ([]telegram.InputMedia, string, error) {
 		switch fileType {
 		case 2:
 			inputMedia = &telegram.InputMediaPhoto{ID: &telegram.InputPhotoObj{ID: fID, AccessHash: accessHash}}
-		case 4:
+		case 4, 9:
 			inputMedia = &telegram.InputMediaDocument{ID: &telegram.InputDocumentObj{ID: fID, AccessHash: accessHash}}
 		}
 		inputMedias = append(inputMedias, inputMedia)
