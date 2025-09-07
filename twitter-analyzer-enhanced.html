@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Twitter Analyzer</title>
+</head>
+<body>
+    <h1>Enhanced Twitter Analyzer</h1>
+    <div id="output"></div>
+    <script>
+        async function fetchUserData(username) {
+            try {
+                const response = await fetch(`https://api.twitter.com/2/users/by/username/${username}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer YOUR_ACCESS_TOKEN`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error("Error fetching user data:", error);
+                fallbackFetchUserData(username);
+            }
+        }
+
+        async function fallbackFetchUserData(username) {
+            console.log("Attempting fallback method...");
+
+            // Example of a fallback method (could be a different API or a mock response)
+            const mockResponse = {
+                username: username,
+                followers: 1500,
+                tweets: 300
+            };
+
+            document.getElementById('output').innerText = JSON.stringify(mockResponse, null, 2);
+        }
+
+        // Example usage - replace 'example_user' with a Twitter username
+        fetchUserData('example_user');
+    </script>
+</body>
+</html>
