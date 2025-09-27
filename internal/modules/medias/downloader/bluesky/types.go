@@ -1,5 +1,10 @@
 package bluesky
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 type BlueskyData *struct {
 	Thread Thread `json:"thread"`
 }

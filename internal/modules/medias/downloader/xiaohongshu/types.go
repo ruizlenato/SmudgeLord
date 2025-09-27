@@ -1,5 +1,10 @@
 package xiaohongshu
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 type XiaohongshuData *struct {
 	Note struct {
 		NoteDetailMap map[string]Note `json:"noteDetailMap"`

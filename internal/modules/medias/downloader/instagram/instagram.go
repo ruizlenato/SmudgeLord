@@ -16,33 +16,51 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 )
 
-type Handler struct {
-	username string
-	postID   string
-}
-
-func Handle(message string) ([]telegram.InputMedia, []string) {
+func Handle(message string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(message) {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
-	if err == nil {
-		return cachedMedias, []string{cachedCaption, handler.postID}
+	if postInfo, err := downloader.GetMediaCache(handler.postID); err == nil {
+		return postInfo
 	}
 
 	data := handler.getInstagramData()
 	if data == nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	caption := getCaption(data)
-
-	return handler.processMedia(data), []string{caption, handler.postID}
+	return downloader.PostInfo{
+		ID:      handler.postID,
+		Medias:  handler.processMedia(data),
+		Caption: getCaption(data),
+	}
 }
 
 func (h *Handler) setPostID(url string) bool {
+	shareRegex := regexp.MustCompile(`(?:instagram.com)/(?:share)`)
+	if shareRegex.MatchString(url) {
+		retryCaller := &utils.RetryCaller{
+			Caller:       utils.DefaultHTTPCaller,
+			MaxAttempts:  3,
+			ExponentBase: 2,
+			StartDelay:   1 * time.Second,
+			MaxDelay:     5 * time.Second,
+		}
+
+		response, err := retryCaller.Request(url, utils.RequestParams{
+			Method:    "GET",
+			Redirects: 4,
+		})
+
+		if err != nil {
+			return false
+		}
+		defer response.Body.Close()
+
+		url = response.Request.URL.String()
+	}
 	postIDRegex := regexp.MustCompile(`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`)
 
 	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
@@ -237,7 +255,7 @@ func (h *Handler) getEmbedData() InstagramData {
 func (h *Handler) getScrapperAPIData() InstagramData {
 	var data InstagramData
 
-	response, err := utils.Request("https://scrapper.ruizlenato.camdvr.org/instagram", utils.RequestParams{
+	response, err := utils.Request("https://scrapper.ruizlenato.loseyourip.com/instagram", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"id": h.postID,
@@ -366,114 +384,155 @@ func (h *Handler) handleImage(instagramData *ShortcodeMedia) []telegram.InputMed
 }
 
 func (h *Handler) handleSidecar(instagramData *ShortcodeMedia) []telegram.InputMedia {
-	type mediaResult struct {
-		index int
-		file  *InputMedia
-	}
-
-	edges := instagramData.EdgeSidecarToChildren.Edges
+	edges := h.prepareSidecarEdges(instagramData.EdgeSidecarToChildren.Edges)
 	mediaCount := len(edges)
-	if mediaCount > 10 {
-		mediaCount = 10
-		edges = edges[:10]
-	}
 
 	mediaItems := make([]telegram.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
-	for i, result := range edges {
-		go func(index int, result Edges) {
-			var media InputMedia
-			var err error
-
-			if !result.Node.IsVideo {
-				media.File, err = downloader.FetchBytesFromURL(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
-				if err != nil {
-					slog.Error(
-						"Failed to download image",
-						"Post Info", []string{h.username, h.postID},
-						"Image URL", result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src,
-						"Error", err.Error(),
-					)
-				}
-			} else {
-				media.File, err = downloader.FetchBytesFromURL(result.Node.VideoURL)
-				if err != nil {
-					slog.Error(
-						"Failed to download video",
-						"Post Info", []string{h.username, h.postID},
-						"Video URL", result.Node.VideoURL,
-						"Error", err.Error(),
-					)
-				}
-				if err == nil {
-					media.Thumbnail, err = downloader.FetchBytesFromURL(result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src)
-					if err != nil {
-						slog.Error(
-							"Failed to download thumbnail",
-							"Post Info", []string{h.username, h.postID},
-							"Thumbnail URL", result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src,
-							"Error", err.Error(),
-						)
-					}
-					media.Thumbnail, err = utils.ResizeThumbnailFromBytes(media.Thumbnail)
-					if err != nil {
-						slog.Error(
-							"Failed to resize thumbnail",
-							"Post Info", []string{h.username, h.postID},
-							"Thumbnail URL", result.Node.DisplayResources[len(result.Node.DisplayResources)-1].Src,
-							"Error", err.Error(),
-						)
-					}
-				}
-			}
-
-			results <- mediaResult{index, &media}
-		}(i, result)
+	for i, edge := range edges {
+		go h.processSidecarMedia(i, edge, results)
 	}
 
 	for range mediaCount {
 		result := <-results
 		if result.file != nil {
-			if !edges[result.index].Node.IsVideo {
-				photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
-					File: result.file.File,
-				})
-				if err != nil {
-					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
-						slog.Error(
-							"Failed to upload photo",
-							"Post Info", []string{h.username, h.postID},
-							"Image URL", edges[result.index].Node.DisplayResources[len(edges[result.index].Node.DisplayResources)-1].Src,
-							"Error", err.Error(),
-						)
-					}
-					continue
-				}
-				mediaItems[result.index] = &photo
-			} else {
-				video, err := helpers.UploadVideo(helpers.UploadVideoParams{
-					File:              result.file.File,
-					Thumb:             result.file.Thumbnail,
-					SupportsStreaming: true,
-					Width:             int32(instagramData.Dimensions.Width),
-					Height:            int32(instagramData.Dimensions.Height),
-				})
-				if err != nil {
-					if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
-						slog.Error(
-							"Failed to upload video",
-							"Post Info", []string{h.username, h.postID},
-							"Video URL", edges[result.index].Node.VideoURL,
-							"Error", err.Error(),
-						)
-					}
-					continue
-				}
-				mediaItems[result.index] = &video
+			uploadedMedia := h.uploadSidecarMedia(result, edges[result.index], instagramData)
+			if uploadedMedia != nil {
+				mediaItems[result.index] = uploadedMedia
 			}
 		}
 	}
 
 	return mediaItems
+}
+
+func (h *Handler) prepareSidecarEdges(edges []Edges) []Edges {
+	mediaCount := len(edges)
+	if mediaCount > 10 {
+		return edges[:10]
+	}
+	return edges
+}
+
+func (h *Handler) processSidecarMedia(index int, edge Edges, results chan<- mediaResult) {
+	media := h.downloadSidecarMediaFiles(edge)
+	results <- mediaResult{index, media}
+}
+
+func (h *Handler) downloadSidecarMediaFiles(edge Edges) *InputMedia {
+	var media InputMedia
+	var err error
+
+	if !edge.Node.IsVideo {
+		media.File, err = h.downloadSidecarImage(edge)
+	} else {
+		media.File, err = h.downloadSidecarVideo(edge)
+		if err == nil {
+			media.Thumbnail = h.downloadAndResizeThumbnail(edge)
+		}
+	}
+
+	if err != nil {
+		return nil
+	}
+	return &media
+}
+
+func (h *Handler) downloadSidecarImage(edge Edges) ([]byte, error) {
+	imageURL := edge.Node.DisplayResources[len(edge.Node.DisplayResources)-1].Src
+	file, err := downloader.FetchBytesFromURL(imageURL)
+	if err != nil {
+		slog.Error(
+			"Failed to download image",
+			"Post Info", []string{h.username, h.postID},
+			"Image URL", imageURL,
+			"Error", err.Error(),
+		)
+	}
+	return file, err
+}
+
+func (h *Handler) downloadSidecarVideo(edge Edges) ([]byte, error) {
+	file, err := downloader.FetchBytesFromURL(edge.Node.VideoURL)
+	if err != nil {
+		slog.Error(
+			"Failed to download video",
+			"Post Info", []string{h.username, h.postID},
+			"Video URL", edge.Node.VideoURL,
+			"Error", err.Error(),
+		)
+	}
+	return file, err
+}
+
+func (h *Handler) downloadAndResizeThumbnail(edge Edges) []byte {
+	thumbnailURL := edge.Node.DisplayResources[len(edge.Node.DisplayResources)-1].Src
+	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
+	if err != nil {
+		slog.Error(
+			"Failed to download thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Thumbnail URL", thumbnailURL,
+			"Error", err.Error(),
+		)
+		return nil
+	}
+
+	resizedThumbnail, err := utils.ResizeThumbnailFromBytes(thumbnail)
+	if err != nil {
+		slog.Error(
+			"Failed to resize thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Thumbnail URL", thumbnailURL,
+			"Error", err.Error(),
+		)
+		return thumbnail
+	}
+	return resizedThumbnail
+}
+
+func (h *Handler) uploadSidecarMedia(result mediaResult, edge Edges, instagramData *ShortcodeMedia) telegram.InputMedia {
+	if !edge.Node.IsVideo {
+		return h.uploadSidecarPhoto(result)
+	}
+	return h.uploadSidecarVideo(result, instagramData)
+}
+
+func (h *Handler) uploadSidecarPhoto(result mediaResult) telegram.InputMedia {
+	photo, err := helpers.UploadPhoto(helpers.UploadPhotoParams{
+		File: result.file.File,
+	})
+	if err != nil {
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload photo",
+				"Post Info", []string{h.username, h.postID},
+				"Error", err.Error(),
+			)
+		}
+		return nil
+	}
+	return &photo
+}
+
+func (h *Handler) uploadSidecarVideo(result mediaResult, instagramData *ShortcodeMedia) telegram.InputMedia {
+	video, err := helpers.UploadVideo(helpers.UploadVideoParams{
+		File:              result.file.File,
+		Thumb:             result.file.Thumbnail,
+		SupportsStreaming: true,
+		Width:             int32(instagramData.Dimensions.Width),
+		Height:            int32(instagramData.Dimensions.Height),
+	})
+	if err != nil {
+		if !telegram.MatchError(err, "CHAT_WRITE_FORBIDDEN") {
+			slog.Error(
+				"Failed to upload video",
+				"Post Info", []string{h.username, h.postID},
+				"Error", err.Error(),
+			)
+		}
+		return nil
+	}
+	return &video
 }

@@ -1,5 +1,10 @@
 package instagram
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 type InstagramData *struct {
 	ShortcodeMedia *ShortcodeMedia `json:"shortcode_media"`
 	Data           struct {
@@ -72,4 +77,9 @@ type StoriesData struct {
 type InputMedia struct {
 	File      []byte
 	Thumbnail []byte
+}
+
+type mediaResult struct {
+	index int
+	file  *InputMedia
 }

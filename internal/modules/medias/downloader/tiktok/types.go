@@ -1,5 +1,9 @@
 package tiktok
 
+type Handler struct {
+	postID string
+}
+
 type TikTokData *struct {
 	AwemeList []Aweme `json:"aweme_list"`
 }
@@ -7,10 +11,10 @@ type TikTokData *struct {
 type Aweme struct {
 	AwemeID       string        `json:"aweme_id"`
 	Desc          *string       `json:"desc"`
-	Author        Author        `json:"author,omitempty"`
-	Music         Music         `json:"music,omitempty"`
-	Video         Video         `json:"video,omitempty"`
-	ImagePostInfo ImagePostInfo `json:"image_post_info,omitempty"`
+	Author        Author        `json:"author,omitzero"`
+	Music         Music         `json:"music,omitzero"`
+	Video         Video         `json:"video,omitzero"`
+	ImagePostInfo ImagePostInfo `json:"image_post_info,omitzero"`
 	ShareURL      string        `json:"share_url"`
 	AwemeType     int           `json:"aweme_type"`
 }

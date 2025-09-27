@@ -1,5 +1,10 @@
 package threads
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 type ThreadsData *struct {
 	Data ThreadsDataData `json:"data"`
 }

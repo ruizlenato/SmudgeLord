@@ -32,28 +32,26 @@ var (
 	cleanupRegex      = regexp.MustCompile(`(?s)(?:#\d+|amp);`)
 )
 
-type Handler struct {
-	subreddit string
-	postID    string
-}
-
-func Handle(message string) ([]telegram.InputMedia, []string) {
+func Handle(message string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.getPostInfo(message) {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(fmt.Sprintf("%s/%s", handler.subreddit, handler.postID))
-	if err == nil {
-		return cachedMedias, []string{cachedCaption, fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)}
+	if postInfo, err := downloader.GetMediaCache(fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)); err == nil {
+		return postInfo
 	}
 
 	medias, caption := handler.processMedia()
 	if medias == nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	return medias, []string{caption, fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)}
+	return downloader.PostInfo{
+		ID:      fmt.Sprintf("%s/%s", handler.subreddit, handler.postID),
+		Medias:  medias,
+		Caption: caption,
+	}
 }
 
 func (h *Handler) getPostInfo(url string) bool {

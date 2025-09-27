@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/amarnathcjd/gogram/telegram"
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/telegram/helpers"
@@ -27,12 +26,13 @@ var (
 	ErrNoSuitableStream = fmt.Errorf("no suitable stream found")
 )
 
-func Handle(message string) ([]telegram.InputMedia, []string) {
+func Handle(message string) downloader.PostInfo {
 	handler := &Handler{}
 
-	if !isValidURL(message) {
+	resolvedURL := resolveURL(message)
+	if resolvedURL == "" {
 		slog.Warn("Invalid SoundCloud URL", "URL", message)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	if err := handler.findClientID(); err != nil {
@@ -40,21 +40,21 @@ func Handle(message string) ([]telegram.InputMedia, []string) {
 			"Failed to find SoundCloud client ID",
 			"Error", err.Error(),
 		)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	trackInfo, err := handler.getTrackInfoAPI(message)
+	trackInfo, err := handler.getTrackInfoAPI(resolvedURL)
 	if err != nil {
 		slog.Error(
 			"Failed to get SoundCloud track info",
 			"Error", err.Error(),
-			"URL", message,
+			"URL", resolvedURL,
 		)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	if cachedMedias, cachedCaption, err := downloader.GetMediaCache(fmt.Sprint(trackInfo.ID)); err == nil {
-		return cachedMedias, []string{cachedCaption, fmt.Sprint(trackInfo.ID)}
+	if postInfo, err := downloader.GetMediaCache(fmt.Sprint(trackInfo.ID)); err == nil {
+		return postInfo
 	}
 
 	if err := validateTrackContent(trackInfo); err != nil {
@@ -62,7 +62,7 @@ func Handle(message string) ([]telegram.InputMedia, []string) {
 			"Track validation failed",
 			"error", err,
 		)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	media, caption, err := handler.processTrack(trackInfo)
@@ -71,22 +71,52 @@ func Handle(message string) ([]telegram.InputMedia, []string) {
 			"Failed to process track",
 			"error", err,
 		)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	return media, []string{caption, fmt.Sprint(trackInfo.ID)}
-}
-
-func isValidURL(url string) bool {
-	pattern := `^(?:https?://)?(?:[^/.\s]+\.)*soundcloud\.com(?:/[^/\s]+)*/?$`
-	matched, err := regexp.MatchString(pattern, url)
-	if err != nil {
-		slog.Error("Error matching SoundCloud URL", "Error", err.Error())
-		return false
+	return downloader.PostInfo{
+		ID:      fmt.Sprint(trackInfo.ID),
+		Medias:  media,
+		Caption: caption,
 	}
-	return matched
 }
 
+func resolveURL(url string) string {
+	shortPattern := `^(?:https?://)?on\.soundcloud\.com/[A-Za-z0-9]+/?$`
+	if matched, err := regexp.MatchString(shortPattern, url); err == nil && matched {
+		retryCaller := &utils.RetryCaller{
+			Caller:       utils.DefaultHTTPCaller,
+			MaxAttempts:  3,
+			ExponentBase: 2,
+			StartDelay:   1 * time.Second,
+			MaxDelay:     5 * time.Second,
+		}
+
+		response, err := retryCaller.Request(url, utils.RequestParams{
+			Method:    "GET",
+			Redirects: 2,
+		})
+
+		if err != nil {
+			slog.Warn("Failed to resolve short URL", "URL", url, "Error", err.Error())
+			return ""
+		}
+		defer response.Body.Close()
+
+		finalURL := response.Request.URL.String()
+		normalPattern := `^(?:https?://)?(?:www\.)?soundcloud\.com(?:/[^/\s]+)+/?$`
+		if matched, err := regexp.MatchString(normalPattern, finalURL); err == nil && matched {
+			return finalURL
+		}
+	}
+
+	normalPattern := `^(?:https?://)?(?:www\.)?soundcloud\.com(?:/[^/\s]+)+/?$`
+	if matched, err := regexp.MatchString(normalPattern, url); err == nil && matched {
+		return url
+	}
+
+	return ""
+}
 func (h *Handler) findClientID() error {
 	if clientID, err := cache.GetCache("soundcloud_client_id"); clientID != "" && err == nil {
 		slog.Debug("Using cached SoundCloud client ID")
@@ -243,20 +273,6 @@ func findBestForPreset(transcodes []Transcoding) *Transcoding {
 	return nil
 }
 
-func getFileExtensionFromMimeType(mimeType string) string {
-	if idx := strings.Index(mimeType, ";"); idx != -1 {
-		mimeType = mimeType[:idx]
-	}
-	mimeType = strings.TrimSpace(mimeType)
-
-	mt := mimetype.Lookup(mimeType)
-	if mt != nil {
-		return mt.Extension()
-	}
-
-	return ".aac"
-}
-
 func (h *Handler) processTrack(trackInfo *SoundCloudAPI) ([]telegram.InputMedia, string, error) {
 	retryCaller := createRetryCaller()
 
@@ -302,12 +318,17 @@ func (h *Handler) processTrack(trackInfo *SoundCloudAPI) ([]telegram.InputMedia,
 		}
 	}
 
+	if idx := strings.Index(stream.Format.MimeType, ";"); idx != -1 {
+		stream.Format.MimeType = stream.Format.MimeType[:idx]
+	}
+
 	uploadedAudio, err := helpers.UploadAudio(helpers.UploadAudioParams{
-		File:  audioBytes,
-		Thumb: thumbnail,
+		File:     audioBytes,
+		Thumb:    thumbnail,
+		MimeType: stream.Format.MimeType,
 		Filename: utils.SanitizeString(
-			fmt.Sprintf("Smudge-SoundCloud_%s_%s%s",
-				metadata["artist"], metadata["title"], getFileExtensionFromMimeType(stream.Format.MimeType),
+			fmt.Sprintf("Smudge-SoundCloud_%s_%s",
+				metadata["artist"], metadata["title"],
 			),
 		),
 		Title:     metadata["title"].(string),

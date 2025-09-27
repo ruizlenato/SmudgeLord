@@ -21,15 +21,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-var GenericHeaders = map[string]string{
-	`Accept`:             `*/*`,
-	`Accept-Language`:    `en`,
-	`User-Agent`:         `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36`,
-	`Sec-Ch-UA`:          `"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"`,
-	`Sec-Ch-UA-Mobile`:   `?0`,
-	`Sec-Ch-UA-Platform`: `"Windows"`,
-}
-
 func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 	retryCaller := &utils.RetryCaller{
 		Caller:       utils.DefaultHTTPCaller,
@@ -77,15 +68,11 @@ func FetchBytesFromURL(media string) ([]byte, error) {
 	return bodyBytes, nil
 }
 
-type Medias struct {
-	Caption string   `json:"caption"`
-	Medias  []string `json:"medias"`
-}
-
-func SetMediaCache(replied any, result []string) error {
+func SetMediaCache(replied any, postInfo PostInfo) error {
 	var (
-		medias  []string
-		caption string
+		medias      []string
+		caption     string
+		invertMedia bool
 	)
 
 	var messages []*telegram.NewMessage
@@ -103,6 +90,8 @@ func SetMediaCache(replied any, result []string) error {
 			caption = utils.FormatText(message.MessageText(), message.Message.Entities)
 		}
 
+		invertMedia = message.Message.InvertMedia
+
 		var mediaID string
 
 		switch m := message.Message.Media.(type) {
@@ -116,8 +105,9 @@ func SetMediaCache(replied any, result []string) error {
 	}
 
 	album := Medias{
-		Caption: caption,
-		Medias:  medias,
+		Caption:     caption,
+		Medias:      medias,
+		InvertMedia: invertMedia,
 	}
 
 	jsonValue, err := json.Marshal(album)
@@ -125,7 +115,7 @@ func SetMediaCache(replied any, result []string) error {
 		return fmt.Errorf("could not marshal JSON: %v", err)
 	}
 
-	if err := cache.SetCache("media-cache:"+result[1], jsonValue, 48*time.Hour); err != nil {
+	if err := cache.SetCache("media-cache:"+postInfo.ID, jsonValue, 48*time.Hour); err != nil {
 		if !strings.Contains(err.Error(), "connect: connection refused") {
 			return err
 		}
@@ -134,19 +124,19 @@ func SetMediaCache(replied any, result []string) error {
 	return nil
 }
 
-func GetMediaCache(postID string) ([]telegram.InputMedia, string, error) {
+func GetMediaCache(postID string) (PostInfo, error) {
 	cached, err := cache.GetCache("media-cache:" + postID)
 	if err != nil {
-		return nil, "", err
+		return PostInfo{}, err
 	}
 
 	var medias Medias
 	if err := json.Unmarshal([]byte(cached), &medias); err != nil {
-		return nil, "", fmt.Errorf("could not unmarshal JSON: %v", err)
+		return PostInfo{}, fmt.Errorf("could not unmarshal JSON: %v", err)
 	}
 
 	if err := cache.SetCache("media-cache:"+postID, cached, 48*time.Hour); err != nil {
-		return nil, "", fmt.Errorf("could not reset cache expiration: %v", err)
+		return PostInfo{}, fmt.Errorf("could not reset cache expiration: %v", err)
 	}
 
 	inputMedias := make([]telegram.InputMedia, 0, len(medias.Medias))
@@ -162,7 +152,12 @@ func GetMediaCache(postID string) ([]telegram.InputMedia, string, error) {
 		inputMedias = append(inputMedias, inputMedia)
 	}
 
-	return inputMedias, medias.Caption, nil
+	return PostInfo{
+		ID:          postID,
+		Medias:      inputMedias,
+		Caption:     medias.Caption,
+		InvertMedia: medias.InvertMedia,
+	}, nil
 }
 
 func downloadM3U8(body *bytes.Reader, playlistURL *url.URL) (*os.File, error) {
@@ -257,15 +252,22 @@ func remuxSegments(input *os.File) (*os.File, error) {
 	return output, nil
 }
 
-func TruncateUTF8Caption(s, url, text string) string {
+func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 	const maxSizeCaption = 1024
-	textLink := fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, text)
+	var textLink string
+	var truncated []rune
 
-	truncated := make([]rune, 0, 1024-len(textLink)-3)
+	switch mediaCount {
+	case 1:
+		truncated = make([]rune, 0, 1024-3)
+	default:
+		textLink = fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, text)
+		truncated = make([]rune, 0, 1024-len(textLink)-3)
+	}
 
-	currentLength := 0
+	var currentLength int
 
-	for _, r := range s {
+	for _, r := range caption {
 		currentLength += utf8.RuneLen(r)
 		if currentLength > 1017 {
 			break
@@ -273,6 +275,9 @@ func TruncateUTF8Caption(s, url, text string) string {
 		truncated = append(truncated, r)
 	}
 
+	if textLink == "" {
+		return string(truncated) + "..."
+	}
 	return string(truncated) + "..." + textLink
 }
 

@@ -35,6 +35,33 @@ func (m *Media) GetInputFile(file []byte, filename ...string) (telegram.InputFil
 	return uploadedMedia, nil
 }
 
+func getMimeType(file []byte, filename, currentMimeType string) string {
+	if currentMimeType != "" {
+		return currentMimeType
+	}
+
+	if filename != "" {
+		if mimeType := mime.TypeByExtension(filepath.Ext(filename)); mimeType != "" {
+			return mimeType
+		}
+	}
+
+	return mimetype.Detect(file).String()
+}
+
+func generateFilename(file []byte, currentFilename, defaultPrefix, defaultExt string) string {
+	if currentFilename != "" {
+		return currentFilename
+	}
+
+	extension := mimetype.Detect(file).Extension()
+	if extension == "" || extension == ".unknown" || extension == ".webp" {
+		extension = defaultExt
+	}
+
+	return fmt.Sprintf("%s%s", defaultPrefix, extension)
+}
+
 type UploadPhotoParams struct {
 	Spoiler  bool
 	File     []byte
@@ -50,15 +77,7 @@ func UploadPhoto(params UploadPhotoParams) (telegram.InputMediaPhoto, error) {
 		Client: tg.Client,
 	}
 
-	if params.Filename == "" {
-		extension := mimetype.Detect(params.File).Extension()
-		switch extension {
-		case "", ".webp", ".unknown":
-			extension = ".jpg"
-		}
-
-		params.Filename = fmt.Sprintf("photo%s", extension)
-	}
+	params.Filename = generateFilename(params.File, params.Filename, "photo", ".jpg")
 
 	file, err := media.GetInputFile(params.File, params.Filename)
 	if err != nil {
@@ -127,22 +146,8 @@ func UploadVideo(params UploadVideoParams) (telegram.InputMediaDocument, error) 
 		}
 	}
 
-	if params.MimeType == "" {
-		if params.Filename != "" {
-			params.MimeType = mime.TypeByExtension(filepath.Ext(params.Filename))
-		} else {
-			params.MimeType = mimetype.Detect(params.File).String()
-		}
-	}
-
-	if params.Filename == "" {
-		exts, err := mime.ExtensionsByType(params.MimeType)
-		if err != nil {
-			params.Filename = "video.mp4"
-		} else {
-			params.Filename = fmt.Sprintf("video%s", exts[0])
-		}
-	}
+	params.MimeType = getMimeType(params.File, params.Filename, params.MimeType)
+	params.Filename = generateFilename(params.File, params.Filename, "SmudgeLord_video", ".mp4")
 
 	noSound := true
 	if params.NoSoundVideo != nil {
@@ -219,22 +224,8 @@ func UploadAudio(params UploadAudioParams) (telegram.InputMediaDocument, error) 
 		}
 	}
 
-	if params.MimeType == "" {
-		if params.Filename != "" {
-			params.MimeType = mime.TypeByExtension(filepath.Ext(params.Filename))
-		} else {
-			params.MimeType = mimetype.Detect(params.File).String()
-		}
-	}
-
-	if params.Filename == "" {
-		exts, err := mime.ExtensionsByType(params.MimeType)
-		if err != nil {
-			params.Filename = "audio.mp3"
-		} else {
-			params.Filename = fmt.Sprintf("audio%s", exts[0])
-		}
-	}
+	params.MimeType = getMimeType(params.File, params.Filename, params.MimeType)
+	params.Filename = generateFilename(params.File, params.Filename, "SmudgeLord_audio", ".mp3")
 
 	messageMedia, err := media.Client.MessagesUploadMedia("", &telegram.InputPeerSelf{}, &telegram.InputMediaUploadedDocument{
 		File:     file,

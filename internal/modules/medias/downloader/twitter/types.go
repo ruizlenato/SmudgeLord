@@ -1,5 +1,17 @@
 package twitter
 
+var headers = map[string]string{
+	"Authorization":             "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
+	"x-twitter-client-language": "en",
+	"x-twitter-active-user":     "yes",
+	"content-type":              "application/json",
+}
+
+type Handler struct {
+	username string
+	postID   string
+}
+
 type TwitterAPIData *struct {
 	Data struct {
 		TweetResult *struct {
@@ -14,7 +26,17 @@ type Result struct {
 	Tweet    struct {
 		Legacy Legacy `json:"legacy"`
 	} `json:"tweet"`
-	Core   Core   `json:"core"`
+	Core               Core `json:"core"`
+	QuotedStatusResult *struct {
+		Result `json:"result"`
+	} `json:"quoted_status_result"`
+	NoteTweet *struct {
+		NoteTweetResults struct {
+			Result struct {
+				Text string `json:"text"`
+			} `json:"result"`
+		} `json:"note_tweet_results"`
+	} `json:"note_tweet"`
 	Legacy Legacy `json:"legacy"`
 }
 
@@ -34,7 +56,7 @@ type Legacy *struct {
 	ScreenName string `json:"screen_name"`
 	Entities   struct {
 		Description struct {
-			Urls []interface{} `json:"urls"`
+			Urls []any `json:"urls"`
 		} `json:"description"`
 	} `json:"entities"`
 }
@@ -75,9 +97,10 @@ type FxTwitterAPIData struct {
 type FxTwitterTweet struct {
 	Text   string          `json:"text"`
 	Author FxTwitterAuthor `json:"author"`
-	Media  struct {
+	Media  *struct {
 		All []FxTwitterMedia `json:"all"`
-	} `json:"media"`
+	} `json:"media,omitempty"`
+	Quote *FxTwitterTweet `json:"quote,omitempty"`
 }
 
 type FxTwitterAuthor struct {

@@ -1,7 +1,6 @@
 package medias
 
 import (
-	"bytes"
 	"fmt"
 	"log/slog"
 	"regexp"
@@ -10,7 +9,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/amarnathcjd/gogram/telegram"
-	"github.com/gabriel-vasile/mimetype"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -29,13 +27,13 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile|on)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|soundcloud|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile|on)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|soundcloud|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|(?:youtube\.com/)(?:shorts|clip))/(?:\S*)`
 	maxSizeCaption = 1024
 )
 
 type MediaHandler struct {
 	Name    string
-	Handler func(string) ([]telegram.InputMedia, []string)
+	Handler func(string) downloader.PostInfo
 }
 
 var mediaHandlers = map[string]MediaHandler{
@@ -50,20 +48,18 @@ var mediaHandlers = map[string]MediaHandler{
 	"(xiaohongshu|xhslink).com/": {"XiaoHongShu", xiaohongshu.Handle},
 }
 
-func processMedia(text string) ([]telegram.InputMedia, []string, string) {
-	var mediaItems []telegram.InputMedia
-	var result []string
-	var serviceName string
+func processMedia(text string) downloader.PostInfo {
+	var postInfo downloader.PostInfo
 
 	for pattern, handler := range mediaHandlers {
 		if match, _ := regexp.MatchString(pattern, text); match {
-			mediaItems, result = handler.Handler(text)
-			serviceName = handler.Name
+			postInfo = handler.Handler(text)
+			postInfo.Service = handler.Name
 			break
 		}
 	}
 
-	return mediaItems, result, serviceName
+	return postInfo
 }
 
 func extractURL(text string) (string, bool) {
@@ -74,12 +70,86 @@ func extractURL(text string) (string, bool) {
 	return url[0], true
 }
 
-func mediasHandler(message *telegram.NewMessage) error {
-	if !regexp.MustCompile(`^/dl`).MatchString(message.Text()) && message.ChatType() != telegram.EntityUser {
-		var mediasAuto bool
-		if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.ChatID()).Scan(&mediasAuto); err != nil || !mediasAuto {
-			return nil
+func shouldProcessMedia(message *telegram.NewMessage) bool {
+	if regexp.MustCompile(`^/dl`).MatchString(message.Text()) || message.ChatType() == telegram.EntityUser {
+		return true
+	}
+
+	var mediasAuto bool
+	if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.ChatID()).Scan(&mediasAuto); err != nil || !mediasAuto {
+		return false
+	}
+	return true
+}
+
+func validateAndPrepareMedia(message *telegram.NewMessage, postInfo *downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) bool {
+	if len(postInfo.Medias) == 0 {
+		return false
+	}
+
+	if _, InputMediaUploadedPhoto := postInfo.Medias[0].(*telegram.InputMediaUploadedPhoto); len(postInfo.Medias) == 1 &&
+		InputMediaUploadedPhoto &&
+		message.Media() != nil &&
+		message.Media().(*telegram.MessageMediaWebPage) != nil {
+		return false
+	}
+
+	if utf8.RuneCountInString(postInfo.Caption) > maxSizeCaption {
+		postInfo.Caption = downloader.TruncateUTF8Caption(postInfo.Caption,
+			url, i18n("open-link", map[string]any{
+				"service": postInfo.Service,
+			}), len(postInfo.Medias),
+		)
+	}
+
+	return true
+}
+
+func sendMediaAndHandleCaption(message *telegram.NewMessage, postInfo downloader.PostInfo, url string, mediaOptions telegram.MediaOptions, i18n func(string, ...map[string]any) string) error {
+	if _, err := message.SendAction("upload_document"); err != nil {
+		return err
+	}
+
+	var replied any
+	var err error
+	switch len(postInfo.Medias) {
+	case 1:
+		replied, err = message.ReplyMedia(postInfo.Medias[0], mediaOptions)
+	default:
+		replied, err = message.ReplyAlbum(postInfo.Medias, &mediaOptions)
+	}
+	if err != nil {
+		return err
+	}
+
+	if err := downloader.SetMediaCache(replied, postInfo); err != nil {
+		return err
+	}
+
+	if message.ChatType() == telegram.EntityUser {
+		return nil
+	}
+
+	var mediasCaption bool
+	if err := database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", message.ChatID()).Scan(&mediasCaption); err == nil && !mediasCaption {
+		var messageToEdit *telegram.NewMessage
+		switch v := replied.(type) {
+		case []*telegram.NewMessage:
+			messageToEdit = v[len(v)-1]
+		case *telegram.NewMessage:
+			messageToEdit = v
 		}
+
+		_, err = messageToEdit.Edit(fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, i18n("open-link", map[string]any{"service": postInfo.Service})))
+		return err
+	}
+
+	return nil
+}
+
+func mediasHandler(message *telegram.NewMessage) error {
+	if !shouldProcessMedia(message) {
+		return nil
 	}
 
 	i18n := localization.Get(message)
@@ -89,46 +159,19 @@ func mediasHandler(message *telegram.NewMessage) error {
 		return err
 	}
 
-	mediaItems, postInfo, serviceName := processMedia(url)
-	if len(mediaItems) == 0 {
+	postInfo := processMedia(url)
+	if !validateAndPrepareMedia(message, &postInfo, url, i18n) {
 		return nil
-	}
-
-	if _, InputMediaUploadedPhoto := mediaItems[0].(*telegram.InputMediaUploadedPhoto); len(mediaItems) == 1 &&
-		InputMediaUploadedPhoto &&
-		message.Media() != nil &&
-		message.Media().(*telegram.MessageMediaWebPage) != nil {
-		return nil
-	}
-
-	if utf8.RuneCountInString(postInfo[0]) > maxSizeCaption {
-		switch len(mediaItems) {
-		case 1:
-			runes := []rune(postInfo[0])
-			if len(runes) > 1021 {
-				postInfo[0] = string(runes[:1021]) + "..."
-			}
-		default:
-			postInfo[0] = downloader.TruncateUTF8Caption(postInfo[0],
-				url, i18n("open-link", map[string]any{
-					"service": serviceName,
-				}),
-			)
-		}
-	}
-
-	_, err := message.SendAction("upload_document")
-	if err != nil {
-		return err
 	}
 
 	mediaOptions := telegram.MediaOptions{
-		Caption: postInfo[0],
+		InvertMedia: postInfo.InvertMedia,
+		Caption:     postInfo.Caption,
 		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
 			telegram.ButtonBuilder{}.Row(
 				telegram.ButtonBuilder{}.URL(
 					i18n("open-link", map[string]any{
-						"service": serviceName,
+						"service": postInfo.Service,
 					}),
 					url,
 				),
@@ -136,19 +179,7 @@ func mediasHandler(message *telegram.NewMessage) error {
 		),
 	}
 
-	var replied any
-	switch len(mediaItems) {
-	case 1:
-		replied, err = message.ReplyMedia(mediaItems[0], mediaOptions)
-	default:
-		replied, err = message.ReplyAlbum(mediaItems, &mediaOptions)
-	}
-	if err != nil {
-		return err
-	}
-
-	err = downloader.SetMediaCache(replied, postInfo)
-	return err
+	return sendMediaAndHandleCaption(message, postInfo, url, mediaOptions, i18n)
 }
 
 func youtubeDownloadHandler(message *telegram.NewMessage) error {
@@ -231,10 +262,7 @@ func youtubeDownloadHandler(message *telegram.NewMessage) error {
 	return err
 }
 
-func youtubeDownloadCallback(update *telegram.CallbackQuery) error {
-	i18n := localization.Get(update)
-	callbackData := strings.Split(update.DataString(), "|")
-
+func validateCallback(update *telegram.CallbackQuery, callbackData []string, i18n func(string, ...map[string]any) string) error {
 	if userID, _ := strconv.Atoi(callbackData[4]); update.SenderID != int64(userID) {
 		_, err := update.Answer(i18n("denied-button-alert"), &telegram.CallbackOptions{
 			Alert: true,
@@ -251,33 +279,81 @@ func youtubeDownloadCallback(update *telegram.CallbackQuery) error {
 		return err
 	}
 
-	_, err := update.Edit(i18n("downloading"))
-	if err != nil {
+	return nil
+}
+
+func sendUploadAction(update *telegram.CallbackQuery, downloadType string) error {
+	var err error
+	switch downloadType {
+	case "_aud":
+		_, err = update.Client.SendAction(update.Sender.ID, "upload_audio")
+	case "_vid":
+		_, err = update.Client.SendAction(update.Sender.ID, "upload_video")
+	}
+	return err
+}
+
+func sendMediaResponse(update *telegram.CallbackQuery, outputFile []byte, video *youtubedl.Video, callbackData []string, thumbnail []byte, filename string, mimeType string) error {
+	itag, _ := strconv.Atoi(callbackData[2])
+
+	if idx := strings.Index(mimeType, ";"); idx != -1 {
+		mimeType = mimeType[:idx]
+	}
+
+	switch callbackData[0] {
+	case "_aud":
+		_, err := update.ReplyMedia(outputFile, &telegram.MediaOptions{
+			FileName: filename,
+			MimeType: mimeType,
+			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeAudio{
+				Title:     video.Title,
+				Performer: video.Author,
+			}},
+			Caption: fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
+			Thumb:   thumbnail,
+		})
+		return err
+	case "_vid":
+		_, err := update.ReplyMedia(outputFile, &telegram.MediaOptions{
+			FileName: filename,
+			MimeType: mimeType,
+			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
+				SupportsStreaming: true,
+				W:                 int32(video.Formats.Itag(itag)[0].Width),
+				H:                 int32(video.Formats.Itag(itag)[0].Height),
+			}},
+			Caption: fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
+			Thumb:   thumbnail,
+		})
+		return err
+	}
+	return nil
+}
+
+func youtubeDownloadCallback(update *telegram.CallbackQuery) error {
+	i18n := localization.Get(update)
+	callbackData := strings.Split(update.DataString(), "|")
+
+	if err := validateCallback(update, callbackData, i18n); err != nil {
 		return err
 	}
 
-	outputFile, video, err := youtube.Downloader(callbackData)
+	if _, err := update.Edit(i18n("downloading")); err != nil {
+		return err
+	}
+
+	outputFile, video, mimeType, err := youtube.Downloader(callbackData)
 	if err != nil {
 		_, err := update.Edit(i18n("youtube-error"))
 		return err
 	}
-	itag, _ := strconv.Atoi(callbackData[2])
 
-	_, err = update.Edit(i18n("uploading"))
-	if err != nil {
+	if _, err := update.Edit(i18n("uploading")); err != nil {
 		return err
 	}
-	switch callbackData[0] {
-	case "_aud":
-		_, err := update.Client.SendAction(update.Sender.ID, "upload_audio")
-		if err != nil {
-			return err
-		}
-	case "_vid":
-		_, err := update.Client.SendAction(update.Sender.ID, "upload_video")
-		if err != nil {
-			return err
-		}
+
+	if err := sendUploadAction(update, callbackData[0]); err != nil {
+		return err
 	}
 
 	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
@@ -289,51 +365,16 @@ func youtubeDownloadCallback(update *telegram.CallbackQuery) error {
 
 	thumbnail, err = utils.ResizeThumbnailFromBytes(thumbnail)
 	if err != nil {
-		slog.Error(
-			"Failed to resize thumbnail",
-			"Thumbnail URL", thumbURL,
-			"Error", err.Error(),
-		)
+		slog.Error("Failed to resize thumbnail", "Thumbnail URL", thumbURL, "Error", err.Error())
 	}
 
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-%s_%s", video.Author, video.Title))
-	mimeType, err := mimetype.DetectReader(bytes.NewReader(outputFile))
-	if err != nil {
+
+	if err := sendMediaResponse(update, outputFile, video, callbackData, thumbnail, filename, mimeType); err != nil {
+		_, err := update.Edit(i18n("youtube-error"))
 		return err
 	}
-	switch callbackData[0] {
-	case "_aud":
-		_, err := update.ReplyMedia(outputFile, &telegram.MediaOptions{
-			FileName: filename + mimeType.Extension(),
-			MimeType: mimeType.String(),
-			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeAudio{
-				Title:     video.Title,
-				Performer: video.Author,
-			}},
-			Caption: fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
-			Thumb:   thumbnail,
-		})
-		if err != nil {
-			_, err := update.Edit(i18n("youtube-error"))
-			return err
-		}
-	case "_vid":
-		_, err := update.ReplyMedia(outputFile, &telegram.MediaOptions{
-			FileName: filename + mimeType.Extension(),
-			MimeType: mimeType.String(),
-			Attributes: []telegram.DocumentAttribute{&telegram.DocumentAttributeVideo{
-				SupportsStreaming: true,
-				W:                 int32(video.Formats.Itag(itag)[0].Width),
-				H:                 int32(video.Formats.Itag(itag)[0].Height),
-			}},
-			Caption: fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
-			Thumb:   thumbnail,
-		})
-		if err != nil {
-			_, err := update.Edit(i18n("youtube-error"))
-			return err
-		}
-	}
+
 	_, err = update.Delete()
 	return err
 }
@@ -378,8 +419,8 @@ func mediasInlineQuery(i *telegram.InlineQuery) error {
 func MediasInline(m *telegram.InlineSend) error {
 	i18n := localization.Get(m)
 
-	mediaItems, postInfo, serviceName := processMedia(m.OriginalUpdate.Query)
-	if len(mediaItems) == 0 {
+	postInfo := processMedia(m.OriginalUpdate.Query)
+	if len(postInfo.Medias) == 0 {
 		_, err := m.Edit(i18n("no-media-found"),
 			&telegram.SendOptions{
 				ParseMode: telegram.HTML,
@@ -387,32 +428,33 @@ func MediasInline(m *telegram.InlineSend) error {
 		return err
 	}
 	var captionMultipleItems string
-	if len(mediaItems) > 1 {
+	if len(postInfo.Medias) > 1 {
 		captionMultipleItems = "\n\n" + i18n("media-multiple-items", map[string]any{
-			"count": len(mediaItems),
+			"count": len(postInfo.Medias),
 		}) // Note: The Go Fluent library does not support line breaks at the beginning of strings.
 	}
 
 	availableSpace := maxSizeCaption - utf8.RuneCountInString(captionMultipleItems)
 
-	if utf8.RuneCountInString(postInfo[0]) > availableSpace {
+	if utf8.RuneCountInString(postInfo.Caption) > availableSpace {
 		truncateLength := availableSpace - 3 // "..." length
 		if truncateLength > 0 {
-			postInfo[0] = string([]rune(postInfo[0])[:truncateLength]) + "..."
+			postInfo.Caption = string([]rune(postInfo.Caption)[:truncateLength]) + "..."
 		}
 	}
 
-	postInfo[0] += captionMultipleItems
+	postInfo.Caption += captionMultipleItems
 
-	_, err := m.Edit(postInfo[0],
+	_, err := m.Edit(postInfo.Caption,
 		&telegram.SendOptions{
-			ParseMode: telegram.HTML,
-			Media:     mediaItems[0],
+			InvertMedia: postInfo.InvertMedia,
+			Media:       postInfo.Medias[0],
+			ParseMode:   telegram.HTML,
 			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
 				telegram.ButtonBuilder{}.Row(
 					telegram.ButtonBuilder{}.URL(
 						i18n("open-link", map[string]any{
-							"service": serviceName,
+							"service": postInfo.Service,
 						}),
 						m.OriginalUpdate.Query,
 					),

@@ -27,6 +27,8 @@ func getTag(entity telegram.MessageEntity) (openTag, closeTag string) {
 	case *telegram.MessageEntityTextURL:
 		url := html.EscapeString(e.URL)
 		return fmt.Sprintf("<a href=%q>", url), "</a>"
+	case *telegram.MessageEntityBlockquote:
+		return "<blockquote>", "</blockquote>"
 	default:
 		return "", ""
 	}
@@ -51,6 +53,8 @@ func getEntityOffsetAndLength(entity telegram.MessageEntity) (int32, int32, bool
 	case *telegram.MessageEntityUnderline:
 		return e.Offset, e.Length, true
 	case *telegram.MessageEntityStrike:
+		return e.Offset, e.Length, true
+	case *telegram.MessageEntityBlockquote:
 		return e.Offset, e.Length, true
 	default:
 		return 0, 0, false

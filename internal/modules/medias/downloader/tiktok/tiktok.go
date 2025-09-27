@@ -14,32 +14,33 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-type Handler struct {
-	postID string
-}
-
-func Handle(message string) ([]telegram.InputMedia, []string) {
+func Handle(message string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(message) {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
-	if err == nil {
-		return cachedMedias, []string{cachedCaption, handler.postID}
+	if postInfo, err := downloader.GetMediaCache(handler.postID); err == nil {
+		return postInfo
 	}
 
 	tikTokData := getTikTokData(handler.postID)
 	if tikTokData == nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
-
-	caption := getCaption(tikTokData)
 
 	if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
-		return handler.handleImages(tikTokData), []string{caption, handler.postID}
+		return downloader.PostInfo{
+			ID:      handler.postID,
+			Medias:  handler.handleImages(tikTokData),
+			Caption: getCaption(tikTokData),
+		}
 	}
-	return handler.handleVideo(tikTokData), []string{caption, handler.postID}
+	return downloader.PostInfo{
+		ID:      handler.postID,
+		Medias:  handler.handleVideo(tikTokData),
+		Caption: getCaption(tikTokData),
+	}
 }
 
 func (h *Handler) setPostID(url string) bool {

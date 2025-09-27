@@ -18,30 +18,26 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-type Handler struct {
-	username string
-	postID   string
-}
-
-func Handle(message string) ([]telegram.InputMedia, []string) {
+func Handle(message string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setUsernameAndPostID(message) {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
-	if err == nil {
-		return cachedMedias, []string{cachedCaption, handler.postID}
+	if postInfo, err := downloader.GetMediaCache(handler.postID); err == nil {
+		return postInfo
 	}
 
 	blueskyData := handler.getBlueskyData()
 	if blueskyData == nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	caption := getCaption(blueskyData)
-
-	return handler.processMedia(blueskyData), []string{caption, handler.postID}
+	return downloader.PostInfo{
+		ID:      handler.postID,
+		Medias:  handler.processMedia(blueskyData),
+		Caption: getCaption(blueskyData),
+	}
 }
 
 func (h *Handler) setUsernameAndPostID(url string) bool {

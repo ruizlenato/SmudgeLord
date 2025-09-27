@@ -42,10 +42,21 @@ func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error)
 
 func ConfigureYoutubeClient() *youtubedl.Client {
 	var ytClient *youtubedl.Client
+	var err error
+	const maxRetries = 5
+	const retryDelay = 5 * time.Second
 
 	if config.Socks5Proxy != "" {
-		proxyURL, _ := url.Parse(config.Socks5Proxy)
-		client := &http.Client{
+		proxyURL, parseErr := url.Parse(config.Socks5Proxy)
+		if parseErr != nil {
+			slog.Error(
+				"Couldn't parse proxy URL",
+				"Proxy", config.Socks5Proxy,
+				"Error", parseErr.Error(),
+			)
+			return nil
+		}
+		httpClient := &http.Client{
 			Transport: &http.Transport{
 				Proxy:                 http.ProxyURL(proxyURL),
 				ResponseHeaderTimeout: 30 * time.Second,
@@ -54,18 +65,31 @@ func ConfigureYoutubeClient() *youtubedl.Client {
 			},
 			Timeout: 120 * time.Second,
 		}
-		ytClient, err := youtubedl.New(youtubedl.WithHTTPClient(client))
-		if err != nil {
-			slog.Error(
+		for attempt := 1; attempt <= maxRetries; attempt++ {
+			ytClient, err = youtubedl.New(youtubedl.WithHTTPClient(httpClient))
+			if err == nil {
+				return ytClient
+			}
+			slog.Warn(
 				"Couldn't create youtube-dl client with proxy",
+				"Attempt", attempt,
+				"MaxRetries", maxRetries,
 				"Error", err.Error(),
 			)
-			return nil
+			if attempt < maxRetries {
+				time.Sleep(retryDelay)
+			}
+			httpClient.CloseIdleConnections()
 		}
-		return ytClient
+		slog.Error(
+			"Couldn't create youtube-dl client with proxy after max retries",
+			"MaxRetries", maxRetries,
+			"Error", err.Error(),
+		)
+		return nil
 	}
 
-	ytClient, err := youtubedl.New()
+	ytClient, err = youtubedl.New()
 	if err != nil {
 		slog.Error(
 			"Couldn't create youtube-dl client",
@@ -97,17 +121,17 @@ func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, for
 	return nil, errors.New("YouTube — Failed after 5 attempts")
 }
 
-func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
+func Downloader(callbackData []string) ([]byte, *youtubedl.Video, string, error) {
 	youtubeClient := ConfigureYoutubeClient()
 	video, err := youtubeClient.GetVideo(callbackData[1], youtubedl.WithClient("ANDROID"))
 	if err != nil {
-		return nil, video, err
+		return nil, video, "", err
 	}
 
 	itag, _ := strconv.Atoi(callbackData[2])
 	format, err := getVideoFormat(video, itag)
 	if err != nil {
-		return nil, video, err
+		return nil, video, "", err
 	}
 
 	fileBytes, err := downloadStream(youtubeClient, video, format)
@@ -116,17 +140,17 @@ func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 			"Could't download video, all attempts failed",
 			"Error", err.Error(),
 		)
-		return nil, video, err
+		return nil, video, "", err
 	}
 
 	if callbackData[0] == "_vid" {
 		audioFormat, err := getVideoFormat(video, 140)
 		if err != nil {
-			return nil, video, err
+			return nil, video, "", err
 		}
 		audioBytes, err := downloadStream(youtubeClient, video, audioFormat)
 		if err != nil {
-			return nil, video, err
+			return nil, video, "", err
 		}
 		fileBytes, err = downloader.MergeAudioVideo(fileBytes, audioBytes)
 		if err != nil {
@@ -134,11 +158,11 @@ func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 				"Couldn't merge audio and video",
 				"Error", err.Error(),
 			)
-			return nil, video, err
+			return nil, video, "", err
 		}
 	}
 
-	return fileBytes, video, nil
+	return fileBytes, video, format.MimeType, nil
 }
 
 func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
@@ -165,22 +189,22 @@ func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
 	return &bestFormat
 }
 
-func Handle(message string) ([]telegram.InputMedia, []string) {
+func Handle(message string) downloader.PostInfo {
 	youtubeClient := ConfigureYoutubeClient()
 	video, err := youtubeClient.GetVideo(message, youtubedl.WithClient("ANDROID"))
 	if err != nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	if cachedMedias, cachedCaption, err := downloader.GetMediaCache(video.ID); err == nil {
-		return cachedMedias, []string{cachedCaption, video.ID}
+	if postInfo, err := downloader.GetMediaCache(video.ID); err == nil {
+		return postInfo
 	}
 
 	videoStream := GetBestQualityVideoStream(video.Formats.Type("video/mp4"))
 
 	format, err := getVideoFormat(video, videoStream.ItagNo)
 	if err != nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	fileBytes, err := downloadStream(youtubeClient, video, format)
@@ -189,7 +213,7 @@ func Handle(message string) ([]telegram.InputMedia, []string) {
 			"Couldn't download video stream",
 			"Error", err.Error(),
 		)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	audioFormat, err := getVideoFormat(video, 140)
@@ -198,7 +222,7 @@ func Handle(message string) ([]telegram.InputMedia, []string) {
 			"Couldn't get audio format",
 			"Error", err.Error(),
 		)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	audioBytes, err := downloadStream(youtubeClient, video, audioFormat)
@@ -207,7 +231,7 @@ func Handle(message string) ([]telegram.InputMedia, []string) {
 			"Couldn't download audio stream",
 			"Error", err.Error(),
 		)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	fileBytes, err = downloader.MergeAudioVideo(fileBytes, audioBytes)
@@ -216,7 +240,7 @@ func Handle(message string) ([]telegram.InputMedia, []string) {
 			"Couldn't merge audio and video",
 			"Error", err.Error(),
 		)
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	videoFile, err := helpers.UploadVideo(helpers.UploadVideoParams{
@@ -233,8 +257,12 @@ func Handle(message string) ([]telegram.InputMedia, []string) {
 				"Error", err.Error(),
 			)
 		}
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	return []telegram.InputMedia{&videoFile}, []string{fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title), video.ID}
+	return downloader.PostInfo{
+		ID:      video.ID,
+		Medias:  []telegram.InputMedia{&videoFile},
+		Caption: fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
+	}
 }

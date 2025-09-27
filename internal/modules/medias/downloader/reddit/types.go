@@ -1,5 +1,10 @@
 package reddit
 
+type Handler struct {
+	subreddit string
+	postID    string
+}
+
 type RedditPost []KindData
 
 type KindData struct {

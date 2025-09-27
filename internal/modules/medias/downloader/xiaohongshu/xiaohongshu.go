@@ -17,40 +17,43 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-type Handler struct {
-	username string
-	postID   string
-}
-
-func Handle(message string) ([]telegram.InputMedia, []string) {
+func Handle(message string) downloader.PostInfo {
 	handler := &Handler{}
 	postURL := handler.getPostURL(message)
 	if postURL == "" {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 	handler.extractPostID(postURL)
 
-	if cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID); err == nil {
-		return cachedMedias, []string{cachedCaption, handler.postID}
+	if postInfo, err := downloader.GetMediaCache(handler.postID); err == nil {
+		return postInfo
 	}
 
 	xiaohongshuData := handler.getPostData(postURL)
 	if xiaohongshuData == nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	noteData, noteDataExists := xiaohongshuData.Note.NoteDetailMap[handler.postID]
 	if !noteDataExists {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	switch noteData.Note.Type {
 	case "video":
-		return handler.downloadVideo(noteData), []string{getCaption(noteData), handler.postID}
+		return downloader.PostInfo{
+			ID:      handler.postID,
+			Medias:  handler.downloadVideo(noteData),
+			Caption: getCaption(noteData),
+		}
 	case "normal":
-		return handler.downloadImages(noteData), []string{getCaption(noteData), handler.postID}
+		return downloader.PostInfo{
+			ID:      handler.postID,
+			Medias:  handler.downloadImages(noteData),
+			Caption: getCaption(noteData),
+		}
 	default:
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 }
 
