@@ -9,24 +9,25 @@ require (
 	github.com/anthonynsimon/bild v0.14.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lus/fluent.go v0.0.0-20240613180830-a11a6bbd90a9
-	github.com/steino/youtubedl v0.0.0-20250425173207-9c361144f0b7
 	golang.org/x/text v0.29.0
 )
 
 require (
+	github.com/kkdai/youtube/v2 v2.10.4
 	github.com/valkey-io/valkey-go v1.0.65
 	golang.org/x/image v0.31.0
 )
 
-require golang.org/x/sys v0.36.0 // indirect
+require (
+	github.com/bitly/go-simplejson v0.5.1 // indirect
+	golang.org/x/sys v0.36.0 // indirect
+)
 
 require (
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/dop251/goja v0.0.0-20250630131328-58d95d85e994 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
 	github.com/google/pprof v0.0.0-20250923004556-9e5a51aed1e8 // indirect
-	github.com/mengzhuo/cookiestxt v1.0.4 // indirect
-	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	golang.org/x/exp v0.0.0-20250911091902-df9299821621
 )
 

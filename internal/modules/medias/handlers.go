@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/amarnathcjd/gogram/telegram"
+	youtubedl "github.com/kkdai/youtube/v2"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -23,7 +24,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
 	"github.com/ruizlenato/smudgelord/internal/telegram/handlers"
 	"github.com/ruizlenato/smudgelord/internal/utils"
-	"github.com/steino/youtubedl"
 )
 
 const (
