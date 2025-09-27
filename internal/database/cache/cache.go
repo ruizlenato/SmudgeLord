@@ -10,6 +10,7 @@ import (
 )
 
 var client valkey.Client
+var clientInitialized bool
 
 func ValkeyClient(addr string) error {
 	var err error
@@ -17,21 +18,29 @@ func ValkeyClient(addr string) error {
 		InitAddress: []string{addr},
 	})
 	if err != nil {
+		clientInitialized = false
 		return err
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
 	err = client.Do(ctx, client.B().Ping().Build()).Error()
 	if err != nil {
+		clientInitialized = false
 		return err
 	}
 
+	clientInitialized = true
 	return nil
 }
 
 func IsHealthy() bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	if !clientInitialized {
+		return false
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
 	err := client.Do(ctx, client.B().Ping().Build()).Error()
