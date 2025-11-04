@@ -177,7 +177,7 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 	}
 
 	stickerSetShortName, stickerSetTitle := generateStickerSetName(message)
-	mediaMsg, err := message.Client.SendMedia(config.ChannelLogID, stickerBytes, &telegram.MediaOptions{
+	mediaMsg, err := message.Client.SendMedia(config.LogChannelID, stickerBytes, &telegram.MediaOptions{
 		ForceDocument: true,
 		FileName:      filename,
 	})

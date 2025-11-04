@@ -4,17 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"sync"
 
+	"github.com/amarnathcjd/gogram/telegram"
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/localization"
+	tg "github.com/ruizlenato/smudgelord/internal/telegram"
 )
 
 func initializeServices() error {
@@ -40,8 +44,31 @@ func initializeServices() error {
 type colorHandler struct {
 	handler slog.Handler
 	out     io.Writer
-	colors  map[slog.Level]string
 	opts    *slog.HandlerOptions
+	colors  map[slog.Level]string
+
+	sendQueue chan string
+}
+
+var (
+	globalLogQueue chan string
+	onceStartQueue sync.Once
+)
+
+func startGlobalLogSender() {
+	onceStartQueue.Do(func() {
+		globalLogQueue = make(chan string, 200)
+		go func() {
+			for msg := range globalLogQueue {
+				_, err := tg.Client.SendMessage(config.LogChannelID, msg, &telegram.SendOptions{
+					ParseMode: telegram.HTML,
+				})
+				if err != nil {
+					fmt.Fprintln(os.Stderr, "\033[0;31mFailed to send log message to Telegram:\033[0m", err)
+				}
+			}
+		}()
+	})
 }
 
 func newColorHandler(out io.Writer, opts *slog.HandlerOptions) *colorHandler {
@@ -49,10 +76,13 @@ func newColorHandler(out io.Writer, opts *slog.HandlerOptions) *colorHandler {
 		opts = &slog.HandlerOptions{}
 	}
 
+	startGlobalLogSender()
+
 	return &colorHandler{
-		handler: slog.NewTextHandler(out, opts),
-		out:     out,
-		opts:    opts,
+		handler:   slog.NewTextHandler(out, opts),
+		out:       out,
+		opts:      opts,
+		sendQueue: globalLogQueue,
 		colors: map[slog.Level]string{
 			slog.LevelError: "\033[0;31m", // red
 			slog.LevelWarn:  "\033[0;33m", // yellow
@@ -103,7 +133,7 @@ func (h *colorHandler) Handle(ctx context.Context, r slog.Record) error {
 	})
 
 	var jsonAttrs string
-	if r.NumAttrs() > 0 {
+	if len(attrs) > 0 {
 		jsonBytes, err := json.MarshalIndent(attrs, "", "  ")
 		if err == nil {
 			jsonAttrs = " " + string(jsonBytes)
@@ -121,25 +151,36 @@ func (h *colorHandler) Handle(ctx context.Context, r slog.Record) error {
 		jsonAttrs,
 	)
 
+	htmlContent := html.EscapeString(fmt.Sprintf("%s %s: %s%s", timestamp, r.Level.String(), r.Message, jsonAttrs))
+	htmlMsg := fmt.Sprintf(`<pre language="json">%s</pre>`, htmlContent)
+
+	select {
+	case h.sendQueue <- htmlMsg:
+	default:
+		fmt.Fprintln(os.Stderr, "\033[0;33mLog queue full: dropping log message\033[0m")
+	}
+
 	_, err := h.out.Write([]byte(msg))
 	return err
 }
 
 func (h *colorHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &colorHandler{
-		handler: h.handler.WithAttrs(attrs),
-		out:     h.out,
-		opts:    h.opts,
-		colors:  h.colors,
+		handler:   h.handler.WithAttrs(attrs),
+		out:       h.out,
+		opts:      h.opts,
+		colors:    h.colors,
+		sendQueue: h.sendQueue,
 	}
 }
 
 func (h *colorHandler) WithGroup(name string) slog.Handler {
 	return &colorHandler{
-		handler: h.handler.WithGroup(name),
-		out:     h.out,
-		opts:    h.opts,
-		colors:  h.colors,
+		handler:   h.handler.WithGroup(name),
+		out:       h.out,
+		opts:      h.opts,
+		colors:    h.colors,
+		sendQueue: h.sendQueue,
 	}
 }
 

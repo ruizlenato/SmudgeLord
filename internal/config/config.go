@@ -16,7 +16,7 @@ var (
 	LogLevel         slog.Leveler
 	DatabaseFile     string
 	OwnerID          int64
-	ChannelLogID     int64
+	LogChannelID     int64
 	Socks5Proxy      string
 	LastFMAPIKey     string
 )
@@ -55,8 +55,8 @@ func init() {
 		log.Fatalf(`You need to set the "OWNER_ID" in the .env file!`)
 	}
 
-	ChannelLogID, _ = strconv.ParseInt(os.Getenv("CHANNEL_LOG_ID"), 10, 64)
-	if ChannelLogID == 0 {
+	LogChannelID, _ = strconv.ParseInt(os.Getenv("CHANNEL_LOG_ID"), 10, 64)
+	if LogChannelID == 0 {
 		log.Fatalf(`You need to set the "CHANNEL_LOG_ID" in the .env file!`)
 	}
 
