@@ -51,11 +51,6 @@ func createClient() (*telegram.Client, error) {
 func handleFlood(err error) bool {
 	wait := telegram.GetFloodWait(err)
 	if wait > 0 {
-		if wait > 300 {
-			slog.Warn("Long flood wait detected", "seconds", wait)
-			return false
-		}
-
 		slog.Info("Flood wait applied", "seconds", wait)
 		time.Sleep(time.Duration(wait) * time.Second)
 		return true

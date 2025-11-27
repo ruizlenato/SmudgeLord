@@ -72,7 +72,7 @@ func getStickerHandler(message *telegram.NewMessage) error {
 		filename = "sticker.gif"
 	}
 
-	_, err = message.ReplyMedia(buf.Bytes(), telegram.MediaOptions{
+	_, err = message.ReplyMedia(buf.Bytes(), &telegram.MediaOptions{
 		ForceDocument: true,
 		Caption:       fmt.Sprintf("<b>Emoji:</b> <code>%s</code>", emoji),
 		FileName:      filename,
@@ -89,13 +89,13 @@ func getStickerHandler(message *telegram.NewMessage) error {
 func kangStickerHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if !message.IsReply() {
-		_, err := message.Reply(i18n("kang-no-reply-provided"), telegram.SendOptions{
+		_, err := message.Reply(i18n("kang-no-reply-provided"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
 	}
 
-	progressMessage, err := message.Reply(i18n("stealing-sticker"), telegram.SendOptions{
+	progressMessage, err := message.Reply(i18n("stealing-sticker"), &telegram.SendOptions{
 		ParseMode: telegram.HTML,
 	})
 	if err != nil {
@@ -154,7 +154,7 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 		}
 		filename = "sticker.png"
 	case actionConvert:
-		progressMessage, err = progressMessage.Edit(i18n("converting-video-to-sticker"), telegram.SendOptions{ParseMode: telegram.HTML})
+		progressMessage, err = progressMessage.Edit(i18n("converting-video-to-sticker"), &telegram.SendOptions{ParseMode: telegram.HTML})
 		if err != nil {
 			return err
 		}
@@ -194,7 +194,7 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 		}
 	}()
 
-	progressMessage, err = progressMessage.Edit(i18n("sticker-pack-already-exists"), telegram.SendOptions{ParseMode: telegram.HTML})
+	progressMessage, err = progressMessage.Edit(i18n("sticker-pack-already-exists"), &telegram.SendOptions{ParseMode: telegram.HTML})
 	if err != nil {
 		return err
 	}
@@ -206,9 +206,8 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 	if err != nil {
 		if strings.Contains(err.Error(), "STICKERS_TOO_MUCH") {
 			return editProgressAndReturn(progressMessage, "STICKERS_TOO_MUCH", err)
-
 		}
-		progressMessage, err = progressMessage.Edit(i18n("sticker-new-pack"), telegram.SendOptions{
+		progressMessage, err = progressMessage.Edit(i18n("sticker-new-pack"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		if err != nil {
@@ -231,14 +230,14 @@ func kangStickerHandler(message *telegram.NewMessage) error {
 		map[string]any{
 			"stickerSetName": stickerSetShortName,
 			"emoji":          stickerEmoji,
-		}), telegram.SendOptions{
+		}), &telegram.SendOptions{
 		ParseMode: telegram.HTML,
 	})
 	return err
 }
 
 func editProgressAndReturn(progressMessage *telegram.NewMessage, text string, originalErr error) error {
-	_, editErr := progressMessage.Edit(text, telegram.SendOptions{ParseMode: telegram.HTML})
+	_, editErr := progressMessage.Edit(text, &telegram.SendOptions{ParseMode: telegram.HTML})
 	if editErr != nil {
 		slog.Error("Failed to edit progress message on error", "editError", editErr, "originalError", originalErr)
 	}

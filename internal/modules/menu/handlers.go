@@ -51,7 +51,7 @@ func startHandler(message *telegram.NewMessage) error {
 				"userFirstName": message.Sender.FirstName,
 				"botName":       message.Client.Me().FirstName,
 			}),
-			telegram.SendOptions{
+			&telegram.SendOptions{
 				ParseMode:   telegram.HTML,
 				ReplyMarkup: createStartKeyboard(i18n),
 			})
@@ -62,7 +62,7 @@ func startHandler(message *telegram.NewMessage) error {
 		map[string]any{
 			"botName": message.Client.Me().FirstName,
 		}),
-		telegram.SendOptions{
+		&telegram.SendOptions{
 			ParseMode: telegram.HTML,
 			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
 				telegram.ButtonBuilder{}.Row(
@@ -106,14 +106,14 @@ func privacyHandler(message *telegram.NewMessage) error {
 
 	if message.ChatType() == telegram.EntityUser {
 		_, err := message.Reply(i18n("privacy-policy-private"),
-			telegram.SendOptions{
+			&telegram.SendOptions{
 				ParseMode:   telegram.HTML,
 				ReplyMarkup: createPrivacyKeyboard(i18n),
 			})
 		return err
 	}
 	_, err := message.Reply(i18n("privacy-policy-group"),
-		telegram.SendOptions{
+		&telegram.SendOptions{
 			ParseMode: telegram.HTML,
 			ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(
 				telegram.ButtonBuilder{}.Row(
@@ -300,7 +300,7 @@ func menuInline(i *telegram.InlineQuery) error {
 		)
 	}
 
-	_, err := i.Answer(builder.Results(), telegram.InlineSendOptions{
+	_, err := i.Answer(builder.Results(), &telegram.InlineSendOptions{
 		CacheTime: 0,
 	})
 	return err

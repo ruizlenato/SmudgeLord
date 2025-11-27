@@ -42,7 +42,7 @@ func translateHandler(message *telegram.NewMessage) error {
 	} else if message.Args() != "" {
 		text = message.Args()
 	} else {
-		_, err := message.Reply(i18n("translator-no-args-provided"), telegram.SendOptions{
+		_, err := message.Reply(i18n("translator-no-args-provided"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -59,12 +59,12 @@ func translateHandler(message *telegram.NewMessage) error {
 	}
 	unescapedText, err := url.QueryUnescape(strings.Join(translations, ""))
 	if err != nil {
-		_, err := message.Reply(i18n("translator-error"), telegram.SendOptions{
+		_, err := message.Reply(i18n("translator-error"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
 	}
-	_, err = message.Reply(fmt.Sprintf("<b>%s</b> -> <b>%s</b>\n<code>%s</code>", translation.Source, translation.Target, unescapedText), telegram.SendOptions{
+	_, err = message.Reply(fmt.Sprintf("<b>%s</b> -> <b>%s</b>\n<code>%s</code>", translation.Source, translation.Target, unescapedText), &telegram.SendOptions{
 		ParseMode: telegram.HTML,
 	})
 
@@ -225,7 +225,7 @@ func searchWeather(local, language string) (weatherSearch, error) {
 func weatherHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() == "" {
-		_, err := message.Reply(i18n("weather-no-location-provided"), telegram.SendOptions{
+		_, err := message.Reply(i18n("weather-no-location-provided"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -252,7 +252,7 @@ func weatherHandler(message *telegram.NewMessage) error {
 		)))
 	}
 
-	_, err = message.Reply(i18n("weather-select-location"), telegram.SendOptions{
+	_, err = message.Reply(i18n("weather-select-location"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: buttons,
 	})
@@ -391,7 +391,7 @@ func weatherInlineQuery(i *telegram.InlineQuery) error {
 		})
 	}
 
-	_, err = i.Answer(builder.Results(), telegram.InlineSendOptions{
+	_, err = i.Answer(builder.Results(), &telegram.InlineSendOptions{
 		CacheTime: 0,
 	})
 	return err

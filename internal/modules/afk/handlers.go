@@ -53,7 +53,7 @@ func checkAFKUpdate(message *telegram.NewMessage) error {
 				"userFirstName": message.Sender.FirstName,
 				"duration":      humanizedDuration,
 			}),
-			telegram.SendOptions{
+			&telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 		return err
@@ -76,7 +76,7 @@ func checkAFKUpdate(message *telegram.NewMessage) error {
 				})
 		}
 
-		_, err = message.Reply(text, telegram.SendOptions{
+		_, err = message.Reply(text, &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -94,7 +94,7 @@ func setAFKhandler(message *telegram.NewMessage) error {
 		map[string]any{
 			"userFirstName": message.Sender.FirstName,
 		}),
-		telegram.SendOptions{
+		&telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 

@@ -141,7 +141,7 @@ func GetMediaCache(postID string) (PostInfo, error) {
 
 	inputMedias := make([]telegram.InputMedia, 0, len(medias.Medias))
 	for _, media := range medias.Medias {
-		fID, accessHash, fileType, _ := telegram.UnpackBotFileID(media)
+		fID, accessHash, fileType, _, _ := telegram.UnpackBotFileID(media)
 		var inputMedia telegram.InputMedia
 		switch fileType {
 		case 2:

@@ -77,7 +77,7 @@ func announceHandler(message *telegram.NewMessage) error {
 	announceMessageText = message.Args()
 
 	if announceMessageText == "" {
-		_, err := message.Reply(i18n("announce-usage"), telegram.SendOptions{
+		_, err := message.Reply(i18n("announce-usage"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 
@@ -85,7 +85,7 @@ func announceHandler(message *telegram.NewMessage) error {
 	}
 	keyboard := buildTypeSelectionKeyboard(message)
 
-	_, err := message.Reply(i18n("select-type-announcement"), telegram.SendOptions{
+	_, err := message.Reply(i18n("select-type-announcement"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: telegram.ButtonBuilder{}.Keyboard(keyboard...),
 	})

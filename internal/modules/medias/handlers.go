@@ -114,7 +114,9 @@ func sendMediaAndHandleCaption(message *telegram.NewMessage, postInfo downloader
 	var err error
 	switch len(postInfo.Medias) {
 	case 1:
-		replied, err = message.ReplyMedia(postInfo.Medias[0], mediaOptions)
+		replied, err = message.ReplyMedia(postInfo.Medias[0], &mediaOptions)
+	case 0:
+		fmt.Println("não preciso mais nem explicar")
 	default:
 		replied, err = message.ReplyAlbum(postInfo.Medias, &mediaOptions)
 	}
@@ -255,7 +257,7 @@ func youtubeDownloadHandler(message *telegram.NewMessage) error {
 		),
 	)
 
-	_, err = message.Reply(text, telegram.SendOptions{
+	_, err = message.Reply(text, &telegram.SendOptions{
 		ReplyMarkup: keyboard,
 	})
 
@@ -410,7 +412,7 @@ func mediasInlineQuery(i *telegram.InlineQuery) error {
 		})
 	}
 
-	_, err := i.Answer(builder.Results(), telegram.InlineSendOptions{
+	_, err := i.Answer(builder.Results(), &telegram.InlineSendOptions{
 		CacheTime: 0,
 	})
 	return err

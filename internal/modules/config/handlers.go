@@ -132,7 +132,7 @@ func configHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	keyboard := createConfigKeyboard(i18n)
 
-	_, err := message.Reply(i18n("config-message"), telegram.SendOptions{
+	_, err := message.Reply(i18n("config-message"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		ReplyMarkup: keyboard,
 	})

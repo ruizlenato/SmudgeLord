@@ -29,14 +29,14 @@ func SetUserHandler(message *telegram.NewMessage) error {
 	i18n := localization.Get(message)
 	if message.Args() != "" && message.Args() != "setuser" {
 		if err := lastFM.GetUser(message.Args()); err != nil {
-			_, err := message.Reply(i18n("invalid-lastfm-username"), telegram.SendOptions{
+			_, err := message.Reply(i18n("invalid-lastfm-username"), &telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			return err
 		}
 
 		if err := setLastFMUsername(message.Sender, message.Args()); err != nil {
-			_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
+			_, err := message.Reply(i18n("lastfm-error"), &telegram.SendOptions{
 				ParseMode: telegram.HTML,
 			})
 			slog.Error(
@@ -46,7 +46,7 @@ func SetUserHandler(message *telegram.NewMessage) error {
 			return err
 		}
 
-		_, err := message.Reply(i18n("lastfm-username-saved"), telegram.SendOptions{
+		_, err := message.Reply(i18n("lastfm-username-saved"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 		})
 		return err
@@ -94,7 +94,7 @@ func SetUserHandler(message *telegram.NewMessage) error {
 	}
 
 	if err := lastFM.GetUser(resp.Text()); err != nil {
-		_, err := message.Reply(i18n("invalid-lastfm-username"), telegram.SendOptions{
+		_, err := message.Reply(i18n("invalid-lastfm-username"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 			ReplyID:   resp.ID,
 		})
@@ -102,7 +102,7 @@ func SetUserHandler(message *telegram.NewMessage) error {
 	}
 
 	if err := setLastFMUsername(message.Sender, resp.Text()); err != nil {
-		_, err := message.Reply(i18n("lastfm-error"), telegram.SendOptions{
+		_, err := message.Reply(i18n("lastfm-error"), &telegram.SendOptions{
 			ParseMode: telegram.HTML,
 			ReplyID:   resp.ID,
 		})
@@ -122,7 +122,7 @@ func SetUserHandler(message *telegram.NewMessage) error {
 }
 
 func musicHandler(message *telegram.NewMessage) error {
-	_, err := message.Reply(lastfm(message, "track"), telegram.SendOptions{
+	_, err := message.Reply(lastfm(message, "track"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		InvertMedia: true,
 		LinkPreview: true,
@@ -131,7 +131,7 @@ func musicHandler(message *telegram.NewMessage) error {
 }
 
 func albumHandler(message *telegram.NewMessage) error {
-	_, err := message.Reply(lastfm(message, "album"), telegram.SendOptions{
+	_, err := message.Reply(lastfm(message, "album"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		InvertMedia: true,
 		LinkPreview: true,
@@ -140,7 +140,7 @@ func albumHandler(message *telegram.NewMessage) error {
 }
 
 func artistHandler(message *telegram.NewMessage) error {
-	_, err := message.Reply(lastfm(message, "artist"), telegram.SendOptions{
+	_, err := message.Reply(lastfm(message, "artist"), &telegram.SendOptions{
 		ParseMode:   telegram.HTML,
 		InvertMedia: true,
 		LinkPreview: true,
