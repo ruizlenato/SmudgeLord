@@ -32,10 +32,10 @@ github.com/mengzhuo/cookiestxt v1.0.4 h1:86h9CiU88KEM3bB2syZ8cJHABfrkmP4i5g0ytPU
 github.com/mengzhuo/cookiestxt v1.0.4/go.mod h1:TVR3++zJTvADjIgChwqpw5giKn3BHOATkLSSLGKHJP8=
 github.com/patrickmn/go-cache v2.1.0+incompatible h1:HRMgzkcYKYpi3C8ajMPV8OFXaaRUnok+kx1WdO15EQc=
 github.com/patrickmn/go-cache v2.1.0+incompatible/go.mod h1:3Qf8kWWT7OJRJbdiICTKqZju1ZixQ/KpMGzzAfe6+WQ=
-github.com/redis/go-redis/v9 v9.7.3 h1:YpPyAayJV+XErNsatSElgRZZVCwXX9QzkKYNvO7x0wM=
-github.com/redis/go-redis/v9 v9.7.3/go.mod h1:bGUrSggJ9X9GUmZpZNEOQKaANxSGgOEBRltRTZHSvrA=
 github.com/steino/youtubedl v0.0.0-20250425173207-9c361144f0b7 h1:BldMY6JaNsVOLhDW6vo2hLo27O5QLKrRkvxKfO+3L+k=
 github.com/steino/youtubedl v0.0.0-20250425173207-9c361144f0b7/go.mod h1:bUULxYYEwUKER/Ryglw9IVDnXXH/8DGtqVWDD7D0c3g=
+github.com/valkey-io/valkey-go v1.0.68 h1:bTbfonp49b41DqrF30q+y2JL3gcbjd2IiacFAtO4JBA=
+github.com/valkey-io/valkey-go v1.0.68/go.mod h1:bHmwjIEOrGq/ubOJfh5uMRs7Xj6mV3mQ/ZXUbmqpjqY=
 golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 h1:R84qjqJb5nVJMxqWYb3np9L5ZsaDtB+a39EqjV0JSUM=
 golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0/go.mod h1:S9Xr4PYopiDyqSyp5NjCrhFrqg6A5zA2E/iPHPhqnS8=
 golang.org/x/text v0.24.0 h1:dd5Bzh4yt5KYA8f9CJHCP4FB4D51c2c6JvN37xJJkJ0=

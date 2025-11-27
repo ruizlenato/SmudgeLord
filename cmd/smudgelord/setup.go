@@ -32,9 +32,8 @@ func InitializeServices(b *bot.Bot, ctx context.Context) error {
 		return fmt.Errorf("failed to create tables: %w", err)
 	}
 
-	if err := cache.RedisClient("localhost:6379", "", 0); err != nil {
-		fmt.Println(err)
-		slog.Warn("Redis cache is currently unavailable.")
+	if err := cache.ValkeyClient("localhost:6379"); err != nil {
+		fmt.Println("\033[0;31mValkey cache is currently unavailable.\033[0m")
 	}
 
 	if config.WebhookURL != "" {
