@@ -27,7 +27,7 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile|on)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|soundcloud|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|(?:youtube\.com/)(?:shorts|clip))/(?:\S*)`
+	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile|on)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|soundcloud|bsky|threads|xiaohongshu|xhslink)\.(?:com|app)|(?:youtube\.com/)(?:shorts|clip))/(?:\S*)`
 	maxSizeCaption = 1024
 )
 
@@ -41,7 +41,7 @@ var mediaHandlers = map[string]MediaHandler{
 	"instagram.com/":             {"Instagram", instagram.Handle},
 	"reddit.com/":                {"Reddit", reddit.Handle},
 	"soundcloud.com/":            {"SoundCloud", soundcloud.Handle},
-	"threads.net/":               {"Threads", threads.Handle},
+	"threads.com/":               {"Threads", threads.Handle},
 	"tiktok.com/":                {"TikTok", tiktok.Handle},
 	"(twitter|x).com/":           {"Twitter/X", twitter.Handle},
 	"youtube.com/":               {"YouTube", youtube.Handle},

@@ -87,7 +87,7 @@ func getGQLData(postID string) ThreadsData {
 	downloader.GenericHeaders["X-Ig-App-Id"] = "238260118697367"
 	downloader.GenericHeaders["Sec-Fetch-Mode"] = "cors"
 	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
-	response, err := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
+	response, err := utils.Request("https://www.threads.com/api/graphql", utils.RequestParams{
 		Method:  "POST",
 		Headers: downloader.GenericHeaders,
 		BodyString: []string{
