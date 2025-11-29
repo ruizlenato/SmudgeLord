@@ -3,8 +3,8 @@ package medias
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"regexp"
 	"strconv"
@@ -36,26 +36,209 @@ const (
 	maxSizeCaption = 1024
 )
 
-func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	var (
-		mediaItems []models.InputMedia
-		result     []string
-		caption    string
-		forceSend  bool
-	)
+type MediaHandler struct {
+	Name    string
+	Handler func(string) downloader.PostInfo
+}
 
-	if !regexp.MustCompile(`^/(?:s)?dl`).MatchString(update.Message.Text) && update.Message.Chat.Type != models.ChatTypePrivate {
-		var mediasAuto bool
-		err := database.DB.QueryRow("SELECT mediasAuto FROM groups WHERE id = ?;", update.Message.Chat.ID).Scan(&mediasAuto)
-		if err != nil || !mediasAuto {
-			return
+var mediaHandlers = map[string]MediaHandler{
+	"bsky.app/":                  {"BlueSky", bluesky.Handle},
+	"instagram.com/":             {"Instagram", instagram.Handle},
+	"reddit.com/":                {"Reddit", reddit.Handle},
+	"threads.com/":               {"Threads", threads.Handle},
+	"tiktok.com/":                {"TikTok", tiktok.Handle},
+	"(twitter|x).com/":           {"Twitter/X", twitter.Handle},
+	"(xiaohongshu|xhslink).com/": {"XiaoHongShu", xiaohongshu.Handle},
+}
+
+func extractURL(text string) (string, bool) {
+	url := regexp.MustCompile(regexMedia).FindStringSubmatch(text)
+	if len(url) < 1 {
+		return "", false
+	}
+	return url[0], true
+}
+
+func processMedia(text string) downloader.PostInfo {
+	var postInfo downloader.PostInfo
+
+	for pattern, handler := range mediaHandlers {
+		if match, _ := regexp.MatchString(pattern, text); match {
+			postInfo = handler.Handler(text)
+			postInfo.Service = handler.Name
+			break
 		}
 	}
 
-	url := regexp.MustCompile(regexMedia).FindStringSubmatch(update.Message.Text)
+	return postInfo
+}
+
+func shouldProcessMedia(message *models.Message) bool {
+	if regexp.MustCompile(`^/dl`).MatchString(message.Text) || message.Chat.Type == models.ChatTypePrivate {
+		return true
+	}
+
+	var mediasAuto bool
+	if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto); err != nil || !mediasAuto {
+		return false
+	}
+	return true
+}
+
+func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) bool {
+	if len(postInfo.Medias) == 0 {
+		return false
+	}
+
+	if utf8.RuneCountInString(postInfo.Caption) > maxSizeCaption {
+		postInfo.Caption = downloader.TruncateUTF8Caption(postInfo.Caption,
+			url, i18n("open-link", map[string]any{
+				"service": postInfo.Service,
+			}), len(postInfo.Medias),
+		)
+	}
+
+	return true
+}
+
+func setMediaCaption(media models.InputMedia, caption string) {
+	switch v := media.(type) {
+	case *models.InputMediaPhoto:
+		v.Caption = caption
+		v.ParseMode = models.ParseModeHTML
+	case *models.InputMediaVideo:
+		v.Caption = caption
+		v.ParseMode = models.ParseModeHTML
+	}
+}
+
+func getInputFile(media string, attachment io.Reader) models.InputFile {
+	if attachment != nil {
+		return &models.InputFileUpload{
+			Filename: media,
+			Data:     attachment,
+		}
+	}
+	return &models.InputFileString{
+		Data: media,
+	}
+}
+
+func sendSingleMedia(
+	ctx context.Context,
+	b *bot.Bot,
+	chatID int64,
+	media models.InputMedia,
+	replyMarkup *models.InlineKeyboardMarkup,
+) (any, error) {
+	switch media := media.(type) {
+	case *models.InputMediaVideo:
+		return b.SendVideo(ctx, &bot.SendVideoParams{
+			ChatID:      chatID,
+			Video:       getInputFile(media.Media, media.MediaAttachment),
+			Caption:     media.Caption,
+			ParseMode:   models.ParseModeHTML,
+			ReplyMarkup: replyMarkup,
+		})
+	case *models.InputMediaPhoto:
+		return b.SendPhoto(ctx, &bot.SendPhotoParams{
+			ChatID:      chatID,
+			Photo:       getInputFile(media.Media, media.MediaAttachment),
+			Caption:     media.Caption,
+			ParseMode:   models.ParseModeHTML,
+			ReplyMarkup: replyMarkup,
+		})
+	default:
+		return nil, fmt.Errorf("unsupported media type")
+	}
+}
+
+func sendMediaAndHandleCaption(
+	ctx context.Context,
+	b *bot.Bot,
+	update *models.Update,
+	postInfo downloader.PostInfo,
+	url string,
+	i18n func(string, ...map[string]any) string,
+) error {
+	if _, err := b.SendChatAction(ctx, &bot.SendChatActionParams{
+		ChatID: update.Message.Chat.ID,
+		Action: models.ChatActionUploadDocument,
+	}); err != nil {
+		slog.Warn("Erro ao enviar ação de chat", "error", err)
+	}
+
+	setMediaCaption(postInfo.Medias[0], postInfo.Caption)
+
+	var replied any
+	var err error
+
+	if len(postInfo.Medias) == 1 {
+		replied, err = sendSingleMedia(
+			ctx,
+			b,
+			update.Message.Chat.ID,
+			postInfo.Medias[0],
+			&models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{{{
+					Text: i18n("open-link", map[string]any{
+						"service": postInfo.Service,
+					}),
+					URL: url,
+				}}},
+			})
+	} else {
+		replied, err = b.SendMediaGroup(ctx, &bot.SendMediaGroupParams{
+			ChatID: update.Message.Chat.ID,
+			Media:  postInfo.Medias,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+	}
+
+	if err != nil {
+		return fmt.Errorf("couldn't send media group: %w", err)
+	}
+
+	if err := downloader.SetMediaCache(replied, postInfo); err != nil {
+		return fmt.Errorf("couldn't set media cache: %w", err)
+	}
+
+	if update.Message.Chat.Type == models.ChatTypePrivate {
+		return nil
+	}
+
+	var mediasCaption bool
+	if err := database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", update.Message.Chat.ID).Scan(&mediasCaption); err == nil && !mediasCaption {
+		var messageToEdit *models.Message
+		switch v := replied.(type) {
+		case *models.Message:
+			messageToEdit = v
+		case []*models.Message:
+			messageToEdit = v[len(v)-1]
+		}
+		_, err = b.EditMessageText(ctx, &bot.EditMessageTextParams{
+			ChatID:    update.Message.Chat.ID,
+			MessageID: messageToEdit.ID,
+			Text:      fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, i18n("open-link", map[string]any{"service": postInfo.Service})),
+			ParseMode: models.ParseModeHTML,
+		})
+		return err
+	}
+
+	return nil
+}
+
+func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if !shouldProcessMedia(update.Message) {
+		return
+	}
+
 	i18n := localization.Get(update)
-	if len(url) < 1 {
-		b.SendMessage(ctx, &bot.SendMessageParams{
+	url, found := extractURL(update.Message.Text)
+	if !found {
+		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("no-link-provided"),
 			ParseMode: models.ParseModeHTML,
@@ -63,124 +246,27 @@ func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update
 				MessageID: update.Message.ID,
 			},
 		})
+		if err != nil {
+			slog.Error("Couldn't send message",
+				"Error", err.Error())
+			return
+		}
+	}
+
+	postInfo := processMedia(url)
+	if !prepareCaption(&postInfo, url, i18n) {
 		return
 	}
 
-	mediaHandlers := map[string]func(string) ([]models.InputMedia, []string){
-		"bsky.app/":                  bluesky.Handle,
-		"instagram.com/":             instagram.Handle,
-		"reddit.com/":                reddit.Handle,
-		"threads.net/":               threads.Handle,
-		"tiktok.com/":                tiktok.Handle,
-		"(twitter|x).com/":           twitter.Handle,
-		"(xiaohongshu|xhslink).com/": xiaohongshu.Handle,
+	if len(postInfo.Medias) > 10 { // Telegram limits up to 10 images and videos in an album.
+		postInfo.Medias = postInfo.Medias[:10]
 	}
 
-	for pattern, handler := range mediaHandlers {
-		if match, _ := regexp.MatchString(pattern, update.Message.Text); match {
-			if regexp.MustCompile(`(tiktok\.com|reddit\.com)`).MatchString(update.Message.Text) {
-				forceSend = true
-			}
-			mediaItems, result = handler(url[0])
-			if len(result) == 2 {
-				caption = result[0]
-			}
-			break
-
-		}
+	if err := sendMediaAndHandleCaption(ctx, b, update, postInfo, url, i18n); err != nil {
+		slog.Error("Couldn't send media",
+			"Error", err.Error(),
+		)
 	}
-
-	type mediaInfo struct {
-		Type  string `json:"type"`
-		Media string `json:"media"`
-	}
-	var mInfo mediaInfo
-
-	if len(mediaItems) == 0 || mediaItems[0] == nil {
-		return
-	}
-
-	if len(mediaItems) == 1 && !forceSend &&
-		update.Message.LinkPreviewOptions != nil && (update.Message.LinkPreviewOptions.IsDisabled == nil || !*update.Message.LinkPreviewOptions.IsDisabled) {
-
-		marshalInputMedia, err := mediaItems[0].MarshalInputMedia()
-		if err != nil {
-			slog.Error("Couldn't marshal media info",
-				"Error", err.Error())
-			return
-		}
-
-		err = json.Unmarshal(marshalInputMedia, &mInfo)
-		if err != nil {
-			slog.Error("Couldn't unmarshal media info",
-				"Error", err.Error())
-			return
-		}
-
-		if mInfo.Type == "photo" {
-			return
-		}
-	}
-
-	if len(mediaItems) > 10 { // Telegram limits up to 10 images and videos in an album.
-		mediaItems = mediaItems[:10]
-	}
-
-	if utf8.RuneCountInString(caption) > maxSizeCaption {
-		caption = downloader.TruncateUTF8Caption(caption, url[0])
-	}
-
-	var mediasCaption = true
-	if err := database.DB.QueryRow("SELECT mediasCaption FROM groups WHERE id = ?;", update.Message.Chat.ID).Scan(&mediasCaption); err == nil && !mediasCaption || caption == "" {
-		caption = fmt.Sprintf("<a href='%s'>🔗 Link</a>", url[0])
-	}
-
-	for _, media := range mediaItems[:1] {
-		marshalInputMedia, err := media.MarshalInputMedia()
-		if err != nil {
-			slog.Error("Couldn't marshal media info",
-				"Error", err.Error())
-			return
-		}
-
-		err = json.Unmarshal(marshalInputMedia, &mInfo)
-		if err != nil {
-			slog.Error("Couldn't unmarshal media info",
-				"Error", err.Error())
-			return
-		}
-
-		switch mInfo.Type {
-		case "photo":
-			media.(*models.InputMediaPhoto).Caption = caption
-			media.(*models.InputMediaPhoto).ParseMode = models.ParseModeHTML
-		case "video":
-			media.(*models.InputMediaVideo).Caption = caption
-			media.(*models.InputMediaVideo).ParseMode = models.ParseModeHTML
-		}
-	}
-
-	b.SendChatAction(ctx, &bot.SendChatActionParams{
-		ChatID: update.Message.Chat.ID,
-		Action: models.ChatActionUploadDocument,
-	})
-
-	replied, err := b.SendMediaGroup(ctx, &bot.SendMediaGroupParams{
-		ChatID: update.Message.Chat.ID,
-		Media:  mediaItems,
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-	})
-	if err != nil {
-		return
-	}
-
-	if err := downloader.SetMediaCache(replied, result); err != nil {
-		slog.Error("Couldn't set media cache",
-			"Error", err.Error())
-	}
-
 }
 
 func youtubeDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -239,7 +325,7 @@ func youtubeDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 	}
 
 	text := i18n("youtube-video-info",
-		map[string]interface{}{
+		map[string]any{
 			"title":     video.Title,
 			"author":    video.Author,
 			"audioSize": fmt.Sprintf("%.2f", float64(audioStream.ContentLength)/(1024*1024)),

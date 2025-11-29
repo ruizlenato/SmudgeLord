@@ -25,28 +25,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-var GenericHeaders = map[string]string{
-	`Accept`:             `*/*`,
-	`Accept-Language`:    `en`,
-	`User-Agent`:         `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36`,
-	`Sec-Ch-UA`:          `"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"`,
-	`Sec-Ch-UA-Mobile`:   `?0`,
-	`Sec-Ch-UA-Platform`: `"Windows"`,
-}
-
-type Medias struct {
-	Files                 []string `json:"file_id"`
-	Type                  []string `json:"type"`
-	Caption               string   `json:"caption"`
-	ShowCaptionAboveMedia bool     `json:"show_caption_above_media"`
-}
-
-type YouTube struct {
-	Video   string `json:"video"`
-	Audio   string `json:"audio"`
-	Caption string `json:"caption"`
-}
-
 func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 	retryCaller := &utils.RetryCaller{
 		Caller:       utils.DefaultHTTPCaller,
@@ -231,22 +209,63 @@ func mergeSegments(segmentFiles []string) (*os.File, error) {
 	return file, nil
 }
 
-func TruncateUTF8Caption(s, url string) string {
-	if utf8.RuneCountInString(s) <= 1017 {
-		return s + fmt.Sprintf("\n<a href='%s'>🔗 Link</a>", url)
-	}
+func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
+	const maxSizeCaption = 1024
+	var textLink string
 	var truncated []rune
-	currentLength := 0
 
-	for _, r := range s {
+	switch mediaCount {
+	case 1:
+		truncated = make([]rune, 0, 1024-3)
+	default:
+		textLink = fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, text)
+		truncated = make([]rune, 0, 1024-len(textLink)-3)
+	}
+
+	closingTags := extractClosingTags(caption)
+
+	contentWithoutClosingTags := caption
+	if closingTags != "" {
+		contentWithoutClosingTags = caption[:len(caption)-len(closingTags)]
+	}
+
+	var currentLength int
+	for _, r := range contentWithoutClosingTags {
 		currentLength += utf8.RuneLen(r)
-		if currentLength > 1017 {
+		if currentLength > 1017-len(closingTags) {
 			break
 		}
 		truncated = append(truncated, r)
 	}
 
-	return string(truncated) + "..." + fmt.Sprintf("\n<a href='%s'>🔗 Link</a>", url)
+	result := string(truncated) + "..." + closingTags
+	if textLink != "" {
+		result += textLink
+	}
+	return result
+}
+
+func extractClosingTags(text string) string {
+	var tags []string
+	remaining := text
+
+	re := regexp.MustCompile(`(</[a-zA-Z][a-zA-Z0-9]*>)\s*$`)
+
+	for {
+		match := re.FindStringSubmatch(remaining)
+		if match == nil {
+			break
+		}
+		tags = append([]string{match[1]}, tags...)
+		remaining = remaining[:len(remaining)-len(match[0])]
+		remaining = strings.TrimRight(remaining, " \t\n\r")
+	}
+
+	var result strings.Builder
+	for i := len(tags) - 1; i >= 0; i-- {
+		result.WriteString(tags[i])
+	}
+	return result.String()
 }
 
 func RemoveTags(text string) string {
@@ -367,32 +386,51 @@ func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {
 	return mergedBytes, nil
 }
 
-func extractMediaInfo(replied []*models.Message) ([]string, []string, bool) {
-	var files, mediasType []string
+func SetMediaCache(replied any, postInfo PostInfo) error {
+	var (
+		medias      []string
+		caption     string
+		invertMedia bool
+	)
 
-	for _, message := range replied {
-		if message.Video != nil {
-			files = append(files, message.Video.FileID)
-			mediasType = append(mediasType, "video")
-		} else if message.Photo != nil {
-			files = append(files, message.Photo[0].FileID)
-			mediasType = append(mediasType, "photo")
-		}
+	var messages []*models.Message
+	switch v := replied.(type) {
+	case []*models.Message:
+		messages = v
+	case *models.Message:
+		messages = []*models.Message{v}
+	default:
+		return errors.New("invalid type for replied")
 	}
 
-	return files, mediasType, replied[0].ShowCaptionAboveMedia
-}
+	for _, message := range messages {
+		if caption == "" {
+			caption = utils.FormatText(message.Caption, message.CaptionEntities)
+		}
+		invertMedia = message.ShowCaptionAboveMedia
 
-func SetMediaCache(replied []*models.Message, result []string) error {
-	files, mediasType, showCaptionAboveMedia := extractMediaInfo(replied)
+		var mediaID string
+		if message.Video != nil {
+			mediaID = message.Video.FileID
+		}
+		if message.Photo != nil {
+			mediaID = message.Photo[0].FileID
+		}
+		medias = append(medias, mediaID)
+	}
 
-	album := Medias{Caption: result[0], Files: files, Type: mediasType, ShowCaptionAboveMedia: showCaptionAboveMedia}
+	album := Medias{
+		Caption:     caption,
+		Medias:      medias,
+		InvertMedia: invertMedia,
+	}
+
 	jsonValue, err := json.Marshal(album)
 	if err != nil {
 		return fmt.Errorf("couldn't marshal JSON: %v", err)
 	}
 
-	if err := cache.SetCache("media-cache:"+result[1], jsonValue, 48*time.Hour); err != nil {
+	if err := cache.SetCache("media-cache:"+postInfo.ID, jsonValue, 48*time.Hour); err != nil {
 		if !strings.Contains(err.Error(), "connect: connection refused") {
 			return err
 		}
@@ -402,34 +440,39 @@ func SetMediaCache(replied []*models.Message, result []string) error {
 	return nil
 }
 
-func GetMediaCache(postID string) ([]models.InputMedia, string, error) {
+func GetMediaCache(postID string) (PostInfo, error) {
 	cached, err := cache.GetCache("media-cache:" + postID)
 	if err != nil {
-		return nil, "", err
+		return PostInfo{}, err
 	}
 
 	var medias Medias
 	if err := json.Unmarshal([]byte(cached), &medias); err != nil {
-		return nil, "", fmt.Errorf("couldn't unmarshal medias JSON: %v", err)
+		return PostInfo{}, fmt.Errorf("couldn't unmarshal medias JSON: %v", err)
 	}
 
-	inputMedias := make([]models.InputMedia, 0, len(medias.Files))
-	for i, media := range medias.Files {
-		switch medias.Type[i] {
-		case "video":
-			inputMedias = append(inputMedias, &models.InputMediaVideo{
-				Media:                 media,
-				ShowCaptionAboveMedia: medias.ShowCaptionAboveMedia,
-			})
-		case "photo":
+	inputMedias := make([]models.InputMedia, 0, len(medias.Medias))
+	for _, media := range medias.Medias {
+		switch utils.FileTypeByFileID(media) {
+		case 2:
 			inputMedias = append(inputMedias, &models.InputMediaPhoto{
 				Media:                 media,
-				ShowCaptionAboveMedia: medias.ShowCaptionAboveMedia,
+				ShowCaptionAboveMedia: medias.InvertMedia,
+			})
+		case 4, 9:
+			inputMedias = append(inputMedias, &models.InputMediaVideo{
+				Media:                 media,
+				ShowCaptionAboveMedia: medias.InvertMedia,
 			})
 		}
 	}
 
-	return inputMedias, medias.Caption, nil
+	return PostInfo{
+		ID:          postID,
+		Medias:      inputMedias,
+		Caption:     medias.Caption,
+		InvertMedia: medias.InvertMedia,
+	}, nil
 }
 
 func SetYoutubeCache(replied *models.Message, youtubeID string) error {

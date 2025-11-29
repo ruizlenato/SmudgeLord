@@ -1,5 +1,10 @@
 package reddit
 
+type Handler struct {
+	subreddit string
+	postID    string
+}
+
 type RedditPost []KindData
 
 type KindData struct {
@@ -11,17 +16,17 @@ type KindData struct {
 }
 
 type Data struct {
-	Title                 string                `json:"title"`
-	MediaMetadata         *map[string]MediaItem `json:"media_metadata"`
-    				GalleryData struct {
-					Items []struct {
-						MediaID string `json:"media_id"`
-						ID      int    `json:"id"`
-					} `json:"items"`
-				} `json:"gallery_data"`
-	SubredditNamePrefixed string                `json:"subreddit_name_prefixed"`
-	IsRedditMediaDomain   bool                  `json:"is_reddit_media_domain"`
-	Domain                string                `json:"domain"`
+	Title         string                `json:"title"`
+	MediaMetadata *map[string]MediaItem `json:"media_metadata"`
+	GalleryData   struct {
+		Items []struct {
+			MediaID string `json:"media_id"`
+			ID      int    `json:"id"`
+		} `json:"items"`
+	} `json:"gallery_data"`
+	SubredditNamePrefixed string `json:"subreddit_name_prefixed"`
+	IsRedditMediaDomain   bool   `json:"is_reddit_media_domain"`
+	Domain                string `json:"domain"`
 	Preview               struct {
 		Images  []Images `json:"images"`
 		Enabled bool     `json:"enabled"`
@@ -33,7 +38,6 @@ type Data struct {
 	URL     string `json:"url"`
 	IsVideo bool   `json:"is_video"`
 }
-
 
 type MediaItem struct {
 	E string     `json:"e"`

@@ -2,8 +2,8 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/valkey-io/valkey-go"
@@ -49,7 +49,8 @@ func IsHealthy() bool {
 
 func SetCache(key string, value any, expiration time.Duration) error {
 	if !IsHealthy() {
-		return errors.New("cache client is not healthy")
+		slog.Info("cache client is not healthy, skipping SetCache")
+		return nil
 	}
 
 	ctx := context.Background()
@@ -81,7 +82,8 @@ func SetCache(key string, value any, expiration time.Duration) error {
 
 func GetCache(key string) (string, error) {
 	if !IsHealthy() {
-		return "", errors.New("cache client is not healthy")
+		slog.Info("cache client is not healthy, skipping GetCache")
+		return "", nil
 	}
 
 	ctx := context.Background()

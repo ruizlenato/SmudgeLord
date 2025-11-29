@@ -16,32 +16,52 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-type Handler struct {
-	username string
-	postID   string
-}
-
-func Handle(text string) ([]models.InputMedia, []string) {
+func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	medias, caption, err := downloader.GetMediaCache(handler.postID)
-	if err == nil {
-		return medias, []string{caption, handler.postID}
+	if postInfo, err := downloader.GetMediaCache(handler.postID); err == nil {
+		return postInfo
 	}
 
 	data := handler.getInstagramData()
 	if data == nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	handler.username = data.Owner.Username
-	return handler.processMedia(data), []string{getCaption(data), handler.postID}
+	return downloader.PostInfo{
+		ID:      handler.postID,
+		Medias:  handler.processMedia(data),
+		Caption: getCaption(data),
+	}
 }
 
 func (h *Handler) setPostID(url string) bool {
+	shareRegex := regexp.MustCompile(`(?:instagram.com)/(?:share)`)
+	if shareRegex.MatchString(url) {
+		retryCaller := &utils.RetryCaller{
+			Caller:       utils.DefaultHTTPCaller,
+			MaxAttempts:  3,
+			ExponentBase: 2,
+			StartDelay:   1 * time.Second,
+			MaxDelay:     5 * time.Second,
+		}
+
+		response, err := retryCaller.Request(url, utils.RequestParams{
+			Method:    "GET",
+			Redirects: 4,
+		})
+
+		if err != nil {
+			return false
+		}
+		defer response.Body.Close()
+
+		url = response.Request.URL.String()
+	}
 	postIDRegex := regexp.MustCompile(`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`)
 
 	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
@@ -75,25 +95,6 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-func (h *Handler) getInstagramData() *ShortcodeMedia {
-	for _, fetchFunc := range []func() InstagramData{
-		h.getEmbedData, h.getScrapperAPIData, h.getGQLData,
-	} {
-		if data := fetchFunc(); data != nil {
-			if data.Status == "ok" && data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia == nil {
-				slog.Error("Failed to fetch Instagram data",
-					"Post Info", []string{h.username, h.postID})
-			}
-
-			if data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia != nil {
-				return data.Data.XDTShortcodeMedia
-			}
-			return data.ShortcodeMedia
-		}
-	}
-	return nil
-}
-
 func (h *Handler) processMedia(data *ShortcodeMedia) []models.InputMedia {
 	switch data.Typename {
 	case "GraphVideo", "XDTGraphVideo":
@@ -107,6 +108,26 @@ func (h *Handler) processMedia(data *ShortcodeMedia) []models.InputMedia {
 	}
 }
 
+func (h *Handler) getInstagramData() *ShortcodeMedia {
+	for _, fetchFunc := range []func() InstagramData{
+		h.getEmbedData, h.getScrapperAPIData, h.getGQLData,
+	} {
+		if data := fetchFunc(); data != nil {
+			if data.Status == "ok" && data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia == nil {
+				slog.Error("Failed to fetch Instagram data",
+					"Post Info", []string{h.username, h.postID},
+				)
+			}
+
+			if data.ShortcodeMedia == nil && data.Data.XDTShortcodeMedia != nil {
+				return data.Data.XDTShortcodeMedia
+			}
+			return data.ShortcodeMedia
+		}
+	}
+	return nil
+}
+
 func getCaption(instagramData *ShortcodeMedia) string {
 	if len(instagramData.EdgeMediaToCaption.Edges) > 0 {
 		var sb strings.Builder
@@ -114,7 +135,6 @@ func getCaption(instagramData *ShortcodeMedia) string {
 		if username := instagramData.Owner.Username; username != "" {
 			sb.WriteString(fmt.Sprintf("<a href='instagram.com/%v'><b>%v</b></a>", username, username))
 		}
-
 		if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
 			if sb.Len() > 0 {
 				sb.WriteString(" <b>&</b> ")
@@ -123,13 +143,12 @@ func getCaption(instagramData *ShortcodeMedia) string {
 				if i > 0 {
 					sb.WriteString(" <b>&</b> ")
 				}
-
 				sb.WriteString(fmt.Sprintf("<a href='instagram.com/%v'><b>%v</b></a>", coauthor.Username, coauthor.Username))
 			}
 		}
 
 		if sb.Len() > 0 {
-			sb.WriteString("<b>:</b>\n")
+			sb.WriteString("\n")
 		}
 		sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
 
@@ -139,14 +158,13 @@ func getCaption(instagramData *ShortcodeMedia) string {
 }
 
 var (
-	mediaTypeRegex = regexp.MustCompile(`(?s)data-media-type="(.*?)"`)
 	mainMediaRegex = regexp.MustCompile(`class="Content(.*?)src="(.*?)"`)
 	captionRegex   = regexp.MustCompile(`(?s)class="Caption"(.*?)class="CaptionUsername".*data-log-event="captionProfileClick" target="_blank">(.*?)<\/a>(.*?)<div`)
 	htmlTagRegex   = regexp.MustCompile(`<[^>]*>`)
 )
 
 func (h *Handler) getEmbedData() InstagramData {
-	var data InstagramData
+	var instagramData InstagramData
 
 	response, err := utils.Request(fmt.Sprintf("https://www.instagram.com/p/%v/embed/captioned/", h.postID), utils.RequestParams{
 		Method:  "GET",
@@ -171,11 +189,18 @@ func (h *Handler) getEmbedData() InstagramData {
 		s = strings.ReplaceAll(s, `\\/`, `/`)
 		s = strings.ReplaceAll(s, `\\`, `\`)
 
-		json.Unmarshal([]byte(s), &data)
+		err := json.Unmarshal([]byte(s), &instagramData)
+		if err != nil {
+			slog.Error(
+				"Failed to unmarshal Instagram data",
+				"Post Info", []string{h.username, h.postID},
+				"Error", err.Error(),
+			)
+			return nil
+		}
 	}
-
 	mediaTypeData := regexp.MustCompile(`(?s)data-media-type="(.*?)"`).FindAllStringSubmatch(string(body), -1)
-	if data == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
+	if instagramData == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
 		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(body), -1)
 		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))
 
@@ -184,8 +209,9 @@ func (h *Handler) getEmbedData() InstagramData {
 		captionData := captionRegex.FindAllStringSubmatch(string(body), -1)
 
 		if len(captionData) > 0 && len(captionData[0]) > 2 {
+			captionText := strings.ReplaceAll(captionData[0][3], "<br />", "\n")
 			owner = strings.TrimSpace(htmlTagRegex.ReplaceAllString(captionData[0][2], ""))
-			caption = strings.TrimSpace(htmlTagRegex.ReplaceAllString(captionData[0][3], ""))
+			caption = strings.TrimSpace(htmlTagRegex.ReplaceAllString(captionText, ""))
 		}
 
 		dataJSON := `{
@@ -207,19 +233,19 @@ func (h *Handler) getEmbedData() InstagramData {
             }
             }`
 
-		err := json.Unmarshal([]byte(dataJSON), &data)
+		err := json.Unmarshal([]byte(dataJSON), &instagramData)
 		if err != nil {
 			return nil
 		}
 	}
 
-	return data
+	return instagramData
 }
 
 func (h *Handler) getScrapperAPIData() InstagramData {
 	var data InstagramData
 
-	response, err := utils.Request("https://scrapper.ruizlenato.tech/instagram", utils.RequestParams{
+	response, err := utils.Request("https://scrapper.ruizlenato.loseyourip.com/instagram", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"id": h.postID,
@@ -341,7 +367,7 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Failed to download media in sidecar",

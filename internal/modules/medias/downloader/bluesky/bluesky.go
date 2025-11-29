@@ -17,30 +17,27 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-type Handler struct {
-	username string
-	postID   string
-}
-
-func Handle(text string) ([]models.InputMedia, []string) {
+func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setUsernameAndPostID(text) {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
+	postInfo, err := downloader.GetMediaCache(handler.postID)
 	if err == nil {
-		return cachedMedias, []string{cachedCaption, handler.postID}
+		return postInfo
 	}
 
 	blueskyData := handler.getBlueskyData()
 	if blueskyData == nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	caption := getCaption(blueskyData)
-
-	return handler.processMedia(blueskyData), []string{caption, handler.postID}
+	return downloader.PostInfo{
+		ID:      handler.postID,
+		Medias:  handler.processMedia(blueskyData),
+		Caption: getCaption(blueskyData),
+	}
 }
 
 func (h *Handler) setUsernameAndPostID(url string) bool {
@@ -252,7 +249,7 @@ func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Failed to download media in carousel",

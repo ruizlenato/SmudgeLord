@@ -1,5 +1,10 @@
 package twitter
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 type TwitterAPIData *struct {
 	Data struct {
 		TweetResult *struct {
@@ -14,14 +19,17 @@ type Result struct {
 	Tweet    struct {
 		Legacy Legacy `json:"legacy"`
 	} `json:"tweet"`
-	Core               Core      `json:"core"`
-	NoteTweet          NoteTweet `json:"note_tweet"`
+	Core               Core `json:"core"`
 	QuotedStatusResult *struct {
-		Result struct {
-			Core   Core   `json:"core"`
-			Legacy Legacy `json:"legacy"`
-		} `json:"result"`
+		Result `json:"result"`
 	} `json:"quoted_status_result"`
+	NoteTweet *struct {
+		NoteTweetResults struct {
+			Result struct {
+				Text string `json:"text"`
+			} `json:"result"`
+		} `json:"note_tweet_results"`
+	} `json:"note_tweet"`
 	Legacy Legacy `json:"legacy"`
 }
 
@@ -92,9 +100,10 @@ type FxTwitterAPIData struct {
 type FxTwitterTweet struct {
 	Text   string          `json:"text"`
 	Author FxTwitterAuthor `json:"author"`
-	Media  struct {
+	Media  *struct {
 		All []FxTwitterMedia `json:"all"`
-	} `json:"media"`
+	} `json:"media,omitempty"`
+	Quote *FxTwitterTweet `json:"quote,omitempty"`
 }
 
 type FxTwitterAuthor struct {

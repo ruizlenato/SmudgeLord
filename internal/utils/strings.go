@@ -1,42 +1,107 @@
 package utils
 
 import (
+	"encoding/base64"
 	"fmt"
+	"html"
 	"math/rand"
+	"sort"
 	"strings"
 	"unicode/utf16"
 
 	"github.com/go-telegram/bot/models"
 )
 
-func FormatText(text string, entities []models.MessageEntity) string {
-	textRunes := utf16.Encode([]rune(text))
+func getTag(entity models.MessageEntity) (openTag, closeTag string) {
+	switch entity.Type {
+	case models.MessageEntityTypeBold:
+		return "<b>", "</b>"
+	case models.MessageEntityTypeItalic:
+		return "<i>", "</i>"
+	case models.MessageEntityTypeCode:
+		return "<code>", "</code>"
+	case models.MessageEntityTypeUnderline:
+		return "<u>", "</u>"
+	case models.MessageEntityTypeStrikethrough:
+		return "<s>", "</s>"
+	case models.MessageEntityTypeTextLink:
+		url := html.EscapeString(entity.URL)
+		return fmt.Sprintf("<a href=%q>", url), "</a>"
+	case models.MessageEntityTypeBlockquote:
+		return "<blockquote>", "</blockquote>"
+	default:
+		return "", ""
+	}
+}
 
-	for i := len(entities) - 1; i >= 0; i-- {
-		entity := entities[i]
-		switch entity.Type {
-		case "bold":
-			textRunes = append(textRunes[:entity.Offset+entity.Length], append(utf16.Encode([]rune("</b>")), textRunes[entity.Offset+entity.Length:]...)...)
-			textRunes = append(textRunes[:entity.Offset], append(utf16.Encode([]rune("<b>")), textRunes[entity.Offset:]...)...)
-		case "italic":
-			textRunes = append(textRunes[:entity.Offset+entity.Length], append(utf16.Encode([]rune("</i>")), textRunes[entity.Offset+entity.Length:]...)...)
-			textRunes = append(textRunes[:entity.Offset], append(utf16.Encode([]rune("<i>")), textRunes[entity.Offset:]...)...)
-		case "code":
-			textRunes = append(textRunes[:entity.Offset+entity.Length], append(utf16.Encode([]rune("</code>")), textRunes[entity.Offset+entity.Length:]...)...)
-			textRunes = append(textRunes[:entity.Offset], append(utf16.Encode([]rune("<code>")), textRunes[entity.Offset:]...)...)
-		case "text_link":
-			textRunes = append(textRunes[:entity.Offset+entity.Length], append(utf16.Encode([]rune("</a>")), textRunes[entity.Offset+entity.Length:]...)...)
-			textRunes = append(textRunes[:entity.Offset], append(utf16.Encode([]rune(fmt.Sprintf("<a href='%s'>", entity.URL))), textRunes[entity.Offset:]...)...)
+type tagPoint struct {
+	pos     int
+	closing bool
+	tag     string
+}
+
+func collectTagPoints(entities []models.MessageEntity) []tagPoint {
+	var points []tagPoint
+
+	for _, entity := range entities {
+		offset := entity.Offset
+		length := entity.Length
+		if offset < 0 || length <= 0 {
+			continue
+		}
+
+		openTag, closeTag := getTag(entity)
+		if openTag != "" {
+			points = append(points,
+				tagPoint{pos: int(offset), closing: false, tag: openTag},
+				tagPoint{pos: int(offset + length), closing: true, tag: closeTag})
 		}
 	}
 
-	return string(utf16.Decode(textRunes))
+	sort.Slice(points, func(i, j int) bool {
+		if points[i].pos != points[j].pos {
+			return points[i].pos < points[j].pos
+		}
+		return points[i].closing
+	})
+
+	return points
+}
+
+func buildFormattedText(utf16Text []uint16, points []tagPoint) string {
+	var builder strings.Builder
+	builder.Grow(len(utf16Text) + len(points)*5)
+
+	lastPos := 0
+	pointIndex := 0
+	for i := 0; i <= len(utf16Text); i++ {
+		for pointIndex < len(points) && points[pointIndex].pos == i {
+			if i > lastPos {
+				builder.WriteString(string(utf16.Decode(utf16Text[lastPos:i])))
+			}
+			builder.WriteString(points[pointIndex].tag)
+			lastPos = i
+			pointIndex++
+		}
+	}
+
+	if lastPos < len(utf16Text) {
+		builder.WriteString(string(utf16.Decode(utf16Text[lastPos:])))
+	}
+
+	return builder.String()
+}
+
+func FormatText(text string, entities []models.MessageEntity) string {
+	utf16Text := utf16.Encode([]rune(text))
+	points := collectTagPoints(entities)
+	return buildFormattedText(utf16Text, points)
 }
 
 func RandomString(n int) string {
 	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var result strings.Builder
-	for i := 0; i < n; i++ {
+	for range n {
 		result.WriteByte(letters[rand.Intn(len(letters))])
 	}
 	return result.String()
@@ -62,4 +127,30 @@ func SanitizeString(input string) string {
 	}
 
 	return result
+}
+
+func FileTypeByFileID(fileID string) int32 {
+	if fileID == "" {
+		return 0
+	}
+
+	fileID = strings.ReplaceAll(fileID, "-", "+")
+	fileID = strings.ReplaceAll(fileID, "_", "/")
+
+	decoded, err := base64.RawStdEncoding.DecodeString(fileID)
+	if err != nil {
+		decoded, err = base64.StdEncoding.DecodeString(fileID)
+		if err != nil {
+			return 0
+		}
+	}
+
+	if len(decoded) < 4 {
+		return 0
+	}
+
+	fileType := int32(decoded[0]) | int32(decoded[1])<<8 | int32(decoded[2])<<16 | int32(decoded[3])<<24
+	fileType = fileType & 0xFF
+
+	return fileType
 }

@@ -1,5 +1,10 @@
 package tiktok
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 type TikTokData *struct {
 	AwemeList []Aweme `json:"aweme_list"`
 }
@@ -7,10 +12,10 @@ type TikTokData *struct {
 type Aweme struct {
 	AwemeID       string        `json:"aweme_id"`
 	Desc          *string       `json:"desc"`
-	Author        Author        `json:"author,omitempty"`
-	Music         Music         `json:"music,omitempty"`
-	Video         Video         `json:"video,omitempty"`
-	ImagePostInfo ImagePostInfo `json:"image_post_info,omitempty"`
+	Author        Author        `json:"author"`
+	Music         Music         `json:"music"`
+	Video         Video         `json:"video"`
+	ImagePostInfo ImagePostInfo `json:"image_post_info"`
 	ShareURL      string        `json:"share_url"`
 	AwemeType     int           `json:"aweme_type"`
 }
@@ -72,4 +77,15 @@ type Cover struct {
 	Width     int      `json:"width"`
 	Height    int      `json:"height"`
 	URLPrefix any      `json:"url_prefix"`
+}
+
+var TikTokQueryParams = map[string]string{
+	"iid":             "7318518857994389254",
+	"device_id":       "7318517321748022790",
+	"channel":         "googleplay",
+	"version_code":    "300904",
+	"device_platform": "android",
+	"device_type":     "ASUS_Z01QD",
+	"os_version":      "9",
+	"aid":             "1128",
 }

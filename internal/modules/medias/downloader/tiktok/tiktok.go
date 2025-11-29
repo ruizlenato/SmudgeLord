@@ -15,33 +15,35 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-type Handler struct {
-	username string
-	postID   string
-}
-
-func Handle(text string) ([]models.InputMedia, []string) {
+func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
+	postInfo, err := downloader.GetMediaCache(handler.postID)
 	if err == nil {
-		return cachedMedias, []string{cachedCaption, handler.postID}
+		return postInfo
 	}
 
 	if tikTokData := handler.getTikTokData(); tikTokData != nil {
 		handler.username = *tikTokData.AwemeList[0].Author.Nickname
-		caption := getCaption(tikTokData)
 
 		if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
-			return handler.downloadImages(tikTokData), []string{caption, handler.postID}
+			return downloader.PostInfo{
+				ID:      handler.postID,
+				Medias:  handler.handleImages(tikTokData),
+				Caption: getCaption(tikTokData),
+			}
 		}
-		return handler.downloadVideo(tikTokData), []string{caption, handler.postID}
+		return downloader.PostInfo{
+			ID:      handler.postID,
+			Medias:  handler.handleVideo(tikTokData),
+			Caption: getCaption(tikTokData),
+		}
 	}
 
-	return nil, []string{}
+	return downloader.PostInfo{}
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -77,20 +79,12 @@ func (h *Handler) setPostID(url string) bool {
 }
 
 func (h *Handler) getTikTokData() TikTokData {
+	TikTokQueryParams["aweme_id"] = h.postID
+
 	response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method:  "OPTIONS",
 		Headers: downloader.GenericHeaders,
-		Query: map[string]string{
-			"iid":             "7318518857994389254",
-			"device_id":       "7318517321748022790",
-			"channel":         "googleplay",
-			"version_code":    "300904",
-			"device_platform": "android",
-			"device_type":     "ASUS_Z01QD",
-			"os_version":      "9",
-			"aweme_id":        h.postID,
-			"aid":             "1128",
-		},
+		Query:   TikTokQueryParams,
 	})
 
 	if err != nil || response.Body == nil {
@@ -121,7 +115,7 @@ func getCaption(tikTokData TikTokData) string {
 	return ""
 }
 
-func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
+func (h *Handler) handleImages(tikTokData TikTokData) []models.InputMedia {
 	type mediaResult struct {
 		index int
 		file  []byte
@@ -144,7 +138,7 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Failed to download media in carousel",
@@ -165,7 +159,7 @@ func (h *Handler) downloadImages(tikTokData TikTokData) []models.InputMedia {
 	return mediaItems
 }
 
-func (h *Handler) downloadVideo(tikTokData TikTokData) []models.InputMedia {
+func (h *Handler) handleVideo(tikTokData TikTokData) []models.InputMedia {
 	file, err := downloader.FetchBytesFromURL(tikTokData.AwemeList[0].Video.PlayAddr.URLList[0])
 	if err != nil {
 		slog.Error("Failed to download video",

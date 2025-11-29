@@ -20,28 +20,30 @@ type Handler struct {
 	postID   string
 }
 
-func Handle(text string) ([]models.InputMedia, []string) {
+func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
-	cachedMedias, cachedCaption, err := downloader.GetMediaCache(handler.postID)
-	if err == nil {
-		return cachedMedias, []string{cachedCaption, handler.postID}
+	if postInfo, err := downloader.GetMediaCache(handler.postID); err == nil {
+		return postInfo
 	}
 
 	graphQLData := getGQLData(handler.postID)
 	if graphQLData == nil || graphQLData.Data.Data.Edges == nil {
-		return nil, []string{}
+		return downloader.PostInfo{}
 	}
 
 	if strings.HasPrefix(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.DisplayURL, "instagram.com") {
-		medias, result := instagram.Handle(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.URL)
-		return medias, result
+		return instagram.Handle(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.URL)
 	}
 
-	return handler.processMedia(graphQLData), []string{getCaption(graphQLData), handler.postID}
+	return downloader.PostInfo{
+		ID:      handler.postID,
+		Medias:  handler.processMedia(graphQLData),
+		Caption: getCaption(graphQLData),
+	}
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -82,6 +84,7 @@ func (h *Handler) setPostID(url string) bool {
 
 func getGQLData(postID string) ThreadsData {
 	var threadsData ThreadsData
+	fmt.Println("teste")
 
 	lsd := utils.RandomString(10)
 	downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
@@ -89,7 +92,7 @@ func getGQLData(postID string) ThreadsData {
 	downloader.GenericHeaders["X-Ig-App-Id"] = "238260118697367"
 	downloader.GenericHeaders["Sec-Fetch-Mode"] = "cors"
 	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
-	response, err := utils.Request("https://www.threads.net/api/graphql", utils.RequestParams{
+	response, err := utils.Request("https://www.threads.com/api/graphql", utils.RequestParams{
 		Method:  "POST",
 		Headers: downloader.GenericHeaders,
 		BodyString: []string{
@@ -171,7 +174,7 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 		}(i, result)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Failed to download media in carousel",

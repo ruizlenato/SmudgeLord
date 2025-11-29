@@ -164,6 +164,7 @@ medias-help =
     <b>/dl | /sdl (link):</b> This command is for when you disable automatic downloads in groups.
     <b>/ytdl (link)</b>: Downloads videos from <b>YouTube</b>
     The maximum quality of video downloads is 1080p. You can also download just the audio of the video with this command.
+open-link = Open in { $service }
 youtube-no-url =
     You need to specify a valid YouTube link to download.
     <b>Example:</b> <code>/ytdl https://youtu.be/dQw4w9WgXcQ</code>
