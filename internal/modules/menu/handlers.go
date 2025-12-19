@@ -292,12 +292,12 @@ func helpMessageCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeMessageText, "start", bot.MatchTypeCommand, startHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "start", bot.MatchTypeExact, startCallback)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "privacy", bot.MatchTypeCommand, privacyHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "privacy", bot.MatchTypeExact, privacyCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "about", bot.MatchTypeExact, aboutMenuCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "aboutYourData", bot.MatchTypeExact, aboutYourDataCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "helpMenu", bot.MatchTypeExact, helpMenuCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "helpMessage", bot.MatchTypePrefix, helpMessageCallback)
+	b.RegisterHandler(bot.HandlerTypeCommand, "start", startHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "start", startCallback)
+	b.RegisterHandler(bot.HandlerTypeCommand, "privacy", privacyHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^privacy$", privacyCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^about$", aboutMenuCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^aboutYourData$", aboutYourDataCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^helpMenu$", helpMenuCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^helpMessage$", helpMessageCallback)
 }

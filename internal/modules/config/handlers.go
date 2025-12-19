@@ -399,17 +399,17 @@ func explainConfigCallback(ctx context.Context, b *bot.Bot, update *models.Updat
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "languageMenu", bot.MatchTypeExact, languageMenuCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "setLang", bot.MatchTypeContains, setLanguageCallback)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "config", bot.MatchTypeCommand, configHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "config", bot.MatchTypeExact, configCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "mediaConfig", bot.MatchTypeContains, mediaConfigCallback)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "disableable", bot.MatchTypeCommand, disableableHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "disable", bot.MatchTypeCommand, disableHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "enable", bot.MatchTypeCommand, enableHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "disabled", bot.MatchTypeCommand, disabledHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "disableable", bot.MatchTypeCommand, disableableHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "ieConfig", bot.MatchTypeExact, explainConfigCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^languageMenu$", languageMenuCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^setLang", setLanguageCallback)
+	b.RegisterHandler(bot.HandlerTypeCommand, "config", configHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^config$", configCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^mediaConfig", mediaConfigCallback)
+	b.RegisterHandler(bot.HandlerTypeCommand, "disableable", disableableHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "disable", disableHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "enable", enableHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "disabled", disabledHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^disableable$", disableableHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^ieConfig$", explainConfigCallback)
 
 	utils.SaveHelp("config")
 }

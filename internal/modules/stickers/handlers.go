@@ -378,9 +378,7 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 		UserID: update.Message.From.ID,
 		Name:   stickerSetShortName,
 		Sticker: models.InputSticker{
-			Sticker: &models.InputFileString{
-				Data: stickerFile.FileID,
-			},
+			Sticker: stickerFile.FileID,
 			Format:    stickerType,
 			EmojiList: emoji,
 		},
@@ -399,9 +397,7 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 			Title:  stickerSetTitle,
 			Stickers: []models.InputSticker{
 				{
-					Sticker: &models.InputFileString{
-						Data: stickerFile.FileID,
-					},
+					Sticker:stickerFile.FileID,
 					Format:    stickerType,
 					EmojiList: emoji,
 				},
@@ -429,8 +425,8 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeMessageText, "getsticker", bot.MatchTypeCommand, getStickerHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "kang", bot.MatchTypeCommand, kangStickerHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "getsticker", getStickerHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "kang", kangStickerHandler)
 
 	utils.SaveHelp("stickers")
 	utils.DisableableCommands = append(utils.DisableableCommands,

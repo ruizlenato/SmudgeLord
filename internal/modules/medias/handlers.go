@@ -235,6 +235,8 @@ func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update
 		return
 	}
 
+	fmt.Println("teste")
+
 	i18n := localization.Get(update)
 	url, found := extractURL(update.Message.Text)
 	if !found {
@@ -549,9 +551,9 @@ func trySendCachedYoutubeMedia(ctx context.Context, b *bot.Bot, update *models.U
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandlerRegexp(bot.HandlerTypeMessageText, regexp.MustCompile(regexMedia), mediaDownloadHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "ytdl", bot.MatchTypeCommand, youtubeDownloadHandler)
-	b.RegisterHandlerRegexp(bot.HandlerTypeCallbackQueryData, regexp.MustCompile(`^(_(vid|aud))`), youtubeDownloadCallback)
+	b.RegisterHandler(bot.HandlerTypeMessageText, regexMedia, mediaDownloadHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "ytdl", youtubeDownloadHandler)
+	b.RegisterHandler(bot.HandlerTypeMessageText, `^(_(vid|aud))`, youtubeDownloadCallback)
 
 	utils.SaveHelp("medias")
 }

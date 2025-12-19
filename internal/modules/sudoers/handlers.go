@@ -123,6 +123,6 @@ func announceHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeMessageText, "announce", bot.MatchTypeCommand, announceHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "announce", bot.MatchTypePrefix, announceHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "announce", announceHandler)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^announce", announceHandler)
 }
