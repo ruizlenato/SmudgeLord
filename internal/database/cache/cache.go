@@ -35,7 +35,7 @@ func ValkeyClient(addr string) error {
 	return nil
 }
 
-func IsHealthy() bool {
+func isHealthy() bool {
 	if !clientInitialized {
 		return false
 	}
@@ -48,7 +48,7 @@ func IsHealthy() bool {
 }
 
 func SetCache(key string, value any, expiration time.Duration) error {
-	if !IsHealthy() {
+	if !isHealthy() {
 		slog.Info("cache client is not healthy, skipping SetCache")
 		return nil
 	}
@@ -81,7 +81,7 @@ func SetCache(key string, value any, expiration time.Duration) error {
 }
 
 func GetCache(key string) (string, error) {
-	if !IsHealthy() {
+	if !isHealthy() {
 		slog.Info("cache client is not healthy, skipping GetCache")
 		return "", nil
 	}

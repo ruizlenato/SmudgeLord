@@ -234,7 +234,7 @@ func (h *Handler) downloadImages(noteData Note) []models.InputMedia {
 		}(i, media)
 	}
 
-	for i := 0; i < mediaCount; i++ {
+	for range mediaCount {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Failed to download media in carousel",

@@ -54,7 +54,7 @@ func disableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 			b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
 				Text: i18n("command-not-deactivatable",
-					map[string]interface{}{
+					map[string]any{
 						"command": command,
 					}),
 				ParseMode: "HTML",
@@ -69,7 +69,7 @@ func disableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 			b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
 				Text: i18n("command-already-disabled",
-					map[string]interface{}{
+					map[string]any{
 						"command": command,
 					}),
 				ParseMode: "HTML",
@@ -88,7 +88,7 @@ func disableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text: i18n("command-disabled",
-				map[string]interface{}{
+				map[string]any{
 					"command": command,
 				}),
 			ParseMode: "HTML",
@@ -119,7 +119,7 @@ func enableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 			b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: update.Message.Chat.ID,
 				Text: i18n("command-already-enabled",
-					map[string]interface{}{
+					map[string]any{
 						"command": command,
 					}),
 				ParseMode: "HTML",
@@ -138,7 +138,7 @@ func enableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text: i18n("command-enabled",
-				map[string]interface{}{
+				map[string]any{
 					"command": command,
 				}),
 			ParseMode: "HTML",
@@ -355,7 +355,7 @@ func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 		{
 			{
 				Text:         i18n("caption-button"),
-				CallbackData: "ieConfig mediasCaption",
+				CallbackData: "ieConfig caption-description",
 			},
 			{
 				Text:         state(mediasCaption),
@@ -365,7 +365,7 @@ func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 		{
 			{
 				Text:         i18n("automatic-button"),
-				CallbackData: "ieConfig mediasAuto",
+				CallbackData: "ieConfig auto-description",
 			},
 			{
 				Text:         state(mediasAuto),
@@ -390,10 +390,10 @@ func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 
 func explainConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
-	ieConfig := strings.ReplaceAll(update.CallbackQuery.Data, "ieConfig medias", "")
+	ieConfig := strings.ReplaceAll(update.CallbackQuery.Data, "ieConfig ", "")
 	b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 		CallbackQueryID: update.CallbackQuery.ID,
-		Text:            i18n("ieConfig-" + ieConfig),
+		Text:            i18n(ieConfig),
 		ShowAlert:       true,
 	})
 }
@@ -409,7 +409,7 @@ func Load(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeCommand, "enable", enableHandler)
 	b.RegisterHandler(bot.HandlerTypeCommand, "disabled", disabledHandler)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^disableable$", disableableHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^ieConfig$", explainConfigCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^ieConfig", explainConfigCallback)
 
 	utils.SaveHelp("config")
 }

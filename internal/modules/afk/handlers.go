@@ -67,8 +67,8 @@ func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 
 			b.SendMessage(ctx, &bot.SendMessageParams{
 				ChatID: message.Chat.ID,
-				Text: i18n("now-available",
-					map[string]interface{}{
+				Text: i18n("user-now-available",
+					map[string]any{
 						"userID":        message.From.ID,
 						"userFirstName": utils.EscapeHTML(message.From.FirstName),
 						"duration":      humanizedDuration,
@@ -102,7 +102,7 @@ func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 			}
 
 			text := i18n("user-unavailable",
-				map[string]interface{}{
+				map[string]any{
 					"userID":        mentionedUserID,
 					"userFirstName": utils.EscapeHTML(user.FirstName),
 					"duration":      humanizedDuration,
@@ -176,7 +176,7 @@ func setAFKHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
 		Text: i18n("user-now-unavailable",
-			map[string]interface{}{
+			map[string]any{
 				"userFirstName": utils.EscapeHTML(update.Message.From.FirstName),
 			}),
 		ParseMode: models.ParseModeHTML,

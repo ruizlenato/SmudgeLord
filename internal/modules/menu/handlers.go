@@ -191,7 +191,7 @@ func aboutMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
 		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
 		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("about"),
+		Text:      i18n("about-message"),
 		ParseMode: models.ParseModeHTML,
 		LinkPreviewOptions: &models.LinkPreviewOptions{
 			IsDisabled: bot.True(),
@@ -255,7 +255,7 @@ func helpMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
 		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
 		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("help"),
+		Text:      i18n("help-message"),
 		ParseMode: models.ParseModeHTML,
 		LinkPreviewOptions: &models.LinkPreviewOptions{
 			IsDisabled: bot.True(),

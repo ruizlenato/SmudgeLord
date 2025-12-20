@@ -4,19 +4,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
-/*
-	 func lastFMDisabled(update telego.Update) bool {
-		var lastFMCommands bool = true
-		message := update.Message
-		if message.Chat.Type == telego.ChatTypePrivate {
-			return lastFMCommands
-		}
-
-		database.DB.QueryRow("SELECT lastFMCommands FROM groups WHERE id = ?;", message.Chat.ID).Scan(&lastFMCommands)
-		return lastFMCommands
-	}
-*/
-
 func setLastFMUsername(userID int64, lastFMUsername string) error {
 	_, err := database.DB.Exec("UPDATE users SET lastfm_username = ? WHERE id = ?;", lastFMUsername, userID)
 	if err != nil {

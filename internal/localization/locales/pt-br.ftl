@@ -1,7 +1,7 @@
 language-name = Português (BR)
 language-flag = 🇧🇷
 language-menu =
-    <b>Idioma atual:</b> { $languageFlag } { $languageName }
+    <b>Idioma atual:</b> { language-flag } { language-name }
 
     <b>Selecione abaixo o idioma que você quer utilizar no bot.</b>
 language-changed = O idioma foi alterado com sucesso.
@@ -24,7 +24,7 @@ back-button = ↩️ Voltar
 denied-button-alert = Este botão não é para você.
 privacy-policy-button = 🔒 Política de Privacidade
 privacy-policy-group = Para acessar a política de privacidade do SmudgeLord, <b>clique no botão abaixo.</b>
-about =
+about-message =
     <b>— SmudgeLord</b>
     SmudgeLord (Smudge The Cat) é um gato que se tornou um famoso meme na Internet. A sua veio de uma imagem onde aparece ao lado de uma mulher gritando com raiva.
 
@@ -39,11 +39,11 @@ about =
 privacy-policy-private =
     <b>Política de Privacidade do SmudgeLord.</b>
 
-    O SmudgeLord foi criado com o compromisso de garantir transparência e confiança aos seus usuários. 
+    O SmudgeLord foi criado com o compromisso de garantir transparência e confiança aos seus usuários.
     Agradeço pela sua confiança e estou dedicado a proteger sua privacidade.
 
     Esta política de privacidade pode ser atualizada, e quaisquer alterações serão informadas através do Canal do SmudgeLord - @SmudgeLordChannel.
-about-your-data = 
+about-your-data =
     <b>Sobre seus dados.</b>
 
     <b>1. Coleta de Dados.</b>
@@ -58,11 +58,11 @@ about-your-data =
     - <b>Suas configurações no SmudgeLord</b> são usadas para integrar e personalizar os serviços do bot.
 
     <b>3. Compartilhamento de Dados.</b>
-    Os dados coletados pelo bot não são compartilhados com terceiros, exceto quando exigido por lei. 
+    Os dados coletados pelo bot não são compartilhados com terceiros, exceto quando exigido por lei.
     Todos os seus dados são armazenados de forma segura.
 
     <b>Observação:</b> Suas informações de usuário do Telegram são informações públicas da plataforma. Não sabemos seus dados "reais".
-help =
+help-message =
     Aqui estão todos os meus módulos.
     <b>Para saber mais sobre os módulos, basta clicar em seus nomes.</b>
 
@@ -94,7 +94,7 @@ relative-duration-months = { $count ->
     *[other] { $count } meses
 }
 afk = AFK
-afk-help = 
+afk-help =
     <b>AFK — <i>Away from Keyboard</i></b>
 
     <b>AFK</b> significa <b>"Longe do Teclado"</b> em português.
@@ -108,7 +108,7 @@ user-unavailable =
     <b><a href='tg://user?id={ $userID }'>{ $userFirstName } </a></b> está <b>indisponível!</b>
     Visto pela última vez à <code>{ $duration}</code> atrás.
 user-unavailable-reason = <b>Reason:</b> <code>{ $reason }</code>
-now-available = <b><a href='tg://user?id={ $userID }'>{ $userFirstName }</a></b> está de volta após <code>{ $duration }</code> de ausência!
+user-now-available = <b><a href='tg://user?id={ $userID }'>{ $userFirstName }</a></b> está de volta após <code>{ $duration }</code> de ausência!
 config = Configurações
 config-help =
     <b>Configurações:</b>
@@ -133,8 +133,8 @@ config-medias =
     <i>Essas configurações são específicas para este grupo, não se aplicam a outros grupos ou chats privados.</i>
 caption-button = Legendas:
 automatic-button = Automático:
-command-enabled = O comando <code>{ $command }</code> foi ativado com sucesso.
-command-already-enabled = O comando <code>{ $command }</code> já estava ativado.
+command-enabled = O comando <code>{ $command }</code> <b>foi ativado com sucesso.</b>
+command-already-enabled = O comando <code>{ $command }</code> <b>já está ativado.</b>
 enable-commands-usage =
     Especifique o comando que você deseja ativar. Para ver quais os comandos que estão atualmente desativados, utilize /disabled.
 
@@ -142,8 +142,8 @@ enable-commands-usage =
 no-disabled-commands = Não existem comandos desativados <b>neste grupo.</b>
 disabled-commands = <b>Comandos desativados:</b>
 disableables-commands = <b>Comandos desativáveis:</b>
-command-already-disabled = O comando <code>{ $command }</code> já estava desativado.
-command-disabled = O comando <code>{ $command }</code> foi desativado com sucesso.
+command-already-disabled = O comando <code>{ $command }</code> <b>já está desativado.</b>
+command-disabled = O comando <code>{ $command }</code> <b>já foi desativado com sucesso.</b>
 disable-commands-usage =
     Especifique o comando que você deseja desativar. Para ver a lista de comandos desativáveis, utilize /disableable.
 
@@ -153,13 +153,13 @@ medias = Mídias
 medias-help =
     <b>Media Downloader</b>
 
-    Ao compartilhar links no Telegram, alguns sites não exibem uma pré-visualização de imagem ou vídeo. 
+    Ao compartilhar links no Telegram, alguns sites não exibem uma pré-visualização de imagem ou vídeo.
     Esse módulo faz com que o Smudge detecte automaticamente os links dos sites suportados e envie os vídeos e imagens que estão presentes no mesmo.
 
-    <b>Sites atualmente suportados:</b> <i>Instagram</i>, <i>TikTok</i>, <i>Twitter/X</i>, <i>Threads</i>, <i>Reddit</i>, <i>Bluesky</i>, <i>YouTube Shorts</i> e <i>Xiaohongshu (Rednote)</i>.
+    <b>Sites atualmente suportados:</b> <i>Bluesky</i>, <i>Instagram</i>, <i>Reddit</i>, <i>Threads</i>, <i>TikTok</i>, <i>Twitter/X</i> e <i>Xiaohongshu/Rednote</i>.
 
-    <b>Observação:</b> 
-    Esse módulo contém configurações adicionais para grupos. 
+    <b>Observação:</b>
+    Esse módulo contém configurações adicionais para grupos.
     Você pode desativar os downloads automáticos e as legendas em grupos.
 
     <b>— Comandos:</b>
@@ -179,7 +179,7 @@ youtube-video-info =
     <b>Duração:</b> { $duration }
 youtube-download-video-button = Baixar vídeo
 youtube-download-audio-button = Baixar áudio
-video-exceeds-limit = 
+video-exceeds-limit =
     O vídeo excede o limite de { $size ->
        [1572864000] 1,5GB
        *[other] 50 MB
@@ -189,11 +189,11 @@ uploading = Enviando...
 youtube-error =
     <b>Ocorreu um erro ao processar o vídeo. Tente novamente mais tarde.</b>
     Se o problema persistir, entre em contato com meu desenvolvedor.
-auto-help = Quando ativado, o bot baixará automaticamente fotos e vídeos de determinadas redes sociais ao detectar um link, eliminando a necessidade do comando /sdl ou /dl.
-caption-help = Quando ativado, a legenda das mídias baixada pelo bot serão enviadas junto com a mídia.
+auto-description = Quando ativado, o bot baixará automaticamente mídias de redes sociais ao detectar um link, dispensando o uso dos comandos /sdl ou /dl.
+caption-description = Quando ativado, as legendas das mídias baixadas pelo bot serão enviadas junto com elas.
 no-link-provided =
     <b>Você não especificou um link ou especificou um link invalido.</b>
-    Especifique um link do <b><i>Instagram</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b>, <b><i>Threads</i></b>, <b><i>Reddit</i></b>, <b><i>Bluesky</i></b>, <b><i>YouTube Shorts</i></b> ou <b><i>Xiaohongshu (Rednote)</i></b> para que eu possa baixar a(s) mídia(s).
+    Especifique um link do <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Xiaohongshu/Rednote</i></b> para que eu possa baixar a(s) mídia(s).
 misc = Diversos
 misc-help =
     <b>Miscellaneous</b>
@@ -204,7 +204,7 @@ misc-help =
     <b>/clima (cidade):</b> Exibe o clima atual da cidade especifica.
     <b>/tr (origem)-(destino) (texto):</b> Traduz um texto do idioma de origem para o idioma de destino especificado.
     <i>Caso você não especifique o idioma de origem, o Smudge irá identificar automaticamente.</i>
-        
+
 
     <b>Observação:</b>
     Você pode traduzir mensagens respondendo a elas com <code>/tr</code>.
@@ -215,7 +215,7 @@ translator-no-args-provided =
     <b>Usage:</b> <code>/tr (?idioma) (texto para tradução)</code>
 weather-no-location-provided =
     Você precisa especificar o local para o qual deseja saber as informações meteorológicas.
-    
+
     <b>Exemplo:</b> <code>/clima Belém</code>.
 weather-select-location = <b>Selecione o local que você deseja saber o clima:</b>
 weather-details =
@@ -269,11 +269,11 @@ lastfm-error =
     O last.fm pode estar temporariamente indisponível.
 
     Tente novamente mais tarde. Se o problema persistir, entre em contacto com o meu desenvolvedor.
-no-scrobbled-yet = 
+no-scrobbled-yet =
     <b>Parece que você ainda não fez scrobble de nenhuma música no Last.fm.</b>
 
     Se você estiver enfrentando problemas com o Last.fm, visite last.fm/about/trackmymusic para saber como conectar sua conta ao seu aplicativo de música.
-lastfm-playing = 
+lastfm-playing =
    <b><a href='https://last.fm/user/{ $lastFMUsername }'>{ $firstName }</a></b> { $nowplaying ->
        [true] está ouvindo
       *[false] estava ouvindo

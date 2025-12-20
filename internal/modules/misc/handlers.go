@@ -383,7 +383,7 @@ func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
 		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
 		MessageID: update.CallbackQuery.Message.Message.ID,
 		Text: i18n("weather-details",
-			map[string]interface{}{
+			map[string]any{
 				"localname":            localName,
 				"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
 				"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,

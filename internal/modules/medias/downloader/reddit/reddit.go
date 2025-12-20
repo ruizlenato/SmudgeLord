@@ -22,7 +22,6 @@ var redlibInstance = "https://redlib.catsarch.com"
 
 var (
 	postInfoRegex     = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
-	redditURLRegex    = regexp.MustCompile(`(?:www.)?reddit.com`)
 	postTypeRegex     = regexp.MustCompile(`(?s)post_type:\s*(\w+)`)
 	mediaContentRegex = regexp.MustCompile(`(?s)<div class="post_media_content">(.*?)</div>`)
 	videoRegex        = regexp.MustCompile(`(?s)class="post_media_video.*?<source\s+src="([^"]+)"\s+type="video/mp4"`)

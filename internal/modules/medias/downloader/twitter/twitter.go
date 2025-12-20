@@ -438,16 +438,16 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 		tweetText = tweet.NoteTweet.NoteTweetResults.Result.Text
 	}
 
-	caption.WriteString(fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n%s",
+	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
 		tweet.Core.UserResults.Result.Legacy.Name,
 		tweet.Core.UserResults.Result.Legacy.ScreenName,
-		cleanText(tweetText)))
+		cleanText(tweetText))
 
 	if quotedStatusResult != nil {
-		caption.WriteString(fmt.Sprintf("\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
+		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
 			quotedStatusResult.Core.UserResults.Result.Legacy.Name,
 			quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName,
-			cleanText(quotedStatusResult.Legacy.FullText)))
+			cleanText(quotedStatusResult.Legacy.FullText))
 	}
 
 	return caption.String()
@@ -456,16 +456,16 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 func getFxTweetCaption(twitterData *FxTwitterAPIData) string {
 	var caption strings.Builder
 
-	caption.WriteString(fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n%s",
+	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
 		twitterData.Tweet.Author.Name,
 		twitterData.Tweet.Author.ScreenName,
-		twitterData.Tweet.Text))
+		twitterData.Tweet.Text)
 
 	if twitterData.Tweet.Quote != nil {
-		caption.WriteString(fmt.Sprintf("\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
+		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
 			twitterData.Tweet.Quote.Author.Name,
 			twitterData.Tweet.Quote.Author.ScreenName,
-			twitterData.Tweet.Quote.Text))
+			twitterData.Tweet.Quote.Text)
 	}
 
 	return caption.String()

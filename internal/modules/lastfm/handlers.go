@@ -141,7 +141,7 @@ func lastfm(ctx context.Context, b *bot.Bot, update *models.Update, methodType s
 	}
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
-	text += i18n("lastfm-playing", map[string]interface{}{
+	text += i18n("lastfm-playing", map[string]any{
 		"nowplaying":     fmt.Sprintf("%v", recentTracks.Nowplaying),
 		"lastFMUsername": lastFMUsername,
 		"firstName":      update.Message.From.FirstName,
