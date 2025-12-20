@@ -11,6 +11,7 @@ import (
 	"github.com/go-telegram/bot/models"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
@@ -291,7 +292,87 @@ func helpMessageCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 	})
 }
 
+func menuInline(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.InlineQuery == nil {
+		return
+	}
+
+	i18n := localization.Get(update)
+
+	results := []models.InlineQueryResult{
+		&models.InlineQueryResultArticle{
+			ID:          "track",
+			Title:       "LastFM Music",
+			Description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
+			InputMessageContent: &models.InputTextMessageContent{
+				MessageText: i18n("loading"),
+				ParseMode:   models.ParseModeHTML,
+			},
+			ReplyMarkup: &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{{
+					{
+						Text:         "🎵",
+						CallbackData: "NONE",
+					},
+				}},
+			},
+		},
+		&models.InlineQueryResultArticle{
+			ID:          "album",
+			Title:       "LastFM Album",
+			Description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}),
+			InputMessageContent: &models.InputTextMessageContent{
+				MessageText: i18n("loading"),
+				ParseMode:   models.ParseModeHTML,
+			}, ReplyMarkup: &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{{
+					{
+						Text:         "💿",
+						CallbackData: "NONE",
+					},
+				}},
+			},
+		},
+		&models.InlineQueryResultArticle{
+			ID:          "artist",
+			Title:       "LastFM Artist",
+			Description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}),
+			InputMessageContent: &models.InputTextMessageContent{
+				MessageText: i18n("loading"),
+				ParseMode:   models.ParseModeHTML,
+			}, ReplyMarkup: &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{{
+					{
+						Text:         "🎙",
+						CallbackData: "NONE",
+					},
+				}},
+			},
+		},
+	}
+
+	b.AnswerInlineQuery(ctx, &bot.AnswerInlineQueryParams{
+		InlineQueryID: update.InlineQuery.ID,
+		Results:       results,
+	})
+}
+
+func inlineSend(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.ChosenInlineResult == nil {
+		return
+	}
+
+	switch update.ChosenInlineResult.ResultID {
+	case "track", "artist", "album":
+		lastfm.LastfmInline(ctx, b, update)
+	default:
+		return
+	}
+}
+
 func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeInlineSender, "", inlineSend)
+	b.RegisterHandler(bot.HandlerTypeInlineQuery, "", menuInline)
 	b.RegisterHandler(bot.HandlerTypeCommand, "start", startHandler)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "start", startCallback)
 	b.RegisterHandler(bot.HandlerTypeCommand, "privacy", privacyHandler)

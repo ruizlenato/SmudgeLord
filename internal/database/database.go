@@ -85,6 +85,13 @@ func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
 			chatID = message.Chat.ID
 			chatType = message.Chat.Type
 			sender = message.From
+		} else if update.InlineQuery != nil {
+			chatID = update.InlineQuery.From.ID
+			chatType = models.ChatTypePrivate
+			sender = update.InlineQuery.From
+		} else {
+			next(ctx, b, update)
+			return
 		}
 
 		if !ChatExists(chatID, chatType, sender.Username) {

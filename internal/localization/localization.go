@@ -1,6 +1,7 @@
 package localization
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -81,10 +82,28 @@ func processLanguageFile(path string, wg *sync.WaitGroup) {
 	database.AvailableLocales = append(database.AvailableLocales, langCode)
 }
 
-func GetChatLanguage(chat models.Chat) (string, error) {
+func GetChatLanguage(update *models.Update) (string, error) {
 	var tableName, idColumn string
+	var chatID int64
+	var chatType models.ChatType
 
-	if chat.Type == models.ChatTypeGroup || chat.Type == models.ChatTypeSupergroup {
+	if update.Message != nil {
+		chatID = update.Message.Chat.ID
+		chatType = update.Message.Chat.Type
+	} else if update.CallbackQuery != nil {
+		chatID = update.CallbackQuery.Message.Message.Chat.ID
+		chatType = update.CallbackQuery.Message.Message.Chat.Type
+	} else if update.InlineQuery != nil {
+		chatID = update.InlineQuery.From.ID
+		chatType = models.ChatTypePrivate
+	} else if update.ChosenInlineResult != nil {
+		chatID = update.ChosenInlineResult.From.ID
+		chatType = models.ChatTypePrivate
+	} else {
+		return "", errors.New("invalid update")
+	}
+
+	if chatType == models.ChatTypeGroup || chatType == models.ChatTypeSupergroup {
 		tableName = "chats"
 		idColumn = "id"
 	} else {
@@ -92,28 +111,21 @@ func GetChatLanguage(chat models.Chat) (string, error) {
 		idColumn = "id"
 	}
 
-	row := database.DB.QueryRow(fmt.Sprintf("SELECT language FROM %s WHERE %s = ?;", tableName, idColumn), chat.ID)
+	row := database.DB.QueryRow(fmt.Sprintf("SELECT language FROM %s WHERE %s = ?;", tableName, idColumn), chatID)
 	var language string
 	err := row.Scan(&language)
-	return language, err
+	if err != nil {
+		return "", fmt.Errorf("failed to get language for chat ID %d: %w", chatID, err)
+	}
+	return language, nil
 }
 
 func Get(update *models.Update) func(string, ...map[string]any) string {
-	var chat models.Chat
-
-	if update.Message != nil {
-		chat = update.Message.Chat
-	} else {
-		chat = update.CallbackQuery.Message.Message.Chat
-	}
-
 	return func(key string, args ...map[string]any) string {
-		language, err := GetChatLanguage(chat)
+		language, err := GetChatLanguage(update)
 		if err != nil {
-			slog.Error("Couldn't get chat language",
-				"ChatID", chat.ID,
-				"Error", err.Error())
-			return fmt.Sprintf("Key '%s' not found.", key)
+			slog.Error(err.Error())
+			language = defaultLanguage
 		}
 
 		langBundlesMutex.RLock()

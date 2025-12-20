@@ -101,50 +101,99 @@ func getErrorMessage(err error, i18n func(string, ...map[string]any) string) str
 }
 
 func musicHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	lastfm(ctx, b, update, "track")
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      lastfm(update, "track"),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			PreferLargeMedia: bot.True(),
+			ShowAboveText:    bot.True(),
+		},
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
 }
 
 func albmHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	lastfm(ctx, b, update, "album")
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      lastfm(update, "album"),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			PreferLargeMedia: bot.True(),
+			ShowAboveText:    bot.True(),
+		},
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
 }
 
 func artistHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	lastfm(ctx, b, update, "artist")
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      lastfm(update, "artist"),
+		ParseMode: models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			PreferLargeMedia: bot.True(),
+			ShowAboveText:    bot.True(),
+		},
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+	})
 }
 
-func lastfm(ctx context.Context, b *bot.Bot, update *models.Update, methodType string) {
+func LastfmInline(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
-	lastFMUsername, err := getUserLastFMUsername(update.Message.From.ID)
-	if err != nil {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      i18n("lastfm-username-not-found"),
-			ParseMode: models.ParseModeHTML,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
+	inlineResult := update.ChosenInlineResult
+
+	lastFMUsername, err := getUserLastFMUsername(inlineResult.From.ID)
+	if err != nil || lastFMUsername == "" {
+		b.EditMessageText(ctx, &bot.EditMessageTextParams{
+			InlineMessageID: inlineResult.InlineMessageID,
+			Text:            i18n("lastfm-username-not-found-inline"),
+			ParseMode:       models.ParseModeHTML,
 		})
 		return
+	}
+	b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		InlineMessageID: inlineResult.InlineMessageID,
+		Text:            lastfm(update, inlineResult.ResultID),
+		ParseMode:       models.ParseModeHTML,
+		LinkPreviewOptions: &models.LinkPreviewOptions{
+			PreferLargeMedia: bot.True(),
+			ShowAboveText:    bot.True(),
+		},
+	})
+}
+
+func lastfm(update *models.Update, methodType string) string {
+	i18n := localization.Get(update)
+
+	var user *models.User
+	if update.Message != nil {
+		user = update.Message.From
+	} else if update.ChosenInlineResult != nil {
+		user = &update.ChosenInlineResult.From
+	}
+
+	lastFMUsername, err := getUserLastFMUsername(user.ID)
+	if err != nil {
+		return i18n("lastfm-username-not-found")
 	}
 
 	recentTracks, err := lastFM.GetRecentTrack(methodType, lastFMUsername)
 	if err != nil {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      getErrorMessage(err, i18n),
-			ParseMode: models.ParseModeHTML,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-		})
-		return
+		return getErrorMessage(err, i18n)
 	}
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
 	text += i18n("lastfm-playing", map[string]any{
 		"nowplaying":     fmt.Sprintf("%v", recentTracks.Nowplaying),
 		"lastFMUsername": lastFMUsername,
-		"firstName":      update.Message.From.FirstName,
+		"firstName":      user.FirstName,
 		"playcount":      recentTracks.Playcount,
 	})
 
@@ -159,18 +208,7 @@ func lastfm(ctx context.Context, b *bot.Bot, update *models.Update, methodType s
 	case "artist":
 		text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
 	}
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      text,
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			PreferLargeMedia: bot.True(),
-			ShowAboveText:    bot.True(),
-		},
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-	})
+	return text
 }
 
 func Load(b *bot.Bot) {

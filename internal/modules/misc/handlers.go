@@ -55,7 +55,7 @@ func translateHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	var sourceLang string
 	var targetLang string
 
-	language := getTranslateLang(text, update.Message.Chat)
+	language := getTranslateLang(text, update)
 	if strings.HasPrefix(text, language) {
 		text = strings.Replace(text, language, "", 1)
 		text = strings.TrimSpace(text)
@@ -149,7 +149,7 @@ func translateHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	})
 }
 
-func getTranslateLang(text string, chat models.Chat) string {
+func getTranslateLang(text string, update *models.Update) string {
 	languages := [135]string{
 		`af`, `sq`, `am`, `ar`, `hy`,
 		`as`, `ay`, `az`, `bm`, `eu`,
@@ -188,7 +188,7 @@ func getTranslateLang(text string, chat models.Chat) string {
 		return false
 	}
 
-	chatLang, err := localization.GetChatLanguage(chat)
+	chatLang, err := localization.GetChatLanguage(update)
 	if err != nil {
 		chatLang = "en"
 	}
@@ -240,7 +240,7 @@ func weatherHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	chatLang, err := localization.GetChatLanguage(update.Message.Chat)
+	chatLang, err := localization.GetChatLanguage(update)
 	if err != nil {
 		return
 	}
@@ -323,7 +323,7 @@ func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
 	var weatherResultData weatherResult
 	i18n := localization.Get(update)
 
-	chatLang, err := localization.GetChatLanguage(update.CallbackQuery.Message.Message.Chat)
+	chatLang, err := localization.GetChatLanguage(update)
 	if err != nil {
 		return
 	}

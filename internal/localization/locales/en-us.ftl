@@ -24,6 +24,7 @@ back-button = ↩️ Back
 denied-button-alert = This button is not for you.
 privacy-policy-button = 🔒 Privacy Policy
 privacy-policy-group = To acess SmudgeLord's privacy policy, <b>click on the button below.</b>
+loading = <b>Loading...</b>
 about-message =
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily
@@ -259,6 +260,12 @@ invalid-lastfm-username =
 lastfm-username-not-found =
     <b>You haven't set your last.fm username yet.</b>
     Use the command /setuser to set.
+lastfm-inline-description =
+    Shows { $lastfmType ->
+       [artist] the artist
+       [album] the album
+      *[track] the track
+   } you are listening to or have recently listened to.
 lastfm-username-saved = <b>Done</b>, your last.fm username has been saved!
 lastfm-error =
     <b>An error seems to have occurred.</b>
