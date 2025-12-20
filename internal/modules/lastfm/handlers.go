@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -12,35 +13,52 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	lastFMAPI "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/ruizlenato/smudgelord/internal/utils/conversation"
 )
 
 var lastFM = lastFMAPI.Init()
 
 func setUserHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	message := update.Message
+	chatID := update.Message.Chat.ID
+	userID := update.Message.From.ID
 
-	if message.Chat.Type == models.ChatTypeGroup || message.Chat.Type == models.ChatTypeSupergroup && message.From.ID == message.Chat.ID {
+	i18n := localization.Get(update)
+
+	convManager := conversation.NewManager(b)
+	conv := convManager.Start(chatID, userID, &conversation.ConversationOptions{
+		Timeout: 5 * time.Minute,
+	})
+
+	msgAsk, err := conv.Ask(ctx, &bot.SendMessageParams{
+		Text:      i18n("reply-with-lastfm-username"),
+		ParseMode: models.ParseModeHTML,
+		ReplyMarkup: models.ForceReply{
+			ForceReply: true,
+		},
+	})
+	if err != nil {
+		if err == conversation.ErrConversationTimeout {
+			return
+		}
+		slog.Error("Error while asking for LastFM username",
+			"error", err.Error())
 		return
 	}
 
-	i18n := localization.Get(update)
-	var lastFMUsername string
-
-	if len(strings.Fields(message.Text)) > 1 {
-		lastFMUsername = strings.Fields(message.Text)[1]
-	} else {
+	if msgAsk.ReplyToMessage == nil || msgAsk.ReplyToMessage.ID != conv.GetLastMessageID() {
+		conv.End()
 		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      i18n("no-lastfm-username-provided"),
-			ParseMode: "HTML",
+			ChatID:    chatID,
+			Text:      i18n("didnt-replied-with-lastfm-username"),
+			ParseMode: models.ParseModeHTML,
 			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
+				MessageID: msgAsk.ID,
 			},
 		})
 		return
 	}
 
-	if lastFM.GetUser(lastFMUsername) != nil {
+	if lastFM.GetUser(msgAsk.Text) != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("invalid-lastfm-username"),
@@ -52,14 +70,15 @@ func setUserHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	if err := setLastFMUsername(message.From.ID, lastFMUsername); err != nil {
+	if err := setLastFMUsername(userID, msgAsk.Text); err != nil {
 		slog.Error("Couldn't set LastFM username",
-			"UserID", message.From.ID,
-			"Username", lastFMUsername,
+			"UserID", userID,
+			"Username", msgAsk.Text,
 			"Error", err.Error())
 		return
 	}
 
+	conv.End()
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
 		Text:      i18n("lastfm-username-saved"),
@@ -70,7 +89,7 @@ func setUserHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	})
 }
 
-func getErrorMessage(err error, i18n func(string, ...map[string]interface{}) string) string {
+func getErrorMessage(err error, i18n func(string, ...map[string]any) string) string {
 	switch {
 	case strings.Contains(err.Error(), "no recent tracks"):
 		return i18n("no-scrobbled-yet")
@@ -99,7 +118,7 @@ func lastfm(ctx context.Context, b *bot.Bot, update *models.Update, methodType s
 	if err != nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
-			Text:      i18n("lastfm-username-not-defined"),
+			Text:      i18n("lastfm-username-not-found"),
 			ParseMode: models.ParseModeHTML,
 			ReplyParameters: &models.ReplyParameters{
 				MessageID: update.Message.ID,

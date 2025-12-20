@@ -245,14 +245,16 @@ stickers-help =
     <b>/kang (emoji):</b> Reply to any sticker to add it to your sticker pack created by me. <b>Works with <i>static, video, and animated</i> stickers.</b>
     <b>/getsticker:</b> Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
 lastfm = Last.FM
-no-lastfm-username-provided =
-    You need to specify your last.fm username so that I can save my database.
-    
-    <b>Example:</b> <code>/setuser maozedong</code>.
+reply-with-lastfm-username =
+    <b>Reply to this message with your Last.fm username.</b>
+    You can find your username in the <a href='https://www.last.fm/settings/username'>Last.fm settings</a>.
+didnt-replied-with-lastfm-username =
+    <b>You didn't reply to me with your last.fm username.</b>
+    If you still want to set your last.fm username, send /setuser again.
 invalid-lastfm-username =
     <b>Invalid last.fm username</b>
     Check that you have correctly typed your last.FM username and try again.
-lastfm-username-not-defined =
+lastfm-username-not-found =
     <b>You haven't set your last.fm username yet.</b>
     Use the command /setuser to set.
 lastfm-username-saved = <b>Done</b>, your last.fm username has been saved!
