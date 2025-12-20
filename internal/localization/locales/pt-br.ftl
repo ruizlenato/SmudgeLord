@@ -226,21 +226,23 @@ weather-details =
     Umidade do ar: <code>{ $relativeHumidity }%</code>
     Velocidade do vento: <code>{ $windSpeed } km/h</code>
 stickers = Figurinhas
-kanging = <code>Kangando (roubando) a figurinha...</code>
+stealing-sticker = <code>Kangando (roubando) a figurinha...</code>
 kang-no-reply-provided = Você precisa usar este comando respondendo a <i><b>uma figurinha</b></i>, <i><b>uma imagem</b></i> ou <i><b>um vídeo</b></i>.
 converting-video-to-sticker = <code>Convertendo vídeo/gif para figurinha de vídeo...</code>
 sticker-pack-already-exists = <code>Usando um pacote de figurinhas existente...</code>
 kang-error =
     <b>Ocorreu um erro ao processar a figurinha, tente novamente.</b>
     Se o erro persistir, entre em contato com o meu desenvolvedor.
-get-sticker-no-reply-provided =
-    Você precisa usar este comando respondendo a uma <b>figurinha estática (imagem) ou de vídeo.
+get-sticker-no-reply-provided = Você precisa usar este comando respondendo a uma <b>figurinha estática (imagem) ou de vídeo</b>.
+get-sticker-animated-not-supported =
+    <b>Figurinhas animadas não são suportadas.</b>
+    Você só pode converter figurinhas estáticas para arquivos <code>.png</code> ou figurinhas de vídeo para arquivos <code>.gif</code>.
 sticker-invalid-media-type = O arquivo que você respondeu não é valido, responda a uma <i><b>figurinha</b></i> (sticker), um <i><b>vídeo</b></i> ou <i><b>uma foto</b></i>.
 sticker-new-pack = <code>Criando um novo pacote de figurinhas...</code>
-sticker-stoled = 
+sticker-stoled =
     Figurinha roubada <b>com sucesso</b>, <a href='t.me/addstickers/{ $stickerSetName }'>confira.</a>
     <b>Emoji:</b> { $emoji }
-stickers-help = 
+stickers-help =
     <b>Figurinhas — Stickers</b>
 
     Esse módulo contém algumas funções úteis para você gerenciar figurinhas (stickers).

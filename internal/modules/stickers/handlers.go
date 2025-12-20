@@ -33,8 +33,20 @@ func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		})
 		return
 	}
+	replySticker := update.Message.ReplyToMessage.Sticker
+	if replySticker.IsAnimated {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("get-sticker-animated-not-supported"),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
+	}
 
-	if replySticker := update.Message.ReplyToMessage.Sticker; replySticker != nil && !replySticker.IsAnimated {
+	if replySticker != nil {
 		file, err := b.GetFile(ctx, &bot.GetFileParams{FileID: replySticker.FileID})
 		if err != nil {
 			slog.Error("Couldn't get file",
@@ -81,10 +93,14 @@ func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 			return
 		}
 
+		filename := filepath.Base(b.FileDownloadLink(file))
+		if replySticker.IsVideo {
+			filename = fmt.Sprintf("%s.gif", filename[:len(filename)-4])
+		}
 		_, err = b.SendDocument(ctx, &bot.SendDocumentParams{
 			ChatID: update.Message.Chat.ID,
 			Document: &models.InputFileUpload{
-				Filename: filepath.Base(b.FileDownloadLink(file)),
+				Filename: filename,
 				Data:     bytes.NewBuffer(bodyBytes),
 			},
 			Caption:                     fmt.Sprintf("<b>Emoji: %s</b>\n<b>ID:</b> <code>%s</code>", replySticker.Emoji, replySticker.FileID),
@@ -256,7 +272,7 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 	}
 	progMSG, err := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
-		Text:      i18n("kanging"),
+		Text:      i18n("stealing-sticker"),
 		ParseMode: models.ParseModeHTML,
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: update.Message.ID,
@@ -378,7 +394,7 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 		UserID: update.Message.From.ID,
 		Name:   stickerSetShortName,
 		Sticker: models.InputSticker{
-			Sticker: stickerFile.FileID,
+			Sticker:   stickerFile.FileID,
 			Format:    stickerType,
 			EmojiList: emoji,
 		},
@@ -397,7 +413,7 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 			Title:  stickerSetTitle,
 			Stickers: []models.InputSticker{
 				{
-					Sticker:stickerFile.FileID,
+					Sticker:   stickerFile.FileID,
 					Format:    stickerType,
 					EmojiList: emoji,
 				},

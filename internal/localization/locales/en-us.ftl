@@ -222,21 +222,23 @@ weather-details =
     Air humidity: <code>{ $relativeHumidity }%</code>
     Wind speed: <code>{ $windSpeed } km/h</code>
 stickers = Stickers
-kanging = <code>Kanging (Stealing) the sticker...</code>
+stealing-sticker = <code>Kanging (Stealing) the sticker...</code>
 kang-no-reply-provided = You need to use this command by replying to <i><b>a sticker</b></i>, <i><b>an image</b></i> or <i><b>a video</b></i>.
 converting-video-to-sticker = <code>Converting video/gif to video sticker...</code>
 sticker-pack-already-exists = <code>Using existing sticker pack...</code>
 kang-error =
     <b>An error occurred while processing the sticker, try again later.</b>
     If the problem persists, please contact my developer.
-get-sticker-no-reply-provided =
-    You need to use this command by replying to an <b>static (image) or video sticker.
+get-sticker-no-reply-provided = You need to use this command by replying to an <b>static (image) or video sticker</b>.
+get-sticker-animated-not-supported =
+    <b>Animated stickers are not supported.</b>
+    You can only convert static stickers to <code>.png</code> files or animated stickers to <code>.gif</code> files.
 sticker-invalid-media-type = The file you replied to is not valid. You need to reply to an <i><b>sticker</b></i>, <i><b>video</b></i> or <i><b>photo</b></i>.
 sticker-new-pack = <code>Creating a new sticker pack...</code>
-sticker-stoled = 
+sticker-stoled =
     Sticker <b>successfully</b> stolen, <a href='t.me/addstickers/{ $stickerSetName }'>check out.</a>
     <b>Emoji:</b> { $emoji }
-stickers-help = 
+stickers-help =
     <b>Stickers</b>
 
     This module contains some useful functions for you to manage stickers.
