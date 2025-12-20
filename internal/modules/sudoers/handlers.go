@@ -75,12 +75,12 @@ func announceHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	switch announceType {
 	case "groups":
 		announceMessageText = strings.Replace(announceMessageText, announceType, "", 1)
-		query = fmt.Sprintf("SELECT id FROM groups WHERE language = '%s';", lang)
+		query = fmt.Sprintf("SELECT id FROM chats WHERE language = '%s';", lang)
 	case "users":
 		announceMessageText = strings.Replace(announceMessageText, announceType, "", 1)
 		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s';", lang)
 	default:
-		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s' UNION ALL SELECT id FROM groups WHERE language = '%s';", lang, lang)
+		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s' UNION ALL SELECT id FROM chats WHERE language = '%s';", lang, lang)
 	}
 
 	rows, err := database.DB.Query(query)

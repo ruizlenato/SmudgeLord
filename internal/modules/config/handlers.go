@@ -231,7 +231,7 @@ func setLanguageCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 	i18n := localization.Get(update)
 	lang := strings.ReplaceAll(update.CallbackQuery.Data, "setLang ", "")
 
-	dbQuery := "UPDATE groups SET language = ? WHERE id = ?;"
+	dbQuery := "UPDATE chats SET language = ? WHERE id = ?;"
 	if update.CallbackQuery.Message.Message.Chat.Type == models.ChatTypePrivate {
 		dbQuery = "UPDATE users SET language = ? WHERE id = ?;"
 	}
@@ -313,7 +313,7 @@ func configCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 func getMediaConfig(chatID int64) (bool, bool, error) {
 	var mediasCaption, mediasAuto bool
-	err := database.DB.QueryRow("SELECT mediasCaption, mediasAuto FROM groups WHERE id = ?;", chatID).Scan(&mediasCaption, &mediasAuto)
+	err := database.DB.QueryRow("SELECT mediasCaption, mediasAuto FROM chats WHERE id = ?;", chatID).Scan(&mediasCaption, &mediasAuto)
 	return mediasCaption, mediasAuto, err
 }
 
@@ -328,7 +328,7 @@ func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 
 	configType := strings.ReplaceAll(update.CallbackQuery.Data, "mediaConfig ", "")
 	if configType != "mediaConfig" {
-		query := fmt.Sprintf("UPDATE groups SET %s = ? WHERE id = ?;", configType)
+		query := fmt.Sprintf("UPDATE chats SET %s = ? WHERE id = ?;", configType)
 		var err error
 		switch configType {
 		case "mediasCaption":

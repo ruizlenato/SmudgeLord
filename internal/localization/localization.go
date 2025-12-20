@@ -85,7 +85,7 @@ func GetChatLanguage(chat models.Chat) (string, error) {
 	var tableName, idColumn string
 
 	if chat.Type == models.ChatTypeGroup || chat.Type == models.ChatTypeSupergroup {
-		tableName = "groups"
+		tableName = "chats"
 		idColumn = "id"
 	} else {
 		tableName = "users"
