@@ -134,19 +134,22 @@ func sendSingleMedia(
 	switch media := media.(type) {
 	case *models.InputMediaVideo:
 		return b.SendVideo(ctx, &bot.SendVideoParams{
-			ChatID:      chatID,
-			Video:       getInputFile(media.Media, media.MediaAttachment),
-			Caption:     media.Caption,
-			ParseMode:   models.ParseModeHTML,
-			ReplyMarkup: replyMarkup,
+			ChatID:                chatID,
+			Video:                 getInputFile(media.Media, media.MediaAttachment),
+			Thumbnail:             media.Thumbnail,
+			Caption:               media.Caption,
+			ParseMode:             models.ParseModeHTML,
+			ShowCaptionAboveMedia: media.ShowCaptionAboveMedia,
+			ReplyMarkup:           replyMarkup,
 		})
 	case *models.InputMediaPhoto:
 		return b.SendPhoto(ctx, &bot.SendPhotoParams{
-			ChatID:      chatID,
-			Photo:       getInputFile(media.Media, media.MediaAttachment),
-			Caption:     media.Caption,
-			ParseMode:   models.ParseModeHTML,
-			ReplyMarkup: replyMarkup,
+			ChatID:                chatID,
+			Photo:                 getInputFile(media.Media, media.MediaAttachment),
+			Caption:               media.Caption,
+			ParseMode:             models.ParseModeHTML,
+			ShowCaptionAboveMedia: media.ShowCaptionAboveMedia,
+			ReplyMarkup:           replyMarkup,
 		})
 	default:
 		return nil, fmt.Errorf("unsupported media type")
@@ -234,8 +237,6 @@ func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update
 	if !shouldProcessMedia(update.Message) {
 		return
 	}
-
-	fmt.Println("teste")
 
 	i18n := localization.Get(update)
 	url, found := extractURL(update.Message.Text)
@@ -550,7 +551,194 @@ func trySendCachedYoutubeMedia(ctx context.Context, b *bot.Bot, update *models.U
 	return false, err
 }
 
+func mediasInlineQuery(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.InlineQuery == nil {
+		return
+	}
+
+	var results []models.InlineQueryResult
+	i18n := localization.Get(update)
+
+	url := regexp.MustCompile(regexMedia).FindStringSubmatch(update.InlineQuery.Query)
+
+	switch {
+	case len(url) < 1:
+		results = []models.InlineQueryResult{
+			&models.InlineQueryResultArticle{
+				ID:          "unsupported-link",
+				Title:       i18n("unsupported-link-title"),
+				Description: i18n("unsupported-link-description"),
+				InputMessageContent: &models.InputTextMessageContent{
+					MessageText: i18n("unsupported-link"),
+					ParseMode:   models.ParseModeHTML,
+				},
+				ReplyMarkup: &models.InlineKeyboardMarkup{
+					InlineKeyboard: [][]models.InlineKeyboardButton{{
+						{
+							Text:         "❌",
+							CallbackData: "NONE",
+						},
+					}},
+				},
+			},
+		}
+	default:
+		results = []models.InlineQueryResult{
+			&models.InlineQueryResultArticle{
+				ID:          "media",
+				Title:       i18n("click-to-download-media"),
+				Description: "Link: " + url[0],
+				InputMessageContent: &models.InputTextMessageContent{
+					MessageText: "Baixando...",
+					ParseMode:   models.ParseModeHTML,
+				},
+				ReplyMarkup: &models.InlineKeyboardMarkup{
+					InlineKeyboard: [][]models.InlineKeyboardButton{{
+						{
+							Text:         "⏳",
+							CallbackData: "NONE",
+						},
+					}},
+				},
+			},
+		}
+	}
+
+	b.AnswerInlineQuery(ctx, &bot.AnswerInlineQueryParams{
+		InlineQueryID: update.InlineQuery.ID,
+		Results:       results,
+		CacheTime:     0,
+	})
+}
+
+func MediasInline(ctx context.Context, b *bot.Bot, update *models.Update) {
+	i18n := localization.Get(update)
+	inlineResult := update.ChosenInlineResult
+
+	postInfo := processMedia(inlineResult.Query)
+
+	if len(postInfo.Medias) == 0 {
+		b.EditMessageText(ctx, &bot.EditMessageTextParams{
+			InlineMessageID: inlineResult.InlineMessageID,
+			Text:            i18n("no-media-found"),
+			ParseMode:       models.ParseModeHTML,
+		})
+		return
+	}
+
+	var captionMultipleItems string
+	if len(postInfo.Medias) > 1 {
+		captionMultipleItems = "\n\n" + i18n("media-multiple-items", map[string]any{
+			"count": len(postInfo.Medias),
+		}) // Note: The Go Fluent library does not support line breaks at the beginning of strings.
+	}
+	availableSpace := maxSizeCaption - utf8.RuneCountInString(captionMultipleItems)
+
+	if utf8.RuneCountInString(postInfo.Caption) > availableSpace {
+		truncateLength := availableSpace - 3 // "..." length
+		if truncateLength > 0 {
+			postInfo.Caption = string([]rune(postInfo.Caption)[:truncateLength]) + "..."
+		}
+	}
+
+	postInfo.Caption += captionMultipleItems
+	var err error
+
+	uploadedMsg, err := uploadMediaToLogChannel(ctx, b, postInfo.Medias[0], postInfo.InvertMedia)
+	if err != nil {
+		slog.Error("Failed to upload media to log channel", "error", err, "query", inlineResult.Query)
+		sendInlineError(ctx, b, inlineResult.InlineMessageID, i18n)
+		return
+	}
+
+	if _, err := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
+		ChatID:    uploadedMsg.Chat.ID,
+		MessageID: uploadedMsg.ID,
+	}); err != nil {
+		slog.Warn("Failed to delete temporary message",
+			"error", err.Error())
+	}
+
+	var mediaToEdit models.InputMedia
+
+	if uploadedMsg.Photo != nil {
+		mediaToEdit = &models.InputMediaPhoto{
+			Media:                 uploadedMsg.Photo[0].FileID,
+			Caption:               postInfo.Caption,
+			ParseMode:             models.ParseModeHTML,
+			ShowCaptionAboveMedia: postInfo.InvertMedia,
+		}
+	} else if uploadedMsg.Video != nil {
+		mediaToEdit = &models.InputMediaVideo{
+			Media:                 uploadedMsg.Video.FileID,
+			Caption:               postInfo.Caption,
+			ParseMode:             models.ParseModeHTML,
+			ShowCaptionAboveMedia: postInfo.InvertMedia,
+			SupportsStreaming:     true,
+		}
+		if uploadedMsg.Video.Thumbnail != nil {
+			mediaToEdit.(*models.InputMediaVideo).Thumbnail = &models.InputFileString{
+				Data: uploadedMsg.Video.Thumbnail.FileID,
+			}
+		}
+	}
+
+	if _, err = b.EditMessageMedia(ctx, &bot.EditMessageMediaParams{
+		InlineMessageID: inlineResult.InlineMessageID,
+		Media:           mediaToEdit,
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: [][]models.InlineKeyboardButton{{{
+				Text: i18n("open-link", map[string]any{
+					"service": postInfo.Service,
+				}),
+				URL: inlineResult.Query,
+			}}},
+		},
+	}); err != nil {
+		slog.Error("Failed to edit inline message media",
+			"error", err.Error(),
+			"query", inlineResult.Query)
+		sendInlineError(ctx, b, inlineResult.InlineMessageID, i18n)
+	}
+}
+
+func uploadMediaToLogChannel(ctx context.Context, b *bot.Bot, media models.InputMedia, invertMedia bool) (*models.Message, error) {
+	switch m := media.(type) {
+	case *models.InputMediaPhoto:
+		return b.SendPhoto(ctx, &bot.SendPhotoParams{
+			ChatID: config.LogChannelID,
+			Photo: &models.InputFileUpload{
+				Data: m.MediaAttachment,
+			},
+			ShowCaptionAboveMedia: invertMedia,
+		})
+	case *models.InputMediaVideo:
+		return b.SendVideo(ctx, &bot.SendVideoParams{
+			ChatID: config.LogChannelID,
+			Video: &models.InputFileUpload{
+				Data: m.MediaAttachment,
+			},
+			Thumbnail:             m.Thumbnail,
+			ShowCaptionAboveMedia: invertMedia,
+		})
+	default:
+		return nil, fmt.Errorf("unsupported media type: %T", media)
+	}
+}
+
+func sendInlineError(ctx context.Context, b *bot.Bot, inlineMessageID string, i18n func(string, ...map[string]any) string) {
+	_, err := b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		InlineMessageID: inlineMessageID,
+		Text:            i18n("media-error"),
+		ParseMode:       models.ParseModeHTML,
+	})
+	if err != nil {
+		slog.Error("Failed to send error message to inline query", "error", err)
+	}
+}
+
 func Load(b *bot.Bot) {
+	b.RegisterHandler(bot.HandlerTypeInlineQuery, "^http(?:s)?://.+", mediasInlineQuery)
 	b.RegisterHandler(bot.HandlerTypeMessageText, regexMedia, mediaDownloadHandler)
 	b.RegisterHandler(bot.HandlerTypeCommand, "ytdl", youtubeDownloadHandler)
 	b.RegisterHandler(bot.HandlerTypeMessageText, `^(_(vid|aud))`, youtubeDownloadCallback)

@@ -57,6 +57,12 @@ func init() {
 
 	Socks5Proxy = os.Getenv("SOCKS5_PROXY")
 
+	LogChannelID, _ = strconv.ParseInt(os.Getenv("CHANNEL_LOG_ID"), 10, 64)
+	if LogChannelID == 0 {
+		slog.Error(`You need to set the "CHANNEL_LOG_ID" in the .env file!`)
+		os.Exit(1)
+	}
+
 	OwnerID, _ = strconv.ParseInt(os.Getenv("OWNER_ID"), 10, 64)
 	if OwnerID == 0 {
 		slog.Error(`You need to set the "OWNER_ID" in the .env file!`)

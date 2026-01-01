@@ -191,6 +191,12 @@ caption-description = When enabled, captions for media downloaded by the bot wil
 no-link-provided =
     <b>No link provided or the link is invalid.</b>
     You need to specify a valid link from <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> or <i><b>Xiaohongshu/Rednote</i></b> to download the media.
+unsupported-link-title = Unsupported link.
+unsupported-link-help = Currently supported sites are Bluesky, Instagram, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote and YouTube Shorts.
+unsupported-link =
+    <b>{ unsupported-link-title }</b>
+    { unsupported-link-description }
+click-to-download-media = Click here to download the media from the link.
 open-link = Open in { $service }
 misc = Misc
 misc-help =

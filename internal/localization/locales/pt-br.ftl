@@ -167,7 +167,6 @@ medias-help =
     <b>/dl | /sdl (link):</b> Este comando é para quando você desabilita downloads automáticos em grupos.
     <b>/ytdl (link)</b>: Baixa vídeos do <b>YouTube</b>
     A qualidade máxima dos downloads de vídeo é 1080p. Você também pode baixar apenas o áudio do vídeo com este comando.
-open-link = Abrir em { $service }
 youtube-no-url =
     Você precisa especificar um link válido do YouTube para fazer o download.
 
@@ -195,6 +194,24 @@ caption-description = Quando ativado, as legendas das mídias baixadas pelo bot 
 no-link-provided =
     <b>Você não especificou um link ou especificou um link invalido.</b>
     Especifique um link do <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Xiaohongshu/Rednote</i></b> para que eu possa baixar a(s) mídia(s).
+unsupported-link-title = Link não suportado.
+unsupported-link-description = Atualmente os serviços suportados são: Bluesky, Instagram, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote e YouTube Shorts.
+unsupported-link =
+    <b>{ unsupported-link-title }</b>
+    { unsupported-link-description }
+click-to-download-media = Clique aqui para baixar a mídia do link.
+no-media-found =
+    Nenhuma mídia encontrada no link fornecido ou ocorreu um erro ao processar o link.
+    <b>Tente novamente mais tarde.</b>
+media-error =
+    Ocorreu um erro ao baixar a mídia. Por favor, tente novamente mais tarde.
+    Se o problema persistir, entre em contato com meu desenvolvedor.
+media-inline-handler = Baixador de mídias.
+media-inline-help = Baixa mídias de certas redes sociais. Apenas cole o link após o @.
+media-multiple-items =
+    <b>*Observação:</b> Esse link contém <b>{ $count }</b> itens de mídias.
+    Para ver todas as mídias, envie o link novamente em um chat privado comigo.
+open-link = Abrir em { $service }
 misc = Diversos
 misc-help =
     <b>Miscellaneous</b>

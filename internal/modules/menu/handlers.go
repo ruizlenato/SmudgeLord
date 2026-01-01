@@ -12,6 +12,7 @@ import (
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
@@ -292,6 +293,30 @@ func helpMessageCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 	})
 }
 
+type inlineArticle struct {
+	id          string
+	title       string
+	description string
+}
+
+func filterArticles(articles []inlineArticle, query string) []inlineArticle {
+	trimmedQuery := strings.TrimSpace(query)
+	if trimmedQuery == "" {
+		return articles
+	}
+
+	lowerQuery := strings.ToLower(trimmedQuery)
+	filtered := make([]inlineArticle, 0, len(articles))
+
+	for _, article := range articles {
+		if strings.Contains(strings.ToLower(article.title), lowerQuery) {
+			filtered = append(filtered, article)
+		}
+	}
+
+	return filtered
+}
+
 func menuInline(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.InlineQuery == nil {
 		return
@@ -299,62 +324,72 @@ func menuInline(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	i18n := localization.Get(update)
 
-	results := []models.InlineQueryResult{
-		&models.InlineQueryResultArticle{
-			ID:          "track",
-			Title:       "LastFM Music",
-			Description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
-			InputMessageContent: &models.InputTextMessageContent{
-				MessageText: i18n("loading"),
-				ParseMode:   models.ParseModeHTML,
-			},
-			ReplyMarkup: &models.InlineKeyboardMarkup{
-				InlineKeyboard: [][]models.InlineKeyboardButton{{
-					{
-						Text:         "🎵",
-						CallbackData: "NONE",
-					},
-				}},
-			},
+	articles := []inlineArticle{
+		{
+			id:          "media",
+			title:       i18n("media-inline-handler"),
+			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
 		},
-		&models.InlineQueryResultArticle{
-			ID:          "album",
-			Title:       "LastFM Album",
-			Description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}),
-			InputMessageContent: &models.InputTextMessageContent{
-				MessageText: i18n("loading"),
-				ParseMode:   models.ParseModeHTML,
-			}, ReplyMarkup: &models.InlineKeyboardMarkup{
-				InlineKeyboard: [][]models.InlineKeyboardButton{{
-					{
-						Text:         "💿",
-						CallbackData: "NONE",
-					},
-				}},
-			},
+		{
+			id:          "track",
+			title:       "LastFM Music",
+			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
 		},
-		&models.InlineQueryResultArticle{
-			ID:          "artist",
-			Title:       "LastFM Artist",
-			Description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}),
-			InputMessageContent: &models.InputTextMessageContent{
-				MessageText: i18n("loading"),
-				ParseMode:   models.ParseModeHTML,
-			}, ReplyMarkup: &models.InlineKeyboardMarkup{
-				InlineKeyboard: [][]models.InlineKeyboardButton{{
-					{
-						Text:         "🎙",
-						CallbackData: "NONE",
-					},
-				}},
-			},
+		{
+			id:          "album",
+			title:       "LastFM Album",
+			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}),
+		},
+		{
+			id:          "artist",
+			title:       "LastFM Artist",
+			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}),
 		},
 	}
 
-	b.AnswerInlineQuery(ctx, &bot.AnswerInlineQueryParams{
-		InlineQueryID: update.InlineQuery.ID,
-		Results:       results,
-	})
+	filteredArticles := filterArticles(articles, update.InlineQuery.Query)
+	results := make([]models.InlineQueryResult, 0, len(filteredArticles))
+	for _, article := range filteredArticles {
+		var replyMarkup *models.InlineKeyboardMarkup
+		var emoji string
+
+		switch article.id {
+		case "track":
+			emoji = "🎵"
+		case "album":
+			emoji = "💿"
+		case "artist":
+			emoji = "🎙"
+		}
+
+		replyMarkup = &models.InlineKeyboardMarkup{
+			InlineKeyboard: [][]models.InlineKeyboardButton{{
+				{
+					Text:         emoji,
+					CallbackData: "NONE",
+				},
+			}},
+		}
+
+		results = append(results, &models.InlineQueryResultArticle{
+			ID:          article.id,
+			Title:       article.title,
+			Description: article.description,
+			InputMessageContent: &models.InputTextMessageContent{
+				MessageText: i18n("loading"),
+				ParseMode:   models.ParseModeHTML,
+			},
+			ReplyMarkup: replyMarkup,
+		})
+	}
+
+	if len(results) > 0 {
+		b.AnswerInlineQuery(ctx, &bot.AnswerInlineQueryParams{
+			InlineQueryID: update.InlineQuery.ID,
+			Results:       results,
+			CacheTime:     0,
+		})
+	}
 }
 
 func inlineSend(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -365,6 +400,8 @@ func inlineSend(ctx context.Context, b *bot.Bot, update *models.Update) {
 	switch update.ChosenInlineResult.ResultID {
 	case "track", "artist", "album":
 		lastfm.LastfmInline(ctx, b, update)
+	case "media":
+		medias.MediasInline(ctx, b, update)
 	default:
 		return
 	}
