@@ -245,6 +245,31 @@ weather-details =
     Sensação térmica: <code>{ $temperatureFeelsLike } °C</code>
     Umidade do ar: <code>{ $relativeHumidity }%</code>
     Velocidade do vento: <code>{ $windSpeed } km/h</code>
+slap-hit =
+    <b>{ $userName }</b> bate em <b>{ $targetName }</b> com { $item ->
+        [vodka] um litro de 51.
+        [bat] um taco de beisebol.
+        [shovel] uma pá repetidamente.
+        [fish] um peixe morto.
+        [fryingpan] uma frigideira quente.
+        [penis] um pênis de borracha.
+        [baguette] um cacetinho.
+       *[hammer] um martelo.
+    }
+slap-throw =
+    <b>{ $userName }</b> joga { $item ->
+        [cliff] <b>{ $targetName }</b> de um penhasco.
+        [window] <b>{ $targetName }</b> pela janela.
+        [mud] lama em <b>{ $targetName }</b>.
+        [pie] uma torta na cara de <b>{ $targetName }</b>.
+        *[water] um balde de água gelada em <b>{ $targetName }</b>.
+    }
+slap-push =
+    <b>{ $userName }</b> deu um empurrão em <b>{ $targetName }</b> { $location ->
+        [lava] para que aprenda a nadar na lava.
+        [stairs] pelas escadas abaixo.
+        *[street] para o meio da rua.
+    }
 stickers = Figurinhas
 stealing-sticker = <code>Kangando (roubando) a figurinha...</code>
 kang-no-reply-provided = Você precisa usar este comando respondendo a <i><b>uma figurinha</b></i>, <i><b>uma imagem</b></i> ou <i><b>um vídeo</b></i>.

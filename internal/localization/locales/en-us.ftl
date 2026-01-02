@@ -241,6 +241,31 @@ weather-details =
     Temperature feels like: <code>{ $temperatureFeelsLike } °C</code>
     Air humidity: <code>{ $relativeHumidity }%</code>
     Wind speed: <code>{ $windSpeed } km/h</code>
+slap-hit =
+    <b>{ $userName }</b> hits <b>{ $targetName }</b> with { $item ->
+        [vodka] a liter of cheap vodka.
+        [bat] a baseball bat.
+        [shovel] a shovel repeatedly.
+        [fish] a dead fish.
+        [fryingpan] a hot frying pan.
+        [penis] a rubber penis.
+        [baguette] a French baguette.
+       *[hammer] a hammer.
+    }
+slap-throw =
+    <b>{ $userName }</b> throws { $item ->
+        [cliff] <b>{ $targetName }</b> off a cliff.
+        [window] <b>{ $targetName }</b> through the window.
+        [mud] mud at <b>{ $targetName }</b>.
+        [pie] a pie in <b>{ $targetName }</b>'s face.
+        *[water] a bucket of ice-cold water at <b>{ $targetName }</b>.
+    }
+slap-push =
+    <b>{ $userName }</b> pushes <b>{ $targetName }</b> { $location ->
+        [lava] so they learn to swim in lava.
+        [stairs] down the stairs.
+        *[street] into the middle of the street.
+    }
 stickers = Stickers
 stealing-sticker = <code>Kanging (Stealing) the sticker...</code>
 kang-no-reply-provided = You need to use this command by replying to <i><b>a sticker</b></i>, <i><b>an image</b></i> or <i><b>a video</b></i>.

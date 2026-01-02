@@ -501,6 +501,76 @@ func WeatherInline(ctx context.Context, b *bot.Bot, update *models.Update, geoco
 	}
 }
 
+func slapHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
+	user := update.Message.From
+	if user == nil {
+		return
+	}
+
+	i18n := localization.Get(update)
+
+	var targetUser *models.User
+
+	if update.Message.ReplyToMessage != nil && update.Message.ReplyToMessage.From != nil {
+		targetUser = update.Message.ReplyToMessage.From
+	} else {
+		return
+	}
+
+	if targetUser.ID == user.ID {
+		return
+	}
+
+	userName := utils.EscapeHTML(user.FirstName)
+	targetName := utils.EscapeHTML(targetUser.FirstName)
+
+	actionTypes := []struct {
+		key        string
+		variations []string
+	}{
+		{
+			key:        "slap-hit",
+			variations: []string{"vodka", "bat", "shovel", "fish", "fryingpan", "penis", "baguette", "hammer"},
+		},
+		{
+			key:        "slap-throw",
+			variations: []string{"cliff", "window", "mud", "pie", "water"},
+		},
+		{
+			key:        "slap-push",
+			variations: []string{"lava", "stairs", "street"},
+		},
+	}
+
+	selectedAction := actionTypes[rand.Intn(len(actionTypes))]
+	selectedVariation := selectedAction.variations[rand.Intn(len(selectedAction.variations))]
+
+	paramName := "item"
+	switch selectedAction.key {
+	case "slap-push":
+		paramName = "location"
+	case "slap-tie":
+		paramName = "action"
+	case "slap-challenge":
+		paramName = "challenge"
+	}
+
+	message := i18n(selectedAction.key, map[string]any{
+		"userName":   userName,
+		"targetName": targetName,
+		paramName:    selectedVariation,
+	})
+
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      message,
+		ParseMode: models.ParseModeHTML,
+	})
+}
 func Load(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeCommand, "weather", weatherHandler)
 	b.RegisterHandler(bot.HandlerTypeCommand, "clima", weatherHandler)
@@ -508,8 +578,9 @@ func Load(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeCommand, "translate", translateHandler)
 	b.RegisterHandler(bot.HandlerTypeCommand, "tr", translateHandler)
 	b.RegisterHandler(bot.HandlerTypeInlineQuery, "^(weather|clima).+", weatherInlineQuery)
+	b.RegisterHandler(bot.HandlerTypeCommand, "slap", slapHandler)
 
 	utils.SaveHelp("misc")
 	utils.DisableableCommands = append(utils.DisableableCommands,
-		"tr", "translate", "weather", "clima")
+		"tr", "translate", "weather", "clima", "slap")
 }
