@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
 	"strings"
 
 	"github.com/go-telegram/bot"
@@ -17,15 +18,16 @@ import (
 
 func disableableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
-	text := i18n("disableables-commands")
+	var text strings.Builder
+	text.WriteString(i18n("disableables-commands"))
 
 	for _, command := range utils.DisableableCommands {
-		text += "\n- <code>" + command + "</code>"
+		text.WriteString("\n- <code>" + command + "</code>")
 	}
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
-		Text:      text,
+		Text:      text.String(),
 		ParseMode: models.ParseModeHTML,
 		LinkPreviewOptions: &models.LinkPreviewOptions{
 			PreferLargeMedia: bot.True(),
@@ -40,12 +42,7 @@ func disableableHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 func disableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 	contains := func(array []string, str string) bool {
-		for _, item := range array {
-			if item == str {
-				return true
-			}
-		}
-		return false
+		return slices.Contains(array, str)
 	}
 
 	if len(strings.Fields(update.Message.Text)) > 1 {
@@ -365,7 +362,7 @@ func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 		{
 			{
 				Text:         i18n("automatic-button"),
-				CallbackData: "ieConfig auto-description",
+				CallbackData: "ieConfig auto-help",
 			},
 			{
 				Text:         state(mediasAuto),

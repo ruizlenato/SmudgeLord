@@ -18,6 +18,7 @@ var (
 	WebhookPort   int
 	Socks5Proxy   string
 	OwnerID       int64
+	LogChannelID  int64
 )
 
 func init() {
@@ -67,7 +68,6 @@ func init() {
 	if OwnerID == 0 {
 		slog.Error(`You need to set the "OWNER_ID" in the .env file!`)
 		os.Exit(1)
-
 	}
 }
 

@@ -46,7 +46,6 @@ func Handle(text string) downloader.PostInfo {
 	twitterData := handler.getTwitterData()
 	if twitterData == nil {
 		fxTwitterData := handler.getFxTwitterData()
-		fmt.Println(fxTwitterData)
 		if fxTwitterData != nil {
 			return handler.processFxTwitterAPI(fxTwitterData)
 		}

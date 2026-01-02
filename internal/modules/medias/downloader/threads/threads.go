@@ -84,7 +84,6 @@ func (h *Handler) setPostID(url string) bool {
 
 func getGQLData(postID string) ThreadsData {
 	var threadsData ThreadsData
-	fmt.Println("teste")
 
 	lsd := utils.RandomString(10)
 	downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
@@ -142,8 +141,10 @@ func (h *Handler) processMedia(data ThreadsData) []models.InputMedia {
 }
 
 func getCaption(threadsData ThreadsData) string {
-	return fmt.Sprintf("<b>%s</b>:\n%s",
-		threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.User.Username,
+	username := threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.User.Username
+	return fmt.Sprintf("<b><a href='https://www.threads.net/@%s'>%s</a>:</b>\n%s",
+		username,
+		username,
 		threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text)
 }
 

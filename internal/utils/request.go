@@ -120,10 +120,7 @@ func (r *RetryCaller) Request(url string, params RequestParams) (*http.Response,
 			break
 		}
 
-		delay := time.Duration(math.Pow(r.ExponentBase, float64(i))) * r.StartDelay
-		if delay > r.MaxDelay {
-			delay = r.MaxDelay
-		}
+		delay := min(time.Duration(math.Pow(r.ExponentBase, float64(i)))*r.StartDelay, r.MaxDelay)
 		time.Sleep(delay)
 	}
 
