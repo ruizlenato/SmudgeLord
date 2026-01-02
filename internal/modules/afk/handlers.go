@@ -18,7 +18,7 @@ func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		message := update.Message
 
-		if update.Message == nil {
+		if message == nil {
 			if update.CallbackQuery == nil {
 				next(ctx, b, update)
 				return
@@ -35,33 +35,35 @@ func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 		if message.From == nil ||
 			message.Chat.Type != models.ChatTypeGroup &&
 				message.Chat.Type != models.ChatTypeSupergroup ||
-			regexp.MustCompile(`^/\bafk\b|^\bbrb\b`).MatchString(message.Text) {
+			regexp.MustCompile(`^(brb|/afk)`).MatchString(message.Text) {
 			next(ctx, b, update)
 			return
 		}
 
 		mentionedUserID := getUserIDFromMessage(message)
-		if !user_is_away(message.From.ID) && !user_is_away(mentionedUserID) {
+		if !userIsAway(mentionedUserID) {
 			next(ctx, b, update)
 			return
 		}
 
+		reason, duration, err := getUserAway(mentionedUserID)
+		if err != nil && err != sql.ErrNoRows {
+			slog.Error("Couldn't get user away status",
+				"UserID", message.From.ID,
+				"Error", err.Error())
+			return
+		}
+
 		i18n := localization.Get(update)
+		humanizedDuration := localization.HumanizeTimeSince(duration, update)
 
-		if user_is_away(message.From.ID) {
-			_, duration, err := get_user_away(message.From.ID)
-			if err != nil && err != sql.ErrNoRows {
-				slog.Error("Couldn't get user away status",
-					"UserID", message.From.ID,
-					"Error", err.Error())
-				return
-			}
-
-			humanizedDuration := localization.HumanizeTimeSince(duration, update)
-			if err = unset_user_away(message.From.ID); err != nil {
+		switch mentionedUserID {
+		case message.From.ID:
+			if err := unsetUserAway(mentionedUserID); err != nil {
 				slog.Error("Couldn't unset user away status",
-					"UserID", message.From.ID,
+					"UserID", mentionedUserID,
 					"Error", err.Error())
+				next(ctx, b, update)
 				return
 			}
 
@@ -81,18 +83,7 @@ func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 					MessageID: message.ID,
 				},
 			})
-		}
-
-		if mentionedUserID != 0 && user_is_away(mentionedUserID) {
-			reason, duration, err := get_user_away(mentionedUserID)
-			if err != nil && err != sql.ErrNoRows {
-				slog.Error("Couldn't get user away status",
-					"UserID", mentionedUserID,
-					"Error", err.Error())
-				return
-			}
-
-			humanizedDuration := localization.HumanizeTimeSince(duration, update)
+		default:
 			user, err := b.GetChat(ctx, &bot.GetChatParams{ChatID: mentionedUserID})
 			if err != nil {
 				slog.Error("Couldn't get user",
@@ -110,7 +101,7 @@ func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 
 			if reason != "" {
 				text += "\n" + i18n("user-unavailable-reason",
-					map[string]interface{}{
+					map[string]any{
 						"reason": reason,
 					})
 			}
@@ -127,7 +118,6 @@ func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 				},
 			})
 		}
-
 		next(ctx, b, update)
 	}
 }
@@ -158,12 +148,12 @@ func getUserIDFromMessage(message *models.Message) int64 {
 		}
 	}
 
-	return 0
+	return message.From.ID
 }
 
 func setAFKHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	reason := extractReason(update.Message.Text)
-	err := set_user_away(update.Message.From.ID, reason, time.Now().UTC())
+	err := setUserAway(update.Message.From, reason, time.Now().UTC())
 	if err != nil {
 		slog.Error("Couldn't set user away status",
 			"UserID", update.Message.From.ID,

@@ -108,7 +108,7 @@ user-now-unavailable = <b>{ $userFirstName }</b> está agora indisponível!
 user-unavailable =
     <b><a href='tg://user?id={ $userID }'>{ $userFirstName } </a></b> está <b>indisponível!</b>
     Visto pela última vez à <code>{ $duration}</code> atrás.
-user-unavailable-reason = <b>Reason:</b> <code>{ $reason }</code>
+user-unavailable-reason = <b>Motivo:</b> <code>{ $reason }</code>
 user-now-available = <b><a href='tg://user?id={ $userID }'>{ $userFirstName }</a></b> está de volta após <code>{ $duration }</code> de ausência!
 config = Configurações
 config-help =

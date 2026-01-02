@@ -48,6 +48,7 @@ func CreateTables() error {
 		);
 		CREATE TABLE IF NOT EXISTS afk (
 			id INTEGER PRIMARY KEY,
+			username TEXT,
 			reason TEXT,
 			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
