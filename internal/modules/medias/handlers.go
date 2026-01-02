@@ -9,12 +9,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 	"unicode/utf8"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	"github.com/steino/youtubedl"
+	youtubedl "github.com/kkdai/youtube/v2"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
@@ -49,6 +48,7 @@ var mediaHandlers = map[string]MediaHandler{
 	"tiktok.com/":                {"TikTok", tiktok.Handle},
 	"(twitter|x).com/":           {"Twitter/X", twitter.Handle},
 	"(xiaohongshu|xhslink).com/": {"XiaoHongShu", xiaohongshu.Handle},
+	"youtube.com/":               {"YouTube", youtube.Handle},
 }
 
 func extractURL(text string) (string, bool) {
@@ -293,19 +293,8 @@ func youtubeDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 	}
 
 	youtubeClient := youtube.ConfigureYoutubeClient()
-	var video *youtubedl.Video
-	var err error
 
-	for attempt := 1; attempt <= 10; attempt++ {
-		video, err = youtubeClient.GetVideo(videoURL, youtubedl.WithClient("ANDROID"))
-		if err == nil {
-			break
-		}
-		slog.Warn("GetVideo failed, retrying...",
-			"attempt", attempt, "error",
-			err.Error())
-		time.Sleep(5 * time.Second)
-	}
+	video, err := youtubeClient.GetVideo(videoURL)
 	if err != nil || video == nil || video.Formats == nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
@@ -741,7 +730,7 @@ func Load(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeInlineQuery, "^http(?:s)?://.+", mediasInlineQuery)
 	b.RegisterHandler(bot.HandlerTypeMessageText, regexMedia, mediaDownloadHandler)
 	b.RegisterHandler(bot.HandlerTypeCommand, "ytdl", youtubeDownloadHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, `^(_(vid|aud))`, youtubeDownloadCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, `^(_(vid|aud))`, youtubeDownloadCallback)
 
 	utils.SaveHelp("medias")
 }
