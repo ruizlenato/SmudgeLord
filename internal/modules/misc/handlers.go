@@ -222,6 +222,33 @@ type weatherSearch struct {
 	} `json:"location"`
 }
 
+func searchWeather(local, language string) (weatherSearch, error) {
+	var weatherSearchData weatherSearch
+	response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"apiKey":   weatherAPIKey,
+			"query":    local,
+			"language": language,
+			"format":   "json",
+		},
+	})
+	if err != nil {
+		return weatherSearchData, err
+	}
+	if response.Body == nil {
+		return weatherSearchData, fmt.Errorf("response body is nil")
+	}
+	defer response.Body.Close()
+
+	err = json.NewDecoder(response.Body).Decode(&weatherSearchData)
+	if err != nil {
+		return weatherSearchData, err
+	}
+
+	return weatherSearchData, nil
+}
+
 func weatherHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	var weatherQuery string
 	i18n := localization.Get(update)
@@ -245,28 +272,7 @@ func weatherHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	var weatherSearchData weatherSearch
-
-	response, err := utils.Request("https://api.weather.com/v3/location/search", utils.RequestParams{
-		Method: "GET",
-		Query: map[string]string{
-			"apiKey": weatherAPIKey,
-			"query":  weatherQuery,
-			"language": strings.Split(chatLang, "-")[0] +
-				"-" +
-				strings.ToUpper(strings.Split(chatLang, "-")[1]),
-			"format": "json",
-		},
-	})
-
-	if err != nil {
-		slog.Error("Couldn't request weather search",
-			"Error", err.Error())
-		return
-	}
-	defer response.Body.Close()
-
-	err = json.NewDecoder(response.Body).Decode(&weatherSearchData)
+	weatherSearchData, err := searchWeather(weatherQuery, strings.Split(chatLang, "-")[0])
 	if err != nil {
 		return
 	}
@@ -319,8 +325,36 @@ type weatherResult struct {
 	} `json:"v3-location-point"`
 }
 
-func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
+func weatherSearchResult(geocode, language string, i18n func(string, ...map[string]any) string) (weatherResult, error) {
 	var weatherResultData weatherResult
+	response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"apiKey":   weatherAPIKey,
+			"geocode":  geocode,
+			"language": language,
+			"units":    i18n("measurement-unit"),
+			"format":   "json",
+		},
+	})
+
+	if err != nil {
+		return weatherResultData, err
+	}
+	if response.Body == nil {
+		return weatherResultData, fmt.Errorf("response body is nil")
+	}
+	defer response.Body.Close()
+
+	err = json.NewDecoder(response.Body).Decode(&weatherResultData)
+	if err != nil {
+		return weatherResultData, err
+	}
+
+	return weatherResultData, nil
+}
+
+func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
 
 	chatLang, err := localization.GetChatLanguage(update)
@@ -338,27 +372,7 @@ func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	response, err := utils.Request("https://api.weather.com/v3/aggcommon/v3-wx-observations-current;v3-location-point", utils.RequestParams{
-		Method: "GET",
-		Query: map[string]string{
-			"apiKey":  weatherAPIKey,
-			"geocode": fmt.Sprintf("%.3f,%.3f", latitude, longitude),
-			"language": strings.Split(chatLang, "-")[0] +
-				"-" +
-				strings.ToUpper(strings.Split(chatLang, "-")[1]),
-			"units":  i18n("measurement-unit"),
-			"format": "json",
-		},
-	})
-
-	if err != nil {
-		slog.Error("Couldn't request weather data",
-			"Error", err.Error())
-		return
-	}
-	defer response.Body.Close()
-
-	err = json.NewDecoder(response.Body).Decode(&weatherResultData)
+	weatherResultData, err := weatherSearchResult(fmt.Sprintf("%.3f,%.3f", latitude, longitude), strings.Split(chatLang, "-")[0], i18n)
 	if err != nil {
 		return
 	}
@@ -394,12 +408,106 @@ func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
 	})
 }
 
+func weatherInlineQuery(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.InlineQuery == nil {
+		return
+	}
+
+	i18n := localization.Get(update)
+
+	chatLang, err := localization.GetChatLanguage(update)
+	if err != nil {
+		return
+	}
+	weatherSearchData, err := searchWeather(update.InlineQuery.Query, strings.Split(chatLang, "-")[0])
+	if err != nil {
+		return
+	}
+
+	results := make([]models.InlineQueryResult, 0, 5)
+	for i := 0; i < len(weatherSearchData.Location.Address) && i < 5; i++ {
+		results = append(results, &models.InlineQueryResultArticle{
+			ID:    fmt.Sprintf("weather-%f,%f", weatherSearchData.Location.Latitude[i], weatherSearchData.Location.Longitude[i]),
+			Title: weatherSearchData.Location.Address[i],
+			InputMessageContent: &models.InputTextMessageContent{
+				MessageText: i18n("loading"),
+				ParseMode:   models.ParseModeHTML,
+			},
+			ReplyMarkup: &models.InlineKeyboardMarkup{
+				InlineKeyboard: [][]models.InlineKeyboardButton{{
+					{
+						Text:         "⏳",
+						CallbackData: "NONE",
+					},
+				}},
+			},
+		})
+	}
+
+	if len(results) > 0 {
+		b.AnswerInlineQuery(ctx, &bot.AnswerInlineQueryParams{
+			InlineQueryID: update.InlineQuery.ID,
+			Results:       results,
+			CacheTime:     0,
+		})
+	}
+}
+
+func WeatherInline(ctx context.Context, b *bot.Bot, update *models.Update, geocode string) {
+	i18n := localization.Get(update)
+
+	chatLang, err := localization.GetChatLanguage(update)
+	if err != nil {
+		slog.Error("Couldn't get chat language",
+			"error", err.Error())
+		return
+	}
+	weatherResultData, err := weatherSearchResult(geocode, strings.Split(chatLang, "-")[0], i18n)
+	if err != nil {
+		slog.Error("Couldn't get weather data",
+			"error", err.Error())
+		return
+	}
+
+	var localNameParts []string
+	if locale4 := weatherResultData.V3LocationPoint.Location.Locale.Locale4; locale4 != "" {
+		localNameParts = append(localNameParts, locale4)
+	}
+
+	if locale3, ok := weatherResultData.V3LocationPoint.Location.Locale.Locale3.(string); ok && locale3 != "" {
+		localNameParts = append(localNameParts, locale3)
+	}
+
+	localNameParts = append(localNameParts,
+		weatherResultData.V3LocationPoint.Location.City,
+		weatherResultData.V3LocationPoint.Location.AdminDistrict,
+		weatherResultData.V3LocationPoint.Location.Country)
+
+	localName := strings.Join(localNameParts, ", ")
+
+	if _, err = b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		InlineMessageID: update.ChosenInlineResult.InlineMessageID,
+		Text: i18n("weather-details", map[string]any{
+			"localname":            localName,
+			"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
+			"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
+			"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
+			"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
+		}),
+		ParseMode: models.ParseModeHTML,
+	}); err != nil {
+		slog.Error("Couldn't edit message",
+			"Error", err.Error())
+	}
+}
+
 func Load(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeCommand, "weather", weatherHandler)
 	b.RegisterHandler(bot.HandlerTypeCommand, "clima", weatherHandler)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^_weather", callbackWeather)
 	b.RegisterHandler(bot.HandlerTypeCommand, "translate", translateHandler)
 	b.RegisterHandler(bot.HandlerTypeCommand, "tr", translateHandler)
+	b.RegisterHandler(bot.HandlerTypeInlineQuery, "^(weather|clima).+", weatherInlineQuery)
 
 	utils.SaveHelp("misc")
 	utils.DisableableCommands = append(utils.DisableableCommands,

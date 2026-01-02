@@ -203,7 +203,7 @@ no-media-found =
 media-error =
     An error occurred while downloading the media. Please try again later.
     If the problem persists, contact my developer.
-media-inline-handler = Media downloader.
+media-inline-handler = Media downloader
 media-inline-help = Downloads media from certain social networks. Just paste the link after the @.
 media-multiple-items =
     <b>*Note:</b> This link contains <b>{ $count }</b> media items.
@@ -227,6 +227,8 @@ translator-no-args-provided =
     You need to specify the text you want to translate or reply to a text message, or a photo with a caption.
 
     <b>Usage:</b> <code>/tr (?language) (text for translation)</code>
+weather-inline-description = Shows the current weather of a specified location.
+weather-inline-handler = Weather &lt;location&gt;
 weather-no-location-provided =
     You need to specify the location for which you want to know the weather information.
 

@@ -13,6 +13,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
+	"github.com/ruizlenato/smudgelord/internal/modules/misc"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
@@ -294,9 +295,10 @@ func helpMessageCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 }
 
 type inlineArticle struct {
-	id          string
-	title       string
-	description string
+	id             string
+	title          string
+	description    string
+	messageContent string
 }
 
 func filterArticles(articles []inlineArticle, query string) []inlineArticle {
@@ -326,24 +328,34 @@ func menuInline(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	articles := []inlineArticle{
 		{
-			id:          "media",
-			title:       i18n("media-inline-handler"),
-			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
+			id:             "media",
+			title:          i18n("media-inline-handler"),
+			description:    i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
+			messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("media-inline-handler"), i18n("media-inline-help")),
 		},
 		{
-			id:          "track",
-			title:       "LastFM Music",
-			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
+			id:             "weather",
+			title:          i18n("weather-inline-handler"),
+			description:    i18n("weather-inline-description"),
+			messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("weather-inline-handler"), i18n("weather-inline-description")),
 		},
 		{
-			id:          "album",
-			title:       "LastFM Album",
-			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}),
+			id:             "track",
+			title:          "LastFM Music",
+			description:    i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
+			messageContent: i18n("loading"),
 		},
 		{
-			id:          "artist",
-			title:       "LastFM Artist",
-			description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}),
+			id:             "album",
+			title:          "LastFM Album",
+			description:    i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}),
+			messageContent: i18n("loading"),
+		},
+		{
+			id:             "artist",
+			title:          "LastFM Artist",
+			description:    i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}),
+			messageContent: i18n("loading"),
 		},
 	}
 
@@ -376,7 +388,7 @@ func menuInline(ctx context.Context, b *bot.Bot, update *models.Update) {
 			Title:       article.title,
 			Description: article.description,
 			InputMessageContent: &models.InputTextMessageContent{
-				MessageText: i18n("loading"),
+				MessageText: article.messageContent,
 				ParseMode:   models.ParseModeHTML,
 			},
 			ReplyMarkup: replyMarkup,
@@ -397,13 +409,17 @@ func inlineSend(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	switch update.ChosenInlineResult.ResultID {
+	resultID := update.ChosenInlineResult.ResultID
+
+	switch resultID {
 	case "track", "artist", "album":
 		lastfm.LastfmInline(ctx, b, update)
 	case "media":
 		medias.MediasInline(ctx, b, update)
 	default:
-		return
+		if location, found := strings.CutPrefix(resultID, "weather-"); found {
+			misc.WeatherInline(ctx, b, update, location)
+		}
 	}
 }
 

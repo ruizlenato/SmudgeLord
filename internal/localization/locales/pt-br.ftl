@@ -206,7 +206,7 @@ no-media-found =
 media-error =
     Ocorreu um erro ao baixar a mídia. Por favor, tente novamente mais tarde.
     Se o problema persistir, entre em contato com meu desenvolvedor.
-media-inline-handler = Baixador de mídias.
+media-inline-handler = Baixador de mídias
 media-inline-help = Baixa mídias de certas redes sociais. Apenas cole o link após o @.
 media-multiple-items =
     <b>*Observação:</b> Esse link contém <b>{ $count }</b> itens de mídias.
@@ -231,6 +231,8 @@ translator-no-args-provided =
     Você precisa especificar o texto que deseja traduzir ou responder a uma mensagem de texto, ou uma foto com legenda.
 
     <b>Usage:</b> <code>/tr (?idioma) (texto para tradução)</code>
+weather-inline-description = Exibe informações do clima da cidade especificada.
+weather-inline-handler = Clima &lt;local&gt;
 weather-no-location-provided =
     Você precisa especificar o local para o qual deseja saber as informações meteorológicas.
 
