@@ -417,5 +417,5 @@ func Load(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^about$", aboutMenuCallback)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^aboutYourData$", aboutYourDataCallback)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^helpMenu$", helpMenuCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^helpMessage$", helpMessageCallback)
+	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^helpMessage", helpMessageCallback)
 }

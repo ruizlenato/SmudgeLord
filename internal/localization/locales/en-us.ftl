@@ -186,8 +186,8 @@ uploading = Uploading...
 youtube-error =
     <b>An error occurred while processing the video, try again later.</b>
     If the problem persists, please contact my developer.
-auto-description = When enabled, the bot will automatically download media from social networks when it detects a link, eliminating the need to use the /sdl or /dl commands.
-caption-description = When enabled, captions for media downloaded by the bot will be sent along with them.
+auto-help = When enabled, the bot will automatically download media from social networks when it detects a link, eliminating the need to use the /sdl or /dl commands.
+caption-help = When enabled, captions for media downloaded by the bot will be sent along with them.
 no-link-provided =
     <b>No link provided or the link is invalid.</b>
     You need to specify a valid link from <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> or <i><b>Xiaohongshu/Rednote</i></b> to download the media.
@@ -197,6 +197,17 @@ unsupported-link =
     <b>{ unsupported-link-title }</b>
     { unsupported-link-description }
 click-to-download-media = Click here to download the media from the link.
+no-media-found =
+    No media found in the provided link or occurs an error while processing it.
+    <b>Try again later.</b>
+media-error =
+    An error occurred while downloading the media. Please try again later.
+    If the problem persists, contact my developer.
+media-inline-handler = Media downloader.
+media-inline-help = Downloads media from certain social networks. Just paste the link after the @.
+media-multiple-items =
+    <b>*Note:</b> This link contains <b>{ $count }</b> media items.
+    To view all media, send the link again in a private chat with me.
 open-link = Open in { $service }
 misc = Misc
 misc-help =
@@ -266,6 +277,9 @@ invalid-lastfm-username =
 lastfm-username-not-found =
     <b>You haven't set your last.fm username yet.</b>
     Use the command /setuser to set.
+lastfm-username-not-found-inline =
+    <b>You haven't set your last.fm username yet.</b>
+    Click the button below to set your last.fm username in my private chat.
 lastfm-inline-description =
     Shows { $lastfmType ->
        [artist] the artist

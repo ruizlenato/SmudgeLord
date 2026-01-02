@@ -355,7 +355,7 @@ func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update)
 		{
 			{
 				Text:         i18n("caption-button"),
-				CallbackData: "ieConfig caption-description",
+				CallbackData: "ieConfig caption-help",
 			},
 			{
 				Text:         state(mediasCaption),

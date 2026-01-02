@@ -189,8 +189,8 @@ uploading = Enviando...
 youtube-error =
     <b>Ocorreu um erro ao processar o vídeo. Tente novamente mais tarde.</b>
     Se o problema persistir, entre em contato com meu desenvolvedor.
-auto-description = Quando ativado, o bot baixará automaticamente mídias de redes sociais ao detectar um link, dispensando o uso dos comandos /sdl ou /dl.
-caption-description = Quando ativado, as legendas das mídias baixadas pelo bot serão enviadas junto com elas.
+auto-help = Quando ativado, o bot baixará automaticamente mídias de redes sociais ao detectar um link, dispensando o uso dos comandos /sdl ou /dl.
+caption-help = Quando ativado, as legendas das mídias baixadas pelo bot serão enviadas junto com elas.
 no-link-provided =
     <b>Você não especificou um link ou especificou um link invalido.</b>
     Especifique um link do <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Xiaohongshu/Rednote</i></b> para que eu possa baixar a(s) mídia(s).
@@ -281,6 +281,9 @@ invalid-lastfm-username =
 lastfm-username-not-found =
     <b>Você ainda não definiu seu nome de usuário do last.fm.</b>
     Use o comando /setuser para definir.
+lastfm-username-not-found-inline =
+    <b>Você ainda não definiu seu nome de usuário do last.fm.</b>
+    Clique no botão abaixo para definir seu nome de usuário do last.fm em meu chat privado.
 lastfm-inline-description =
     Mostra { $lastfmType ->
        [artist] o artista
