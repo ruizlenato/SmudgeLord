@@ -43,3 +43,15 @@ func CheckDisabledMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
 		next(ctx, b, update)
 	}
 }
+
+func IsGroup(next bot.HandlerFunc) bot.HandlerFunc {
+	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
+		if update.Message == nil ||
+			update.Message.Chat.Type != models.ChatTypeGroup &&
+				update.Message.Chat.Type != models.ChatTypeSupergroup {
+			return
+		}
+
+		next(ctx, b, update)
+	}
+}

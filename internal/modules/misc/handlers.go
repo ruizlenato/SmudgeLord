@@ -578,7 +578,7 @@ func Load(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeCommand, "translate", translateHandler)
 	b.RegisterHandler(bot.HandlerTypeCommand, "tr", translateHandler)
 	b.RegisterHandler(bot.HandlerTypeInlineQuery, "^(weather|clima).+", weatherInlineQuery)
-	b.RegisterHandler(bot.HandlerTypeCommand, "slap", slapHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "slap", slapHandler, utils.IsGroup)
 
 	utils.SaveHelp("misc")
 	utils.DisableableCommands = append(utils.DisableableCommands,

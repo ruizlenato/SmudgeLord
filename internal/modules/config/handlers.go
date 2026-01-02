@@ -398,13 +398,13 @@ func explainConfigCallback(ctx context.Context, b *bot.Bot, update *models.Updat
 func Load(b *bot.Bot) {
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^languageMenu$", languageMenuCallback)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^setLang", setLanguageCallback)
-	b.RegisterHandler(bot.HandlerTypeCommand, "config", configHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "config", configHandler, utils.IsGroup)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^config$", configCallback)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^mediaConfig", mediaConfigCallback)
-	b.RegisterHandler(bot.HandlerTypeCommand, "disableable", disableableHandler)
-	b.RegisterHandler(bot.HandlerTypeCommand, "disable", disableHandler)
-	b.RegisterHandler(bot.HandlerTypeCommand, "enable", enableHandler)
-	b.RegisterHandler(bot.HandlerTypeCommand, "disabled", disabledHandler)
+	b.RegisterHandler(bot.HandlerTypeCommand, "disableable", disableableHandler, utils.IsGroup)
+	b.RegisterHandler(bot.HandlerTypeCommand, "disable", disableHandler, utils.IsGroup)
+	b.RegisterHandler(bot.HandlerTypeCommand, "enable", enableHandler, utils.IsGroup)
+	b.RegisterHandler(bot.HandlerTypeCommand, "disabled", disabledHandler, utils.IsGroup)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^disableable$", disableableHandler)
 	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^ieConfig", explainConfigCallback)
 
