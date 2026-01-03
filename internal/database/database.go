@@ -74,21 +74,24 @@ func Close() {
 func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
 	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
 		var chatID int64
-		var chatType models.ChatType
+		var chatType *models.ChatType
 		var sender *models.User
 
 		if update.Message != nil {
 			chatID = update.Message.Chat.ID
-			chatType = update.Message.Chat.Type
+			chatType = &update.Message.Chat.Type
 			sender = update.Message.From
 		} else if update.CallbackQuery != nil {
-			message := update.CallbackQuery.Message.Message
-			chatID = message.Chat.ID
-			chatType = message.Chat.Type
-			sender = message.From
+			tmpChatType := models.ChatTypePrivate
+			chatType = &tmpChatType
+			if message := update.CallbackQuery.Message.Message; message != nil {
+				chatID = message.Chat.ID
+				chatType = &message.Chat.Type
+			}
+			sender = &update.CallbackQuery.From
 		} else if update.InlineQuery != nil {
-			chatID = update.InlineQuery.From.ID
-			chatType = models.ChatTypePrivate
+			tmpChatType := models.ChatTypePrivate
+			chatType = &tmpChatType
 			sender = update.InlineQuery.From
 		} else {
 			next(ctx, b, update)
@@ -109,20 +112,18 @@ func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
 
 			}
 		}
-
 		next(ctx, b, update)
 	}
 }
 
-func ChatExists(chatID int64, chatType models.ChatType, senderUsername string) bool {
-	if chatID == 0 {
+func ChatExists(chatID int64, chatType *models.ChatType, senderUsername string) bool {
+	if chatType == nil {
 		return true
 	}
 
-	switch chatType {
+	switch *chatType {
 	case models.ChatTypePrivate:
 		row := DB.QueryRow("SELECT username FROM users WHERE id = ?", chatID)
-
 		var savedUsername sql.NullString
 		err := row.Scan(&savedUsername)
 		if err != nil {
@@ -140,12 +141,12 @@ func ChatExists(chatID int64, chatType models.ChatType, senderUsername string) b
 	}
 }
 
-func SaveChat(chatID int64, chatType models.ChatType, sender *models.User) error {
+func SaveChat(chatID int64, chatType *models.ChatType, sender *models.User) error {
 	if chatID == 0 {
 		return nil
 	}
 
-	switch chatType {
+	switch *chatType {
 	case models.ChatTypePrivate:
 		query := `
 			INSERT INTO users (id, language, username) VALUES (?, ?, ?)
