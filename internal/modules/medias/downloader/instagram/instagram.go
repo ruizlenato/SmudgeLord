@@ -217,28 +217,34 @@ func (h *Handler) getEmbedData() InstagramData {
 			caption = strings.TrimSpace(htmlTagRegex.ReplaceAllString(captionText, ""))
 		}
 
-		dataJSON := `{
-            "shortcode_media": {
-                "__typename": "GraphImage",
-                "display_url": "` + mainMediaURL + `",
-                "edge_media_to_caption": {
-                    "edges": [
-                        {
-                            "node": {
-                                "text": "` + caption + `"
-                            }
-                        }
-                    ]
-                },
-                "owner": {
-                    "username": "` + owner + `"
-                }
-            }
-            }`
-
-		err := json.Unmarshal([]byte(dataJSON), &instagramData)
-		if err != nil {
-			return nil
+		instagramData = &struct {
+			ShortcodeMedia *ShortcodeMedia `json:"shortcode_media"`
+			Data           struct {
+				XDTShortcodeMedia *ShortcodeMedia `json:"xdt_shortcode_media"`
+			} `json:"data,omitempty"`
+			Status string `json:"status"`
+		}{
+			ShortcodeMedia: &ShortcodeMedia{
+				Typename:   "GraphImage",
+				DisplayURL: mainMediaURL,
+				EdgeMediaToCaption: EdgeMediaToCaption{
+					Edges: []Edges{
+						{Node: struct {
+							Typename         string             `json:"__typename"`
+							Text             string             `json:"text"`
+							ID               string             `json:"id"`
+							Shortcode        string             `json:"shortcode"`
+							CommenterCount   int                `json:"commenter_count"`
+							Dimensions       Dimensions         `json:"dimensions"`
+							DisplayResources []DisplayResources `json:"display_resources"`
+							IsVideo          bool               `json:"is_video"`
+							VideoURL         string             `json:"video_url,omitempty"`
+							DisplayURL       string             `json:"display_url"`
+						}{Text: caption}},
+					},
+				},
+				Owner: Owner{Username: owner},
+			},
 		}
 	}
 
@@ -355,7 +361,7 @@ func (h *Handler) handleImage(data *ShortcodeMedia) []models.InputMedia {
 func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 	type mediaResult struct {
 		index int
-		media *InputMedia
+		media *downloader.InputMedia
 		err   error
 	}
 
@@ -395,9 +401,15 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
+					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
+					if err != nil {
+						slog.Error("Failed to resize thumbnail",
+							"Post Info", []string{h.username, h.postID},
+							"Error", err.Error())
+					}
 					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
 						Filename: filename,
-						Data:     bytes.NewBuffer(result.media.Thumbnail),
+						Data:     bytes.NewBuffer(thumbnail),
 					}
 				}
 			}
@@ -408,8 +420,8 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 	return mediaItems
 }
 
-func (h *Handler) downloadMedia(data Edges) (*InputMedia, error) {
-	var media InputMedia
+func (h *Handler) downloadMedia(data Edges) (*downloader.InputMedia, error) {
+	var media downloader.InputMedia
 	var err error
 
 	if !data.Node.IsVideo {

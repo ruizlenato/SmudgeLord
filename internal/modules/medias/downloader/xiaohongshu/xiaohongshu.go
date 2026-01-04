@@ -18,24 +18,18 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-type Handler struct {
-	username string
-	postID   string
-}
-
 func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
-	postURL := handler.getPostURL(text)
+	postURL := handler.setPostID(text)
 	if postURL == "" {
 		return downloader.PostInfo{}
 	}
-	handler.extractPostID(postURL)
 
 	if postInfo, err := downloader.GetMediaCache(handler.postID); err == nil {
 		return postInfo
 	}
 
-	xiaohongshuData := handler.getPostData(postURL)
+	xiaohongshuData := handler.getXiaohongshuData(postURL)
 	if xiaohongshuData == nil {
 		return downloader.PostInfo{}
 	}
@@ -45,17 +39,19 @@ func Handle(text string) downloader.PostInfo {
 		return downloader.PostInfo{}
 	}
 
+	handler.username = noteData.Note.User.Nickname
+
 	switch noteData.Note.Type {
 	case "video":
 		return downloader.PostInfo{
 			ID:      handler.postID,
-			Medias:  handler.downloadVideo(noteData),
+			Medias:  handler.handleVideo(noteData),
 			Caption: getCaption(noteData),
 		}
 	case "normal":
 		return downloader.PostInfo{
 			ID:      handler.postID,
-			Medias:  handler.downloadImages(noteData),
+			Medias:  handler.handleImages(noteData),
 			Caption: getCaption(noteData),
 		}
 	default:
@@ -63,11 +59,18 @@ func Handle(text string) downloader.PostInfo {
 	}
 }
 
-func (h *Handler) extractPostID(url string) {
-	postIDRegex := regexp.MustCompile(`/(?:explore|item)/(\w+)`)
-	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
-		h.postID = matches[1]
+func (h *Handler) setPostID(text string) string {
+	postURL := h.getPostURL(text)
+	if postURL == "" {
+		return ""
 	}
+
+	postIDRegex := regexp.MustCompile(`/(?:explore|item)/(\w+)`)
+	if matches := postIDRegex.FindStringSubmatch(postURL); len(matches) > 1 {
+		h.postID = matches[1]
+		return postURL
+	}
+	return ""
 }
 
 func (h *Handler) getPostURL(text string) string {
@@ -114,7 +117,7 @@ var (
 	scriptRegex = regexp.MustCompile(`(?m)<script>window.__INITIAL_STATE__=(.+?)</script>`)
 )
 
-func (h *Handler) getPostData(url string) XiaohongshuData {
+func (h *Handler) getXiaohongshuData(url string) XiaohongshuData {
 	var xiaohongshuData XiaohongshuData
 
 	response, err := utils.Request(url, utils.RequestParams{
@@ -161,25 +164,25 @@ func getCaption(noteData Note) string {
 	return caption
 }
 
-func (h *Handler) downloadVideo(noteData Note) []models.InputMedia {
+func (h *Handler) handleVideo(noteData Note) []models.InputMedia {
 	videoInfo := h.findFirstAvailableVideoFormat(noteData.Note.Video.Media.Stream)
 	if videoInfo == nil {
 		slog.Error("No valid video format found",
-			"PostID", h.postID)
+			"Post Info", []string{h.username, h.postID})
 		return nil
 	}
 
 	file, err := downloader.FetchBytesFromURL(videoInfo.MasterURL)
 	if err != nil {
 		slog.Error("Failed to download video",
-			"PostID", h.postID,
+			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 		return nil
 	}
 
 	return []models.InputMedia{&models.InputMediaVideo{
 		Media: "attach://" + utils.SanitizeString(
-			fmt.Sprintf("SmudgeLord-Xiaohongshu_%s", h.postID)),
+			fmt.Sprintf("SmudgeLord-Xiaohongshu_%s_%s", h.username, h.postID)),
 		Width:             videoInfo.Width,
 		Height:            videoInfo.Height,
 		Duration:          videoInfo.Duration / 1000,
@@ -205,7 +208,7 @@ func (h *Handler) findFirstAvailableVideoFormat(stream VideoStream) VideoInfo {
 	return nil
 }
 
-func (h *Handler) downloadImages(noteData Note) []models.InputMedia {
+func (h *Handler) handleImages(noteData Note) []models.InputMedia {
 	type mediaResult struct {
 		index int
 		file  []byte
@@ -248,14 +251,14 @@ func (h *Handler) downloadImages(noteData Note) []models.InputMedia {
 			if noteData.Note.ImageList[result.index].LivePhoto {
 				mediaItems[result.index] = &models.InputMediaVideo{
 					Media: "attach://" + utils.SanitizeString(
-						fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s", result.index, h.postID)),
+						fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", result.index, h.username, h.postID)),
 					SupportsStreaming: true,
 					MediaAttachment:   bytes.NewBuffer(result.file),
 				}
 			} else {
 				mediaItems[result.index] = &models.InputMediaPhoto{
 					Media: "attach://" + utils.SanitizeString(
-						fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s", result.index, h.postID)),
+						fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", result.index, h.username, h.postID)),
 					MediaAttachment: bytes.NewBuffer(result.file),
 				}
 			}

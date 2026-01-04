@@ -1,5 +1,10 @@
 package threads
 
+type Handler struct {
+	username string
+	postID   string
+}
+
 type ThreadsData *struct {
 	Data ThreadsDataData `json:"data"`
 }
@@ -77,9 +82,4 @@ type ImageCandidate struct {
 
 type Caption struct {
 	Text string `json:"text"`
-}
-
-type InputMedia struct {
-	File      []byte
-	Thumbnail []byte
 }

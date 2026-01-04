@@ -16,11 +16,6 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-type Handler struct {
-	username string
-	postID   string
-}
-
 func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
@@ -31,7 +26,7 @@ func Handle(text string) downloader.PostInfo {
 		return postInfo
 	}
 
-	graphQLData := getGQLData(handler.postID)
+	graphQLData := handler.getThreadsData()
 	if graphQLData == nil || graphQLData.Data.Data.Edges == nil {
 		return downloader.PostInfo{}
 	}
@@ -83,7 +78,7 @@ func (h *Handler) setPostID(url string) bool {
 	return true
 }
 
-func getGQLData(postID string) ThreadsData {
+func (h *Handler) getThreadsData() ThreadsData {
 	var threadsData ThreadsData
 
 	lsd := utils.RandomString(10)
@@ -105,7 +100,7 @@ func getGQLData(postID string) ThreadsData {
 			"__relay_internal__pv__BarcelonaUseCometVideoPlaybackEnginerelayprovider":false,
 			"__relay_internal__pv__BarcelonaOptionalCookiesEnabledrelayprovider":false,
 			"__relay_internal__pv__BarcelonaIsViewCountEnabledrelayprovider":false,
-			"__relay_internal__pv__BarcelonaShouldShowFediverseM075Featuresrelayprovider":false}`, postID),
+			"__relay_internal__pv__BarcelonaShouldShowFediverseM075Featuresrelayprovider":false}`, h.postID),
 			`doc_id=7448594591874178`,
 			`lsd=` + lsd,
 		},
@@ -152,7 +147,7 @@ func getCaption(threadsData ThreadsData) string {
 func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 	type mediaResult struct {
 		index int
-		media *InputMedia
+		media *downloader.InputMedia
 		err   error
 	}
 
@@ -162,7 +157,7 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 
 	for i, result := range *post.CarouselMedia {
 		go func(index int, threadsMedia CarouselMedia) {
-			var media InputMedia
+			var media downloader.InputMedia
 			var err error
 			if (*post.CarouselMedia)[index].VideoVersions == nil {
 				media.File, err = downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
@@ -180,7 +175,7 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Failed to download media in carousel",
-				"PostID", h.postID,
+				"Post Info", []string{h.username, h.postID},
 				"Media Count", result.index,
 				"Error", result.err.Error())
 			continue
@@ -203,10 +198,16 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
+					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
+					if err != nil {
+						slog.Error("Failed to resize thumbnail",
+							"Post Info", []string{h.username, h.postID},
+							"Error", err.Error())
+					}
 					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
 						Filename: utils.SanitizeString(
 							fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", result.index, h.username, h.postID)),
-						Data: bytes.NewBuffer(result.media.Thumbnail),
+						Data: bytes.NewBuffer(thumbnail),
 					}
 				}
 			}
@@ -222,7 +223,7 @@ func (h *Handler) handleVideo(post Post) []models.InputMedia {
 	file, err := downloader.FetchBytesFromURL(post.VideoVersions[0].URL)
 	if err != nil {
 		slog.Error("Failed to download video",
-			"PostID", h.postID,
+			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 		return nil
 	}
@@ -230,7 +231,7 @@ func (h *Handler) handleVideo(post Post) []models.InputMedia {
 	thumbnail, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
 		slog.Error("Failed to download thumbnail",
-			"PostID", h.postID,
+			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 		return nil
 	}
@@ -238,7 +239,7 @@ func (h *Handler) handleVideo(post Post) []models.InputMedia {
 	thumbnail, err = utils.ResizeThumbnail(thumbnail)
 	if err != nil {
 		slog.Error("Failed to resize thumbnail",
-			"PostID", h.postID,
+			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
 	}
 

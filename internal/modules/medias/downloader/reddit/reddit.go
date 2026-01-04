@@ -35,7 +35,7 @@ var (
 
 func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
-	if !handler.getPostInfo(text) {
+	if !handler.setPostID(text) {
 		return downloader.PostInfo{}
 	}
 
@@ -55,7 +55,7 @@ func Handle(text string) downloader.PostInfo {
 	}
 }
 
-func (h *Handler) getPostInfo(url string) bool {
+func (h *Handler) setPostID(url string) bool {
 	matches := postInfoRegex.FindStringSubmatch(url)
 	if len(matches) < 3 {
 		return false

@@ -73,8 +73,3 @@ type EdgeSidecarToChildren struct {
 type StoriesData struct {
 	URL string `json:"url"`
 }
-
-type InputMedia struct {
-	File      []byte
-	Thumbnail []byte
-}

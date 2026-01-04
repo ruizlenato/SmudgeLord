@@ -20,7 +20,7 @@ import (
 
 func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
-	if !handler.setUsernameAndPostID(text) {
+	if !handler.setPostID(text) {
 		return downloader.PostInfo{}
 	}
 
@@ -41,7 +41,7 @@ func Handle(text string) downloader.PostInfo {
 	}
 }
 
-func (h *Handler) setUsernameAndPostID(url string) bool {
+func (h *Handler) setPostID(url string) bool {
 	if matches := regexp.MustCompile(`([^/?#]+)/post/([A-Za-z0-9_-]+)`).FindStringSubmatch(url); len(matches) == 3 {
 		h.username = matches[1]
 		h.postID = matches[2]

@@ -68,14 +68,14 @@ func (h *Handler) setPostID(url string) bool {
 func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.PostInfo {
 	type mediaResult struct {
 		index int
-		media *InputMedia
+		media *downloader.InputMedia
 		err   error
 	}
 
 	var invertMedia bool
 
 	allTweetMedia := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media
-	if quotedStatusResult := (*twitterData).Data.TweetResult.QuotedStatusResult; len(allTweetMedia) == 0 && quotedStatusResult != nil {
+	if quotedStatusResult := (*twitterData).Data.TweetResult.QuotedStatusResult; len(allTweetMedia) == 0 && quotedStatusResult != nil && quotedStatusResult.Legacy != nil {
 		invertMedia = true
 		allTweetMedia = quotedStatusResult.Legacy.ExtendedEntities.Media
 	}
@@ -147,8 +147,8 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 	}
 }
 
-func (h *Handler) downloadMedia(twitterMedia Media) (*InputMedia, error) {
-	var media InputMedia
+func (h *Handler) downloadMedia(twitterMedia Media) (*downloader.InputMedia, error) {
+	var media downloader.InputMedia
 	var err error
 
 	if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
@@ -332,7 +332,7 @@ func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
 func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.PostInfo {
 	type mediaResult struct {
 		index int
-		media *InputMedia
+		media *downloader.InputMedia
 		err   error
 	}
 
@@ -353,7 +353,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 
 	for i, media := range allMedia {
 		go func(index int, twitterMedia FxTwitterMedia) {
-			var media InputMedia
+			var media downloader.InputMedia
 			var err error
 			media.File, err = downloader.FetchBytesFromURL(twitterMedia.URL)
 			if err == nil && twitterMedia.Type == "video" {

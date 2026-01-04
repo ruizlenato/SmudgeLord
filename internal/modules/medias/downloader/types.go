@@ -31,3 +31,8 @@ type YouTube struct {
 	Audio   string `json:"audio"`
 	Caption string `json:"caption"`
 }
+
+type InputMedia struct {
+	File      []byte
+	Thumbnail []byte
+}
