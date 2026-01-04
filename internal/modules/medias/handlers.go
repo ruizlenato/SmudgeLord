@@ -129,6 +129,7 @@ func sendSingleMedia(
 	b *bot.Bot,
 	chatID int64,
 	media models.InputMedia,
+	replyParameters *models.ReplyParameters,
 	replyMarkup *models.InlineKeyboardMarkup,
 ) (any, error) {
 	switch media := media.(type) {
@@ -140,6 +141,7 @@ func sendSingleMedia(
 			Caption:               media.Caption,
 			ParseMode:             models.ParseModeHTML,
 			ShowCaptionAboveMedia: media.ShowCaptionAboveMedia,
+			ReplyParameters:       replyParameters,
 			ReplyMarkup:           replyMarkup,
 		})
 	case *models.InputMediaPhoto:
@@ -149,6 +151,7 @@ func sendSingleMedia(
 			Caption:               media.Caption,
 			ParseMode:             models.ParseModeHTML,
 			ShowCaptionAboveMedia: media.ShowCaptionAboveMedia,
+			ReplyParameters:       replyParameters,
 			ReplyMarkup:           replyMarkup,
 		})
 	default:
@@ -182,6 +185,9 @@ func sendMediaAndHandleCaption(
 			b,
 			update.Message.Chat.ID,
 			postInfo.Medias[0],
+			&models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
 			&models.InlineKeyboardMarkup{
 				InlineKeyboard: [][]models.InlineKeyboardButton{{{
 					Text: i18n("open-link", map[string]any{
@@ -201,6 +207,9 @@ func sendMediaAndHandleCaption(
 	}
 
 	if err != nil {
+		if strings.Contains(err.Error(), "Bad Request: not enough rights") {
+			return nil, nil
+		}
 		return nil, fmt.Errorf("couldn't send to chat %d: %w", update.Message.Chat.ID, err)
 	}
 
@@ -219,10 +228,10 @@ func sendMediaAndHandleCaption(
 	var mediasCaption bool
 	if err := database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", update.Message.Chat.ID).Scan(&mediasCaption); err == nil && !mediasCaption {
 		lastMessage := sentMessages[len(sentMessages)-1]
-		_, err = b.EditMessageText(ctx, &bot.EditMessageTextParams{
+		_, err = b.EditMessageCaption(ctx, &bot.EditMessageCaptionParams{
 			ChatID:    update.Message.Chat.ID,
 			MessageID: lastMessage.ID,
-			Text:      fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, i18n("open-link", map[string]any{"service": postInfo.Service})),
+			Caption:   fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, i18n("open-link", map[string]any{"service": postInfo.Service})),
 			ParseMode: models.ParseModeHTML,
 		})
 		if err != nil {
@@ -275,7 +284,11 @@ func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update
 
 		sentMessages, err := sendMediaAndHandleCaption(ctx, b, update, batchPostInfo, url, i18n)
 		if err != nil {
+			if strings.Contains(err.Error(), "too many requests") {
+				return
+			}
 			slog.Error("Couldn't send media batch",
+				"Post URL", url,
 				"Error", err.Error(),
 				"Batch", i/10+1,
 			)
