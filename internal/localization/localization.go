@@ -194,15 +194,3 @@ func HumanizeTimeSince(duration time.Duration, update *models.Update) string {
 
 	return i18n(stringKey, map[string]any{"count": timeDuration})
 }
-
-func getTranslatedTimeSince(i18n func(string, ...any) string, stringKey string, timeDuration int) string {
-	singularKey := fmt.Sprintf("%s.singular", stringKey)
-	pluralKey := fmt.Sprintf("%s.plural", stringKey)
-
-	timeSince := fmt.Sprintf("%d %s", timeDuration, i18n(singularKey))
-	if timeDuration > 1 {
-		timeSince = fmt.Sprintf("%d %s", timeDuration, i18n(pluralKey))
-	}
-
-	return timeSince
-}

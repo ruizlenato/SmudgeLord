@@ -12,7 +12,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -266,63 +265,6 @@ func extractClosingTags(text string) string {
 		result.WriteString(tags[i])
 	}
 	return result.String()
-}
-
-func RemoveTags(text string) string {
-	re := regexp.MustCompile(`(?m)^#.*`)
-	cleanText := re.ReplaceAllString(text, "")
-	return cleanText
-}
-
-func MergeAudioVideo(videoFile, audioFile *os.File) (err error) {
-	if _, err := videoFile.Seek(0, 0); err != nil {
-		return err
-	}
-	if _, err := audioFile.Seek(0, 0); err != nil {
-		return err
-	}
-
-	videoName := videoFile.Name()
-	tempOutput := videoName + ".tmp" + filepath.Ext(videoName)
-	if len(tempOutput) > 255 {
-		tempOutput = tempOutput[255:]
-	}
-	defer func() {
-		err = os.Remove(tempOutput)
-		if err != nil {
-			slog.Error("Couldn't remove temporary file",
-				"Error", err.Error())
-		}
-		err = os.Remove(audioFile.Name())
-		if err != nil {
-			slog.Error("Couldn't remove audio file",
-				"Error", err.Error())
-		}
-	}()
-
-	cmd := exec.Command("ffmpeg",
-		"-i", videoName,
-		"-i", audioFile.Name(),
-		"-c", "copy",
-		"-shortest",
-		"-y", tempOutput,
-	)
-
-	if err = cmd.Run(); err != nil {
-		return err
-	}
-
-	tempFile, err := os.Open(tempOutput)
-	if err != nil {
-		return err
-	}
-	defer tempFile.Close()
-
-	if _, err = io.Copy(videoFile, tempFile); err != nil {
-		return err
-	}
-
-	return err
 }
 
 func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {

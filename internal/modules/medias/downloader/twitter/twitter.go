@@ -337,11 +337,13 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 
 	var allMedia []FxTwitterMedia
 	var invertMedia bool
-	if twitterData.Tweet.Media == nil {
+	if twitterData.Tweet.Media != nil && len(twitterData.Tweet.Media.All) > 0 {
+		allMedia = twitterData.Tweet.Media.All
+	} else if twitterData.Tweet.Quote != nil && twitterData.Tweet.Quote.Media != nil && len(twitterData.Tweet.Quote.Media.All) > 0 {
 		invertMedia = true
 		allMedia = twitterData.Tweet.Quote.Media.All
 	} else {
-		allMedia = twitterData.Tweet.Media.All
+		return downloader.PostInfo{}
 	}
 
 	mediaCount := len(allMedia)
@@ -371,7 +373,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 		}
 		if result.media.File != nil {
 			var mediaItem models.InputMedia
-			if twitterData.Tweet.Media.All[result.index].Type != "video" {
+			if allMedia[result.index].Type != "video" {
 				mediaItem = &models.InputMediaPhoto{
 					Media: "attach://" + utils.SanitizeString(
 						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
@@ -381,8 +383,8 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 				mediaItem = &models.InputMediaVideo{
 					Media: "attach://" + utils.SanitizeString(
 						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
-					Width:             twitterData.Tweet.Media.All[result.index].Width,
-					Height:            twitterData.Tweet.Media.All[result.index].Height,
+					Width:             allMedia[result.index].Width,
+					Height:            allMedia[result.index].Height,
 					SupportsStreaming: true,
 					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}

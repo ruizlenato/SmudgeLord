@@ -158,7 +158,8 @@ func enableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 func disabledHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
-	text := i18n("disabled-commands")
+	var text strings.Builder
+	text.WriteString(i18n("disabled-commands"))
 	commands, err := getDisabledCommands(update.Message.Chat.ID)
 	if err != nil {
 		return
@@ -176,12 +177,12 @@ func disabledHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	for _, command := range commands {
-		text += "\n- <code>" + command + "</code>"
+		text.WriteString("\n- <code>" + command + "</code>")
 	}
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
-		Text:      text,
+		Text:      text.String(),
 		ParseMode: "HTML",
 		ReplyParameters: &models.ReplyParameters{
 			MessageID: update.Message.ID,

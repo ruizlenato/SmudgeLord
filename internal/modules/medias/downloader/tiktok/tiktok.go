@@ -98,7 +98,7 @@ func (h *Handler) getTikTokData() TikTokData {
 		return nil
 	}
 
-	if tikTokData.AwemeList[0].AwemeID != h.postID {
+	if len(tikTokData.AwemeList) == 0 || tikTokData.AwemeList[0].AwemeID != h.postID {
 		return nil
 	}
 
