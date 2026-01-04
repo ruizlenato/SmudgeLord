@@ -38,6 +38,8 @@ type tagPoint struct {
 	pos     int
 	closing bool
 	tag     string
+	start   int
+	end     int
 }
 
 func collectTagPoints(entities []models.MessageEntity) []tagPoint {
@@ -50,11 +52,14 @@ func collectTagPoints(entities []models.MessageEntity) []tagPoint {
 			continue
 		}
 
+		start := int(offset)
+		end := int(offset + length)
+
 		openTag, closeTag := getTag(entity)
 		if openTag != "" {
 			points = append(points,
-				tagPoint{pos: int(offset), closing: false, tag: openTag},
-				tagPoint{pos: int(offset + length), closing: true, tag: closeTag})
+				tagPoint{pos: start, closing: false, tag: openTag, start: start, end: end},
+				tagPoint{pos: end, closing: true, tag: closeTag, start: start, end: end})
 		}
 	}
 
@@ -62,7 +67,13 @@ func collectTagPoints(entities []models.MessageEntity) []tagPoint {
 		if points[i].pos != points[j].pos {
 			return points[i].pos < points[j].pos
 		}
-		return points[i].closing
+		if points[i].closing != points[j].closing {
+			return points[i].closing
+		}
+		if !points[i].closing {
+			return points[i].end > points[j].end
+		}
+		return points[i].start > points[j].start
 	})
 
 	return points
