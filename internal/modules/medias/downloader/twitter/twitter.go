@@ -445,7 +445,7 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 		html.EscapeString(tweet.Core.UserResults.Result.Legacy.ScreenName),
 		html.EscapeString(cleanText(tweetText)))
 
-	if quotedStatusResult != nil {
+	if quotedStatusResult != nil && quotedStatusResult.Legacy != nil && quotedStatusResult.Core.UserResults.Result.Legacy != nil {
 		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
 			html.EscapeString(quotedStatusResult.Core.UserResults.Result.Legacy.Name),
 			html.EscapeString(quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName),
