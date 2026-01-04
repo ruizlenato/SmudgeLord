@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"regexp"
@@ -133,7 +134,8 @@ func getCaption(instagramData *ShortcodeMedia) string {
 		var sb strings.Builder
 
 		if username := instagramData.Owner.Username; username != "" {
-			fmt.Fprintf(&sb, "<a href='instagram.com/%v'><b>%v</b></a>", username, username)
+			escapedUsername := html.EscapeString(username)
+			fmt.Fprintf(&sb, "<a href='instagram.com/%v'><b>%v</b></a>", escapedUsername, escapedUsername)
 		}
 		if coauthors := instagramData.CoauthorProducers; coauthors != nil && len(*coauthors) > 0 {
 			if sb.Len() > 0 {
@@ -143,14 +145,15 @@ func getCaption(instagramData *ShortcodeMedia) string {
 				if i > 0 {
 					sb.WriteString(" <b>&</b> ")
 				}
-				fmt.Fprintf(&sb, "<a href='instagram.com/%v'><b>%v</b></a>", coauthor.Username, coauthor.Username)
+				escapedCoauthor := html.EscapeString(coauthor.Username)
+				fmt.Fprintf(&sb, "<a href='instagram.com/%v'><b>%v</b></a>", escapedCoauthor, escapedCoauthor)
 			}
 		}
 
 		if sb.Len() > 0 {
 			sb.WriteString("\n")
 		}
-		sb.WriteString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text)
+		sb.WriteString(html.EscapeString(instagramData.EdgeMediaToCaption.Edges[0].Node.Text))
 
 		return sb.String()
 	}

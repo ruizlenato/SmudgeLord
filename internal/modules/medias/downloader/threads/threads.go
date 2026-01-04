@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"strings"
@@ -141,11 +142,11 @@ func (h *Handler) processMedia(data ThreadsData) []models.InputMedia {
 }
 
 func getCaption(threadsData ThreadsData) string {
-	username := threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.User.Username
+	username := html.EscapeString(threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.User.Username)
 	return fmt.Sprintf("<b><a href='https://www.threads.net/@%s'>%s</a>:</b>\n%s",
 		username,
 		username,
-		threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text)
+		html.EscapeString(threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text))
 }
 
 func (h *Handler) handleCarousel(post Post) []models.InputMedia {

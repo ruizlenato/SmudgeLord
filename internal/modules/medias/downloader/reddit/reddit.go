@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
@@ -157,7 +158,10 @@ func extractRedlibCaption(body []byte) string {
 	postSubreddit := extract(`(?s)<a class="post_subreddit" href=".*?">([^"]+)</a>`, body)
 	postTitle := extract(`(?s)<h1 class="post_title">(?:.*?</a>)?\s*([^<]+)\s*</h1>`, body)
 
-	return fmt.Sprintf("<b>%s — %s</b>: %s", postAuthor, postSubreddit, postTitle)
+	return fmt.Sprintf("<b>%s — %s</b>: %s",
+		html.EscapeString(postAuthor),
+		html.EscapeString(postSubreddit),
+		html.EscapeString(postTitle))
 }
 
 func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []models.InputMedia {
@@ -471,5 +475,8 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 }
 
 func (h *Handler) processAPICaption(data *Data) string {
-	return fmt.Sprintf("<b>%s — %s</b>: %s", data.SubredditNamePrefixed, data.Author, data.Title)
+	return fmt.Sprintf("<b>%s — %s</b>: %s",
+		html.EscapeString(data.SubredditNamePrefixed),
+		html.EscapeString(data.Author),
+		html.EscapeString(data.Title))
 }

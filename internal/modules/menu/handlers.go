@@ -3,6 +3,7 @@ package menu
 import (
 	"context"
 	"fmt"
+	"html"
 	"log/slog"
 	"os"
 	"strings"
@@ -335,7 +336,7 @@ func menuInline(ctx context.Context, b *bot.Bot, update *models.Update) {
 		},
 		{
 			id:             "weather",
-			title:          i18n("weather-inline-handler"),
+			title:          html.UnescapeString(i18n("weather-inline-handler")),
 			description:    i18n("weather-inline-description"),
 			messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("weather-inline-handler"), i18n("weather-inline-description")),
 		},

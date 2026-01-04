@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"log/slog"
 	"regexp"
 	"slices"
@@ -440,15 +441,15 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 	}
 
 	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
-		tweet.Core.UserResults.Result.Legacy.Name,
-		tweet.Core.UserResults.Result.Legacy.ScreenName,
-		cleanText(tweetText))
+		html.EscapeString(tweet.Core.UserResults.Result.Legacy.Name),
+		html.EscapeString(tweet.Core.UserResults.Result.Legacy.ScreenName),
+		html.EscapeString(cleanText(tweetText)))
 
 	if quotedStatusResult != nil {
 		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
-			quotedStatusResult.Core.UserResults.Result.Legacy.Name,
-			quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName,
-			cleanText(quotedStatusResult.Legacy.FullText))
+			html.EscapeString(quotedStatusResult.Core.UserResults.Result.Legacy.Name),
+			html.EscapeString(quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName),
+			html.EscapeString(cleanText(quotedStatusResult.Legacy.FullText)))
 	}
 
 	return caption.String()
@@ -458,15 +459,15 @@ func getFxTweetCaption(twitterData *FxTwitterAPIData) string {
 	var caption strings.Builder
 
 	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
-		twitterData.Tweet.Author.Name,
-		twitterData.Tweet.Author.ScreenName,
-		twitterData.Tweet.Text)
+		html.EscapeString(twitterData.Tweet.Author.Name),
+		html.EscapeString(twitterData.Tweet.Author.ScreenName),
+		html.EscapeString(twitterData.Tweet.Text))
 
 	if twitterData.Tweet.Quote != nil {
 		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
-			twitterData.Tweet.Quote.Author.Name,
-			twitterData.Tweet.Quote.Author.ScreenName,
-			twitterData.Tweet.Quote.Text)
+			html.EscapeString(twitterData.Tweet.Quote.Author.Name),
+			html.EscapeString(twitterData.Tweet.Quote.Author.ScreenName),
+			html.EscapeString(twitterData.Tweet.Quote.Text))
 	}
 
 	return caption.String()

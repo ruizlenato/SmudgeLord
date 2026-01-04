@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"log/slog"
 	"path"
 	"regexp"
@@ -82,9 +83,9 @@ func (h *Handler) getBlueskyData() BlueskyData {
 
 func getCaption(bluesky BlueskyData) string {
 	return fmt.Sprintf("<b>%s (<code>%s</code>)</b>:\n%s",
-		bluesky.Thread.Post.Author.DisplayName,
-		bluesky.Thread.Post.Author.Handle,
-		bluesky.Thread.Post.Record.Text)
+		html.EscapeString(bluesky.Thread.Post.Author.DisplayName),
+		html.EscapeString(bluesky.Thread.Post.Author.Handle),
+		html.EscapeString(bluesky.Thread.Post.Record.Text))
 }
 
 func (h *Handler) processMedia(data BlueskyData) []models.InputMedia {

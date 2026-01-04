@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"net/url"
@@ -149,12 +150,12 @@ func (h *Handler) getPostData(url string) XiaohongshuData {
 }
 
 func getCaption(noteData Note) string {
-	caption := fmt.Sprintf("<b>%s</b>:", noteData.Note.User.Nickname)
+	caption := fmt.Sprintf("<b>%s</b>:", html.EscapeString(noteData.Note.User.Nickname))
 	if noteData.Note.Title != "" {
-		caption += fmt.Sprintf("\n<b>%s</b>", noteData.Note.Title)
+		caption += fmt.Sprintf("\n<b>%s</b>", html.EscapeString(noteData.Note.Title))
 	}
 	if noteData.Note.Desc != "" {
-		caption += fmt.Sprintf("\n%s", noteData.Note.Desc)
+		caption += fmt.Sprintf("\n%s", html.EscapeString(noteData.Note.Desc))
 	}
 
 	return caption

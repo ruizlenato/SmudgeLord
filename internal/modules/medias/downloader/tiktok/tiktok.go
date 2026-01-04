@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"log/slog"
 	"regexp"
 	"slices"
@@ -110,7 +111,9 @@ func getCaption(tikTokData TikTokData) string {
 		return ""
 	}
 	if tikTokData.AwemeList[0].Author.Nickname != nil && tikTokData.AwemeList[0].Desc != nil {
-		return fmt.Sprintf("<b>%s</b>:\n%s", *tikTokData.AwemeList[0].Author.Nickname, *tikTokData.AwemeList[0].Desc)
+		return fmt.Sprintf("<b>%s</b>:\n%s",
+			html.EscapeString(*tikTokData.AwemeList[0].Author.Nickname),
+			html.EscapeString(*tikTokData.AwemeList[0].Desc))
 	}
 	return ""
 }
