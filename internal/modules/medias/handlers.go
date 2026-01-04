@@ -163,7 +163,7 @@ func sendMediaAndHandleCaption(
 	postInfo downloader.PostInfo,
 	url string,
 	i18n func(string, ...map[string]any) string,
-) error {
+) ([]*models.Message, error) {
 	if _, err := b.SendChatAction(ctx, &bot.SendChatActionParams{
 		ChatID: update.Message.Chat.ID,
 		Action: models.ChatActionUploadDocument,
@@ -201,36 +201,36 @@ func sendMediaAndHandleCaption(
 	}
 
 	if err != nil {
-		return fmt.Errorf("couldn't send media group: %w", err)
+		return nil, fmt.Errorf("couldn't send to chat %d: %w", update.Message.Chat.ID, err)
 	}
 
-	if err := downloader.SetMediaCache(replied, postInfo); err != nil {
-		return fmt.Errorf("couldn't set media cache: %w", err)
+	var sentMessages []*models.Message
+	switch v := replied.(type) {
+	case *models.Message:
+		sentMessages = []*models.Message{v}
+	case []*models.Message:
+		sentMessages = v
 	}
 
 	if update.Message.Chat.Type == models.ChatTypePrivate {
-		return nil
+		return sentMessages, nil
 	}
 
 	var mediasCaption bool
 	if err := database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", update.Message.Chat.ID).Scan(&mediasCaption); err == nil && !mediasCaption {
-		var messageToEdit *models.Message
-		switch v := replied.(type) {
-		case *models.Message:
-			messageToEdit = v
-		case []*models.Message:
-			messageToEdit = v[len(v)-1]
-		}
+		lastMessage := sentMessages[len(sentMessages)-1]
 		_, err = b.EditMessageText(ctx, &bot.EditMessageTextParams{
 			ChatID:    update.Message.Chat.ID,
-			MessageID: messageToEdit.ID,
+			MessageID: lastMessage.ID,
 			Text:      fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, i18n("open-link", map[string]any{"service": postInfo.Service})),
 			ParseMode: models.ParseModeHTML,
 		})
-		return err
+		if err != nil {
+			return sentMessages, err
+		}
 	}
 
-	return nil
+	return sentMessages, nil
 }
 
 func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -261,14 +261,34 @@ func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update
 		return
 	}
 
-	if len(postInfo.Medias) > 10 { // Telegram limits up to 10 images and videos in an album.
-		postInfo.Medias = postInfo.Medias[:10]
+	var allSentMessages []*models.Message
+	totalMedias := len(postInfo.Medias)
+	for i := 0; i < totalMedias; i += 10 {
+		end := min(i+10, totalMedias)
+
+		batchPostInfo := postInfo
+		batchPostInfo.Medias = postInfo.Medias[i:end]
+
+		if i > 0 {
+			batchPostInfo.Caption = ""
+		}
+
+		sentMessages, err := sendMediaAndHandleCaption(ctx, b, update, batchPostInfo, url, i18n)
+		if err != nil {
+			slog.Error("Couldn't send media batch",
+				"Error", err.Error(),
+				"Batch", i/10+1,
+			)
+			continue
+		}
+		allSentMessages = append(allSentMessages, sentMessages...)
 	}
 
-	if err := sendMediaAndHandleCaption(ctx, b, update, postInfo, url, i18n); err != nil {
-		slog.Error("Couldn't send media",
-			"Error", err.Error(),
-		)
+	if len(allSentMessages) > 0 {
+		if err := downloader.SetMediaCache(allSentMessages, postInfo); err != nil {
+			slog.Error("Couldn't set media cache",
+				"Error", err.Error())
+		}
 	}
 }
 
