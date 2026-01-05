@@ -32,8 +32,12 @@ func setUserHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	msgAsk, err := conv.Ask(ctx, &bot.SendMessageParams{
 		Text:      i18n("reply-with-lastfm-username"),
 		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
 		ReplyMarkup: models.ForceReply{
 			ForceReply: true,
+			Selective:  true,
 		},
 	})
 	if err != nil {
