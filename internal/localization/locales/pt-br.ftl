@@ -6,7 +6,7 @@ language-menu =
     <b>Selecione abaixo o idioma que você quer utilizar no bot.</b>
 language-changed = O idioma foi alterado com sucesso.
 measurement-unit = m
-start-button = Inciar uma conversa.
+start-button = Inciar conversa.
 start-message =
     Olá <b>{ $userFirstName }</b> — Eu sou o <b>{ $botName }</b>, um bot com alguns comandos úteis e divertidos para você.
 
@@ -313,6 +313,9 @@ sticker-no-packs =
     Você ainda não tem nenhum pacote de figurinhas.
     Use <code>/newpack</code> ou <code>/kang</code> para roubar uma figurinha e criar um pacote de figurinhas.
 sticker-only-one-pack = Você só tem um pacote de figurinhas. Crie mais com <code>/newpack</code> para poder alternar entre eles.
+sticker-all-packs-full = Todos os seus pacotes de figurinhas estão cheios (120 figurinhas). Crie um novo pacote com <code>/newpack</code>.
+sticker-pack-full-mark = está cheio
+sticker-private-only = Este comando só funciona no privado do bot.
 sticker-mypacks-header = <b>Pacotes de figurinhas de { $userName }</b>
 sticker-switch-header = { sticker-mypacks-header }
     Selecione o pacote que você quer definir como padrão:

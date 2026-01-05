@@ -309,6 +309,9 @@ sticker-no-packs =
     You don't have any sticker packs yet.
      Use <code>/newpack</code> or <code>/kang</code> to steal a sticker and create a sticker pack.
 sticker-only-one-pack = You only have one sticker pack. Create more with <code>/newpack</code> to be able to switch between them.
+sticker-all-packs-full = All your sticker packs are full (120 stickers). Create a new pack with <code>/newpack</code>.
+sticker-pack-full-mark = is full
+sticker-private-only = This command only works in the bot's private chat.
 sticker-mypacks-header = <b>{ $userName }'s sticker packs</b>
 sticker-switch-header = { sticker-mypacks-header }
     Select the pack you want to set as default:

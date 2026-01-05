@@ -36,7 +36,8 @@ type KangData struct {
 
 type ValidatedPack struct {
 	StickerPack
-	Title string
+	Title        string
+	StickerCount int
 }
 
 type kangContext struct {
@@ -48,11 +49,90 @@ type kangContext struct {
 	emoji     []string
 }
 
+func getDisplayName(firstName, username string) string {
+	if username != "" {
+		return "@" + username
+	}
+	return firstName
+}
+
+func requirePrivateChat(ctx context.Context, b *bot.Bot, update *models.Update, i18n func(string, ...map[string]any) string) bool {
+	if update.Message.Chat.Type == "private" {
+		return true
+	}
+
+	botInfo, _ := b.GetMe(ctx)
+	b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID:    update.Message.Chat.ID,
+		Text:      i18n("sticker-private-only"),
+		ParseMode: models.ParseModeHTML,
+		ReplyParameters: &models.ReplyParameters{
+			MessageID: update.Message.ID,
+		},
+		ReplyMarkup: &models.InlineKeyboardMarkup{
+			InlineKeyboard: [][]models.InlineKeyboardButton{{{
+				Text: i18n("start-button"),
+				URL:  fmt.Sprintf("t.me/%s", botInfo.Username),
+			}}},
+		},
+	})
+	return false
+}
+
+func extractEmojis(text string, replySticker *models.Sticker) []string {
+	var emoji []string
+	if text != "" {
+		emoji = append(emoji, emojiRegex.FindAllString(text, -1)...)
+	}
+	if len(emoji) == 0 && replySticker != nil {
+		emoji = append(emoji, replySticker.Emoji)
+	}
+	if len(emoji) == 0 {
+		emoji = append(emoji, "🤔")
+	}
+	return emoji
+}
+
+func buildSwitchPackList(packs []ValidatedPack, userID int64, i18n func(string, ...map[string]any) string) (string, [][]models.InlineKeyboardButton) {
+	var text strings.Builder
+	var buttons [][]models.InlineKeyboardButton
+	buttonIndex := 1
+
+	for _, pack := range packs {
+		if pack.StickerCount >= 120 {
+			fmt.Fprintf(&text, "\nX — %s <b>%s</b>", pack.Title, i18n("sticker-pack-full-mark"))
+			continue
+		}
+		defaultMark := ""
+		if pack.IsDefault {
+			defaultMark = " ✓"
+		}
+		fmt.Fprintf(&text, "\n%d — %s%s", buttonIndex, pack.Title, defaultMark)
+		buttons = append(buttons, []models.InlineKeyboardButton{
+			{
+				Text:         fmt.Sprintf("%d", buttonIndex),
+				CallbackData: fmt.Sprintf("switchPack %d %d", userID, pack.ID),
+			},
+		})
+		buttonIndex++
+	}
+
+	return text.String(), buttons
+}
+
 func editKangError(ctx context.Context, b *bot.Bot, kc *kangContext, i18n func(string, ...map[string]any) string, logMsg string, err error) {
+	editErrorMessage(ctx, b, kc.chatID, kc.msgID, i18n, logMsg, err)
+}
+
+func editStickerError(ctx context.Context, b *bot.Bot, update *models.Update, progMSG *models.Message, i18n func(string, ...map[string]any) string, logMsg string, err error) {
+	editErrorMessage(ctx, b, update.Message.Chat.ID, progMSG.ID, i18n, logMsg, err)
+}
+
+func editErrorMessage(ctx context.Context, b *bot.Bot, chatID int64, msgID int, i18n func(string, ...map[string]any) string, logMsg string, err error) {
 	slog.Error(logMsg, "Error", err.Error())
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    kc.chatID,
-		MessageID: kc.msgID,
+		ChatID:    chatID,
+		MessageID: msgID,
 		Text:      i18n("kang-error"),
 		ParseMode: models.ParseModeHTML,
 	})
@@ -156,20 +236,10 @@ func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 }
 
-func editStickerError(ctx context.Context, b *bot.Bot, update *models.Update, progMSG *models.Message, i18n func(string, ...map[string]any) string, logMsg string, err error) {
-	slog.Error(logMsg, "Error", err.Error())
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.Message.Chat.ID,
-		MessageID: progMSG.ID,
-		Text:      i18n("kang-error"),
-		ParseMode: models.ParseModeHTML,
-	})
-}
-
-func generateStickerSetName(ctx context.Context, b *bot.Bot, userID int64, packNum int) (string, string, error) {
+func generateStickerSetName(ctx context.Context, b *bot.Bot, userID int64, packNum int) (string, error) {
 	botInfo, err := b.GetMe(ctx)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
 
 	shortNamePrefix := "a_"
@@ -177,9 +247,8 @@ func generateStickerSetName(ctx context.Context, b *bot.Bot, userID int64, packN
 		shortNamePrefix = fmt.Sprintf("a_%d_", packNum)
 	}
 	shortNameSuffix := fmt.Sprintf("%d_by_%s", userID, botInfo.Username)
-	stickerSetShortName := shortNamePrefix + shortNameSuffix
 
-	return stickerSetShortName, "", nil
+	return shortNamePrefix + shortNameSuffix, nil
 }
 
 func syncUserPacks(ctx context.Context, b *bot.Bot, userID int64) error {
@@ -402,7 +471,7 @@ func newPackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	packName, _, err := generateStickerSetName(ctx, b, userID, count)
+	packName, err := generateStickerSetName(ctx, b, userID, count)
 	if err != nil {
 		slog.Error("Couldn't generate sticker set name", "Error", err.Error())
 		b.EditMessageText(ctx, &bot.EditMessageTextParams{
@@ -468,16 +537,7 @@ func newPackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		}
 	}
 
-	var emoji []string
-	if update.Message.Text != "" {
-		emoji = append(emoji, emojiRegex.FindAllString(update.Message.Text, -1)...)
-	}
-	if len(emoji) == 0 && update.Message.ReplyToMessage.Sticker != nil {
-		emoji = append(emoji, update.Message.ReplyToMessage.Sticker.Emoji)
-	}
-	if len(emoji) == 0 {
-		emoji = append(emoji, "🤔")
-	}
+	emoji := extractEmojis(update.Message.Text, update.Message.ReplyToMessage.Sticker)
 
 	stickerFilename := normalizeStickerFilename(filepath.Base(b.FileDownloadLink(file)), stickerAction)
 
@@ -536,6 +596,11 @@ func newPackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 func myPacksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
+
+	if !requirePrivateChat(ctx, b, update, i18n) {
+		return
+	}
+
 	userID := update.Message.From.ID
 
 	if err := syncUserPacks(ctx, b, userID); err != nil {
@@ -555,10 +620,7 @@ func myPacksHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	nameTitle := update.Message.From.FirstName
-	if username := update.Message.From.Username; username != "" {
-		nameTitle = "@" + username
-	}
+	nameTitle := getDisplayName(update.Message.From.FirstName, update.Message.From.Username)
 
 	var text strings.Builder
 	text.WriteString(i18n("sticker-mypacks-header", map[string]any{"userName": nameTitle}))
@@ -603,8 +665,9 @@ func validateUserPacks(ctx context.Context, b *bot.Bot, userID int64) []Validate
 			continue
 		}
 		validPacks = append(validPacks, ValidatedPack{
-			StickerPack: pack,
-			Title:       stickerSet.Title,
+			StickerPack:  pack,
+			Title:        stickerSet.Title,
+			StickerCount: len(stickerSet.Stickers),
 		})
 	}
 	return validPacks
@@ -612,6 +675,11 @@ func validateUserPacks(ctx context.Context, b *bot.Bot, userID int64) []Validate
 
 func switchHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
+
+	if !requirePrivateChat(ctx, b, update, i18n) {
+		return
+	}
+
 	userID := update.Message.From.ID
 
 	if err := syncUserPacks(ctx, b, userID); err != nil {
@@ -655,29 +723,25 @@ func switchHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	nameTitle := update.Message.From.FirstName
-	if username := update.Message.From.Username; username != "" {
-		nameTitle = "@" + username
+	nameTitle := getDisplayName(update.Message.From.FirstName, update.Message.From.Username)
+
+	packListText, buttons := buildSwitchPackList(packs, userID, i18n)
+
+	if len(buttons) == 0 {
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("sticker-all-packs-full"),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
 	}
 
 	var text strings.Builder
 	text.WriteString(i18n("sticker-switch-header", map[string]any{"userName": nameTitle}))
-	text.WriteString("\n")
-
-	var buttons [][]models.InlineKeyboardButton
-	for i, pack := range packs {
-		defaultMark := ""
-		if pack.IsDefault {
-			defaultMark = " ✓"
-		}
-		fmt.Fprintf(&text, "\n%d — %s%s", i+1, pack.Title, defaultMark)
-		buttons = append(buttons, []models.InlineKeyboardButton{
-			{
-				Text:         fmt.Sprintf("%d", i+1),
-				CallbackData: fmt.Sprintf("switchPack %d %d", userID, pack.ID),
-			},
-		})
-	}
+	text.WriteString(packListText)
 
 	buttons = append(buttons, []models.InlineKeyboardButton{
 		{
@@ -739,29 +803,13 @@ func switchPackCallback(ctx context.Context, b *bot.Bot, update *models.Update) 
 		return
 	}
 
-	nameTitle := update.CallbackQuery.From.FirstName
-	if username := update.CallbackQuery.From.Username; username != "" {
-		nameTitle = "@" + username
-	}
+	nameTitle := getDisplayName(update.CallbackQuery.From.FirstName, update.CallbackQuery.From.Username)
+
+	packListText, buttons := buildSwitchPackList(packs, ownerID, i18n)
 
 	var text strings.Builder
 	text.WriteString(i18n("sticker-switch-header", map[string]any{"userName": nameTitle}))
-	text.WriteString("\n")
-
-	var buttons [][]models.InlineKeyboardButton
-	for i, pack := range packs {
-		defaultMark := ""
-		if pack.IsDefault {
-			defaultMark = " ✓"
-		}
-		fmt.Fprintf(&text, "\n%d — %s%s", i+1, pack.Title, defaultMark)
-		buttons = append(buttons, []models.InlineKeyboardButton{
-			{
-				Text:         fmt.Sprintf("%d", i+1),
-				CallbackData: fmt.Sprintf("switchPack %d %d", ownerID, pack.ID),
-			},
-		})
-	}
+	text.WriteString(packListText)
 
 	buttons = append(buttons, []models.InlineKeyboardButton{
 		{
@@ -817,10 +865,7 @@ func delPackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	nameTitle := update.Message.From.FirstName
-	if username := update.Message.From.Username; username != "" {
-		nameTitle = "@" + username
-	}
+	nameTitle := getDisplayName(update.Message.From.FirstName, update.Message.From.Username)
 
 	var text strings.Builder
 	text.WriteString(i18n("sticker-delpack-header", map[string]any{"userName": nameTitle}))
@@ -956,7 +1001,7 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 	}
 
 	if len(packs) == 0 {
-		packName, _, err := generateStickerSetName(ctx, b, userID, 0)
+		packName, err := generateStickerSetName(ctx, b, userID, 0)
 		if err != nil {
 			editStickerError(ctx, b, update, progMSG, i18n, "Couldn't generate sticker set name", err)
 			return
@@ -993,28 +1038,17 @@ func kangStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) 
 }
 
 func showPackSelection(ctx context.Context, b *bot.Bot, update *models.Update, progMSG *models.Message, packs []StickerPack, i18n func(string, ...map[string]any) string, stickerAction, stickerType, fileID string) {
-	nameTitle := update.Message.From.FirstName
-	if username := update.Message.From.Username; username != "" {
-		nameTitle = "@" + username
-	}
+	nameTitle := getDisplayName(update.Message.From.FirstName, update.Message.From.Username)
 
 	var text strings.Builder
 	text.WriteString(i18n("sticker-select-pack", map[string]any{"userName": nameTitle}))
 	text.WriteString("\n")
 
-	var emojiStr string
-	if update.Message.Text != "" {
-		emojis := emojiRegex.FindAllString(update.Message.Text, -1)
-		if len(emojis) > 0 {
-			emojiStr = emojis[0]
-		}
+	var replySticker *models.Sticker
+	if update.Message.ReplyToMessage != nil {
+		replySticker = update.Message.ReplyToMessage.Sticker
 	}
-	if emojiStr == "" && update.Message.ReplyToMessage != nil && update.Message.ReplyToMessage.Sticker != nil {
-		emojiStr = update.Message.ReplyToMessage.Sticker.Emoji
-	}
-	if emojiStr == "" {
-		emojiStr = "🤔"
-	}
+	emojiStr := extractEmojis(update.Message.Text, replySticker)[0]
 
 	kangData := KangData{
 		StickerAction: stickerAction,
@@ -1033,7 +1067,7 @@ func showPackSelection(ctx context.Context, b *bot.Bot, update *models.Update, p
 			continue
 		}
 		if len(stickerSet.Stickers) >= 120 {
-			fmt.Fprintf(&text, "\nX — <a href='t.me/addstickers/%s'>%s</a> <b>está cheio</b>", pack.PackName, stickerSet.Title)
+			fmt.Fprintf(&text, "\nX — <a href='t.me/addstickers/%s'>%s</a> <b>%s</b>", pack.PackName, stickerSet.Title, i18n("sticker-pack-full-mark"))
 			continue
 		}
 		fmt.Fprintf(&text, "\n%d — <a href='t.me/addstickers/%s'>%s</a>", i+1, pack.PackName, stickerSet.Title)
@@ -1136,15 +1170,9 @@ func processKangFromCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 }
 
 func processKang(ctx context.Context, b *bot.Bot, update *models.Update, progMSG *models.Message, i18n func(string, ...map[string]any) string, pack *StickerPack, stickerAction, stickerType, fileID string) {
-	var emoji []string
-	if update.Message.Text != "" {
-		emoji = append(emoji, emojiRegex.FindAllString(update.Message.Text, -1)...)
-	}
-	if len(emoji) == 0 && update.Message.ReplyToMessage != nil && update.Message.ReplyToMessage.Sticker != nil {
-		emoji = append(emoji, update.Message.ReplyToMessage.Sticker.Emoji)
-	}
-	if len(emoji) == 0 {
-		emoji = append(emoji, "🤔")
+	var replySticker *models.Sticker
+	if update.Message.ReplyToMessage != nil {
+		replySticker = update.Message.ReplyToMessage.Sticker
 	}
 
 	kc := &kangContext{
@@ -1153,7 +1181,7 @@ func processKang(ctx context.Context, b *bot.Bot, update *models.Update, progMSG
 		userID:    update.Message.From.ID,
 		firstName: update.Message.From.FirstName,
 		username:  update.Message.From.Username,
-		emoji:     emoji,
+		emoji:     extractEmojis(update.Message.Text, replySticker),
 	}
 	processKangSticker(ctx, b, i18n, kc, pack, stickerAction, stickerType, fileID)
 }
@@ -1232,6 +1260,14 @@ func processKangSticker(ctx context.Context, b *bot.Bot, i18n func(string, ...ma
 		kangDataJSON, _ := json.Marshal(kangData)
 		cacheKey := fmt.Sprintf("kangFull:%d:%d", kc.userID, kc.msgID)
 		cache.SetCache(cacheKey, string(kangDataJSON), 5*time.Minute)
+
+		if packDefault, err := getDefaultPack(kc.userID); err == nil &&
+			packDefault != nil && packDefault.PackName == pack.PackName {
+			if err := clearDefaultPack(kc.userID); err != nil {
+				slog.Error("Failed to clear default pack",
+					"error", err.Error())
+			}
+		}
 
 		b.EditMessageText(ctx, &bot.EditMessageTextParams{
 			ChatID:    kc.chatID,
@@ -1361,7 +1397,7 @@ func createNewPackCallback(ctx context.Context, b *bot.Bot, update *models.Updat
 		ParseMode: models.ParseModeHTML,
 	})
 
-	packName, _, err := generateStickerSetName(ctx, b, userID, count)
+	packName, err := generateStickerSetName(ctx, b, userID, count)
 	if err != nil {
 		b.EditMessageText(ctx, &bot.EditMessageTextParams{
 			ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
