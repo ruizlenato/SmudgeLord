@@ -192,7 +192,7 @@ no-link-provided =
     <b>No link provided or the link is invalid.</b>
     You need to specify a valid link from <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> or <i><b>Xiaohongshu/Rednote</i></b> to download the media.
 unsupported-link-title = Unsupported link.
-unsupported-link-help = Currently supported sites are Bluesky, Instagram, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote and YouTube Shorts.
+unsupported-link-description = Currently supported sites are Bluesky, Instagram, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote and YouTube Shorts.
 unsupported-link =
     <b>{ unsupported-link-title }</b>
     { unsupported-link-description }
@@ -281,8 +281,9 @@ get-sticker-animated-not-supported =
 sticker-invalid-media-type = The file you replied to is not valid. You need to reply to an <i><b>sticker</b></i>, <i><b>video</b></i> or <i><b>photo</b></i>.
 sticker-new-pack = <code>Creating a new sticker pack...</code>
 sticker-stoled =
-    Sticker <b>successfully</b> stolen, <a href='t.me/addstickers/{ $stickerSetName }'>check out.</a>
+    Sticker <b>successfully</b> stolen.
     <b>Emoji:</b> { $emoji }
+sticker-stoled-button = Check out
 stickers-help =
     <b>Stickers</b>
 
@@ -290,7 +291,40 @@ stickers-help =
 
     <b>— Commands:</b>
     <b>/kang (emoji):</b> Reply to any sticker to add it to your sticker pack created by me. <b>Works with <i>static, video, and animated</i> stickers.</b>
+
+    <b>/newpack:</b> It works the same way as the <code>/kang</code> command, but creates a new sticker pack when you reply to a sticker.
+    <b>/mypacks:</b> Lists all your sticker packs.
+    <b>/switch:</b> Changes your default sticker pack.
+    <b>/delpack:</b> Deletes one of your sticker packs.
+
     <b>/getsticker:</b> Reply to a sticker to be able to send it as a <i>.png</i> or <i>.gif</i> file. <b>Only works with <i>static or animated</i> stickers.</b>
+sticker-max-packs-reached = You have reached the maximum number of sticker packs (<b>{ $maxPacks }</b>). Delete a pack before creating a new one.
+sticker-creating-pack = <code>Creating new sticker pack...</code>
+sticker-pack-created =
+    Sticker pack <code><b>{ $packTitle }</b></code> created successfully!
+
+    This is your pack <b>#{ $packNum }</b>.
+sticker-newpack-button = Click here to add it
+sticker-no-packs =
+    You don't have any sticker packs yet.
+     Use <code>/newpack</code> or <code>/kang</code> to steal a sticker and create a sticker pack.
+sticker-only-one-pack = You only have one sticker pack. Create more with <code>/newpack</code> to be able to switch between them.
+sticker-mypacks-header = <b>{ $userName }'s sticker packs</b>
+sticker-switch-header = { sticker-mypacks-header }
+    Select the pack you want to set as default:
+sticker-delpack-header = { sticker-mypacks-header }
+    Select the pack you want to <b>delete</b>:
+sticker-select-pack = { sticker-mypacks-header }
+    Select which pack to add the sticker to:
+sticker-default-changed = Default pack changed successfully!
+sticker-switch-none-button = None
+sticker-pack-deleted = Sticker pack deleted successfully!
+sticker-kang-expired = This request has expired. Please use /kang again.
+sticker-pack-full =
+    The sticker pack <b>{ $packName }</b> has reached the limit of <b>{ $stickerCount }</b> stickers.
+
+    Would you like to create a new pack to add this sticker?
+sticker-create-new-pack-button = Create new pack
 lastfm = Last.FM
 reply-with-lastfm-username =
     <b>Reply to this message with your Last.fm username.</b>

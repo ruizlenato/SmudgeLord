@@ -57,6 +57,13 @@ func CreateTables() error {
 			command TEXT NOT NULL,
 			PRIMARY KEY (chat_id, command)
 		);
+		CREATE TABLE IF NOT EXISTS sticker_packs (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			user_id INTEGER NOT NULL,
+			pack_name TEXT NOT NULL,
+			is_default BOOLEAN DEFAULT 0,
+			UNIQUE(user_id, pack_name)
+		);
 	`
 	_, err := DB.Exec(query)
 	return err
@@ -64,9 +71,13 @@ func CreateTables() error {
 
 func Close() {
 	if DB != nil {
-		err := DB.Close()
-		if err == nil {
-			fmt.Println("Database closed")
+		if err := DB.Close(); err != nil {
+			slog.Error(
+				"Error closing database",
+				"error", err.Error(),
+			)
+		} else {
+			fmt.Println("[!] — Database closed")
 		}
 	}
 }

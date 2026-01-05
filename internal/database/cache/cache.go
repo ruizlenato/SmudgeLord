@@ -95,3 +95,14 @@ func GetCache(key string) (string, error) {
 
 	return result.ToString()
 }
+
+func DeleteCache(key string) error {
+	if !isHealthy() {
+		slog.Info("cache client is not healthy, skipping DeleteCache")
+		return nil
+	}
+
+	ctx := context.Background()
+	err := client.Do(ctx, client.B().Del().Key(key).Build()).Error()
+	return err
+}

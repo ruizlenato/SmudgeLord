@@ -285,8 +285,9 @@ get-sticker-animated-not-supported =
 sticker-invalid-media-type = O arquivo que você respondeu não é valido, responda a uma <i><b>figurinha</b></i> (sticker), um <i><b>vídeo</b></i> ou <i><b>uma foto</b></i>.
 sticker-new-pack = <code>Criando um novo pacote de figurinhas...</code>
 sticker-stoled =
-    Figurinha roubada <b>com sucesso</b>, <a href='t.me/addstickers/{ $stickerSetName }'>confira.</a>
+    Figurinha roubada <b>com sucesso</b>
     <b>Emoji:</b> { $emoji }
+sticker-stoled-button = Confira
 stickers-help =
     <b>Figurinhas — Stickers</b>
 
@@ -294,7 +295,40 @@ stickers-help =
 
     <b>— Comandos:</b>
     <b>/kang (emoji):</b> Responda a qualquer figurinha para adicioná-la ao seu pacote de figurinhas criado por mim. <b>Funciona com figurinha <i>estáticas, de vídeo e animadas.</i></b>
+
+    <b>/newpack:</b> Funciona da mesma forma que o comando <code>/kang</code>, mas cria um novo pacote de stickers quando você responde a um sticker.
+    <b>/mypacks:</b> Lista todos os seus pacotes de figurinhas.
+    <b>/switch:</b> Altera seu pacote de figurinhas padrão.
+    <b>/delpack:</b> Deleta um dos seus pacotes de figurinhas.
+
     <b>/getsticker:</b> Responda a uma figurinha para que eu possa enviá-la como arquivo <i>.png</i> ou <i>.gif</i>. <b>Funciona apenas com figurinhas <i>de vídeo ou estáticas.</i></b>
+sticker-max-packs-reached = Você atingiu o número máximo de pacotes de figurinhas (<b>{ $maxPacks }</b>). Delete um pacote antes de criar um novo.
+sticker-creating-pack = <code>Criando novo pacote de figurinhas...</code>
+sticker-pack-created =
+    Pacote de figurinhas <code><b>{ $packTitle }</b></code> criado com sucesso!
+
+    Este é seu pacote <b>#{ $packNum }</b>.
+sticker-newpack-button = Clique aqui para adicioná-lo
+sticker-no-packs =
+    Você ainda não tem nenhum pacote de figurinhas.
+    Use <code>/newpack</code> ou <code>/kang</code> para roubar uma figurinha e criar um pacote de figurinhas.
+sticker-only-one-pack = Você só tem um pacote de figurinhas. Crie mais com <code>/newpack</code> para poder alternar entre eles.
+sticker-mypacks-header = <b>Pacotes de figurinhas de { $userName }</b>
+sticker-switch-header = { sticker-mypacks-header }
+    Selecione o pacote que você quer definir como padrão:
+sticker-delpack-header = { sticker-mypacks-header }
+    Selecione o pacote que você quer <b>deletar</b>:
+sticker-select-pack = { sticker-mypacks-header }
+    Selecione em qual pacote você quer adicionar a figurinha:
+sticker-default-changed = Pacote padrão alterado com sucesso!
+sticker-switch-none-button = Nenhum
+sticker-pack-deleted = Pacote de figurinhas deletado com sucesso!
+sticker-kang-expired = Esta solicitação expirou. Por favor, use /kang novamente.
+sticker-pack-full =
+    O pacote de figurinhas <code><b>{ $packName }</b></code> atingiu o limite de <b>{ $stickerCount }</b> figurinhas.
+
+    Gostaria de criar um novo pacote para adicionar esta figurinha?
+sticker-create-new-pack-button = Criar novo pacote
 lastfm = Last.FM
 reply-with-lastfm-username =
     <b>Responda a esta mensagem com seu nome de usuário do Last.fm.</b>
