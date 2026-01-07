@@ -385,6 +385,9 @@ func youtubeDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Upda
 }
 
 func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	message := update.CallbackQuery.Message.Message
 	i18n := localization.Get(update)
 

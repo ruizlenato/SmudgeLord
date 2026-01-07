@@ -762,6 +762,9 @@ func switchHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func switchPackCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	parts := strings.Split(update.CallbackQuery.Data, " ")
@@ -894,6 +897,9 @@ func delPackHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func delPackCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	parts := strings.Split(update.CallbackQuery.Data, " ")
@@ -1093,6 +1099,9 @@ func showPackSelection(ctx context.Context, b *bot.Bot, update *models.Update, p
 }
 
 func kangPackCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	parts := strings.Split(update.CallbackQuery.Data, " ")
@@ -1336,6 +1345,9 @@ func processKangSticker(ctx context.Context, b *bot.Bot, i18n func(string, ...ma
 }
 
 func createNewPackCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 	userID := update.CallbackQuery.From.ID
 

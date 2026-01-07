@@ -91,6 +91,9 @@ func GetChatLanguage(update *models.Update) (string, error) {
 		chatID = update.Message.Chat.ID
 		chatType = update.Message.Chat.Type
 	} else if update.CallbackQuery != nil {
+		if update.CallbackQuery.Message.Message == nil {
+			return "", errors.New("callback query message is inaccessible")
+		}
 		chatID = update.CallbackQuery.Message.Message.Chat.ID
 		chatType = update.CallbackQuery.Message.Message.Chat.Type
 	} else if update.InlineQuery != nil {

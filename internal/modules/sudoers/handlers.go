@@ -22,6 +22,9 @@ func announceHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	message := update.Message
 
 	if message == nil {
+		if update.CallbackQuery.Message.Message == nil {
+			return
+		}
 		message = update.CallbackQuery.Message.Message
 		lang = strings.ReplaceAll(update.CallbackQuery.Data, "announce ", "")
 	}

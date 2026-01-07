@@ -355,6 +355,9 @@ func weatherSearchResult(geocode, language string, i18n func(string, ...map[stri
 }
 
 func callbackWeather(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	chatLang, err := localization.GetChatLanguage(update)

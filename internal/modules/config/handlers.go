@@ -191,6 +191,9 @@ func disabledHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func languageMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	buttons := make([][]models.InlineKeyboardButton, 0, len(database.AvailableLocales))
@@ -226,6 +229,9 @@ func languageMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update
 }
 
 func setLanguageCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 	lang := strings.ReplaceAll(update.CallbackQuery.Data, "setLang ", "")
 
@@ -298,6 +304,9 @@ func configHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func configCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
@@ -316,6 +325,9 @@ func getMediaConfig(chatID int64) (bool, bool, error) {
 }
 
 func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	mediasCaption, mediasAuto, err := getMediaConfig(update.CallbackQuery.Message.Message.Chat.ID)
 	if err != nil {
 		slog.Error("Couldn't query media config",

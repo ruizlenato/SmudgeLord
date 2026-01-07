@@ -94,6 +94,9 @@ func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func startCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 	botUser, err := b.GetMe(ctx)
 	if err != nil {
@@ -160,6 +163,9 @@ func privacyHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func privacyCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
@@ -190,6 +196,9 @@ func privacyCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func aboutMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
@@ -230,6 +239,9 @@ func aboutMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func aboutYourDataCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
@@ -254,6 +266,9 @@ func aboutYourDataCallback(ctx context.Context, b *bot.Bot, update *models.Updat
 }
 
 func helpMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 
 	b.EditMessageText(ctx, &bot.EditMessageTextParams{
@@ -271,6 +286,9 @@ func helpMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
 }
 
 func helpMessageCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.CallbackQuery.Message.Message == nil {
+		return
+	}
 	i18n := localization.Get(update)
 	module := strings.ReplaceAll(update.CallbackQuery.Data, "helpMessage ", "")
 
