@@ -140,7 +140,9 @@ func editErrorMessage(ctx context.Context, b *bot.Bot, chatID int64, msgID int, 
 
 func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	i18n := localization.Get(update)
-	if update.Message.ReplyToMessage == nil {
+	replySticker := update.Message.ReplyToMessage.Sticker
+
+	if update.Message.ReplyToMessage == nil || replySticker == nil {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
 			Text:      i18n("get-sticker-no-reply-provided"),
@@ -151,7 +153,7 @@ func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		})
 		return
 	}
-	replySticker := update.Message.ReplyToMessage.Sticker
+
 	if replySticker.IsAnimated {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
@@ -164,75 +166,73 @@ func getStickerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	if replySticker != nil {
-		file, err := b.GetFile(ctx, &bot.GetFileParams{FileID: replySticker.FileID})
-		if err != nil {
-			slog.Error("Couldn't get file", "Error", err.Error())
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:    update.Message.Chat.ID,
-				Text:      i18n("kang-error"),
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: update.Message.ID,
-				},
-			})
-			return
-		}
-
-		response, err := http.Get(b.FileDownloadLink(file))
-		if err != nil {
-			slog.Error("Couldn't download file", "Error", err.Error())
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:    update.Message.Chat.ID,
-				Text:      i18n("kang-error"),
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: update.Message.ID,
-				},
-			})
-			return
-		}
-		defer response.Body.Close()
-
-		bodyBytes, err := io.ReadAll(response.Body)
-		if err != nil {
-			slog.Error("Couldn't read body", "Error", err.Error())
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:    update.Message.Chat.ID,
-				Text:      i18n("kang-error"),
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: update.Message.ID,
-				},
-			})
-			return
-		}
-
-		filename := filepath.Base(b.FileDownloadLink(file))
-		if replySticker.IsVideo {
-			filename = fmt.Sprintf("%s.gif", filename[:len(filename)-4])
-		}
-		_, err = b.SendDocument(ctx, &bot.SendDocumentParams{
-			ChatID: update.Message.Chat.ID,
-			Document: &models.InputFileUpload{
-				Filename: filename,
-				Data:     bytes.NewBuffer(bodyBytes),
+	file, err := b.GetFile(ctx, &bot.GetFileParams{FileID: replySticker.FileID})
+	if err != nil {
+		slog.Error("Couldn't get file", "Error", err.Error())
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("kang-error"),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
 			},
-			Caption:                     fmt.Sprintf("<b>Emoji: %s</b>\n<b>ID:</b> <code>%s</code>", replySticker.Emoji, replySticker.FileID),
-			ParseMode:                   models.ParseModeHTML,
-			DisableContentTypeDetection: *bot.True(),
 		})
-		if err != nil {
-			slog.Error("Couldn't send document", "Error", err.Error())
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:    update.Message.Chat.ID,
-				Text:      i18n("kang-error"),
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: update.Message.ID,
-				},
-			})
-		}
+		return
+	}
+
+	response, err := http.Get(b.FileDownloadLink(file))
+	if err != nil {
+		slog.Error("Couldn't download file", "Error", err.Error())
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("kang-error"),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
+	}
+	defer response.Body.Close()
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		slog.Error("Couldn't read body", "Error", err.Error())
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("kang-error"),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
+		return
+	}
+
+	filename := filepath.Base(b.FileDownloadLink(file))
+	if replySticker.IsVideo {
+		filename = fmt.Sprintf("%s.gif", filename[:len(filename)-4])
+	}
+	_, err = b.SendDocument(ctx, &bot.SendDocumentParams{
+		ChatID: update.Message.Chat.ID,
+		Document: &models.InputFileUpload{
+			Filename: filename,
+			Data:     bytes.NewBuffer(bodyBytes),
+		},
+		Caption:                     fmt.Sprintf("<b>Emoji: %s</b>\n<b>ID:</b> <code>%s</code>", replySticker.Emoji, replySticker.FileID),
+		ParseMode:                   models.ParseModeHTML,
+		DisableContentTypeDetection: *bot.True(),
+	})
+	if err != nil {
+		slog.Error("Couldn't send document", "Error", err.Error())
+		b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID:    update.Message.Chat.ID,
+			Text:      i18n("kang-error"),
+			ParseMode: models.ParseModeHTML,
+			ReplyParameters: &models.ReplyParameters{
+				MessageID: update.Message.ID,
+			},
+		})
 	}
 }
 
