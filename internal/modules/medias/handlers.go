@@ -141,6 +141,7 @@ func sendSingleMedia(
 			Caption:               media.Caption,
 			ParseMode:             models.ParseModeHTML,
 			ShowCaptionAboveMedia: media.ShowCaptionAboveMedia,
+			SupportsStreaming:     true,
 			ReplyParameters:       replyParameters,
 			ReplyMarkup:           replyMarkup,
 		})
@@ -745,6 +746,7 @@ func uploadMediaToLogChannel(ctx context.Context, b *bot.Bot, media models.Input
 			},
 			Thumbnail:             m.Thumbnail,
 			ShowCaptionAboveMedia: invertMedia,
+			SupportsStreaming:     true,
 		})
 	default:
 		return nil, fmt.Errorf("unsupported media type: %T", media)

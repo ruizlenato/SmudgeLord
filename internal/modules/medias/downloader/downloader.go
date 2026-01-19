@@ -405,6 +405,7 @@ func GetMediaCache(postID string) (PostInfo, error) {
 			inputMedias = append(inputMedias, &models.InputMediaVideo{
 				Media:                 media,
 				ShowCaptionAboveMedia: medias.InvertMedia,
+				SupportsStreaming:     true,
 			})
 		}
 	}
