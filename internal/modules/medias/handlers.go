@@ -137,6 +137,9 @@ func sendSingleMedia(
 		return b.SendVideo(ctx, &bot.SendVideoParams{
 			ChatID:                chatID,
 			Video:                 getInputFile(media.Media, media.MediaAttachment),
+			Duration:              media.Duration,
+			Width:                 media.Width,
+			Height:                media.Height,
 			Thumbnail:             media.Thumbnail,
 			Caption:               media.Caption,
 			ParseMode:             models.ParseModeHTML,
