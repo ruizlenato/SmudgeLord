@@ -25,6 +25,7 @@ func RedisClient(addr string, password string, db int) error {
 		return err
 	}
 
+	clientInitialized = true
 	return nil
 }
 
