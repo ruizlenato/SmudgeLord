@@ -31,4 +31,5 @@ require (
 	github.com/grafov/m3u8 v0.12.1
 	github.com/kkdai/youtube/v2 v2.10.5
 	github.com/redis/go-redis/v9 v9.7.3
+	golang.org/x/image v0.36.0
 )

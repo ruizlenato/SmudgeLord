@@ -7,6 +7,7 @@ import (
 	"image/png"
 
 	"github.com/anthonynsimon/bild/transform"
+	"golang.org/x/image/webp"
 )
 
 func ResizeSticker(input []byte) ([]byte, error) {
@@ -59,9 +60,26 @@ func processThumbnailImage(img image.Image) ([]byte, error) {
 }
 
 func ResizeThumbnail(input []byte) ([]byte, error) {
-	img, _, err := image.Decode(bytes.NewReader(input))
+	img, err := decodeImage(bytes.NewReader(input))
 	if err != nil {
 		return nil, err
 	}
 	return processThumbnailImage(img)
+}
+
+func decodeImage(r *bytes.Reader) (image.Image, error) {
+	header := make([]byte, 12)
+	n, err := r.Read(header)
+	if err != nil || n < 12 {
+		return nil, err
+	}
+
+	r.Seek(0, 0)
+
+	if len(header) >= 12 && string(header[0:4]) == "RIFF" && string(header[8:12]) == "WEBP" {
+		return webp.Decode(r)
+	}
+
+	img, _, err := image.Decode(r)
+	return img, err
 }
