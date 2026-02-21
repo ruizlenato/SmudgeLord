@@ -2,10 +2,10 @@ module github.com/ruizlenato/smudgelord
 
 go 1.24.9
 
-replace github.com/go-telegram/bot v1.17.0 => github.com/ruizlenato/bot v1.17.1
+replace github.com/go-telegram/bot v1.19.0 => github.com/ruizlenato/bot v1.19.0
 
 require (
-	github.com/go-telegram/bot v1.17.0
+	github.com/go-telegram/bot v1.19.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lus/fluent.go v0.0.0-20240613180830-a11a6bbd90a9
 	github.com/mattn/go-sqlite3 v1.14.32
@@ -13,7 +13,7 @@ require (
 
 require (
 	github.com/anthonynsimon/bild v0.14.0
-	golang.org/x/text v0.32.0
+	golang.org/x/text v0.34.0
 )
 
 require (
