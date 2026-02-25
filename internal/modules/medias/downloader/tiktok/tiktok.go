@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html"
 	"log/slog"
+	"maps"
 	"regexp"
 	"slices"
 	"time"
@@ -82,9 +83,13 @@ func (h *Handler) setPostID(url string) bool {
 func (h *Handler) getTikTokData() TikTokData {
 	TikTokQueryParams["aweme_id"] = h.postID
 
+	headers := make(map[string]string, len(downloader.GenericHeaders))
+	maps.Copy(headers, downloader.GenericHeaders)
+	headers["User-Agent"] = "SmudgeLord/69.0 (+https://github.com/ruizlenato/SmudgeLord)"
+
 	response, err := utils.Request("https://api16-normal-c-useast1a.tiktokv.com/aweme/v1/feed/", utils.RequestParams{
 		Method:  "OPTIONS",
-		Headers: downloader.GenericHeaders,
+		Headers: headers,
 		Query:   TikTokQueryParams,
 	})
 
