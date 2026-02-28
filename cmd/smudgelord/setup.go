@@ -60,6 +60,74 @@ func InitializeServices(b *bot.Bot, ctx context.Context) error {
 		}
 	}
 
+	startDatabaseBackupRoutine(ctx, b)
+
+	return nil
+}
+
+func startDatabaseBackupRoutine(ctx context.Context, b *bot.Bot) {
+	if b == nil || config.LogChannelID == 0 || config.DatabaseFile == "" {
+		return
+	}
+
+	ticker := time.NewTicker(time.Hour)
+
+	go func() {
+		defer ticker.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				if err := sendDatabaseBackup(b); err != nil {
+					slog.Error("failed to send database backup",
+						"error", err.Error(),
+					)
+				}
+			}
+		}
+	}()
+}
+
+func sendDatabaseBackup(b *bot.Bot) error {
+	backupPath, err := database.CreateBackupFile()
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err := os.Remove(backupPath); err != nil {
+			slog.Warn("failed to remove temporary backup file",
+				"path", backupPath,
+				"error", err.Error(),
+			)
+		}
+	}()
+
+	backupFile, err := os.Open(backupPath)
+	if err != nil {
+		return fmt.Errorf("open backup file: %w", err)
+	}
+	defer backupFile.Close()
+
+	sendCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	_, err = b.SendDocument(sendCtx, &bot.SendDocumentParams{
+		ChatID: config.LogChannelID,
+		Document: &models.InputFileUpload{
+			Filename: filepath.Base(backupPath),
+			Data:     backupFile,
+		},
+		Caption:                     "<b>DATABASE BACKUP</b>",
+		ParseMode:                   models.ParseModeHTML,
+		DisableContentTypeDetection: *bot.True(),
+	})
+	if err != nil {
+		return fmt.Errorf("send backup to telegram: %w", err)
+	}
+
 	return nil
 }
 

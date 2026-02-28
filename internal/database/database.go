@@ -5,7 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 	"slices"
+	"strings"
+	"time"
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
@@ -30,6 +34,28 @@ func Open(databaseFile string) error {
 
 	DB = db
 	return nil
+}
+
+func CreateBackupFile() (string, error) {
+	if DB == nil {
+		return "", fmt.Errorf("database is not initialized")
+	}
+
+	backupPath := filepath.Join(
+		os.TempDir(),
+		fmt.Sprintf("smudgelord-backup-%s.db", time.Now().UTC().Format("20060102-150405")),
+	)
+
+	if _, err := DB.Exec("PRAGMA wal_checkpoint(TRUNCATE);"); err != nil {
+		return "", fmt.Errorf("wal checkpoint: %w", err)
+	}
+
+	escapedPath := strings.ReplaceAll(backupPath, "'", "''")
+	if _, err := DB.Exec(fmt.Sprintf("VACUUM INTO '%s';", escapedPath)); err != nil {
+		return "", fmt.Errorf("vacuum into backup file: %w", err)
+	}
+
+	return backupPath, nil
 }
 
 func CreateTables() error {
