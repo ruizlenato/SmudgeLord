@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
@@ -11,8 +12,11 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/go-telegram/bot"
+	"github.com/go-telegram/bot/models"
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
@@ -64,9 +68,11 @@ type ColorHandler struct {
 	out     io.Writer
 	colors  map[slog.Level]string
 	opts    *slog.HandlerOptions
+	b       *bot.Bot
+	chatID  int64
 }
 
-func NewColorHandler(out io.Writer, opts *slog.HandlerOptions) *ColorHandler {
+func NewColorHandler(out io.Writer, opts *slog.HandlerOptions, b *bot.Bot, chatID int64) *ColorHandler {
 	if opts == nil {
 		opts = &slog.HandlerOptions{}
 	}
@@ -75,6 +81,8 @@ func NewColorHandler(out io.Writer, opts *slog.HandlerOptions) *ColorHandler {
 		handler: slog.NewTextHandler(out, opts),
 		out:     out,
 		opts:    opts,
+		b:       b,
+		chatID:  chatID,
 		colors: map[slog.Level]string{
 			slog.LevelError: "\033[0;31m", // red
 			slog.LevelWarn:  "\033[0;33m", // yellow
@@ -128,8 +136,13 @@ func (h *ColorHandler) Handle(ctx context.Context, r slog.Record) error {
 	if r.NumAttrs() > 0 {
 		jsonBytes, err := json.MarshalIndent(attrs, "", "  ")
 		if err == nil {
-			jsonAttrs = " " + string(jsonBytes)
+			jsonAttrs = string(jsonBytes)
 		}
+	}
+
+	terminalAttrs := ""
+	if jsonAttrs != "" {
+		terminalAttrs = " " + jsonAttrs
 	}
 
 	msg := fmt.Sprintf("%s%s %s%s%s: %s%s%s\n",
@@ -140,11 +153,41 @@ func (h *ColorHandler) Handle(ctx context.Context, r slog.Record) error {
 		colorWhiteBold,
 		r.Message,
 		colorReset,
-		jsonAttrs,
+		terminalAttrs,
 	)
 
 	_, err := h.out.Write([]byte(msg))
+
+	h.sendToTelegram(r, jsonAttrs)
+
 	return err
+}
+
+func (h *ColorHandler) sendToTelegram(r slog.Record, jsonAttrs string) {
+	if h.b == nil || h.chatID == 0 {
+		return
+	}
+
+	message := fmt.Sprintf("<b>%s</b>: %s", strings.ToUpper(r.Level.String()), html.EscapeString(r.Message))
+	if jsonAttrs != "" {
+		message += "\n<pre><code class=\"language-json\">" + html.EscapeString(jsonAttrs) + "</code></pre>"
+	}
+	if len(message) > 4096 {
+		message = message[:4093] + "..."
+	}
+
+	go func() {
+		sendCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		if _, err := h.b.SendMessage(sendCtx, &bot.SendMessageParams{
+			ChatID:    h.chatID,
+			Text:      message,
+			ParseMode: models.ParseModeHTML,
+		}); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "failed to send slog to telegram: %v\n", err)
+		}
+	}()
 }
 
 func (h *ColorHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
@@ -152,6 +195,8 @@ func (h *ColorHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 		handler: h.handler.WithAttrs(attrs),
 		out:     h.out,
 		opts:    h.opts,
+		b:       h.b,
+		chatID:  h.chatID,
 		colors:  h.colors,
 	}
 }
@@ -161,6 +206,8 @@ func (h *ColorHandler) WithGroup(name string) slog.Handler {
 		handler: h.handler.WithGroup(name),
 		out:     h.out,
 		opts:    h.opts,
+		b:       h.b,
+		chatID:  h.chatID,
 		colors:  h.colors,
 	}
 }

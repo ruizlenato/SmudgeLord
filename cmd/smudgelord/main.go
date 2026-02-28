@@ -24,7 +24,7 @@ func main() {
 	logger := slog.New(NewColorHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 		Level:     config.LogLevel,
-	}))
+	}, nil, 0))
 	slog.SetDefault(logger)
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -52,6 +52,11 @@ func main() {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
+
+	slog.SetDefault(slog.New(NewColorHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     config.LogLevel,
+	}, b, config.LogChannelID)))
 
 	if err := InitializeServices(b, ctx); err != nil {
 		slog.Error(err.Error())
