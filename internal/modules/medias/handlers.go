@@ -474,7 +474,7 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 	})
 
 	b.SendChatAction(ctx, &bot.SendChatActionParams{
-		ChatID: update.CallbackQuery.Message.Message.ID,
+		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
 		Action: action,
 	})
 
@@ -553,7 +553,7 @@ func trySendCachedYoutubeMedia(ctx context.Context, b *bot.Bot, update *models.U
 	var err error
 
 	if update.CallbackQuery == nil || update.CallbackQuery.Message.Message == nil {
-		return false, errors.New("missing callback message")
+		return false, fmt.Errorf("missing callback message")
 	}
 
 	chatID := update.CallbackQuery.Message.Message.Chat.ID
