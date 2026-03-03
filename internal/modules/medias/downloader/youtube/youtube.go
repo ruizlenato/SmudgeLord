@@ -13,14 +13,14 @@ import (
 	"time"
 
 	"github.com/go-telegram/bot/models"
-	"github.com/kkdai/youtube/v2"
+	"github.com/ruizlenato/youtubedl"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func getVideoFormat(video *youtube.Video, itag int) (*youtube.Format, error) {
+func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error) {
 	formats := video.Formats.Itag(itag)
 	if len(formats) == 0 {
 		return nil, errors.New("invalid itag")
@@ -40,7 +40,12 @@ func getVideoFormat(video *youtube.Video, itag int) (*youtube.Format, error) {
 	return &formats[0], nil
 }
 
-func ConfigureYoutubeClient() youtube.Client {
+func ConfigureYoutubeClient() *youtubedl.Client {
+	var ytClient *youtubedl.Client
+	var err error
+	const maxRetries = 5
+	const retryDelay = 5 * time.Second
+
 	if config.Socks5Proxy != "" {
 		proxyURL, parseErr := url.Parse(config.Socks5Proxy)
 		if parseErr != nil {
@@ -49,7 +54,7 @@ func ConfigureYoutubeClient() youtube.Client {
 				"Proxy", config.Socks5Proxy,
 				"Error", parseErr.Error(),
 			)
-			return youtube.Client{}
+			return nil
 		}
 		httpClient := &http.Client{
 			Transport: &http.Transport{
@@ -60,13 +65,43 @@ func ConfigureYoutubeClient() youtube.Client {
 			},
 			Timeout: 120 * time.Second,
 		}
-		return youtube.Client{HTTPClient: httpClient}
+		for attempt := 1; attempt <= maxRetries; attempt++ {
+			ytClient, err = youtubedl.New(youtubedl.WithHTTPClient(httpClient))
+			if err == nil {
+				return ytClient
+			}
+			slog.Warn(
+				"Couldn't create youtube-dl client with proxy",
+				"Attempt", attempt,
+				"MaxRetries", maxRetries,
+				"Error", err.Error(),
+			)
+			if attempt < maxRetries {
+				time.Sleep(retryDelay)
+			}
+			httpClient.CloseIdleConnections()
+		}
+		slog.Error(
+			"Couldn't create youtube-dl client with proxy after max retries",
+			"MaxRetries", maxRetries,
+			"Error", err.Error(),
+		)
+		return nil
 	}
 
-	return youtube.Client{}
+	ytClient, err = youtubedl.New()
+	if err != nil {
+		slog.Error(
+			"Couldn't create youtube-dl client",
+			"Error", err.Error(),
+		)
+		return nil
+	}
+
+	return ytClient
 }
 
-func downloadStream(youtubeClient youtube.Client, video *youtube.Video, format *youtube.Format) ([]byte, error) {
+func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, format *youtubedl.Format) ([]byte, error) {
 	for attempt := 1; attempt <= 5; attempt++ {
 		stream, _, err := youtubeClient.GetStream(video, format)
 		if err != nil {
@@ -86,7 +121,7 @@ func downloadStream(youtubeClient youtube.Client, video *youtube.Video, format *
 	return nil, errors.New("YouTube — Failed after 5 attempts")
 }
 
-func Downloader(callbackData []string) ([]byte, *youtube.Video, error) {
+func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 	youtubeClient := ConfigureYoutubeClient()
 
 	video, err := youtubeClient.GetVideo(callbackData[1])
@@ -127,8 +162,8 @@ func Downloader(callbackData []string) ([]byte, *youtube.Video, error) {
 	return fileBytes, video, nil
 }
 
-func GetBestQualityVideoStream(formats []youtube.Format) *youtube.Format {
-	var bestFormat youtube.Format
+func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
+	var bestFormat youtubedl.Format
 	var maxBitrate int
 
 	isDesiredQuality := func(qualityLabel string) bool {

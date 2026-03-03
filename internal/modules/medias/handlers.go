@@ -13,8 +13,6 @@ import (
 
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
-	youtubedl "github.com/kkdai/youtube/v2"
-
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
@@ -28,6 +26,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/xiaohongshu"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
 	"github.com/ruizlenato/smudgelord/internal/utils"
+	"github.com/ruizlenato/youtubedl"
 )
 
 const (
@@ -396,6 +395,14 @@ func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Upd
 	i18n := localization.Get(update)
 
 	callbackData := strings.Split(update.CallbackQuery.Data, "|")
+	if len(callbackData) < 6 {
+		b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+			CallbackQueryID: update.CallbackQuery.ID,
+			Text:            i18n("youtube-error"),
+			ShowAlert:       true,
+		})
+		return
+	}
 	if userID, _ := strconv.Atoi(callbackData[5]); update.CallbackQuery.From.ID != int64(userID) {
 		b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
 			CallbackQueryID: update.CallbackQuery.ID,
@@ -545,6 +552,12 @@ func trySendCachedYoutubeMedia(ctx context.Context, b *bot.Bot, update *models.U
 	var fileID, caption string
 	var err error
 
+	if update.CallbackQuery == nil || update.CallbackQuery.Message.Message == nil {
+		return false, errors.New("missing callback message")
+	}
+
+	chatID := update.CallbackQuery.Message.Message.Chat.ID
+
 	switch callbackData[0] {
 	case "_aud":
 		fileID, caption, err = downloader.GetYoutubeCache(callbackData[1], "audio")
@@ -556,7 +569,7 @@ func trySendCachedYoutubeMedia(ctx context.Context, b *bot.Bot, update *models.U
 		switch callbackData[0] {
 		case "_aud":
 			b.SendAudio(ctx, &bot.SendAudioParams{
-				ChatID:    update.Message.Chat.ID,
+				ChatID:    chatID,
 				Audio:     &models.InputFileString{Data: fileID},
 				Caption:   caption,
 				ParseMode: models.ParseModeHTML,
@@ -566,7 +579,7 @@ func trySendCachedYoutubeMedia(ctx context.Context, b *bot.Bot, update *models.U
 			})
 		case "_vid":
 			b.SendVideo(ctx, &bot.SendVideoParams{
-				ChatID:    update.Message.Chat.ID,
+				ChatID:    chatID,
 				Video:     &models.InputFileString{Data: fileID},
 				Caption:   caption,
 				ParseMode: models.ParseModeHTML,

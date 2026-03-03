@@ -1,6 +1,6 @@
 module github.com/ruizlenato/smudgelord
 
-go 1.24.9
+go 1.25.0
 
 replace github.com/go-telegram/bot v1.19.0 => github.com/ruizlenato/bot v1.19.0
 
@@ -8,7 +8,7 @@ require (
 	github.com/go-telegram/bot v1.19.0
 	github.com/joho/godotenv v1.5.1
 	github.com/lus/fluent.go v0.0.0-20240613180830-a11a6bbd90a9
-	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/mattn/go-sqlite3 v1.14.34
 )
 
 require (
@@ -17,19 +17,23 @@ require (
 )
 
 require (
-	github.com/bitly/go-simplejson v0.5.1 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
+	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
-	github.com/dop251/goja v0.0.0-20251201205617-2bb4c724c0f9 // indirect
+	github.com/dop251/goja v0.0.0-20260226184354-913bd86fb70c // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
-	github.com/google/pprof v0.0.0-20251213031049-b05bdaca462f // indirect
-	golang.org/x/net v0.48.0 // indirect
+	github.com/google/pprof v0.0.0-20260302011040-a15ffb7f9dcc // indirect
+	github.com/mengzhuo/cookiestxt v1.0.6 // indirect
+	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
+	go.uber.org/atomic v1.11.0 // indirect
+	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // indirect
 )
 
 require (
 	github.com/grafov/m3u8 v0.12.1
-	github.com/kkdai/youtube/v2 v2.10.5
-	github.com/redis/go-redis/v9 v9.7.3
+	github.com/redis/go-redis/v9 v9.18.0
+	github.com/ruizlenato/youtubedl v0.0.0-20260303022210-36f5ff609371
 	golang.org/x/image v0.36.0
 )
