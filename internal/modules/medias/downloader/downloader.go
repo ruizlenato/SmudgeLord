@@ -217,7 +217,7 @@ func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 	case 1:
 		truncated = make([]rune, 0, 1024-3)
 	default:
-		textLink = fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, text)
+		textLink = fmt.Sprintf("\n\n<a href='%s'>🔗 %s</a>", url, text)
 		truncated = make([]rune, 0, 1024-len(textLink)-3)
 	}
 
@@ -347,7 +347,7 @@ func SetMediaCache(replied any, postInfo PostInfo) error {
 
 	for _, message := range messages {
 		if caption == "" {
-			caption = utils.FormatText(message.Caption, message.CaptionEntities)
+			caption = sanitizeCaptionForCache(utils.FormatText(message.Caption, message.CaptionEntities))
 		}
 		invertMedia = message.ShowCaptionAboveMedia
 
@@ -380,6 +380,15 @@ func SetMediaCache(replied any, postInfo PostInfo) error {
 	}
 
 	return nil
+}
+
+func sanitizeCaptionForCache(caption string) string {
+	if caption == "" {
+		return caption
+	}
+
+	trailingOpenLink := regexp.MustCompile(`(?s)\s*<a\s+href=['"][^'"]+['"]>\s*🔗\s*Abrir em [^<]+</a>\s*$`)
+	return strings.TrimSpace(trailingOpenLink.ReplaceAllString(caption, ""))
 }
 
 func GetMediaCache(postID string) (PostInfo, error) {

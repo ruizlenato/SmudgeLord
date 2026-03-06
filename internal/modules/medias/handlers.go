@@ -89,13 +89,11 @@ func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string,
 		return false
 	}
 
-	if utf8.RuneCountInString(postInfo.Caption) > maxSizeCaption {
-		postInfo.Caption = downloader.TruncateUTF8Caption(postInfo.Caption,
-			url, i18n("open-link", map[string]any{
-				"service": postInfo.Service,
-			}), len(postInfo.Medias),
-		)
-	}
+	postInfo.Caption = downloader.TruncateUTF8Caption(postInfo.Caption,
+		url, i18n("open-link", map[string]any{
+			"service": postInfo.Service,
+		}), len(postInfo.Medias),
+	)
 
 	return true
 }
