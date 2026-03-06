@@ -25,6 +25,7 @@ denied-button-alert = This button is not for you.
 privacy-policy-button = 🔒 Privacy Policy
 privacy-policy-group = To acess SmudgeLord's privacy policy, <b>click on the button below.</b>
 loading = <b>Loading...</b>
+only-groups = This command can only be used in groups.
 about-message =
     <b>— SmudgeLord</b>
     SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily

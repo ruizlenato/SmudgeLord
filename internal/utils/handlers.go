@@ -9,6 +9,7 @@ import (
 	"github.com/go-telegram/bot/models"
 
 	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/localization"
 )
 
 var DisableableCommands []string
@@ -49,6 +50,18 @@ func IsGroup(next bot.HandlerFunc) bot.HandlerFunc {
 		if update.Message == nil ||
 			update.Message.Chat.Type != models.ChatTypeGroup &&
 				update.Message.Chat.Type != models.ChatTypeSupergroup {
+			if update.Message == nil {
+				return
+			}
+			i18n := localization.Get(update)
+			b.SendMessage(ctx, &bot.SendMessageParams{
+				ChatID:    update.Message.Chat.ID,
+				Text:      i18n("only-groups"),
+				ParseMode: models.ParseModeHTML,
+				ReplyParameters: &models.ReplyParameters{
+					MessageID: update.Message.ID,
+				},
+			})
 			return
 		}
 
