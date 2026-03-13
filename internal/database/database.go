@@ -130,6 +130,9 @@ func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
 			tmpChatType := models.ChatTypePrivate
 			chatType = &tmpChatType
 			sender = update.InlineQuery.From
+			if sender != nil {
+				chatID = sender.ID
+			}
 		} else {
 			next(ctx, b, update)
 			return
@@ -155,6 +158,10 @@ func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
 
 func ChatExists(chatID int64, chatType *models.ChatType, senderUsername string) bool {
 	if chatType == nil {
+		return true
+	}
+
+	if chatID == 0 && *chatType != models.ChatTypePrivate {
 		return true
 	}
 
