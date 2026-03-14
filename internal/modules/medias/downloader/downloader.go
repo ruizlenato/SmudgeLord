@@ -211,14 +211,13 @@ func mergeSegments(segmentFiles []string) (*os.File, error) {
 func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 	const maxSizeCaption = 1024
 	var textLink string
-	var truncated []rune
 
-	switch mediaCount {
-	case 1:
-		truncated = make([]rune, 0, 1024-3)
-	default:
+	if mediaCount > 1 {
 		textLink = fmt.Sprintf("\n\n<a href='%s'>🔗 %s</a>", url, text)
-		truncated = make([]rune, 0, 1024-len(textLink)-3)
+	}
+
+	if len(caption)+len(textLink) <= maxSizeCaption {
+		return caption + textLink
 	}
 
 	closingTags := extractClosingTags(caption)
@@ -228,10 +227,17 @@ func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 		contentWithoutClosingTags = caption[:len(caption)-len(closingTags)]
 	}
 
+	allowedContentBytes := maxSizeCaption - len(textLink) - len(closingTags) - len("...")
+	if allowedContentBytes < 0 {
+		allowedContentBytes = 0
+	}
+
+	truncated := make([]rune, 0, allowedContentBytes)
+
 	var currentLength int
 	for _, r := range contentWithoutClosingTags {
 		currentLength += utf8.RuneLen(r)
-		if currentLength > 1017-len(closingTags) {
+		if currentLength > allowedContentBytes {
 			break
 		}
 		truncated = append(truncated, r)
