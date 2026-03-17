@@ -89,12 +89,13 @@ func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string,
 		return false
 	}
 
+	postInfo.Caption = utils.SanitizeTelegramHTML(postInfo.Caption)
+
 	postInfo.Caption = downloader.TruncateUTF8Caption(postInfo.Caption,
 		url, i18n("open-link", map[string]any{
 			"service": postInfo.Service,
 		}), len(postInfo.Medias),
 	)
-
 	return true
 }
 
@@ -667,6 +668,7 @@ func MediasInline(ctx context.Context, b *bot.Bot, update *models.Update) {
 	}
 
 	var captionMultipleItems string
+	postInfo.Caption = utils.SanitizeTelegramHTML(postInfo.Caption)
 	if len(postInfo.Medias) > 1 {
 		captionMultipleItems = "\n\n" + i18n("media-multiple-items", map[string]any{
 			"count": len(postInfo.Medias),
