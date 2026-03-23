@@ -99,9 +99,9 @@ func isHealthy() bool {
 }
 
 func SetCache(key string, value any, expiration time.Duration) error {
-	setFallback(key, value, expiration)
-
-	if !isHealthy() {
+	healthy := isHealthy()
+	if !healthy {
+		setFallback(key, value, expiration)
 		slog.Info("cache client is not healthy, skipping SetCache")
 		return nil
 	}
@@ -109,32 +109,33 @@ func SetCache(key string, value any, expiration time.Duration) error {
 	ctx := context.Background()
 	err := rdb.Set(ctx, key, value, expiration).Err()
 	if err != nil {
+		setFallback(key, value, expiration)
 		return err
 	}
+
+	deleteFallback(key)
 	return nil
 }
 
 func GetCache(key string) (string, error) {
-	if isHealthy() {
+	healthy := isHealthy()
+	if healthy {
 		ctx := context.Background()
 		val, err := rdb.Get(ctx, key).Result()
-		if err == nil {
-			return val, nil
+		if err != nil {
+			return "", err
 		}
 
-		if err != redis.Nil {
-			slog.Debug("cache get failed, trying fallback", "Key", key, "Error", err.Error())
-		}
-	} else {
+		deleteFallback(key)
+		return val, nil
+	}
+
+	if !healthy {
 		slog.Info("cache client is not healthy, trying in-memory fallback")
 	}
 
 	if val, ok := getFallback(key); ok {
 		return val, nil
-	}
-
-	if isHealthy() {
-		return "", redis.Nil
 	}
 
 	return "", nil
