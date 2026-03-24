@@ -25,8 +25,11 @@ import (
 )
 
 var (
-	challengeScriptRegex = regexp.MustCompile(`(?s)<script[^>]*id="cs"[^>]*class="([^"]+)"[^>]*>`)
-	challengeCookieRegex = regexp.MustCompile(`(?s)<script[^>]*id="wci"[^>]*class="([^"]+)"[^>]*>`)
+	challengeScriptRegex = regexp.MustCompile(`(?is)<(?:script|p)[^>]*id=["']cs["'][^>]*class=["']([^"']+)["'][^>]*>`)
+	challengeCookieRegex = regexp.MustCompile(`(?is)<(?:script|p)[^>]*id=["']wci["'][^>]*class=["']([^"']+)["'][^>]*>`)
+	rciCookieRegex       = regexp.MustCompile(`(?is)<(?:script|p)[^>]*id=["']rci["'][^>]*class=["']([^"']+)["'][^>]*>`)
+	rciValueRegex        = regexp.MustCompile(`(?is)<(?:script|p)[^>]*id=["']rs["'][^>]*class=["']([^"']+)["'][^>]*>`)
+	universalDataRegex   = regexp.MustCompile(`(?s)<script[^>]*id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)</script>`)
 )
 
 func getRandomDeviceID() string {
@@ -54,7 +57,14 @@ func Handle(text string) downloader.PostInfo {
 	}
 
 	if tikTokData := handler.getTikTokData(); tikTokData != nil {
-		handler.username = *tikTokData.AwemeList[0].Author.Nickname
+		author := tikTokData.AwemeList[0].Author
+		handler.username = author.UniqueID
+		if author.Nickname != nil && *author.Nickname != "" {
+			handler.username = *author.Nickname
+		}
+		if handler.username == "" {
+			handler.username = "tiktok"
+		}
 
 		postInfo := downloader.PostInfo{
 			ID:      handler.postID,
@@ -104,19 +114,38 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-func extractChallengeFromHTML(body []byte) (challengeB64, cookieName string, ok bool) {
+func extractChallengeFromHTML(body []byte) (challengeB64, cookieName, rciName, rciValue string, ok bool) {
 	csMatch := challengeScriptRegex.FindSubmatch(body)
 	wciMatch := challengeCookieRegex.FindSubmatch(body)
 	if len(csMatch) < 2 || len(wciMatch) < 2 {
-		return "", "", false
+		return "", "", "", "", false
 	}
-	return string(csMatch[1]), string(wciMatch[1]), true
+
+	rciNameMatch := rciCookieRegex.FindSubmatch(body)
+	rciValueMatch := rciValueRegex.FindSubmatch(body)
+	if len(rciNameMatch) > 1 && len(rciValueMatch) > 1 {
+		return string(csMatch[1]), string(wciMatch[1]), string(rciNameMatch[1]), string(rciValueMatch[1]), true
+	}
+
+	return string(csMatch[1]), string(wciMatch[1]), "", "", true
+}
+
+func decodeBase64Lenient(value string) ([]byte, error) {
+	if decoded, err := base64.StdEncoding.DecodeString(value); err == nil {
+		return decoded, nil
+	}
+	if decoded, err := base64.RawStdEncoding.DecodeString(value); err == nil {
+		return decoded, nil
+	}
+
+	padded := value + strings.Repeat("=", (4-len(value)%4)%4)
+	return base64.StdEncoding.DecodeString(padded)
 }
 
 func solveChallenge(challengeB64 string) (string, error) {
 	const maxIndex = 1_000_000
 
-	rawPayload, err := base64.StdEncoding.DecodeString(challengeB64)
+	rawPayload, err := decodeBase64Lenient(challengeB64)
 	if err != nil {
 		return "", err
 	}
@@ -134,8 +163,8 @@ func solveChallenge(challengeB64 string) (string, error) {
 	expectedDigestB64, _ := vRaw["c"].(string)
 	baseHashB64, _ := vRaw["a"].(string)
 
-	expectedDigest, _ := base64.StdEncoding.DecodeString(expectedDigestB64)
-	baseHash, _ := base64.StdEncoding.DecodeString(baseHashB64)
+	expectedDigest, _ := decodeBase64Lenient(expectedDigestB64)
+	baseHash, _ := decodeBase64Lenient(baseHashB64)
 
 	if len(expectedDigest) == 0 || len(baseHash) == 0 {
 		return "", fmt.Errorf("invalid challenge data")
@@ -161,13 +190,26 @@ func solveChallenge(challengeB64 string) (string, error) {
 }
 
 func (h *Handler) getTikTokData() TikTokData {
-	if data := h.fetchTikTokData(""); data != nil {
+	if data, rateLimited := h.fetchTikTokData(""); data != nil {
 		return data
+	} else if rateLimited {
+		slog.Debug("TikTok: API rate-limited, switching to web extraction", "Post", h.postID)
 	}
 
 	if h.webData == nil {
 		slog.Debug("TikTok: Trying web scraping")
 		h.scrapeWebData()
+	}
+	if h.webData != nil {
+		return h.webData
+	}
+
+	if h.cookies != "" {
+		if data, rateLimited := h.fetchTikTokData(h.cookies); data != nil {
+			return data
+		} else if rateLimited && h.webData == nil {
+			slog.Debug("TikTok: API still rate-limited after challenge cookies", "Post", h.postID)
+		}
 	}
 
 	return h.webData
@@ -181,63 +223,87 @@ func (h *Handler) scrapeWebData() {
 	}
 
 	webURL := fmt.Sprintf("https://www.tiktok.com/@_/video/%s", h.postID)
+	h.webURL = webURL
 
-	req, _ := http.NewRequest("GET", webURL, nil)
-	req.Header.Set("User-Agent", WebUserAgent)
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-	req.Header.Set("Referer", "https://www.tiktok.com/")
+	fetchWebpage := func() ([]byte, *http.Response, error) {
+		req, _ := http.NewRequest("GET", webURL, nil)
+		req.Header.Set("User-Agent", WebUserAgent)
+		req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+		req.Header.Set("Referer", "https://www.tiktok.com/")
 
-	resp, err := client.Do(req)
+		resp, err := client.Do(req)
+		if err != nil || resp == nil {
+			return nil, nil, err
+		}
+
+		bodyBytes, readErr := io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if readErr != nil {
+			return nil, resp, readErr
+		}
+
+		return bodyBytes, resp, nil
+	}
+
+	bodyBytes, resp, err := fetchWebpage()
 	if err != nil || resp == nil {
 		return
 	}
 
-	bodyBytes, _ := io.ReadAll(resp.Body)
-	resp.Body.Close()
-
 	h.cookies = buildCookieString(jar.Cookies(resp.Request.URL))
-	h.webURL = webURL
 
 	if data := h.extractFromWebData(bodyBytes); data != nil {
 		h.webData = data
 		return
 	}
 
-	challengePayload, cookieName, ok := extractChallengeFromHTML(bodyBytes)
-	if !ok {
-		return
+	for range 2 {
+		challengePayload, cookieName, rciName, rciValue, ok := extractChallengeFromHTML(bodyBytes)
+		if !ok {
+			return
+		}
+
+		cookieValue, solveErr := solveChallenge(challengePayload)
+		if solveErr != nil {
+			slog.Debug("TikTok: Failed to solve challenge", "Error", solveErr.Error())
+			return
+		}
+
+		cookiesToSet := []*http.Cookie{{
+			Name:   cookieName,
+			Value:  cookieValue,
+			Domain: ".tiktok.com",
+			Path:   "/",
+			MaxAge: 120,
+		}}
+		if rciName != "" && rciValue != "" {
+			cookiesToSet = append(cookiesToSet, &http.Cookie{
+				Name:   rciName,
+				Value:  rciValue,
+				Domain: ".tiktok.com",
+				Path:   "/",
+				MaxAge: 120,
+			})
+		}
+
+		jar.SetCookies(resp.Request.URL, cookiesToSet)
+
+		bodyBytes, resp, err = fetchWebpage()
+		if err != nil || resp == nil {
+			return
+		}
+
+		h.cookies = buildCookieString(jar.Cookies(resp.Request.URL))
+
+		if data := h.extractFromWebData(bodyBytes); data != nil {
+			h.webData = data
+			return
+		}
 	}
-
-	cookieValue, err := solveChallenge(challengePayload)
-	if err != nil {
-		return
-	}
-
-	challengeCookie := &http.Cookie{
-		Name:   cookieName,
-		Value:  cookieValue,
-		Domain: ".tiktok.com",
-		Path:   "/",
-	}
-	jar.SetCookies(resp.Request.URL, []*http.Cookie{challengeCookie})
-
-	req2, _ := http.NewRequest("GET", webURL, nil)
-	req2.Header.Set("User-Agent", WebUserAgent)
-	req2.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-	req2.Header.Set("Referer", "https://www.tiktok.com/")
-
-	resp2, err := client.Do(req2)
-	if err != nil || resp2 == nil {
-		return
-	}
-	resp2.Body.Close()
-
-	h.cookies = buildCookieString(jar.Cookies(resp.Request.URL))
 }
 
 func (h *Handler) extractFromWebData(body []byte) TikTokData {
-	univRegex := regexp.MustCompile(`<script[^>]*id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)</script>`)
-	match := univRegex.FindSubmatch(body)
+	match := universalDataRegex.FindSubmatch(body)
 	if len(match) < 2 {
 		return nil
 	}
@@ -363,10 +429,170 @@ func buildCookieString(cookies []*http.Cookie) string {
 	return strings.Join(parts, "; ")
 }
 
-func (h *Handler) fetchTikTokData(challengeCookie string) TikTokData {
+func randomUUIDLike() string {
+	return fmt.Sprintf("%s-%s-%s-%s-%s",
+		generateRandomHex(8),
+		generateRandomHex(4),
+		generateRandomHex(4),
+		generateRandomHex(4),
+		generateRandomHex(12),
+	)
+}
+
+func (h *Handler) getDeviceID() string {
+	if h.deviceID == "" {
+		h.deviceID = getRandomDeviceID()
+	}
+	return h.deviceID
+}
+
+func (h *Handler) buildAPIQuery() map[string]string {
+	now := time.Now()
+
+	return map[string]string{
+		"device_platform":       "android",
+		"os":                    "android",
+		"ssmix":                 "a",
+		"_rticket":              strconv.FormatInt(now.UnixMilli(), 10),
+		"cdid":                  randomUUIDLike(),
+		"channel":               "googleplay",
+		"aid":                   "0",
+		"app_name":              "musical_ly",
+		"version_code":          "350103",
+		"version_name":          "35.1.3",
+		"manifest_version_code": "2023501030",
+		"update_version_code":   "2023501030",
+		"ab_version":            "35.1.3",
+		"device_type":           "Pixel 7",
+		"device_brand":          "Google",
+		"resolution":            "1080*2400",
+		"dpi":                   "420",
+		"language":              "en",
+		"app_language":          "en",
+		"locale":                "en",
+		"os_api":                "29",
+		"os_version":            "13",
+		"ac":                    "wifi",
+		"ac2":                   "wifi5g",
+		"uoo":                   "1",
+		"is_pad":                "0",
+		"app_type":              "normal",
+		"current_region":        "US",
+		"sys_region":            "US",
+		"residence":             "US",
+		"carrier_region":        "US",
+		"op_region":             "US",
+		"region":                "US",
+		"timezone_name":         "America/New_York",
+		"timezone_offset":       "-14400",
+		"last_install_time":     strconv.FormatInt(now.Unix()-int64(rand.Intn(1036801)+86400), 10),
+		"build_number":          "35.1.3",
+		"host_abi":              "armeabi-v7a",
+		"device_id":             h.getDeviceID(),
+		"openudid":              generateRandomHex(16),
+		"ts":                    strconv.FormatInt(now.Unix(), 10),
+		"aweme_id":              h.postID,
+	}
+}
+
+func isTikTokRateLimited(statusCode int, body []byte) bool {
+	if statusCode == http.StatusTooManyRequests {
+		return true
+	}
+
+	lowerBody := bytes.ToLower(body)
+	return bytes.Contains(lowerBody, []byte("ratelimit")) ||
+		bytes.Contains(lowerBody, []byte("rate limit")) ||
+		bytes.Contains(lowerBody, []byte("temporarily blocked"))
+}
+
+func (h *Handler) requestTikTokAPI(endpoint, method string, headers, query map[string]string, body []string) ([]byte, int, error) {
+	url := fmt.Sprintf("https://%s/aweme/v1/%s/", APIHostname, endpoint)
+
+	response, err := utils.Request(url, utils.RequestParams{
+		Method:     method,
+		Headers:    headers,
+		Query:      query,
+		BodyString: body,
+	})
+	if err != nil || response == nil || response.Body == nil {
+		return nil, 0, err
+	}
+	defer response.Body.Close()
+
+	bodyBytes, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, response.StatusCode, err
+	}
+
+	return bodyBytes, response.StatusCode, nil
+}
+
+func (h *Handler) fetchTikTokDataMultiDetail(headers, query map[string]string) (TikTokData, bool) {
+	headersWithArgus := make(map[string]string, len(headers)+2)
+	for k, v := range headers {
+		headersWithArgus[k] = v
+	}
+	headersWithArgus["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
+	headersWithArgus["X-Argus"] = ""
+
+	body, statusCode, err := h.requestTikTokAPI(
+		"multi/aweme/detail",
+		http.MethodPost,
+		headersWithArgus,
+		query,
+		[]string{fmt.Sprintf("aweme_ids=[%s]", h.postID), "request_source=0"},
+	)
+	if err != nil {
+		return nil, false
+	}
+
+	if isTikTokRateLimited(statusCode, body) {
+		return nil, true
+	}
+
+	var detailResponse struct {
+		AwemeDetails []Aweme `json:"aweme_details"`
+	}
+	if err := json.Unmarshal(body, &detailResponse); err != nil || len(detailResponse.AwemeDetails) == 0 {
+		return nil, false
+	}
+
+	if detailResponse.AwemeDetails[0].AwemeID != h.postID {
+		return nil, false
+	}
+
+	return TikTokData(&struct {
+		AwemeList []Aweme `json:"aweme_list"`
+	}{AwemeList: detailResponse.AwemeDetails[:1]}), false
+}
+
+func (h *Handler) fetchTikTokDataFeed(headers, query map[string]string) (TikTokData, bool) {
+	body, statusCode, err := h.requestTikTokAPI("feed", http.MethodGet, headers, query, nil)
+	if err != nil {
+		return nil, false
+	}
+
+	if isTikTokRateLimited(statusCode, body) {
+		return nil, true
+	}
+
+	var tikTokData TikTokData
+	if err := json.Unmarshal(body, &tikTokData); err != nil {
+		return nil, false
+	}
+
+	if len(tikTokData.AwemeList) == 0 || tikTokData.AwemeList[0].AwemeID != h.postID {
+		return nil, false
+	}
+
+	return tikTokData, false
+}
+
+func (h *Handler) fetchTikTokData(extraCookies string) (TikTokData, bool) {
 	cookie := fmt.Sprintf("odin_tt=%s", generateRandomHex(160))
-	if challengeCookie != "" {
-		cookie += "; " + challengeCookie
+	if extraCookies != "" {
+		cookie += "; " + extraCookies
 	}
 
 	headers := map[string]string{
@@ -377,62 +603,19 @@ func (h *Handler) fetchTikTokData(challengeCookie string) TikTokData {
 		"Cookie":     cookie,
 	}
 
-	queryParams := map[string]string{
-		"device_platform":       "android",
-		"os":                    "android",
-		"ssmix":                 "a",
-		"channel":               "googleplay",
-		"aid":                   "0",
-		"app_name":              "musical_ly",
-		"version_code":          "350103",
-		"version_name":          "35.1.3",
-		"manifest_version_code": "2023501030",
-		"update_version_code":   "2023501030",
-		"device_type":           "Pixel 7",
-		"device_brand":          "Google",
-		"resolution":            "1080*2400",
-		"dpi":                   "420",
-		"language":              "en",
-		"os_api":                "29",
-		"os_version":            "13",
-		"ac":                    "wifi",
-		"timezone_name":         "America/New_York",
-		"timezone_offset":       "-14400",
-		"region":                "US",
-		"device_id":             getRandomDeviceID(),
-		"aweme_id":              h.postID,
+	queryParams := h.buildAPIQuery()
+
+	data, multiRateLimited := h.fetchTikTokDataMultiDetail(headers, queryParams)
+	if data != nil {
+		return data, false
 	}
 
-	url := fmt.Sprintf("https://%s/aweme/v1/feed/", APIHostname)
-
-	response, err := utils.Request(url, utils.RequestParams{
-		Method:  "GET",
-		Headers: headers,
-		Query:   queryParams,
-	})
-
-	if err != nil || response == nil || response.Body == nil {
-		return nil
+	data, feedRateLimited := h.fetchTikTokDataFeed(headers, queryParams)
+	if data != nil {
+		return data, false
 	}
 
-	bodyBytes, _ := io.ReadAll(response.Body)
-	response.Body.Close()
-
-	if response.StatusCode == 429 || bytes.Contains(bodyBytes, []byte("ratelimit")) {
-		slog.Debug("TikTok: Rate limited")
-		return nil
-	}
-
-	var tikTokData TikTokData
-	if err := json.Unmarshal(bodyBytes, &tikTokData); err != nil {
-		return nil
-	}
-
-	if len(tikTokData.AwemeList) == 0 || tikTokData.AwemeList[0].AwemeID != h.postID {
-		return nil
-	}
-
-	return tikTokData
+	return nil, multiRateLimited || feedRateLimited
 }
 
 func getCaption(tikTokData TikTokData) string {
@@ -461,7 +644,13 @@ func (h *Handler) handleImages(tikTokData TikTokData) []models.InputMedia {
 
 	for i, media := range images {
 		go func(index int, media Image) {
-			file, err := downloader.FetchBytesFromURL(media.DisplayImage.URLList[1])
+			imageURL := pickImageURL(media)
+			if imageURL == "" {
+				results <- mediaResult{index, nil, fmt.Errorf("no image url found")}
+				return
+			}
+
+			file, err := downloader.FetchBytesFromURL(imageURL)
 			results <- mediaResult{index, file, err}
 		}(i, media)
 	}
@@ -553,6 +742,22 @@ func (h *Handler) handleVideo(tikTokData TikTokData) []models.InputMedia {
 		SupportsStreaming: true,
 		MediaAttachment:   bytes.NewBuffer(file),
 	}}
+}
+
+func pickImageURL(media Image) string {
+	for _, url := range media.DisplayImage.URLList {
+		if url != "" {
+			return url
+		}
+	}
+
+	for _, url := range media.Thumbnail.URLList {
+		if url != "" {
+			return url
+		}
+	}
+
+	return ""
 }
 
 func (h *Handler) fetchWithReferer(url, referer string) ([]byte, error) {

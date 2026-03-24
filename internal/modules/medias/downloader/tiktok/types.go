@@ -12,6 +12,7 @@ type Handler struct {
 	webURL   string
 	webData  TikTokData
 	cookies  string
+	deviceID string
 }
 
 type TikTokData *struct {
