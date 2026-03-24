@@ -393,7 +393,7 @@ func sanitizeCaptionForCache(caption string) string {
 		return caption
 	}
 
-	trailingOpenLink := regexp.MustCompile(`(?s)\s*<a\s+href=['"][^'"]+['"]>\s*🔗\s*Abrir em [^<]+</a>\s*$`)
+	trailingOpenLink := regexp.MustCompile(`(?s)\s*<a\s+href=['"][^'"]+['"]>\s*🔗\s*[^<]*</a>\s*$`)
 	return strings.TrimSpace(trailingOpenLink.ReplaceAllString(caption, ""))
 }
 
