@@ -1,7 +1,6 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log/slog"
@@ -11,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -108,65 +107,68 @@ func Close() {
 	}
 }
 
-func SaveUsers(next bot.HandlerFunc) bot.HandlerFunc {
-	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		var chatID int64
-		var chatType *models.ChatType
-		var sender *models.User
-
-		if update.Message != nil {
-			chatID = update.Message.Chat.ID
-			chatType = &update.Message.Chat.Type
-			sender = update.Message.From
-		} else if update.CallbackQuery != nil {
-			tmpChatType := models.ChatTypePrivate
-			chatType = &tmpChatType
-			if message := update.CallbackQuery.Message.Message; message != nil {
-				chatID = message.Chat.ID
-				chatType = &message.Chat.Type
-			}
-			sender = &update.CallbackQuery.From
-		} else if update.InlineQuery != nil {
-			tmpChatType := models.ChatTypePrivate
-			chatType = &tmpChatType
-			sender = update.InlineQuery.From
-			if sender != nil {
-				chatID = sender.ID
-			}
-		} else {
-			next(ctx, b, update)
-			return
-		}
-
-		if !ChatExists(chatID, chatType, sender.Username) {
-			slog.Debug(
-				"Chat does not exist in database, saving...",
-				"ChatID", chatID,
-				"ChatType", chatType,
-			)
-			if err := SaveChat(chatID, chatType, sender); err != nil {
-				slog.Error(
-					"Error saving chat",
-					"error", err.Error(),
-				)
-
-			}
-		}
-		next(ctx, b, update)
+func SaveUsers(_ *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx == nil || ctx.Update == nil {
+		return nil
 	}
+
+	var chatID int64
+	var chatType *string
+	var sender *gotgbot.User
+
+	if update := ctx.Update; update.Message != nil {
+		chatID = update.Message.Chat.Id
+		tmpChatType := update.Message.Chat.Type
+		chatType = &tmpChatType
+		sender = update.Message.From
+	} else if update.CallbackQuery != nil {
+		tmpChatType := gotgbot.ChatTypePrivate
+		chatType = &tmpChatType
+		if update.CallbackQuery.Message != nil {
+			chat := update.CallbackQuery.Message.GetChat()
+			chatID = chat.Id
+			tmpChatType = chat.Type
+			chatType = &tmpChatType
+		}
+		sender = &update.CallbackQuery.From
+	} else if update.InlineQuery != nil {
+		tmpChatType := gotgbot.ChatTypePrivate
+		chatType = &tmpChatType
+		sender = &update.InlineQuery.From
+		chatID = sender.Id
+	} else {
+		return nil
+	}
+
+	if sender == nil {
+		return nil
+	}
+
+	if !ChatExists(chatID, chatType, sender.Username) {
+		slog.Debug(
+			"Chat does not exist in database, saving...",
+			"ChatID", chatID,
+			"ChatType", chatType,
+		)
+		if err := SaveChat(chatID, chatType, sender); err != nil {
+			slog.Error("Error saving chat", "error", err.Error())
+		}
+	}
+
+	return nil
 }
 
-func ChatExists(chatID int64, chatType *models.ChatType, senderUsername string) bool {
+func ChatExists(chatID int64, chatType *string, senderUsername string) bool {
 	if chatType == nil {
 		return true
 	}
 
-	if chatID == 0 && *chatType != models.ChatTypePrivate {
+	if chatID == 0 && *chatType != gotgbot.ChatTypePrivate {
 		return true
 	}
 
 	switch *chatType {
-	case models.ChatTypePrivate:
+	case gotgbot.ChatTypePrivate:
 		row := DB.QueryRow("SELECT username FROM users WHERE id = ?", chatID)
 		var savedUsername sql.NullString
 		err := row.Scan(&savedUsername)
@@ -175,7 +177,7 @@ func ChatExists(chatID int64, chatType *models.ChatType, senderUsername string) 
 		}
 		currentUsername := FormatUsername(senderUsername)
 		return savedUsername.String == currentUsername
-	case models.ChatTypeGroup, models.ChatTypeSupergroup:
+	case gotgbot.ChatTypeGroup, gotgbot.ChatTypeSupergroup:
 		row := DB.QueryRow("SELECT id FROM chats WHERE id = ?", chatID)
 		var id int64
 		err := row.Scan(&id)
@@ -185,13 +187,17 @@ func ChatExists(chatID int64, chatType *models.ChatType, senderUsername string) 
 	}
 }
 
-func SaveChat(chatID int64, chatType *models.ChatType, sender *models.User) error {
+func SaveChat(chatID int64, chatType *string, sender *gotgbot.User) error {
 	if chatID == 0 {
 		return nil
 	}
 
+	if chatType == nil || sender == nil {
+		return nil
+	}
+
 	switch *chatType {
-	case models.ChatTypePrivate:
+	case gotgbot.ChatTypePrivate:
 		query := `
 			INSERT INTO users (id, language, username) VALUES (?, ?, ?)
 			ON CONFLICT(id) DO UPDATE SET username = excluded.username
@@ -202,7 +208,7 @@ func SaveChat(chatID int64, chatType *models.ChatType, sender *models.User) erro
 
 		_, err := DB.Exec(query, chatID, language, username)
 		return err
-	case models.ChatTypeGroup, models.ChatTypeSupergroup:
+	case gotgbot.ChatTypeGroup, gotgbot.ChatTypeSupergroup:
 		query := "INSERT OR IGNORE INTO chats (id) VALUES (?);"
 		_, err := DB.Exec(query, chatID)
 		return err

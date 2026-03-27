@@ -1,7 +1,6 @@
 package xiaohongshu
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -12,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -164,7 +163,7 @@ func getCaption(noteData Note) string {
 	return caption
 }
 
-func (h *Handler) handleVideo(noteData Note) []models.InputMedia {
+func (h *Handler) handleVideo(noteData Note) []gotgbot.InputMedia {
 	videoInfo := h.findFirstAvailableVideoFormat(noteData.Note.Video.Media.Stream)
 	if videoInfo == nil {
 		slog.Error("No valid video format found",
@@ -180,14 +179,13 @@ func (h *Handler) handleVideo(noteData Note) []models.InputMedia {
 		return nil
 	}
 
-	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + utils.SanitizeString(
-			fmt.Sprintf("SmudgeLord-Xiaohongshu_%s_%s", h.username, h.postID)),
-		Width:             videoInfo.Width,
-		Height:            videoInfo.Height,
-		Duration:          videoInfo.Duration / 1000,
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Xiaohongshu_%s_%s", h.username, h.postID))
+	return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
+		Media:             downloader.InputFileFromBytes(filename, file),
+		Width:             int64(videoInfo.Width),
+		Height:            int64(videoInfo.Height),
+		Duration:          int64(videoInfo.Duration / 1000),
 		SupportsStreaming: true,
-		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }
 
@@ -208,7 +206,7 @@ func (h *Handler) findFirstAvailableVideoFormat(stream VideoStream) VideoInfo {
 	return nil
 }
 
-func (h *Handler) handleImages(noteData Note) []models.InputMedia {
+func (h *Handler) handleImages(noteData Note) []gotgbot.InputMedia {
 	type mediaResult struct {
 		index int
 		file  []byte
@@ -216,7 +214,7 @@ func (h *Handler) handleImages(noteData Note) []models.InputMedia {
 	}
 
 	mediaCount := len(noteData.Note.ImageList)
-	mediaItems := make([]models.InputMedia, mediaCount)
+	mediaItems := make([]gotgbot.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range noteData.Note.ImageList {
@@ -248,18 +246,15 @@ func (h *Handler) handleImages(noteData Note) []models.InputMedia {
 			continue
 		}
 		if result.file != nil {
+			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", result.index, h.username, h.postID))
 			if noteData.Note.ImageList[result.index].LivePhoto {
-				mediaItems[result.index] = &models.InputMediaVideo{
-					Media: "attach://" + utils.SanitizeString(
-						fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", result.index, h.username, h.postID)),
+				mediaItems[result.index] = &gotgbot.InputMediaVideo{
+					Media:             downloader.InputFileFromBytes(sanitized, result.file),
 					SupportsStreaming: true,
-					MediaAttachment:   bytes.NewBuffer(result.file),
 				}
 			} else {
-				mediaItems[result.index] = &models.InputMediaPhoto{
-					Media: "attach://" + utils.SanitizeString(
-						fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", result.index, h.username, h.postID)),
-					MediaAttachment: bytes.NewBuffer(result.file),
+				mediaItems[result.index] = &gotgbot.InputMediaPhoto{
+					Media: downloader.InputFileFromBytes(sanitized, result.file),
 				}
 			}
 		}

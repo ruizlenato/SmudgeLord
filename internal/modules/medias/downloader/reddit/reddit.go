@@ -1,7 +1,6 @@
 package reddit
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -12,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/grafov/m3u8"
 
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -66,7 +65,7 @@ func (h *Handler) setPostID(url string) bool {
 	return true
 }
 
-func (h *Handler) processMedia() ([]models.InputMedia, string) {
+func (h *Handler) processMedia() ([]gotgbot.InputMedia, string) {
 	medias, caption := h.getRedlibData()
 	if medias != nil {
 		return medias, caption
@@ -83,7 +82,7 @@ func (h *Handler) processMedia() ([]models.InputMedia, string) {
 	return nil, ""
 }
 
-func (h *Handler) getRedlibData() ([]models.InputMedia, string) {
+func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 	response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
 		utils.RequestParams{
 			Method:  "GET",
@@ -164,7 +163,7 @@ func extractRedlibCaption(body []byte) string {
 		html.EscapeString(postTitle))
 }
 
-func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []models.InputMedia {
+func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []gotgbot.InputMedia {
 	if videoMatch := videoRegex.FindSubmatch(content); len(videoMatch) > 1 {
 		playlistURL := buildMediaURL(response, string(playlistRegex.FindSubmatch(content)[1]))
 
@@ -192,21 +191,16 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 			return nil
 		}
 
-		video := []models.InputMedia{&models.InputMediaVideo{
-			Media: "attach://" + utils.SanitizeString(
-				fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
+		videoMedia := &gotgbot.InputMediaVideo{
+			Media:             downloader.InputFileFromBytes(filename, videoFile),
 			SupportsStreaming: true,
-			MediaAttachment:   bytes.NewBuffer(videoFile),
-		}}
+		}
 
 		if thumbnail != nil {
-			video[0].(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-				Filename: utils.SanitizeString(
-					fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
-				Data: bytes.NewBuffer(thumbnail),
-			}
+			videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
 		}
-		return video
+		return []gotgbot.InputMedia{videoMedia}
 	}
 	return nil
 }
@@ -284,7 +278,7 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 	return nil
 }
 
-func (h *Handler) processRedlibImage(content []byte, response *http.Response) []models.InputMedia {
+func (h *Handler) processRedlibImage(content []byte, response *http.Response) []gotgbot.InputMedia {
 	if imageMatch := imageRegex.FindSubmatch(content); len(imageMatch) > 1 {
 		imageURL := buildMediaURL(response, string(imageMatch[1]))
 
@@ -295,28 +289,27 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response) []
 			return nil
 		}
 
-		return []models.InputMedia{&models.InputMediaPhoto{
-			Media: "attach://" + utils.SanitizeString(
-				fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID)),
-			MediaAttachment: bytes.NewBuffer(file),
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
+		return []gotgbot.InputMedia{&gotgbot.InputMediaPhoto{
+			Media: downloader.InputFileFromBytes(filename, file),
 		}}
 	}
 	return nil
 }
 
-func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Response) []models.InputMedia {
+func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Response) []gotgbot.InputMedia {
 	if len(content) < 1 {
 		return nil
 	}
 
 	type mediaResult struct {
 		index int
-		media models.InputMedia
+		media gotgbot.InputMedia
 		err   error
 	}
 
 	mediaCount := len(content)
-	mediaItems := make([]models.InputMedia, mediaCount)
+	mediaItems := make([]gotgbot.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, item := range content {
@@ -328,10 +321,9 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 				return
 			}
 
-			inputMedia := &models.InputMediaPhoto{
-				Media: "attach://" + utils.SanitizeString(
-					fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID)),
-				MediaAttachment: bytes.NewBuffer(file),
+			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID))
+			inputMedia := &gotgbot.InputMediaPhoto{
+				Media: downloader.InputFileFromBytes(filename, file),
 			}
 			results <- mediaResult{index: index, media: inputMedia, err: nil}
 		}(i)
@@ -383,7 +375,7 @@ func (h *Handler) getAPIData() *Data {
 	return &data[0].Data.Children[0].Data
 }
 
-func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
+func (h *Handler) processAPIMedia(data *Data) []gotgbot.InputMedia {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
 	if data.IsVideo {
 		video, err := downloader.FetchBytesFromURL(data.Media.RedditVideo.FallbackURL)
@@ -400,28 +392,24 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 			return nil
 		}
 
-		return []models.InputMedia{&models.InputMediaVideo{
-			Media:  "attach://" + filename,
-			Width:  data.Media.RedditVideo.Width,
-			Height: data.Media.RedditVideo.Height,
-			Thumbnail: &models.InputFileUpload{
-				Filename: filename,
-				Data:     bytes.NewBuffer(thumbnail),
-			},
+		return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
+			Media:             downloader.InputFileFromBytes(filename, video),
+			Width:             int64(data.Media.RedditVideo.Width),
+			Height:            int64(data.Media.RedditVideo.Height),
+			Thumbnail:         downloader.InputFileFromBytes(filename, thumbnail),
 			SupportsStreaming: true,
-			MediaAttachment:   bytes.NewBuffer(video),
 		}}
 	}
 
 	if data.MediaMetadata != nil {
 		type mediaResult struct {
 			index int
-			media models.InputMedia
+			media gotgbot.InputMedia
 			err   error
 		}
 
 		mediaCount := len(data.GalleryData.Items)
-		mediaItems := make([]models.InputMedia, mediaCount)
+		mediaItems := make([]gotgbot.InputMedia, mediaCount)
 		results := make(chan mediaResult, mediaCount)
 
 		for i, item := range data.GalleryData.Items {
@@ -433,11 +421,10 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 					return
 				}
 
-				var inputMedia models.InputMedia
+				var inputMedia gotgbot.InputMedia
 				if media.E == "Image" {
-					inputMedia = &models.InputMediaPhoto{
-						Media:           "attach://" + filename,
-						MediaAttachment: bytes.NewBuffer(file),
+					inputMedia = &gotgbot.InputMediaPhoto{
+						Media: downloader.InputFileFromBytes(filename, file),
 					}
 				}
 				results <- mediaResult{index: index, media: inputMedia, err: nil}
@@ -465,9 +452,8 @@ func (h *Handler) processAPIMedia(data *Data) []models.InputMedia {
 			return nil
 		}
 
-		return []models.InputMedia{&models.InputMediaPhoto{
-			Media:           "attach://" + filename,
-			MediaAttachment: bytes.NewBuffer(image),
+		return []gotgbot.InputMedia{&gotgbot.InputMediaPhoto{
+			Media: downloader.InputFileFromBytes(filename, image),
 		}}
 	}
 

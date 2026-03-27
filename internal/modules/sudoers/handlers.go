@@ -1,86 +1,84 @@
 package sudoers
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"strings"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
+
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
-	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-var announceMessageText string
+var announceMessageTextGotgbot string
 
-func announceHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+func announceHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	var lang string
-	message := update.Message
+	message := ctx.EffectiveMessage
 
-	if message == nil {
-		if update.CallbackQuery.Message.Message == nil {
-			return
-		}
-		message = update.CallbackQuery.Message.Message
-		lang = strings.ReplaceAll(update.CallbackQuery.Data, "announce ", "")
+	if ctx.CallbackQuery != nil {
+		lang = strings.ReplaceAll(ctx.CallbackQuery.Data, "announce ", "")
 	}
 
-	if (message == nil || message.From.ID != config.OwnerID) &&
-		(update.CallbackQuery == nil || update.CallbackQuery.From.ID != config.OwnerID) {
-		return
+	if (ctx.EffectiveUser == nil || ctx.EffectiveUser.Id != config.OwnerID) &&
+		(ctx.CallbackQuery == nil || ctx.CallbackQuery.From.Id != config.OwnerID) {
+		return nil
 	}
 
 	if lang == "" {
-		buttons := make([][]models.InlineKeyboardButton, 0, len(database.AvailableLocales))
-		for _, lang := range database.AvailableLocales {
-			loaded, ok := localization.LangBundles[lang]
-			if !ok {
-				slog.Error("Language not found in the cache",
-					"lang", lang)
-				os.Exit(1)
+		if message == nil {
+			return nil
+		}
 
+		buttons := make([][]gotgbot.InlineKeyboardButton, 0, len(database.AvailableLocales))
+		for _, locale := range database.AvailableLocales {
+			loaded, ok := localization.LangBundles[locale]
+			if !ok {
+				slog.Error("Language not found in the cache", "lang", locale)
+				os.Exit(1)
 			}
+
 			languageFlag, _, _ := loaded.FormatMessage("language-flag")
 			languageName, _, _ := loaded.FormatMessage("language-name")
 
-			buttons = append(buttons, []models.InlineKeyboardButton{{
-				Text: languageFlag +
-					languageName,
-				CallbackData: fmt.Sprintf("announce %s", lang),
+			buttons = append(buttons, []gotgbot.InlineKeyboardButton{{
+				Text:         languageFlag + languageName,
+				CallbackData: fmt.Sprintf("announce %s", locale),
 			}})
 		}
 
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      "Choose a language:",
-			ParseMode: models.ParseModeHTML,
-			ReplyMarkup: &models.InlineKeyboardMarkup{
+		_, _ = b.SendMessage(message.Chat.Id, "Choose a language:", &gotgbot.SendMessageOpts{
+			ParseMode: gotgbot.ParseModeHTML,
+			ReplyMarkup: gotgbot.InlineKeyboardMarkup{
 				InlineKeyboard: buttons,
 			},
 		})
-		announceMessageText = utils.FormatText(message.Text, message.Entities)
-		return
+
+		announceMessageTextGotgbot = message.GetText()
+		return nil
 	}
 
-	messageFields := strings.Fields(announceMessageText)
+	messageFields := strings.Fields(announceMessageTextGotgbot)
 	if len(messageFields) < 2 {
-		return
+		return nil
 	}
 
 	announceType := messageFields[1]
-	announceMessageText = strings.Replace(announceMessageText, messageFields[0], "", 1)
+	announceMessageTextGotgbot = strings.Replace(announceMessageTextGotgbot, messageFields[0], "", 1)
 	var query string
 
 	switch announceType {
 	case "groups":
-		announceMessageText = strings.Replace(announceMessageText, announceType, "", 1)
+		announceMessageTextGotgbot = strings.Replace(announceMessageTextGotgbot, announceType, "", 1)
 		query = fmt.Sprintf("SELECT id FROM chats WHERE language = '%s';", lang)
 	case "users":
-		announceMessageText = strings.Replace(announceMessageText, announceType, "", 1)
+		announceMessageTextGotgbot = strings.Replace(announceMessageTextGotgbot, announceType, "", 1)
 		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s';", lang)
 	default:
 		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s' UNION ALL SELECT id FROM chats WHERE language = '%s';", lang, lang)
@@ -88,44 +86,43 @@ func announceHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 
 	rows, err := database.DB.Query(query)
 	if err != nil {
-		return
+		return nil
 	}
 	defer rows.Close()
 
 	var successCount, errorCount int
-
 	for rows.Next() {
 		var chatID int64
 		if err := rows.Scan(&chatID); err != nil {
 			continue
 		}
-		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      announceMessageText,
-			ParseMode: models.ParseModeHTML,
-		})
+
+		_, err := b.SendMessage(chatID, announceMessageTextGotgbot, &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		if err != nil {
 			errorCount++
 			continue
 		}
-
 		successCount++
 	}
 
-	if err := rows.Err(); err != nil {
-		return
+	if ctx.CallbackQuery != nil && ctx.CallbackQuery.Message != nil {
+		chat := ctx.CallbackQuery.Message.GetChat()
+		msgID := ctx.CallbackQuery.Message.GetMessageId()
+		_, _, _ = b.EditMessageText(
+			fmt.Sprintf("<b>Messages sent successfully:</b> <code>%d</code>\n<b>Messages unsent:</b> <code>%d</code>", successCount, errorCount),
+			&gotgbot.EditMessageTextOpts{
+				ChatId:    chat.Id,
+				MessageId: msgID,
+				ParseMode: gotgbot.ParseModeHTML,
+			},
+		)
 	}
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      fmt.Sprintf("<b>Messages sent successfully:</b> <code>%d</code>\n<b>Messages unsent:</b> <code>%d</code>", successCount, errorCount),
-		ParseMode: models.ParseModeHTML,
-	})
-	announceMessageText = ""
+	announceMessageTextGotgbot = ""
+	return nil
 }
 
-func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeCommand, "announce", announceHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^announce", announceHandler)
+func Load(dispatcher *ext.Dispatcher) {
+	dispatcher.AddHandler(handlers.NewCommand("announce", announceHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("announce"), announceHandlerGotgbot))
 }

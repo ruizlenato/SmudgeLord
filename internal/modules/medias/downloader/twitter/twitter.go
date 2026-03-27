@@ -1,7 +1,6 @@
 package twitter
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -12,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -85,7 +84,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 		return downloader.PostInfo{}
 	}
 
-	mediaItems := make([]models.InputMedia, mediaCount)
+	mediaItems := make([]gotgbot.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range allTweetMedia {
@@ -103,23 +102,20 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 			continue
 		}
 		if result.media.File != nil {
-			var mediaItem models.InputMedia
+			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID))
+			var mediaItem gotgbot.InputMedia
 			if allTweetMedia[result.index].Type == "photo" {
-				mediaItem = &models.InputMediaPhoto{
-					Media: "attach://" + utils.SanitizeString(
-						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
-					MediaAttachment:       bytes.NewBuffer(result.media.File),
+				mediaItem = &gotgbot.InputMediaPhoto{
+					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
 					ShowCaptionAboveMedia: invertMedia,
 				}
 			} else {
-				mediaItem = &models.InputMediaVideo{
-					Media: "attach://" + utils.SanitizeString(
-						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
+				videoMedia := &gotgbot.InputMediaVideo{
+					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
 					ShowCaptionAboveMedia: invertMedia,
-					Width:                 (allTweetMedia)[result.index].OriginalInfo.Width,
-					Height:                (allTweetMedia)[result.index].OriginalInfo.Height,
+					Width:                 int64(allTweetMedia[result.index].OriginalInfo.Width),
+					Height:                int64(allTweetMedia[result.index].OriginalInfo.Height),
 					SupportsStreaming:     true,
-					MediaAttachment:       bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
 					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
@@ -127,13 +123,11 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Error", err.Error())
-					}
-					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-						Filename: utils.SanitizeString(
-							fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
-						Data: bytes.NewBuffer(thumbnail),
+					} else {
+						videoMedia.Thumbnail = downloader.InputFileFromBytes(sanitized, thumbnail)
 					}
 				}
+				mediaItem = videoMedia
 			}
 			mediaItems[result.index] = mediaItem
 		}
@@ -348,7 +342,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 	}
 
 	mediaCount := len(allMedia)
-	mediaItems := make([]models.InputMedia, mediaCount)
+	mediaItems := make([]gotgbot.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range allMedia {
@@ -373,21 +367,18 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 			continue
 		}
 		if result.media.File != nil {
-			var mediaItem models.InputMedia
+			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID))
+			var mediaItem gotgbot.InputMedia
 			if allMedia[result.index].Type != "video" {
-				mediaItem = &models.InputMediaPhoto{
-					Media: "attach://" + utils.SanitizeString(
-						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
-					MediaAttachment: bytes.NewBuffer(result.media.File),
+				mediaItem = &gotgbot.InputMediaPhoto{
+					Media: downloader.InputFileFromBytes(sanitized, result.media.File),
 				}
 			} else {
-				mediaItem = &models.InputMediaVideo{
-					Media: "attach://" + utils.SanitizeString(
-						fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
-					Width:             allMedia[result.index].Width,
-					Height:            allMedia[result.index].Height,
+				videoMedia := &gotgbot.InputMediaVideo{
+					Media:             downloader.InputFileFromBytes(sanitized, result.media.File),
+					Width:             int64(allMedia[result.index].Width),
+					Height:            int64(allMedia[result.index].Height),
 					SupportsStreaming: true,
-					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
 					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
@@ -395,13 +386,11 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Error", err.Error())
-					}
-					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-						Filename: utils.SanitizeString(
-							fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID)),
-						Data: bytes.NewBuffer(thumbnail),
+					} else {
+						videoMedia.Thumbnail = downloader.InputFileFromBytes(sanitized, thumbnail)
 					}
 				}
+				mediaItem = videoMedia
 			}
 			mediaItems[result.index] = mediaItem
 		}

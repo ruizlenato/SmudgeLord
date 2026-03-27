@@ -1,425 +1,329 @@
 package config
 
 import (
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"slices"
 	"strings"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
 
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func disableableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
+func isGroupGotgbot(ctx *ext.Context) bool {
+	return ctx.EffectiveChat != nil && (ctx.EffectiveChat.Type == gotgbot.ChatTypeGroup || ctx.EffectiveChat.Type == gotgbot.ChatTypeSupergroup)
+}
+
+func disableableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+	if !isGroupGotgbot(ctx) {
+		i18n := localization.GetGotgbot(ctx)
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		return nil
+	}
+
+	i18n := localization.GetGotgbot(ctx)
 	var text strings.Builder
 	text.WriteString(i18n("disableables-commands"))
-
 	for _, command := range utils.DisableableCommands {
 		text.WriteString("\n- <code>" + command + "</code>")
 	}
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      text.String(),
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			PreferLargeMedia: bot.True(),
-			ShowAboveText:    bot.True(),
+	_, _ = b.SendMessage(ctx.EffectiveChat.Id, text.String(), &gotgbot.SendMessageOpts{
+		ParseMode: gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{
+			PreferLargeMedia: true,
+			ShowAboveText:    true,
 		},
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 	})
+	return nil
 }
 
-func disableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-	contains := func(array []string, str string) bool {
-		return slices.Contains(array, str)
+func disableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+	if !isGroupGotgbot(ctx) {
+		i18n := localization.GetGotgbot(ctx)
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		return nil
 	}
 
-	if len(strings.Fields(update.Message.Text)) > 1 {
-		command := strings.Fields(update.Message.Text)[1]
-		if !contains(utils.DisableableCommands, command) {
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: update.Message.Chat.ID,
-				Text: i18n("command-not-deactivatable",
-					map[string]any{
-						"command": command,
-					}),
-				ParseMode: "HTML",
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: update.Message.ID,
-				},
-			})
-			return
-		}
-
-		if utils.CheckDisabledCommand(command, update.Message.Chat.ID) {
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: update.Message.Chat.ID,
-				Text: i18n("command-already-disabled",
-					map[string]any{
-						"command": command,
-					}),
-				ParseMode: "HTML",
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: update.Message.ID,
-				},
-			})
-			return
-		}
-
-		if err := insertDisabledCommand(update.Message.Chat.ID, command); err != nil {
-			fmt.Print("Error inserting command: " + err.Error())
-			return
-		}
-
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text: i18n("command-disabled",
-				map[string]any{
-					"command": command,
-				}),
-			ParseMode: "HTML",
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-		})
-		return
+	i18n := localization.GetGotgbot(ctx)
+	fields := strings.Fields(ctx.EffectiveMessage.GetText())
+	if len(fields) <= 1 {
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("disable-commands-usage"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+		return nil
 	}
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      i18n("disable-commands-usage"),
-		ParseMode: "HTML",
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-	})
+	command := fields[1]
+	if !slices.Contains(utils.DisableableCommands, command) {
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("command-not-deactivatable", map[string]any{"command": command}), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+		return nil
+	}
+
+	if utils.CheckDisabledCommand(command, ctx.EffectiveChat.Id) {
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("command-already-disabled", map[string]any{"command": command}), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+		return nil
+	}
+
+	if err := insertDisabledCommand(ctx.EffectiveChat.Id, command); err != nil {
+		slog.Error("Error inserting command", "error", err.Error())
+		return nil
+	}
+
+	_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("command-disabled", map[string]any{"command": command}), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+	return nil
 }
 
-func enableHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-
-	if len(strings.Fields(update.Message.Text)) > 1 {
-		command := strings.Fields(update.Message.Text)[1]
-
-		if !utils.CheckDisabledCommand(command, update.Message.Chat.ID) {
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: update.Message.Chat.ID,
-				Text: i18n("command-already-enabled",
-					map[string]any{
-						"command": command,
-					}),
-				ParseMode: "HTML",
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: update.Message.ID,
-				},
-			})
-			return
-		}
-
-		if err := deleteDisabledCommand(command); err != nil {
-			fmt.Print("Error deleting command: " + err.Error())
-			return
-		}
-
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text: i18n("command-enabled",
-				map[string]any{
-					"command": command,
-				}),
-			ParseMode: "HTML",
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-		})
-		return
+func enableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+	if !isGroupGotgbot(ctx) {
+		i18n := localization.GetGotgbot(ctx)
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		return nil
 	}
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      i18n("enable-commands-usage"),
-		ParseMode: "HTML",
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-	})
+	i18n := localization.GetGotgbot(ctx)
+	fields := strings.Fields(ctx.EffectiveMessage.GetText())
+	if len(fields) <= 1 {
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("enable-commands-usage"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+		return nil
+	}
+
+	command := fields[1]
+	if !utils.CheckDisabledCommand(command, ctx.EffectiveChat.Id) {
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("command-already-enabled", map[string]any{"command": command}), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+		return nil
+	}
+
+	if err := deleteDisabledCommand(command); err != nil {
+		slog.Error("Error deleting command", "error", err.Error())
+		return nil
+	}
+
+	_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("command-enabled", map[string]any{"command": command}), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+	return nil
 }
 
-func disabledHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-	var text strings.Builder
-	text.WriteString(i18n("disabled-commands"))
-	commands, err := getDisabledCommands(update.Message.Chat.ID)
+func disabledHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+	if !isGroupGotgbot(ctx) {
+		i18n := localization.GetGotgbot(ctx)
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		return nil
+	}
+
+	i18n := localization.GetGotgbot(ctx)
+	commands, err := getDisabledCommands(ctx.EffectiveChat.Id)
 	if err != nil {
-		return
+		return nil
 	}
 	if len(commands) == 0 {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      i18n("no-disabled-commands"),
-			ParseMode: "HTML",
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-		})
-		return
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("no-disabled-commands"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+		return nil
 	}
 
+	var text strings.Builder
+	text.WriteString(i18n("disabled-commands"))
 	for _, command := range commands {
 		text.WriteString("\n- <code>" + command + "</code>")
 	}
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      text.String(),
-		ParseMode: "HTML",
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-	})
+	_, _ = b.SendMessage(ctx.EffectiveChat.Id, text.String(), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+	return nil
 }
 
-func languageMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func languageMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
+	i18n := localization.GetGotgbot(ctx)
 
-	buttons := make([][]models.InlineKeyboardButton, 0, len(database.AvailableLocales))
+	buttons := make([][]gotgbot.InlineKeyboardButton, 0, len(database.AvailableLocales))
 	for _, lang := range database.AvailableLocales {
 		loaded, ok := localization.LangBundles[lang]
 		if !ok {
-			slog.Error("Language not found in the cache",
-				"lang", lang,
-				"availableLocales", database.AvailableLocales)
+			slog.Error("Language not found in the cache", "lang", lang, "availableLocales", database.AvailableLocales)
 			os.Exit(1)
-
 		}
 		languageFlag, _, _ := loaded.FormatMessage("language-flag")
 		languageName, _, _ := loaded.FormatMessage("language-name")
-
-		buttons = append(buttons, []models.InlineKeyboardButton{{
-			Text:         languageFlag + languageName,
-			CallbackData: fmt.Sprintf("setLang %s", lang),
-		}})
+		buttons = append(buttons, []gotgbot.InlineKeyboardButton{{Text: languageFlag + languageName, CallbackData: fmt.Sprintf("setLang %s", lang)}})
 	}
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text: i18n("language-menu",
-			map[string]any{
-				"languageFlag": i18n("language-flag"),
-				"languageName": i18n("language-name"),
-			}),
-		ParseMode:   models.ParseModeHTML,
-		ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: buttons},
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
+	_, _, _ = b.EditMessageText(i18n("language-menu", map[string]any{"languageFlag": i18n("language-flag"), "languageName": i18n("language-name")}), &gotgbot.EditMessageTextOpts{
+		ChatId:      chat.Id,
+		MessageId:   msgID,
+		ParseMode:   gotgbot.ParseModeHTML,
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons},
 	})
+	return nil
 }
 
-func setLanguageCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func setLanguageCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
-	lang := strings.ReplaceAll(update.CallbackQuery.Data, "setLang ", "")
+	i18n := localization.GetGotgbot(ctx)
+	lang := strings.ReplaceAll(ctx.CallbackQuery.Data, "setLang ", "")
+	chat := ctx.CallbackQuery.Message.GetChat()
 
 	dbQuery := "UPDATE chats SET language = ? WHERE id = ?;"
-	if update.CallbackQuery.Message.Message.Chat.Type == models.ChatTypePrivate {
+	if chat.Type == gotgbot.ChatTypePrivate {
 		dbQuery = "UPDATE users SET language = ? WHERE id = ?;"
 	}
-	_, err := database.DB.Exec(dbQuery, lang, update.CallbackQuery.Message.Message.Chat.ID)
-	if err != nil {
-		slog.Error("Couldn't update language",
-			"ChatID", update.CallbackQuery.Message.Message.ID,
-			"Error", err.Error())
+	if _, err := database.DB.Exec(dbQuery, lang, chat.Id); err != nil {
+		slog.Error("Couldn't update language", "ChatID", chat.Id, "Error", err.Error())
 	}
 
-	buttons := make([][]models.InlineKeyboardButton, 0, len(database.AvailableLocales))
-
-	if update.CallbackQuery.Message.Message.Chat.Type == models.ChatTypePrivate {
-		buttons = append(buttons, []models.InlineKeyboardButton{{
-			Text:         i18n("back-button"),
-			CallbackData: "start",
-		}})
+	buttons := make([][]gotgbot.InlineKeyboardButton, 0, 1)
+	if chat.Type == gotgbot.ChatTypePrivate {
+		buttons = append(buttons, []gotgbot.InlineKeyboardButton{{Text: i18n("back-button"), CallbackData: "start"}})
 	} else {
-		buttons = append(buttons, []models.InlineKeyboardButton{{
-			Text:         i18n("back-button"),
-			CallbackData: "config",
-		}})
+		buttons = append(buttons, []gotgbot.InlineKeyboardButton{{Text: i18n("back-button"), CallbackData: "config"}})
 	}
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("language-changed"),
-
-		ParseMode:   models.ParseModeHTML,
-		ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: buttons},
+	_, _, _ = b.EditMessageText(i18n("language-changed"), &gotgbot.EditMessageTextOpts{
+		ChatId:      chat.Id,
+		MessageId:   ctx.CallbackQuery.Message.GetMessageId(),
+		ParseMode:   gotgbot.ParseModeHTML,
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons},
 	})
+	return nil
 }
 
-func createConfigKeyboard(i18n func(string, ...map[string]any) string) *models.InlineKeyboardMarkup {
-	return &models.InlineKeyboardMarkup{
-		InlineKeyboard: [][]models.InlineKeyboardButton{
-			{
-				{
-					Text:         i18n("medias"),
-					CallbackData: "mediaConfig",
-				},
-			},
-			{
-				{
-					Text:         i18n("language-flag") + i18n("language-button"),
-					CallbackData: "languageMenu",
-				},
-			},
-		},
+func createConfigKeyboardGotgbot(i18n func(string, ...map[string]any) string) gotgbot.InlineKeyboardMarkup {
+	return gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+		{{Text: i18n("medias"), CallbackData: "mediaConfig"}},
+		{{Text: i18n("language-flag") + i18n("language-button"), CallbackData: "languageMenu"}},
+	}}
+}
+
+func configHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
 	}
-}
+	if !isGroupGotgbot(ctx) {
+		i18n := localization.GetGotgbot(ctx)
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		return nil
+	}
 
-func configHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      i18n("config-message"),
-		ParseMode: models.ParseModeHTML,
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-		ReplyMarkup: createConfigKeyboard(i18n),
+	i18n := localization.GetGotgbot(ctx)
+	_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("config-message"), &gotgbot.SendMessageOpts{
+		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyMarkup:     createConfigKeyboardGotgbot(i18n),
 	})
+	return nil
 }
 
-func configCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func configCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
+	i18n := localization.GetGotgbot(ctx)
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID:   update.CallbackQuery.Message.Message.ID,
-		Text:        i18n("config-message"),
-		ParseMode:   models.ParseModeHTML,
-		ReplyMarkup: createConfigKeyboard(i18n),
+	_, _, _ = b.EditMessageText(i18n("config-message"), &gotgbot.EditMessageTextOpts{
+		ChatId:      chat.Id,
+		MessageId:   msgID,
+		ParseMode:   gotgbot.ParseModeHTML,
+		ReplyMarkup: createConfigKeyboardGotgbot(i18n),
 	})
+	return nil
 }
 
-func getMediaConfig(chatID int64) (bool, bool, error) {
-	var mediasCaption, mediasAuto bool
-	err := database.DB.QueryRow("SELECT mediasCaption, mediasAuto FROM chats WHERE id = ?;", chatID).Scan(&mediasCaption, &mediasAuto)
-	return mediasCaption, mediasAuto, err
-}
-
-func mediaConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func mediaConfigCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	mediasCaption, mediasAuto, err := getMediaConfig(update.CallbackQuery.Message.Message.Chat.ID)
+	chat := ctx.CallbackQuery.Message.GetChat()
+	mediasCaption, mediasAuto, err := getMediaConfig(chat.Id)
 	if err != nil {
-		slog.Error("Couldn't query media config",
-			"ChatID", update.CallbackQuery.Message.Message.Chat.ID,
-			"Error", err.Error())
-		return
+		slog.Error("Couldn't query media config", "ChatID", chat.Id, "Error", err.Error())
+		return nil
 	}
 
-	configType := strings.ReplaceAll(update.CallbackQuery.Data, "mediaConfig ", "")
+	configType := strings.ReplaceAll(ctx.CallbackQuery.Data, "mediaConfig ", "")
 	if configType != "mediaConfig" {
 		query := fmt.Sprintf("UPDATE chats SET %s = ? WHERE id = ?;", configType)
-		var err error
 		switch configType {
 		case "mediasCaption":
 			mediasCaption = !mediasCaption
-			_, err = database.DB.Exec(query, mediasCaption, update.CallbackQuery.Message.Message.Chat.ID)
+			_, err = database.DB.Exec(query, mediasCaption, chat.Id)
 		case "mediasAuto":
 			mediasAuto = !mediasAuto
-			_, err = database.DB.Exec(query, mediasAuto, update.CallbackQuery.Message.Message.Chat.ID)
+			_, err = database.DB.Exec(query, mediasAuto, chat.Id)
 		}
 		if err != nil {
-			return
+			return nil
 		}
 	}
-	i18n := localization.Get(update)
 
-	state := func(mediasAuto bool) string {
-		if mediasAuto {
+	i18n := localization.GetGotgbot(ctx)
+	state := func(v bool) string {
+		if v {
 			return "✅"
 		}
 		return "☑️"
 	}
 
-	buttons := [][]models.InlineKeyboardButton{
-		{
-			{
-				Text:         i18n("caption-button"),
-				CallbackData: "ieConfig caption-help",
-			},
-			{
-				Text:         state(mediasCaption),
-				CallbackData: "mediaConfig mediasCaption",
-			},
-		},
-		{
-			{
-				Text:         i18n("automatic-button"),
-				CallbackData: "ieConfig auto-help",
-			},
-			{
-				Text:         state(mediasAuto),
-				CallbackData: "mediaConfig mediasAuto",
-			},
-		},
+	buttons := [][]gotgbot.InlineKeyboardButton{
+		{{Text: i18n("caption-button"), CallbackData: "ieConfig caption-help"}, {Text: state(mediasCaption), CallbackData: "mediaConfig mediasCaption"}},
+		{{Text: i18n("automatic-button"), CallbackData: "ieConfig auto-help"}, {Text: state(mediasAuto), CallbackData: "mediaConfig mediasAuto"}},
+		{{Text: i18n("back-button"), CallbackData: "config"}},
 	}
 
-	buttons = append(buttons, []models.InlineKeyboardButton{{
-		Text:         i18n("back-button"),
-		CallbackData: "config",
-	}})
-
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:      update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID:   update.CallbackQuery.Message.Message.ID,
-		Text:        i18n("config-medias"),
-		ParseMode:   models.ParseModeHTML,
-		ReplyMarkup: &models.InlineKeyboardMarkup{InlineKeyboard: buttons},
+	_, _, _ = b.EditMessageText(i18n("config-medias"), &gotgbot.EditMessageTextOpts{
+		ChatId:      chat.Id,
+		MessageId:   ctx.CallbackQuery.Message.GetMessageId(),
+		ParseMode:   gotgbot.ParseModeHTML,
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons},
 	})
+	return nil
 }
 
-func explainConfigCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-	ieConfig := strings.ReplaceAll(update.CallbackQuery.Data, "ieConfig ", "")
-	b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
-		CallbackQueryID: update.CallbackQuery.ID,
-		Text:            i18n(ieConfig),
-		ShowAlert:       true,
-	})
+func explainConfigCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil {
+		return nil
+	}
+	i18n := localization.GetGotgbot(ctx)
+	ieConfig := strings.ReplaceAll(ctx.CallbackQuery.Data, "ieConfig ", "")
+	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n(ieConfig), ShowAlert: true})
+	return nil
 }
 
-func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^languageMenu$", languageMenuCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^setLang", setLanguageCallback)
-	b.RegisterHandler(bot.HandlerTypeCommand, "config", configHandler, utils.IsGroup)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^config$", configCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^mediaConfig", mediaConfigCallback)
-	b.RegisterHandler(bot.HandlerTypeCommand, "disableable", disableableHandler, utils.IsGroup)
-	b.RegisterHandler(bot.HandlerTypeCommand, "disable", disableHandler, utils.IsGroup)
-	b.RegisterHandler(bot.HandlerTypeCommand, "enable", enableHandler, utils.IsGroup)
-	b.RegisterHandler(bot.HandlerTypeCommand, "disabled", disabledHandler, utils.IsGroup)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^disableable$", disableableHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^ieConfig", explainConfigCallback)
+func Load(dispatcher *ext.Dispatcher) {
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("languageMenu"), languageMenuCallbackGotgbot))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("setLang"), setLanguageCallbackGotgbot))
+	dispatcher.AddHandler(handlers.NewCommand("config", configHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("config"), configCallbackGotgbot))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("mediaConfig"), mediaConfigCallbackGotgbot))
+	dispatcher.AddHandler(handlers.NewCommand("disableable", disableableHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCommand("disable", disableHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCommand("enable", enableHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCommand("disabled", disabledHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("disableable"), disableableHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("ieConfig"), explainConfigCallbackGotgbot))
 
 	utils.SaveHelp("config")
 }

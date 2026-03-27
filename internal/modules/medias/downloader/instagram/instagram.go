@@ -1,7 +1,6 @@
 package instagram
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -11,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -96,7 +95,7 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-func (h *Handler) processMedia(data *ShortcodeMedia) []models.InputMedia {
+func (h *Handler) processMedia(data *ShortcodeMedia) []gotgbot.InputMedia {
 	switch data.Typename {
 	case "GraphVideo", "XDTGraphVideo":
 		return h.handleVideo(data)
@@ -254,7 +253,7 @@ func (h *Handler) getEmbedData() InstagramData {
 func (h *Handler) getScrapperAPIData() InstagramData {
 	var data InstagramData
 
-	response, err := utils.Request("https://scrapper.ruizlenato.loseyourip.com/instagram", utils.RequestParams{
+	response, err := utils.Request("http://localhost:3000/instagram", utils.RequestParams{
 		Method: "GET",
 		Query: map[string]string{
 			"id": h.postID,
@@ -304,7 +303,7 @@ func (h *Handler) getGQLData() InstagramData {
 	return data
 }
 
-func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
+func (h *Handler) handleVideo(data *ShortcodeMedia) []gotgbot.InputMedia {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%s_%s", h.username, h.postID))
 	file, err := downloader.FetchBytesFromURL(data.VideoURL)
 	if err != nil {
@@ -329,20 +328,17 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []models.InputMedia {
 			"Error", err.Error())
 	}
 
-	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + filename,
-		Thumbnail: &models.InputFileUpload{
-			Filename: filename,
-			Data:     bytes.NewBuffer(thumbnail),
-		},
-		Width:             data.Dimensions.Width,
-		Height:            data.Dimensions.Height,
-		SupportsStreaming: true,
-		MediaAttachment:   bytes.NewBuffer(file),
+	return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
+		Media:                 downloader.InputFileFromBytes(filename, file),
+		Thumbnail:             downloader.InputFileFromBytes(filename, thumbnail),
+		Width:                 int64(data.Dimensions.Width),
+		Height:                int64(data.Dimensions.Height),
+		SupportsStreaming:     true,
+		ShowCaptionAboveMedia: false,
 	}}
 }
 
-func (h *Handler) handleImage(data *ShortcodeMedia) []models.InputMedia {
+func (h *Handler) handleImage(data *ShortcodeMedia) []gotgbot.InputMedia {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%s_%s", h.username, h.postID))
 	file, err := downloader.FetchBytesFromURL(data.DisplayURL)
 	if err != nil {
@@ -352,13 +348,12 @@ func (h *Handler) handleImage(data *ShortcodeMedia) []models.InputMedia {
 		return nil
 	}
 
-	return []models.InputMedia{&models.InputMediaPhoto{
-		Media:           "attach://" + filename,
-		MediaAttachment: bytes.NewBuffer(file),
+	return []gotgbot.InputMedia{&gotgbot.InputMediaPhoto{
+		Media: downloader.InputFileFromBytes(filename, file),
 	}}
 }
 
-func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
+func (h *Handler) handleSidecar(data *ShortcodeMedia) []gotgbot.InputMedia {
 	type mediaResult struct {
 		index int
 		media *downloader.InputMedia
@@ -366,7 +361,7 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 	}
 
 	mediaCount := len(data.EdgeSidecarToChildren.Edges)
-	mediaItems := make([]models.InputMedia, mediaCount)
+	mediaItems := make([]gotgbot.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range data.EdgeSidecarToChildren.Edges {
@@ -386,19 +381,17 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 		}
 		if result.media.File != nil {
 			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%d_%s_%s", result.index, h.username, h.postID))
-			var mediaItem models.InputMedia
+			var mediaItem gotgbot.InputMedia
 			if !data.EdgeSidecarToChildren.Edges[result.index].Node.IsVideo {
-				mediaItem = &models.InputMediaPhoto{
-					Media:           "attach://" + filename,
-					MediaAttachment: bytes.NewBuffer(result.media.File),
+				mediaItem = &gotgbot.InputMediaPhoto{
+					Media: downloader.InputFileFromBytes(filename, result.media.File),
 				}
 			} else {
-				mediaItem = &models.InputMediaVideo{
-					Media:             "attach://" + filename,
-					Width:             data.Dimensions.Width,
-					Height:            data.Dimensions.Height,
+				mediaItem = &gotgbot.InputMediaVideo{
+					Media:             downloader.InputFileFromBytes(filename, result.media.File),
+					Width:             int64(data.Dimensions.Width),
+					Height:            int64(data.Dimensions.Height),
 					SupportsStreaming: true,
-					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
 					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
@@ -407,10 +400,7 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []models.InputMedia {
 							"Post Info", []string{h.username, h.postID},
 							"Error", err.Error())
 					}
-					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-						Filename: filename,
-						Data:     bytes.NewBuffer(thumbnail),
-					}
+					mediaItem.(*gotgbot.InputMediaVideo).Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
 				}
 			}
 			mediaItems[result.index] = mediaItem

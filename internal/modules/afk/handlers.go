@@ -1,192 +1,158 @@
 package afk
 
 import (
-	"context"
 	"database/sql"
 	"log/slog"
 	"regexp"
 	"time"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func CheckAFKMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
-	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		message := update.Message
-
-		if message == nil {
-			if update.CallbackQuery == nil {
-				next(ctx, b, update)
-				return
-			}
-
-			message = update.CallbackQuery.Message.Message
-
-			if update.CallbackQuery.Message.Type == 1 || message == nil {
-				next(ctx, b, update)
-				return
-			}
-		}
-
-		if message.From == nil ||
-			message.Chat.Type != models.ChatTypeGroup &&
-				message.Chat.Type != models.ChatTypeSupergroup ||
-			regexp.MustCompile(`^(brb|/afk)`).MatchString(message.Text) {
-			next(ctx, b, update)
-			return
-		}
-
-		mentionedUserID := getUserIDFromMessage(message)
-		if !userIsAway(mentionedUserID) {
-			next(ctx, b, update)
-			return
-		}
-
-		reason, duration, err := getUserAway(mentionedUserID)
-		if err != nil && err != sql.ErrNoRows {
-			slog.Error("Couldn't get user away status",
-				"UserID", message.From.ID,
-				"Error", err.Error())
-			return
-		}
-
-		i18n := localization.Get(update)
-		humanizedDuration := localization.HumanizeTimeSince(duration, update)
-
-		switch mentionedUserID {
-		case message.From.ID:
-			if err := unsetUserAway(mentionedUserID); err != nil {
-				slog.Error("Couldn't unset user away status",
-					"UserID", mentionedUserID,
-					"Error", err.Error())
-				next(ctx, b, update)
-				return
-			}
-
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: message.Chat.ID,
-				Text: i18n("user-now-available",
-					map[string]any{
-						"userID":        message.From.ID,
-						"userFirstName": utils.EscapeHTML(message.From.FirstName),
-						"duration":      humanizedDuration,
-					}),
-				LinkPreviewOptions: &models.LinkPreviewOptions{
-					PreferLargeMedia: bot.True(),
-				},
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: message.ID,
-				},
-			})
-		default:
-			user, err := b.GetChat(ctx, &bot.GetChatParams{ChatID: mentionedUserID})
-			if err != nil {
-				slog.Error("Couldn't get user",
-					"UserID", mentionedUserID,
-					"Error", err.Error())
-				return
-			}
-
-			text := i18n("user-unavailable",
-				map[string]any{
-					"userID":        mentionedUserID,
-					"userFirstName": utils.EscapeHTML(user.FirstName),
-					"duration":      humanizedDuration,
-				})
-
-			if reason != "" {
-				text += "\n" + i18n("user-unavailable-reason",
-					map[string]any{
-						"reason": reason,
-					})
-			}
-
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID: message.Chat.ID,
-				Text:   text,
-				LinkPreviewOptions: &models.LinkPreviewOptions{
-					PreferLargeMedia: bot.True(),
-				},
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: message.ID,
-				},
-			})
-		}
-		next(ctx, b, update)
-	}
-}
-
-func getUserIDFromMessage(message *models.Message) int64 {
-	if message.ReplyToMessage != nil && message.ReplyToMessage.From != nil {
-		return message.ReplyToMessage.From.ID
+func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
+	messageData := ctx.EffectiveMessage
+	if messageData == nil || ctx.EffectiveUser == nil {
+		return nil
 	}
 
-	if message.Entities != nil {
-		for _, entity := range message.Entities {
-			if entity.Type == "mention" || entity.Type == "text_mention" {
-				if entity.Type == "text_mention" {
-					return entity.User.ID
-				}
-
-				username := message.Text[entity.Offset : entity.Offset+entity.Length]
-				userID, err := getIDFromUsername(username)
-				if err == nil {
-					return userID
-				}
-
-				slog.Error("Couldn't get user ID from username",
-					"Username", username,
-					"Error", err.Error(),
-				)
-			}
-		}
+	if (messageData.Chat.Type != gotgbot.ChatTypeGroup && messageData.Chat.Type != gotgbot.ChatTypeSupergroup) ||
+		regexp.MustCompile(`^(brb|/afk)`).MatchString(messageData.GetText()) {
+		return nil
 	}
 
-	return message.From.ID
-}
+	mentionedUserID := getUserIDFromMessage(messageData)
+	if !userIsAway(mentionedUserID) {
+		return nil
+	}
 
-func setAFKHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	reason := extractReason(update.Message.Text)
-	err := setUserAway(update.Message.From, reason, time.Now().UTC())
+	reason, duration, err := getUserAway(mentionedUserID)
+	if err != nil && err != sql.ErrNoRows {
+		slog.Error("Couldn't get user away status", "UserID", ctx.EffectiveUser.Id, "Error", err.Error())
+		return nil
+	}
+
+	i18n := localization.GetGotgbot(ctx)
+	humanizedDuration := localization.HumanizeTimeSinceGotgbot(duration, ctx)
+
+	if mentionedUserID == ctx.EffectiveUser.Id {
+		if err := unsetUserAway(mentionedUserID); err != nil {
+			slog.Error("Couldn't unset user away status", "UserID", mentionedUserID, "Error", err.Error())
+			return nil
+		}
+
+		_, _ = b.SendMessage(messageData.Chat.Id, i18n("user-now-available", map[string]any{
+			"userID":        ctx.EffectiveUser.Id,
+			"userFirstName": utils.EscapeHTML(ctx.EffectiveUser.FirstName),
+			"duration":      humanizedDuration,
+		}), &gotgbot.SendMessageOpts{
+			LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
+			ParseMode:          gotgbot.ParseModeHTML,
+			ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+		})
+
+		return nil
+	}
+
+	user, err := b.GetChat(mentionedUserID, nil)
 	if err != nil {
-		slog.Error("Couldn't set user away status",
-			"UserID", update.Message.From.ID,
-			"Error", err.Error())
-		return
+		slog.Error("Couldn't get user", "UserID", mentionedUserID, "Error", err.Error())
+		return nil
 	}
 
-	i18n := localization.Get(update)
-
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text: i18n("user-now-unavailable",
-			map[string]any{
-				"userFirstName": utils.EscapeHTML(update.Message.From.FirstName),
-			}),
-		ParseMode: models.ParseModeHTML,
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
+	text := i18n("user-unavailable", map[string]any{
+		"userID":        mentionedUserID,
+		"userFirstName": utils.EscapeHTML(user.FirstName),
+		"duration":      humanizedDuration,
 	})
+
+	if reason != "" {
+		text += "\n" + i18n("user-unavailable-reason", map[string]any{"reason": reason})
+	}
+
+	_, _ = b.SendMessage(messageData.Chat.Id, text, &gotgbot.SendMessageOpts{
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
+		ParseMode:          gotgbot.ParseModeHTML,
+		ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+	})
+
+	return nil
+}
+
+func getUserIDFromMessage(messageData *gotgbot.Message) int64 {
+	if messageData.ReplyToMessage != nil && messageData.ReplyToMessage.From != nil {
+		return messageData.ReplyToMessage.From.Id
+	}
+
+	for _, entity := range messageData.Entities {
+		if entity.Type != "mention" && entity.Type != "text_mention" {
+			continue
+		}
+
+		if entity.Type == "text_mention" && entity.User != nil {
+			return entity.User.Id
+		}
+
+		start := int(entity.Offset)
+		end := int(entity.Offset + entity.Length)
+		text := messageData.GetText()
+		if start < 0 || end > len(text) || start >= end {
+			continue
+		}
+
+		username := text[start:end]
+		userID, err := getIDFromUsername(username)
+		if err == nil && userID != 0 {
+			return userID
+		}
+	}
+
+	if messageData.From != nil {
+		return messageData.From.Id
+	}
+
+	return 0
+}
+
+func setAFKHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
+		return nil
+	}
+
+	reason := extractReason(ctx.EffectiveMessage.GetText())
+	if err := setUserAway(ctx.EffectiveUser, reason, time.Now().UTC()); err != nil {
+		slog.Error("Couldn't set user away status", "UserID", ctx.EffectiveUser.Id, "Error", err.Error())
+		return nil
+	}
+
+	i18n := localization.GetGotgbot(ctx)
+	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("user-now-unavailable", map[string]any{
+		"userFirstName": utils.EscapeHTML(ctx.EffectiveUser.FirstName),
+	}), &gotgbot.SendMessageOpts{
+		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+	})
+
+	return nil
+}
+
+func Load(dispatcher *ext.Dispatcher) {
+	dispatcher.AddHandler(handlers.NewCommand("afk", setAFKHandler))
+	dispatcher.AddHandler(handlers.NewMessage(message.HasPrefix("brb"), setAFKHandler))
+	dispatcher.AddHandlerToGroup(handlers.NewMessage(message.All, checkAFKMessage), 1)
+
+	utils.SaveHelp("afk")
 }
 
 func extractReason(text string) string {
-	matches := regexp.MustCompile(`^(?:brb|\/afk)\s(.+)$`).FindStringSubmatch(text)
+	matches := regexp.MustCompile(`^(?:brb|/afk)\s(.+)$`).FindStringSubmatch(text)
 	if len(matches) > 1 {
 		return matches[1]
 	}
 	return ""
-}
-
-func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeCommand, "afk", setAFKHandler)
-	b.RegisterHandler(bot.HandlerTypeMessageText, "^brb", setAFKHandler)
-
-	utils.SaveHelp("afk")
 }

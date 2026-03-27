@@ -2,7 +2,7 @@
 
 <img height="180" align="right" alt="SmudgeLord" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_6NO13JhSH6IpRwmZ6av0RdmVKU45vlHmdNuxleP7CXHWc65Ggj7P9lbKZPVc4iDi16A"/>
 
-> SmudgeLord is a bot developed in Golang written in golang using the [Golang Telegram Bot library](//github.com/go-telegram/bot) with some fun and useful functions
+> SmudgeLord is a bot developed in Golang written in golang using the [Golang Telegram Bot library](//github.com/paulsonoflars/gotgbot) with some fun and useful functions
 
 SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily\
 **This project has no connection to Smudge The Cat, I'm just using his name and image because I'm a big fan of the cat.**

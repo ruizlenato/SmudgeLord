@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"errors"
 	"log/slog"
+	"strings"
 	"time"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
@@ -37,7 +38,7 @@ func getUserAway(userID int64) (string, time.Duration, error) {
 	return reason, time.Since(afkTime), nil
 }
 
-func setUserAway(sender *models.User, reason string, time time.Time) error {
+func setUserAway(sender *gotgbot.User, reason string, time time.Time) error {
 	query := `
         INSERT INTO afk (id, username, reason, time) VALUES (?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
@@ -46,9 +47,16 @@ func setUserAway(sender *models.User, reason string, time time.Time) error {
             time = excluded.time
     `
 
-	username := database.FormatUsername(sender.Username)
+	if sender == nil {
+		return nil
+	}
 
-	_, err := database.DB.Exec(query, sender.ID, username, reason, time)
+	username := sender.Username
+	if username != "" {
+		username = "@" + strings.TrimPrefix(username, "@")
+	}
+
+	_, err := database.DB.Exec(query, sender.Id, username, reason, time)
 	if err != nil {
 		return errors.New("Error setting AFK: " + err.Error())
 	}

@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -631,7 +631,7 @@ func getCaption(tikTokData TikTokData) string {
 	return ""
 }
 
-func (h *Handler) handleImages(tikTokData TikTokData) []models.InputMedia {
+func (h *Handler) handleImages(tikTokData TikTokData) []gotgbot.InputMedia {
 	type mediaResult struct {
 		index int
 		file  []byte
@@ -639,7 +639,7 @@ func (h *Handler) handleImages(tikTokData TikTokData) []models.InputMedia {
 	}
 
 	images := tikTokData.AwemeList[0].ImagePostInfo.Images
-	mediaItems := make([]models.InputMedia, len(images))
+	mediaItems := make([]gotgbot.InputMedia, len(images))
 	results := make(chan mediaResult, len(images))
 
 	for i, media := range images {
@@ -662,10 +662,10 @@ func (h *Handler) handleImages(tikTokData TikTokData) []models.InputMedia {
 			continue
 		}
 		if result.file != nil {
-			mediaItems[result.index] = &models.InputMediaPhoto{
-				Media: "attach://" + utils.SanitizeString(
+			mediaItems[result.index] = &gotgbot.InputMediaPhoto{
+				Media: downloader.InputFileFromBytes(utils.SanitizeString(
 					fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", result.index, h.username, h.postID)),
-				MediaAttachment: bytes.NewBuffer(result.file),
+					result.file),
 			}
 		}
 	}
@@ -673,7 +673,7 @@ func (h *Handler) handleImages(tikTokData TikTokData) []models.InputMedia {
 	return mediaItems
 }
 
-func (h *Handler) handleVideo(tikTokData TikTokData) []models.InputMedia {
+func (h *Handler) handleVideo(tikTokData TikTokData) []gotgbot.InputMedia {
 	if len(tikTokData.AwemeList) == 0 {
 		return nil
 	}
@@ -724,24 +724,18 @@ func (h *Handler) handleVideo(tikTokData TikTokData) []models.InputMedia {
 		}
 	}
 
-	var thumbnailUpload *models.InputFileUpload
+	media := &gotgbot.InputMediaVideo{
+		Media:             downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)), file),
+		Width:             int64(video.PlayAddr.Width),
+		Height:            int64(video.PlayAddr.Height),
+		Duration:          int64(video.Duration),
+		SupportsStreaming: true,
+	}
 	if len(thumbnail) > 0 {
-		thumbnailUpload = &models.InputFileUpload{
-			Filename: "thumb.jpg",
-			Data:     bytes.NewBuffer(thumbnail),
-		}
+		media.Thumbnail = downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)), thumbnail)
 	}
 
-	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + utils.SanitizeString(
-			fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)),
-		Thumbnail:         thumbnailUpload,
-		Width:             video.PlayAddr.Width,
-		Height:            video.PlayAddr.Height,
-		Duration:          video.Duration,
-		SupportsStreaming: true,
-		MediaAttachment:   bytes.NewBuffer(file),
-	}}
+	return []gotgbot.InputMedia{media}
 }
 
 func pickImageURL(media Image) string {

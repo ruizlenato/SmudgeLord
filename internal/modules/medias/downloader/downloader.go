@@ -17,7 +17,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/grafov/m3u8"
 
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
@@ -334,37 +334,30 @@ func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {
 	return mergedBytes, nil
 }
 
-func SetMediaCache(replied any, postInfo PostInfo) error {
+func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
+	if len(messages) == 0 {
+		return nil
+	}
+
 	var (
 		medias      []string
 		caption     string
 		invertMedia bool
 	)
 
-	var messages []*models.Message
-	switch v := replied.(type) {
-	case []*models.Message:
-		messages = v
-	case *models.Message:
-		messages = []*models.Message{v}
-	default:
-		return errors.New("invalid type for replied")
-	}
-
 	for _, message := range messages {
 		if caption == "" {
 			caption = sanitizeCaptionForCache(utils.FormatText(message.Caption, message.CaptionEntities))
 		}
-		invertMedia = message.ShowCaptionAboveMedia
+		invertMedia = invertMedia || message.ShowCaptionAboveMedia
 
-		var mediaID string
+		if len(message.Photo) > 0 {
+			medias = append(medias, message.Photo[0].FileId)
+			continue
+		}
 		if message.Video != nil {
-			mediaID = message.Video.FileID
+			medias = append(medias, message.Video.FileId)
 		}
-		if message.Photo != nil {
-			mediaID = message.Photo[0].FileID
-		}
-		medias = append(medias, mediaID)
 	}
 
 	album := Medias{
@@ -408,17 +401,17 @@ func GetMediaCache(postID string) (PostInfo, error) {
 		return PostInfo{}, fmt.Errorf("couldn't unmarshal medias JSON: %v", err)
 	}
 
-	inputMedias := make([]models.InputMedia, 0, len(medias.Medias))
-	for _, media := range medias.Medias {
-		switch utils.FileTypeByFileID(media) {
+	inputMedias := make([]gotgbot.InputMedia, 0, len(medias.Medias))
+	for _, mediaID := range medias.Medias {
+		switch utils.FileTypeByFileID(mediaID) {
 		case 2:
-			inputMedias = append(inputMedias, &models.InputMediaPhoto{
-				Media:                 media,
+			inputMedias = append(inputMedias, &gotgbot.InputMediaPhoto{
+				Media:                 gotgbot.InputFileByID(mediaID),
 				ShowCaptionAboveMedia: medias.InvertMedia,
 			})
 		case 4, 9:
-			inputMedias = append(inputMedias, &models.InputMediaVideo{
-				Media:                 media,
+			inputMedias = append(inputMedias, &gotgbot.InputMediaVideo{
+				Media:                 gotgbot.InputFileByID(mediaID),
 				ShowCaptionAboveMedia: medias.InvertMedia,
 				SupportsStreaming:     true,
 			})
@@ -433,7 +426,7 @@ func GetMediaCache(postID string) (PostInfo, error) {
 	}, nil
 }
 
-func SetYoutubeCache(replied *models.Message, youtubeID string) error {
+func SetYoutubeCache(replied *gotgbot.Message, youtubeID string) error {
 	var youtube YouTube
 
 	cached, _ := cache.GetCache("youtube-cache:" + youtubeID)
@@ -443,10 +436,14 @@ func SetYoutubeCache(replied *models.Message, youtubeID string) error {
 		}
 	}
 
+	if replied == nil {
+		return errors.New("youtube message is nil")
+	}
+
 	if replied.Video != nil {
-		youtube = YouTube{Caption: replied.Caption, Video: replied.Video.FileID, Audio: youtube.Audio}
+		youtube = YouTube{Caption: replied.Caption, Video: replied.Video.FileId, Audio: youtube.Audio}
 	} else if replied.Audio != nil {
-		youtube = YouTube{Caption: replied.Caption, Video: youtube.Video, Audio: replied.Audio.FileID}
+		youtube = YouTube{Caption: replied.Caption, Video: youtube.Video, Audio: replied.Audio.FileId}
 	}
 
 	jsonValue, err := json.Marshal(youtube)

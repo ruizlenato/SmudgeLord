@@ -6,50 +6,41 @@ import (
 	"log/slog"
 	"os"
 	"os/signal"
-	"strings"
+	"strconv"
+	"time"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/inlinequery"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/modules"
-	"github.com/ruizlenato/smudgelord/internal/modules/afk"
-	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-var botInfo *models.User
-
 func main() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer cancel()
+
 	logger := slog.New(NewColorHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 		Level:     config.LogLevel,
 	}, nil, 0))
 	slog.SetDefault(logger)
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-	defer cancel()
-
-	done := make(chan struct{}, 1)
-
-	go handleSignals(ctx, done)
-
-	opts := []bot.Option{
-		bot.WithMiddlewares(
-			database.SaveUsers,
-			afk.CheckAFKMiddleware,
-			utils.CheckDisabledMiddleware,
-			checkUsername,
-		),
-	}
-
+	botOpts := &gotgbot.BotOpts{}
 	if config.BotAPIURL != "" {
-		opts = append(opts, bot.WithServerURL(config.BotAPIURL))
+		botOpts.BotClient = &gotgbot.BaseBotClient{
+			DefaultRequestOpts: &gotgbot.RequestOpts{APIURL: config.BotAPIURL},
+		}
 	}
 
-	b, err := bot.New(config.TelegramToken, opts...)
+	b, err := gotgbot.NewBot(config.TelegramToken, botOpts)
 	if err != nil {
-		slog.Error(err.Error())
+		slog.Error("failed to create bot", "error", err)
 		os.Exit(1)
 	}
 
@@ -58,56 +49,62 @@ func main() {
 		Level:     config.LogLevel,
 	}, b, config.LogChannelID)))
 
-	if err := InitializeServices(b, ctx); err != nil {
-		slog.Error(err.Error())
+	if err := initializeServices(b, ctx); err != nil {
+		slog.Error("failed to initialize services", "error", err)
 		os.Exit(1)
 	}
 
-	botInfo, err = b.GetMe(ctx)
-	if err != nil {
-		slog.Error("failed to get bot info",
-			"error", err.Error())
-		os.Exit(1)
-	}
+	dispatcher := ext.NewDispatcher(&ext.DispatcherOpts{
+		Error: func(b *gotgbot.Bot, ctx *ext.Context, err error) ext.DispatcherAction {
+			slog.Error("dispatcher error", "error", err)
+			return ext.DispatcherActionNoop
+		},
+		MaxRoutines: ext.DefaultMaxRoutines,
+	})
+	dispatcher.AddHandlerToGroup(handlers.NewMessage(message.All, database.SaveUsers), -1)
+	dispatcher.AddHandlerToGroup(handlers.NewCallback(callbackquery.All, database.SaveUsers), -1)
+	dispatcher.AddHandlerToGroup(handlers.NewInlineQuery(inlinequery.All, database.SaveUsers), -1)
 
-	fmt.Println("\033[0;32m\U0001F680 Bot Started\033[0m")
-	fmt.Printf("\033[0;36mBot Info:\033[0m %v - @%v\n", botInfo.FirstName, botInfo.Username)
-	modules.RegisterHandlers(b)
+	modules.RegisterHandlers(dispatcher)
+
+	updater := ext.NewUpdater(dispatcher, nil)
 
 	if config.WebhookURL != "" {
-		b.StartWebhook(ctx)
+		if err := updater.StartWebhook(b, config.TelegramToken, ext.WebhookOpts{
+			ListenAddr: ":" + strconv.Itoa(config.WebhookPort),
+		}); err != nil {
+			slog.Error("failed to start webhook server", "error", err)
+			os.Exit(1)
+		}
+
+		if err := updater.SetAllBotWebhooks(config.WebhookURL, &gotgbot.SetWebhookOpts{DropPendingUpdates: true}); err != nil {
+			slog.Error("failed to set webhook", "error", err)
+			os.Exit(1)
+		}
 	} else {
-		b.Start(ctx)
+		if err := updater.StartPolling(b, &ext.PollingOpts{
+			DropPendingUpdates: true,
+			GetUpdatesOpts: &gotgbot.GetUpdatesOpts{
+				Timeout: 9,
+				RequestOpts: &gotgbot.RequestOpts{
+					Timeout: 15 * time.Second,
+				},
+			},
+		}); err != nil {
+			slog.Error("failed to start polling", "error", err)
+			os.Exit(1)
+		}
 	}
 
-	<-done
-	fmt.Println("Done")
-}
-
-func handleSignals(ctx context.Context, done chan struct{}) {
-	<-ctx.Done()
-	fmt.Println("\n\033[0;31mStopping...\033[0m")
-
-	fmt.Println("Bot stopped")
-	database.Close()
-
-	done <- struct{}{}
-}
-
-func checkUsername(next bot.HandlerFunc) bot.HandlerFunc {
-	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		if update.Message == nil {
-			next(ctx, b, update)
-			return
+	go func() {
+		<-ctx.Done()
+		slog.Info("stopping gotgbot updater")
+		if err := updater.Stop(); err != nil {
+			slog.Error("failed to stop updater", "error", err)
 		}
+		database.Close()
+	}()
 
-		commandSlices := strings.Split(update.Message.Text, "@")
-		if len(commandSlices) > 1 && strings.HasPrefix(commandSlices[0], "/") {
-			if commandSlices[1] != botInfo.Username {
-				return
-			}
-		}
-
-		next(ctx, b, update)
-	}
+	fmt.Printf("Bot started: %s (@%s)\n", b.FirstName, b.Username)
+	updater.Idle()
 }

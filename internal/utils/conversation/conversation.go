@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 )
 
 var (
@@ -17,27 +17,32 @@ var (
 	ErrConversationCanceled = fmt.Errorf("conversation canceled")
 )
 
+const conversationHandlerGroup = -100
+
 type Manager struct {
-	b                   *bot.Bot
+	b                   *gotgbot.Bot
+	d                   *ext.Dispatcher
 	activeConversations map[int64]*Conversation
 	mu                  sync.RWMutex
 }
 
-func NewManager(b *bot.Bot) *Manager {
+func NewManager(b *gotgbot.Bot, dispatcher *ext.Dispatcher) *Manager {
 	return &Manager{
 		b:                   b,
+		d:                   dispatcher,
 		activeConversations: make(map[int64]*Conversation),
 	}
 }
 
 type Conversation struct {
-	b             *bot.Bot
+	b             *gotgbot.Bot
+	d             *ext.Dispatcher
 	chatID        int64
 	userID        int64
 	timeout       time.Duration
 	abortKeywords []string
 	canceled      bool
-	lastMessageID int
+	lastMessageID int64
 	manager       *Manager
 }
 
@@ -54,10 +59,7 @@ func (m *Manager) Start(chatID, userID int64, opts ...*ConversationOptions) *Con
 		existingConv.cancel()
 	}
 
-	options := &ConversationOptions{
-		Timeout: 60 * time.Second,
-	}
-
+	options := &ConversationOptions{Timeout: 60 * time.Second}
 	if len(opts) > 0 && opts[0] != nil {
 		if opts[0].Timeout > 0 {
 			options.Timeout = opts[0].Timeout
@@ -69,16 +71,15 @@ func (m *Manager) Start(chatID, userID int64, opts ...*ConversationOptions) *Con
 
 	conv := &Conversation{
 		b:             m.b,
+		d:             m.d,
 		chatID:        chatID,
 		userID:        userID,
 		timeout:       options.Timeout,
 		abortKeywords: options.AbortKeywords,
-		canceled:      false,
 		manager:       m,
 	}
 
 	m.activeConversations[userID] = conv
-
 	return conv
 }
 
@@ -107,37 +108,44 @@ func (c *Conversation) End() {
 	c.removeFromManager()
 }
 
-func (c *Conversation) checkAbort(msg *models.Message) bool {
+func (c *Conversation) checkAbort(msg *gotgbot.Message) bool {
 	if len(c.abortKeywords) == 0 {
 		return false
 	}
-	text := msg.Text
-	return slices.Contains(c.abortKeywords, text)
+	return slices.Contains(c.abortKeywords, msg.GetText())
 }
 
-func (c *Conversation) AwaitResponse(ctx context.Context) (*models.Message, error) {
+func (c *Conversation) AwaitResponse(ctx context.Context) (*gotgbot.Message, error) {
 	if c.canceled {
 		return nil, ErrConversationCanceled
 	}
 
-	responseChan := make(chan *models.Message, 1)
-
-	match := func(update *models.Update) bool {
-		return update.Message != nil &&
-			update.Message.Chat.ID == c.chatID &&
-			update.Message.From.ID == c.userID
+	if c.d == nil {
+		return nil, fmt.Errorf("dispatcher is required for conversations")
 	}
 
-	handler := func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		select {
-		case responseChan <- update.Message:
-		default:
-		}
+	responseChan := make(chan *gotgbot.Message, 1)
+	handlerName := fmt.Sprintf("conversation_%d_%d_%d", c.chatID, c.userID, time.Now().UnixNano())
+
+	h := conversationHandler{
+		name: handlerName,
+		check: func(_ *gotgbot.Bot, ectx *ext.Context) bool {
+			return ectx.Message != nil && ectx.Message.Chat.Id == c.chatID && ectx.Message.From != nil && ectx.Message.From.Id == c.userID
+		},
+		handle: func(_ *gotgbot.Bot, ectx *ext.Context) error {
+			select {
+			case responseChan <- ectx.Message:
+			default:
+			}
+			return nil
+		},
 	}
 
-	handlerID := c.b.RegisterHandlerMatchFunc(match, handler)
+	c.d.AddHandlerToGroup(h, conversationHandlerGroup)
+	defer c.d.RemoveHandlerFromGroup(handlerName, conversationHandlerGroup)
 
-	defer c.b.UnregisterHandler(handlerID)
+	timer := time.NewTimer(c.timeout)
+	defer timer.Stop()
 
 	select {
 	case msg := <-responseChan:
@@ -145,36 +153,35 @@ func (c *Conversation) AwaitResponse(ctx context.Context) (*models.Message, erro
 			return nil, ErrConversationCanceled
 		}
 		return msg, nil
-	case <-time.After(c.timeout):
+	case <-timer.C:
 		return nil, ErrConversationTimeout
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
 }
 
-func (c *Conversation) SendMessage(ctx context.Context, params *bot.SendMessageParams) (*models.Message, error) {
+func (c *Conversation) SendMessage(_ context.Context, text string, opts *gotgbot.SendMessageOpts) (*gotgbot.Message, error) {
 	if c.canceled {
 		return nil, ErrConversationCanceled
 	}
 
-	params.ChatID = c.chatID
-	msg, err := c.b.SendMessage(ctx, params)
+	msg, err := c.b.SendMessage(c.chatID, text, opts)
 	if err == nil && msg != nil {
-		c.lastMessageID = msg.ID
+		c.lastMessageID = msg.MessageId
 	}
 	return msg, err
 }
 
-func (c *Conversation) GetLastMessageID() int {
+func (c *Conversation) GetLastMessageID() int64 {
 	return c.lastMessageID
 }
 
-func (c *Conversation) Ask(ctx context.Context, params *bot.SendMessageParams) (*models.Message, error) {
+func (c *Conversation) Ask(ctx context.Context, text string, opts *gotgbot.SendMessageOpts) (*gotgbot.Message, error) {
 	if c.canceled {
 		return nil, ErrConversationCanceled
 	}
 
-	if _, err := c.SendMessage(ctx, params); err != nil {
+	if _, err := c.SendMessage(ctx, text, opts); err != nil {
 		return nil, fmt.Errorf("sending message: %w", err)
 	}
 
@@ -189,4 +196,25 @@ func (c *Conversation) Ask(ctx context.Context, params *bot.SendMessageParams) (
 	}
 
 	return msg, nil
+}
+
+type conversationHandler struct {
+	name   string
+	check  func(*gotgbot.Bot, *ext.Context) bool
+	handle func(*gotgbot.Bot, *ext.Context) error
+}
+
+func (h conversationHandler) CheckUpdate(b *gotgbot.Bot, ctx *ext.Context) bool {
+	return h.check != nil && h.check(b, ctx)
+}
+
+func (h conversationHandler) HandleUpdate(b *gotgbot.Bot, ctx *ext.Context) error {
+	if h.handle == nil {
+		return nil
+	}
+	return h.handle(b, ctx)
+}
+
+func (h conversationHandler) Name() string {
+	return h.name
 }

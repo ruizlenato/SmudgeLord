@@ -1,7 +1,6 @@
 package youtube
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -12,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/ruizlenato/youtubedl"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
@@ -240,14 +239,14 @@ func Handle(videoURL string) downloader.PostInfo {
 		return downloader.PostInfo{}
 	}
 
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title))
 	return downloader.PostInfo{
 		ID: video.ID,
-		Medias: []models.InputMedia{&models.InputMediaVideo{
-			Media:             "attach://" + utils.SanitizeString(fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title)),
-			Width:             video.Formats.Itag(videoStream.ItagNo)[0].Width,
-			Height:            video.Formats.Itag(videoStream.ItagNo)[0].Height,
+		Medias: []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
+			Media:             downloader.InputFileFromBytes(filename, fileBytes),
+			Width:             int64(video.Formats.Itag(videoStream.ItagNo)[0].Width),
+			Height:            int64(video.Formats.Itag(videoStream.ItagNo)[0].Height),
 			SupportsStreaming: true,
-			MediaAttachment:   bytes.NewBuffer(fileBytes),
 		}},
 		Caption: fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title),
 	}
