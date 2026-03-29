@@ -79,7 +79,7 @@ func unsetUserAway(userID int64) error {
 
 func getIDFromUsername(username string) (int64, error) {
 	var id int64
-	row := database.DB.QueryRow("SELECT id FROM afk WHERE username = ?", username)
+	row := database.DB.QueryRow("SELECT id FROM afk WHERE lower(username) = lower(?)", username)
 
 	err := row.Scan(&id)
 	if err != nil {

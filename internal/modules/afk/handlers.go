@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log/slog"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -90,23 +91,26 @@ func getUserIDFromMessage(messageData *gotgbot.Message) int64 {
 	}
 
 	for _, entity := range messageData.Entities {
-		if entity.Type != "mention" && entity.Type != "text_mention" {
-			continue
-		}
-
 		if entity.Type == "text_mention" && entity.User != nil {
 			return entity.User.Id
 		}
+	}
 
-		start := int(entity.Offset)
-		end := int(entity.Offset + entity.Length)
-		text := messageData.GetText()
-		if start < 0 || end > len(text) || start >= end {
-			continue
+	for _, entity := range messageData.CaptionEntities {
+		if entity.Type == "text_mention" && entity.User != nil {
+			return entity.User.Id
 		}
+	}
 
-		username := text[start:end]
-		userID, err := getIDFromUsername(username)
+	for _, candidate := range extractMentionCandidates(messageData.GetText()) {
+		userID, err := getIDFromUsername(candidate)
+		if err == nil && userID != 0 {
+			return userID
+		}
+	}
+
+	for _, candidate := range extractMentionCandidates(messageData.Caption) {
+		userID, err := getIDFromUsername(candidate)
 		if err == nil && userID != 0 {
 			return userID
 		}
@@ -117,6 +121,23 @@ func getUserIDFromMessage(messageData *gotgbot.Message) int64 {
 	}
 
 	return 0
+}
+
+func extractMentionCandidates(text string) []string {
+	if text == "" {
+		return nil
+	}
+	matches := regexp.MustCompile(`@[A-Za-z0-9_]{3,}`).FindAllString(text, -1)
+	if len(matches) == 0 {
+		return nil
+	}
+	candidates := make([]string, 0, len(matches))
+	for _, m := range matches {
+		if strings.TrimSpace(m) != "" {
+			candidates = append(candidates, m)
+		}
+	}
+	return candidates
 }
 
 func setAFKHandler(b *gotgbot.Bot, ctx *ext.Context) error {
@@ -144,7 +165,7 @@ func setAFKHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(handlers.NewCommand("afk", setAFKHandler))
 	dispatcher.AddHandler(handlers.NewMessage(message.HasPrefix("brb"), setAFKHandler))
-	dispatcher.AddHandlerToGroup(handlers.NewMessage(message.All, checkAFKMessage), 1)
+	dispatcher.AddHandlerToGroup(handlers.NewMessage(message.All, checkAFKMessage), -3)
 
 	utils.SaveHelp("afk")
 }

@@ -61,7 +61,7 @@ func main() {
 		},
 		MaxRoutines: ext.DefaultMaxRoutines,
 	})
-	dispatcher.AddHandlerToGroup(handlers.NewMessage(message.All, database.SaveUsers), -1)
+	dispatcher.AddHandlerToGroup(handlers.NewMessage(message.All, database.SaveUsers).SetAllowChannel(true), -1)
 	dispatcher.AddHandlerToGroup(handlers.NewCallback(callbackquery.All, database.SaveUsers), -1)
 	dispatcher.AddHandlerToGroup(handlers.NewInlineQuery(inlinequery.All, database.SaveUsers), -1)
 
@@ -77,7 +77,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		if err := updater.SetAllBotWebhooks(config.WebhookURL, &gotgbot.SetWebhookOpts{DropPendingUpdates: true}); err != nil {
+		if err := updater.SetAllBotWebhooks(config.WebhookURL, &gotgbot.SetWebhookOpts{DropPendingUpdates: true, AllowedUpdates: []string{}}); err != nil {
 			slog.Error("failed to set webhook", "error", err)
 			os.Exit(1)
 		}
@@ -85,7 +85,8 @@ func main() {
 		if err := updater.StartPolling(b, &ext.PollingOpts{
 			DropPendingUpdates: true,
 			GetUpdatesOpts: &gotgbot.GetUpdatesOpts{
-				Timeout: 9,
+				Timeout:        9,
+				AllowedUpdates: []string{},
 				RequestOpts: &gotgbot.RequestOpts{
 					Timeout: 15 * time.Second,
 				},
