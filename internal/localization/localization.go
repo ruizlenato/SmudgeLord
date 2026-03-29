@@ -180,5 +180,5 @@ func HumanizeTimeSinceGotgbot(duration time.Duration, ctx *ext.Context) string {
 		stringKey = "relative-duration-days"
 	}
 
-	return i18n(stringKey, map[string]any{"time": timeDuration})
+	return i18n(stringKey, map[string]any{"count": timeDuration})
 }
