@@ -160,7 +160,7 @@ func Get(ctx *ext.Context) func(string, ...map[string]any) string {
 	}
 }
 
-func HumanizeTimeSinceGotgbot(duration time.Duration, ctx *ext.Context) string {
+func HumanizeTimeSince(duration time.Duration, ctx *ext.Context) string {
 	var timeDuration int
 	var stringKey string
 

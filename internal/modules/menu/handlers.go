@@ -20,14 +20,14 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func createStartKeyboardGotgbot(i18n func(string, ...map[string]any) string) gotgbot.InlineKeyboardMarkup {
+func createStartKeyboard(i18n func(string, ...map[string]any) string) gotgbot.InlineKeyboardMarkup {
 	return gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
 		{{Text: i18n("about-button"), CallbackData: "about"}, {Text: fmt.Sprintf("%s %s", i18n("language-flag"), i18n("language-button")), CallbackData: "languageMenu"}},
 		{{Text: i18n("help-button"), CallbackData: "helpMenu"}},
 	}}
 }
 
-func startHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func startHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
@@ -40,7 +40,7 @@ func startHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	if messageFields := strings.Fields(ctx.EffectiveMessage.GetText()); len(messageFields) > 1 && messageFields[1] == "privacy" {
-		return privacyHandlerGotgbot(b, ctx)
+		return privacyHandler(b, ctx)
 	}
 
 	if ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeGroup || ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeSupergroup {
@@ -62,13 +62,13 @@ func startHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		ParseMode:          gotgbot.ParseModeHTML,
 		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
 		ReplyParameters:    &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-		ReplyMarkup:        createStartKeyboardGotgbot(i18n),
+		ReplyMarkup:        createStartKeyboard(i18n),
 	})
 
 	return nil
 }
 
-func startCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func startCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -89,13 +89,13 @@ func startCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		MessageId:          msgID,
 		ParseMode:          gotgbot.ParseModeHTML,
 		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
-		ReplyMarkup:        createStartKeyboardGotgbot(i18n),
+		ReplyMarkup:        createStartKeyboard(i18n),
 	})
 
 	return nil
 }
 
-func privacyHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func privacyHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
@@ -130,7 +130,7 @@ func privacyHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func privacyCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func privacyCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -151,7 +151,7 @@ func privacyCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func aboutMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func aboutMenuCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -173,7 +173,7 @@ func aboutMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func aboutYourDataCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func aboutYourDataCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -193,7 +193,7 @@ func aboutYourDataCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func helpMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func helpMenuCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -207,13 +207,13 @@ func helpMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		ParseMode:          gotgbot.ParseModeHTML,
 		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
 		ReplyMarkup: gotgbot.InlineKeyboardMarkup{
-			InlineKeyboard: utils.GetHelpKeyboardGotgbot(i18n),
+			InlineKeyboard: utils.GetHelpKeyboard(i18n),
 		},
 	})
 	return nil
 }
 
-func helpMessageCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func helpMessageCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -234,21 +234,21 @@ func helpMessageCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-type inlineArticleGotgbot struct {
+type inlineArticle struct {
 	id             string
 	title          string
 	description    string
 	messageContent string
 }
 
-func filterArticlesGotgbot(articles []inlineArticleGotgbot, query string) []inlineArticleGotgbot {
+func filterArticles(articles []inlineArticle, query string) []inlineArticle {
 	trimmedQuery := strings.TrimSpace(query)
 	if trimmedQuery == "" {
 		return articles
 	}
 
 	lowerQuery := strings.ToLower(trimmedQuery)
-	filtered := make([]inlineArticleGotgbot, 0, len(articles))
+	filtered := make([]inlineArticle, 0, len(articles))
 	for _, article := range articles {
 		if strings.Contains(strings.ToLower(article.title), lowerQuery) {
 			filtered = append(filtered, article)
@@ -257,13 +257,13 @@ func filterArticlesGotgbot(articles []inlineArticleGotgbot, query string) []inli
 	return filtered
 }
 
-func menuInlineGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func menuInline(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.InlineQuery == nil {
 		return nil
 	}
 
 	i18n := localization.Get(ctx)
-	articles := []inlineArticleGotgbot{
+	articles := []inlineArticle{
 		{id: "media", title: i18n("media-inline-handler"), description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}), messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("media-inline-handler"), i18n("media-inline-help"))},
 		{id: "weather", title: html.UnescapeString(i18n("weather-inline-handler")), description: i18n("weather-inline-description"), messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("weather-inline-handler"), i18n("weather-inline-description"))},
 		{id: "track", title: "LastFM Music", description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}), messageContent: i18n("loading")},
@@ -271,7 +271,7 @@ func menuInlineGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		{id: "artist", title: "LastFM Artist", description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}), messageContent: i18n("loading")},
 	}
 
-	filtered := filterArticlesGotgbot(articles, ctx.InlineQuery.Query)
+	filtered := filterArticles(articles, ctx.InlineQuery.Query)
 	results := make([]gotgbot.InlineQueryResult, 0, len(filtered))
 
 	for _, article := range filtered {
@@ -307,7 +307,7 @@ func menuInlineGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func inlineSendGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func inlineSend(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.ChosenInlineResult == nil {
 		return nil
 	}
@@ -326,14 +326,14 @@ func inlineSendGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func Load(dispatcher *ext.Dispatcher) {
-	dispatcher.AddHandler(handlers.NewChosenInlineResult(choseninlineresult.All, inlineSendGotgbot))
-	dispatcher.AddHandler(handlers.NewInlineQuery(nil, menuInlineGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("start", startHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("start"), startCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("privacy", privacyHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("privacy"), privacyCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("about"), aboutMenuCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("aboutYourData"), aboutYourDataCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("helpMenu"), helpMenuCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("helpMessage"), helpMessageCallbackGotgbot))
+	dispatcher.AddHandler(handlers.NewChosenInlineResult(choseninlineresult.All, inlineSend))
+	dispatcher.AddHandler(handlers.NewInlineQuery(nil, menuInline))
+	dispatcher.AddHandler(handlers.NewCommand("start", startHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("start"), startCallback))
+	dispatcher.AddHandler(handlers.NewCommand("privacy", privacyHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("privacy"), privacyCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("about"), aboutMenuCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("aboutYourData"), aboutYourDataCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("helpMenu"), helpMenuCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("helpMessage"), helpMessageCallback))
 }

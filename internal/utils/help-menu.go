@@ -19,7 +19,7 @@ func SaveHelp(name string) {
 	}
 }
 
-func GetHelpKeyboardGotgbot(i18n func(string, ...map[string]any) string) [][]gotgbot.InlineKeyboardButton {
+func GetHelpKeyboard(i18n func(string, ...map[string]any) string) [][]gotgbot.InlineKeyboardButton {
 	modules := make([]struct {
 		name string
 		text string

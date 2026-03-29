@@ -32,14 +32,14 @@ import (
 )
 
 const (
-	regexMediaGotgbot     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
+	regexMedia            = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
 	maxSizeCaption        = 1024
 	chatActionUploadDoc   = "upload_document"
 	chatActionUploadVoice = "upload_voice"
 	chatActionUploadVideo = "upload_video"
 )
 
-var mediaRegex = regexp.MustCompile(regexMediaGotgbot)
+var mediaRegex = regexp.MustCompile(regexMedia)
 
 type MediaHandler struct {
 	Name    string

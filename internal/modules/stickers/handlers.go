@@ -81,7 +81,7 @@ func handleConversationError(b *gotgbot.Bot, ctx *ext.Context, err error, i18n f
 	return nil
 }
 
-func newPackHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
@@ -276,23 +276,6 @@ func awaitEmojiOrSkip(b *gotgbot.Bot, ctx *ext.Context, replyToMessageID int64, 
 	}
 }
 
-func Load(dispatcher *ext.Dispatcher) {
-	convDispatcher = dispatcher
-	dispatcher.AddHandler(handlers.NewCommand("getsticker", getStickerHandler))
-	dispatcher.AddHandler(handlers.NewCommand("kang", kangStickerHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("newpack", newPackHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("mypacks", myPacksHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("switch", switchHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("delpack", delPackHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("switchPack"), switchPackCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("delPack"), delPackCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("kangPack"), kangPackCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("createNewPack"), createNewPackCallbackGotgbot))
-
-	utils.SaveHelp("stickers")
-	utils.DisableableCommands = append(utils.DisableableCommands, "getsticker", "kang", "newpack", "mypacks", "switch", "delpack")
-}
-
 func prepareStickerUpload(b *gotgbot.Bot, userID int64, fileID, stickerType, stickerAction string) (string, error) {
 	file, err := b.GetFile(fileID, nil)
 	if err != nil || file.FilePath == "" {
@@ -346,7 +329,7 @@ func validateUserPacks(b *gotgbot.Bot, userID int64) []ValidatedPack {
 	return valid
 }
 
-func myPacksHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func myPacksHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
@@ -375,7 +358,7 @@ func myPacksHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func switchHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func switchHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
@@ -394,7 +377,7 @@ func switchHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func switchPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func switchPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -420,7 +403,7 @@ func switchPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func delPackHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func delPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
@@ -445,7 +428,7 @@ func delPackHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func delPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func delPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -482,7 +465,7 @@ func delPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func kangStickerHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func kangStickerHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
@@ -505,7 +488,7 @@ func kangStickerHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	defaultPack, _ := getDefaultPack(ctx.EffectiveUser.Id)
 	if len(packs) > 1 && defaultPack == nil {
-		return showKangPackSelectionGotgbot(b, ctx, packs, stickerAction, stickerType, fileID)
+		return showKangPackSelection(b, ctx, packs, stickerAction, stickerType, fileID)
 	}
 	target := defaultPack
 	if target == nil && len(packs) > 0 {
@@ -514,10 +497,10 @@ func kangStickerHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if target == nil {
 		return nil
 	}
-	return processKangIntoPackGotgbot(b, ctx, *target, stickerAction, stickerType, fileID, extractEmojis(ctx.EffectiveMessage.GetText(), ctx.EffectiveMessage.ReplyToMessage.Sticker)[0])
+	return processKangIntoPack(b, ctx, *target, stickerAction, stickerType, fileID, extractEmojis(ctx.EffectiveMessage.GetText(), ctx.EffectiveMessage.ReplyToMessage.Sticker)[0])
 }
 
-func showKangPackSelectionGotgbot(b *gotgbot.Bot, ctx *ext.Context, packs []StickerPack, stickerAction, stickerType, fileID string) error {
+func showKangPackSelection(b *gotgbot.Bot, ctx *ext.Context, packs []StickerPack, stickerAction, stickerType, fileID string) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
@@ -547,7 +530,7 @@ func showKangPackSelectionGotgbot(b *gotgbot.Bot, ctx *ext.Context, packs []Stic
 	return nil
 }
 
-func kangPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func kangPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -585,12 +568,12 @@ func kangPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	chat := ctx.CallbackQuery.Message.GetChat()
 	ctx.EffectiveChat = &chat
 	ctx.EffectiveMessage = &gotgbot.Message{MessageId: msgID, Chat: *ctx.EffectiveChat, From: ctx.EffectiveUser}
-	_ = processKangIntoPackGotgbot(b, ctx, *target, kd.StickerAction, kd.StickerType, kd.FileID, kd.Emoji)
+	_ = processKangIntoPack(b, ctx, *target, kd.StickerAction, kd.StickerType, kd.FileID, kd.Emoji)
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
 
-func processKangIntoPackGotgbot(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, stickerAction, stickerType, fileID, emoji string) error {
+func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, stickerAction, stickerType, fileID, emoji string) error {
 	i18n := localization.Get(ctx)
 	uploadedFileID, err := prepareStickerUpload(b, ctx.EffectiveUser.Id, fileID, stickerType, stickerAction)
 	if err != nil {
@@ -629,7 +612,7 @@ func processKangIntoPackGotgbot(b *gotgbot.Bot, ctx *ext.Context, pack StickerPa
 	return nil
 }
 
-func createNewPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -969,4 +952,21 @@ func convertVideo(input []byte) ([]byte, error) {
 	}
 	defer outFile.Close()
 	return io.ReadAll(outFile)
+}
+
+func Load(dispatcher *ext.Dispatcher) {
+	convDispatcher = dispatcher
+	dispatcher.AddHandler(handlers.NewCommand("getsticker", getStickerHandler))
+	dispatcher.AddHandler(handlers.NewCommand("kang", kangStickerHandler))
+	dispatcher.AddHandler(handlers.NewCommand("newpack", newPackHandler))
+	dispatcher.AddHandler(handlers.NewCommand("mypacks", myPacksHandler))
+	dispatcher.AddHandler(handlers.NewCommand("switch", switchHandler))
+	dispatcher.AddHandler(handlers.NewCommand("delpack", delPackHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("switchPack"), switchPackCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("delPack"), delPackCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("kangPack"), kangPackCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("createNewPack"), createNewPackCallback))
+
+	utils.SaveHelp("stickers")
+	utils.DisableableCommands = append(utils.DisableableCommands, "getsticker", "kang", "newpack", "mypacks", "switch", "delpack")
 }

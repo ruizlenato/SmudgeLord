@@ -39,7 +39,7 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	i18n := localization.Get(ctx)
-	humanizedDuration := localization.HumanizeTimeSinceGotgbot(duration, ctx)
+	humanizedDuration := localization.HumanizeTimeSince(duration, ctx)
 
 	if mentionedUserID == ctx.EffectiveUser.Id {
 		if err := unsetUserAway(mentionedUserID); err != nil {

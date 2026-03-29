@@ -16,9 +16,9 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/localization"
 )
 
-var announceMessageTextGotgbot string
+var announceMessageText string
 
-func announceHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	var lang string
 	message := ctx.EffectiveMessage
 
@@ -60,25 +60,25 @@ func announceHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 			},
 		})
 
-		announceMessageTextGotgbot = message.GetText()
+		announceMessageText = message.GetText()
 		return nil
 	}
 
-	messageFields := strings.Fields(announceMessageTextGotgbot)
+	messageFields := strings.Fields(announceMessageText)
 	if len(messageFields) < 2 {
 		return nil
 	}
 
 	announceType := messageFields[1]
-	announceMessageTextGotgbot = strings.Replace(announceMessageTextGotgbot, messageFields[0], "", 1)
+	announceMessageText = strings.Replace(announceMessageText, messageFields[0], "", 1)
 	var query string
 
 	switch announceType {
 	case "groups":
-		announceMessageTextGotgbot = strings.Replace(announceMessageTextGotgbot, announceType, "", 1)
+		announceMessageText = strings.Replace(announceMessageText, announceType, "", 1)
 		query = fmt.Sprintf("SELECT id FROM chats WHERE language = '%s';", lang)
 	case "users":
-		announceMessageTextGotgbot = strings.Replace(announceMessageTextGotgbot, announceType, "", 1)
+		announceMessageText = strings.Replace(announceMessageText, announceType, "", 1)
 		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s';", lang)
 	default:
 		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s' UNION ALL SELECT id FROM chats WHERE language = '%s';", lang, lang)
@@ -97,7 +97,7 @@ func announceHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 			continue
 		}
 
-		_, err := b.SendMessage(chatID, announceMessageTextGotgbot, &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		_, err := b.SendMessage(chatID, announceMessageText, &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		if err != nil {
 			errorCount++
 			continue
@@ -118,11 +118,11 @@ func announceHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		)
 	}
 
-	announceMessageTextGotgbot = ""
+	announceMessageText = ""
 	return nil
 }
 
 func Load(dispatcher *ext.Dispatcher) {
-	dispatcher.AddHandler(handlers.NewCommand("announce", announceHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("announce"), announceHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCommand("announce", announceHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("announce"), announceHandler))
 }

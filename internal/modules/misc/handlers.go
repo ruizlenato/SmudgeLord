@@ -109,7 +109,7 @@ func weatherSearchResult(geocode, language string, i18n func(string, ...map[stri
 	return weatherResultData, nil
 }
 
-func getTranslateLangGotgbot(text string, ctx *ext.Context) string {
+func getTranslateLang(text string, ctx *ext.Context) string {
 	languages := [135]string{`af`, `sq`, `am`, `ar`, `hy`, `as`, `ay`, `az`, `bm`, `eu`, `be`, `bn`, `bho`, `bs`, `bg`, `ca`, `ceb`, `zh`, `co`, `hr`, `cs`, `da`, `dv`, `doi`, `nl`, `en`, `eo`, `et`, `ee`, `fil`, `fi`, `fr`, `fy`, `gl`, `ka`, `de`, `el`, `gn`, `gu`, `ht`, `ha`, `haw`, `he`, `iw`, `hi`, `hmn`, `hu`, `is`, `ig`, `ilo`, `id`, `ga`, `it`, `ja`, `jv`, `jw`, `kn`, `kk`, `km`, `rw`, `gom`, `ko`, `kri`, `ku`, `ckb`, `ky`, `lo`, `la`, `lv`, `ln`, `lt`, `lg`, `lb`, `mk`, `mai`, `mg`, `ms`, `ml`, `mt`, `mi`, `mr`, `mni`, `lus`, `mn`, `my`, `ne`, `no`, `ny`, `or`, `om`, `ps`, `fa`, `pl`, `pt`, `pa`, `qu`, `ro`, `ru`, `sm`, `sa`, `gd`, `nso`, `sr`, `st`, `sn`, `sd`, `si`, `sk`, `sl`, `so`, `es`, `su`, `sw`, `sv`, `tl`, `tg`, `ta`, `tt`, `te`, `th`, `ti`, `ts`, `tr`, `tk`, `ak`, `uk`, `ur`, `ug`, `uz`, `vi`, `cy`, `xh`, `yi`, `yo`, `zu`}
 	checkLang := func(item string) bool {
 		for _, s := range languages {
@@ -140,7 +140,7 @@ func getTranslateLangGotgbot(text string, ctx *ext.Context) string {
 	return "en"
 }
 
-func translateHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func translateHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
@@ -171,7 +171,7 @@ func translateHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	language := getTranslateLangGotgbot(text, ctx)
+	language := getTranslateLang(text, ctx)
 	if strings.HasPrefix(text, language) {
 		text = strings.TrimSpace(strings.Replace(text, language, "", 1))
 	}
@@ -227,7 +227,7 @@ func translateHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func weatherHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func weatherHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
@@ -268,7 +268,7 @@ func weatherHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func callbackWeatherGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func callbackWeather(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -320,7 +320,7 @@ func callbackWeatherGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func weatherInlineQueryGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func weatherInlineQuery(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.InlineQuery == nil {
 		return nil
 	}
@@ -397,7 +397,7 @@ func WeatherInline(b *gotgbot.Bot, ctx *ext.Context, geocode string) error {
 	return nil
 }
 
-func slapHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func slapHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
@@ -440,15 +440,15 @@ func slapHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func Load(dispatcher *ext.Dispatcher) {
-	dispatcher.AddHandler(handlers.NewCommand("weather", weatherHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("clima", weatherHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_weather"), callbackWeatherGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("translate", translateHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("tr", translateHandlerGotgbot))
+	dispatcher.AddHandler(handlers.NewCommand("weather", weatherHandler))
+	dispatcher.AddHandler(handlers.NewCommand("clima", weatherHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_weather"), callbackWeather))
+	dispatcher.AddHandler(handlers.NewCommand("translate", translateHandler))
+	dispatcher.AddHandler(handlers.NewCommand("tr", translateHandler))
 	dispatcher.AddHandler(handlers.NewInlineQuery(func(iq *gotgbot.InlineQuery) bool {
 		return strings.HasPrefix(iq.Query, "weather") || strings.HasPrefix(iq.Query, "clima")
-	}, weatherInlineQueryGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("slap", slapHandlerGotgbot))
+	}, weatherInlineQuery))
+	dispatcher.AddHandler(handlers.NewCommand("slap", slapHandler))
 
 	utils.SaveHelp("misc")
 	utils.DisableableCommands = append(utils.DisableableCommands, "tr", "translate", "weather", "clima", "slap")

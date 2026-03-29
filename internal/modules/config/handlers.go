@@ -17,15 +17,15 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func isGroupGotgbot(ctx *ext.Context) bool {
+func isGroup(ctx *ext.Context) bool {
 	return ctx.EffectiveChat != nil && (ctx.EffectiveChat.Type == gotgbot.ChatTypeGroup || ctx.EffectiveChat.Type == gotgbot.ChatTypeSupergroup)
 }
 
-func disableableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func disableableHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
-	if !isGroupGotgbot(ctx) {
+	if !isGroup(ctx) {
 		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
@@ -49,11 +49,11 @@ func disableableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func disableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func disableHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
-	if !isGroupGotgbot(ctx) {
+	if !isGroup(ctx) {
 		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
@@ -86,11 +86,11 @@ func disableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func enableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func enableHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
-	if !isGroupGotgbot(ctx) {
+	if !isGroup(ctx) {
 		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
@@ -118,11 +118,11 @@ func enableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func disabledHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func disabledHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
-	if !isGroupGotgbot(ctx) {
+	if !isGroup(ctx) {
 		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
@@ -148,7 +148,7 @@ func disabledHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func languageMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func languageMenuCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -177,7 +177,7 @@ func languageMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func setLanguageCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func setLanguageCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -209,18 +209,18 @@ func setLanguageCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func createConfigKeyboardGotgbot(i18n func(string, ...map[string]any) string) gotgbot.InlineKeyboardMarkup {
+func createConfigKeyboard(i18n func(string, ...map[string]any) string) gotgbot.InlineKeyboardMarkup {
 	return gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
 		{{Text: i18n("medias"), CallbackData: "mediaConfig"}},
 		{{Text: i18n("language-flag") + i18n("language-button"), CallbackData: "languageMenu"}},
 	}}
 }
 
-func configHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func configHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
-	if !isGroupGotgbot(ctx) {
+	if !isGroup(ctx) {
 		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
@@ -230,12 +230,12 @@ func configHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("config-message"), &gotgbot.SendMessageOpts{
 		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-		ReplyMarkup:     createConfigKeyboardGotgbot(i18n),
+		ReplyMarkup:     createConfigKeyboard(i18n),
 	})
 	return nil
 }
 
-func configCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func configCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -247,12 +247,12 @@ func configCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		ChatId:      chat.Id,
 		MessageId:   msgID,
 		ParseMode:   gotgbot.ParseModeHTML,
-		ReplyMarkup: createConfigKeyboardGotgbot(i18n),
+		ReplyMarkup: createConfigKeyboard(i18n),
 	})
 	return nil
 }
 
-func mediaConfigCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func mediaConfigCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
@@ -302,7 +302,7 @@ func mediaConfigCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func explainConfigCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
+func explainConfigCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil {
 		return nil
 	}
@@ -313,17 +313,17 @@ func explainConfigCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func Load(dispatcher *ext.Dispatcher) {
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("languageMenu"), languageMenuCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("setLang"), setLanguageCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("config", configHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("config"), configCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("mediaConfig"), mediaConfigCallbackGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("disableable", disableableHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("disable", disableHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("enable", enableHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCommand("disabled", disabledHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("disableable"), disableableHandlerGotgbot))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("ieConfig"), explainConfigCallbackGotgbot))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("languageMenu"), languageMenuCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("setLang"), setLanguageCallback))
+	dispatcher.AddHandler(handlers.NewCommand("config", configHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("config"), configCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("mediaConfig"), mediaConfigCallback))
+	dispatcher.AddHandler(handlers.NewCommand("disableable", disableableHandler))
+	dispatcher.AddHandler(handlers.NewCommand("disable", disableHandler))
+	dispatcher.AddHandler(handlers.NewCommand("enable", enableHandler))
+	dispatcher.AddHandler(handlers.NewCommand("disabled", disabledHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("disableable"), disableableHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("ieConfig"), explainConfigCallback))
 
 	utils.SaveHelp("config")
 }
