@@ -81,7 +81,7 @@ func createFormatContext(args map[string]any) *fluent.FormatContext {
 	return fluent.WithVariables(args)
 }
 
-func getChatLanguageFromGotgbotUpdate(update *gotgbot.Update) (string, error) {
+func GetChatLanguage(update *gotgbot.Update) (string, error) {
 	var tableName string
 	var chatID int64
 	var chatType string
@@ -124,9 +124,9 @@ func getChatLanguageFromGotgbotUpdate(update *gotgbot.Update) (string, error) {
 	return language, nil
 }
 
-func GetGotgbot(ctx *ext.Context) func(string, ...map[string]any) string {
+func Get(ctx *ext.Context) func(string, ...map[string]any) string {
 	return func(key string, args ...map[string]any) string {
-		language, err := getChatLanguageFromGotgbotUpdate(ctx.Update)
+		language, err := GetChatLanguage(ctx.Update)
 		if err != nil {
 			slog.Error(err.Error())
 			language = defaultLanguage
@@ -164,7 +164,7 @@ func HumanizeTimeSinceGotgbot(duration time.Duration, ctx *ext.Context) string {
 	var timeDuration int
 	var stringKey string
 
-	i18n := GetGotgbot(ctx)
+	i18n := Get(ctx)
 	switch {
 	case duration < time.Minute:
 		timeDuration = int(duration.Seconds())
@@ -181,8 +181,4 @@ func HumanizeTimeSinceGotgbot(duration time.Duration, ctx *ext.Context) string {
 	}
 
 	return i18n(stringKey, map[string]any{"time": timeDuration})
-}
-
-func GetChatLanguageGotgbotUpdate(update *gotgbot.Update) (string, error) {
-	return getChatLanguageFromGotgbotUpdate(update)
 }

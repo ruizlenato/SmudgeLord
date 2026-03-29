@@ -32,7 +32,7 @@ func startHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	botUser, err := b.GetMe(nil)
 	if err != nil {
 		slog.Error(err.Error())
@@ -73,7 +73,7 @@ func startCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	botUser, err := b.GetMe(nil)
 	if err != nil {
 		slog.Error(err.Error())
@@ -100,7 +100,7 @@ func privacyHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	botUser, err := b.GetMe(nil)
 	if err != nil {
 		slog.Error(err.Error())
@@ -134,7 +134,7 @@ func privacyCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
@@ -155,7 +155,7 @@ func aboutMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
@@ -177,7 +177,7 @@ func aboutYourDataCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
@@ -197,7 +197,7 @@ func helpMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
@@ -217,7 +217,7 @@ func helpMessageCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	module := strings.ReplaceAll(ctx.CallbackQuery.Data, "helpMessage ", "")
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
@@ -262,7 +262,7 @@ func menuInlineGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	articles := []inlineArticleGotgbot{
 		{id: "media", title: i18n("media-inline-handler"), description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}), messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("media-inline-handler"), i18n("media-inline-help"))},
 		{id: "weather", title: html.UnescapeString(i18n("weather-inline-handler")), description: i18n("weather-inline-description"), messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("weather-inline-handler"), i18n("weather-inline-description"))},

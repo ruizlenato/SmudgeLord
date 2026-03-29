@@ -120,7 +120,7 @@ func getTranslateLangGotgbot(text string, ctx *ext.Context) string {
 		return false
 	}
 
-	chatLang, err := localization.GetChatLanguageGotgbotUpdate(ctx.Update)
+	chatLang, err := localization.GetChatLanguage(ctx.Update)
 	if err != nil {
 		chatLang = "en"
 	}
@@ -146,7 +146,7 @@ func translateHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	msg := ctx.EffectiveMessage
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	text := ""
 
 	if msg.ReplyToMessage != nil {
@@ -233,14 +233,14 @@ func weatherHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	msg := ctx.EffectiveMessage
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	fields := strings.Fields(msg.GetText())
 	if len(fields) <= 1 {
 		_, _ = b.SendMessage(msg.Chat.Id, i18n("weather-no-location-provided"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
 		return nil
 	}
 
-	chatLang, err := localization.GetChatLanguageGotgbotUpdate(ctx.Update)
+	chatLang, err := localization.GetChatLanguage(ctx.Update)
 	if err != nil {
 		return nil
 	}
@@ -273,8 +273,8 @@ func callbackWeatherGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
-	chatLang, err := localization.GetChatLanguageGotgbotUpdate(ctx.Update)
+	i18n := localization.Get(ctx)
+	chatLang, err := localization.GetChatLanguage(ctx.Update)
 	if err != nil {
 		return nil
 	}
@@ -325,8 +325,8 @@ func weatherInlineQueryGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
-	chatLang, err := localization.GetChatLanguageGotgbotUpdate(ctx.Update)
+	i18n := localization.Get(ctx)
+	chatLang, err := localization.GetChatLanguage(ctx.Update)
 	if err != nil {
 		return nil
 	}
@@ -359,8 +359,8 @@ func weatherInlineQueryGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func WeatherInline(b *gotgbot.Bot, ctx *ext.Context, geocode string) error {
-	i18n := localization.GetGotgbot(ctx)
-	chatLang, err := localization.GetChatLanguageGotgbotUpdate(ctx.Update)
+	i18n := localization.Get(ctx)
+	chatLang, err := localization.GetChatLanguage(ctx.Update)
 	if err != nil {
 		slog.Error("Couldn't get chat language", "error", err.Error())
 		return nil
@@ -405,7 +405,7 @@ func slapHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	if ctx.EffectiveMessage.ReplyToMessage == nil || ctx.EffectiveMessage.ReplyToMessage.From == nil {
 		return nil
 	}

@@ -53,7 +53,7 @@ func migrationPlaceholder(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	sendMigrationNotice(b, ctx.EffectiveMessage.Chat.Id, int(ctx.EffectiveMessage.MessageId), i18n)
 	return nil
 }
@@ -85,7 +85,7 @@ func newPackHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	if ctx.EffectiveMessage.ReplyToMessage == nil {
 		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("kang-no-reply-provided"), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
@@ -350,7 +350,7 @@ func myPacksHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	if !requirePrivateChat(b, ctx, i18n) {
 		return nil
 	}
@@ -379,7 +379,7 @@ func switchHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	if !requirePrivateChat(b, ctx, i18n) {
 		return nil
 	}
@@ -398,7 +398,7 @@ func switchPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	parts := strings.Split(ctx.CallbackQuery.Data, " ")
 	if len(parts) != 3 {
 		return nil
@@ -424,7 +424,7 @@ func delPackHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	if !requirePrivateChat(b, ctx, i18n) {
 		return nil
 	}
@@ -449,7 +449,7 @@ func delPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	parts := strings.Split(ctx.CallbackQuery.Data, " ")
 	if len(parts) != 3 {
 		return nil
@@ -486,7 +486,7 @@ func kangStickerHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	if ctx.EffectiveMessage.ReplyToMessage == nil {
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("kang-no-reply-provided"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
 		return nil
@@ -521,7 +521,7 @@ func showKangPackSelectionGotgbot(b *gotgbot.Bot, ctx *ext.Context, packs []Stic
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	nameTitle := getDisplayName(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username)
 	var text strings.Builder
 	text.WriteString(i18n("sticker-select-pack", map[string]any{"userName": nameTitle}))
@@ -551,7 +551,7 @@ func kangPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	parts := strings.Split(ctx.CallbackQuery.Data, " ")
 	if len(parts) != 3 {
 		return nil
@@ -591,7 +591,7 @@ func kangPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func processKangIntoPackGotgbot(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, stickerAction, stickerType, fileID, emoji string) error {
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	uploadedFileID, err := prepareStickerUpload(b, ctx.EffectiveUser.Id, fileID, stickerType, stickerAction)
 	if err != nil {
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
@@ -633,7 +633,7 @@ func createNewPackCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	parts := strings.Split(ctx.CallbackQuery.Data, " ")
 	if len(parts) != 2 {
 		return nil
@@ -800,26 +800,26 @@ func getStickerHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	replySticker := msg.ReplyToMessage.Sticker
 	if replySticker.IsAnimated {
-		_, _ = b.SendMessage(msg.Chat.Id, localization.GetGotgbot(ctx)("get-sticker-animated-not-supported"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
+		_, _ = b.SendMessage(msg.Chat.Id, localization.Get(ctx)("get-sticker-animated-not-supported"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
 		return nil
 	}
 	file, err := b.GetFile(replySticker.FileId, nil)
 	if err != nil || file.FilePath == "" {
 		slog.Error("Couldn't get file", "Error", err)
-		_, _ = b.SendMessage(msg.Chat.Id, localization.GetGotgbot(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
+		_, _ = b.SendMessage(msg.Chat.Id, localization.Get(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
 		return nil
 	}
 	resp, err := http.Get(b.BotClient.FileURL(b.Token, file.FilePath, nil))
 	if err != nil {
 		slog.Error("Couldn't download file", "Error", err)
-		_, _ = b.SendMessage(msg.Chat.Id, localization.GetGotgbot(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
+		_, _ = b.SendMessage(msg.Chat.Id, localization.Get(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
 		return nil
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		slog.Error("Couldn't read body", "Error", err)
-		_, _ = b.SendMessage(msg.Chat.Id, localization.GetGotgbot(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
+		_, _ = b.SendMessage(msg.Chat.Id, localization.Get(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
 		return nil
 	}
 	filename := filepath.Base(file.FilePath)

@@ -37,7 +37,7 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	humanizedDuration := localization.HumanizeTimeSinceGotgbot(duration, ctx)
 
 	if mentionedUserID == ctx.EffectiveUser.Id {
@@ -130,7 +130,7 @@ func setAFKHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("user-now-unavailable", map[string]any{
 		"userFirstName": utils.EscapeHTML(ctx.EffectiveUser.FirstName),
 	}), &gotgbot.SendMessageOpts{

@@ -220,7 +220,7 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || !shouldProcessMedia(ctx.EffectiveMessage) {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	url, found := extractURL(ctx.EffectiveMessage.Text)
 	if !found {
 		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("no-link-provided"), &gotgbot.SendMessageOpts{
@@ -263,7 +263,7 @@ func mediasInlineQuery(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.InlineQuery == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	var results []gotgbot.InlineQueryResult
 	query := ctx.InlineQuery.Query
 	if mediaRegex.MatchString(query) {
@@ -298,7 +298,7 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.ChosenInlineResult == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	inlineResult := ctx.ChosenInlineResult
 	postInfo := processMedia(inlineResult.Query)
 	if len(postInfo.Medias) == 0 {
@@ -387,7 +387,7 @@ func youtubeDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	var videoURL string
 	if ctx.EffectiveMessage.ReplyToMessage != nil && ctx.EffectiveMessage.ReplyToMessage.Text != "" {
 		videoURL = ctx.EffectiveMessage.ReplyToMessage.Text
@@ -444,7 +444,7 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
 	messageID := ctx.CallbackQuery.Message.GetMessageId()
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	data := strings.Split(ctx.CallbackQuery.Data, "|")
 	if len(data) < 6 {
 		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("youtube-error"), ShowAlert: true})

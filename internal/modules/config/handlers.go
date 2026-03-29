@@ -26,12 +26,12 @@ func disableableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	if !isGroupGotgbot(ctx) {
-		i18n := localization.GetGotgbot(ctx)
+		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	var text strings.Builder
 	text.WriteString(i18n("disableables-commands"))
 	for _, command := range utils.DisableableCommands {
@@ -54,12 +54,12 @@ func disableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	if !isGroupGotgbot(ctx) {
-		i18n := localization.GetGotgbot(ctx)
+		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	fields := strings.Fields(ctx.EffectiveMessage.GetText())
 	if len(fields) <= 1 {
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("disable-commands-usage"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
@@ -91,12 +91,12 @@ func enableHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	if !isGroupGotgbot(ctx) {
-		i18n := localization.GetGotgbot(ctx)
+		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	fields := strings.Fields(ctx.EffectiveMessage.GetText())
 	if len(fields) <= 1 {
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("enable-commands-usage"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
@@ -123,12 +123,12 @@ func disabledHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	if !isGroupGotgbot(ctx) {
-		i18n := localization.GetGotgbot(ctx)
+		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	commands, err := getDisabledCommands(ctx.EffectiveChat.Id)
 	if err != nil {
 		return nil
@@ -152,7 +152,7 @@ func languageMenuCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 
 	buttons := make([][]gotgbot.InlineKeyboardButton, 0, len(database.AvailableLocales))
 	for _, lang := range database.AvailableLocales {
@@ -181,7 +181,7 @@ func setLanguageCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	lang := strings.ReplaceAll(ctx.CallbackQuery.Data, "setLang ", "")
 	chat := ctx.CallbackQuery.Message.GetChat()
 
@@ -221,12 +221,12 @@ func configHandlerGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	if !isGroupGotgbot(ctx) {
-		i18n := localization.GetGotgbot(ctx)
+		i18n := localization.Get(ctx)
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("only-groups"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("config-message"), &gotgbot.SendMessageOpts{
 		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
@@ -239,7 +239,7 @@ func configCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
@@ -279,7 +279,7 @@ func mediaConfigCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 		}
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	state := func(v bool) string {
 		if v {
 			return "✅"
@@ -306,7 +306,7 @@ func explainConfigCallbackGotgbot(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery == nil {
 		return nil
 	}
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	ieConfig := strings.ReplaceAll(ctx.CallbackQuery.Data, "ieConfig ", "")
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n(ieConfig), ShowAlert: true})
 	return nil

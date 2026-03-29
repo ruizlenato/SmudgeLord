@@ -40,7 +40,7 @@ func setUserHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	chatID := ctx.EffectiveMessage.Chat.Id
 	userID := ctx.EffectiveUser.Id
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 
 	conv := convManager.Start(chatID, userID, &conversation.ConversationOptions{Timeout: 5 * time.Minute})
 
@@ -146,7 +146,7 @@ func LastfmInline(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	lastFMUsername, err := getUserLastFMUsername(ctx.ChosenInlineResult.From.Id)
 	if err != nil || lastFMUsername == "" {
 		_, _, _ = b.EditMessageText(i18n("lastfm-username-not-found-inline"), &gotgbot.EditMessageTextOpts{
@@ -169,7 +169,7 @@ func LastfmInline(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func lastfm(ctx *ext.Context, methodType string) string {
-	i18n := localization.GetGotgbot(ctx)
+	i18n := localization.Get(ctx)
 	if ctx.EffectiveUser == nil {
 		return i18n("lastfm-username-not-found")
 	}
