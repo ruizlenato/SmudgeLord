@@ -352,11 +352,11 @@ func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
 		invertMedia = invertMedia || message.ShowCaptionAboveMedia
 
 		if len(message.Photo) > 0 {
-			medias = append(medias, message.Photo[0].FileId)
+			medias = append(medias, "p:"+message.Photo[0].FileId)
 			continue
 		}
 		if message.Video != nil {
-			medias = append(medias, message.Video.FileId)
+			medias = append(medias, "v:"+message.Video.FileId)
 		}
 	}
 
@@ -402,14 +402,36 @@ func GetMediaCache(postID string) (PostInfo, error) {
 	}
 
 	inputMedias := make([]gotgbot.InputMedia, 0, len(medias.Medias))
-	for _, mediaID := range medias.Medias {
-		switch utils.FileTypeByFileID(mediaID) {
-		case 2:
+	for _, raw := range medias.Medias {
+		mediaID := raw
+		mediaType := ""
+
+		if strings.HasPrefix(raw, "p:") {
+			mediaType = "photo"
+			mediaID = strings.TrimPrefix(raw, "p:")
+		} else if strings.HasPrefix(raw, "v:") {
+			mediaType = "video"
+			mediaID = strings.TrimPrefix(raw, "v:")
+		}
+
+		if mediaType == "" {
+			switch utils.FileTypeByFileID(mediaID) {
+			case 2:
+				mediaType = "photo"
+			case 4, 9:
+				mediaType = "video"
+			default:
+				continue
+			}
+		}
+
+		switch mediaType {
+		case "photo":
 			inputMedias = append(inputMedias, &gotgbot.InputMediaPhoto{
 				Media:                 gotgbot.InputFileByID(mediaID),
 				ShowCaptionAboveMedia: medias.InvertMedia,
 			})
-		case 4, 9:
+		case "video":
 			inputMedias = append(inputMedias, &gotgbot.InputMediaVideo{
 				Media:                 gotgbot.InputFileByID(mediaID),
 				ShowCaptionAboveMedia: medias.InvertMedia,
