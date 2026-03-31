@@ -327,6 +327,25 @@ sticker-select-pack = { sticker-mypacks-header }
 sticker-default-changed = Pacote padrão alterado com sucesso!
 sticker-switch-none-button = Nenhum
 sticker-pack-deleted = Pacote de figurinhas deletado com sucesso!
+stickers-migration-notice =
+    <b>O módulo de figurinhas está sendo migrado para o gotgbot.</b>
+    Alguns comandos estão temporariamente indisponíveis enquanto concluímos a migração.
+stickers-newpack-title-request =
+    <b>Passo 1/2:</b> Responda com o título que você quer para o novo pacote de figurinhas.
+stickers-newpack-emoji-request =
+    <b>Passo 2/2:</b> Responda com um emoji para representar a figurinha no pacote (ou digite <code>pular</code>).
+stickers-newpack-skip-button = Pular
+stickers-newpack-timeout =
+    <b>Tempo esgotado.</b>
+    Envie <code>/newpack</code> novamente quando estiver pronto.
+stickers-newpack-canceled =
+    <b>Conversa cancelada.</b>
+    Envie <code>/newpack</code> a qualquer momento para tentar de novo.
+stickers-newpack-success =
+    <b>Pacote de figurinhas criado com sucesso!</b>
+    <b>Nome do pacote:</b> <code>{ $packTitle }</code>
+    <b>Emoji usado na figurinha:</b> { $packEmoji }
+stickers-newpack-default-title = Pacote SmudgeLord
 sticker-kang-expired = Esta solicitação expirou. Por favor, use /kang novamente.
 sticker-pack-full =
     O pacote de figurinhas <code><b>{ $packName }</b></code> atingiu o limite de <b>{ $stickerCount }</b> figurinhas.

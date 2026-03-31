@@ -10,25 +10,25 @@ import (
 	"strings"
 	"unicode/utf16"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 )
 
-func getTag(entity models.MessageEntity) (openTag, closeTag string) {
+func getTag(entity gotgbot.MessageEntity) (openTag, closeTag string) {
 	switch entity.Type {
-	case models.MessageEntityTypeBold:
+	case "bold":
 		return "<b>", "</b>"
-	case models.MessageEntityTypeItalic:
+	case "italic":
 		return "<i>", "</i>"
-	case models.MessageEntityTypeCode:
+	case "code":
 		return "<code>", "</code>"
-	case models.MessageEntityTypeUnderline:
+	case "underline":
 		return "<u>", "</u>"
-	case models.MessageEntityTypeStrikethrough:
+	case "strikethrough":
 		return "<s>", "</s>"
-	case models.MessageEntityTypeTextLink:
-		url := html.EscapeString(entity.URL)
+	case "text_link":
+		url := html.EscapeString(entity.Url)
 		return fmt.Sprintf("<a href=%q>", url), "</a>"
-	case models.MessageEntityTypeBlockquote:
+	case "blockquote":
 		return "<blockquote>", "</blockquote>"
 	default:
 		return "", ""
@@ -44,7 +44,7 @@ type tagPoint struct {
 	idx     int
 }
 
-func collectTagPoints(entities []models.MessageEntity) []tagPoint {
+func collectTagPoints(entities []gotgbot.MessageEntity) []tagPoint {
 	var points []tagPoint
 
 	for idx, entity := range entities {
@@ -111,7 +111,7 @@ func buildFormattedText(utf16Text []uint16, points []tagPoint) string {
 	return builder.String()
 }
 
-func FormatText(text string, entities []models.MessageEntity) string {
+func FormatText(text string, entities []gotgbot.MessageEntity) string {
 	utf16Text := utf16.Encode([]rune(text))
 	points := collectTagPoints(entities)
 	return buildFormattedText(utf16Text, points)

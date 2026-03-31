@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
 	"regexp"
 	"strconv"
 	"strings"
 	"unicode/utf8"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	callbackquery "github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
+
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
@@ -30,9 +32,14 @@ import (
 )
 
 const (
-	regexMedia     = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
-	maxSizeCaption = 1024
+	regexMedia            = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
+	maxSizeCaption        = 1024
+	chatActionUploadDoc   = "upload_document"
+	chatActionUploadVoice = "upload_voice"
+	chatActionUploadVideo = "upload_video"
 )
+
+var mediaRegex = regexp.MustCompile(regexMedia)
 
 type MediaHandler struct {
 	Name    string
@@ -40,27 +47,33 @@ type MediaHandler struct {
 }
 
 var mediaHandlers = map[string]MediaHandler{
-	"bsky.app/":                  {"BlueSky", bluesky.Handle},
-	"instagram.com/":             {"Instagram", instagram.Handle},
-	"reddit.com/":                {"Reddit", reddit.Handle},
-	"threads.com/":               {"Threads", threads.Handle},
-	"tiktok.com/":                {"TikTok", tiktok.Handle},
-	"(twitter|x).com/":           {"Twitter/X", twitter.Handle},
-	"(xiaohongshu|xhslink).com/": {"XiaoHongShu", xiaohongshu.Handle},
-	"youtube.com/":               {"YouTube", youtube.Handle},
+	"bsky.app/":                  {Name: "BlueSky", Handler: bluesky.Handle},
+	"instagram.com/":             {Name: "Instagram", Handler: instagram.Handle},
+	"reddit.com/":                {Name: "Reddit", Handler: reddit.Handle},
+	"threads.com/":               {Name: "Threads", Handler: threads.Handle},
+	"tiktok.com/":                {Name: "TikTok", Handler: tiktok.Handle},
+	"(twitter|x).com/":           {Name: "Twitter/X", Handler: twitter.Handle},
+	"(xiaohongshu|xhslink).com/": {Name: "XiaoHongShu", Handler: xiaohongshu.Handle},
+	"youtube.com/":               {Name: "YouTube", Handler: youtube.Handle},
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 func extractURL(text string) (string, bool) {
-	url := regexp.MustCompile(regexMedia).FindStringSubmatch(text)
-	if len(url) < 1 {
+	match := mediaRegex.FindStringSubmatch(text)
+	if len(match) < 1 {
 		return "", false
 	}
-	return url[0], true
+	return match[0], true
 }
 
 func processMedia(text string) downloader.PostInfo {
 	var postInfo downloader.PostInfo
-
 	for pattern, handler := range mediaHandlers {
 		if match, _ := regexp.MatchString(pattern, text); match {
 			postInfo = handler.Handler(text)
@@ -68,17 +81,20 @@ func processMedia(text string) downloader.PostInfo {
 			break
 		}
 	}
-
 	return postInfo
 }
 
-func shouldProcessMedia(message *models.Message) bool {
-	if regexp.MustCompile(`^/dl`).MatchString(message.Text) || message.Chat.Type == models.ChatTypePrivate {
+func shouldProcessMedia(message *gotgbot.Message) bool {
+	if message == nil {
+		return false
+	}
+
+	if strings.HasPrefix(message.Text, "/dl") || message.Chat.Type == gotgbot.ChatTypePrivate {
 		return true
 	}
 
 	var mediasAuto bool
-	if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.Chat.ID).Scan(&mediasAuto); err != nil || !mediasAuto {
+	if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.Chat.Id).Scan(&mediasAuto); err != nil || !mediasAuto {
 		return false
 	}
 	return true
@@ -90,701 +106,451 @@ func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string,
 	}
 
 	postInfo.Caption = utils.SanitizeTelegramHTML(postInfo.Caption)
-
 	postInfo.Caption = downloader.TruncateUTF8Caption(postInfo.Caption,
-		url, i18n("open-link", map[string]any{
-			"service": postInfo.Service,
-		}), len(postInfo.Medias),
+		url, i18n("open-link", map[string]any{"service": postInfo.Service}), len(postInfo.Medias),
 	)
 	return true
 }
 
-func setMediaCaption(media models.InputMedia, caption string) {
+func setMediaCaption(media gotgbot.InputMedia, caption string) {
 	switch v := media.(type) {
-	case *models.InputMediaPhoto:
+	case *gotgbot.InputMediaPhoto:
 		v.Caption = caption
-		v.ParseMode = models.ParseModeHTML
-	case *models.InputMediaVideo:
+		v.ParseMode = gotgbot.ParseModeHTML
+	case *gotgbot.InputMediaVideo:
 		v.Caption = caption
-		v.ParseMode = models.ParseModeHTML
+		v.ParseMode = gotgbot.ParseModeHTML
 	}
 }
 
-func getInputFile(media string, attachment io.Reader) models.InputFile {
-	if attachment != nil {
-		return &models.InputFileUpload{
-			Filename: media,
-			Data:     attachment,
-		}
-	}
-	return &models.InputFileString{
-		Data: media,
-	}
+func openLinkKeyboard(text, url string) gotgbot.InlineKeyboardMarkup {
+	return gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{Text: text, Url: url}}}}
 }
-
 func sendSingleMedia(
-	ctx context.Context,
-	b *bot.Bot,
-	chatID int64,
-	media models.InputMedia,
-	replyParameters *models.ReplyParameters,
-	replyMarkup *models.InlineKeyboardMarkup,
-) (any, error) {
-	switch media := media.(type) {
-	case *models.InputMediaVideo:
-		return b.SendVideo(ctx, &bot.SendVideoParams{
-			ChatID:                chatID,
-			Video:                 getInputFile(media.Media, media.MediaAttachment),
-			Duration:              media.Duration,
-			Width:                 media.Width,
-			Height:                media.Height,
-			Thumbnail:             media.Thumbnail,
-			Caption:               media.Caption,
-			ParseMode:             models.ParseModeHTML,
-			ShowCaptionAboveMedia: media.ShowCaptionAboveMedia,
-			SupportsStreaming:     true,
-			ReplyParameters:       replyParameters,
-			ReplyMarkup:           replyMarkup,
-		})
-	case *models.InputMediaPhoto:
-		return b.SendPhoto(ctx, &bot.SendPhotoParams{
-			ChatID:                chatID,
-			Photo:                 getInputFile(media.Media, media.MediaAttachment),
-			Caption:               media.Caption,
-			ParseMode:             models.ParseModeHTML,
-			ShowCaptionAboveMedia: media.ShowCaptionAboveMedia,
-			ReplyParameters:       replyParameters,
-			ReplyMarkup:           replyMarkup,
-		})
-	default:
-		return nil, fmt.Errorf("unsupported media type")
-	}
-}
-
-func sendMediaAndHandleCaption(
-	ctx context.Context,
-	b *bot.Bot,
-	update *models.Update,
-	postInfo downloader.PostInfo,
+	b *gotgbot.Bot,
+	ctx *ext.Context,
+	media gotgbot.InputMedia,
 	url string,
-	i18n func(string, ...map[string]any) string,
-) ([]*models.Message, error) {
-	if _, err := b.SendChatAction(ctx, &bot.SendChatActionParams{
-		ChatID: update.Message.Chat.ID,
-		Action: models.ChatActionUploadDocument,
-	}); err != nil {
-		slog.Warn("Erro ao enviar ação de chat", "error", err)
+	buttonText string,
+) (*gotgbot.Message, error) {
+	if ctx.EffectiveMessage == nil {
+		return nil, fmt.Errorf("missing effective message")
 	}
-
-	setMediaCaption(postInfo.Medias[0], postInfo.Caption)
-
-	var replied any
-	var err error
-
-	if len(postInfo.Medias) == 1 {
-		replied, err = sendSingleMedia(
-			ctx,
-			b,
-			update.Message.Chat.ID,
-			postInfo.Medias[0],
-			&models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-			&models.InlineKeyboardMarkup{
-				InlineKeyboard: [][]models.InlineKeyboardButton{{{
-					Text: i18n("open-link", map[string]any{
-						"service": postInfo.Service,
-					}),
-					URL: url,
-				}}},
-			})
-	} else {
-		replied, err = b.SendMediaGroup(ctx, &bot.SendMediaGroupParams{
-			ChatID: update.Message.Chat.ID,
-			Media:  postInfo.Medias,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
+	keyboard := openLinkKeyboard(buttonText, url)
+	replyParams := &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}
+	switch v := media.(type) {
+	case *gotgbot.InputMediaPhoto:
+		return b.SendPhotoWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, v.Media, &gotgbot.SendPhotoOpts{
+			Caption:               v.Caption,
+			ParseMode:             v.ParseMode,
+			ShowCaptionAboveMedia: v.ShowCaptionAboveMedia,
+			ReplyParameters:       replyParams,
+			ReplyMarkup:           &keyboard,
 		})
-	}
-
-	if err != nil {
-		if strings.Contains(err.Error(), "Bad Request: not enough rights") {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("couldn't send to chat %d: %w", update.Message.Chat.ID, err)
-	}
-
-	var sentMessages []*models.Message
-	switch v := replied.(type) {
-	case *models.Message:
-		sentMessages = []*models.Message{v}
-	case []*models.Message:
-		sentMessages = v
-	}
-
-	if update.Message.Chat.Type == models.ChatTypePrivate {
-		return sentMessages, nil
-	}
-
-	var mediasCaption bool
-	if err := database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", update.Message.Chat.ID).Scan(&mediasCaption); err == nil && !mediasCaption {
-		lastMessage := sentMessages[len(sentMessages)-1]
-		_, err = b.EditMessageCaption(ctx, &bot.EditMessageCaptionParams{
-			ChatID:    update.Message.Chat.ID,
-			MessageID: lastMessage.ID,
-			Caption:   fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, i18n("open-link", map[string]any{"service": postInfo.Service})),
-			ParseMode: models.ParseModeHTML,
-		})
-		if err != nil {
-			return sentMessages, err
-		}
-	}
-
-	return sentMessages, nil
-}
-
-func mediaDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if !shouldProcessMedia(update.Message) {
-		return
-	}
-
-	i18n := localization.Get(update)
-	url, found := extractURL(update.Message.Text)
-	if !found {
-		_, err := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      i18n("no-link-provided"),
-			ParseMode: models.ParseModeHTML,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-		})
-		if err != nil {
-			slog.Error("Couldn't send message",
-				"Error", err.Error())
-			return
-		}
-	}
-
-	postInfo := processMedia(url)
-	if !prepareCaption(&postInfo, url, i18n) {
-		return
-	}
-
-	var allSentMessages []*models.Message
-	totalMedias := len(postInfo.Medias)
-	for i := 0; i < totalMedias; i += 10 {
-		end := min(i+10, totalMedias)
-
-		batchPostInfo := postInfo
-		batchPostInfo.Medias = postInfo.Medias[i:end]
-
-		if i > 0 {
-			batchPostInfo.Caption = ""
-		}
-
-		sentMessages, err := sendMediaAndHandleCaption(ctx, b, update, batchPostInfo, url, i18n)
-		if err != nil {
-			if strings.Contains(err.Error(), "too many requests") {
-				return
-			}
-			slog.Error("Couldn't send media batch",
-				"Post URL", url,
-				"Error", err.Error(),
-				"Batch", i/10+1,
-			)
-			continue
-		}
-		allSentMessages = append(allSentMessages, sentMessages...)
-	}
-
-	if len(allSentMessages) > 0 {
-		if err := downloader.SetMediaCache(allSentMessages, postInfo); err != nil {
-			slog.Error("Couldn't set media cache",
-				"Error", err.Error())
-		}
-	}
-}
-
-func youtubeDownloadHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-	var videoURL string
-
-	if update.Message.ReplyToMessage != nil && update.Message.ReplyToMessage.Text != "" {
-		videoURL = update.Message.ReplyToMessage.Text
-	} else if len(strings.Fields(update.Message.Text)) > 1 {
-		videoURL = strings.Fields(update.Message.Text)[1]
-	} else {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      i18n("youtube-no-url"),
-			ParseMode: models.ParseModeHTML,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-		})
-		return
-	}
-
-	youtubeClient := youtube.ConfigureYoutubeClient()
-
-	video, err := youtubeClient.GetVideo(videoURL)
-	if err != nil || video == nil || video.Formats == nil {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      i18n("youtube-invalid-url"),
-			ParseMode: models.ParseModeHTML,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-		})
-		return
-	}
-
-	videoStream := youtube.GetBestQualityVideoStream(video.Formats.Type("video/mp4"))
-
-	var audioStream youtubedl.Format
-	if len(video.Formats.Itag(140)) > 0 {
-		audioStream = video.Formats.Itag(140)[0]
-	} else {
-		audioStream = video.Formats.WithAudioChannels().Type("audio/mp4")[0]
-	}
-
-	text := i18n("youtube-video-info",
-		map[string]any{
-			"title":     video.Title,
-			"author":    video.Author,
-			"audioSize": fmt.Sprintf("%.2f", float64(audioStream.ContentLength)/(1024*1024)),
-			"videoSize": fmt.Sprintf("%.2f", float64(videoStream.ContentLength+audioStream.ContentLength)/(1024*1024)),
-			"duration":  video.Duration.String(),
-		})
-
-	keyboard := &models.InlineKeyboardMarkup{
-		InlineKeyboard: [][]models.InlineKeyboardButton{
-			{
-				{
-					Text:         i18n("youtube-download-audio-button"),
-					CallbackData: fmt.Sprintf("_aud|%s|%d|%d|%d|%d", video.ID, audioStream.ItagNo, audioStream.ContentLength, update.Message.ID, update.Message.From.ID),
-				},
-				{
-					Text:         i18n("youtube-download-video-button"),
-					CallbackData: fmt.Sprintf("_vid|%s|%d|%d|%d|%d", video.ID, videoStream.ItagNo, videoStream.ContentLength+audioStream.ContentLength, update.Message.ID, update.Message.From.ID),
-				},
-			},
-		},
-	}
-
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      text,
-		ParseMode: models.ParseModeHTML,
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-		ReplyMarkup: keyboard,
-	})
-}
-
-func youtubeDownloadCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
-	}
-	message := update.CallbackQuery.Message.Message
-	i18n := localization.Get(update)
-
-	callbackData := strings.Split(update.CallbackQuery.Data, "|")
-	if len(callbackData) < 6 {
-		b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
-			CallbackQueryID: update.CallbackQuery.ID,
-			Text:            i18n("youtube-error"),
-			ShowAlert:       true,
-		})
-		return
-	}
-	if userID, _ := strconv.Atoi(callbackData[5]); update.CallbackQuery.From.ID != int64(userID) {
-		b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
-			CallbackQueryID: update.CallbackQuery.ID,
-			Text:            i18n("denied-button-alert"),
-			ShowAlert:       true,
-		})
-		return
-	}
-
-	sizeLimit := int64(1572864000) // 1.5 GB
-	if config.BotAPIURL == "" {
-		sizeLimit = 52428800 // 50 MB
-	}
-
-	if size, _ := strconv.ParseInt(callbackData[3], 10, 64); size > sizeLimit {
-		b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
-			CallbackQueryID: update.CallbackQuery.ID,
-			Text: i18n("video-exceeds-limit", map[string]any{
-				"size": sizeLimit,
-			}),
-			ShowAlert: true,
-		})
-		return
-	}
-
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("downloading"),
-		ParseMode: models.ParseModeHTML,
-	})
-
-	messageID, _ := strconv.Atoi(callbackData[4])
-	cacheFound, err := trySendCachedYoutubeMedia(ctx, b, update, messageID, callbackData)
-	if cacheFound || err == nil {
-		b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-			ChatID:    message.Chat.ID,
-			MessageID: update.CallbackQuery.Message.Message.ID,
-		})
-		return
-	}
-
-	fileBytes, video, err := youtube.Downloader(callbackData)
-	if err != nil {
-		b.EditMessageText(ctx, &bot.EditMessageTextParams{
-			ChatID:    message.Chat.ID,
-			MessageID: update.CallbackQuery.Message.Message.ID,
-			Text:      i18n("youtube-error"),
-			ParseMode: models.ParseModeHTML,
-		})
-		return
-	}
-
-	itag, _ := strconv.Atoi(callbackData[2])
-
-	var action models.ChatAction
-	switch callbackData[0] {
-	case "_aud":
-		action = models.ChatActionUploadVoice
-	case "_vid":
-		action = models.ChatActionUploadVideo
-	}
-
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("uploading"),
-		ParseMode: models.ParseModeHTML,
-	})
-
-	b.SendChatAction(ctx, &bot.SendChatActionParams{
-		ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-		Action: action,
-	})
-
-	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
-	thumbnail, _ := downloader.FetchBytesFromURL(thumbURL)
-
-	var replied *models.Message
-	caption := fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title)
-	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-%s_%s", video.Author, video.Title))
-	switch callbackData[0] {
-	case "_aud":
-		replied, err = b.SendAudio(ctx, &bot.SendAudioParams{
-			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-			Audio: &models.InputFileUpload{
-				Filename: filename,
-				Data:     bytes.NewBuffer(fileBytes),
-			},
-			Caption:   caption,
-			Title:     video.Title,
-			Performer: video.Author,
-			Thumbnail: &models.InputFileUpload{
-				Filename: filename,
-				Data:     bytes.NewBuffer(thumbnail),
-			},
-			ParseMode: models.ParseModeHTML,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: messageID,
-			},
-		})
-	case "_vid":
-		replied, err = b.SendVideo(ctx, &bot.SendVideoParams{
-			ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-			Video: &models.InputFileUpload{
-				Filename: filename,
-				Data:     bytes.NewBuffer(fileBytes),
-			},
-			Width:  video.Formats.Itag(itag)[0].Width,
-			Height: video.Formats.Itag(itag)[0].Height,
-			Thumbnail: &models.InputFileUpload{
-				Filename: filename,
-				Data:     bytes.NewBuffer(thumbnail),
-			},
-			Caption:           caption,
-			ParseMode:         models.ParseModeHTML,
-			SupportsStreaming: true,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: messageID,
-			},
-		})
-	}
-	if err != nil {
-		slog.Error("Couldn't send media",
-			"Error", err.Error(),
-		)
-		b.EditMessageText(ctx, &bot.EditMessageTextParams{
-			ChatID:    message.Chat.ID,
-			MessageID: update.CallbackQuery.Message.Message.ID,
-			Text:      i18n("youtube-error"),
-			ParseMode: models.ParseModeHTML,
-		})
-		return
-	}
-	b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-		ChatID:    message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-	})
-
-	if err := downloader.SetYoutubeCache(replied, callbackData[1]); err != nil {
-		slog.Error("Couldn't set youtube cache",
-			"Error", err.Error())
-	}
-}
-
-func trySendCachedYoutubeMedia(ctx context.Context, b *bot.Bot, update *models.Update, messageID int, callbackData []string) (bool, error) {
-	var fileID, caption string
-	var err error
-
-	if update.CallbackQuery == nil || update.CallbackQuery.Message.Message == nil {
-		return false, fmt.Errorf("missing callback message")
-	}
-
-	chatID := update.CallbackQuery.Message.Message.Chat.ID
-
-	switch callbackData[0] {
-	case "_aud":
-		fileID, caption, err = downloader.GetYoutubeCache(callbackData[1], "audio")
-	case "_vid":
-		fileID, caption, err = downloader.GetYoutubeCache(callbackData[1], "video")
-	}
-
-	if err == nil {
-		switch callbackData[0] {
-		case "_aud":
-			b.SendAudio(ctx, &bot.SendAudioParams{
-				ChatID:    chatID,
-				Audio:     &models.InputFileString{Data: fileID},
-				Caption:   caption,
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: messageID,
-				},
-			})
-		case "_vid":
-			b.SendVideo(ctx, &bot.SendVideoParams{
-				ChatID:    chatID,
-				Video:     &models.InputFileString{Data: fileID},
-				Caption:   caption,
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: messageID,
-				},
-			})
-		}
-		return true, nil
-	}
-	return false, err
-}
-
-func mediasInlineQuery(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.InlineQuery == nil {
-		return
-	}
-
-	var results []models.InlineQueryResult
-	i18n := localization.Get(update)
-
-	url := regexp.MustCompile(regexMedia).FindStringSubmatch(update.InlineQuery.Query)
-
-	switch {
-	case len(url) < 1:
-		results = []models.InlineQueryResult{
-			&models.InlineQueryResultArticle{
-				ID:          "unsupported-link",
-				Title:       i18n("unsupported-link-title"),
-				Description: i18n("unsupported-link-description"),
-				InputMessageContent: &models.InputTextMessageContent{
-					MessageText: i18n("unsupported-link"),
-					ParseMode:   models.ParseModeHTML,
-				},
-				ReplyMarkup: &models.InlineKeyboardMarkup{
-					InlineKeyboard: [][]models.InlineKeyboardButton{{
-						{
-							Text:         "❌",
-							CallbackData: "NONE",
-						},
-					}},
-				},
-			},
-		}
-	default:
-		results = []models.InlineQueryResult{
-			&models.InlineQueryResultArticle{
-				ID:          "media",
-				Title:       i18n("click-to-download-media"),
-				Description: "Link: " + url[0],
-				InputMessageContent: &models.InputTextMessageContent{
-					MessageText: "Baixando...",
-					ParseMode:   models.ParseModeHTML,
-				},
-				ReplyMarkup: &models.InlineKeyboardMarkup{
-					InlineKeyboard: [][]models.InlineKeyboardButton{{
-						{
-							Text:         "⏳",
-							CallbackData: "NONE",
-						},
-					}},
-				},
-			},
-		}
-	}
-
-	b.AnswerInlineQuery(ctx, &bot.AnswerInlineQueryParams{
-		InlineQueryID: update.InlineQuery.ID,
-		Results:       results,
-		CacheTime:     0,
-	})
-}
-
-func MediasInline(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-	inlineResult := update.ChosenInlineResult
-
-	postInfo := processMedia(inlineResult.Query)
-
-	if len(postInfo.Medias) == 0 {
-		b.EditMessageText(ctx, &bot.EditMessageTextParams{
-			InlineMessageID: inlineResult.InlineMessageID,
-			Text:            i18n("no-media-found"),
-			ParseMode:       models.ParseModeHTML,
-		})
-		return
-	}
-
-	var captionMultipleItems string
-	postInfo.Caption = utils.SanitizeTelegramHTML(postInfo.Caption)
-	if len(postInfo.Medias) > 1 {
-		captionMultipleItems = "\n\n" + i18n("media-multiple-items", map[string]any{
-			"count": len(postInfo.Medias),
-		}) // Note: The Go Fluent library does not support line breaks at the beginning of strings.
-	}
-	availableSpace := maxSizeCaption - utf8.RuneCountInString(captionMultipleItems)
-
-	if utf8.RuneCountInString(postInfo.Caption) > availableSpace {
-		truncateLength := availableSpace - 3 // "..." length
-		if truncateLength > 0 {
-			postInfo.Caption = string([]rune(postInfo.Caption)[:truncateLength]) + "..."
-		}
-	}
-
-	postInfo.Caption += captionMultipleItems
-	var err error
-
-	uploadedMsg, err := uploadMediaToLogChannel(ctx, b, postInfo.Medias[0], postInfo.InvertMedia)
-	if err != nil {
-		slog.Error("Failed to upload media to log channel", "error", err, "query", inlineResult.Query)
-		sendInlineError(ctx, b, inlineResult.InlineMessageID, i18n)
-		return
-	}
-
-	if _, err := b.DeleteMessage(ctx, &bot.DeleteMessageParams{
-		ChatID:    uploadedMsg.Chat.ID,
-		MessageID: uploadedMsg.ID,
-	}); err != nil {
-		slog.Warn("Failed to delete temporary message",
-			"error", err.Error())
-	}
-
-	var mediaToEdit models.InputMedia
-
-	if uploadedMsg.Photo != nil {
-		mediaToEdit = &models.InputMediaPhoto{
-			Media:                 uploadedMsg.Photo[0].FileID,
-			Caption:               postInfo.Caption,
-			ParseMode:             models.ParseModeHTML,
-			ShowCaptionAboveMedia: postInfo.InvertMedia,
-		}
-	} else if uploadedMsg.Video != nil {
-		mediaToEdit = &models.InputMediaVideo{
-			Media:                 uploadedMsg.Video.FileID,
-			Caption:               postInfo.Caption,
-			ParseMode:             models.ParseModeHTML,
-			ShowCaptionAboveMedia: postInfo.InvertMedia,
-			SupportsStreaming:     true,
-		}
-		if uploadedMsg.Video.Thumbnail != nil {
-			mediaToEdit.(*models.InputMediaVideo).Thumbnail = &models.InputFileString{
-				Data: uploadedMsg.Video.Thumbnail.FileID,
-			}
-		}
-	}
-
-	if _, err = b.EditMessageMedia(ctx, &bot.EditMessageMediaParams{
-		InlineMessageID: inlineResult.InlineMessageID,
-		Media:           mediaToEdit,
-		ReplyMarkup: &models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{{{
-				Text: i18n("open-link", map[string]any{
-					"service": postInfo.Service,
-				}),
-				URL: inlineResult.Query,
-			}}},
-		},
-	}); err != nil {
-		slog.Error("Failed to edit inline message media",
-			"error", err.Error(),
-			"query", inlineResult.Query)
-		sendInlineError(ctx, b, inlineResult.InlineMessageID, i18n)
-	}
-}
-
-func uploadMediaToLogChannel(ctx context.Context, b *bot.Bot, media models.InputMedia, invertMedia bool) (*models.Message, error) {
-	switch m := media.(type) {
-	case *models.InputMediaPhoto:
-		return b.SendPhoto(ctx, &bot.SendPhotoParams{
-			ChatID: config.LogChannelID,
-			Photo: &models.InputFileUpload{
-				Data: m.MediaAttachment,
-			},
-			ShowCaptionAboveMedia: invertMedia,
-		})
-	case *models.InputMediaVideo:
-		return b.SendVideo(ctx, &bot.SendVideoParams{
-			ChatID: config.LogChannelID,
-			Video: &models.InputFileUpload{
-				Data: m.MediaAttachment,
-			},
-			Thumbnail:             m.Thumbnail,
-			ShowCaptionAboveMedia: invertMedia,
-			SupportsStreaming:     true,
+	case *gotgbot.InputMediaVideo:
+		return b.SendVideoWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, v.Media, &gotgbot.SendVideoOpts{
+			Caption:               v.Caption,
+			ParseMode:             v.ParseMode,
+			ShowCaptionAboveMedia: v.ShowCaptionAboveMedia,
+			Width:                 v.Width,
+			Height:                v.Height,
+			Duration:              v.Duration,
+			SupportsStreaming:     v.SupportsStreaming,
+			Thumbnail:             v.Thumbnail,
+			ReplyParameters:       replyParams,
+			ReplyMarkup:           &keyboard,
 		})
 	default:
 		return nil, fmt.Errorf("unsupported media type: %T", media)
 	}
 }
 
-func sendInlineError(ctx context.Context, b *bot.Bot, inlineMessageID string, i18n func(string, ...map[string]any) string) {
-	_, err := b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		InlineMessageID: inlineMessageID,
-		Text:            i18n("media-error"),
-		ParseMode:       models.ParseModeHTML,
+func sendMediaAndHandleCaption(
+	b *gotgbot.Bot,
+	ctx *ext.Context,
+	postInfo downloader.PostInfo,
+	url string,
+	i18n func(string, ...map[string]any) string,
+) ([]gotgbot.Message, error) {
+	if ctx.EffectiveMessage == nil {
+		return nil, fmt.Errorf("missing effective message")
+	}
+	if _, err := b.SendChatActionWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, chatActionUploadDoc, nil); err != nil {
+		slog.Warn("failed to send chat action", "error", err)
+	}
+	setMediaCaption(postInfo.Medias[0], postInfo.Caption)
+	var sent []gotgbot.Message
+	buttonText := i18n("open-link", map[string]any{"service": postInfo.Service})
+	if len(postInfo.Medias) == 1 {
+		wrote, err := sendSingleMedia(b, ctx, postInfo.Medias[0], url, buttonText)
+		if err != nil {
+			return nil, err
+		}
+		if wrote != nil {
+			sent = append(sent, *wrote)
+		}
+	} else {
+		replies, err := b.SendMediaGroupWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, postInfo.Medias, &gotgbot.SendMediaGroupOpts{
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		})
+		if err != nil {
+			return nil, err
+		}
+		sent = append(sent, replies...)
+	}
+	if ctx.EffectiveMessage.Chat.Type != gotgbot.ChatTypePrivate {
+		var mediasCaption bool
+		if err := database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", ctx.EffectiveMessage.Chat.Id).Scan(&mediasCaption); err == nil && !mediasCaption && len(sent) > 0 {
+			last := sent[len(sent)-1]
+			_, _, err := b.EditMessageCaptionWithContext(context.Background(), &gotgbot.EditMessageCaptionOpts{
+				ChatId:    ctx.EffectiveMessage.Chat.Id,
+				MessageId: last.MessageId,
+				Caption:   fmt.Sprintf("\n<a href='%s'>🔗 %s</a>", url, buttonText),
+				ParseMode: gotgbot.ParseModeHTML,
+			})
+			if err != nil {
+				return sent, err
+			}
+		}
+	}
+	return sent, nil
+}
+
+func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil || !shouldProcessMedia(ctx.EffectiveMessage) {
+		return nil
+	}
+	i18n := localization.Get(ctx)
+	url, found := extractURL(ctx.EffectiveMessage.Text)
+	if !found {
+		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("no-link-provided"), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		})
+		return nil
+	}
+	postInfo := processMedia(url)
+	if !prepareCaption(&postInfo, url, i18n) {
+		return nil
+	}
+	var allSent []gotgbot.Message
+	for i := 0; i < len(postInfo.Medias); i += 10 {
+		end := min(i+10, len(postInfo.Medias))
+		batch := postInfo
+		batch.Medias = postInfo.Medias[i:end]
+		if i > 0 {
+			batch.Caption = ""
+		}
+		sent, err := sendMediaAndHandleCaption(b, ctx, batch, url, i18n)
+		if err != nil {
+			if strings.Contains(err.Error(), "too many requests") {
+				return nil
+			}
+			slog.Error("Couldn't send media batch", "postUrl", url, "error", err, "batch", i/10+1)
+			continue
+		}
+		allSent = append(allSent, sent...)
+	}
+	if len(allSent) > 0 {
+		if err := downloader.SetMediaCache(allSent, postInfo); err != nil {
+			slog.Error("Couldn't set media cache", "error", err)
+		}
+	}
+	return nil
+}
+
+func mediasInlineQuery(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.InlineQuery == nil {
+		return nil
+	}
+	i18n := localization.Get(ctx)
+	var results []gotgbot.InlineQueryResult
+	query := ctx.InlineQuery.Query
+	if mediaRegex.MatchString(query) {
+		results = []gotgbot.InlineQueryResult{gotgbot.InlineQueryResultArticle{
+			Id:          "media",
+			Title:       i18n("click-to-download-media"),
+			Description: "Link: " + query,
+			InputMessageContent: gotgbot.InputTextMessageContent{
+				MessageText: "Baixando...",
+				ParseMode:   gotgbot.ParseModeHTML,
+			},
+			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{Text: "⏳", CallbackData: "NONE"}}}},
+		}}
+	} else {
+		results = []gotgbot.InlineQueryResult{gotgbot.InlineQueryResultArticle{
+			Id:          "unsupported-link",
+			Title:       i18n("unsupported-link-title"),
+			Description: i18n("unsupported-link-description"),
+			InputMessageContent: gotgbot.InputTextMessageContent{
+				MessageText: i18n("unsupported-link"),
+				ParseMode:   gotgbot.ParseModeHTML,
+			},
+			ReplyMarkup: &gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{Text: "❌", CallbackData: "NONE"}}}},
+		}}
+	}
+	cacheTime := int64(0)
+	_, _ = b.AnswerInlineQueryWithContext(context.Background(), ctx.InlineQuery.Id, results, &gotgbot.AnswerInlineQueryOpts{CacheTime: &cacheTime})
+	return nil
+}
+
+func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.ChosenInlineResult == nil {
+		return nil
+	}
+	i18n := localization.Get(ctx)
+	inlineResult := ctx.ChosenInlineResult
+	postInfo := processMedia(inlineResult.Query)
+	if len(postInfo.Medias) == 0 {
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("no-media-found"), &gotgbot.EditMessageTextOpts{
+			InlineMessageId: inlineResult.InlineMessageId,
+			ParseMode:       gotgbot.ParseModeHTML,
+		})
+		return nil
+	}
+	captionMultiple := ""
+	if len(postInfo.Medias) > 1 {
+		captionMultiple = "\n\n" + i18n("media-multiple-items", map[string]any{"count": len(postInfo.Medias)})
+	}
+	postInfo.Caption = utils.SanitizeTelegramHTML(postInfo.Caption)
+	available := maxSizeCaption - utf8.RuneCountInString(captionMultiple)
+	if utf8.RuneCountInString(postInfo.Caption) > available {
+		if truncate := available - 3; truncate > 0 {
+			postInfo.Caption = string([]rune(postInfo.Caption)[:truncate]) + "..."
+		}
+	}
+	postInfo.Caption += captionMultiple
+
+	uploaded, err := uploadMediaToLogChannel(context.Background(), b, postInfo.Medias[0], postInfo.InvertMedia)
+	if err != nil {
+		slog.Error("Failed to upload media to log channel", "error", err, "query", inlineResult.Query)
+		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n)
+		return nil
+	}
+	_, _ = b.DeleteMessageWithContext(context.Background(), uploaded.Chat.Id, uploaded.MessageId, nil)
+	var media gotgbot.InputMedia
+	buttonText := i18n("open-link", map[string]any{"service": postInfo.Service})
+	if uploaded.Photo != nil {
+		media = &gotgbot.InputMediaPhoto{
+			Media:                 gotgbot.InputFileByID(uploaded.Photo[0].FileId),
+			Caption:               postInfo.Caption,
+			ParseMode:             gotgbot.ParseModeHTML,
+			ShowCaptionAboveMedia: postInfo.InvertMedia,
+		}
+	} else if uploaded.Video != nil {
+		media = &gotgbot.InputMediaVideo{
+			Media:                 gotgbot.InputFileByID(uploaded.Video.FileId),
+			Caption:               postInfo.Caption,
+			ParseMode:             gotgbot.ParseModeHTML,
+			ShowCaptionAboveMedia: postInfo.InvertMedia,
+			SupportsStreaming:     true,
+		}
+	}
+	if media == nil {
+		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n)
+		return nil
+	}
+	_, _, err = b.EditMessageMediaWithContext(context.Background(), media, &gotgbot.EditMessageMediaOpts{
+		InlineMessageId: inlineResult.InlineMessageId,
+		ReplyMarkup:     openLinkKeyboard(buttonText, inlineResult.Query),
 	})
 	if err != nil {
-		slog.Error("Failed to send error message to inline query", "error", err)
+		slog.Error("Failed to edit inline message media", "error", err, "query", inlineResult.Query)
+		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n)
+	}
+	return nil
+}
+
+func uploadMediaToLogChannel(ctx context.Context, b *gotgbot.Bot, media gotgbot.InputMedia, invert bool) (*gotgbot.Message, error) {
+	switch v := media.(type) {
+	case *gotgbot.InputMediaPhoto:
+		return b.SendPhotoWithContext(ctx, config.LogChannelID, v.Media, &gotgbot.SendPhotoOpts{ShowCaptionAboveMedia: invert})
+	case *gotgbot.InputMediaVideo:
+		return b.SendVideoWithContext(ctx, config.LogChannelID, v.Media, &gotgbot.SendVideoOpts{
+			SupportsStreaming:     v.SupportsStreaming,
+			Thumbnail:             v.Thumbnail,
+			ShowCaptionAboveMedia: invert,
+		})
+	default:
+		return nil, fmt.Errorf("unsupported media type: %T", media)
 	}
 }
 
-func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeInlineQuery, "^http(?:s)?://.+", mediasInlineQuery)
-	b.RegisterHandler(bot.HandlerTypeMessageText, regexMedia, mediaDownloadHandler)
-	b.RegisterHandler(bot.HandlerTypeCommand, "ytdl", youtubeDownloadHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, `^(_(vid|aud))`, youtubeDownloadCallback)
+func sendInlineError(ctx *ext.Context, b *gotgbot.Bot, inlineID string, i18n func(string, ...map[string]any) string) {
+	_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("media-error"), &gotgbot.EditMessageTextOpts{
+		InlineMessageId: inlineID,
+		ParseMode:       gotgbot.ParseModeHTML,
+	})
+}
+
+func youtubeDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+	i18n := localization.Get(ctx)
+	var videoURL string
+	if ctx.EffectiveMessage.ReplyToMessage != nil && ctx.EffectiveMessage.ReplyToMessage.Text != "" {
+		videoURL = ctx.EffectiveMessage.ReplyToMessage.Text
+	} else if fields := strings.Fields(ctx.EffectiveMessage.Text); len(fields) > 1 {
+		videoURL = fields[1]
+	} else {
+		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("youtube-no-url"), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		})
+		return nil
+	}
+	ytClient := youtube.ConfigureYoutubeClient()
+	if ytClient == nil {
+		return nil
+	}
+	video, err := ytClient.GetVideo(videoURL)
+	if err != nil || video == nil || video.Formats == nil {
+		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("youtube-invalid-url"), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		})
+		return nil
+	}
+	videoStream := youtube.GetBestQualityVideoStream(video.Formats.Type("video/mp4"))
+	var audioStream youtubedl.Format
+	if len(video.Formats.Itag(140)) > 0 {
+		audioStream = video.Formats.Itag(140)[0]
+	} else {
+		audioStream = video.Formats.WithAudioChannels().Type("audio/mp4")[0]
+	}
+	text := i18n("youtube-video-info", map[string]any{
+		"title":     video.Title,
+		"author":    video.Author,
+		"audioSize": fmt.Sprintf("%.2f", float64(audioStream.ContentLength)/(1024*1024)),
+		"videoSize": fmt.Sprintf("%.2f", float64(videoStream.ContentLength+audioStream.ContentLength)/(1024*1024)),
+		"duration":  video.Duration.String(),
+	})
+	keyboard := &gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+		{Text: i18n("youtube-download-audio-button"), CallbackData: fmt.Sprintf("_aud|%s|%d|%d|%d|%d", video.ID, audioStream.ItagNo, audioStream.ContentLength, ctx.EffectiveMessage.MessageId, ctx.EffectiveMessage.From.Id)},
+		{Text: i18n("youtube-download-video-button"), CallbackData: fmt.Sprintf("_vid|%s|%d|%d|%d|%d", video.ID, videoStream.ItagNo, videoStream.ContentLength+audioStream.ContentLength, ctx.EffectiveMessage.MessageId, ctx.EffectiveMessage.From.Id)},
+	}}}
+	_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, text, &gotgbot.SendMessageOpts{
+		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyMarkup:     keyboard,
+	})
+	return nil
+}
+
+func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
+	}
+	chat := ctx.CallbackQuery.Message.GetChat()
+	messageID := ctx.CallbackQuery.Message.GetMessageId()
+	i18n := localization.Get(ctx)
+	data := strings.Split(ctx.CallbackQuery.Data, "|")
+	if len(data) < 6 {
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("youtube-error"), ShowAlert: true})
+		return nil
+	}
+	requestedUser, _ := strconv.Atoi(data[5])
+	if ctx.CallbackQuery.From.Id != int64(requestedUser) {
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("denied-button-alert"), ShowAlert: true})
+		return nil
+	}
+	size, _ := strconv.ParseInt(data[3], 10, 64)
+	sizeLimit := int64(1572864000)
+	if config.BotAPIURL == "" {
+		sizeLimit = 52428800
+	}
+	if size > sizeLimit {
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("video-exceeds-limit", map[string]any{"size": sizeLimit}), ShowAlert: true})
+		return nil
+	}
+	_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("downloading"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
+	format := "audio"
+	if data[0] == "_vid" {
+		format = "video"
+	}
+	cacheFound, cacheErr := trySendCachedYoutubeMedia(ctx, b, data, format)
+	if cacheFound && cacheErr == nil {
+		_, _ = b.DeleteMessageWithContext(context.Background(), chat.Id, messageID, nil)
+		return nil
+	}
+	fileBytes, video, err := youtube.Downloader(data)
+	if err != nil {
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("youtube-error"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
+		return nil
+	}
+	itag, _ := strconv.Atoi(data[2])
+	_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("uploading"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
+	action := chatActionUploadVoice
+	if data[0] == "_vid" {
+		action = chatActionUploadVideo
+	}
+	_, _ = b.SendChatActionWithContext(context.Background(), chat.Id, action, nil)
+	thumbURL := strings.Replace(video.Thumbnails[len(video.Thumbnails)-1].URL, "sddefault", "maxresdefault", 1)
+	thumbnailBytes, _ := downloader.FetchBytesFromURL(thumbURL)
+	caption := fmt.Sprintf("<b>%s:</b> %s", video.Author, video.Title)
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-%s_%s", video.Author, video.Title))
+	var sent *gotgbot.Message
+	switch data[0] {
+	case "_aud":
+		sent, err = b.SendAudioWithContext(context.Background(), chat.Id, gotgbot.InputFileByReader(filename, bytes.NewReader(fileBytes)), &gotgbot.SendAudioOpts{
+			Caption:         caption,
+			ParseMode:       gotgbot.ParseModeHTML,
+			Performer:       video.Author,
+			Title:           video.Title,
+			Thumbnail:       gotgbot.InputFileByReader(filename, bytes.NewReader(thumbnailBytes)),
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: messageID},
+		})
+	case "_vid":
+		sent, err = b.SendVideoWithContext(context.Background(), chat.Id, gotgbot.InputFileByReader(filename, bytes.NewReader(fileBytes)), &gotgbot.SendVideoOpts{
+			Caption:           caption,
+			ParseMode:         gotgbot.ParseModeHTML,
+			SupportsStreaming: true,
+			Width:             int64(video.Formats.Itag(itag)[0].Width),
+			Height:            int64(video.Formats.Itag(itag)[0].Height),
+			Thumbnail:         gotgbot.InputFileByReader(filename, bytes.NewReader(thumbnailBytes)),
+			ReplyParameters:   &gotgbot.ReplyParameters{MessageId: messageID},
+		})
+	}
+	if err != nil {
+		slog.Error("Couldn't send media", "error", err)
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("youtube-error"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
+		return nil
+	}
+	_, _ = b.DeleteMessageWithContext(context.Background(), chat.Id, messageID, nil)
+	if cacheErr := downloader.SetYoutubeCache(sent, data[1]); cacheErr != nil {
+		slog.Error("Couldn't set youtube cache", "error", cacheErr)
+	}
+	return nil
+}
+
+func trySendCachedYoutubeMedia(ctx *ext.Context, b *gotgbot.Bot, data []string, format string) (bool, error) {
+	fileID, caption, err := downloader.GetYoutubeCache(data[1], format)
+	if err != nil {
+		return false, err
+	}
+	chat := ctx.CallbackQuery.Message.GetChat()
+	reply := &gotgbot.ReplyParameters{MessageId: ctx.CallbackQuery.Message.GetMessageId()}
+	switch data[0] {
+	case "_aud":
+		_, err = b.SendAudioWithContext(context.Background(), chat.Id, gotgbot.InputFileByID(fileID), &gotgbot.SendAudioOpts{Caption: caption, ParseMode: gotgbot.ParseModeHTML, ReplyParameters: reply})
+	case "_vid":
+		_, err = b.SendVideoWithContext(context.Background(), chat.Id, gotgbot.InputFileByID(fileID), &gotgbot.SendVideoOpts{Caption: caption, ParseMode: gotgbot.ParseModeHTML, ReplyParameters: reply})
+	}
+	return err == nil, err
+}
+
+func Load(dispatcher *ext.Dispatcher) {
+	dispatcher.AddHandler(handlers.NewInlineQuery(func(iq *gotgbot.InlineQuery) bool {
+		return mediaRegex.MatchString(iq.Query)
+	}, mediasInlineQuery))
+	dispatcher.AddHandler(handlers.NewMessage(func(m *gotgbot.Message) bool {
+		return m != nil && mediaRegex.MatchString(m.Text)
+	}, mediaDownloadHandler))
+	dispatcher.AddHandler(handlers.NewCommand("ytdl", youtubeDownloadHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_vid"), youtubeDownloadCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_aud"), youtubeDownloadCallback))
 
 	utils.SaveHelp("medias")
+	utils.DisableableCommands = append(utils.DisableableCommands, "ytdl")
 }

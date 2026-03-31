@@ -1,15 +1,17 @@
 package menu
 
 import (
-	"context"
 	"fmt"
 	"html"
 	"log/slog"
 	"os"
 	"strings"
 
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/choseninlineresult"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
@@ -18,299 +20,218 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func createStartKeyboard(i18n func(string, ...map[string]any) string) *models.InlineKeyboardMarkup {
-	return &models.InlineKeyboardMarkup{
-		InlineKeyboard: [][]models.InlineKeyboardButton{
-			{
-				{
-					Text:         i18n("about-button"),
-					CallbackData: "about",
-				},
-				{
-					Text:         fmt.Sprintf("%s %s", i18n("language-flag"), i18n("language-button")),
-					CallbackData: "languageMenu",
-				},
-			},
-			{
-				{
-					Text:         i18n("help-button"),
-					CallbackData: "helpMenu",
-				},
-			},
-		},
-	}
+func createStartKeyboard(i18n func(string, ...map[string]any) string) gotgbot.InlineKeyboardMarkup {
+	return gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+		{{Text: i18n("about-button"), CallbackData: "about"}, {Text: fmt.Sprintf("%s %s", i18n("language-flag"), i18n("language-button")), CallbackData: "languageMenu"}},
+		{{Text: i18n("help-button"), CallbackData: "helpMenu"}},
+	}}
 }
 
-func startHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-	botUser, err := b.GetMe(ctx)
+func startHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+
+	i18n := localization.Get(ctx)
+	botUser, err := b.GetMe(nil)
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	if messageFields := strings.Fields(update.Message.Text); len(messageFields) > 1 && messageFields[1] == "privacy" {
-		privacyHandler(ctx, b, update)
-		return
+	if messageFields := strings.Fields(ctx.EffectiveMessage.GetText()); len(messageFields) > 1 && messageFields[1] == "privacy" {
+		return privacyHandler(b, ctx)
 	}
 
-	if update.Message.Chat.Type == models.ChatTypeGroup || update.Message.Chat.Type == models.ChatTypeSupergroup {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text: i18n("start-message-group",
-				map[string]any{
-					"botName": botUser.FirstName,
-				}),
-			ParseMode: models.ParseModeHTML,
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-			ReplyMarkup: &models.InlineKeyboardMarkup{
-				InlineKeyboard: [][]models.InlineKeyboardButton{{{
-					Text: i18n("start-button"),
-					URL:  fmt.Sprintf("https://t.me/%s?start=start", botUser.Username),
-				}}},
-			},
+	if ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeGroup || ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeSupergroup {
+		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("start-message-group", map[string]any{"botName": botUser.FirstName}), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+			ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+				Text: i18n("start-button"),
+				Url:  fmt.Sprintf("https://t.me/%s?start=start", botUser.Username),
+			}}}},
 		})
-		return
+		return nil
 	}
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text: i18n("start-message",
-			map[string]any{
-				"userFirstName": update.Message.From.FirstName,
-				"botName":       botUser.FirstName,
-			}),
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			IsDisabled: bot.True(),
-		},
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-		ReplyMarkup: createStartKeyboard(i18n),
+	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("start-message", map[string]any{
+		"userFirstName": ctx.EffectiveUser.FirstName,
+		"botName":       botUser.FirstName,
+	}), &gotgbot.SendMessageOpts{
+		ParseMode:          gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
+		ReplyParameters:    &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyMarkup:        createStartKeyboard(i18n),
 	})
+
+	return nil
 }
 
-func startCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func startCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
-	botUser, err := b.GetMe(ctx)
+
+	i18n := localization.Get(ctx)
+	botUser, err := b.GetMe(nil)
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text: i18n("start-message",
-			map[string]any{
-				"userFirstName": update.CallbackQuery.Message.Message.From.FirstName,
-				"botName":       botUser.FirstName,
-			}),
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			IsDisabled: bot.True(),
-		},
-		ReplyMarkup: createStartKeyboard(i18n),
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
+	firstName := ctx.CallbackQuery.From.FirstName
+
+	_, _, _ = b.EditMessageText(i18n("start-message", map[string]any{"userFirstName": firstName, "botName": botUser.FirstName}), &gotgbot.EditMessageTextOpts{
+		ChatId:             chat.Id,
+		MessageId:          msgID,
+		ParseMode:          gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
+		ReplyMarkup:        createStartKeyboard(i18n),
 	})
+
+	return nil
 }
 
-func privacyHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	i18n := localization.Get(update)
-	botUser, err := b.GetMe(ctx)
+func privacyHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+
+	i18n := localization.Get(ctx)
+	botUser, err := b.GetMe(nil)
 	if err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
-	if update.Message.Chat.Type == models.ChatTypeGroup || update.Message.Chat.Type == models.ChatTypeSupergroup {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID:    update.Message.Chat.ID,
-			Text:      i18n("privacy-policy-group"),
-			ParseMode: "HTML",
-			ReplyParameters: &models.ReplyParameters{
-				MessageID: update.Message.ID,
-			},
-			ReplyMarkup: &models.InlineKeyboardMarkup{
-				InlineKeyboard: [][]models.InlineKeyboardButton{{{
-					Text: i18n("privacy-policy-button"),
-					URL:  fmt.Sprintf("https://t.me/%s?start=privacy", botUser.Username),
-				}}},
-			},
+	if ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeGroup || ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeSupergroup {
+		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("privacy-policy-group"), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+			ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+				Text: i18n("privacy-policy-button"),
+				Url:  fmt.Sprintf("https://t.me/%s?start=privacy", botUser.Username),
+			}}}},
 		})
-		return
+		return nil
 	}
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID:    update.Message.Chat.ID,
-		Text:      i18n("privacy-policy-private"),
-		ParseMode: models.ParseModeHTML,
-		ReplyParameters: &models.ReplyParameters{
-			MessageID: update.Message.ID,
-		},
-		ReplyMarkup: &models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{{{
-				Text:         i18n("about-your-data-button"),
-				CallbackData: "aboutYourData",
-			}}},
-		},
+	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("privacy-policy-private"), &gotgbot.SendMessageOpts{
+		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+			Text: i18n("about-your-data-button"), CallbackData: "aboutYourData",
+		}}}},
 	})
+
+	return nil
 }
 
-func privacyCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func privacyCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
+	i18n := localization.Get(ctx)
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("privacy-policy-private"),
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			IsDisabled: bot.True(),
-		},
-		ReplyMarkup: &models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{
-				{
-					{
-						Text:         i18n("about-your-data-button"),
-						CallbackData: "aboutYourData",
-					},
-				},
-				{
-					{
-						Text:         i18n("back-button"),
-						CallbackData: "about",
-					},
-				},
-			},
-		},
+	_, _, _ = b.EditMessageText(i18n("privacy-policy-private"), &gotgbot.EditMessageTextOpts{
+		ChatId:             chat.Id,
+		MessageId:          msgID,
+		ParseMode:          gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+			{{Text: i18n("about-your-data-button"), CallbackData: "aboutYourData"}},
+			{{Text: i18n("back-button"), CallbackData: "about"}},
+		}},
 	})
+	return nil
 }
 
-func aboutMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func aboutMenuCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
+	i18n := localization.Get(ctx)
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("about-message"),
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			IsDisabled: bot.True(),
-		},
-		ReplyMarkup: &models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{
-				{
-					{
-						Text: i18n("donation-button"),
-						URL:  "https://ko-fi.com/ruizlenato",
-					},
-					{
-						Text: i18n("news-channel-button"),
-						URL:  "https://t.me/SmudgeLordChannel",
-					},
-				},
-				{
-					{
-						Text:         i18n("privacy-policy-button"),
-						CallbackData: "privacy",
-					},
-				},
-				{
-					{
-						Text:         i18n("back-button"),
-						CallbackData: "start",
-					},
-				},
-			},
-		},
+	_, _, _ = b.EditMessageText(i18n("about-message"), &gotgbot.EditMessageTextOpts{
+		ChatId:             chat.Id,
+		MessageId:          msgID,
+		ParseMode:          gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+			{{Text: i18n("donation-button"), Url: "https://ko-fi.com/ruizlenato"}, {Text: i18n("news-channel-button"), Url: "https://t.me/SmudgeLordChannel"}},
+			{{Text: i18n("privacy-policy-button"), CallbackData: "privacy"}},
+			{{Text: i18n("back-button"), CallbackData: "start"}},
+		}},
 	})
+	return nil
 }
 
-func aboutYourDataCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func aboutYourDataCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
+	i18n := localization.Get(ctx)
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("about-your-data"),
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			IsDisabled: bot.True(),
-		},
-		ReplyMarkup: &models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{
-				{
-					{
-						Text:         i18n("back-button"),
-						CallbackData: "privacy",
-					},
-				},
-			},
-		},
+	_, _, _ = b.EditMessageText(i18n("about-your-data"), &gotgbot.EditMessageTextOpts{
+		ChatId:             chat.Id,
+		MessageId:          msgID,
+		ParseMode:          gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+			{Text: i18n("back-button"), CallbackData: "privacy"},
+		}}},
 	})
+	return nil
 }
 
-func helpMenuCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func helpMenuCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
+	i18n := localization.Get(ctx)
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n("help-message"),
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			IsDisabled: bot.True(),
-		},
-		ReplyMarkup: &models.InlineKeyboardMarkup{
+	_, _, _ = b.EditMessageText(i18n("help-message"), &gotgbot.EditMessageTextOpts{
+		ChatId:             chat.Id,
+		MessageId:          msgID,
+		ParseMode:          gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{
 			InlineKeyboard: utils.GetHelpKeyboard(i18n),
 		},
 	})
+	return nil
 }
 
-func helpMessageCallback(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.CallbackQuery.Message.Message == nil {
-		return
+func helpMessageCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
 	}
-	i18n := localization.Get(update)
-	module := strings.ReplaceAll(update.CallbackQuery.Data, "helpMessage ", "")
+	i18n := localization.Get(ctx)
+	module := strings.ReplaceAll(ctx.CallbackQuery.Data, "helpMessage ", "")
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	b.EditMessageText(ctx, &bot.EditMessageTextParams{
-		ChatID:    update.CallbackQuery.Message.Message.Chat.ID,
-		MessageID: update.CallbackQuery.Message.Message.ID,
-		Text:      i18n(fmt.Sprintf("%s-help", module)),
-		ParseMode: models.ParseModeHTML,
-		LinkPreviewOptions: &models.LinkPreviewOptions{
-			IsDisabled: bot.True(),
-		},
-		ReplyMarkup: &models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{
-				{
-					{
-						Text:         i18n("back-button"),
-						CallbackData: "helpMenu",
-					},
-				},
-			},
-		},
+	_, _, _ = b.EditMessageText(i18n(fmt.Sprintf("%s-help", module)), &gotgbot.EditMessageTextOpts{
+		ChatId:             chat.Id,
+		MessageId:          msgID,
+		ParseMode:          gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+			{Text: i18n("back-button"), CallbackData: "helpMenu"},
+		}}},
 	})
+	return nil
 }
 
 type inlineArticle struct {
@@ -328,62 +249,33 @@ func filterArticles(articles []inlineArticle, query string) []inlineArticle {
 
 	lowerQuery := strings.ToLower(trimmedQuery)
 	filtered := make([]inlineArticle, 0, len(articles))
-
 	for _, article := range articles {
 		if strings.Contains(strings.ToLower(article.title), lowerQuery) {
 			filtered = append(filtered, article)
 		}
 	}
-
 	return filtered
 }
 
-func menuInline(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.InlineQuery == nil {
-		return
+func menuInline(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.InlineQuery == nil {
+		return nil
 	}
 
-	i18n := localization.Get(update)
-
+	i18n := localization.Get(ctx)
 	articles := []inlineArticle{
-		{
-			id:             "media",
-			title:          i18n("media-inline-handler"),
-			description:    i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
-			messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("media-inline-handler"), i18n("media-inline-help")),
-		},
-		{
-			id:             "weather",
-			title:          html.UnescapeString(i18n("weather-inline-handler")),
-			description:    i18n("weather-inline-description"),
-			messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("weather-inline-handler"), i18n("weather-inline-description")),
-		},
-		{
-			id:             "track",
-			title:          "LastFM Music",
-			description:    i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}),
-			messageContent: i18n("loading"),
-		},
-		{
-			id:             "album",
-			title:          "LastFM Album",
-			description:    i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}),
-			messageContent: i18n("loading"),
-		},
-		{
-			id:             "artist",
-			title:          "LastFM Artist",
-			description:    i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}),
-			messageContent: i18n("loading"),
-		},
+		{id: "media", title: i18n("media-inline-handler"), description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}), messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("media-inline-handler"), i18n("media-inline-help"))},
+		{id: "weather", title: html.UnescapeString(i18n("weather-inline-handler")), description: i18n("weather-inline-description"), messageContent: fmt.Sprintf("<b>%s</b>: %s", i18n("weather-inline-handler"), i18n("weather-inline-description"))},
+		{id: "track", title: "LastFM Music", description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "track"}), messageContent: i18n("loading")},
+		{id: "album", title: "LastFM Album", description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "album"}), messageContent: i18n("loading")},
+		{id: "artist", title: "LastFM Artist", description: i18n("lastfm-inline-description", map[string]any{"lastfmType": "artist"}), messageContent: i18n("loading")},
 	}
 
-	filteredArticles := filterArticles(articles, update.InlineQuery.Query)
-	results := make([]models.InlineQueryResult, 0, len(filteredArticles))
-	for _, article := range filteredArticles {
-		var replyMarkup *models.InlineKeyboardMarkup
-		var emoji string
+	filtered := filterArticles(articles, ctx.InlineQuery.Query)
+	results := make([]gotgbot.InlineQueryResult, 0, len(filtered))
 
+	for _, article := range filtered {
+		emoji := ""
 		switch article.id {
 		case "track":
 			emoji = "🎵"
@@ -393,64 +285,55 @@ func menuInline(ctx context.Context, b *bot.Bot, update *models.Update) {
 			emoji = "🎙"
 		}
 
-		replyMarkup = &models.InlineKeyboardMarkup{
-			InlineKeyboard: [][]models.InlineKeyboardButton{{
-				{
-					Text:         emoji,
-					CallbackData: "NONE",
-				},
-			}},
-		}
-
-		results = append(results, &models.InlineQueryResultArticle{
-			ID:          article.id,
+		replyMarkup := &gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{Text: emoji, CallbackData: "NONE"}}}}
+		res := gotgbot.InlineQueryResultArticle{
+			Id:          article.id,
 			Title:       article.title,
 			Description: article.description,
-			InputMessageContent: &models.InputTextMessageContent{
+			InputMessageContent: gotgbot.InputTextMessageContent{
 				MessageText: article.messageContent,
-				ParseMode:   models.ParseModeHTML,
+				ParseMode:   gotgbot.ParseModeHTML,
 			},
 			ReplyMarkup: replyMarkup,
-		})
+		}
+		results = append(results, res)
 	}
 
 	if len(results) > 0 {
-		b.AnswerInlineQuery(ctx, &bot.AnswerInlineQueryParams{
-			InlineQueryID: update.InlineQuery.ID,
-			Results:       results,
-			CacheTime:     0,
-		})
+		cacheTime := int64(0)
+		_, _ = b.AnswerInlineQuery(ctx.InlineQuery.Id, results, &gotgbot.AnswerInlineQueryOpts{CacheTime: &cacheTime})
 	}
+
+	return nil
 }
 
-func inlineSend(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.ChosenInlineResult == nil {
-		return
+func inlineSend(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.ChosenInlineResult == nil {
+		return nil
 	}
 
-	resultID := update.ChosenInlineResult.ResultID
-
-	switch resultID {
+	switch ctx.ChosenInlineResult.ResultId {
 	case "track", "artist", "album":
-		lastfm.LastfmInline(ctx, b, update)
+		return lastfm.LastfmInline(b, ctx)
 	case "media":
-		medias.MediasInline(ctx, b, update)
+		return medias.MediasInline(b, ctx)
 	default:
-		if location, found := strings.CutPrefix(resultID, "weather-"); found {
-			misc.WeatherInline(ctx, b, update, location)
+		if location, found := strings.CutPrefix(ctx.ChosenInlineResult.ResultId, "weather-"); found {
+			return misc.WeatherInline(b, ctx, location)
 		}
+		return nil
 	}
 }
 
-func Load(b *bot.Bot) {
-	b.RegisterHandler(bot.HandlerTypeInlineSender, "", inlineSend)
-	b.RegisterHandler(bot.HandlerTypeInlineQuery, "", menuInline)
-	b.RegisterHandler(bot.HandlerTypeCommand, "start", startHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "start", startCallback)
-	b.RegisterHandler(bot.HandlerTypeCommand, "privacy", privacyHandler)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^privacy$", privacyCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^about$", aboutMenuCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^aboutYourData$", aboutYourDataCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^helpMenu$", helpMenuCallback)
-	b.RegisterHandler(bot.HandlerTypeCallbackQueryData, "^helpMessage", helpMessageCallback)
+func Load(dispatcher *ext.Dispatcher) {
+	dispatcher.AddHandler(handlers.NewChosenInlineResult(choseninlineresult.All, inlineSend))
+	dispatcher.AddHandler(handlers.NewInlineQuery(nil, menuInline))
+	dispatcher.AddHandler(handlers.NewCommand("start", startHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("start"), startCallback))
+	dispatcher.AddHandler(handlers.NewCommand("privacy", privacyHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("privacy"), privacyCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("about"), aboutMenuCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("aboutYourData"), aboutYourDataCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("helpMenu"), helpMenuCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("helpMessage"), helpMessageCallback))
 }

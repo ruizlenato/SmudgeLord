@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 )
 
 type module struct {
@@ -19,7 +19,7 @@ func SaveHelp(name string) {
 	}
 }
 
-func GetHelpKeyboard(i18n func(string, ...map[string]any) string) [][]models.InlineKeyboardButton {
+func GetHelpKeyboard(i18n func(string, ...map[string]any) string) [][]gotgbot.InlineKeyboardButton {
 	modules := make([]struct {
 		name string
 		text string
@@ -31,15 +31,16 @@ func GetHelpKeyboard(i18n func(string, ...map[string]any) string) [][]models.Inl
 			text string
 		}{name, i18n(name)})
 	}
+
 	sort.Slice(modules, func(i, j int) bool {
 		return modules[i].text < modules[j].text
 	})
 
-	buttons := make([][]models.InlineKeyboardButton, 0, (len(modules)+2)/3)
+	buttons := make([][]gotgbot.InlineKeyboardButton, 0, (len(modules)+2)/3)
 	for i := 0; i < len(modules); i += 3 {
-		row := make([]models.InlineKeyboardButton, 0, 3)
+		row := make([]gotgbot.InlineKeyboardButton, 0, 3)
 		for j := i; j < i+3 && j < len(modules); j++ {
-			row = append(row, models.InlineKeyboardButton{
+			row = append(row, gotgbot.InlineKeyboardButton{
 				Text:         modules[j].text,
 				CallbackData: fmt.Sprintf("helpMessage %s", modules[j].name),
 			})
@@ -47,9 +48,10 @@ func GetHelpKeyboard(i18n func(string, ...map[string]any) string) [][]models.Inl
 		buttons = append(buttons, row)
 	}
 
-	buttons = append(buttons, []models.InlineKeyboardButton{{
+	buttons = append(buttons, []gotgbot.InlineKeyboardButton{{
 		Text:         i18n("back-button"),
 		CallbackData: "start",
 	}})
+
 	return buttons
 }

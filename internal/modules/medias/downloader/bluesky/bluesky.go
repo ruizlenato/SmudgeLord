@@ -1,7 +1,6 @@
 package bluesky
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -11,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/grafov/m3u8"
 
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
@@ -88,7 +87,7 @@ func getCaption(bluesky BlueskyData) string {
 		html.EscapeString(bluesky.Thread.Post.Record.Text))
 }
 
-func (h *Handler) processMedia(data BlueskyData) []models.InputMedia {
+func (h *Handler) processMedia(data BlueskyData) []gotgbot.InputMedia {
 	switch {
 	case strings.Contains(data.Thread.Post.Embed.Type, "image"):
 		return h.handleImage(data.Thread.Post.Embed.Images)
@@ -133,7 +132,7 @@ func getPlaylistAndThumbnailURLs(data BlueskyData) (string, string) {
 	return data.Thread.Post.Embed.Media.Playlist, data.Thread.Post.Embed.Media.Thumbnail
 }
 
-func (h *Handler) handleVideo(data BlueskyData) []models.InputMedia {
+func (h *Handler) handleVideo(data BlueskyData) []gotgbot.InputMedia {
 	playlistURL, thumbnailURL := getPlaylistAndThumbnailURLs(data)
 	if playlistURL == "" || thumbnailURL == "" {
 		return nil
@@ -211,22 +210,17 @@ func (h *Handler) handleVideo(data BlueskyData) []models.InputMedia {
 			"Error", err.Error())
 	}
 
-	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + utils.SanitizeString(
-			fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
-		Thumbnail: &models.InputFileUpload{
-			Filename: utils.SanitizeString(
-				fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
-			Data: bytes.NewBuffer(thumbnail),
-		},
-		Width:             width,
-		Height:            height,
-		SupportsStreaming: true,
-		MediaAttachment:   bytes.NewBuffer(file),
+	return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
+		Media:                 downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), file),
+		Thumbnail:             downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), thumbnail),
+		Width:                 int64(width),
+		Height:                int64(height),
+		SupportsStreaming:     true,
+		ShowCaptionAboveMedia: false,
 	}}
 }
 
-func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
+func (h *Handler) handleImage(blueskyImages []Image) []gotgbot.InputMedia {
 	type mediaResult struct {
 		index int
 		file  []byte
@@ -234,7 +228,7 @@ func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
 	}
 
 	mediaCount := len(blueskyImages)
-	mediaItems := make([]models.InputMedia, mediaCount)
+	mediaItems := make([]gotgbot.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range blueskyImages {
@@ -260,10 +254,8 @@ func (h *Handler) handleImage(blueskyImages []Image) []models.InputMedia {
 			continue
 		}
 		if result.file != nil {
-			mediaItems[result.index] = &models.InputMediaPhoto{
-				Media: "attach://" + utils.SanitizeString(
-					fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)),
-				MediaAttachment: bytes.NewBuffer(result.file),
+			mediaItems[result.index] = &gotgbot.InputMediaPhoto{
+				Media: downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), result.file),
 			}
 		}
 	}

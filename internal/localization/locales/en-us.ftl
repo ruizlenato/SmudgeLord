@@ -323,6 +323,25 @@ sticker-select-pack = { sticker-mypacks-header }
 sticker-default-changed = Default pack changed successfully!
 sticker-switch-none-button = None
 sticker-pack-deleted = Sticker pack deleted successfully!
+stickers-migration-notice =
+    <b>Stickers are being migrated to gotgbot.</b>
+    Some sticker commands are temporarily unavailable during the port.
+stickers-newpack-title-request =
+    <b>Step 1/2:</b> Reply with the title you want for the new sticker pack.
+stickers-newpack-emoji-request =
+    <b>Step 2/2:</b> Reply with an emoji to represent the sticker in the pack (or type <code>skip</code>).
+stickers-newpack-skip-button = Skip
+stickers-newpack-timeout =
+    <b>Timed out.</b>
+    Send <code>/newpack</code> again when you're ready.
+stickers-newpack-canceled =
+    <b>Conversation canceled.</b>
+    Send <code>/newpack</code> anytime to try again.
+stickers-newpack-success =
+    <b>Sticker pack created successfully!</b>
+    <b>Pack name:</b> <code>{ $packTitle }</code>
+    <b>Emoji used for the sticker:</b> { $packEmoji }
+stickers-newpack-default-title = SmudgeLord Pack
 sticker-kang-expired = This request has expired. Please use /kang again.
 sticker-pack-full =
     The sticker pack <b>{ $packName }</b> has reached the limit of <b>{ $stickerCount }</b> stickers.

@@ -1,15 +1,9 @@
 package utils
 
 import (
-	"context"
 	"fmt"
-	"strings"
-
-	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
 
 	"github.com/ruizlenato/smudgelord/internal/database"
-	"github.com/ruizlenato/smudgelord/internal/localization"
 )
 
 var DisableableCommands []string
@@ -23,48 +17,4 @@ func CheckDisabledCommand(command string, chatID int64) bool {
 		return false
 	}
 	return exists
-}
-
-func CheckDisabledMiddleware(next bot.HandlerFunc) bot.HandlerFunc {
-	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		if update.Message == nil || len(strings.Fields(update.Message.Text)) < 1 || update.Message.Chat.Type == models.ChatTypePrivate {
-			next(ctx, b, update)
-			return
-		}
-
-		if len(strings.Fields(update.Message.Text)) < 1 {
-			return
-		}
-
-		command := strings.Replace(strings.Fields(update.Message.Text)[0], "/", "", 1)
-		if CheckDisabledCommand(command, update.Message.Chat.ID) {
-			return
-		}
-
-		next(ctx, b, update)
-	}
-}
-
-func IsGroup(next bot.HandlerFunc) bot.HandlerFunc {
-	return func(ctx context.Context, b *bot.Bot, update *models.Update) {
-		if update.Message == nil ||
-			update.Message.Chat.Type != models.ChatTypeGroup &&
-				update.Message.Chat.Type != models.ChatTypeSupergroup {
-			if update.Message == nil {
-				return
-			}
-			i18n := localization.Get(update)
-			b.SendMessage(ctx, &bot.SendMessageParams{
-				ChatID:    update.Message.Chat.ID,
-				Text:      i18n("only-groups"),
-				ParseMode: models.ParseModeHTML,
-				ReplyParameters: &models.ReplyParameters{
-					MessageID: update.Message.ID,
-				},
-			})
-			return
-		}
-
-		next(ctx, b, update)
-	}
 }

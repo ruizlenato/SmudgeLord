@@ -1,7 +1,6 @@
 package threads
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -9,7 +8,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/go-telegram/bot/models"
+	"github.com/PaulSonOfLars/gotgbot/v2"
 
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
@@ -121,7 +120,7 @@ func (h *Handler) getThreadsData() ThreadsData {
 	return threadsData
 }
 
-func (h *Handler) processMedia(data ThreadsData) []models.InputMedia {
+func (h *Handler) processMedia(data ThreadsData) []gotgbot.InputMedia {
 	post := data.Data.Data.Edges[0].Node.ThreadItems[0].Post
 
 	switch {
@@ -144,7 +143,7 @@ func getCaption(threadsData ThreadsData) string {
 		html.EscapeString(threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text))
 }
 
-func (h *Handler) handleCarousel(post Post) []models.InputMedia {
+func (h *Handler) handleCarousel(post Post) []gotgbot.InputMedia {
 	type mediaResult struct {
 		index int
 		media *downloader.InputMedia
@@ -152,7 +151,7 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 	}
 
 	mediaCount := len(*post.CarouselMedia)
-	mediaItems := make([]models.InputMedia, mediaCount)
+	mediaItems := make([]gotgbot.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
 
 	for i, result := range *post.CarouselMedia {
@@ -181,21 +180,21 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 			continue
 		}
 		if result.media.File != nil {
-			var mediaItem models.InputMedia
+			var mediaItem gotgbot.InputMedia
 			if (*post.CarouselMedia)[result.index].VideoVersions == nil {
-				mediaItem = &models.InputMediaPhoto{
-					Media: "attach://" + utils.SanitizeString(
+				mediaItem = &gotgbot.InputMediaPhoto{
+					Media: downloader.InputFileFromBytes(utils.SanitizeString(
 						fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", result.index, h.username, h.postID)),
-					MediaAttachment: bytes.NewBuffer(result.media.File),
+						result.media.File),
 				}
 			} else {
-				mediaItem = &models.InputMediaVideo{
-					Media: "attach://" + utils.SanitizeString(
+				videoMedia := &gotgbot.InputMediaVideo{
+					Media: downloader.InputFileFromBytes(utils.SanitizeString(
 						fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", result.index, h.username, h.postID)),
-					Width:             (*post.CarouselMedia)[result.index].OriginalWidth,
-					Height:            (*post.CarouselMedia)[result.index].OriginalHeight,
+						result.media.File),
+					Width:             int64((*post.CarouselMedia)[result.index].OriginalWidth),
+					Height:            int64((*post.CarouselMedia)[result.index].OriginalHeight),
 					SupportsStreaming: true,
-					MediaAttachment:   bytes.NewBuffer(result.media.File),
 				}
 				if result.media.Thumbnail != nil {
 					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
@@ -203,13 +202,14 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 						slog.Error("Failed to resize thumbnail",
 							"Post Info", []string{h.username, h.postID},
 							"Error", err.Error())
-					}
-					mediaItem.(*models.InputMediaVideo).Thumbnail = &models.InputFileUpload{
-						Filename: utils.SanitizeString(
-							fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", result.index, h.username, h.postID)),
-						Data: bytes.NewBuffer(thumbnail),
+					} else {
+						videoMedia.Thumbnail = downloader.InputFileFromBytes(
+							utils.SanitizeString(fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", result.index, h.username, h.postID)),
+							thumbnail,
+						)
 					}
 				}
+				mediaItem = videoMedia
 			}
 			mediaItems[result.index] = mediaItem
 		}
@@ -218,7 +218,7 @@ func (h *Handler) handleCarousel(post Post) []models.InputMedia {
 	return mediaItems
 }
 
-func (h *Handler) handleVideo(post Post) []models.InputMedia {
+func (h *Handler) handleVideo(post Post) []gotgbot.InputMedia {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Threads_%s_%s", h.username, h.postID))
 	file, err := downloader.FetchBytesFromURL(post.VideoVersions[0].URL)
 	if err != nil {
@@ -243,20 +243,16 @@ func (h *Handler) handleVideo(post Post) []models.InputMedia {
 			"Error", err.Error())
 	}
 
-	return []models.InputMedia{&models.InputMediaVideo{
-		Media: "attach://" + filename,
-		Thumbnail: &models.InputFileUpload{
-			Filename: filename,
-			Data:     bytes.NewBuffer(thumbnail),
-		},
-		Width:             post.OriginalWidth,
-		Height:            post.OriginalHeight,
+	return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
+		Media:             downloader.InputFileFromBytes(filename, file),
+		Thumbnail:         downloader.InputFileFromBytes(filename, thumbnail),
+		Width:             int64(post.OriginalWidth),
+		Height:            int64(post.OriginalHeight),
 		SupportsStreaming: true,
-		MediaAttachment:   bytes.NewBuffer(file),
 	}}
 }
 
-func (h *Handler) handleImage(post Post) []models.InputMedia {
+func (h *Handler) handleImage(post Post) []gotgbot.InputMedia {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Threads_%s_%s", h.username, h.postID))
 	file, err := downloader.FetchBytesFromURL(post.ImageVersions.Candidates[0].URL)
 	if err != nil {
@@ -266,8 +262,7 @@ func (h *Handler) handleImage(post Post) []models.InputMedia {
 		return nil
 	}
 
-	return []models.InputMedia{&models.InputMediaPhoto{
-		Media:           "attach://" + filename,
-		MediaAttachment: bytes.NewBuffer(file),
+	return []gotgbot.InputMedia{&gotgbot.InputMediaPhoto{
+		Media: downloader.InputFileFromBytes(filename, file),
 	}}
 }

@@ -5,7 +5,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-telegram/bot"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext"
+
 	"github.com/ruizlenato/smudgelord/internal/modules/afk"
 	"github.com/ruizlenato/smudgelord/internal/modules/config"
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
@@ -13,11 +14,12 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
 	"github.com/ruizlenato/smudgelord/internal/modules/misc"
 	"github.com/ruizlenato/smudgelord/internal/modules/stickers"
+	"github.com/ruizlenato/smudgelord/internal/modules/sudoers"
 )
 
 var (
 	packageLoadersMutex sync.Mutex
-	packageLoaders      = map[string]func(*bot.Bot){
+	packageLoaders      = map[string]func(*ext.Dispatcher){
 		"afk":      afk.Load,
 		"config":   config.Load,
 		"lastfm":   lastfm.Load,
@@ -25,10 +27,11 @@ var (
 		"menu":     menu.Load,
 		"misc":     misc.Load,
 		"stickers": stickers.Load,
+		"sudoers":  sudoers.Load,
 	}
 )
 
-func RegisterHandlers(b *bot.Bot) {
+func RegisterHandlers(dispatcher *ext.Dispatcher) {
 	var wg sync.WaitGroup
 	done := make(chan struct{}, len(packageLoaders))
 	moduleNames := make([]string, 0, len(packageLoaders))
@@ -36,14 +39,13 @@ func RegisterHandlers(b *bot.Bot) {
 	for name, loadFunc := range packageLoaders {
 		wg.Add(1)
 
-		go func(name string, loadFunc func(*bot.Bot)) {
+		go func(name string, loadFunc func(*ext.Dispatcher)) {
 			defer wg.Done()
 
 			packageLoadersMutex.Lock()
 			defer packageLoadersMutex.Unlock()
 
-			loadFunc(b)
-
+			loadFunc(dispatcher)
 			done <- struct{}{}
 			moduleNames = append(moduleNames, name)
 		}(name, loadFunc)
@@ -57,7 +59,5 @@ func RegisterHandlers(b *bot.Bot) {
 	for range done {
 	}
 
-	joinedModuleNames := strings.Join(moduleNames, ", ")
-
-	fmt.Printf("\033[0;35mModules Loaded:\033[0m %s\n", joinedModuleNames)
+	fmt.Printf("\033[0;35mModules Loaded:\033[0m %s\n", strings.Join(moduleNames, ", "))
 }

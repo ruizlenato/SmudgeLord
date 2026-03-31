@@ -1,6 +1,10 @@
 package downloader
 
-import "github.com/go-telegram/bot/models"
+import (
+	"bytes"
+
+	"github.com/PaulSonOfLars/gotgbot/v2"
+)
 
 var GenericHeaders = map[string]string{
 	"Accept":             "*/*",
@@ -18,7 +22,7 @@ type Medias struct {
 }
 
 type PostInfo struct {
-	Medias      []models.InputMedia
+	Medias      []gotgbot.InputMedia
 	ID          string
 	Caption     string
 	Service     string
@@ -35,4 +39,8 @@ type YouTube struct {
 type InputMedia struct {
 	File      []byte
 	Thumbnail []byte
+}
+
+func InputFileFromBytes(filename string, data []byte) gotgbot.InputFile {
+	return gotgbot.InputFileByReader(filename, bytes.NewReader(data))
 }
