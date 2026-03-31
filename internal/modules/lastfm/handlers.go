@@ -10,7 +10,6 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
-	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/choseninlineresult"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	lastFMAPI "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
@@ -221,7 +220,6 @@ func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(handlers.NewCommand("artist", artistHandler))
 	dispatcher.AddHandler(handlers.NewCommand("art", artistHandler))
 	dispatcher.AddHandler(handlers.NewCommand("lart", artistHandler))
-	dispatcher.AddHandler(handlers.NewChosenInlineResult(choseninlineresult.All, LastfmInline))
 
 	utils.SaveHelp("lastfm")
 	utils.DisableableCommands = append(utils.DisableableCommands,
