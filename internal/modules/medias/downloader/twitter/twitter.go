@@ -410,6 +410,10 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 		return ""
 	}
 
+	escapeTelegramText := func(text string) string {
+		return html.EscapeString(html.UnescapeString(text))
+	}
+
 	cleanText := func(text string) string {
 		if idx := strings.Index(text, "https://t.co/"); idx != -1 {
 			for idx > 0 && (text[idx-1] == ' ' || text[idx-1] == '\n' || text[idx-1] == '\r') {
@@ -430,15 +434,15 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 	}
 
 	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
-		html.EscapeString(tweet.Core.UserResults.Result.Legacy.Name),
-		html.EscapeString(tweet.Core.UserResults.Result.Legacy.ScreenName),
-		html.EscapeString(cleanText(tweetText)))
+		escapeTelegramText(tweet.Core.UserResults.Result.Legacy.Name),
+		escapeTelegramText(tweet.Core.UserResults.Result.Legacy.ScreenName),
+		escapeTelegramText(cleanText(tweetText)))
 
 	if quotedStatusResult != nil && quotedStatusResult.Legacy != nil && quotedStatusResult.Core.UserResults.Result.Legacy != nil {
 		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
-			html.EscapeString(quotedStatusResult.Core.UserResults.Result.Legacy.Name),
-			html.EscapeString(quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName),
-			html.EscapeString(cleanText(quotedStatusResult.Legacy.FullText)))
+			escapeTelegramText(quotedStatusResult.Core.UserResults.Result.Legacy.Name),
+			escapeTelegramText(quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName),
+			escapeTelegramText(cleanText(quotedStatusResult.Legacy.FullText)))
 	}
 
 	return caption.String()
@@ -447,16 +451,20 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 func getFxTweetCaption(twitterData *FxTwitterAPIData) string {
 	var caption strings.Builder
 
+	escapeTelegramText := func(text string) string {
+		return html.EscapeString(html.UnescapeString(text))
+	}
+
 	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
-		html.EscapeString(twitterData.Tweet.Author.Name),
-		html.EscapeString(twitterData.Tweet.Author.ScreenName),
-		html.EscapeString(twitterData.Tweet.Text))
+		escapeTelegramText(twitterData.Tweet.Author.Name),
+		escapeTelegramText(twitterData.Tweet.Author.ScreenName),
+		escapeTelegramText(twitterData.Tweet.Text))
 
 	if twitterData.Tweet.Quote != nil {
 		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
-			html.EscapeString(twitterData.Tweet.Quote.Author.Name),
-			html.EscapeString(twitterData.Tweet.Quote.Author.ScreenName),
-			html.EscapeString(twitterData.Tweet.Quote.Text))
+			escapeTelegramText(twitterData.Tweet.Quote.Author.Name),
+			escapeTelegramText(twitterData.Tweet.Quote.Author.ScreenName),
+			escapeTelegramText(twitterData.Tweet.Quote.Text))
 	}
 
 	return caption.String()
