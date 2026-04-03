@@ -124,6 +124,26 @@ func shouldProcessMedia(message *gotgbot.Message) bool {
 	return true
 }
 
+func isIgnorableMediaSendError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errMsg := strings.ToLower(err.Error())
+	ignorableErrors := []string{
+		"not enough rights to send videos to the chat",
+		"not enough rights to send photos to the chat",
+		"message to be replied not found",
+	}
+
+	for _, expected := range ignorableErrors {
+		if strings.Contains(errMsg, expected) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) bool {
 	if len(postInfo.Medias) == 0 {
 		return false
@@ -271,6 +291,9 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		if err != nil {
 			if strings.Contains(err.Error(), "too many requests") {
 				return nil
+			}
+			if isIgnorableMediaSendError(err) {
+				continue
 			}
 			slog.Error("Couldn't send media batch", "postUrl", url, "error", err, "batch", i/10+1)
 			continue
@@ -520,6 +543,7 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	var sent *gotgbot.Message
 	switch data[0] {
 	case "_aud":
+		waitForMediaSendSlot(chat.Id)
 		sent, err = b.SendAudioWithContext(context.Background(), chat.Id, gotgbot.InputFileByReader(filename, bytes.NewReader(fileBytes)), &gotgbot.SendAudioOpts{
 			Caption:         caption,
 			ParseMode:       gotgbot.ParseModeHTML,
