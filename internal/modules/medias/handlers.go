@@ -8,6 +8,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 	"unicode/utf8"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -37,9 +39,31 @@ const (
 	chatActionUploadDoc   = "upload_document"
 	chatActionUploadVoice = "upload_voice"
 	chatActionUploadVideo = "upload_video"
+	mediaSendInterval     = 500 * time.Millisecond
 )
 
 var mediaRegex = regexp.MustCompile(regexMedia)
+
+var mediaSendLimiter = struct {
+	mu                sync.Mutex
+	nextAllowedByChat map[int64]time.Time
+}{
+	nextAllowedByChat: make(map[int64]time.Time),
+}
+
+func waitForMediaSendSlot(chatID int64) {
+	mediaSendLimiter.mu.Lock()
+	sendAt := time.Now()
+	if nextAllowed, exists := mediaSendLimiter.nextAllowedByChat[chatID]; exists && nextAllowed.After(sendAt) {
+		sendAt = nextAllowed
+	}
+	mediaSendLimiter.nextAllowedByChat[chatID] = sendAt.Add(mediaSendInterval)
+	mediaSendLimiter.mu.Unlock()
+
+	if wait := time.Until(sendAt); wait > 0 {
+		time.Sleep(wait)
+	}
+}
 
 type MediaHandler struct {
 	Name    string
@@ -136,6 +160,7 @@ func sendSingleMedia(
 	if ctx.EffectiveMessage == nil {
 		return nil, fmt.Errorf("missing effective message")
 	}
+	waitForMediaSendSlot(ctx.EffectiveMessage.Chat.Id)
 	keyboard := openLinkKeyboard(buttonText, url)
 	replyParams := &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}
 	switch v := media.(type) {
@@ -190,6 +215,7 @@ func sendMediaAndHandleCaption(
 			sent = append(sent, *wrote)
 		}
 	} else {
+		waitForMediaSendSlot(ctx.EffectiveMessage.Chat.Id)
 		replies, err := b.SendMediaGroupWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, postInfo.Medias, &gotgbot.SendMediaGroupOpts{
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		})
@@ -362,6 +388,7 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func uploadMediaToLogChannel(ctx context.Context, b *gotgbot.Bot, media gotgbot.InputMedia, invert bool) (*gotgbot.Message, error) {
+	waitForMediaSendSlot(config.LogChannelID)
 	switch v := media.(type) {
 	case *gotgbot.InputMediaPhoto:
 		return b.SendPhotoWithContext(ctx, config.LogChannelID, v.Media, &gotgbot.SendPhotoOpts{ShowCaptionAboveMedia: invert})
@@ -502,6 +529,7 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: messageID},
 		})
 	case "_vid":
+		waitForMediaSendSlot(chat.Id)
 		sent, err = b.SendVideoWithContext(context.Background(), chat.Id, gotgbot.InputFileByReader(filename, bytes.NewReader(fileBytes)), &gotgbot.SendVideoOpts{
 			Caption:           caption,
 			ParseMode:         gotgbot.ParseModeHTML,
@@ -533,8 +561,10 @@ func trySendCachedYoutubeMedia(ctx *ext.Context, b *gotgbot.Bot, data []string, 
 	reply := &gotgbot.ReplyParameters{MessageId: ctx.CallbackQuery.Message.GetMessageId()}
 	switch data[0] {
 	case "_aud":
+		waitForMediaSendSlot(chat.Id)
 		_, err = b.SendAudioWithContext(context.Background(), chat.Id, gotgbot.InputFileByID(fileID), &gotgbot.SendAudioOpts{Caption: caption, ParseMode: gotgbot.ParseModeHTML, ReplyParameters: reply})
 	case "_vid":
+		waitForMediaSendSlot(chat.Id)
 		_, err = b.SendVideoWithContext(context.Background(), chat.Id, gotgbot.InputFileByID(fileID), &gotgbot.SendVideoOpts{Caption: caption, ParseMode: gotgbot.ParseModeHTML, ReplyParameters: reply})
 	}
 	return err == nil, err
