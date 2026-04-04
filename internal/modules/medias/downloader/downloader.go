@@ -220,14 +220,7 @@ func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 		return caption + textLink
 	}
 
-	closingTags := extractClosingTags(caption)
-
-	contentWithoutClosingTags := caption
-	if closingTags != "" {
-		contentWithoutClosingTags = caption[:len(caption)-len(closingTags)]
-	}
-
-	allowedContentBytes := maxSizeCaption - len(textLink) - len(closingTags) - len("...")
+	allowedContentBytes := maxSizeCaption - len(textLink) - len("...")
 	if allowedContentBytes < 0 {
 		allowedContentBytes = 0
 	}
@@ -235,7 +228,7 @@ func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 	truncated := make([]rune, 0, allowedContentBytes)
 
 	var currentLength int
-	for _, r := range contentWithoutClosingTags {
+	for _, r := range caption {
 		currentLength += utf8.RuneLen(r)
 		if currentLength > allowedContentBytes {
 			break
@@ -243,34 +236,11 @@ func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 		truncated = append(truncated, r)
 	}
 
-	result := string(truncated) + "..." + closingTags
+	result := utils.SanitizeTelegramHTML(string(truncated) + "...")
 	if textLink != "" {
 		result += textLink
 	}
 	return result
-}
-
-func extractClosingTags(text string) string {
-	var tags []string
-	remaining := text
-
-	re := regexp.MustCompile(`(</[a-zA-Z][a-zA-Z0-9]*>)\s*$`)
-
-	for {
-		match := re.FindStringSubmatch(remaining)
-		if match == nil {
-			break
-		}
-		tags = append([]string{match[1]}, tags...)
-		remaining = remaining[:len(remaining)-len(match[0])]
-		remaining = strings.TrimRight(remaining, " \t\n\r")
-	}
-
-	var result strings.Builder
-	for i := len(tags) - 1; i >= 0; i-- {
-		result.WriteString(tags[i])
-	}
-	return result.String()
 }
 
 func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {
