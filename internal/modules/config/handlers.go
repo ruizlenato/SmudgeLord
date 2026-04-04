@@ -66,7 +66,11 @@ func disableHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	command := fields[1]
+	command := utils.NormalizeCommand(fields[1])
+	if command == "" {
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("disable-commands-usage"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+		return nil
+	}
 	if !slices.Contains(utils.DisableableCommands, command) {
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("command-not-deactivatable", map[string]any{"command": command}), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
 		return nil
@@ -103,13 +107,17 @@ func enableHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	command := fields[1]
+	command := utils.NormalizeCommand(fields[1])
+	if command == "" {
+		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("enable-commands-usage"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+		return nil
+	}
 	if !utils.CheckDisabledCommand(command, ctx.EffectiveChat.Id) {
 		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("command-already-enabled", map[string]any{"command": command}), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
 		return nil
 	}
 
-	if err := deleteDisabledCommand(command); err != nil {
+	if err := deleteDisabledCommand(ctx.EffectiveChat.Id, command); err != nil {
 		slog.Error("Error deleting command", "error", err.Error())
 		return nil
 	}

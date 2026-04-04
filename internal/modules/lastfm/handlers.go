@@ -225,18 +225,16 @@ func Load(dispatcher *ext.Dispatcher) {
 	convDispatcher = dispatcher
 
 	dispatcher.AddHandler(handlers.NewCommand("setuser", setUserHandler))
-	dispatcher.AddHandler(handlers.NewCommand("lastfm", musicHandler))
-	dispatcher.AddHandler(handlers.NewCommand("lmu", musicHandler))
-	dispatcher.AddHandler(handlers.NewCommand("lt", musicHandler))
-	dispatcher.AddHandler(handlers.NewCommand("np", musicHandler))
-	dispatcher.AddHandler(handlers.NewCommand("album", albmHandler))
-	dispatcher.AddHandler(handlers.NewCommand("alb", albmHandler))
-	dispatcher.AddHandler(handlers.NewCommand("lalb", albmHandler))
-	dispatcher.AddHandler(handlers.NewCommand("artist", artistHandler))
-	dispatcher.AddHandler(handlers.NewCommand("art", artistHandler))
-	dispatcher.AddHandler(handlers.NewCommand("lart", artistHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("lastfm", musicHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("lmu", musicHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("lt", musicHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("np", musicHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("album", albmHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("alb", albmHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("lalb", albmHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("artist", artistHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("art", artistHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("lart", artistHandler))
 
 	utils.SaveHelp("lastfm")
-	utils.DisableableCommands = append(utils.DisableableCommands,
-		"lastfm", "lmu", "lt", "np", "album", "lalb", "alb", "artist", "lart", "art")
 }

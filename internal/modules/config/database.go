@@ -7,8 +7,8 @@ func insertDisabledCommand(chatID int64, command string) error {
 	return err
 }
 
-func deleteDisabledCommand(command string) error {
-	_, err := database.DB.Exec("DELETE FROM commandsDisabled WHERE command = ?;", command)
+func deleteDisabledCommand(chatID int64, command string) error {
+	_, err := database.DB.Exec("DELETE FROM commandsDisabled WHERE chat_id = ? AND command = ?;", chatID, command)
 	return err
 }
 

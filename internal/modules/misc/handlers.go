@@ -440,16 +440,15 @@ func slapHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func Load(dispatcher *ext.Dispatcher) {
-	dispatcher.AddHandler(handlers.NewCommand("weather", weatherHandler))
-	dispatcher.AddHandler(handlers.NewCommand("clima", weatherHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("weather", weatherHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("clima", weatherHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_weather"), callbackWeather))
-	dispatcher.AddHandler(handlers.NewCommand("translate", translateHandler))
-	dispatcher.AddHandler(handlers.NewCommand("tr", translateHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("translate", translateHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("tr", translateHandler))
 	dispatcher.AddHandler(handlers.NewInlineQuery(func(iq *gotgbot.InlineQuery) bool {
 		return strings.HasPrefix(iq.Query, "weather") || strings.HasPrefix(iq.Query, "clima")
 	}, weatherInlineQuery))
-	dispatcher.AddHandler(handlers.NewCommand("slap", slapHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("slap", slapHandler))
 
 	utils.SaveHelp("misc")
-	utils.DisableableCommands = append(utils.DisableableCommands, "tr", "translate", "weather", "clima", "slap")
 }

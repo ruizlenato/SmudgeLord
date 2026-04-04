@@ -979,17 +979,16 @@ func convertVideo(input []byte) ([]byte, error) {
 
 func Load(dispatcher *ext.Dispatcher) {
 	convDispatcher = dispatcher
-	dispatcher.AddHandler(handlers.NewCommand("getsticker", getStickerHandler))
-	dispatcher.AddHandler(handlers.NewCommand("kang", kangStickerHandler))
-	dispatcher.AddHandler(handlers.NewCommand("newpack", newPackHandler))
-	dispatcher.AddHandler(handlers.NewCommand("mypacks", myPacksHandler))
-	dispatcher.AddHandler(handlers.NewCommand("switch", switchHandler))
-	dispatcher.AddHandler(handlers.NewCommand("delpack", delPackHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("getsticker", getStickerHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("kang", kangStickerHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("newpack", newPackHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("mypacks", myPacksHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("switch", switchHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("delpack", delPackHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("switchPack"), switchPackCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("delPack"), delPackCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("kangPack"), kangPackCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("createNewPack"), createNewPackCallback))
 
 	utils.SaveHelp("stickers")
-	utils.DisableableCommands = append(utils.DisableableCommands, "getsticker", "kang", "newpack", "mypacks", "switch", "delpack")
 }

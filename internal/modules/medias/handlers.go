@@ -611,10 +611,9 @@ func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(handlers.NewMessage(func(m *gotgbot.Message) bool {
 		return m != nil && mediaRegex.MatchString(m.Text)
 	}, mediaDownloadHandler))
-	dispatcher.AddHandler(handlers.NewCommand("ytdl", youtubeDownloadHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("ytdl", youtubeDownloadHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_vid"), youtubeDownloadCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_aud"), youtubeDownloadCallback))
 
 	utils.SaveHelp("medias")
-	utils.DisableableCommands = append(utils.DisableableCommands, "ytdl")
 }
