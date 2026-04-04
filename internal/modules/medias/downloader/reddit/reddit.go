@@ -10,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"sync/atomic"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/grafov/m3u8"
@@ -18,7 +19,19 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-var redlibInstance = "https://redlib.catsarch.com"
+var redlibInstances = []string{
+	"https://l.opnxng.com",
+	"https://redlib.catsarch.com",
+	"https://redlib.perennialte.ch",
+	"https://redlib.r4fo.com",
+	"https://red.artemislena.eu",
+	"https://redlib.privacyredirect.com",
+	"https://redlib.nadeko.net",
+	"https://redlib.privadency.com",
+	"https://redlib.4o1x5.dev",
+}
+
+var redlibRouteCounter uint64
 
 var (
 	postInfoRegex     = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
@@ -83,14 +96,10 @@ func (h *Handler) processMedia() ([]gotgbot.InputMedia, string) {
 }
 
 func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
-	response, err := utils.Request(fmt.Sprintf("%s/r/%s/comments/%s", redlibInstance, h.subreddit, h.postID),
-		utils.RequestParams{
-			Method:  "GET",
-			Headers: downloader.GenericHeaders,
-		})
-
-	if err != nil || response.Body == nil {
-		slog.Error("Failed to fetch media content",
+	response, redlibInstance, err := h.requestRedlibPost()
+	if err != nil {
+		slog.Error("Failed to fetch media content from redlib instances",
+			"Post Info", []string{h.subreddit, h.postID},
 			"Error", err.Error())
 		return nil, ""
 	}
@@ -99,6 +108,7 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		slog.Error("Failed to read response body",
+			"Instance", redlibInstance,
 			"Post Info", []string{h.subreddit, h.postID},
 			"Error", err.Error())
 		return nil, ""
@@ -133,6 +143,53 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 	}
 
 	return nil, ""
+}
+
+func (h *Handler) requestRedlibPost() (*http.Response, string, error) {
+	if len(redlibInstances) == 0 {
+		return nil, "", fmt.Errorf("no redlib instances configured")
+	}
+
+	start := int(atomic.AddUint64(&redlibRouteCounter, 1)-1) % len(redlibInstances)
+	for i := 0; i < len(redlibInstances); i++ {
+		instance := redlibInstances[(start+i)%len(redlibInstances)]
+		url := fmt.Sprintf("%s/r/%s/comments/%s", instance, h.subreddit, h.postID)
+		response, err := utils.Request(url, utils.RequestParams{
+			Method:  "GET",
+			Headers: downloader.GenericHeaders,
+		})
+
+		if err != nil {
+			slog.Warn("Failed to request redlib instance",
+				"Instance", instance,
+				"Post Info", []string{h.subreddit, h.postID},
+				"Error", err.Error())
+			continue
+		}
+
+		if response == nil || response.Body == nil {
+			slog.Warn("Redlib instance returned empty response body",
+				"Instance", instance,
+				"Post Info", []string{h.subreddit, h.postID})
+			if response != nil && response.Body != nil {
+				_ = response.Body.Close()
+			}
+			continue
+		}
+
+		if response.StatusCode != http.StatusOK {
+			slog.Warn("Redlib instance returned non-200 status",
+				"Instance", instance,
+				"StatusCode", response.StatusCode,
+				"Post Info", []string{h.subreddit, h.postID})
+			_ = response.Body.Close()
+			continue
+		}
+
+		return response, instance, nil
+	}
+
+	return nil, "", fmt.Errorf("all redlib instances failed for %s/%s", h.subreddit, h.postID)
 }
 
 func buildMediaURL(response *http.Response, path string) string {
@@ -414,10 +471,26 @@ func (h *Handler) processAPIMedia(data *Data) []gotgbot.InputMedia {
 
 		for i, item := range data.GalleryData.Items {
 			go func(index int, mediaID string) {
-				media := (*data.MediaMetadata)[mediaID]
-				file, err := downloader.FetchBytesFromURL(media.S.U)
+				media, exists := (*data.MediaMetadata)[mediaID]
+				if !exists {
+					results <- mediaResult{index: index, err: fmt.Errorf("media metadata not found for media_id=%s", mediaID)}
+					return
+				}
+
+				if !strings.EqualFold(media.E, "Image") {
+					results <- mediaResult{index: index, media: nil, err: nil}
+					return
+				}
+
+				mediaURL := normalizeRedditMediaURL(media.S.U)
+				if mediaURL == "" {
+					results <- mediaResult{index: index, err: fmt.Errorf("empty media url for media_id=%s", mediaID)}
+					return
+				}
+
+				file, err := downloader.FetchBytesFromURL(mediaURL)
 				if err != nil {
-					results <- mediaResult{index: index, err: err}
+					results <- mediaResult{index: index, err: fmt.Errorf("media_id=%s url=%s: %w", mediaID, mediaURL, err)}
 					return
 				}
 
@@ -438,10 +511,23 @@ func (h *Handler) processAPIMedia(data *Data) []gotgbot.InputMedia {
 					"Error", result.err.Error())
 				continue
 			}
+			if result.media == nil {
+				continue
+			}
 			mediaItems[result.index] = result.media
 		}
 
-		return mediaItems
+		filteredMedia := make([]gotgbot.InputMedia, 0, len(mediaItems))
+		for _, media := range mediaItems {
+			if media != nil {
+				filteredMedia = append(filteredMedia, media)
+			}
+		}
+		if len(filteredMedia) == 0 {
+			return nil
+		}
+
+		return filteredMedia
 	}
 
 	if data.IsRedditMediaDomain && data.Domain == "i.redd.it" {
@@ -465,4 +551,21 @@ func (h *Handler) processAPICaption(data *Data) string {
 		html.EscapeString(data.SubredditNamePrefixed),
 		html.EscapeString(data.Author),
 		html.EscapeString(data.Title))
+}
+
+func normalizeRedditMediaURL(rawURL string) string {
+	mediaURL := strings.TrimSpace(html.UnescapeString(rawURL))
+	if mediaURL == "" {
+		return ""
+	}
+
+	if strings.HasPrefix(mediaURL, "//") {
+		mediaURL = "https:" + mediaURL
+	}
+
+	if strings.HasPrefix(mediaURL, "/") {
+		mediaURL = "https://www.reddit.com" + mediaURL
+	}
+
+	return cleanupRegex.ReplaceAllString(mediaURL, "")
 }
