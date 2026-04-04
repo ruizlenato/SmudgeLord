@@ -372,8 +372,9 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	uploaded, err := uploadMediaToLogChannel(context.Background(), b, postInfo.Medias[0], postInfo.InvertMedia)
 	if err != nil {
-		slog.Error("Failed to upload media to log channel", "error", err, "query", inlineResult.Query)
-		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n)
+		errorID := utils.NewUserErrorID(inlineResult.From.Id)
+		utils.LogErrorWithID("Failed to upload media to log channel", errorID, err, "query", inlineResult.Query)
+		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n, errorID)
 		return nil
 	}
 	_, _ = b.DeleteMessageWithContext(context.Background(), uploaded.Chat.Id, uploaded.MessageId, nil)
@@ -396,7 +397,9 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 		}
 	}
 	if media == nil {
-		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n)
+		errorID := utils.NewUserErrorID(inlineResult.From.Id)
+		utils.LogErrorWithID("Unable to determine inline media type", errorID, nil, "query", inlineResult.Query)
+		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n, errorID)
 		return nil
 	}
 	_, _, err = b.EditMessageMediaWithContext(context.Background(), media, &gotgbot.EditMessageMediaOpts{
@@ -404,8 +407,9 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 		ReplyMarkup:     openLinkKeyboard(buttonText, inlineResult.Query),
 	})
 	if err != nil {
-		slog.Error("Failed to edit inline message media", "error", err, "query", inlineResult.Query)
-		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n)
+		errorID := utils.NewUserErrorID(inlineResult.From.Id)
+		utils.LogErrorWithID("Failed to edit inline message media", errorID, err, "query", inlineResult.Query)
+		sendInlineError(ctx, b, inlineResult.InlineMessageId, i18n, errorID)
 	}
 	return nil
 }
@@ -426,10 +430,11 @@ func uploadMediaToLogChannel(ctx context.Context, b *gotgbot.Bot, media gotgbot.
 	}
 }
 
-func sendInlineError(ctx *ext.Context, b *gotgbot.Bot, inlineID string, i18n func(string, ...map[string]any) string) {
-	_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("media-error"), &gotgbot.EditMessageTextOpts{
+func sendInlineError(ctx *ext.Context, b *gotgbot.Bot, inlineID string, i18n func(string, ...map[string]any) string, errorID string) {
+	_, _, _ = b.EditMessageTextWithContext(context.Background(), utils.BuildErrorReportMessage(i18n, "media-error-summary", errorID), &gotgbot.EditMessageTextOpts{
 		InlineMessageId: inlineID,
 		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyMarkup:     utils.ErrorReportKeyboard(i18n),
 	})
 }
 
@@ -497,7 +502,9 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 	data := strings.Split(ctx.CallbackQuery.Data, "|")
 	if len(data) < 6 {
-		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("youtube-error"), ShowAlert: true})
+		errorID := utils.NewUserErrorID(ctx.CallbackQuery.From.Id)
+		utils.LogErrorWithID("Invalid youtube callback data", errorID, fmt.Errorf("invalid callback payload"), "data", ctx.CallbackQuery.Data)
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: utils.BuildErrorReportAlert(i18n, "youtube-error-summary", errorID), ShowAlert: true})
 		return nil
 	}
 	requestedUser, _ := strconv.Atoi(data[5])
@@ -526,7 +533,9 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	fileBytes, video, err := youtube.Downloader(data)
 	if err != nil {
-		_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("youtube-error"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
+		errorID := utils.NewUserErrorID(ctx.CallbackQuery.From.Id)
+		utils.LogErrorWithID("Failed to download youtube media", errorID, err, "videoID", data[1])
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), utils.BuildErrorReportMessage(i18n, "youtube-error-summary", errorID), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
 		return nil
 	}
 	itag, _ := strconv.Atoi(data[2])
@@ -565,8 +574,9 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		})
 	}
 	if err != nil {
-		slog.Error("Couldn't send media", "error", err)
-		_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("youtube-error"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
+		errorID := utils.NewUserErrorID(ctx.CallbackQuery.From.Id)
+		utils.LogErrorWithID("Couldn't send youtube media", errorID, err, "format", data[0], "videoID", data[1])
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), utils.BuildErrorReportMessage(i18n, "youtube-error-summary", errorID), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
 		return nil
 	}
 	_, _ = b.DeleteMessageWithContext(context.Background(), chat.Id, messageID, nil)

@@ -25,6 +25,13 @@ denied-button-alert = Este botão não é para você.
 privacy-policy-button = 🔒 Política de Privacidade
 privacy-policy-group = Para acessar a política de privacidade do SmudgeLord, <b>clique no botão abaixo.</b>
 loading = <b>Carregando...</b>
+error-report =
+    <b>{ $summary }</b>
+
+    <b>ID do Erro:</b> <code>{ $errorId }</code>
+    <b>Clique abaixo para reportar o erro.</b>
+error-report-alert = { $summary } ID do Erro: { $errorId }. Use o botão da mensagem para reportar.
+error-report-button = 🐞 Reportar erro
 only-groups = Este comando só pode ser usado em grupos.
 about-message =
     <b>— SmudgeLord</b>
@@ -189,7 +196,15 @@ downloading = Baixando...
 uploading = Enviando...
 youtube-error =
     <b>Ocorreu um erro ao processar o vídeo. Tente novamente mais tarde.</b>
-    Se o problema persistir, entre em contato com meu desenvolvedor.
+
+    <b>Clique abaixo para reportar o erro.</b>
+youtube-error-summary = Ocorreu um erro ao processar o vídeo. Tente novamente mais tarde.
+youtube-error-with-id =
+    <b>Ocorreu um erro ao processar o vídeo. Tente novamente mais tarde.</b>
+
+    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>Clique abaixo para reportar o erro.</b>
+youtube-error-alert-with-id = Ocorreu um erro ao processar o vídeo. Error ID: { $errorId }. Use o botão da mensagem para reportar.
 auto-help = Quando ativado, o bot baixará automaticamente mídias de redes sociais ao detectar um link, dispensando o uso dos comandos /sdl ou /dl.
 caption-help = Quando ativado, as legendas das mídias baixadas pelo bot serão enviadas junto com elas.
 no-link-provided =
@@ -206,7 +221,14 @@ no-media-found =
     <b>Tente novamente mais tarde.</b>
 media-error =
     Ocorreu um erro ao baixar a mídia. Por favor, tente novamente mais tarde.
-    Se o problema persistir, entre em contato com meu desenvolvedor.
+
+    <b>Clique abaixo para reportar o erro.</b>
+media-error-summary = Ocorreu um erro ao baixar a mídia. Tente novamente mais tarde.
+media-error-with-id =
+    Ocorreu um erro ao baixar a mídia. Por favor, tente novamente mais tarde.
+
+    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>Clique abaixo para reportar o erro.</b>
 media-inline-handler = Baixador de mídias
 media-inline-help = Baixa mídias de certas redes sociais. Apenas cole o link após o @.
 media-multiple-items =
@@ -278,7 +300,15 @@ converting-video-to-sticker = <code>Convertendo vídeo/gif para figurinha de ví
 sticker-pack-already-exists = <code>Usando um pacote de figurinhas existente...</code>
 kang-error =
     <b>Ocorreu um erro ao processar a figurinha, tente novamente.</b>
-    Se o erro persistir, entre em contato com o meu desenvolvedor.
+
+    <b>Clique abaixo para reportar o erro.</b>
+kang-error-summary = Ocorreu um erro ao processar a figurinha. Tente novamente.
+kang-error-with-id =
+    <b>Ocorreu um erro ao processar a figurinha, tente novamente.</b>
+
+    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>Clique abaixo para reportar o erro.</b>
+kang-error-alert-with-id = Ocorreu um erro ao processar a figurinha. Error ID: { $errorId }. Use o botão da mensagem para reportar.
 get-sticker-no-reply-provided = Você precisa usar este comando respondendo a uma <b>figurinha estática (imagem) ou de vídeo</b>.
 get-sticker-animated-not-supported =
     <b>Figurinhas animadas não são suportadas.</b>
@@ -379,7 +409,15 @@ lastfm-error =
     <b>Parece que ocorreu um erro.</b>
     O last.fm pode estar temporariamente indisponível.
 
-    Tente novamente mais tarde. Se o problema persistir, entre em contacto com o meu desenvolvedor.
+    Tente novamente mais tarde.
+    <b>Clique abaixo para reportar o erro.</b>
+lastfm-error-summary = Ocorreu um erro ao enviar seu status do Last.fm.
+lastfm-error-with-id =
+    Ocorreu um erro ao enviar seu status do Last.fm :/
+    <i>O Last.fm pode estar temporariamente indisponível.</i>
+
+    <b>ID do Erro:</b> <code>{ $errorId }</code>
+    <b>Clique abaixo para reportar o erro.</b>
 no-scrobbled-yet =
     <b>Parece que você ainda não fez scrobble de nenhuma música no Last.fm.</b>
 

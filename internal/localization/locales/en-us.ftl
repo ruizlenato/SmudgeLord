@@ -25,6 +25,13 @@ denied-button-alert = This button is not for you.
 privacy-policy-button = 🔒 Privacy Policy
 privacy-policy-group = To acess SmudgeLord's privacy policy, <b>click on the button below.</b>
 loading = <b>Loading...</b>
+error-report =
+    <b>{ $summary }</b>
+
+    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>Click below to report the error.</b>
+error-report-alert = { $summary } Error ID: { $errorId }. Use the button in the message to report it.
+error-report-button = 🐞 Report error
 only-groups = This command can only be used in groups.
 about-message =
     <b>— SmudgeLord</b>
@@ -186,7 +193,14 @@ downloading = Downloading...
 uploading = Uploading...
 youtube-error =
     <b>An error occurred while processing the video, try again later.</b>
-    If the problem persists, please contact my developer.
+    <b>Click below to report the error.</b>
+youtube-error-summary = An error occurred while processing the video. Please try again later.
+youtube-error-with-id =
+    <b>An error occurred while processing the video, try again later.</b>
+
+    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>Click below to report the error.</b>
+youtube-error-alert-with-id = An error occurred while processing the video. Error ID: { $errorId }. Use the button in the message to report it.
 auto-help = When enabled, the bot will automatically download media from social networks when it detects a link, eliminating the need to use the /sdl or /dl commands.
 caption-help = When enabled, captions for media downloaded by the bot will be sent along with them.
 no-link-provided =
@@ -203,7 +217,14 @@ no-media-found =
     <b>Try again later.</b>
 media-error =
     An error occurred while downloading the media. Please try again later.
-    If the problem persists, contact my developer.
+
+    <b>Click below to report the error.</b>
+media-error-summary = An error occurred while downloading the media. Please try again later.
+media-error-with-id =
+    An error occurred while downloading the media. Please try again later.
+
+    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>Click below to report the error.</b>
 media-inline-handler = Media downloader
 media-inline-help = Downloads media from certain social networks. Just paste the link after the @.
 media-multiple-items =
@@ -274,7 +295,15 @@ converting-video-to-sticker = <code>Converting video/gif to video sticker...</co
 sticker-pack-already-exists = <code>Using existing sticker pack...</code>
 kang-error =
     <b>An error occurred while processing the sticker, try again later.</b>
-    If the problem persists, please contact my developer.
+
+    <b>Click below to report the error.</b>
+kang-error-summary = An error occurred while processing the sticker. Please try again.
+kang-error-with-id =
+    <b>An error occurred while processing the sticker, try again later.</b>
+
+    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>Click below to report the error.</b>
+kang-error-alert-with-id = An error occurred while processing the sticker. Error ID: { $errorId }. Use the button in the message to report it.
 get-sticker-no-reply-provided = You need to use this command by replying to an <b>static (image) or video sticker</b>.
 get-sticker-animated-not-supported =
     <b>Animated stickers are not supported.</b>
@@ -375,7 +404,15 @@ lastfm-error =
     <b>An error seems to have occurred.</b>
     Last.fm might be temporarily unavailable.
 
-    Please try again later. If the problem persists, please contact my developer
+    Please try again later.
+    <b>Click below to report the error.</b>
+lastfm-error-summary = An error occurred while sending your Last.fm status.
+lastfm-error-with-id =
+    <b>An error occurred while sending your Last.fm status.</b>
+    Last.fm might be temporarily unavailable.
+
+    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>Click below to report the error.</b>
 no-scrobbled-yet =
     <b>It looks like you haven't scrobbled any tracks on Last.fm yet.</b>
 

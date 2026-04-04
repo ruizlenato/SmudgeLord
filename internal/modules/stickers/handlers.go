@@ -41,6 +41,33 @@ func ensureConversationManager(b *gotgbot.Bot) *conversation.Manager {
 	return convManager
 }
 
+func kangErrorMessage(i18n func(string, ...map[string]any) string, userID int64) (string, string) {
+	errorID := utils.NewUserErrorID(userID)
+	return utils.BuildErrorReportMessage(i18n, "kang-error-summary", errorID), errorID
+}
+
+func sendKangErrorMessage(b *gotgbot.Bot, chatID int64, replyTo int64, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
+	text, errorID := kangErrorMessage(i18n, userID)
+	if logMsg != "" {
+		utils.LogErrorWithID(logMsg, errorID, err, "userID", userID, "chatID", chatID)
+	}
+
+	opts := &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML}
+	opts.ReplyMarkup = utils.ErrorReportKeyboard(i18n)
+	if replyTo > 0 {
+		opts.ReplyParameters = &gotgbot.ReplyParameters{MessageId: replyTo}
+	}
+	_, _ = b.SendMessage(chatID, text, opts)
+}
+
+func answerKangErrorCallback(b *gotgbot.Bot, callbackID string, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
+	errorID := utils.NewUserErrorID(userID)
+	if logMsg != "" {
+		utils.LogErrorWithID(logMsg, errorID, err, "userID", userID)
+	}
+	_, _ = b.AnswerCallbackQuery(callbackID, &gotgbot.AnswerCallbackQueryOpts{Text: utils.BuildErrorReportAlert(i18n, "kang-error-summary", errorID), ShowAlert: true})
+}
+
 func sendMigrationNotice(b *gotgbot.Bot, chatID int64, replyID int, i18n func(string, ...map[string]any) string) {
 	opts := &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML}
 	if replyID > 0 {
@@ -109,7 +136,7 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	count, err := getUserPacksCount(ctx.EffectiveUser.Id)
 	if err != nil {
-		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		sendKangErrorMessage(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't get user packs count", err)
 		return nil
 	}
 	if count >= maxPacks {
@@ -170,14 +197,13 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	packName, err := generateStickerSetName(b, ctx.EffectiveUser.Id, count)
 	if err != nil {
-		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		sendKangErrorMessage(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't generate sticker set name", err)
 		return nil
 	}
 
 	uploadedFileID, err := prepareStickerUpload(b, ctx.EffectiveUser.Id, fileID, stickerType, stickerAction)
 	if err != nil {
-		slog.Error("Couldn't upload sticker file", "error", err)
-		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		sendKangErrorMessage(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't upload sticker file", err)
 		return nil
 	}
 
@@ -187,8 +213,7 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		EmojiList: []string{packEmoji},
 	}}, nil)
 	if err != nil {
-		slog.Error("Couldn't create sticker set", "error", err)
-		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		sendKangErrorMessage(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't create sticker set", err)
 		return nil
 	}
 
@@ -393,7 +418,7 @@ func switchPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	if err := setDefaultPack(ownerID, packID); err != nil {
-		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("kang-error"), ShowAlert: true})
+		answerKangErrorCallback(b, ctx.CallbackQuery.Id, ctx.CallbackQuery.From.Id, i18n, "Couldn't set default pack", err)
 		return nil
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
@@ -452,7 +477,7 @@ func delPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		}
 	}
 	if err := deletePack(ownerID, packID); err != nil {
-		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("kang-error"), ShowAlert: true})
+		answerKangErrorCallback(b, ctx.CallbackQuery.Id, ctx.CallbackQuery.From.Id, i18n, "Couldn't delete sticker pack", err)
 		return nil
 	}
 	if deletedPackName != "" {
@@ -549,7 +574,7 @@ func kangPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	var kd KangData
 	if err := json.Unmarshal([]byte(payload), &kd); err != nil {
-		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("kang-error"), ShowAlert: true})
+		answerKangErrorCallback(b, ctx.CallbackQuery.Id, ctx.CallbackQuery.From.Id, i18n, "Couldn't decode cached kang data", err)
 		return nil
 	}
 	packs, _ := getUserPacks(ctx.CallbackQuery.From.Id)
@@ -561,7 +586,7 @@ func kangPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		}
 	}
 	if target == nil {
-		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("kang-error"), ShowAlert: true})
+		answerKangErrorCallback(b, ctx.CallbackQuery.Id, ctx.CallbackQuery.From.Id, i18n, "Couldn't find selected sticker pack", nil)
 		return nil
 	}
 	ctx.EffectiveUser = &ctx.CallbackQuery.From
@@ -577,7 +602,7 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 	i18n := localization.Get(ctx)
 	uploadedFileID, err := prepareStickerUpload(b, ctx.EffectiveUser.Id, fileID, stickerType, stickerAction)
 	if err != nil {
-		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		sendKangErrorMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't upload sticker file", err)
 		return nil
 	}
 	set, _ := b.GetStickerSet(pack.PackName, nil)
@@ -599,7 +624,7 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 		title := generateStickerSetTitle(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username, 0)
 		_, err = b.CreateNewStickerSet(ctx.EffectiveUser.Id, pack.PackName, title, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}}, nil)
 		if err != nil {
-			_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+			sendKangErrorMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't add sticker to set", err)
 			return nil
 		}
 	}
@@ -631,7 +656,7 @@ func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	var kd KangData
 	if err := json.Unmarshal([]byte(payload), &kd); err != nil {
-		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("kang-error"), ShowAlert: true})
+		answerKangErrorCallback(b, ctx.CallbackQuery.Id, userID, i18n, "Couldn't decode full-pack kang data", err)
 		return nil
 	}
 	count, err := getUserPacksCount(userID)
@@ -647,7 +672,7 @@ func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	_, err = b.CreateNewStickerSet(userID, packName, packTitle, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(kd.FileID), Format: kd.StickerType, EmojiList: []string{emoji}}}, nil)
 	if err != nil {
-		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("kang-error"), ShowAlert: true})
+		answerKangErrorCallback(b, ctx.CallbackQuery.Id, userID, i18n, "Couldn't create sticker set from callback", err)
 		return nil
 	}
 	_ = createPack(userID, packName)
@@ -763,17 +788,18 @@ func buildSwitchPackList(packs []ValidatedPack, userID int64, i18n func(string, 
 	return text.String(), buttons
 }
 
-func editErrorMessage(b *gotgbot.Bot, chatID, msgID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
-	slog.Error(logMsg, "Error", err.Error())
-	_, _, _ = b.EditMessageText(i18n("kang-error"), &gotgbot.EditMessageTextOpts{ChatId: chatID, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+func editErrorMessage(b *gotgbot.Bot, chatID, msgID, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
+	errorID := utils.NewUserErrorID(userID)
+	utils.LogErrorWithID(logMsg, errorID, err, "chatID", chatID, "userID", userID)
+	_, _, _ = b.EditMessageText(utils.BuildErrorReportMessage(i18n, "kang-error-summary", errorID), &gotgbot.EditMessageTextOpts{ChatId: chatID, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
 }
 
-func editStickerError(b *gotgbot.Bot, chatID, msgID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
-	editErrorMessage(b, chatID, msgID, i18n, logMsg, err)
+func editStickerError(b *gotgbot.Bot, chatID, msgID, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
+	editErrorMessage(b, chatID, msgID, userID, i18n, logMsg, err)
 }
 
 func editKangError(b *gotgbot.Bot, kc *kangContext, i18n func(string, ...map[string]any) string, logMsg string, err error) {
-	editErrorMessage(b, kc.chatID, kc.msgID, i18n, logMsg, err)
+	editErrorMessage(b, kc.chatID, kc.msgID, kc.userID, i18n, logMsg, err)
 }
 
 func getStickerHandler(b *gotgbot.Bot, ctx *ext.Context) error {
@@ -788,21 +814,18 @@ func getStickerHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	file, err := b.GetFile(replySticker.FileId, nil)
 	if err != nil || file.FilePath == "" {
-		slog.Error("Couldn't get file", "Error", err)
-		_, _ = b.SendMessage(msg.Chat.Id, localization.Get(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
+		sendKangErrorMessage(b, msg.Chat.Id, msg.MessageId, msg.From.Id, localization.Get(ctx), "Couldn't get file", err)
 		return nil
 	}
 	resp, err := http.Get(b.BotClient.FileURL(b.Token, file.FilePath, nil))
 	if err != nil {
-		slog.Error("Couldn't download file", "Error", err)
-		_, _ = b.SendMessage(msg.Chat.Id, localization.Get(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
+		sendKangErrorMessage(b, msg.Chat.Id, msg.MessageId, msg.From.Id, localization.Get(ctx), "Couldn't download file", err)
 		return nil
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		slog.Error("Couldn't read body", "Error", err)
-		_, _ = b.SendMessage(msg.Chat.Id, localization.Get(ctx)("kang-error"), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId}})
+		sendKangErrorMessage(b, msg.Chat.Id, msg.MessageId, msg.From.Id, localization.Get(ctx), "Couldn't read body", err)
 		return nil
 	}
 	filename := filepath.Base(file.FilePath)

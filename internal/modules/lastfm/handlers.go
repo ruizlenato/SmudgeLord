@@ -100,14 +100,18 @@ func setUserHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func getErrorMessage(err error, i18n func(string, ...map[string]any) string) string {
+func getErrorMessage(err error, i18n func(string, ...map[string]any) string, userID int64) string {
 	switch {
 	case strings.Contains(err.Error(), "no recent tracks"):
 		return i18n("no-scrobbled-yet")
 	case strings.Contains(err.Error(), "lastFM error"):
-		return i18n("lastfm-error")
+		errorID := utils.NewUserErrorID(userID)
+		utils.LogErrorWithID("LastFM API returned an error", errorID, err, "userID", userID)
+		return i18n("lastfm-error-with-id", utils.ErrorI18nArgs(errorID))
 	default:
-		return ""
+		errorID := utils.NewUserErrorID(userID)
+		utils.LogErrorWithID("Failed to load LastFM data", errorID, err, "userID", userID)
+		return i18n("lastfm-error-with-id", utils.ErrorI18nArgs(errorID))
 	}
 }
 
@@ -128,14 +132,20 @@ func sendLastfmMessage(b *gotgbot.Bot, ctx *ext.Context, methodType string) erro
 		return nil
 	}
 
-	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, lastfm(ctx, methodType), &gotgbot.SendMessageOpts{
+	i18n := localization.Get(ctx)
+	text, isError := lastfm(ctx, methodType)
+	opts := &gotgbot.SendMessageOpts{
 		ParseMode: gotgbot.ParseModeHTML,
 		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{
 			PreferLargeMedia: true,
 			ShowAboveText:    true,
 		},
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-	})
+	}
+	if isError {
+		opts.ReplyMarkup = utils.ErrorReportKeyboard(i18n)
+	}
+	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, text, opts)
 
 	return nil
 }
@@ -155,32 +165,37 @@ func LastfmInline(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	_, _, _ = b.EditMessageText(lastfm(ctx, ctx.ChosenInlineResult.ResultId), &gotgbot.EditMessageTextOpts{
+	text, isError := lastfm(ctx, ctx.ChosenInlineResult.ResultId)
+	opts := &gotgbot.EditMessageTextOpts{
 		InlineMessageId: ctx.ChosenInlineResult.InlineMessageId,
 		ParseMode:       gotgbot.ParseModeHTML,
 		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{
 			PreferLargeMedia: true,
 			ShowAboveText:    true,
 		},
-	})
+	}
+	if isError {
+		opts.ReplyMarkup = utils.ErrorReportKeyboard(i18n)
+	}
+	_, _, _ = b.EditMessageText(text, opts)
 
 	return nil
 }
 
-func lastfm(ctx *ext.Context, methodType string) string {
+func lastfm(ctx *ext.Context, methodType string) (string, bool) {
 	i18n := localization.Get(ctx)
 	if ctx.EffectiveUser == nil {
-		return i18n("lastfm-username-not-found")
+		return i18n("lastfm-username-not-found"), false
 	}
 
 	lastFMUsername, err := getUserLastFMUsername(ctx.EffectiveUser.Id)
 	if err != nil {
-		return i18n("lastfm-username-not-found")
+		return i18n("lastfm-username-not-found"), false
 	}
 
 	recentTracks, err := lastFM.GetRecentTrack(methodType, lastFMUsername)
 	if err != nil {
-		return getErrorMessage(err, i18n)
+		return getErrorMessage(err, i18n, ctx.EffectiveUser.Id), true
 	}
 
 	text := fmt.Sprintf("<a href='%s'>\u200c</a>", recentTracks.Image)
@@ -203,7 +218,7 @@ func lastfm(ctx *ext.Context, methodType string) string {
 		text += fmt.Sprintf("\n\n🎙<b>%s</b>", recentTracks.Artist)
 	}
 
-	return text
+	return text, false
 }
 
 func Load(dispatcher *ext.Dispatcher) {
