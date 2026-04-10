@@ -34,6 +34,8 @@ var (
 	convManager    *conversation.Manager
 )
 
+const maxVideoStickerBytes = 256 * 1024
+
 func ensureConversationManager(b *gotgbot.Bot) *conversation.Manager {
 	if convManager == nil && convDispatcher != nil {
 		convManager = conversation.NewManager(b, convDispatcher)
@@ -49,7 +51,7 @@ func kangErrorMessage(i18n func(string, ...map[string]any) string, userID int64)
 func sendKangErrorMessage(b *gotgbot.Bot, chatID int64, replyTo int64, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
 	text, errorID := kangErrorMessage(i18n, userID)
 	if logMsg != "" {
-		utils.LogErrorWithID(logMsg, errorID, err, "userID", userID, "chatID", chatID)
+		utils.LogErrorWithIDSkip(2, logMsg, errorID, err, "userID", userID, "chatID", chatID)
 	}
 
 	opts := &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML}
@@ -63,7 +65,7 @@ func sendKangErrorMessage(b *gotgbot.Bot, chatID int64, replyTo int64, userID in
 func answerKangErrorCallback(b *gotgbot.Bot, callbackID string, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
 	errorID := utils.NewUserErrorID(userID)
 	if logMsg != "" {
-		utils.LogErrorWithID(logMsg, errorID, err, "userID", userID)
+		utils.LogErrorWithIDSkip(2, logMsg, errorID, err, "userID", userID)
 	}
 	_, _ = b.AnswerCallbackQuery(callbackID, &gotgbot.AnswerCallbackQueryOpts{Text: utils.BuildErrorReportAlert(i18n, "kang-error-summary", errorID), ShowAlert: true})
 }
@@ -304,33 +306,38 @@ func awaitEmojiOrSkip(b *gotgbot.Bot, ctx *ext.Context, replyToMessageID int64, 
 func prepareStickerUpload(b *gotgbot.Bot, userID int64, fileID, stickerType, stickerAction string) (string, error) {
 	file, err := b.GetFile(fileID, nil)
 	if err != nil || file.FilePath == "" {
-		return "", fmt.Errorf("get file: %w", err)
+		return "", fmt.Errorf("get file metadata: %w", err)
 	}
 	resp, err := http.Get(b.BotClient.FileURL(b.Token, file.FilePath, nil))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("download source file: %w", err)
 	}
 	defer resp.Body.Close()
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("read source file body: %w", err)
 	}
 	switch stickerAction {
 	case "resize":
 		bodyBytes, err = utils.ResizeSticker(bodyBytes)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("resize sticker media: %w", err)
 		}
 	case "convert":
 		bodyBytes, err = convertVideo(bodyBytes)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("convert video sticker media: %w", err)
 		}
 	}
+
+	if stickerType == "video" && len(bodyBytes) > maxVideoStickerBytes {
+		return "", fmt.Errorf("video sticker too big after processing: %d bytes (limit: %d)", len(bodyBytes), maxVideoStickerBytes)
+	}
+
 	stickerFilename := normalizeStickerFilename(filepath.Base(file.FilePath), stickerAction)
 	uploaded, err := b.UploadStickerFile(userID, gotgbot.InputFileByReader(stickerFilename, bytes.NewReader(bodyBytes)), stickerType, nil)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("uploadStickerFile (%s, %d bytes): %w", stickerType, len(bodyBytes), err)
 	}
 	return uploaded.FileId, nil
 }
@@ -790,7 +797,7 @@ func buildSwitchPackList(packs []ValidatedPack, userID int64, i18n func(string, 
 
 func editErrorMessage(b *gotgbot.Bot, chatID, msgID, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
 	errorID := utils.NewUserErrorID(userID)
-	utils.LogErrorWithID(logMsg, errorID, err, "chatID", chatID, "userID", userID)
+	utils.LogErrorWithIDSkip(3, logMsg, errorID, err, "chatID", chatID, "userID", userID)
 	_, _, _ = b.EditMessageText(utils.BuildErrorReportMessage(i18n, "kang-error-summary", errorID), &gotgbot.EditMessageTextOpts{ChatId: chatID, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
 }
 

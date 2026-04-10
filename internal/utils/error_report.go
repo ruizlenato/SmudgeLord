@@ -56,6 +56,10 @@ func ErrorReportKeyboard(i18n func(string, ...map[string]any) string) gotgbot.In
 }
 
 func LogErrorWithID(message, errorID string, err error, attrs ...any) {
+	LogErrorWithIDSkip(1, message, errorID, err, attrs...)
+}
+
+func LogErrorWithIDSkip(skip int, message, errorID string, err error, attrs ...any) {
 	fields := []any{"error_id", errorID}
 	if err != nil {
 		fields = append(fields, "error", err.Error())
@@ -68,7 +72,11 @@ func LogErrorWithID(message, errorID string, err error, attrs ...any) {
 		return
 	}
 
-	pc, _, _, ok := runtime.Caller(1)
+	if skip < 1 {
+		skip = 1
+	}
+
+	pc, _, _, ok := runtime.Caller(skip)
 	if !ok {
 		pc = 0
 	}
