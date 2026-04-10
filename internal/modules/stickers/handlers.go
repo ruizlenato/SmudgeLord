@@ -567,6 +567,13 @@ func kangPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	i18n := localization.Get(ctx)
+	chat := ctx.CallbackQuery.Message.GetChat()
+	listMsgID := ctx.CallbackQuery.Message.GetMessageId()
+	_, _, _ = b.EditMessageText(i18n("stealing-sticker"), &gotgbot.EditMessageTextOpts{
+		ChatId:    chat.Id,
+		MessageId: listMsgID,
+		ParseMode: gotgbot.ParseModeHTML,
+	})
 	parts := strings.Split(ctx.CallbackQuery.Data, " ")
 	if len(parts) != 3 {
 		return nil
@@ -597,7 +604,6 @@ func kangPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	ctx.EffectiveUser = &ctx.CallbackQuery.From
-	chat := ctx.CallbackQuery.Message.GetChat()
 	ctx.EffectiveChat = &chat
 	ctx.EffectiveMessage = &gotgbot.Message{MessageId: msgID, Chat: *ctx.EffectiveChat, From: ctx.EffectiveUser}
 	_ = processKangIntoPack(b, ctx, *target, kd.StickerAction, kd.StickerType, kd.FileID, kd.Emoji)
@@ -635,11 +641,26 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 			return nil
 		}
 	}
-	_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("sticker-stoled", map[string]any{"emoji": emoji}), &gotgbot.SendMessageOpts{
-		ParseMode: gotgbot.ParseModeHTML,
-		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
-			Text: i18n("sticker-stoled-button"), Url: "https://t.me/addstickers/" + pack.PackName,
-		}}}},
+	text := i18n("sticker-stoled", map[string]any{"emoji": emoji})
+	markup := gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+		Text: i18n("sticker-stoled-button"), Url: "https://t.me/addstickers/" + pack.PackName,
+	}}}}
+
+	if ctx.CallbackQuery != nil && ctx.CallbackQuery.Message != nil {
+		chat := ctx.CallbackQuery.Message.GetChat()
+		msgID := ctx.CallbackQuery.Message.GetMessageId()
+		_, _, _ = b.EditMessageText(text, &gotgbot.EditMessageTextOpts{
+			ChatId:      chat.Id,
+			MessageId:   msgID,
+			ParseMode:   gotgbot.ParseModeHTML,
+			ReplyMarkup: markup,
+		})
+		return nil
+	}
+
+	_, _ = b.SendMessage(ctx.EffectiveChat.Id, text, &gotgbot.SendMessageOpts{
+		ParseMode:   gotgbot.ParseModeHTML,
+		ReplyMarkup: markup,
 	})
 	return nil
 }
