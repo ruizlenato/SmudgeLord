@@ -958,6 +958,9 @@ func normalizeStickerFilename(filename, stickerAction string) string {
 	if stickerAction == "resize" && filepath.Ext(filename) != ".webp" && filepath.Ext(filename) != ".png" {
 		return strings.TrimSuffix(filename, filepath.Ext(filename)) + ".png"
 	}
+	if stickerAction == "convert" && filepath.Ext(filename) != ".webm" {
+		return strings.TrimSuffix(filename, filepath.Ext(filename)) + ".webm"
+	}
 	return filename
 }
 
@@ -970,18 +973,52 @@ func convertVideo(input []byte) ([]byte, error) {
 	if _, err := inputFile.Write(input); err != nil {
 		return nil, err
 	}
-	tempOutput := inputFile.Name() + ".tmp.mp4"
+	tempOutput := inputFile.Name() + ".tmp.webm"
 	defer os.Remove(tempOutput)
-	cmd := exec.Command("ffmpeg", "-loglevel", "quiet", "-i", inputFile.Name(), "-t", "00:00:03", "-vf", "fps=30", "-c:v", "vp9", "-b:v", "500k", "-preset", "ultrafast", "-s", "512x512", "-y", "-an", "-f", "webm", tempOutput)
-	if err = cmd.Run(); err != nil {
-		return nil, err
+
+	profiles := []struct {
+		fps     string
+		bitrate string
+		size    string
+	}{
+		{fps: "30", bitrate: "500k", size: "512x512"},
+		{fps: "24", bitrate: "350k", size: "512x512"},
+		{fps: "20", bitrate: "280k", size: "480x480"},
+		{fps: "15", bitrate: "180k", size: "384x384"},
 	}
-	outFile, err := os.Open(tempOutput)
-	if err != nil {
-		return nil, err
+
+	var lastOutput []byte
+	for _, profile := range profiles {
+		cmd := exec.Command(
+			"ffmpeg", "-loglevel", "quiet", "-i", inputFile.Name(),
+			"-t", "00:00:03",
+			"-vf", "fps="+profile.fps,
+			"-c:v", "vp9",
+			"-b:v", profile.bitrate,
+			"-preset", "ultrafast",
+			"-s", profile.size,
+			"-y", "-an", "-f", "webm", tempOutput,
+		)
+		if err = cmd.Run(); err != nil {
+			return nil, err
+		}
+
+		outFile, err := os.Open(tempOutput)
+		if err != nil {
+			return nil, err
+		}
+		lastOutput, err = io.ReadAll(outFile)
+		outFile.Close()
+		if err != nil {
+			return nil, err
+		}
+
+		if len(lastOutput) <= maxVideoStickerBytes {
+			return lastOutput, nil
+		}
 	}
-	defer outFile.Close()
-	return io.ReadAll(outFile)
+
+	return nil, fmt.Errorf("converted video is too big: %d bytes (limit: %d)", len(lastOutput), maxVideoStickerBytes)
 }
 
 func Load(dispatcher *ext.Dispatcher) {
