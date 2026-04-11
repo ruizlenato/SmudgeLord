@@ -210,6 +210,7 @@ func mergeSegments(segmentFiles []string) (*os.File, error) {
 
 func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 	const maxSizeCaption = 1024
+	const maxQuotedTextRunes = 248
 	var textLink string
 
 	if mediaCount > 1 {
@@ -220,27 +221,96 @@ func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 		return caption + textLink
 	}
 
+	caption = limitQuotedBlockText(caption, maxQuotedTextRunes)
+	if len(caption)+len(textLink) <= maxSizeCaption {
+		return caption + textLink
+	}
+
+	if pre, blockquote, ok := splitCaptionByBlockquote(caption); ok {
+		allowedPreBytes := maxSizeCaption - len(textLink) - len(blockquote) - len("...")
+		if allowedPreBytes < 0 {
+			allowedPreBytes = 0
+		}
+
+		truncatedPre := truncateUTF8ByBytes(pre, allowedPreBytes)
+		candidate := utils.SanitizeTelegramHTML(truncatedPre + "..." + blockquote)
+		if len(candidate)+len(textLink) <= maxSizeCaption {
+			if textLink != "" {
+				candidate += textLink
+			}
+			return candidate
+		}
+	}
+
 	allowedContentBytes := maxSizeCaption - len(textLink) - len("...")
 	if allowedContentBytes < 0 {
 		allowedContentBytes = 0
 	}
 
-	truncated := make([]rune, 0, allowedContentBytes)
+	result := utils.SanitizeTelegramHTML(truncateUTF8ByBytes(caption, allowedContentBytes) + "...")
+	if textLink != "" {
+		result += textLink
+	}
+	return result
+}
 
-	var currentLength int
-	for _, r := range caption {
+func truncateUTF8ByBytes(text string, allowedBytes int) string {
+	if allowedBytes <= 0 || text == "" {
+		return ""
+	}
+
+	truncated := make([]rune, 0, len(text))
+	currentLength := 0
+	for _, r := range text {
 		currentLength += utf8.RuneLen(r)
-		if currentLength > allowedContentBytes {
+		if currentLength > allowedBytes {
 			break
 		}
 		truncated = append(truncated, r)
 	}
 
-	result := utils.SanitizeTelegramHTML(string(truncated) + "...")
-	if textLink != "" {
-		result += textLink
+	return string(truncated)
+}
+
+func splitCaptionByBlockquote(caption string) (string, string, bool) {
+	start := strings.Index(caption, "<blockquote>")
+	end := strings.Index(caption, "</blockquote>")
+	if start < 0 || end < 0 || end < start {
+		return "", "", false
 	}
-	return result
+	end += len("</blockquote>")
+	return caption[:start], caption[start:end], true
+}
+
+func limitQuotedBlockText(caption string, maxRunes int) string {
+	start := strings.Index(caption, "<blockquote>")
+	end := strings.Index(caption, "</blockquote>")
+	if start < 0 || end < 0 || end < start {
+		return caption
+	}
+
+	endTagStart := end
+	end += len("</blockquote>")
+	block := caption[start:end]
+
+	lineBreak := strings.Index(block, "\n")
+	if lineBreak < 0 || lineBreak >= endTagStart-start {
+		return caption
+	}
+
+	prefix := block[:lineBreak+1]
+	quoteText := block[lineBreak+1 : endTagStart-start]
+	suffix := block[endTagStart-start:]
+
+	if utf8.RuneCountInString(quoteText) <= maxRunes {
+		return caption
+	}
+
+	trimmed := []rune(quoteText)
+	quoteText = string(trimmed[:maxRunes]) + "\n..."
+
+	limitedBlock := prefix + quoteText + suffix
+	return caption[:start] + limitedBlock + caption[end:]
 }
 
 func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {

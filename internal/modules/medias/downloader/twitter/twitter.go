@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 
@@ -104,10 +105,11 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 		if result.media.File != nil {
 			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID))
 			var mediaItem gotgbot.InputMedia
+			showCaptionAbove := invertMedia && allTweetMedia[result.index].Type == "photo"
 			if allTweetMedia[result.index].Type == "photo" {
 				mediaItem = &gotgbot.InputMediaPhoto{
 					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
-					ShowCaptionAboveMedia: invertMedia,
+					ShowCaptionAboveMedia: showCaptionAbove,
 				}
 			} else {
 				videoMedia := &gotgbot.InputMediaVideo{
@@ -369,16 +371,19 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 		if result.media.File != nil {
 			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID))
 			var mediaItem gotgbot.InputMedia
+			showCaptionAbove := invertMedia && allMedia[result.index].Type != "video"
 			if allMedia[result.index].Type != "video" {
 				mediaItem = &gotgbot.InputMediaPhoto{
-					Media: downloader.InputFileFromBytes(sanitized, result.media.File),
+					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
+					ShowCaptionAboveMedia: showCaptionAbove,
 				}
 			} else {
 				videoMedia := &gotgbot.InputMediaVideo{
-					Media:             downloader.InputFileFromBytes(sanitized, result.media.File),
-					Width:             int64(allMedia[result.index].Width),
-					Height:            int64(allMedia[result.index].Height),
-					SupportsStreaming: true,
+					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
+					ShowCaptionAboveMedia: invertMedia,
+					Width:                 int64(allMedia[result.index].Width),
+					Height:                int64(allMedia[result.index].Height),
+					SupportsStreaming:     true,
 				}
 				if result.media.Thumbnail != nil {
 					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
@@ -405,6 +410,8 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 }
 
 func getTweetCaption(twitterData *TwitterAPIData) string {
+	const maxQuotedTextRunes = 248
+
 	tweet := (*twitterData).Data.TweetResult.Result
 	if tweet.Legacy == nil {
 		return ""
@@ -439,16 +446,24 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 		escapeTelegramText(cleanText(tweetText)))
 
 	if quotedStatusResult != nil && quotedStatusResult.Legacy != nil && quotedStatusResult.Core.UserResults.Result.Legacy != nil {
+		quotedText := cleanText(quotedStatusResult.Legacy.FullText)
+		if utf8.RuneCountInString(quotedText) > maxQuotedTextRunes {
+			runes := []rune(quotedText)
+			quotedText = string(runes[:maxQuotedTextRunes]) + "\n..."
+		}
+
 		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
 			escapeTelegramText(quotedStatusResult.Core.UserResults.Result.Legacy.Name),
 			escapeTelegramText(quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName),
-			escapeTelegramText(cleanText(quotedStatusResult.Legacy.FullText)))
+			escapeTelegramText(quotedText))
 	}
 
 	return caption.String()
 }
 
 func getFxTweetCaption(twitterData *FxTwitterAPIData) string {
+	const maxQuotedTextRunes = 248
+
 	var caption strings.Builder
 
 	escapeTelegramText := func(text string) string {
@@ -461,10 +476,16 @@ func getFxTweetCaption(twitterData *FxTwitterAPIData) string {
 		escapeTelegramText(twitterData.Tweet.Text))
 
 	if twitterData.Tweet.Quote != nil {
+		quotedText := twitterData.Tweet.Quote.Text
+		if utf8.RuneCountInString(quotedText) > maxQuotedTextRunes {
+			runes := []rune(quotedText)
+			quotedText = string(runes[:maxQuotedTextRunes]) + "\n..."
+		}
+
 		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
 			escapeTelegramText(twitterData.Tweet.Quote.Author.Name),
 			escapeTelegramText(twitterData.Tweet.Quote.Author.ScreenName),
-			escapeTelegramText(twitterData.Tweet.Quote.Text))
+			escapeTelegramText(quotedText))
 	}
 
 	return caption.String()
