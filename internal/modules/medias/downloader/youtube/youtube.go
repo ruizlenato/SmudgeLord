@@ -19,6 +19,12 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
+const (
+	maxRetries    = 5
+	retryDelay    = 2 * time.Second
+	maxRetryDelay = 30 * time.Second
+)
+
 func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error) {
 	formats := video.Formats.Itag(itag)
 	if len(formats) == 0 {
@@ -40,60 +46,42 @@ func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error)
 }
 
 func ConfigureYoutubeClient() *youtubedl.Client {
-	var ytClient *youtubedl.Client
-	var err error
-	const maxRetries = 5
-	const retryDelay = 5 * time.Second
-
-	if config.Socks5Proxy != "" {
-		proxyURL, parseErr := url.Parse(config.Socks5Proxy)
-		if parseErr != nil {
-			slog.Error(
-				"Couldn't parse proxy URL",
-				"Proxy", config.Socks5Proxy,
-				"Error", parseErr.Error(),
-			)
+	if config.Socks5Proxy == "" {
+		ytClient, err := youtubedl.New()
+		if err != nil {
+			slog.Error("Couldn't create youtube-dl client", "Error", err.Error())
 			return nil
 		}
-		httpClient := &http.Client{
-			Transport: &http.Transport{
-				Proxy:                 http.ProxyURL(proxyURL),
-				ResponseHeaderTimeout: 30 * time.Second,
-				IdleConnTimeout:       90 * time.Second,
-				TLSHandshakeTimeout:   10 * time.Second,
-			},
-			Timeout: 120 * time.Second,
-		}
-		for attempt := 1; attempt <= maxRetries; attempt++ {
-			ytClient, err = youtubedl.New(youtubedl.WithHTTPClient(httpClient))
-			if err == nil {
-				return ytClient
-			}
-			slog.Warn(
-				"Couldn't create youtube-dl client with proxy",
-				"Attempt", attempt,
-				"MaxRetries", maxRetries,
-				"Error", err.Error(),
-			)
-			if attempt < maxRetries {
-				time.Sleep(retryDelay)
-			}
-			httpClient.CloseIdleConnections()
-		}
-		slog.Error(
-			"Couldn't create youtube-dl client with proxy after max retries",
-			"MaxRetries", maxRetries,
-			"Error", err.Error(),
-		)
+		return ytClient
+	}
+
+	proxyURL, parseErr := url.Parse(config.Socks5Proxy)
+	if parseErr != nil {
+		slog.Error("Couldn't parse proxy URL", "Proxy", config.Socks5Proxy, "Error", parseErr.Error())
 		return nil
 	}
 
-	ytClient, err = youtubedl.New()
+	httpClient := &http.Client{
+		Transport: &http.Transport{
+			Proxy:                 http.ProxyURL(proxyURL),
+			ResponseHeaderTimeout: 30 * time.Second,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+		},
+		Timeout: 120 * time.Second,
+	}
+
+	ytClient, err := utils.RetryWithBackoff(
+		func() (*youtubedl.Client, error) {
+			return youtubedl.New(youtubedl.WithHTTPClient(httpClient))
+		},
+		maxRetries,
+		retryDelay,
+		maxRetryDelay,
+		2,
+	)
 	if err != nil {
-		slog.Error(
-			"Couldn't create youtube-dl client",
-			"Error", err.Error(),
-		)
+		slog.Error("Couldn't create youtube-dl client with proxy after max retries", "MaxRetries", maxRetries, "Error", err.Error())
 		return nil
 	}
 
@@ -101,23 +89,30 @@ func ConfigureYoutubeClient() *youtubedl.Client {
 }
 
 func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, format *youtubedl.Format) ([]byte, error) {
-	for attempt := 1; attempt <= 5; attempt++ {
-		stream, _, err := youtubeClient.GetStream(video, format)
-		if err != nil {
-			time.Sleep(3 * time.Second)
-			continue
-		}
-		defer stream.Close()
+	result, err := utils.RetryWithBackoff(
+		func() ([]byte, error) {
+			stream, _, err := youtubeClient.GetStream(video, format)
+			if err != nil {
+				return nil, err
+			}
+			defer stream.Close()
 
-		var buf strings.Builder
-		if _, err := io.Copy(&buf, stream); err == nil {
+			var buf strings.Builder
+			if _, err := io.Copy(&buf, stream); err != nil {
+				return nil, err
+			}
 			return []byte(buf.String()), nil
-		}
+		},
+		maxRetries,
+		retryDelay,
+		maxRetryDelay,
+		2,
+	)
 
-		time.Sleep(3 * time.Second)
+	if err != nil {
+		return nil, errors.New("YouTube — Failed after max retries")
 	}
-
-	return nil, errors.New("YouTube — Failed after 5 attempts")
+	return result, nil
 }
 
 func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {

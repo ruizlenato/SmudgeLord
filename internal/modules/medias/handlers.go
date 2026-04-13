@@ -295,7 +295,7 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 			if isIgnorableMediaSendError(err) {
 				continue
 			}
-			slog.Error("Couldn't send media batch", "postUrl", url, "error", err, "batch", i/10+1)
+			slog.Error("Couldn't send media batch", "postUrl", url, "error", err.Error(), "batch", i/10+1)
 			continue
 		}
 		allSent = append(allSent, sent...)
@@ -512,6 +512,10 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("denied-button-alert"), ShowAlert: true})
 		return nil
 	}
+	replyToMessageID, err := strconv.ParseInt(data[4], 10, 64)
+	if err != nil || replyToMessageID <= 0 {
+		replyToMessageID = messageID
+	}
 	size, _ := strconv.ParseInt(data[3], 10, 64)
 	sizeLimit := int64(1572864000)
 	if config.BotAPIURL == "" {
@@ -526,7 +530,7 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if data[0] == "_vid" {
 		format = "video"
 	}
-	cacheFound, cacheErr := trySendCachedYoutubeMedia(ctx, b, data, format)
+	cacheFound, cacheErr := trySendCachedYoutubeMedia(ctx, b, data, format, replyToMessageID)
 	if cacheFound && cacheErr == nil {
 		_, _ = b.DeleteMessageWithContext(context.Background(), chat.Id, messageID, nil)
 		return nil
@@ -559,7 +563,7 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 			Performer:       video.Author,
 			Title:           video.Title,
 			Thumbnail:       gotgbot.InputFileByReader(filename, bytes.NewReader(thumbnailBytes)),
-			ReplyParameters: &gotgbot.ReplyParameters{MessageId: messageID},
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: replyToMessageID},
 		})
 	case "_vid":
 		waitForMediaSendSlot(chat.Id)
@@ -570,7 +574,7 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 			Width:             int64(video.Formats.Itag(itag)[0].Width),
 			Height:            int64(video.Formats.Itag(itag)[0].Height),
 			Thumbnail:         gotgbot.InputFileByReader(filename, bytes.NewReader(thumbnailBytes)),
-			ReplyParameters:   &gotgbot.ReplyParameters{MessageId: messageID},
+			ReplyParameters:   &gotgbot.ReplyParameters{MessageId: replyToMessageID},
 		})
 	}
 	if err != nil {
@@ -586,13 +590,13 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func trySendCachedYoutubeMedia(ctx *ext.Context, b *gotgbot.Bot, data []string, format string) (bool, error) {
+func trySendCachedYoutubeMedia(ctx *ext.Context, b *gotgbot.Bot, data []string, format string, replyToMessageID int64) (bool, error) {
 	fileID, caption, err := downloader.GetYoutubeCache(data[1], format)
 	if err != nil {
 		return false, err
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
-	reply := &gotgbot.ReplyParameters{MessageId: ctx.CallbackQuery.Message.GetMessageId()}
+	reply := &gotgbot.ReplyParameters{MessageId: replyToMessageID}
 	switch data[0] {
 	case "_aud":
 		waitForMediaSendSlot(chat.Id)
