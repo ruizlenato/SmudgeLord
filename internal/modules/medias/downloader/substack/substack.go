@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"html"
 	"log/slog"
+	"net/url"
+	"path"
 	"regexp"
 	"strings"
 
@@ -100,11 +102,12 @@ func (h *Handler) processMedia(data APIData) []gotgbot.InputMedia {
 			continue
 		}
 
-		file, err := downloader.FetchBytesFromURL(attachment.ImageURL)
+		file, err := h.downloadAttachmentImage(attachment.ImageURL)
 		if err != nil {
 			slog.Error("Failed to download Substack image",
 				"Post Info", h.postID,
 				"Index", i,
+				"Image URL", attachment.ImageURL,
 				"Error", err.Error())
 			continue
 		}
@@ -116,4 +119,41 @@ func (h *Handler) processMedia(data APIData) []gotgbot.InputMedia {
 	}
 
 	return medias
+}
+
+func (h *Handler) downloadAttachmentImage(imageURL string) ([]byte, error) {
+	var lastErr error
+	for _, candidate := range buildImageCandidates(imageURL) {
+		file, err := downloader.FetchBytesFromURL(candidate)
+		if err == nil {
+			return file, nil
+		}
+		lastErr = err
+	}
+
+	if lastErr == nil {
+		lastErr = fmt.Errorf("no valid image candidates")
+	}
+	return nil, lastErr
+}
+
+func buildImageCandidates(imageURL string) []string {
+	trimmed := strings.TrimSpace(imageURL)
+	if trimmed == "" {
+		return nil
+	}
+
+	candidates := []string{trimmed}
+	parsed, err := url.Parse(trimmed)
+	if err != nil {
+		return candidates
+	}
+
+	ext := strings.ToLower(path.Ext(parsed.Path))
+	if strings.HasSuffix(parsed.Host, "substack-post-media.s3.amazonaws.com") || ext == ".heic" || ext == ".heif" {
+		cdnURL := "https://substackcdn.com/image/fetch/f_auto,q_auto:good/" + url.PathEscape(trimmed)
+		candidates = []string{cdnURL, trimmed}
+	}
+
+	return candidates
 }
