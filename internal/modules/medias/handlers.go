@@ -24,6 +24,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/bluesky"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/instagram"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/reddit"
+	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/substack"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/threads"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/tiktok"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
@@ -34,7 +35,7 @@ import (
 )
 
 const (
-	regexMedia            = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
+	regexMedia            = `(?:http(?:s)?://)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink|substack)\.(?:com|net|app)|youtube\.com/shorts)/(?:\S*)`
 	maxSizeCaption        = 1024
 	chatActionUploadDoc   = "upload_document"
 	chatActionUploadVoice = "upload_voice"
@@ -74,6 +75,7 @@ var mediaHandlers = map[string]MediaHandler{
 	"bsky.app/":                  {Name: "BlueSky", Handler: bluesky.Handle},
 	"instagram.com/":             {Name: "Instagram", Handler: instagram.Handle},
 	"reddit.com/":                {Name: "Reddit", Handler: reddit.Handle},
+	"substack.com/":              {Name: "Substack", Handler: substack.Handle},
 	"threads.com/":               {Name: "Threads", Handler: threads.Handle},
 	"tiktok.com/":                {Name: "TikTok", Handler: tiktok.Handle},
 	"(twitter|x).com/":           {Name: "Twitter/X", Handler: twitter.Handle},
