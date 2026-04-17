@@ -70,6 +70,19 @@ func answerKangErrorCallback(b *gotgbot.Bot, callbackID string, userID int64, i1
 	_, _ = b.AnswerCallbackQuery(callbackID, &gotgbot.AnswerCallbackQueryOpts{Text: utils.BuildErrorReportAlert(i18n, "kang-error-summary", errorID), ShowAlert: true})
 }
 
+func sendPrivateStartRequiredMessage(b *gotgbot.Bot, chatID, replyTo int64, i18n func(string, ...map[string]any) string) {
+	opts := &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML}
+	if replyTo > 0 {
+		opts.ReplyParameters = &gotgbot.ReplyParameters{MessageId: replyTo}
+	}
+	if b.User.Username != "" {
+		opts.ReplyMarkup = gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+			Text: i18n("sticker-private-start-button"), Url: fmt.Sprintf("https://t.me/%s?start=stickers", b.User.Username),
+		}}}}
+	}
+	_, _ = b.SendMessage(chatID, i18n("sticker-private-start-required"), opts)
+}
+
 func sendMigrationNotice(b *gotgbot.Bot, chatID int64, replyID int, i18n func(string, ...map[string]any) string) {
 	opts := &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML}
 	if replyID > 0 {
@@ -215,6 +228,10 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		EmojiList: []string{packEmoji},
 	}}, nil)
 	if err != nil {
+		if strings.Contains(err.Error(), "PEER_ID_INVALID") {
+			sendPrivateStartRequiredMessage(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveMessage.MessageId, i18n)
+			return nil
+		}
 		sendKangErrorMessage(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't create sticker set", err)
 		return nil
 	}
@@ -637,6 +654,10 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 		title := generateStickerSetTitle(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username, 0)
 		_, err = b.CreateNewStickerSet(ctx.EffectiveUser.Id, pack.PackName, title, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}}, nil)
 		if err != nil {
+			if strings.Contains(err.Error(), "PEER_ID_INVALID") {
+				sendPrivateStartRequiredMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, i18n)
+				return nil
+			}
 			sendKangErrorMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't add sticker to set", err)
 			return nil
 		}
@@ -700,6 +721,11 @@ func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	_, err = b.CreateNewStickerSet(userID, packName, packTitle, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(kd.FileID), Format: kd.StickerType, EmojiList: []string{emoji}}}, nil)
 	if err != nil {
+		if strings.Contains(err.Error(), "PEER_ID_INVALID") {
+			sendPrivateStartRequiredMessage(b, ctx.CallbackQuery.Message.GetChat().Id, ctx.CallbackQuery.Message.GetMessageId(), i18n)
+			_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
+			return nil
+		}
 		answerKangErrorCallback(b, ctx.CallbackQuery.Id, userID, i18n, "Couldn't create sticker set from callback", err)
 		return nil
 	}

@@ -342,6 +342,8 @@ sticker-only-one-pack = You only have one sticker pack. Create more with <code>/
 sticker-all-packs-full = All your sticker packs are full (120 stickers). Create a new pack with <code>/newpack</code>.
 sticker-pack-full-mark = is full
 sticker-private-only = This command only works in the bot's private chat.
+sticker-private-start-required = To steal a sticker, <b>you need to</b> start a private chat with me or unblock me.
+sticker-private-start-button = Start private chat
 sticker-mypacks-header = <b>{ $userName }'s sticker packs</b>
 sticker-switch-header = { sticker-mypacks-header }
     Select the pack you want to set as default:

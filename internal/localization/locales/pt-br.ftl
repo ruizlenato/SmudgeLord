@@ -347,6 +347,8 @@ sticker-only-one-pack = Você só tem um pacote de figurinhas. Crie mais com <co
 sticker-all-packs-full = Todos os seus pacotes de figurinhas estão cheios (120 figurinhas). Crie um novo pacote com <code>/newpack</code>.
 sticker-pack-full-mark = está cheio
 sticker-private-only = Este comando só funciona no privado do bot.
+sticker-private-start-required = Para poder roubar uma figurinha, <b>você precisa</b> iniciar uma conversa no meu privado ou me desbloquear.
+sticker-private-start-button = Iniciar conversa no privado
 sticker-mypacks-header = <b>Pacotes de figurinhas de { $userName }</b>
 sticker-switch-header = { sticker-mypacks-header }
     Selecione o pacote que você quer definir como padrão:
