@@ -79,8 +79,12 @@ func Handle(text string) downloader.PostInfo {
 		return postInfo
 	}
 
+	if handler.mediaUnavailable {
+		return downloader.NewUnavailablePostInfo(handler.postID)
+	}
+
 	slog.Debug("TikTok: All extraction methods failed")
-	return downloader.PostInfo{}
+	return downloader.NewNoMediaPostInfo(handler.postID)
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -190,10 +194,15 @@ func solveChallenge(challengeB64 string) (string, error) {
 }
 
 func (h *Handler) getTikTokData() TikTokData {
+	h.mediaUnavailable = false
+
 	if data, rateLimited := h.fetchTikTokData(""); data != nil {
 		return data
 	} else if rateLimited {
 		slog.Debug("TikTok: API rate-limited, switching to web extraction", "Post", h.postID)
+	}
+	if h.mediaUnavailable {
+		return nil
 	}
 
 	if h.webData == nil {
@@ -211,8 +220,30 @@ func (h *Handler) getTikTokData() TikTokData {
 			slog.Debug("TikTok: API still rate-limited after challenge cookies", "Post", h.postID)
 		}
 	}
+	if h.mediaUnavailable {
+		return nil
+	}
 
 	return h.webData
+}
+
+func (h *Handler) markUnavailableIfRemoved(body []byte) bool {
+	var status struct {
+		StatusCode int    `json:"status_code"`
+		StatusMsg  string `json:"status_msg"`
+	}
+
+	if err := json.Unmarshal(body, &status); err != nil {
+		return false
+	}
+
+	if status.StatusCode == 2053 {
+		h.mediaUnavailable = true
+		slog.Debug("TikTok: media unavailable", "Post", h.postID, "StatusCode", status.StatusCode, "StatusMsg", status.StatusMsg)
+		return true
+	}
+
+	return false
 }
 
 func (h *Handler) scrapeWebData() {
@@ -550,6 +581,9 @@ func (h *Handler) fetchTikTokDataMultiDetail(headers, query map[string]string) (
 	if isTikTokRateLimited(statusCode, body) {
 		return nil, true
 	}
+	if h.markUnavailableIfRemoved(body) {
+		return nil, false
+	}
 
 	var detailResponse struct {
 		AwemeDetails []Aweme `json:"aweme_details"`
@@ -575,6 +609,9 @@ func (h *Handler) fetchTikTokDataFeed(headers, query map[string]string) (TikTokD
 
 	if isTikTokRateLimited(statusCode, body) {
 		return nil, true
+	}
+	if h.markUnavailableIfRemoved(body) {
+		return nil, false
 	}
 
 	var tikTokData TikTokData
@@ -693,7 +730,6 @@ func (h *Handler) handleVideo(tikTokData TikTokData) []gotgbot.InputMedia {
 	}
 
 	if len(validURLs) == 0 {
-		slog.Error("TikTok: No valid video URL found", "Post", h.postID)
 		return nil
 	}
 

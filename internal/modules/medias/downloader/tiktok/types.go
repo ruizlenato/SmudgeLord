@@ -7,12 +7,13 @@ const (
 )
 
 type Handler struct {
-	username string
-	postID   string
-	webURL   string
-	webData  TikTokData
-	cookies  string
-	deviceID string
+	username         string
+	postID           string
+	webURL           string
+	webData          TikTokData
+	cookies          string
+	deviceID         string
+	mediaUnavailable bool
 }
 
 type TikTokData *struct {
