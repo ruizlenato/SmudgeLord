@@ -32,6 +32,7 @@ error-report =
     <b>Clique abaixo para reportar o erro.</b>
 error-report-alert = { $summary } ID do Erro: { $errorId }. Use o botão da mensagem para reportar.
 error-report-button = 🐞 Reportar erro
+problem-report-button = Reportar problema
 only-groups = Este comando só pode ser usado em grupos.
 about-message =
     <b>— SmudgeLord</b>
@@ -218,7 +219,10 @@ unsupported-link =
 click-to-download-media = Clique aqui para baixar a mídia do link.
 no-media-found =
     Nenhuma mídia encontrada no link fornecido ou ocorreu um erro ao processar o link.
-    <b>Tente novamente mais tarde.</b>
+    <b>Se o erro permanecer com outros links, reporte no botão abaixo.</b>
+media-unavailable =
+    Esta mídia não está disponível no momento ou foi removida.
+    <b>Se o erro permanecer com outros links, reporte no botão abaixo.</b>
 media-error =
     Ocorreu um erro ao baixar a mídia. Por favor, tente novamente mais tarde.
 

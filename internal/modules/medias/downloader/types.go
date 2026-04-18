@@ -28,6 +28,15 @@ type PostInfo struct {
 	Service     string
 	InvertMedia bool
 	NoMedia     bool
+	Unavailable bool
+}
+
+func NewNoMediaPostInfo(id string) PostInfo {
+	return PostInfo{ID: id, NoMedia: true}
+}
+
+func NewUnavailablePostInfo(id string) PostInfo {
+	return PostInfo{ID: id, NoMedia: true, Unavailable: true}
 }
 
 type YouTube struct {

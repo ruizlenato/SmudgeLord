@@ -158,6 +158,20 @@ func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string,
 	return true
 }
 
+func noMediaMessage(i18n func(string, ...map[string]any) string, postInfo downloader.PostInfo) string {
+	if postInfo.Unavailable {
+		return i18n("media-unavailable")
+	}
+	return i18n("no-media-found")
+}
+
+func noMediaSupportKeyboard(i18n func(string, ...map[string]any) string) gotgbot.InlineKeyboardMarkup {
+	return gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+		Text: i18n("problem-report-button"),
+		Url:  utils.SupportGroupURL,
+	}}}}
+}
+
 func setMediaCaption(media gotgbot.InputMedia, caption string) {
 	switch v := media.(type) {
 	case *gotgbot.InputMediaPhoto:
@@ -278,6 +292,14 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	postInfo := processMedia(url)
+	if postInfo.NoMedia || len(postInfo.Medias) == 0 {
+		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(i18n, postInfo), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+			ReplyMarkup:     noMediaSupportKeyboard(i18n),
+		})
+		return nil
+	}
 	if !prepareCaption(&postInfo, url, i18n) {
 		return nil
 	}
@@ -352,10 +374,11 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 	inlineResult := ctx.ChosenInlineResult
 	postInfo := processMedia(inlineResult.Query)
-	if len(postInfo.Medias) == 0 {
-		_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("no-media-found"), &gotgbot.EditMessageTextOpts{
+	if postInfo.NoMedia || len(postInfo.Medias) == 0 {
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), noMediaMessage(i18n, postInfo), &gotgbot.EditMessageTextOpts{
 			InlineMessageId: inlineResult.InlineMessageId,
 			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyMarkup:     noMediaSupportKeyboard(i18n),
 		})
 		return nil
 	}
