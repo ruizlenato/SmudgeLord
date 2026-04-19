@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -17,6 +18,7 @@ var (
 	WebhookURL    string
 	WebhookPort   int
 	Socks5Proxy   string
+	Socks5Proxies []string
 	OwnerID       int64
 	LogChannelID  int64
 )
@@ -57,6 +59,7 @@ func init() {
 	BotAPIURL = os.Getenv("BOTAPI_URL")
 
 	Socks5Proxy = os.Getenv("SOCKS5_PROXY")
+	Socks5Proxies = parseProxyList(Socks5Proxy)
 
 	LogChannelID, _ = strconv.ParseInt(os.Getenv("CHANNEL_LOG_ID"), 10, 64)
 	if LogChannelID == 0 {
@@ -69,6 +72,24 @@ func init() {
 		slog.Error(`You need to set the "OWNER_ID" in the .env file!`)
 		os.Exit(1)
 	}
+}
+
+func parseProxyList(raw string) []string {
+	if strings.TrimSpace(raw) == "" {
+		return nil
+	}
+
+	parts := strings.Split(raw, ",")
+	proxies := make([]string, 0, len(parts))
+	for _, part := range parts {
+		proxy := strings.TrimSpace(part)
+		if proxy == "" {
+			continue
+		}
+		proxies = append(proxies, proxy)
+	}
+
+	return proxies
 }
 
 func parseLogLevel(level string) slog.Leveler {

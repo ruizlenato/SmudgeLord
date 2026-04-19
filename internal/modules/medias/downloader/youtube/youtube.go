@@ -46,7 +46,7 @@ func getVideoFormat(video *youtubedl.Video, itag int) (*youtubedl.Format, error)
 }
 
 func ConfigureYoutubeClient() *youtubedl.Client {
-	if config.Socks5Proxy == "" {
+	if len(config.Socks5Proxies) == 0 {
 		ytClient, err := youtubedl.New()
 		if err != nil {
 			slog.Error("Couldn't create youtube-dl client", "Error", err.Error())
@@ -55,33 +55,54 @@ func ConfigureYoutubeClient() *youtubedl.Client {
 		return ytClient
 	}
 
-	proxyURL, parseErr := url.Parse(config.Socks5Proxy)
-	if parseErr != nil {
-		slog.Error("Couldn't parse proxy URL", "Proxy", config.Socks5Proxy, "Error", parseErr.Error())
-		return nil
+	var lastErr error
+	for index, proxy := range config.Socks5Proxies {
+		proxyURL, parseErr := url.Parse(proxy)
+		if parseErr != nil {
+			slog.Error("Couldn't parse proxy URL", "Proxy", proxy, "Index", index, "Error", parseErr.Error())
+			lastErr = parseErr
+			continue
+		}
+
+		httpClient := &http.Client{
+			Transport: &http.Transport{
+				Proxy:                 http.ProxyURL(proxyURL),
+				ResponseHeaderTimeout: 30 * time.Second,
+				IdleConnTimeout:       90 * time.Second,
+				TLSHandshakeTimeout:   10 * time.Second,
+			},
+			Timeout: 120 * time.Second,
+		}
+
+		ytClient, err := utils.RetryWithBackoff(
+			func() (*youtubedl.Client, error) {
+				return youtubedl.New(youtubedl.WithHTTPClient(httpClient))
+			},
+			maxRetries,
+			retryDelay,
+			maxRetryDelay,
+			2,
+		)
+		if err != nil {
+			slog.Warn("Couldn't create youtube-dl client with proxy, trying next proxy",
+				"Proxy", proxy,
+				"Index", index,
+				"Error", err.Error())
+			lastErr = err
+			continue
+		}
+
+		return ytClient
 	}
 
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			Proxy:                 http.ProxyURL(proxyURL),
-			ResponseHeaderTimeout: 30 * time.Second,
-			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-		},
-		Timeout: 120 * time.Second,
+	if lastErr != nil {
+		slog.Error("Couldn't create youtube-dl client with configured proxies", "Error", lastErr.Error())
 	}
 
-	ytClient, err := utils.RetryWithBackoff(
-		func() (*youtubedl.Client, error) {
-			return youtubedl.New(youtubedl.WithHTTPClient(httpClient))
-		},
-		maxRetries,
-		retryDelay,
-		maxRetryDelay,
-		2,
-	)
+	slog.Warn("Falling back to direct YouTube client without proxy")
+	ytClient, err := youtubedl.New()
 	if err != nil {
-		slog.Error("Couldn't create youtube-dl client with proxy after max retries", "MaxRetries", maxRetries, "Error", err.Error())
+		slog.Error("Couldn't create direct youtube-dl client", "Error", err.Error())
 		return nil
 	}
 
@@ -117,6 +138,9 @@ func downloadStream(youtubeClient *youtubedl.Client, video *youtubedl.Video, for
 
 func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 	youtubeClient := ConfigureYoutubeClient()
+	if youtubeClient == nil {
+		return nil, nil, errors.New("YouTube client unavailable")
+	}
 
 	video, err := youtubeClient.GetVideo(callbackData[1])
 	if err != nil {
@@ -182,6 +206,9 @@ func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
 
 func Handle(videoURL string) downloader.PostInfo {
 	youtubeClient := ConfigureYoutubeClient()
+	if youtubeClient == nil {
+		return downloader.PostInfo{}
+	}
 	video, err := youtubeClient.GetVideo(videoURL)
 	if err != nil {
 		if strings.Contains(err.Error(), "can't bypass age restriction") {
