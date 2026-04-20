@@ -41,6 +41,7 @@ const (
 	chatActionUploadVoice = "upload_voice"
 	chatActionUploadVideo = "upload_video"
 	mediaSendInterval     = 500 * time.Millisecond
+	noMediaMessageTTL     = 1 * time.Minute
 )
 
 var mediaRegex = regexp.MustCompile(regexMedia)
@@ -50,6 +51,13 @@ var mediaSendLimiter = struct {
 	nextAllowedByChat map[int64]time.Time
 }{
 	nextAllowedByChat: make(map[int64]time.Time),
+}
+
+var noMediaMessageTracker = struct {
+	mu           sync.Mutex
+	lastByChatID map[int64]int64
+}{
+	lastByChatID: make(map[int64]int64),
 }
 
 func waitForMediaSendSlot(chatID int64) {
@@ -64,6 +72,38 @@ func waitForMediaSendSlot(chatID int64) {
 	if wait := time.Until(sendAt); wait > 0 {
 		time.Sleep(wait)
 	}
+}
+
+func isGroupLikeChat(chatType string) bool {
+	return chatType == gotgbot.ChatTypeGroup || chatType == gotgbot.ChatTypeSupergroup
+}
+
+func replaceTrackedNoMediaMessage(chatID, messageID int64) int64 {
+	noMediaMessageTracker.mu.Lock()
+	defer noMediaMessageTracker.mu.Unlock()
+
+	previous := noMediaMessageTracker.lastByChatID[chatID]
+	noMediaMessageTracker.lastByChatID[chatID] = messageID
+	return previous
+}
+
+func scheduleNoMediaMessageDelete(b *gotgbot.Bot, chatID, messageID int64) {
+	go func() {
+		time.Sleep(noMediaMessageTTL)
+
+		noMediaMessageTracker.mu.Lock()
+		current := noMediaMessageTracker.lastByChatID[chatID]
+		if current == messageID {
+			delete(noMediaMessageTracker.lastByChatID, chatID)
+		}
+		noMediaMessageTracker.mu.Unlock()
+
+		if current != messageID {
+			return
+		}
+
+		_, _ = b.DeleteMessageWithContext(context.Background(), chatID, messageID, nil)
+	}()
 }
 
 type MediaHandler struct {
@@ -293,11 +333,18 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	postInfo := processMedia(url)
 	if postInfo.NoMedia || len(postInfo.Medias) == 0 {
-		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(i18n, postInfo), &gotgbot.SendMessageOpts{
+		notice, _ := b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(i18n, postInfo), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 			ReplyMarkup:     noMediaSupportKeyboard(i18n),
 		})
+
+		if notice != nil && isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) {
+			if previous := replaceTrackedNoMediaMessage(ctx.EffectiveMessage.Chat.Id, notice.MessageId); previous > 0 && previous != notice.MessageId {
+				_, _ = b.DeleteMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, previous, nil)
+			}
+			scheduleNoMediaMessageDelete(b, ctx.EffectiveMessage.Chat.Id, notice.MessageId)
+		}
 		return nil
 	}
 	if !prepareCaption(&postInfo, url, i18n) {
