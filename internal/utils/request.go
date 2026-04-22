@@ -34,6 +34,10 @@ func (a HTTPCaller) Call(url string, params RequestParams) (*http.Response, erro
 		req.Header.Set(key, value)
 	}
 
+	for key, value := range params.Cookies {
+		req.AddCookie(&http.Cookie{Name: key, Value: value})
+	}
+
 	switch params.Method {
 	case http.MethodGet, http.MethodOptions, http.MethodHead:
 		q := req.URL.Query()
@@ -86,6 +90,7 @@ type RequestParams struct {
 	Headers    map[string]string
 	Query      map[string]string
 	BodyString []string
+	Cookies    map[string]string
 }
 
 func Request(url string, params RequestParams) (*http.Response, error) {

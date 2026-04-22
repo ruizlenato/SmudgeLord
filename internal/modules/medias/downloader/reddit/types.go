@@ -1,8 +1,11 @@
 package reddit
 
+import "net/http"
+
 type Handler struct {
 	subreddit string
 	postID    string
+	client    *http.Client
 }
 
 type RedditPost []KindData

@@ -1,16 +1,18 @@
 package reddit
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"path"
 	"regexp"
 	"strings"
-	"sync/atomic"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/grafov/m3u8"
@@ -20,10 +22,7 @@ import (
 )
 
 var redlibInstances = []string{
-	"https://l.opnxng.com",
 	"https://redlib.catsarch.com",
-	"https://redlib.perennialte.ch",
-	"https://redlib.r4fo.com",
 	"https://red.artemislena.eu",
 	"https://redlib.privacyredirect.com",
 	"https://redlib.nadeko.net",
@@ -96,21 +95,14 @@ func (h *Handler) processMedia() ([]gotgbot.InputMedia, string) {
 }
 
 func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
-	response, redlibInstance, err := h.requestRedlibPost()
+	response, _, err := h.requestRedlibPost()
 	if err != nil {
-		slog.Error("Failed to fetch media content from redlib instances",
-			"Post Info", []string{h.subreddit, h.postID},
-			"Error", err.Error())
 		return nil, ""
 	}
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		slog.Error("Failed to read response body",
-			"Instance", redlibInstance,
-			"Post Info", []string{h.subreddit, h.postID},
-			"Error", err.Error())
 		return nil, ""
 	}
 
@@ -146,59 +138,77 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 }
 
 func (h *Handler) requestRedlibPost() (*http.Response, string, error) {
-	if len(redlibInstances) == 0 {
-		return nil, "", fmt.Errorf("no redlib instances configured")
+	instance := "https://redlib.catsarch.com"
+	targetURL := fmt.Sprintf("%s/r/%s/comments/%s", instance, h.subreddit, h.postID)
+
+	response, err := utils.Request(targetURL, utils.RequestParams{
+		Method:  "GET",
+		Headers: downloader.GenericHeaders,
+	})
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to request instance %s: %w", instance, err)
 	}
 
-	start := int(atomic.AddUint64(&redlibRouteCounter, 1)-1) % len(redlibInstances)
-	for i := 0; i < len(redlibInstances); i++ {
-		instance := redlibInstances[(start+i)%len(redlibInstances)]
-		url := fmt.Sprintf("%s/r/%s/comments/%s", instance, h.subreddit, h.postID)
-		response, err := utils.Request(url, utils.RequestParams{
-			Method:  "GET",
-			Headers: downloader.GenericHeaders,
-		})
-
-		if err != nil {
-			slog.Warn("Failed to request redlib instance",
-				"Instance", instance,
-				"Post Info", []string{h.subreddit, h.postID},
-				"Error", err.Error())
-			continue
-		}
-
-		if response == nil || response.Body == nil {
-			slog.Warn("Redlib instance returned empty response body",
-				"Instance", instance,
-				"Post Info", []string{h.subreddit, h.postID})
-			if response != nil && response.Body != nil {
-				_ = response.Body.Close()
-			}
-			continue
-		}
-
-		if response.StatusCode != http.StatusOK {
-			slog.Warn("Redlib instance returned non-200 status",
-				"Instance", instance,
-				"StatusCode", response.StatusCode,
-				"Post Info", []string{h.subreddit, h.postID})
+	if response == nil || response.Body == nil {
+		if response != nil && response.Body != nil {
 			_ = response.Body.Close()
-			continue
 		}
-
-		return response, instance, nil
+		return nil, "", fmt.Errorf("empty response body from instance %s", instance)
 	}
 
-	return nil, "", fmt.Errorf("all redlib instances failed for %s/%s", h.subreddit, h.postID)
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		response.Body.Close()
+		return nil, "", fmt.Errorf("failed to read response body: %w", err)
+	}
+	response.Body.Close()
+
+	bodyStr := string(body)
+
+	if looksLikeBlockPage(bodyStr) {
+		jar, _ := cookiejar.New(nil)
+		client := &http.Client{Jar: jar}
+		challengeResp, err := solveAnubisChallengeForURL(targetURL, client)
+		if err != nil {
+			return nil, "", fmt.Errorf("failed to solve Anubis challenge: %w", err)
+		}
+		h.client = client
+
+		body, err = io.ReadAll(challengeResp.Body)
+		if err != nil {
+			challengeResp.Body.Close()
+			return nil, "", fmt.Errorf("failed to read solved response body: %w", err)
+		}
+		challengeResp.Body.Close()
+		bodyStr = string(body)
+	}
+
+	newResp := &http.Response{
+		StatusCode: response.StatusCode,
+		Status:     response.Status,
+		Header:     response.Header,
+		Body:       io.NopCloser(bytes.NewReader(body)),
+	}
+
+	var reqURL *url.URL
+	if response.Request != nil {
+		reqURL = response.Request.URL
+	}
+	if reqURL == nil {
+		reqURL, _ = url.Parse(instance)
+	}
+	newResp.Request = &http.Request{URL: reqURL}
+
+	return newResp, instance, nil
 }
 
 func buildMediaURL(response *http.Response, path string) string {
-	url := fmt.Sprintf("%s://%s%s",
+	urlStr := fmt.Sprintf("%s://%s%s",
 		string(response.Request.URL.Scheme),
 		string(response.Request.URL.Host),
 		path,
 	)
-	return cleanupRegex.ReplaceAllString(url, "")
+	return cleanupRegex.ReplaceAllString(urlStr, "")
 }
 
 func extractRedlibCaption(body []byte) string {
@@ -212,9 +222,13 @@ func extractRedlibCaption(body []byte) string {
 
 	postAuthor := extract(`(?s)<a class="post_author.*?" href=".*?">([^"]+)</a>`, body)
 	postSubreddit := extract(`(?s)<a class="post_subreddit" href=".*?">([^"]+)</a>`, body)
-	postTitle := extract(`(?s)<h1 class="post_title">(?:.*?</a>)?\s*([^<]+)\s*</h1>`, body)
+	postTitle := extract(`(?s)<h1 class="post_title">(?:.*?</a>)?([^<]+)</h1>`, body)
 
-	return fmt.Sprintf("<b>%s — %s</b>: %s",
+	if postTitle != "" {
+		postTitle = strings.Join(strings.Fields(postTitle), " ")
+	}
+
+	return fmt.Sprintf("<b>%s — %s</b>:\n%s",
 		html.EscapeString(postAuthor),
 		html.EscapeString(postSubreddit),
 		html.EscapeString(postTitle))
@@ -372,12 +386,30 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 	for i, item := range content {
 		go func(index int) {
 			media := buildMediaURL(response, string(item[1]))
-			file, err := downloader.FetchBytesFromURL(media)
+
+			client := h.client
+			if client == nil {
+				jar, _ := cookiejar.New(nil)
+				client = &http.Client{Jar: jar}
+			}
+
+			fetchResult, err := downloader.FetchBytesFromURLWithClient(media, client)
 			if err != nil {
 				results <- mediaResult{index: index, err: err}
 				return
 			}
 
+			bodyStr := string(fetchResult.Body[:min(500, len(fetchResult.Body))])
+			if strings.Contains(bodyStr, "anubis") || strings.Contains(bodyStr, "Making sure") || strings.Contains(bodyStr, "block_page") {
+				solved, solveErr := solveAnubisMediaForURL(media, client)
+				if solveErr != nil {
+					results <- mediaResult{index: index, err: solveErr}
+					return
+				}
+				fetchResult = solved
+			}
+
+			file := fetchResult.Body
 			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID))
 			inputMedia := &gotgbot.InputMediaPhoto{
 				Media: downloader.InputFileFromBytes(filename, file),
