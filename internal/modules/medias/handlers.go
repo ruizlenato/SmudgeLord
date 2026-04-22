@@ -40,9 +40,75 @@ const (
 	chatActionUploadDoc   = "upload_document"
 	chatActionUploadVoice = "upload_voice"
 	chatActionUploadVideo = "upload_video"
-	mediaSendInterval     = 500 * time.Millisecond
+	mediaSendInterval     = 200 * time.Millisecond
 	noMediaMessageTTL     = 1 * time.Minute
 )
+
+type globalRateLimiter struct {
+	mu              sync.Mutex
+	nextAllowed     time.Time
+	floodWaitUntil  time.Time
+	consecutiveFail int
+}
+
+var globalLimiter = &globalRateLimiter{}
+
+func waitForGlobalSlot() {
+	globalLimiter.mu.Lock()
+	defer globalLimiter.mu.Unlock()
+
+	now := time.Now()
+
+	if now.Before(globalLimiter.floodWaitUntil) {
+		waitTime := time.Until(globalLimiter.floodWaitUntil)
+		globalLimiter.mu.Unlock()
+		slog.Warn("Telegram flood wait active, waiting", "duration", waitTime.Round(time.Second))
+		time.Sleep(waitTime)
+		globalLimiter.mu.Lock()
+		now = time.Now()
+	}
+
+	if now.Before(globalLimiter.nextAllowed) {
+		waitTime := time.Until(globalLimiter.nextAllowed)
+		globalLimiter.mu.Unlock()
+		time.Sleep(waitTime)
+		globalLimiter.mu.Lock()
+	}
+
+	globalLimiter.nextAllowed = time.Now().Add(mediaSendInterval)
+}
+
+func parseFloodWaitError(err error) (int, bool) {
+	if err == nil {
+		return 0, false
+	}
+	errMsg := err.Error()
+	if !strings.Contains(strings.ToLower(errMsg), "too many requests") {
+		return 0, false
+	}
+	re := regexp.MustCompile(`retry after (\d+)`)
+	matches := re.FindStringSubmatch(errMsg)
+	if len(matches) < 2 {
+		return 0, false
+	}
+	retryAfter, parseErr := strconv.Atoi(matches[1])
+	if parseErr != nil {
+		return 0, false
+	}
+	return retryAfter, true
+}
+
+func handleFloodWait(retryAfter int) {
+	globalLimiter.mu.Lock()
+	defer globalLimiter.mu.Unlock()
+
+	globalLimiter.floodWaitUntil = time.Now().Add(time.Duration(retryAfter) * time.Second).Add(2 * time.Second)
+	globalLimiter.consecutiveFail++
+	slog.Warn("Flood wait received, updating global limiter",
+		"retry_after", retryAfter,
+		"consecutive_fails", globalLimiter.consecutiveFail,
+		"will_wait_until", globalLimiter.floodWaitUntil.Round(time.Second))
+}
 
 var mediaRegex = regexp.MustCompile(regexMedia)
 
@@ -237,6 +303,7 @@ func sendSingleMedia(
 		return nil, fmt.Errorf("missing effective message")
 	}
 	waitForMediaSendSlot(ctx.EffectiveMessage.Chat.Id)
+	waitForGlobalSlot()
 	keyboard := openLinkKeyboard(buttonText, url)
 	replyParams := &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}
 	switch v := media.(type) {
@@ -292,6 +359,7 @@ func sendMediaAndHandleCaption(
 		}
 	} else {
 		waitForMediaSendSlot(ctx.EffectiveMessage.Chat.Id)
+		waitForGlobalSlot()
 		replies, err := b.SendMediaGroupWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, postInfo.Medias, &gotgbot.SendMediaGroupOpts{
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		})
@@ -360,14 +428,26 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		}
 		sent, err := sendMediaAndHandleCaption(b, ctx, batch, url, i18n)
 		if err != nil {
-			if strings.Contains(err.Error(), "too many requests") {
+			if retryAfter, isFlood := parseFloodWaitError(err); isFlood {
+				handleFloodWait(retryAfter)
+				// Retry immediately after flood wait expires
+				sent, err = sendMediaAndHandleCaption(b, ctx, batch, url, i18n)
+				if err != nil {
+					if isIgnorableMediaSendError(err) {
+						continue
+					}
+					slog.Error("Couldn't send media batch after flood wait", "postUrl", url, "error", err.Error(), "batch", i/10+1)
+					continue
+				}
+			} else if strings.Contains(err.Error(), "too many requests") {
+				// Fallback for other "too many requests" errors
 				return nil
-			}
-			if isIgnorableMediaSendError(err) {
+			} else if isIgnorableMediaSendError(err) {
+				continue
+			} else {
+				slog.Error("Couldn't send media batch", "postUrl", url, "error", err.Error(), "batch", i/10+1)
 				continue
 			}
-			slog.Error("Couldn't send media batch", "postUrl", url, "error", err.Error(), "batch", i/10+1)
-			continue
 		}
 		allSent = append(allSent, sent...)
 	}
@@ -488,6 +568,7 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 
 func uploadMediaToLogChannel(ctx context.Context, b *gotgbot.Bot, media gotgbot.InputMedia, invert bool) (*gotgbot.Message, error) {
 	waitForMediaSendSlot(config.LogChannelID)
+	waitForGlobalSlot()
 	switch v := media.(type) {
 	case *gotgbot.InputMediaPhoto:
 		return b.SendPhotoWithContext(ctx, config.LogChannelID, v.Media, &gotgbot.SendPhotoOpts{ShowCaptionAboveMedia: invert})
