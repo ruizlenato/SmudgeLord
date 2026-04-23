@@ -400,7 +400,10 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	postInfo := processMedia(url)
-	if postInfo.NoMedia || len(postInfo.Medias) == 0 {
+	if len(postInfo.Medias) == 0 {
+		if postInfo.NoMedia {
+			return nil
+		}
 		notice, _ := b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(i18n, postInfo), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
@@ -501,7 +504,10 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 	inlineResult := ctx.ChosenInlineResult
 	postInfo := processMedia(inlineResult.Query)
-	if postInfo.NoMedia || len(postInfo.Medias) == 0 {
+	if len(postInfo.Medias) == 0 {
+		if postInfo.NoMedia {
+			return nil
+		}
 		_, _, _ = b.EditMessageTextWithContext(context.Background(), noMediaMessage(i18n, postInfo), &gotgbot.EditMessageTextOpts{
 			InlineMessageId: inlineResult.InlineMessageId,
 			ParseMode:       gotgbot.ParseModeHTML,

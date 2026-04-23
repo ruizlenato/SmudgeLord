@@ -50,7 +50,7 @@ func Handle(text string) downloader.PostInfo {
 		if fxTwitterData != nil {
 			return handler.processFxTwitterAPI(fxTwitterData)
 		}
-		return downloader.PostInfo{}
+		return downloader.NewUnavailablePostInfo(handler.postID)
 	}
 
 	handler.username = (*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.ScreenName
@@ -76,13 +76,17 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 
 	allTweetMedia := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media
 	if quotedStatusResult := (*twitterData).Data.TweetResult.QuotedStatusResult; len(allTweetMedia) == 0 && quotedStatusResult != nil && quotedStatusResult.Legacy != nil {
-		invertMedia = true
-		allTweetMedia = quotedStatusResult.Legacy.ExtendedEntities.Media
+		if quotedStatusResult.Legacy.ExtendedEntities.Media != nil {
+			invertMedia = true
+			allTweetMedia = quotedStatusResult.Legacy.ExtendedEntities.Media
+		}
 	}
 
 	mediaCount := len(allTweetMedia)
 	if mediaCount == 0 {
-		return downloader.PostInfo{}
+		slog.Debug("No media found in tweet",
+			"Post Info", []string{h.username, h.postID})
+		return downloader.NewNoMediaPostInfo(h.postID)
 	}
 
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
@@ -133,6 +137,10 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 			}
 			mediaItems[result.index] = mediaItem
 		}
+	}
+
+	if !slices.ContainsFunc(mediaItems, func(m gotgbot.InputMedia) bool { return m != nil }) {
+		return downloader.NewUnavailablePostInfo(h.postID)
 	}
 
 	return downloader.PostInfo{
@@ -340,7 +348,9 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 		invertMedia = true
 		allMedia = twitterData.Tweet.Quote.Media.All
 	} else {
-		return downloader.PostInfo{}
+		slog.Debug("No media found in tweet (fxTwitter)",
+			"Post ID", h.postID)
+		return downloader.NewNoMediaPostInfo(h.postID)
 	}
 
 	mediaCount := len(allMedia)
@@ -399,6 +409,10 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 			}
 			mediaItems[result.index] = mediaItem
 		}
+	}
+
+	if !slices.ContainsFunc(mediaItems, func(m gotgbot.InputMedia) bool { return m != nil }) {
+		return downloader.NewUnavailablePostInfo(h.postID)
 	}
 
 	return downloader.PostInfo{
