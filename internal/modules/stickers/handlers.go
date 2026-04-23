@@ -210,7 +210,7 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if packEmoji == "" || strings.EqualFold(packEmoji, "skip") || strings.EqualFold(packEmoji, "pular") || strings.EqualFold(packEmoji, i18n("stickers-newpack-skip-button")) {
 		packEmoji = "🤔"
 	}
-	packName, err := generateStickerSetName(b, ctx.EffectiveUser.Id, count)
+	packName, err := generateUniqueStickerSetName(b, ctx.EffectiveUser.Id, count)
 	if err != nil {
 		sendKangErrorMessage(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't generate sticker set name", err)
 		return nil
@@ -368,6 +368,10 @@ func validateUserPacks(b *gotgbot.Bot, userID int64) []ValidatedPack {
 	for _, pack := range packs {
 		set, err := b.GetStickerSet(pack.PackName, nil)
 		if err != nil || set == nil {
+			slog.Debug("Cleaning up stale pack from database", "packName", pack.PackName, "userID", userID)
+			if delErr := deletePackByName(userID, pack.PackName); delErr != nil {
+				slog.Warn("Failed to delete stale pack", "packName", pack.PackName, "userID", userID, "error", delErr)
+			}
 			continue
 		}
 		valid = append(valid, ValidatedPack{StickerPack: pack, Title: set.Title, StickerCount: len(set.Stickers)})
@@ -713,12 +717,19 @@ func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("sticker-max-packs-reached", map[string]any{"maxPacks": maxPacks}), ShowAlert: true})
 		return nil
 	}
-	packName, _ := generateStickerSetName(b, userID, count)
+
+	packName, err := generateUniqueStickerSetName(b, userID, count)
+	if err != nil {
+		answerKangErrorCallback(b, ctx.CallbackQuery.Id, userID, i18n, "Couldn't find available sticker set name", err)
+		return nil
+	}
+
 	packTitle := generateStickerSetTitle(ctx.CallbackQuery.From.FirstName, ctx.CallbackQuery.From.Username, count)
 	emoji := kd.Emoji
 	if emoji == "" {
 		emoji = "🤔"
 	}
+
 	_, err = b.CreateNewStickerSet(userID, packName, packTitle, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(kd.FileID), Format: kd.StickerType, EmojiList: []string{emoji}}}, nil)
 	if err != nil {
 		if strings.Contains(err.Error(), "PEER_ID_INVALID") {
@@ -729,7 +740,6 @@ func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		answerKangErrorCallback(b, ctx.CallbackQuery.Id, userID, i18n, "Couldn't create sticker set from callback", err)
 		return nil
 	}
-	_ = createPack(userID, packName)
 	_ = cache.DeleteCache(cacheKey)
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msg := ctx.CallbackQuery.Message.GetMessageId()
@@ -911,6 +921,41 @@ func generateStickerSetName(b *gotgbot.Bot, userID int64, packNum int) (string, 
 	return shortNamePrefix + shortNameSuffix, nil
 }
 
+func generateUniqueStickerSetName(b *gotgbot.Bot, userID int64, startCount int) (string, error) {
+	botInfo := b.User
+	if botInfo.Username == "" {
+		if info, err := b.GetMe(nil); err == nil {
+			botInfo = *info
+		}
+	}
+
+	for i := startCount; i <= maxPacks; i++ {
+		packName := fmt.Sprintf("a_%d_%d_by_%s", i, userID, botInfo.Username)
+
+		existsInDB, _ := packExists(packName)
+		if existsInDB {
+			if _, err := b.GetStickerSet(packName, nil); err == nil {
+				continue
+			}
+			return packName, nil
+		}
+
+		if _, err := b.GetStickerSet(packName, nil); err != nil {
+			return packName, nil
+		}
+	}
+
+	defaultPackName := fmt.Sprintf("a_%d_by_%s", userID, botInfo.Username)
+	existsInDB, _ := packExists(defaultPackName)
+	if !existsInDB {
+		if _, err := b.GetStickerSet(defaultPackName, nil); err != nil {
+			return defaultPackName, nil
+		}
+	}
+
+	return "", fmt.Errorf("no available pack names found")
+}
+
 func syncUserPacks(b *gotgbot.Bot, userID int64) error {
 	botInfo := b.User
 	if botInfo.Username == "" {
@@ -923,6 +968,14 @@ func syncUserPacks(b *gotgbot.Bot, userID int64) error {
 	packNames = append(packNames, "a_"+suffix)
 	for i := 0; i < maxPacks; i++ {
 		packNames = append(packNames, fmt.Sprintf("a_%d_%s", i, suffix))
+	}
+
+	dbPacks, _ := getUserPacks(userID)
+	for _, pack := range dbPacks {
+		if _, err := b.GetStickerSet(pack.PackName, nil); err != nil {
+			slog.Debug("Cleaning up stale pack from database", "packName", pack.PackName, "userID", userID)
+			_ = deletePackByName(userID, pack.PackName)
+		}
 	}
 
 	var wg sync.WaitGroup

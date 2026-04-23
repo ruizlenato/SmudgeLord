@@ -124,3 +124,18 @@ func packExists(packName string) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+func deletePackByName(userID int64, packName string) error {
+	result, err := database.DB.Exec("DELETE FROM sticker_packs WHERE user_id = ? AND pack_name = ?", userID, packName)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("pack not found")
+	}
+	return nil
+}
