@@ -65,23 +65,28 @@ func CreateTables() error {
 			username TEXT,
 			lastfm_username TEXT
 		);
+
 		CREATE TABLE IF NOT EXISTS chats (
 			id INTEGER PRIMARY KEY,
 			language TEXT DEFAULT 'en-us',
 			mediasAuto BOOLEAN DEFAULT 1,
-			mediasCaption BOOLEAN DEFAULT 1
+			mediasCaption BOOLEAN DEFAULT 1,
+			mediasErrors BOOLEAN DEFAULT 1
 		);
+
 		CREATE TABLE IF NOT EXISTS afk (
 			id INTEGER PRIMARY KEY,
 			username TEXT,
 			reason TEXT,
 			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 		);
+
 		CREATE TABLE IF NOT EXISTS commandsDisabled (
 			chat_id INTEGER,
 			command TEXT NOT NULL,
 			PRIMARY KEY (chat_id, command)
 		);
+
 		CREATE TABLE IF NOT EXISTS sticker_packs (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			user_id INTEGER NOT NULL,

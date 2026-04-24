@@ -143,6 +143,7 @@ config-medias =
     <i>Essas configurações são específicas para este grupo, não se aplicam a outros grupos ou chats privados.</i>
 caption-button = Legendas:
 automatic-button = Automático:
+errors-button = Erros:
 command-enabled = O comando <code>{ $command }</code> <b>foi ativado com sucesso.</b>
 command-already-enabled = O comando <code>{ $command }</code> <b>já está ativado.</b>
 enable-commands-usage =
@@ -208,6 +209,7 @@ youtube-error-with-id =
 youtube-error-alert-with-id = Ocorreu um erro ao processar o vídeo. Error ID: { $errorId }. Use o botão da mensagem para reportar.
 auto-help = Quando ativado, o bot baixará automaticamente mídias de redes sociais ao detectar um link, dispensando o uso dos comandos /sdl ou /dl.
 caption-help = Quando ativado, as legendas das mídias baixadas pelo bot serão enviadas junto com elas.
+errors-help = Quando ativado, o bot enviará mensagens de erro no grupo quando o download de uma mídia falhar. Quando desativado, os erros serão ignorados silenciosamente.
 no-link-provided =
     <b>Você não especificou um link ou especificou um link invalido.</b>
     Especifique um link do <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Xiaohongshu/Rednote</i></b> para que eu possa baixar a(s) mídia(s).

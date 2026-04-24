@@ -265,7 +265,7 @@ func mediaConfigCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
-	mediasCaption, mediasAuto, err := getMediaConfig(chat.Id)
+	mediasCaption, mediasAuto, mediasErrors, err := getMediaConfig(chat.Id)
 	if err != nil {
 		slog.Error("Couldn't query media config", "ChatID", chat.Id, "Error", err.Error())
 		return nil
@@ -281,6 +281,9 @@ func mediaConfigCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		case "mediasAuto":
 			mediasAuto = !mediasAuto
 			_, err = database.DB.Exec(query, mediasAuto, chat.Id)
+		case "mediasErrors":
+			mediasErrors = !mediasErrors
+			_, err = database.DB.Exec(query, mediasErrors, chat.Id)
 		}
 		if err != nil {
 			return nil
@@ -298,6 +301,7 @@ func mediaConfigCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	buttons := [][]gotgbot.InlineKeyboardButton{
 		{{Text: i18n("caption-button"), CallbackData: "ieConfig caption-help"}, {Text: state(mediasCaption), CallbackData: "mediaConfig mediasCaption"}},
 		{{Text: i18n("automatic-button"), CallbackData: "ieConfig auto-help"}, {Text: state(mediasAuto), CallbackData: "mediaConfig mediasAuto"}},
+		{{Text: i18n("errors-button"), CallbackData: "ieConfig errors-help"}, {Text: state(mediasErrors), CallbackData: "mediaConfig mediasErrors"}},
 		{{Text: i18n("back-button"), CallbackData: "config"}},
 	}
 

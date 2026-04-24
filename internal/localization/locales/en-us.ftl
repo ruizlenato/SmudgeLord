@@ -142,6 +142,7 @@ config-medias =
     <i>These settings are for this group only, not for other groups or private chats.</i>
 caption-button = Captions:
 automatic-button = Auto:
+errors-button = Errors:
 command-enabled = The command <code>{ $command }</code> <b>has been successfully enabled.</b>
 command-already-enabled = The command <code>{ $command }</code> <b>is already enabled.</b>
 enable-commands-usage =
@@ -204,6 +205,7 @@ youtube-error-with-id =
 youtube-error-alert-with-id = An error occurred while processing the video. Error ID: { $errorId }. Use the button in the message to report it.
 auto-help = When enabled, the bot will automatically download media from social networks when it detects a link, eliminating the need to use the /sdl or /dl commands.
 caption-help = When enabled, captions for media downloaded by the bot will be sent along with them.
+errors-help = When enabled, the bot will send error messages in the group when a media download fails. When disabled, errors will be silently ignored.
 no-link-provided =
     <b>No link provided or the link is invalid.</b>
     You need to specify a valid link from <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> or <i><b>Xiaohongshu/Rednote</i></b> to download the media.

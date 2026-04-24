@@ -31,8 +31,8 @@ func getDisabledCommands(chatID int64) ([]string, error) {
 	return commands, nil
 }
 
-func getMediaConfig(chatID int64) (bool, bool, error) {
-	var mediasCaption, mediasAuto bool
-	err := database.DB.QueryRow("SELECT mediasCaption, mediasAuto FROM chats WHERE id = ?;", chatID).Scan(&mediasCaption, &mediasAuto)
-	return mediasCaption, mediasAuto, err
+func getMediaConfig(chatID int64) (bool, bool, bool, error) {
+	var mediasCaption, mediasAuto, mediasErrors bool
+	err := database.DB.QueryRow("SELECT mediasCaption, mediasAuto, mediasErrors FROM chats WHERE id = ?;", chatID).Scan(&mediasCaption, &mediasAuto, &mediasErrors)
+	return mediasCaption, mediasAuto, mediasErrors, err
 }
