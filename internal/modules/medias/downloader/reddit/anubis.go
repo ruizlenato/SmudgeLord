@@ -18,6 +18,11 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 )
 
+var (
+	anubisChallengeRegex  = regexp.MustCompile(`(?is)<script[^>]*\bid=["']anubis_challenge["'][^>]*>(.*?)</script>`)
+	anubisBasePrefixRegex = regexp.MustCompile(`(?is)<script[^>]*\bid=["']anubis_base_prefix["'][^>]*>(.*?)</script>`)
+)
+
 func looksLikeBlockPage(htmlContent string) bool {
 	return strings.Contains(htmlContent, "anubis_challenge") ||
 		strings.Contains(strings.ToLower(htmlContent), "making sure you're not a bot") ||
@@ -34,8 +39,7 @@ type anubisChallengeInfo struct {
 }
 
 func extractAnubisChallengeInfo(htmlContent string, challengeURL string) *anubisChallengeInfo {
-	re := regexp.MustCompile(`(?is)<script[^>]*\bid=["']anubis_challenge["'][^>]*>(.*?)</script>`)
-	match := re.FindStringSubmatch(htmlContent)
+	match := anubisChallengeRegex.FindStringSubmatch(htmlContent)
 	if len(match) < 2 {
 		return nil
 	}
@@ -91,8 +95,7 @@ func extractAnubisChallengeInfo(htmlContent string, challengeURL string) *anubis
 	}
 
 	basePrefix := ""
-	rePref := regexp.MustCompile(`(?is)<script[^>]*\bid=["']anubis_base_prefix["'][^>]*>(.*?)</script>`)
-	if m := rePref.FindStringSubmatch(htmlContent); len(m) >= 2 {
+	if m := anubisBasePrefixRegex.FindStringSubmatch(htmlContent); len(m) >= 2 {
 		basePrefix = strings.TrimSpace(html.UnescapeString(strings.Trim(m[1], "\"' ")))
 	}
 
@@ -147,13 +150,15 @@ func solvePowChallenge(randomData string, difficulty int) (string, int, error) {
 	return "", 0, fmt.Errorf("PoW challenge not solved within timeout")
 }
 
-func solveAnubisChallengeForURL(challengeURL string, client *http.Client) (*http.Response, error) {
-	jar, _ := cookiejar.New(nil)
-	client.Jar = jar
+func solveAnubisCore(targetURL string, client *http.Client) (body []byte, statusCode int, contentType string, requestURL *url.URL, err error) {
+	if client.Jar == nil {
+		jar, _ := cookiejar.New(nil)
+		client.Jar = jar
+	}
 
-	req, err := http.NewRequest("GET", challengeURL, nil)
+	req, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	for k, v := range downloader.GenericHeaders {
 		req.Header.Set(k, v)
@@ -161,38 +166,35 @@ func solveAnubisChallengeForURL(challengeURL string, client *http.Client) (*http
 
 	response, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get challenge page: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to get challenge page: %w", err)
 	}
 
-	body, err := io.ReadAll(response.Body)
+	body, err = io.ReadAll(response.Body)
 	response.Body.Close()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read challenge page: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to read challenge page: %w", err)
 	}
-	htmlContent := string(body)
 
-	if !looksLikeBlockPage(htmlContent) {
-		resp := &http.Response{
-			StatusCode: response.StatusCode,
-			Status:     response.Status,
-			Header:     response.Header,
-			Body:       io.NopCloser(bytes.NewReader(body)),
+	if !looksLikeBlockPage(string(body)) {
+		reqURL := response.Request.URL
+		if reqURL == nil {
+			reqURL, _ = url.Parse(targetURL)
 		}
-		return resp, nil
+		return body, response.StatusCode, response.Header.Get("Content-Type"), reqURL, nil
 	}
 
-	info := extractAnubisChallengeInfo(htmlContent, challengeURL)
+	info := extractAnubisChallengeInfo(string(body), targetURL)
 	if info == nil {
-		return nil, fmt.Errorf("failed to extract anubis challenge info")
+		return nil, 0, "", nil, fmt.Errorf("failed to extract anubis challenge info")
 	}
 
 	if info.Algorithm != "fast" && info.Algorithm != "slow" {
-		return nil, fmt.Errorf("unsupported algorithm: %s", info.Algorithm)
+		return nil, 0, "", nil, fmt.Errorf("unsupported algorithm: %s", info.Algorithm)
 	}
 
 	responseHash, nonce, err := solvePowChallenge(info.RandomData, info.Difficulty)
 	if err != nil {
-		return nil, fmt.Errorf("failed to solve PoW: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to solve PoW: %w", err)
 	}
 
 	elapsedMs := 100
@@ -208,18 +210,18 @@ func solveAnubisChallengeForURL(challengeURL string, client *http.Client) (*http
 
 	passResp, err := client.Get(passURL)
 	if err != nil {
-		return nil, fmt.Errorf("failed to pass challenge: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to pass challenge: %w", err)
 	}
 
 	_, err = io.ReadAll(passResp.Body)
 	passResp.Body.Close()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read pass response: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to read pass response: %w", err)
 	}
 
-	req2, err := http.NewRequest("GET", challengeURL, nil)
+	req2, err := http.NewRequest("GET", targetURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to create request: %w", err)
 	}
 	for k, v := range downloader.GenericHeaders {
 		req2.Header.Set(k, v)
@@ -227,112 +229,51 @@ func solveAnubisChallengeForURL(challengeURL string, client *http.Client) (*http
 
 	finalResp, err := client.Do(req2)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get final response: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to get final response: %w", err)
 	}
 
 	finalBody, err := io.ReadAll(finalResp.Body)
 	finalResp.Body.Close()
 	if err != nil {
-		return nil, fmt.Errorf("failed to read final response: %w", err)
+		return nil, 0, "", nil, fmt.Errorf("failed to read final response: %w", err)
 	}
 
-	newResp := &http.Response{
-		StatusCode: finalResp.StatusCode,
-		Status:     finalResp.Status,
-		Header:     finalResp.Header,
-		Body:       io.NopCloser(bytes.NewReader(finalBody)),
-		Request:    req2,
+	return finalBody, finalResp.StatusCode, finalResp.Header.Get("Content-Type"), req2.URL, nil
+}
+
+func solveAnubisChallengeForURL(challengeURL string, client *http.Client) (*http.Response, error) {
+	body, statusCode, contentType, reqURL, err := solveAnubisCore(challengeURL, client)
+	if err != nil {
+		return nil, err
 	}
-	return newResp, nil
+
+	return &http.Response{
+		StatusCode: statusCode,
+		Header:     http.Header{"Content-Type": []string{contentType}},
+		Body:       io.NopCloser(bytes.NewReader(body)),
+		Request:    &http.Request{URL: reqURL},
+	}, nil
+}
+
+func (h *Handler) anubisSolver() downloader.AnubisSolver {
+	return func(mediaURL string, c *http.Client) ([]byte, error) {
+		fetchInfo, err := solveAnubisMediaForURL(mediaURL, c)
+		if err != nil {
+			return nil, err
+		}
+		return fetchInfo.Body, nil
+	}
 }
 
 func solveAnubisMediaForURL(mediaURL string, client *http.Client) (*downloader.FetchInfo, error) {
-	req, err := http.NewRequest("GET", mediaURL, nil)
+	body, statusCode, contentType, _, err := solveAnubisCore(mediaURL, client)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	for k, v := range downloader.GenericHeaders {
-		req.Header.Set(k, v)
-	}
-
-	response, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get challenge page: %w", err)
-	}
-
-	body, err := io.ReadAll(response.Body)
-	response.Body.Close()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read challenge page: %w", err)
-	}
-	htmlContent := string(body)
-
-	if !looksLikeBlockPage(htmlContent) {
-		return &downloader.FetchInfo{
-			Body:        body,
-			StatusCode:  response.StatusCode,
-			ContentType: response.Header.Get("Content-Type"),
-		}, nil
-	}
-
-	info := extractAnubisChallengeInfo(htmlContent, mediaURL)
-	if info == nil {
-		return nil, fmt.Errorf("failed to extract anubis challenge info")
-	}
-
-	if info.Algorithm != "fast" && info.Algorithm != "slow" {
-		return nil, fmt.Errorf("unsupported algorithm: %s", info.Algorithm)
-	}
-
-	responseHash, nonce, err := solvePowChallenge(info.RandomData, info.Difficulty)
-	if err != nil {
-		return nil, fmt.Errorf("failed to solve PoW: %w", err)
-	}
-
-	elapsedMs := 100
-
-	passURL := fmt.Sprintf("%s?id=%s&response=%s&nonce=%d&redir=%s&elapsedTime=%d",
-		info.PassURL,
-		url.QueryEscape(info.ChallengeID),
-		url.QueryEscape(responseHash),
-		nonce,
-		url.QueryEscape(info.Redir),
-		elapsedMs,
-	)
-
-	passResp, err := client.Get(passURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to pass challenge: %w", err)
-	}
-
-	_, err = io.ReadAll(passResp.Body)
-	passResp.Body.Close()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read pass response: %w", err)
-	}
-
-	req2, err := http.NewRequest("GET", mediaURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	for k, v := range downloader.GenericHeaders {
-		req2.Header.Set(k, v)
-	}
-
-	finalResp, err := client.Do(req2)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get final response: %w", err)
-	}
-
-	finalBody, err := io.ReadAll(finalResp.Body)
-	finalResp.Body.Close()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read final response: %w", err)
+		return nil, err
 	}
 
 	return &downloader.FetchInfo{
-		Body:        finalBody,
-		StatusCode:  finalResp.StatusCode,
-		ContentType: finalResp.Header.Get("Content-Type"),
+		Body:        body,
+		StatusCode:  statusCode,
+		ContentType: contentType,
 	}, nil
 }

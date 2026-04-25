@@ -10,10 +10,11 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
-	"path"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/grafov/m3u8"
@@ -34,16 +35,19 @@ var redlibInstances = []string{
 var redlibRouteCounter uint64
 
 var (
-	postInfoRegex     = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
-	postTypeRegex     = regexp.MustCompile(`(?s)post_type:\s*(\w+)`)
-	mediaContentRegex = regexp.MustCompile(`(?s)<div class="post_media_content">(.*?)</div>`)
-	videoRegex        = regexp.MustCompile(`(?s)class="post_media_video.*?<source\s+src="([^"]+)"\s+type="video/mp4"`)
-	playlistRegex     = regexp.MustCompile(`(?s)class="post_media_video.*?<source\s+src="([^"]+)"\s+type="application/vnd.apple.mpegurl"`)
-	imageRegex        = regexp.MustCompile(`(?s)href="([^"]+).*?class="post_media_image"`)
-	thumbRegex        = regexp.MustCompile(`(?s)class="post_media_video.*?poster="([^"]+)"`)
-	videoDimsRegex    = regexp.MustCompile(`(?s)<video[^>]*width="(\d+)"[^>]*height="(\d+)"`)
-	galleryRegex      = regexp.MustCompile(`(?s)alt="Gallery image"\s+src="([^"]+)"`)
-	cleanupRegex      = regexp.MustCompile(`(?s)(?:#\d+|amp);`)
+	postInfoRegex      = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
+	postTypeRegex      = regexp.MustCompile(`(?s)post_type:\s*(\w+)`)
+	mediaContentRegex  = regexp.MustCompile(`(?s)<div class="post_media_content">(.*?)</div>`)
+	videoRegex         = regexp.MustCompile(`(?s)class="post_media_video.*?<source\s+src="([^"]+)"\s+type="video/mp4"`)
+	playlistRegex      = regexp.MustCompile(`(?s)class="post_media_video.*?<source\s+src="([^"]+)"\s+type="application/vnd.apple.mpegurl"`)
+	imageRegex         = regexp.MustCompile(`(?s)href="([^"]+).*?class="post_media_image"`)
+	thumbRegex         = regexp.MustCompile(`(?s)class="post_media_video.*?poster="([^"]+)"`)
+	videoDimsRegex     = regexp.MustCompile(`(?s)<video[^>]*width="(\d+)"[^>]*height="(\d+)"`)
+	galleryRegex       = regexp.MustCompile(`(?s)alt="Gallery image"\s+src="([^"]+)"`)
+	cleanupRegex       = regexp.MustCompile(`(?s)(?:#\d+|amp);`)
+	postAuthorRegex    = regexp.MustCompile(`(?s)<a class="post_author.*?" href=".*?">([^"]+)</a>`)
+	postSubredditRegex = regexp.MustCompile(`(?s)<a class="post_subreddit" href=".*?">([^"]+)</a>`)
+	postTitleRegex     = regexp.MustCompile(`(?s)<h1 class="post_title">(?:.*?</a>)?([^<]+)</h1>`)
 )
 
 func Handle(text string) downloader.PostInfo {
@@ -144,28 +148,46 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 }
 
 func (h *Handler) requestRedlibPost() (*http.Response, string, error) {
-	instance := "https://redlib.catsarch.com"
-	targetURL := fmt.Sprintf("%s/r/%s/comments/%s", instance, h.subreddit, h.postID)
+	startIdx := int(atomic.AddUint64(&redlibRouteCounter, 1)-1) % len(redlibInstances)
 
+	var lastErr error
+	for i := 0; i < len(redlibInstances); i++ {
+		idx := (startIdx + i) % len(redlibInstances)
+		instance := redlibInstances[idx]
+		targetURL := fmt.Sprintf("%s/r/%s/comments/%s", instance, h.subreddit, h.postID)
+
+		resp, err := h.fetchRedlibInstance(targetURL, instance)
+		if err != nil {
+			slog.Warn("Redlib instance failed, trying next", "instance", instance, "Error", err.Error())
+			lastErr = err
+			continue
+		}
+		return resp, instance, nil
+	}
+
+	return nil, "", fmt.Errorf("all redlib instances failed: last error: %w", lastErr)
+}
+
+func (h *Handler) fetchRedlibInstance(targetURL, instance string) (*http.Response, error) {
 	response, err := utils.Request(targetURL, utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to request instance %s: %w", instance, err)
+		return nil, fmt.Errorf("request failed: %w", err)
 	}
 
 	if response == nil || response.Body == nil {
 		if response != nil && response.Body != nil {
 			_ = response.Body.Close()
 		}
-		return nil, "", fmt.Errorf("empty response body from instance %s", instance)
+		return nil, fmt.Errorf("empty response body")
 	}
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		response.Body.Close()
-		return nil, "", fmt.Errorf("failed to read response body: %w", err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 	response.Body.Close()
 
@@ -176,17 +198,16 @@ func (h *Handler) requestRedlibPost() (*http.Response, string, error) {
 		client := &http.Client{Jar: jar}
 		challengeResp, err := solveAnubisChallengeForURL(targetURL, client)
 		if err != nil {
-			return nil, "", fmt.Errorf("failed to solve Anubis challenge: %w", err)
+			return nil, fmt.Errorf("failed to solve Anubis challenge: %w", err)
 		}
 		h.client = client
 
 		body, err = io.ReadAll(challengeResp.Body)
 		if err != nil {
 			challengeResp.Body.Close()
-			return nil, "", fmt.Errorf("failed to read solved response body: %w", err)
+			return nil, fmt.Errorf("failed to read solved response body: %w", err)
 		}
 		challengeResp.Body.Close()
-		bodyStr = string(body)
 	}
 
 	newResp := &http.Response{
@@ -205,30 +226,25 @@ func (h *Handler) requestRedlibPost() (*http.Response, string, error) {
 	}
 	newResp.Request = &http.Request{URL: reqURL}
 
-	return newResp, instance, nil
+	return newResp, nil
 }
 
 func buildMediaURL(response *http.Response, path string) string {
-	urlStr := fmt.Sprintf("%s://%s%s",
-		string(response.Request.URL.Scheme),
-		string(response.Request.URL.Host),
-		path,
-	)
-	return cleanupRegex.ReplaceAllString(urlStr, "")
+	raw := downloader.BuildAbsoluteURL(response.Request.URL, path)
+	return cleanupRegex.ReplaceAllString(raw, "")
 }
 
 func extractRedlibCaption(body []byte) string {
-	extract := func(regex string, body []byte) string {
-		re := regexp.MustCompile(regex)
-		if match := re.FindSubmatch(body); len(match) > 1 {
-			return string(match[1])
-		}
-		return ""
+	var postAuthor, postSubreddit, postTitle string
+	if match := postAuthorRegex.FindSubmatch(body); len(match) > 1 {
+		postAuthor = string(match[1])
 	}
-
-	postAuthor := extract(`(?s)<a class="post_author.*?" href=".*?">([^"]+)</a>`, body)
-	postSubreddit := extract(`(?s)<a class="post_subreddit" href=".*?">([^"]+)</a>`, body)
-	postTitle := extract(`(?s)<h1 class="post_title">(?:.*?</a>)?([^<]+)</h1>`, body)
+	if match := postSubredditRegex.FindSubmatch(body); len(match) > 1 {
+		postSubreddit = string(match[1])
+	}
+	if match := postTitleRegex.FindSubmatch(body); len(match) > 1 {
+		postTitle = string(match[1])
+	}
 
 	if postTitle != "" {
 		postTitle = strings.Join(strings.Fields(postTitle), " ")
@@ -241,187 +257,146 @@ func extractRedlibCaption(body []byte) string {
 }
 
 func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []gotgbot.InputMedia {
-	if videoMatch := videoRegex.FindSubmatch(content); len(videoMatch) > 1 {
-		playlistURL := buildMediaURL(response, string(playlistRegex.FindSubmatch(content)[1]))
+	playlistMatch := playlistRegex.FindSubmatch(content)
+	videoMatch := videoRegex.FindSubmatch(content)
 
-		client := h.client
-		if client == nil {
-			jar, _ := cookiejar.New(nil)
-			client = &http.Client{Jar: jar}
-		}
+	if len(playlistMatch) < 2 {
+		return nil
+	}
 
-		audioFile, err := downloadAudio(playlistURL, client)
-		if err != nil {
-			slog.Error("Failed to download audio", "Error", err.Error())
-			return nil
-		}
+	client := h.client
+	if client == nil {
+		jar, _ := cookiejar.New(nil)
+		client = &http.Client{Jar: jar}
+	}
 
-		thumbnail := h.downloadThumbnail(content, response)
+	playlistURL := buildMediaURL(response, string(playlistMatch[1]))
+
+	var videoFile []byte
+	var err error
+
+	if len(videoMatch) > 1 && string(videoMatch[1]) != "" {
 		videoURL := buildMediaURL(response, string(videoMatch[1]))
-
-		videoFile, err := fetchMediaURL(videoURL, client)
+		videoFile, err = downloader.FetchWithClient(videoURL, client, h.anubisSolver())
 		if err != nil {
-			slog.Error("Failed to download video", "Error", err.Error())
+			slog.Error("Failed to download video", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
 			return nil
 		}
-
-		videoFile, err = downloader.MergeAudioVideoBytes(videoFile, audioFile)
+	} else {
+		videoFile, err = downloader.FetchM3U8ToBytes(playlistURL, client, h.anubisSolver())
 		if err != nil {
-			slog.Error("Failed to merge audio and video", "Error", err.Error())
+			slog.Error("Failed to download video from HLS", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
 			return nil
 		}
-
-		var width, height int64
-		if dimsMatch := videoDimsRegex.FindSubmatch(content); len(dimsMatch) >= 3 {
-			if w, err := strconv.Atoi(string(dimsMatch[1])); err == nil {
-				width = int64(w)
-			}
-			if h, err := strconv.Atoi(string(dimsMatch[2])); err == nil {
-				height = int64(h)
-			}
-		}
-
-		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
-		videoMedia := &gotgbot.InputMediaVideo{
-			Media:             downloader.InputFileFromBytes(filename, videoFile),
-			SupportsStreaming: true,
-			Width:             width,
-			Height:            height,
-		}
-
-		if thumbnail != nil {
-			videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
-		}
-		return []gotgbot.InputMedia{videoMedia}
 	}
-	return nil
+
+	audioFile, err := downloadAudio(playlistURL, client, h.anubisSolver())
+	if err != nil {
+		slog.Error("Failed to download audio", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
+		return nil
+	}
+
+	videoFile, err = downloader.MergeAudioVideoBytes(videoFile, audioFile)
+	if err != nil {
+		slog.Error("Failed to merge audio and video", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
+		return nil
+	}
+
+	var width, height int64
+	if dimsMatch := videoDimsRegex.FindSubmatch(content); len(dimsMatch) >= 3 {
+		if w, err := strconv.Atoi(string(dimsMatch[1])); err == nil {
+			width = int64(w)
+		}
+		if h, err := strconv.Atoi(string(dimsMatch[2])); err == nil {
+			height = int64(h)
+		}
+	}
+
+	thumbnail := h.downloadThumbnail(content, response)
+
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
+	videoMedia := &gotgbot.InputMediaVideo{
+		Media:             downloader.InputFileFromBytes(filename, videoFile),
+		SupportsStreaming: true,
+		Width:             width,
+		Height:            height,
+	}
+
+	if thumbnail != nil {
+		videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
+	}
+	return []gotgbot.InputMedia{videoMedia}
 }
 
-func fetchMediaURL(mediaURL string, client *http.Client) ([]byte, error) {
-	req, err := http.NewRequest("GET", mediaURL, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	for k, v := range downloader.GenericHeaders {
-		req.Header.Set(k, v)
-	}
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read body: %w", err)
-	}
-
-	bodyPreview := string(body)
-	if len(bodyPreview) > 500 {
-		bodyPreview = bodyPreview[:500]
-	}
-	if strings.Contains(bodyPreview, "anubis") || strings.Contains(bodyPreview, "Making sure") {
-		fetchInfo, solveErr := solveAnubisMediaForURL(mediaURL, client)
-		if solveErr != nil {
-			return nil, fmt.Errorf("failed to solve Anubis: %w", solveErr)
-		}
-		return fetchInfo.Body, nil
-	}
-
-	return body, nil
-}
-
-func downloadAudio(playlistURL string, client *http.Client) ([]byte, error) {
+func downloadAudio(playlistURL string, client *http.Client, anubisSolver downloader.AnubisSolver) ([]byte, error) {
 	if playlistURL == "" {
 		return nil, fmt.Errorf("empty playlist URL")
 	}
 
-	req, err := http.NewRequest("GET", playlistURL, nil)
+	body, resp, err := downloader.FetchWithClientAndResponse(playlistURL, client, anubisSolver)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	for k, v := range downloader.GenericHeaders {
-		req.Header.Set(k, v)
+		return nil, fmt.Errorf("failed to fetch audio playlist: %w", err)
 	}
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch audio playlist: %s", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read playlist body: %s", err)
-	}
-
-	bodyPreview := string(body)
-	if len(bodyPreview) > 500 {
-		bodyPreview = bodyPreview[:500]
-	}
-	if strings.Contains(bodyPreview, "anubis") || strings.Contains(bodyPreview, "Making sure") {
-		fetchInfo, solveErr := solveAnubisMediaForURL(playlistURL, client)
-		if solveErr != nil {
-			return nil, fmt.Errorf("failed to solve Anubis: %w", solveErr)
-		}
-		body = fetchInfo.Body
+	var baseURL *url.URL
+	if resp != nil && resp.Request != nil && resp.Request.URL != nil {
+		baseURL = resp.Request.URL
+	} else {
+		baseURL, _ = url.Parse(playlistURL)
 	}
 
 	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(body), true)
-	if err != nil || listType != m3u8.MASTER {
-		return nil, fmt.Errorf("failed to decode audio playlist: %s", err)
-	}
-
-	masterPlaylist := playlist.(*m3u8.MasterPlaylist)
-
-	var audioURI string
-	for _, variant := range masterPlaylist.Variants {
-		for _, alt := range variant.Alternatives {
-			if alt.Type == "AUDIO" && alt.URI != "" {
-				audioURI = alt.URI
-				break
-			}
-		}
-		if audioURI != "" {
-			break
-		}
-	}
-
-	if audioURI == "" {
-		audioVariant := getHighestQualityAudio(masterPlaylist)
-		if audioVariant == nil {
-			return nil, fmt.Errorf("no audio variant found")
-		}
-		audioURI = audioVariant.URI
-	}
-
-	audioURL := strings.ReplaceAll(
-		fmt.Sprintf("%s://%s%s/%s",
-			string(resp.Request.URL.Scheme),
-			string(resp.Request.URL.Host),
-			path.Dir(string(resp.Request.URL.Path)),
-			audioURI,
-		), "m3u8", "aac")
-
-	audioFile, err := fetchMediaURL(audioURL, client)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode audio playlist: %w", err)
 	}
 
-	return audioFile, nil
+	if listType == m3u8.MASTER {
+		masterPlaylist := playlist.(*m3u8.MasterPlaylist)
+
+		audioVariant := getFirstAudioAlternative(masterPlaylist)
+		if audioVariant == nil || audioVariant.URI == "" {
+			return nil, fmt.Errorf("no audio variant found in master playlist")
+		}
+
+		audioPlaylistURL := downloader.BuildAbsoluteURL(baseURL, audioVariant.URI)
+		return downloader.FetchM3U8ToBytes(audioPlaylistURL, client, anubisSolver)
+	}
+
+	if listType == m3u8.MEDIA {
+		tmpFile, err := downloader.DownloadM3U8(bytes.NewReader(body), baseURL, client, anubisSolver)
+		if err != nil {
+			return nil, fmt.Errorf("failed to download audio segments: %w", err)
+		}
+		defer tmpFile.Close()
+		defer os.Remove(tmpFile.Name())
+
+		audioBytes, err := io.ReadAll(tmpFile)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read merged audio: %w", err)
+		}
+		return audioBytes, nil
+	}
+
+	return nil, fmt.Errorf("unexpected playlist type for audio: %v", listType)
 }
 
-func getHighestQualityAudio(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
-	var bestAudio *m3u8.Alternative
+func getFirstAudioAlternative(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
 	for _, variant := range playlist.Variants {
-		for _, audio := range variant.Alternatives {
-			if bestAudio == nil || audio.GroupId > bestAudio.GroupId {
-				bestAudio = audio
+		for _, alt := range variant.Alternatives {
+			if alt.Type == "AUDIO" && alt.URI != "" {
+				return alt
 			}
 		}
 	}
-	return bestAudio
+
+	for _, variant := range playlist.Variants {
+		for _, alt := range variant.Alternatives {
+			if alt.URI != "" {
+				return alt
+			}
+		}
+	}
+	return nil
 }
 
 func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []byte {
@@ -434,10 +409,10 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 			client = &http.Client{Jar: jar}
 		}
 
-		thumbnail, err := fetchMediaURL(thumbnailURL, client)
+		thumbnail, err := downloader.FetchWithClient(thumbnailURL, client, h.anubisSolver())
 		if err != nil {
 			slog.Error("Failed to download thumbnail",
-				"Thumbnail URL", thumbnailURL,
+				"Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 				"Error", err.Error())
 			return nil
 		}
@@ -445,7 +420,7 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 		thumbnail, err = utils.ResizeThumbnail(thumbnail)
 		if err != nil {
 			slog.Error("Failed to resize thumbnail",
-				"Thumbnail URL", thumbnailURL,
+				"Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 				"Error", err.Error())
 		}
 
@@ -464,28 +439,15 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response) []
 			client = &http.Client{Jar: jar}
 		}
 
-		fetchResult, err := downloader.FetchBytesFromURLWithClient(imageURL, client)
+		imageData, err := downloader.FetchWithClient(imageURL, client, h.anubisSolver())
 		if err != nil {
-			slog.Error("Failed to download image", "Error", err.Error())
+			slog.Error("Failed to download image", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
 			return nil
-		}
-
-		bodyStr := string(fetchResult.Body)
-		if len(bodyStr) > 500 {
-			bodyStr = bodyStr[:500]
-		}
-		if strings.Contains(bodyStr, "anubis") || strings.Contains(bodyStr, "Making sure") || strings.Contains(bodyStr, "block_page") {
-			solved, solveErr := solveAnubisMediaForURL(imageURL, client)
-			if solveErr != nil {
-				slog.Error("Failed to solve Anubis for image", "Error", solveErr.Error())
-				return nil
-			}
-			fetchResult = solved
 		}
 
 		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
 		return []gotgbot.InputMedia{&gotgbot.InputMediaPhoto{
-			Media: downloader.InputFileFromBytes(filename, fetchResult.Body),
+			Media: downloader.InputFileFromBytes(filename, imageData),
 		}}
 	}
 	return nil
@@ -516,26 +478,12 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 				client = &http.Client{Jar: jar}
 			}
 
-			fetchResult, err := downloader.FetchBytesFromURLWithClient(media, client)
+			file, err := downloader.FetchWithClient(media, client, h.anubisSolver())
 			if err != nil {
 				results <- mediaResult{index: index, err: err}
 				return
 			}
 
-			bodyStr := string(fetchResult.Body)
-			if len(bodyStr) > 500 {
-				bodyStr = bodyStr[:500]
-			}
-			if strings.Contains(bodyStr, "anubis") || strings.Contains(bodyStr, "Making sure") || strings.Contains(bodyStr, "block_page") {
-				solved, solveErr := solveAnubisMediaForURL(media, client)
-				if solveErr != nil {
-					results <- mediaResult{index: index, err: solveErr}
-					return
-				}
-				fetchResult = solved
-			}
-
-			file := fetchResult.Body
 			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID))
 			inputMedia := &gotgbot.InputMediaPhoto{
 				Media: downloader.InputFileFromBytes(filename, file),
@@ -548,6 +496,7 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 		result := <-results
 		if result.err != nil {
 			slog.Error("Failed to download media in gallery",
+				"Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 				"Error", result.err.Error())
 			continue
 		}

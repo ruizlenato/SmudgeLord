@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -61,7 +60,7 @@ func FetchBytesFromURL(media string) ([]byte, error) {
 	defer response.Body.Close()
 
 	if bytes.Contains(bodyBytes, []byte("#EXTM3U")) {
-		tmpFile, err := downloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL)
+		tmpFile, err := DownloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL, nil, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +120,7 @@ func FetchBytesFromURLWithClient(media string, client *http.Client) (*FetchInfo,
 	}, nil
 }
 
-func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
+func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anubisSolver AnubisSolver) (*os.File, error) {
 	playlist, _, err := m3u8.DecodeFrom(body, true)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode m3u8 playlist: %s", err)
@@ -150,13 +149,9 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 		}
 
 		go func(index int, segment *m3u8.MediaSegment) {
-			urlSegment := fmt.Sprintf("%s://%s%s/%s",
-				url.Scheme,
-				url.Host,
-				path.Dir(url.Path),
-				segment.URI)
+			urlSegment := fmt.Sprintf("%s://%s%s/%s", m3u8URL.Scheme, m3u8URL.Host, path.Dir(m3u8URL.Path), segment.URI)
 
-			fileName, err := downloadSegment(urlSegment)
+			fileName, err := downloadSegment(urlSegment, client, anubisSolver)
 			results <- segmentResult{
 				index:    index,
 				fileName: fileName,
@@ -169,9 +164,6 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	for range segmentCount {
 		result := <-results
 		if result.err != nil {
-			slog.Error("Couldn't download segment",
-				"Segment", result.index,
-				"Error", result.err.Error())
 			downloadErrors = append(downloadErrors, result.err)
 			continue
 		}
@@ -179,7 +171,7 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	}
 
 	if len(downloadErrors) > segmentCount/2 {
-		return nil, fmt.Errorf("too many segments failed to download: %d errors", len(downloadErrors))
+		return nil, fmt.Errorf("too many segments failed to download: %d/%d (first: %v)", len(downloadErrors), segmentCount, downloadErrors[0])
 	}
 
 	cleanSegmentFiles := make([]string, 0, len(segmentFiles))
@@ -192,16 +184,160 @@ func downloadM3U8(body *bytes.Reader, url *url.URL) (*os.File, error) {
 	return mergeSegments(cleanSegmentFiles)
 }
 
-func downloadSegment(url string) (string, error) {
-	response, err := utils.Request(url, utils.RequestParams{
-		Method:    "GET",
-		Redirects: 5,
-	})
+type AnubisSolver func(mediaURL string, client *http.Client) ([]byte, error)
 
+func ResolveM3U8Playlist(body []byte, baseURL *url.URL, client *http.Client, anubisSolver AnubisSolver) ([]byte, *url.URL, error) {
+	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(body), true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to decode m3u8 playlist: %w", err)
+	}
+
+	if listType == m3u8.MEDIA {
+		return body, baseURL, nil
+	}
+
+	if listType == m3u8.MASTER {
+		masterPlaylist := playlist.(*m3u8.MasterPlaylist)
+
+		var bestVariant *m3u8.Variant
+		for _, v := range masterPlaylist.Variants {
+			if bestVariant == nil || v.Bandwidth > bestVariant.Bandwidth {
+				bestVariant = v
+			}
+		}
+		if bestVariant == nil {
+			return nil, nil, fmt.Errorf("no variant found in master playlist")
+		}
+
+		mediaPlaylistURL := BuildAbsoluteURL(baseURL, bestVariant.URI)
+
+		mediaBody, err := FetchWithClient(mediaPlaylistURL, client, anubisSolver)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to fetch media playlist: %w", err)
+		}
+
+		mediaBaseURL, _ := url.Parse(mediaPlaylistURL)
+		return mediaBody, mediaBaseURL, nil
+	}
+
+	return nil, nil, fmt.Errorf("unexpected playlist type: %v", listType)
+}
+
+func FetchM3U8ToBytes(playlistURL string, client *http.Client, anubisSolver AnubisSolver) ([]byte, error) {
+	body, resp, err := FetchWithClientAndResponse(playlistURL, client, anubisSolver)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch m3u8 playlist: %w", err)
+	}
+
+	var baseURL *url.URL
+	if resp != nil && resp.Request != nil && resp.Request.URL != nil {
+		baseURL = resp.Request.URL
+	} else {
+		baseURL, _ = url.Parse(playlistURL)
+	}
+
+	mediaBody, mediaBaseURL, err := ResolveM3U8Playlist(body, baseURL, client, anubisSolver)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve m3u8 playlist: %w", err)
+	}
+
+	tmpFile, err := DownloadM3U8(bytes.NewReader(mediaBody), mediaBaseURL, client, anubisSolver)
+	if err != nil {
+		return nil, fmt.Errorf("failed to download m3u8 segments: %w", err)
+	}
+	defer tmpFile.Close()
+	defer os.Remove(tmpFile.Name())
+
+	result, err := io.ReadAll(tmpFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read merged m3u8 result: %w", err)
+	}
+
+	return result, nil
+}
+
+func isAnubisChallenge(body []byte) bool {
+	bodyStr := string(body)
+	if len(bodyStr) > 500 {
+		bodyStr = bodyStr[:500]
+	}
+	lower := strings.ToLower(bodyStr)
+	return strings.Contains(lower, "anubis") ||
+		strings.Contains(lower, "making sure you're not a bot") ||
+		strings.Contains(lower, "block_page") ||
+		strings.Contains(bodyStr, "<title>403")
+}
+
+func FetchWithClient(mediaURL string, client *http.Client, anubisSolver AnubisSolver) ([]byte, error) {
+	body, _, err := FetchWithClientAndResponse(mediaURL, client, anubisSolver)
+	return body, err
+}
+
+func FetchWithClientAndResponse(mediaURL string, client *http.Client, anubisSolver AnubisSolver) ([]byte, *http.Response, error) {
+	if client == nil {
+		client = http.DefaultClient
+	}
+
+	req, err := http.NewRequest("GET", mediaURL, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	for k, v := range GenericHeaders {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if isAnubisChallenge(body) {
+		if anubisSolver != nil {
+			solvedBody, solveErr := anubisSolver(mediaURL, client)
+			if solveErr != nil {
+				return nil, nil, solveErr
+			}
+			// Re-fetch to get an accurate *http.Response with correct Request.URL
+			req2, err := http.NewRequest("GET", mediaURL, nil)
+			if err != nil {
+				return solvedBody, nil, nil
+			}
+			for k, v := range GenericHeaders {
+				req2.Header.Set(k, v)
+			}
+			resp2, err := client.Do(req2)
+			if err != nil {
+				return solvedBody, nil, nil
+			}
+			return solvedBody, resp2, nil
+		}
+		return nil, nil, fmt.Errorf("received Anubis challenge page for %s", mediaURL)
+	}
+
+	return body, resp, nil
+}
+
+func BuildAbsoluteURL(base *url.URL, uri string) string {
+	if strings.HasPrefix(uri, "http://") || strings.HasPrefix(uri, "https://") {
+		return uri
+	}
+	if strings.HasPrefix(uri, "/") {
+		return fmt.Sprintf("%s://%s%s", base.Scheme, base.Host, uri)
+	}
+	return fmt.Sprintf("%s://%s%s/%s", base.Scheme, base.Host, path.Dir(base.Path), uri)
+}
+
+func downloadSegment(segmentURL string, client *http.Client, anubisSolver AnubisSolver) (string, error) {
+	body, err := FetchWithClient(segmentURL, client, anubisSolver)
 	if err != nil {
 		return "", err
 	}
-	defer response.Body.Close()
 
 	tmpFile, err := os.CreateTemp("", "*.ts")
 	if err != nil {
@@ -209,7 +345,7 @@ func downloadSegment(url string) (string, error) {
 	}
 	defer tmpFile.Close()
 
-	if _, err := io.Copy(tmpFile, response.Body); err != nil {
+	if _, err := tmpFile.Write(body); err != nil {
 		return "", err
 	}
 
@@ -470,13 +606,14 @@ func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
 	return nil
 }
 
+var trailingOpenLinkRegex = regexp.MustCompile(`(?s)\s*<a\s+href=['"][^'"]+['"]>\s*🔗\s*[^<]*</a>\s*$`)
+
 func sanitizeCaptionForCache(caption string) string {
 	if caption == "" {
 		return caption
 	}
 
-	trailingOpenLink := regexp.MustCompile(`(?s)\s*<a\s+href=['"][^'"]+['"]>\s*🔗\s*[^<]*</a>\s*$`)
-	return strings.TrimSpace(trailingOpenLink.ReplaceAllString(caption, ""))
+	return strings.TrimSpace(trailingOpenLinkRegex.ReplaceAllString(caption, ""))
 }
 
 func GetMediaCache(postID string) (PostInfo, error) {
