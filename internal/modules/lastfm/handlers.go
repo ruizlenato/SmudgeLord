@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -20,18 +21,18 @@ import (
 var lastFM = lastFMAPI.Init()
 var convManager *conversation.Manager
 var convDispatcher *ext.Dispatcher
+var convOnce sync.Once
 
 func setUserHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
 
-	if convManager == nil {
-		if convDispatcher == nil {
-			return nil
+	convOnce.Do(func() {
+		if convDispatcher != nil {
+			convManager = conversation.NewManager(b, convDispatcher)
 		}
-		convManager = conversation.NewManager(b, convDispatcher)
-	}
+	})
 
 	if convManager == nil {
 		return nil

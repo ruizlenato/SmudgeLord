@@ -32,14 +32,17 @@ import (
 var (
 	convDispatcher *ext.Dispatcher
 	convManager    *conversation.Manager
+	convOnce       sync.Once
 )
 
 const maxVideoStickerBytes = 256 * 1024
 
 func ensureConversationManager(b *gotgbot.Bot) *conversation.Manager {
-	if convManager == nil && convDispatcher != nil {
-		convManager = conversation.NewManager(b, convDispatcher)
-	}
+	convOnce.Do(func() {
+		if convDispatcher != nil {
+			convManager = conversation.NewManager(b, convDispatcher)
+		}
+	})
 	return convManager
 }
 
