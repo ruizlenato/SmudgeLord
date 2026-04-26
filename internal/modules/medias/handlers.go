@@ -54,27 +54,27 @@ var globalLimiter = &globalRateLimiter{}
 
 func waitForGlobalSlot() {
 	globalLimiter.mu.Lock()
-	defer globalLimiter.mu.Unlock()
 
-	now := time.Now()
-
-	if now.Before(globalLimiter.floodWaitUntil) {
-		waitTime := time.Until(globalLimiter.floodWaitUntil)
-		globalLimiter.mu.Unlock()
-		slog.Warn("Telegram flood wait active, waiting", "duration", waitTime.Round(time.Second))
-		time.Sleep(waitTime)
-		globalLimiter.mu.Lock()
-		now = time.Now()
+	var floodWait time.Duration
+	if time.Now().Before(globalLimiter.floodWaitUntil) {
+		floodWait = time.Until(globalLimiter.floodWaitUntil)
 	}
 
-	if now.Before(globalLimiter.nextAllowed) {
-		waitTime := time.Until(globalLimiter.nextAllowed)
-		globalLimiter.mu.Unlock()
-		time.Sleep(waitTime)
-		globalLimiter.mu.Lock()
+	var slotWait time.Duration
+	if time.Now().Before(globalLimiter.nextAllowed) {
+		slotWait = time.Until(globalLimiter.nextAllowed)
 	}
 
-	globalLimiter.nextAllowed = time.Now().Add(mediaSendInterval)
+	totalWait := floodWait + slotWait
+	globalLimiter.nextAllowed = time.Now().Add(totalWait + mediaSendInterval)
+	globalLimiter.mu.Unlock()
+
+	if floodWait > 0 {
+		slog.Warn("Telegram flood wait active, waiting", "duration", floodWait.Round(time.Second))
+	}
+	if totalWait > 0 {
+		time.Sleep(totalWait)
+	}
 }
 
 func parseFloodWaitError(err error) (int, bool) {

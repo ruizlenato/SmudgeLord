@@ -503,7 +503,13 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 		mediaItems[result.index] = result.media
 	}
 
-	return mediaItems
+	filtered := make([]gotgbot.InputMedia, 0, len(mediaItems))
+	for _, item := range mediaItems {
+		if item != nil {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
 }
 
 func (h *Handler) getAPIData() *Data {
@@ -523,7 +529,7 @@ func (h *Handler) getAPIData() *Data {
 
 		var data KindData
 		err = json.NewDecoder(response.Body).Decode(&data)
-		if err != nil {
+		if err != nil || len(data.Data.Children) == 0 {
 			return nil
 		}
 		return &data.Data.Children[0].Data
@@ -532,7 +538,7 @@ func (h *Handler) getAPIData() *Data {
 
 	var data RedditPost
 	err = json.NewDecoder(response.Body).Decode(&data)
-	if err != nil {
+	if err != nil || len(data) == 0 || len(data[0].Data.Children) == 0 {
 		return nil
 	}
 
