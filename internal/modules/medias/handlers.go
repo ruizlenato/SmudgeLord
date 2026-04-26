@@ -18,7 +18,6 @@ import (
 	callbackquery "github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
-	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/bluesky"
@@ -140,10 +139,6 @@ func waitForMediaSendSlot(chatID int64) {
 	}
 }
 
-func isGroupLikeChat(chatType string) bool {
-	return chatType == gotgbot.ChatTypeGroup || chatType == gotgbot.ChatTypeSupergroup
-}
-
 func replaceTrackedNoMediaMessage(chatID, messageID int64) int64 {
 	noMediaMessageTracker.mu.Lock()
 	defer noMediaMessageTracker.mu.Unlock()
@@ -225,11 +220,7 @@ func shouldProcessMedia(message *gotgbot.Message) bool {
 		return true
 	}
 
-	var mediasAuto bool
-	if err := database.DB.QueryRow("SELECT mediasAuto FROM chats WHERE id = ?;", message.Chat.Id).Scan(&mediasAuto); err != nil || !mediasAuto {
-		return false
-	}
-	return true
+	return getMediasAuto(message.Chat.Id)
 }
 
 func isIgnorableMediaSendError(err error) bool {
@@ -369,8 +360,7 @@ func sendMediaAndHandleCaption(
 		sent = append(sent, replies...)
 	}
 	if ctx.EffectiveMessage.Chat.Type != gotgbot.ChatTypePrivate {
-		var mediasCaption bool
-		if err := database.DB.QueryRow("SELECT mediasCaption FROM chats WHERE id = ?;", ctx.EffectiveMessage.Chat.Id).Scan(&mediasCaption); err == nil && !mediasCaption && len(sent) > 0 {
+		if !getMediasCaption(ctx.EffectiveMessage.Chat.Id) && len(sent) > 0 {
 			last := sent[len(sent)-1]
 			_, _, err := b.EditMessageCaptionWithContext(context.Background(), &gotgbot.EditMessageCaptionOpts{
 				ChatId:    ctx.EffectiveMessage.Chat.Id,
@@ -404,6 +394,11 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		if postInfo.NoMedia {
 			return nil
 		}
+		if isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) {
+			if !getMediasErrors(ctx.EffectiveMessage.Chat.Id) {
+				return nil
+			}
+		}
 		notice, _ := b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(i18n, postInfo), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
@@ -433,7 +428,6 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		if err != nil {
 			if retryAfter, isFlood := parseFloodWaitError(err); isFlood {
 				handleFloodWait(retryAfter)
-				// Retry immediately after flood wait expires
 				sent, err = sendMediaAndHandleCaption(b, ctx, batch, url, i18n)
 				if err != nil {
 					if isIgnorableMediaSendError(err) {
@@ -443,7 +437,6 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 					continue
 				}
 			} else if strings.Contains(err.Error(), "too many requests") {
-				// Fallback for other "too many requests" errors
 				return nil
 			} else if isIgnorableMediaSendError(err) {
 				continue
