@@ -360,6 +360,9 @@ sticker-select-pack = { sticker-mypacks-header }
 sticker-default-changed = Default pack changed successfully!
 sticker-switch-none-button = None
 sticker-pack-deleted = Sticker pack deleted successfully!
+sticker-delpack-confirm = Are you sure you want to delete the sticker pack <b>{ $packTitle }</b>?
+sticker-delpack-confirm-yes = Yes, delete
+sticker-delpack-confirm-no = Cancel
 stickers-migration-notice =
     <b>Stickers are being migrated to gotgbot.</b>
     Some sticker commands are temporarily unavailable during the port.

@@ -365,6 +365,9 @@ sticker-select-pack = { sticker-mypacks-header }
 sticker-default-changed = Pacote padrão alterado com sucesso!
 sticker-switch-none-button = Nenhum
 sticker-pack-deleted = Pacote de figurinhas deletado com sucesso!
+sticker-delpack-confirm = Você tem certeza que deseja deletar o pacote de figurinhas <b>{ $packTitle }</b>?
+sticker-delpack-confirm-yes = Sim, deletar
+sticker-delpack-confirm-no = Cancelar
 stickers-migration-notice =
     <b>O módulo de figurinhas está sendo migrado para o gotgbot.</b>
     Alguns comandos estão temporariamente indisponíveis enquanto concluímos a migração.

@@ -426,7 +426,7 @@ func switchHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	nameTitle := getDisplayName(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username)
 	list, buttons := buildSwitchPackList(valid, ctx.EffectiveUser.Id, i18n)
-	_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("sticker-switch-select", map[string]any{"userName": nameTitle})+"\n"+list, &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true}, ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons}, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
+	_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("sticker-switch-header", map[string]any{"userName": nameTitle})+"\n"+list, &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true}, ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons}, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
 	return nil
 }
 
@@ -451,7 +451,7 @@ func switchPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(i18n("sticker-pack-switched"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+	_, _, _ = b.EditMessageText(i18n("sticker-default-changed"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
@@ -470,12 +470,12 @@ func delPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	var text strings.Builder
-	text.WriteString(i18n("sticker-delpack-select"))
+	text.WriteString(i18n("sticker-delpack-header", map[string]any{"userName": getDisplayName(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username)}))
 	text.WriteString("\n")
 	buttons := make([][]gotgbot.InlineKeyboardButton, 0, len(valid))
 	for i, pack := range valid {
 		fmt.Fprintf(&text, "\n%d - %s", i+1, pack.Title)
-		buttons = append(buttons, []gotgbot.InlineKeyboardButton{{Text: fmt.Sprintf("%d", i+1), CallbackData: fmt.Sprintf("delPack %d %d", ctx.EffectiveUser.Id, pack.ID)}})
+		buttons = append(buttons, []gotgbot.InlineKeyboardButton{{Text: fmt.Sprintf("%d", i+1), CallbackData: fmt.Sprintf("dpSel %d %d", ctx.EffectiveUser.Id, pack.ID)}})
 	}
 	_, _ = b.SendMessage(ctx.EffectiveChat.Id, text.String(), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons}, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
 	return nil
@@ -496,6 +496,54 @@ func delPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("denied-button-alert"), ShowAlert: true})
 		return nil
 	}
+
+	packs, _ := getUserPacks(ownerID)
+	var packTitle string
+	for _, p := range packs {
+		if p.ID == packID {
+			set, err := b.GetStickerSet(p.PackName, nil)
+			if err == nil && set != nil {
+				packTitle = set.Title
+			} else {
+				packTitle = p.PackName
+			}
+			break
+		}
+	}
+
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
+	_, _, _ = b.EditMessageText(
+		i18n("sticker-delpack-confirm", map[string]any{"packTitle": packTitle}),
+		&gotgbot.EditMessageTextOpts{
+			ChatId:    chat.Id,
+			MessageId: msgID,
+			ParseMode: gotgbot.ParseModeHTML,
+			ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+				{{Text: i18n("sticker-delpack-confirm-yes"), CallbackData: fmt.Sprintf("dpYes %d %d", ownerID, packID), Style: gotgbot.KeyboardButtonStyleDanger}},
+				{{Text: i18n("sticker-delpack-confirm-no"), CallbackData: fmt.Sprintf("dpNo %d", ownerID)}},
+			}},
+		})
+	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
+	return nil
+}
+
+func delPackConfirmCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
+	}
+	i18n := localization.Get(ctx)
+	parts := strings.Split(ctx.CallbackQuery.Data, " ")
+	if len(parts) != 3 {
+		return nil
+	}
+	ownerID, _ := strconv.ParseInt(parts[1], 10, 64)
+	packID, _ := strconv.ParseInt(parts[2], 10, 64)
+	if ctx.CallbackQuery.From.Id != ownerID {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("denied-button-alert"), ShowAlert: true})
+		return nil
+	}
+
 	packs, _ := getUserPacks(ownerID)
 	var deletedPackName string
 	for _, p := range packs {
@@ -514,6 +562,44 @@ func delPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 	_, _, _ = b.EditMessageText(i18n("sticker-pack-deleted"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
+	return nil
+}
+
+func delPackCancelCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
+	}
+	i18n := localization.Get(ctx)
+	parts := strings.Split(ctx.CallbackQuery.Data, " ")
+	if len(parts) != 2 {
+		return nil
+	}
+	ownerID, _ := strconv.ParseInt(parts[1], 10, 64)
+	if ctx.CallbackQuery.From.Id != ownerID {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("denied-button-alert"), ShowAlert: true})
+		return nil
+	}
+
+	valid := validateUserPacks(b, ownerID)
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
+
+	if len(valid) == 0 {
+		_, _, _ = b.EditMessageText(i18n("sticker-no-packs"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
+		return nil
+	}
+
+	var text strings.Builder
+	text.WriteString(i18n("sticker-delpack-header", map[string]any{"userName": getDisplayName(ctx.CallbackQuery.From.FirstName, ctx.CallbackQuery.From.Username)}))
+	text.WriteString("\n")
+	buttons := make([][]gotgbot.InlineKeyboardButton, 0, len(valid))
+	for i, pack := range valid {
+		fmt.Fprintf(&text, "\n%d - %s", i+1, pack.Title)
+		buttons = append(buttons, []gotgbot.InlineKeyboardButton{{Text: fmt.Sprintf("%d", i+1), CallbackData: fmt.Sprintf("dpSel %d %d", ownerID, pack.ID)}})
+	}
+	_, _, _ = b.EditMessageText(text.String(), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons}})
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
@@ -1130,7 +1216,9 @@ func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(utils.NewDisableableCommand("switch", switchHandler))
 	dispatcher.AddHandler(utils.NewDisableableCommand("delpack", delPackHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("switchPack"), switchPackCallback))
-	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("delPack"), delPackCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("dpSel"), delPackCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("dpYes"), delPackConfirmCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("dpNo"), delPackCancelCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("kangPack"), kangPackCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("createNewPack"), createNewPackCallback))
 
