@@ -389,6 +389,8 @@ sticker-pack-full =
     Would you like to create a new pack to add this sticker?
 sticker-create-new-pack-button = Create new pack
 lastfm = Last.FM
+lastfm-private-only = This command only works in the bot's private chat.
+lastfm-private-start-button = Set username in private
 reply-with-lastfm-username =
     <b>Reply to this message with your Last.fm username.</b>
     You can find your username in the <a href='https://www.last.fm/settings/username'>Last.fm settings</a>.

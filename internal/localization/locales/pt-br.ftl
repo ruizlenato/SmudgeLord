@@ -394,6 +394,8 @@ sticker-pack-full =
     Gostaria de criar um novo pacote para adicionar esta figurinha?
 sticker-create-new-pack-button = Criar novo pacote
 lastfm = Last.FM
+lastfm-private-only = Esse comando só funciona no privado do bot.
+lastfm-private-start-button = Definir usuário no privado
 reply-with-lastfm-username =
     <b>Responda a esta mensagem com seu nome de usuário do Last.fm.</b>
     Você pode encontrar seu nome de usuário nas <a href='https://www.last.fm/settings/username'>configurações do Last.fm</a>.

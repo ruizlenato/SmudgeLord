@@ -28,6 +28,35 @@ func setUserHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
+	if ctx.EffectiveMessage.Chat.Type != gotgbot.ChatTypePrivate {
+		i18n := localization.Get(ctx)
+		opts := &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		}
+		if b.User.Username != "" {
+			opts.ReplyMarkup = gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+				Text: i18n("lastfm-private-start-button"),
+				Url:  fmt.Sprintf("https://t.me/%s?start=setuser", b.User.Username),
+			}}}}
+		}
+		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("lastfm-private-only"), opts)
+		return nil
+	}
+
+	return startSetUserConversation(b, ctx)
+}
+
+// StartSetUser is the exported entry point for the deep link handler.
+func StartSetUser(b *gotgbot.Bot, ctx *ext.Context) error {
+	return startSetUserConversation(b, ctx)
+}
+
+func startSetUserConversation(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
+		return nil
+	}
+
 	convOnce.Do(func() {
 		if convDispatcher != nil {
 			convManager = conversation.NewManager(b, convDispatcher)

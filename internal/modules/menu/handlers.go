@@ -39,8 +39,13 @@ func startHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		os.Exit(1)
 	}
 
-	if messageFields := strings.Fields(ctx.EffectiveMessage.GetText()); len(messageFields) > 1 && messageFields[1] == "privacy" {
-		return privacyHandler(b, ctx)
+	if messageFields := strings.Fields(ctx.EffectiveMessage.GetText()); len(messageFields) > 1 {
+		switch messageFields[1] {
+		case "privacy":
+			return privacyHandler(b, ctx)
+		case "setuser":
+			return lastfm.StartSetUser(b, ctx)
+		}
 	}
 
 	if ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeGroup || ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeSupergroup {
