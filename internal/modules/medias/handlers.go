@@ -424,26 +424,28 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		if i > 0 {
 			batch.Caption = ""
 		}
-		sent, err := sendMediaAndHandleCaption(b, ctx, batch, url, i18n)
+
+		const maxFloodRetries = 3
+		var sent []gotgbot.Message
+		var err error
+		for attempt := 0; attempt <= maxFloodRetries; attempt++ {
+			sent, err = sendMediaAndHandleCaption(b, ctx, batch, url, i18n)
+			if err == nil {
+				break
+			}
+			retryAfter, isFlood := parseFloodWaitError(err)
+			if !isFlood {
+				break
+			}
+			handleFloodWait(retryAfter)
+		}
+
 		if err != nil {
-			if retryAfter, isFlood := parseFloodWaitError(err); isFlood {
-				handleFloodWait(retryAfter)
-				sent, err = sendMediaAndHandleCaption(b, ctx, batch, url, i18n)
-				if err != nil {
-					if isIgnorableMediaSendError(err) {
-						continue
-					}
-					slog.Error("Couldn't send media batch after flood wait", "postUrl", url, "error", err.Error(), "batch", i/10+1)
-					continue
-				}
-			} else if strings.Contains(err.Error(), "too many requests") {
-				return nil
-			} else if isIgnorableMediaSendError(err) {
-				continue
-			} else {
-				slog.Error("Couldn't send media batch", "postUrl", url, "error", err.Error(), "batch", i/10+1)
+			if isIgnorableMediaSendError(err) {
 				continue
 			}
+			slog.Error("Couldn't send media batch", "postUrl", url, "error", err.Error(), "batch", i/10+1)
+			continue
 		}
 		allSent = append(allSent, sent...)
 	}
