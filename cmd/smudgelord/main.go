@@ -19,11 +19,14 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/config"
 	"github.com/ruizlenato/smudgelord/internal/database"
 	"github.com/ruizlenato/smudgelord/internal/modules"
+	"github.com/ruizlenato/smudgelord/internal/utils/conversation"
 )
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
+
+	conversation.SetShutdownContext(ctx)
 
 	logger := slog.New(NewColorHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,

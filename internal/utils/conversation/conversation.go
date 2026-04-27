@@ -15,9 +15,24 @@ var (
 	ErrConversationTimeout  = fmt.Errorf("conversation timed out")
 	ErrConversationAborted  = fmt.Errorf("conversation aborted by user")
 	ErrConversationCanceled = fmt.Errorf("conversation canceled")
+
+	shutdownCtx context.Context = context.Background()
+	shutdownMu  sync.Mutex
 )
 
 const conversationHandlerGroup = -100
+
+func SetShutdownContext(ctx context.Context) {
+	shutdownMu.Lock()
+	defer shutdownMu.Unlock()
+	shutdownCtx = ctx
+}
+
+func getShutdownContext() context.Context {
+	shutdownMu.Lock()
+	defer shutdownMu.Unlock()
+	return shutdownCtx
+}
 
 type Manager struct {
 	b                   *gotgbot.Bot
@@ -157,6 +172,8 @@ func (c *Conversation) AwaitResponse(ctx context.Context) (*gotgbot.Message, err
 		return nil, ErrConversationTimeout
 	case <-ctx.Done():
 		return nil, ctx.Err()
+	case <-getShutdownContext().Done():
+		return nil, ErrConversationCanceled
 	}
 }
 

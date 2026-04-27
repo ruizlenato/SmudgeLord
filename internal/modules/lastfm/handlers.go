@@ -2,6 +2,7 @@ package lastfm
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"strings"
@@ -47,7 +48,6 @@ func setUserHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	return startSetUserConversation(b, ctx)
 }
 
-// StartSetUser is the exported entry point for the deep link handler.
 func StartSetUser(b *gotgbot.Bot, ctx *ext.Context) error {
 	return startSetUserConversation(b, ctx)
 }
@@ -84,7 +84,7 @@ func startSetUserConversation(b *gotgbot.Bot, ctx *ext.Context) error {
 		},
 	})
 	if err != nil {
-		if err == conversation.ErrConversationTimeout {
+		if errors.Is(err, conversation.ErrConversationTimeout) || errors.Is(err, conversation.ErrConversationCanceled) || errors.Is(err, conversation.ErrConversationAborted) {
 			return nil
 		}
 		slog.Error("Error while asking for LastFM username", "error", err.Error())
