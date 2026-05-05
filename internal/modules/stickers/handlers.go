@@ -182,6 +182,7 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		ReplyMarkup:     gotgbot.ForceReply{ForceReply: true, Selective: true},
 	})
+	titlePromptID := conv.GetLastMessageID()
 	if err != nil {
 		return handleConversationError(b, ctx, err, i18n)
 	}
@@ -189,10 +190,15 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return handleConversationError(b, ctx, errors.New("no title response"), i18n)
 	}
 
+	chatID := ctx.EffectiveMessage.Chat.Id
+	if ok, _ := b.DeleteMessage(chatID, titleMsg.MessageId, nil); ok && titlePromptID > 0 {
+		_, _ = b.DeleteMessage(chatID, titlePromptID, nil)
+	}
+
 	skipToken := fmt.Sprintf("newpackSkip:%d:%d", ctx.EffectiveUser.Id, time.Now().UnixNano())
-	emojiPrompt, err := b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("stickers-newpack-emoji-request"), &gotgbot.SendMessageOpts{
+	emojiPrompt, err := b.SendMessage(chatID, i18n("stickers-newpack-emoji-request"), &gotgbot.SendMessageOpts{
 		ParseMode:       gotgbot.ParseModeHTML,
-		ReplyParameters: &gotgbot.ReplyParameters{MessageId: titleMsg.MessageId},
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
 			{Text: i18n("stickers-newpack-skip-button"), CallbackData: skipToken},
 		}}},
@@ -201,9 +207,15 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return handleConversationError(b, ctx, err, i18n)
 	}
 
-	packEmoji, err := awaitEmojiOrSkip(b, ctx, emojiPrompt.MessageId, skipToken)
+	packEmoji, emojiReplyID, err := awaitEmojiOrSkip(b, ctx, emojiPrompt.MessageId, skipToken)
 	if err != nil {
 		return handleConversationError(b, ctx, err, i18n)
+	}
+
+	if emojiReplyID > 0 {
+		if ok, _ := b.DeleteMessage(chatID, emojiReplyID, nil); ok && emojiPrompt != nil {
+			_, _ = b.DeleteMessage(chatID, emojiPrompt.MessageId, nil)
+		}
 	}
 
 	packTitle := strings.TrimSpace(titleMsg.GetText())
@@ -257,14 +269,19 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func awaitEmojiOrSkip(b *gotgbot.Bot, ctx *ext.Context, replyToMessageID int64, skipToken string) (string, error) {
+type emojiResult struct {
+	text  string
+	msgID int64
+}
+
+func awaitEmojiOrSkip(b *gotgbot.Bot, ctx *ext.Context, replyToMessageID int64, skipToken string) (string, int64, error) {
 	if convDispatcher == nil || ctx.EffectiveUser == nil || ctx.EffectiveChat == nil {
-		return "", errors.New("conversation unavailable")
+		return "", 0, errors.New("conversation unavailable")
 	}
 
 	chatID := ctx.EffectiveChat.Id
 	userID := ctx.EffectiveUser.Id
-	msgCh := make(chan string, 1)
+	msgCh := make(chan emojiResult, 1)
 	skipCh := make(chan struct{}, 1)
 
 	msgHandler := handlers.NewMessage(func(m *gotgbot.Message) bool {
@@ -278,7 +295,7 @@ func awaitEmojiOrSkip(b *gotgbot.Bot, ctx *ext.Context, replyToMessageID int64, 
 			text = strings.TrimSpace(ectx.EffectiveMessage.Caption)
 		}
 		select {
-		case msgCh <- text:
+		case msgCh <- emojiResult{text: text, msgID: ectx.EffectiveMessage.MessageId}:
 		default:
 		}
 		return nil
@@ -311,15 +328,15 @@ func awaitEmojiOrSkip(b *gotgbot.Bot, ctx *ext.Context, replyToMessageID int64, 
 	defer timer.Stop()
 
 	select {
-	case text := <-msgCh:
-		if strings.EqualFold(text, "cancel") || strings.EqualFold(text, "abort") || strings.EqualFold(text, "stop") {
-			return "", conversation.ErrConversationAborted
+	case result := <-msgCh:
+		if strings.EqualFold(result.text, "cancel") || strings.EqualFold(result.text, "abort") || strings.EqualFold(result.text, "stop") {
+			return "", 0, conversation.ErrConversationAborted
 		}
-		return text, nil
+		return result.text, result.msgID, nil
 	case <-skipCh:
-		return "🤔", nil
+		return "🤔", 0, nil
 	case <-timer.C:
-		return "", conversation.ErrConversationTimeout
+		return "", 0, conversation.ErrConversationTimeout
 	}
 }
 
