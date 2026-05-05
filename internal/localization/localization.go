@@ -20,15 +20,19 @@ import (
 const defaultLanguage = "en-us"
 
 var (
-	LangBundles           = make(map[string]*fluent.Bundle)
-	langBundlesMutex      sync.RWMutex
-	availableLocalesMutex sync.Mutex
+	LangBundles      = make(map[string]*fluent.Bundle)
+	langBundlesMutex sync.RWMutex
+	loadedLocales    []string
+	localesMutex     sync.Mutex
 )
 
 func LoadLanguages() error {
-	database.AvailableLocales = nil
 	dir := "internal/localization/locales"
 	var wg sync.WaitGroup
+
+	localesMutex.Lock()
+	loadedLocales = nil
+	localesMutex.Unlock()
 
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -43,6 +47,12 @@ func LoadLanguages() error {
 	})
 
 	wg.Wait()
+
+	localesMutex.Lock()
+	database.AvailableLocales = make([]string, len(loadedLocales))
+	copy(database.AvailableLocales, loadedLocales)
+	localesMutex.Unlock()
+
 	return err
 }
 
@@ -72,9 +82,9 @@ func processLanguageFile(path string, wg *sync.WaitGroup) {
 	LangBundles[langCode] = langBundle
 	langBundlesMutex.Unlock()
 
-	availableLocalesMutex.Lock()
-	database.AvailableLocales = append(database.AvailableLocales, langCode)
-	availableLocalesMutex.Unlock()
+	localesMutex.Lock()
+	loadedLocales = append(loadedLocales, langCode)
+	localesMutex.Unlock()
 }
 
 func createFormatContext(args map[string]any) *fluent.FormatContext {
@@ -82,7 +92,6 @@ func createFormatContext(args map[string]any) *fluent.FormatContext {
 }
 
 func GetChatLanguage(update *gotgbot.Update) (string, error) {
-	var tableName string
 	var chatID int64
 	var chatType string
 
@@ -109,13 +118,14 @@ func GetChatLanguage(update *gotgbot.Update) (string, error) {
 		return "", errors.New("invalid update")
 	}
 
+	var query string
 	if chatType == gotgbot.ChatTypeGroup || chatType == gotgbot.ChatTypeSupergroup {
-		tableName = "chats"
+		query = "SELECT language FROM chats WHERE id = ?;"
 	} else {
-		tableName = "users"
+		query = "SELECT language FROM users WHERE id = ?;"
 	}
 
-	row := database.DB.QueryRow(fmt.Sprintf("SELECT language FROM %s WHERE id = ?;", tableName), chatID)
+	row := database.DB.QueryRow(query, chatID)
 	var language string
 	if err := row.Scan(&language); err != nil {
 		return "", fmt.Errorf("failed to get language for chat ID %d: %w", chatID, err)
