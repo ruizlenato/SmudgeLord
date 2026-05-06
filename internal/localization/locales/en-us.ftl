@@ -23,7 +23,7 @@ about-your-data-button = About your data
 back-button = ↩️ Back
 denied-button-alert = This button is not for you.
 privacy-policy-button = 🔒 Privacy Policy
-privacy-policy-group = To acess SmudgeLord's privacy policy, <b>click on the button below.</b>
+privacy-policy-group = To access SmudgeLord's privacy policy, <b>click on the button below.</b>
 loading = <b>Loading...</b>
 error-report =
     <b>{ $summary }</b>
@@ -36,7 +36,7 @@ problem-report-button = Report problem
 only-groups = This command can only be used in groups.
 about-message =
     <b>— SmudgeLord</b>
-    SmugeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily
+    SmudgeLord (Smudge The Cat) is a cat that has become a meme on the internet. His fame arose from an image in which he is seen next to a woman shouting angrily
 
     <b>- Source code:</b> <a href='https://github.com/ruizlenato/SmudgeLord'>GitHub</a>
     <b>- Developer:</b> @ruizlenato

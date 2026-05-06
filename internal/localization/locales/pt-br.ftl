@@ -6,7 +6,7 @@ language-menu =
     <b>Selecione abaixo o idioma que você quer utilizar no bot.</b>
 language-changed = O idioma foi alterado com sucesso.
 measurement-unit = m
-start-button = Inciar conversa.
+start-button = Iniciar conversa.
 start-message =
     Olá <b>{ $userFirstName }</b> — Eu sou o <b>{ $botName }</b>, um bot com alguns comandos úteis e divertidos para você.
 
@@ -116,7 +116,7 @@ afk-help =
 user-now-unavailable = <b>{ $userFirstName }</b> está agora indisponível!
 user-unavailable =
     <b><a href='tg://user?id={ $userID }'>{ $userFirstName } </a></b> está <b>indisponível!</b>
-    Visto pela última vez à <code>{ $duration}</code> atrás.
+    Visto pela última vez à <code>{ $duration }</code> atrás.
 user-unavailable-reason = <b>Motivo:</b> <code>{ $reason }</code>
 user-now-available = <b><a href='tg://user?id={ $userID }'>{ $userFirstName }</a></b> está de volta após <code>{ $duration }</code> de ausência!
 config = Configurações
@@ -204,9 +204,9 @@ youtube-error-summary = Ocorreu um erro ao processar o vídeo. Tente novamente m
 youtube-error-with-id =
     <b>Ocorreu um erro ao processar o vídeo. Tente novamente mais tarde.</b>
 
-    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>ID do Erro:</b> <code>{ $errorId }</code>
     <b>Clique abaixo para reportar o erro.</b>
-youtube-error-alert-with-id = Ocorreu um erro ao processar o vídeo. Error ID: { $errorId }. Use o botão da mensagem para reportar.
+youtube-error-alert-with-id = Ocorreu um erro ao processar o vídeo. ID do Erro: { $errorId }. Use o botão da mensagem para reportar.
 auto-help = Quando ativado, o bot baixará automaticamente mídias de redes sociais ao detectar um link, dispensando o uso dos comandos /sdl ou /dl.
 caption-help = Quando ativado, as legendas das mídias baixadas pelo bot serão enviadas junto com elas.
 errors-help = Quando ativado, o bot enviará mensagens de erro no grupo quando o download de uma mídia falhar. Quando desativado, os erros serão ignorados silenciosamente.
@@ -233,7 +233,7 @@ media-error-summary = Ocorreu um erro ao baixar a mídia. Tente novamente mais t
 media-error-with-id =
     Ocorreu um erro ao baixar a mídia. Por favor, tente novamente mais tarde.
 
-    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>ID do Erro:</b> <code>{ $errorId }</code>
     <b>Clique abaixo para reportar o erro.</b>
 media-inline-handler = Baixador de mídias
 media-inline-help = Baixa mídias de certas redes sociais. Apenas cole o link após o @.
@@ -312,9 +312,9 @@ kang-error-summary = Ocorreu um erro ao processar a figurinha. Tente novamente.
 kang-error-with-id =
     <b>Ocorreu um erro ao processar a figurinha, tente novamente.</b>
 
-    <b>Error ID:</b> <code>{ $errorId }</code>
+    <b>ID do Erro:</b> <code>{ $errorId }</code>
     <b>Clique abaixo para reportar o erro.</b>
-kang-error-alert-with-id = Ocorreu um erro ao processar a figurinha. Error ID: { $errorId }. Use o botão da mensagem para reportar.
+kang-error-alert-with-id = Ocorreu um erro ao processar a figurinha. ID do Erro: { $errorId }. Use o botão da mensagem para reportar.
 get-sticker-no-reply-provided = Você precisa usar este comando respondendo a uma <b>figurinha estática (imagem) ou de vídeo</b>.
 get-sticker-animated-not-supported =
     <b>Figurinhas animadas não são suportadas.</b>
