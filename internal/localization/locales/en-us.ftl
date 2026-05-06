@@ -315,7 +315,6 @@ get-sticker-animated-not-supported =
     <b>Animated stickers are not supported.</b>
     You can only convert static stickers to <code>.png</code> files or animated stickers to <code>.gif</code> files.
 sticker-invalid-media-type = The file you replied to is not valid. You need to reply to an <i><b>sticker</b></i>, <i><b>video</b></i> or <i><b>photo</b></i>.
-sticker-new-pack = <code>Creating a new sticker pack...</code>
 sticker-stoled =
     Sticker <b>successfully</b> stolen.
     <b>Emoji:</b> { $emoji }

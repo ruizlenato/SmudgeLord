@@ -320,7 +320,6 @@ get-sticker-animated-not-supported =
     <b>Figurinhas animadas não são suportadas.</b>
     Você só pode converter figurinhas estáticas para arquivos <code>.png</code> ou figurinhas de vídeo para arquivos <code>.gif</code>.
 sticker-invalid-media-type = O arquivo que você respondeu não é valido, responda a uma <i><b>figurinha</b></i> (sticker), um <i><b>vídeo</b></i> ou <i><b>uma foto</b></i>.
-sticker-new-pack = <code>Criando um novo pacote de figurinhas...</code>
 sticker-stoled =
     Figurinha roubada <b>com sucesso</b>
     <b>Emoji:</b> { $emoji }

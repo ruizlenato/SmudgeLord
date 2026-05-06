@@ -1,4 +1,4 @@
-package stickers
+﻿package stickers
 
 import (
 	"bytes"
@@ -103,10 +103,11 @@ func migrationPlaceholder(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
-func handleConversationError(b *gotgbot.Bot, ctx *ext.Context, err error, i18n func(string, ...map[string]any) string) error {
+func handleConversationError(b *gotgbot.Bot, ctx *ext.Context, err error, i18n func(string, ...map[string]any) string, lastPromptID int64, deletePrompt bool) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
+	chatID := ctx.EffectiveMessage.Chat.Id
 	msg := i18n("stickers-newpack-timeout")
 	switch {
 	case errors.Is(err, conversation.ErrConversationAborted), errors.Is(err, conversation.ErrConversationCanceled):
@@ -117,12 +118,30 @@ func handleConversationError(b *gotgbot.Bot, ctx *ext.Context, err error, i18n f
 		slog.Warn("sticker conversation failed", "error", err.Error())
 		msg = i18n("stickers-migration-notice")
 	}
-	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, msg, &gotgbot.SendMessageOpts{
-		ParseMode: gotgbot.ParseModeHTML,
-		ReplyParameters: &gotgbot.ReplyParameters{
-			MessageId: ctx.EffectiveMessage.MessageId,
-		},
-	})
+	if deletePrompt {
+		if lastPromptID > 0 {
+			_, _ = b.DeleteMessage(chatID, lastPromptID, nil)
+		}
+		_, _ = b.SendMessage(chatID, msg, &gotgbot.SendMessageOpts{
+			ParseMode: gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{
+				MessageId: ctx.EffectiveMessage.MessageId,
+			},
+		})
+	} else if lastPromptID > 0 {
+		_, _, _ = b.EditMessageText(msg, &gotgbot.EditMessageTextOpts{
+			ChatId:    chatID,
+			MessageId: lastPromptID,
+			ParseMode: gotgbot.ParseModeHTML,
+		})
+	} else {
+		_, _ = b.SendMessage(chatID, msg, &gotgbot.SendMessageOpts{
+			ParseMode: gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{
+				MessageId: ctx.EffectiveMessage.MessageId,
+			},
+		})
+	}
 	return nil
 }
 
@@ -184,10 +203,10 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	})
 	titlePromptID := conv.GetLastMessageID()
 	if err != nil {
-		return handleConversationError(b, ctx, err, i18n)
+		return handleConversationError(b, ctx, err, i18n, titlePromptID, true)
 	}
 	if titleMsg == nil {
-		return handleConversationError(b, ctx, errors.New("no title response"), i18n)
+		return handleConversationError(b, ctx, errors.New("no title response"), i18n, titlePromptID, true)
 	}
 
 	chatID := ctx.EffectiveMessage.Chat.Id
@@ -197,26 +216,30 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	skipToken := fmt.Sprintf("newpackSkip:%d:%d", ctx.EffectiveUser.Id, time.Now().UnixNano())
 	emojiPrompt, err := b.SendMessage(chatID, i18n("stickers-newpack-emoji-request"), &gotgbot.SendMessageOpts{
-		ParseMode:       gotgbot.ParseModeHTML,
+		ParseMode: gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
 			{Text: i18n("stickers-newpack-skip-button"), CallbackData: skipToken},
 		}}},
 	})
 	if err != nil {
-		return handleConversationError(b, ctx, err, i18n)
+		return handleConversationError(b, ctx, err, i18n, titlePromptID, true)
 	}
 
 	packEmoji, emojiReplyID, err := awaitEmojiOrSkip(b, ctx, emojiPrompt.MessageId, skipToken)
 	if err != nil {
-		return handleConversationError(b, ctx, err, i18n)
+		return handleConversationError(b, ctx, err, i18n, emojiPrompt.MessageId, false)
 	}
 
 	if emojiReplyID > 0 {
-		if ok, _ := b.DeleteMessage(chatID, emojiReplyID, nil); ok && emojiPrompt != nil {
-			_, _ = b.DeleteMessage(chatID, emojiPrompt.MessageId, nil)
-		}
+		_, _ = b.DeleteMessage(chatID, emojiReplyID, nil)
 	}
+	// Edit the emoji prompt to show "creating pack" status
+	_, _, _ = b.EditMessageText(i18n("sticker-creating-pack"), &gotgbot.EditMessageTextOpts{
+		ChatId:    chatID,
+		MessageId: emojiPrompt.MessageId,
+		ParseMode: gotgbot.ParseModeHTML,
+	})
 
 	packTitle := strings.TrimSpace(titleMsg.GetText())
 	if packTitle == "" {
@@ -255,16 +278,16 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		slog.Error("Couldn't save pack to database", "error", err)
 	}
 
-	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("stickers-newpack-success", map[string]any{
+	_, _, _ = b.EditMessageText(i18n("stickers-newpack-success", map[string]any{
 		"packTitle": utils.SanitizeTelegramHTML(packTitle),
 		"packEmoji": utils.EscapeHTML(packEmoji),
-	}), &gotgbot.SendMessageOpts{
-		ParseMode:       gotgbot.ParseModeHTML,
-		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
-			Text: i18n("sticker-newpack-button"),
-			Url:  "https://t.me/addstickers/" + packName,
-		}}}},
+	}), &gotgbot.EditMessageTextOpts{
+		ChatId:    chatID,
+		MessageId: emojiPrompt.MessageId,
+		ParseMode: gotgbot.ParseModeHTML,
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+			{{Text: i18n("sticker-newpack-button"), Url: "https://t.me/addstickers/" + packName}},
+		}},
 	})
 	return nil
 }
@@ -467,6 +490,31 @@ func switchPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	if err := setDefaultPack(ownerID, packID); err != nil {
 		answerKangErrorCallback(b, ctx.CallbackQuery.Id, ctx.CallbackQuery.From.Id, i18n, "Couldn't set default pack", err)
+		return nil
+	}
+	chat := ctx.CallbackQuery.Message.GetChat()
+	msgID := ctx.CallbackQuery.Message.GetMessageId()
+	_, _, _ = b.EditMessageText(i18n("sticker-default-changed"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
+	return nil
+}
+
+func switchNoneCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
+	}
+	i18n := localization.Get(ctx)
+	parts := strings.Split(ctx.CallbackQuery.Data, " ")
+	if len(parts) != 2 {
+		return nil
+	}
+	ownerID, _ := strconv.ParseInt(parts[1], 10, 64)
+	if ctx.CallbackQuery.From.Id != ownerID {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("denied-button-alert"), ShowAlert: true})
+		return nil
+	}
+	if err := clearDefaultPack(ownerID); err != nil {
+		answerKangErrorCallback(b, ctx.CallbackQuery.Id, ctx.CallbackQuery.From.Id, i18n, "Couldn't clear default pack", err)
 		return nil
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
@@ -955,6 +1003,10 @@ func buildSwitchPackList(packs []ValidatedPack, userID int64, i18n func(string, 
 		buttonIndex++
 	}
 
+	buttons = append(buttons, []gotgbot.InlineKeyboardButton{
+		{Text: i18n("sticker-switch-none-button"), CallbackData: fmt.Sprintf("switchNone %d", userID)},
+	})
+
 	return text.String(), buttons
 }
 
@@ -1236,6 +1288,7 @@ func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(utils.NewDisableableCommand("switch", switchHandler))
 	dispatcher.AddHandler(utils.NewDisableableCommand("delpack", delPackHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("switchPack"), switchPackCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("switchNone"), switchNoneCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("dpSel"), delPackCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("dpYes"), delPackConfirmCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("dpNo"), delPackCancelCallback))
