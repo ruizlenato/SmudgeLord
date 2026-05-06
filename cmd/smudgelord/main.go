@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"log/slog"
 	"os"
@@ -23,6 +24,9 @@ import (
 )
 
 func main() {
+	beta := flag.Bool("beta", false, "disable Telegram log channel forwarding")
+	flag.Parse()
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
@@ -37,7 +41,10 @@ func main() {
 	botOpts := &gotgbot.BotOpts{}
 	if config.BotAPIURL != "" {
 		botOpts.BotClient = &gotgbot.BaseBotClient{
-			DefaultRequestOpts: &gotgbot.RequestOpts{APIURL: config.BotAPIURL},
+			DefaultRequestOpts: &gotgbot.RequestOpts{
+				Timeout: 500 * time.Second,
+				APIURL:  config.BotAPIURL,
+			},
 		}
 	}
 
@@ -47,13 +54,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	logChatID := config.LogChannelID
+	if *beta {
+		logChatID = 0
+	}
+
 	slog.SetDefault(slog.New(NewColorHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: true,
 		Level:     config.LogLevel,
-	}, b, config.LogChannelID)))
+	}, b, logChatID)))
 
-	if err := initializeServices(b, ctx); err != nil {
-		slog.Error("failed to initialize services", "error", err)
+	if err := initializeServices(b, ctx, logChatID); err != nil {
+		slog.Error("failed to initialize services", "error", err.Error())
 		os.Exit(1)
 	}
 

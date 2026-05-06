@@ -22,7 +22,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/localization"
 )
 
-func initializeServices(b *gotgbot.Bot, ctx context.Context) error {
+func initializeServices(b *gotgbot.Bot, ctx context.Context, logChatID int64) error {
 	slog.Info("loading languages")
 	if err := localization.LoadLanguages(); err != nil {
 		return fmt.Errorf("load languages: %w", err)
@@ -48,7 +48,7 @@ func initializeServices(b *gotgbot.Bot, ctx context.Context) error {
 	}
 
 	slog.Info("services initialized")
-	startDatabaseBackupRoutine(ctx, b)
+	startDatabaseBackupRoutine(ctx, b, logChatID)
 	return nil
 }
 
@@ -201,8 +201,8 @@ func (h *ColorHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return h.handler.Enabled(ctx, level)
 }
 
-func startDatabaseBackupRoutine(ctx context.Context, b *gotgbot.Bot) {
-	if b == nil || config.LogChannelID == 0 || config.DatabaseFile == "" {
+func startDatabaseBackupRoutine(ctx context.Context, b *gotgbot.Bot, logChatID int64) {
+	if b == nil || logChatID == 0 || config.DatabaseFile == "" {
 		return
 	}
 
