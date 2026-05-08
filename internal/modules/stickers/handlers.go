@@ -217,7 +217,7 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	skipToken := fmt.Sprintf("newpackSkip:%d:%d", ctx.EffectiveUser.Id, time.Now().UnixNano())
 	emojiPrompt, err := b.SendMessage(chatID, i18n("stickers-newpack-emoji-request"), &gotgbot.SendMessageOpts{
-		ParseMode: gotgbot.ParseModeHTML,
+		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
 			{Text: i18n("stickers-newpack-skip-button"), CallbackData: skipToken},
@@ -328,11 +328,6 @@ func awaitEmojiOrSkip(b *gotgbot.Bot, ctx *ext.Context, replyToMessageID int64, 
 	skipHandler := handlers.NewCallback(callbackquery.Equal(skipToken), func(bot *gotgbot.Bot, ectx *ext.Context) error {
 		if ectx.CallbackQuery == nil || ectx.CallbackQuery.From.Id != userID {
 			return nil
-		}
-		if ectx.CallbackQuery.Message != nil {
-			chat := ectx.CallbackQuery.Message.GetChat()
-			msgID := ectx.CallbackQuery.Message.GetMessageId()
-			_, _ = bot.DeleteMessage(chat.Id, msgID, nil)
 		}
 		_, _ = bot.AnswerCallbackQuery(ectx.CallbackQuery.Id, nil)
 		select {
