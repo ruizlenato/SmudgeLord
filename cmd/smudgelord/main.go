@@ -71,7 +71,7 @@ func main() {
 
 	dispatcher := ext.NewDispatcher(&ext.DispatcherOpts{
 		Error: func(b *gotgbot.Bot, ctx *ext.Context, err error) ext.DispatcherAction {
-			slog.Error("dispatcher error", "error", err)
+			slog.Error("dispatcher error", "error", err.Error())
 			return ext.DispatcherActionNoop
 		},
 		MaxRoutines: ext.DefaultMaxRoutines,
@@ -112,15 +112,12 @@ func main() {
 		}
 	}
 
-	go func() {
-		<-ctx.Done()
-		slog.Info("stopping gotgbot updater")
-		if err := updater.Stop(); err != nil {
-			slog.Error("failed to stop updater", "error", err)
-		}
-		database.Close()
-	}()
-
 	fmt.Printf("Bot started: %s (@%s)\n", b.FirstName, b.Username)
-	updater.Idle()
+
+	<-ctx.Done()
+	slog.Info("stopping gotgbot updater")
+	if err := updater.Stop(); err != nil {
+		slog.Error("failed to stop updater", "error", err)
+	}
+	database.Close()
 }
