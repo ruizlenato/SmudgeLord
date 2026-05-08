@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -84,6 +85,38 @@ func main() {
 
 	updater := ext.NewUpdater(dispatcher, nil)
 
+	var closeDBOnce sync.Once
+	closeDatabase := func() {
+		closeDBOnce.Do(func() {
+			database.Close()
+		})
+	}
+
+	interrupts := make(chan os.Signal, 2)
+	signal.Notify(interrupts, os.Interrupt)
+	defer signal.Stop(interrupts)
+
+	go func() {
+		<-interrupts
+		<-interrupts
+
+		slog.Warn("forced shutdown requested, exiting now")
+
+		dbClosed := make(chan struct{})
+		go func() {
+			closeDatabase()
+			close(dbClosed)
+		}()
+
+		select {
+		case <-dbClosed:
+		case <-time.After(2 * time.Second):
+			slog.Warn("database close timed out on forced shutdown")
+		}
+
+		os.Exit(1)
+	}()
+
 	if config.WebhookURL != "" {
 		if err := updater.StartWebhook(b, config.TelegramToken, ext.WebhookOpts{
 			ListenAddr: ":" + strconv.Itoa(config.WebhookPort),
@@ -116,8 +149,20 @@ func main() {
 
 	<-ctx.Done()
 	slog.Info("stopping gotgbot updater")
-	if err := updater.Stop(); err != nil {
-		slog.Error("failed to stop updater", "error", err)
+
+	stopDone := make(chan error, 1)
+	go func() {
+		stopDone <- updater.Stop()
+	}()
+
+	select {
+	case err := <-stopDone:
+		if err != nil {
+			slog.Error("failed to stop updater", "error", err)
+		}
+	case <-time.After(20 * time.Second):
+		slog.Warn("updater stop timed out, waiting for second Ctrl+C to force exit")
 	}
-	database.Close()
+
+	closeDatabase()
 }
