@@ -36,6 +36,7 @@ var (
 )
 
 const maxVideoStickerBytes = 256 * 1024
+const defaultStickerEmoji = "😸"
 
 func ensureConversationManager(b *gotgbot.Bot) *conversation.Manager {
 	convOnce.Do(func() {
@@ -246,7 +247,7 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		packTitle = i18n("stickers-newpack-default-title")
 	}
 	if packEmoji == "" || strings.EqualFold(packEmoji, "skip") || strings.EqualFold(packEmoji, "pular") || strings.EqualFold(packEmoji, i18n("stickers-newpack-skip-button")) {
-		packEmoji = "🤔"
+		packEmoji = defaultStickerEmoji
 	}
 	packName, err := generateUniqueStickerSetName(b, ctx.EffectiveUser.Id, count)
 	if err != nil {
@@ -357,7 +358,7 @@ func awaitEmojiOrSkip(b *gotgbot.Bot, ctx *ext.Context, replyToMessageID int64, 
 		}
 		return result.text, result.msgID, nil
 	case <-skipCh:
-		return "🤔", 0, nil
+		return defaultStickerEmoji, 0, nil
 	case <-timer.C:
 		return "", 0, conversation.ErrConversationTimeout
 	}
@@ -881,7 +882,7 @@ func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	packTitle := generateStickerSetTitle(ctx.CallbackQuery.From.FirstName, ctx.CallbackQuery.From.Username, count)
 	emoji := kd.Emoji
 	if emoji == "" {
-		emoji = "🤔"
+		emoji = defaultStickerEmoji
 	}
 
 	_, err = b.CreateNewStickerSet(userID, packName, packTitle, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(kd.FileID), Format: kd.StickerType, EmojiList: []string{emoji}}}, nil)
@@ -973,10 +974,13 @@ func extractEmojis(text string, replySticker *gotgbot.Sticker) []string {
 		emoji = append(emoji, emojiRegex.FindAllString(text, -1)...)
 	}
 	if len(emoji) == 0 && replySticker != nil {
-		emoji = append(emoji, replySticker.Emoji)
+		replyStickerEmoji := strings.TrimSpace(replySticker.Emoji)
+		if replyStickerEmoji != "" {
+			emoji = append(emoji, replyStickerEmoji)
+		}
 	}
 	if len(emoji) == 0 {
-		emoji = append(emoji, "🤔")
+		emoji = append(emoji, defaultStickerEmoji)
 	}
 	return emoji
 }
