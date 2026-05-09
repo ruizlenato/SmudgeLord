@@ -17,7 +17,21 @@ start-message-group =
 language-button = Idioma
 help-button = ❔Ajuda
 about-button =  ℹ️ Sobre
-donation-button = 💵 Donation
+donation-button = 💵 Doação
+donate-message =
+    <b>💸 Ajude a manter o bot no ar com uma doação.</b>
+    <i>Obrigado por considerar apoiar!</i>
+
+    <b>— Chave PIX/Email do PayPal:</b> <code>ruizlenato@proton.me</code>
+    <i>Caso seja brasileiro, é preferível que doe através do PIX para evitar taxas desnecessárias do PayPal.</i>
+
+    <b>— Criptomoedas:</b>
+    <b>Bitcoin:</b> <code>bc1q8a30tfxkhaklnpw6x4qk7fwctpzs8zf9qxhu59</code>
+    <b>Ethereum:</b> <code>0x1336cD6C9e37820e016D007222E2F4110DD3b87f</code>
+    <b>Solana:</b> <code>GL2cU5s5qBm8VogVuLYpML9yVK7cbWnJk8HpVbzUYgxx</code>
+
+    Caso tenha algum problema ao copiar algum endereço, acesse o site abaixo e copie por lá.
+donate-website-button = 🌐 Copiar endereços pelo site
 news-channel-button = 📢 Canal
 about-your-data-button = Sobre seus dados
 back-button = ↩️ Voltar
@@ -42,8 +56,14 @@ about-message =
     <b>- Desenvolvedor:</b> @ruizlenato
     <i>Este projeto não tem afiliação com Smudge The Cat. Estou apenas usando seu nome e imagem porque sou um grande fã.</i>
 
-    <b>💸 Contribua: Ajude a manter o bot no ar com uma doação via PIX ou PayPal.</b>
-    • Chave Pix e Email do PayPal: <code>ruizlenato@proton.me</code>
+    <b>💸 Ajude a manter o bot no ar com uma doação.</b>
+    — <b>Chave PIX/Email do PayPal:</b> <code>ruizlenato@proton.me</code>
+    <i>Caso seja brasileiro, é preferível que doe através do PIX para evitar taxas desnecessárias do PayPal.</i>
+
+    <b>— Criptomoedas:</b>
+    <b>Bitcoin:</b> <code>bc1q8a30tfxkhaklnpw6x4qk7fwctpzs8zf9qxhu59</code>
+    <b>Ethereum:</b> <code>0x1336cD6C9e37820e016D007222E2F4110DD3b87f</code>
+    <b>Solana:</b> <code>GL2cU5s5qBm8VogVuLYpML9yVK7cbWnJk8HpVbzUYgxx</code>
 
     Se preferir contribuir de outra forma, como com cartão de crédito ou débito, toque no botão abaixo para ser redirecionado ao link de doação no Ko-Fi.
 privacy-policy-private =
@@ -191,9 +211,12 @@ youtube-download-video-button = Baixar vídeo
 youtube-download-audio-button = Baixar áudio
 video-exceeds-limit =
     O vídeo excede o limite de { $size ->
-       [1572864000] 1,5GB
+        [1572864000] 1,5GB
        *[other] 50 MB
-   }, meu máximo permitido.
+    }, meu máximo permitido.
+video-too-large =
+    <b>Vídeos acima de 500 MB não podem ser enviados devido a limitações técnicas no meu servidor.</b>
+    O vídeo solicitado excede esse limite.
 downloading = Baixando...
 uploading = Enviando...
 youtube-error =

@@ -330,6 +330,25 @@ func inlineSend(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 }
 
+func donateHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+
+	i18n := localization.Get(ctx)
+
+	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("donate-message"), &gotgbot.SendMessageOpts{
+		ParseMode: gotgbot.ParseModeHTML,
+		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+			{Text: i18n("donate-website-button"), Url: "https://ruizlenato.github.io/donate"},
+		}}},
+	})
+
+	return nil
+}
+
 func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(handlers.NewChosenInlineResult(choseninlineresult.All, inlineSend))
 	dispatcher.AddHandler(handlers.NewInlineQuery(nil, menuInline))
@@ -337,6 +356,7 @@ func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("start"), startCallback))
 	dispatcher.AddHandler(handlers.NewCommand("privacy", privacyHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("privacy"), privacyCallback))
+	dispatcher.AddHandler(handlers.NewCommand("donate", donateHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("about"), aboutMenuCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("aboutYourData"), aboutYourDataCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("helpMenu"), helpMenuCallback))
