@@ -223,8 +223,12 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 		return nil
 	}
 
-	defaultHeaders["x-guest-token"] = guestToken
-	defaultHeaders["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
+	headers := make(map[string]string, len(defaultHeaders)+2)
+	for key, value := range defaultHeaders {
+		headers[key] = value
+	}
+	headers["x-guest-token"] = guestToken
+	headers["cookie"] = fmt.Sprintf("guest_id=v1:%v;", guestToken)
 
 	variables := map[string]any{
 		"tweetId":                h.postID,
@@ -281,7 +285,7 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 			"features":     string(jsonMarshal(features)),
 			"fieldToggles": string(jsonMarshal(fieldToggles)),
 		},
-		Headers: defaultHeaders,
+		Headers: headers,
 	})
 
 	if err != nil || response.Body == nil {
