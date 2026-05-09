@@ -419,6 +419,16 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	postInfo := processMedia(url)
 	if len(postInfo.Medias) == 0 {
 		if postInfo.NoMedia {
+			if postInfo.FileTooLarge {
+				_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("video-too-large"), &gotgbot.SendMessageOpts{
+					ParseMode: gotgbot.ParseModeHTML,
+					ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+					ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+						{Text: i18n("donation-button"), Url: fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)},
+					}}},
+				})
+				return nil
+			}
 			return nil
 		}
 		if isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) {

@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -50,6 +51,34 @@ func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 	}
 
 	return bodyBytes, response, nil
+}
+
+func FetchSizeFromURL(mediaURL string) (int64, error) {
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultHTTPCaller,
+		MaxAttempts:  2,
+		ExponentBase: 2,
+		StartDelay:   500 * time.Millisecond,
+		MaxDelay:     2 * time.Second,
+	}
+	response, err := retryCaller.Request(mediaURL, utils.RequestParams{
+		Method:  "HEAD",
+		Headers: GenericHeaders,
+	})
+	if err != nil || response == nil {
+		return -1, fmt.Errorf("head request error: %w", err)
+	}
+	defer response.Body.Close()
+
+	contentLength := response.Header.Get("Content-Length")
+	if contentLength == "" {
+		return -1, nil
+	}
+	size, err := strconv.ParseInt(contentLength, 10, 64)
+	if err != nil {
+		return -1, nil
+	}
+	return size, nil
 }
 
 func FetchBytesFromURL(media string) ([]byte, error) {

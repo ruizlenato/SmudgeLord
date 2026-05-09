@@ -45,6 +45,8 @@ func startHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 			return privacyHandler(b, ctx)
 		case "setuser":
 			return lastfm.StartSetUser(b, ctx)
+		case "donate":
+			return donateHandler(b, ctx)
 		}
 	}
 

@@ -2,6 +2,7 @@ package twitter
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"log/slog"
@@ -102,6 +103,10 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 	for range mediaCount {
 		result := <-results
 		if result.err != nil {
+			var fileTooLargeErr *downloader.FileTooLargeError
+			if errors.As(result.err, &fileTooLargeErr) {
+				return downloader.NewFileTooLargePostInfo(h.postID)
+			}
 			slog.Error("Failed to download media in carousel", "Post Info", []string{h.username, h.postID},
 				"Media Count", result.index, "Error", result.err.Error())
 			continue
@@ -151,6 +156,8 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 	}
 }
 
+const maxVideoSize int64 = 500 * 1024 * 1024 // 500MB
+
 func (h *Handler) downloadMedia(twitterMedia Media) (*downloader.InputMedia, error) {
 	var media downloader.InputMedia
 	var err error
@@ -159,7 +166,13 @@ func (h *Handler) downloadMedia(twitterMedia Media) (*downloader.InputMedia, err
 		sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
 			return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
 		})
-		media.File, err = downloader.FetchBytesFromURL(twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL)
+		videoURL := twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL
+
+		if size, err := downloader.FetchSizeFromURL(videoURL); err == nil && size > 0 && size > maxVideoSize {
+			return nil, downloader.NewFileTooLargeError(size, maxVideoSize)
+		}
+
+		media.File, err = downloader.FetchBytesFromURL(videoURL)
 		if err == nil {
 			media.Thumbnail, _ = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
 		}
@@ -365,6 +378,14 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 		go func(index int, twitterMedia FxTwitterMedia) {
 			var media downloader.InputMedia
 			var err error
+
+			if twitterMedia.Type == "video" {
+				if size, sizeErr := downloader.FetchSizeFromURL(twitterMedia.URL); sizeErr == nil && size > 0 && size > maxVideoSize {
+					results <- mediaResult{index: index, media: nil, err: downloader.NewFileTooLargeError(size, maxVideoSize)}
+					return
+				}
+			}
+
 			media.File, err = downloader.FetchBytesFromURL(twitterMedia.URL)
 			if err == nil && twitterMedia.Type == "video" {
 				media.Thumbnail, _ = downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
@@ -376,10 +397,13 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 	for range mediaCount {
 		result := <-results
 		if result.err != nil {
+			var fileTooLargeErr *downloader.FileTooLargeError
+			if errors.As(result.err, &fileTooLargeErr) {
+				return downloader.NewFileTooLargePostInfo(h.postID)
+			}
 			slog.Error("Failed to download media in carousel",
 				"Post Info", []string{h.username, h.postID},
-				"Media Count", result.index,
-				"Error", result.err.Error())
+				"Media Count", result.index, "Error", result.err.Error())
 			continue
 		}
 		if result.media.File != nil {

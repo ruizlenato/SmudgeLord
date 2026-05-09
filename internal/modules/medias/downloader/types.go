@@ -2,6 +2,7 @@ package downloader
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 )
@@ -22,13 +23,14 @@ type Medias struct {
 }
 
 type PostInfo struct {
-	Medias      []gotgbot.InputMedia
-	ID          string
-	Caption     string
-	Service     string
-	InvertMedia bool
-	NoMedia     bool
-	Unavailable bool
+	Medias       []gotgbot.InputMedia
+	ID           string
+	Caption      string
+	Service      string
+	InvertMedia  bool
+	NoMedia      bool
+	Unavailable  bool
+	FileTooLarge bool
 }
 
 func NewNoMediaPostInfo(id string) PostInfo {
@@ -37,6 +39,10 @@ func NewNoMediaPostInfo(id string) PostInfo {
 
 func NewUnavailablePostInfo(id string) PostInfo {
 	return PostInfo{ID: id, NoMedia: true, Unavailable: true}
+}
+
+func NewFileTooLargePostInfo(id string) PostInfo {
+	return PostInfo{ID: id, NoMedia: true, FileTooLarge: true}
 }
 
 type YouTube struct {
@@ -48,6 +54,19 @@ type YouTube struct {
 type InputMedia struct {
 	File      []byte
 	Thumbnail []byte
+}
+
+type FileTooLargeError struct {
+	Size    int64
+	MaxSize int64
+}
+
+func (e *FileTooLargeError) Error() string {
+	return fmt.Sprintf("file size %d exceeds maximum allowed size %d", e.Size, e.MaxSize)
+}
+
+func NewFileTooLargeError(size, maxSize int64) *FileTooLargeError {
+	return &FileTooLargeError{Size: size, MaxSize: maxSize}
 }
 
 func InputFileFromBytes(filename string, data []byte) gotgbot.InputFile {

@@ -216,7 +216,8 @@ video-exceeds-limit =
     }, meu máximo permitido.
 video-too-large =
     <b>Vídeos acima de 500 MB não podem ser enviados devido a limitações técnicas no meu servidor.</b>
-    O vídeo solicitado excede esse limite.
+
+    Você pode mudar isso! <b>Ajude doando para que eu possa adquirir um servidor melhor</b> e futuramente remover esse limite.
 downloading = Baixando...
 uploading = Enviando...
 youtube-error =

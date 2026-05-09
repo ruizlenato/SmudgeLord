@@ -19,7 +19,7 @@ import (
 func Handle(text string) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
-		return downloader.PostInfo{}
+		return downloader.NewNoMediaPostInfo("")
 	}
 
 	if postInfo, err := downloader.GetMediaCache(handler.postID); err == nil {
