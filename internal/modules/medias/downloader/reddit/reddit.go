@@ -36,6 +36,7 @@ var redlibRouteCounter uint64
 
 var (
 	postInfoRegex      = regexp.MustCompile(`(?:www.)?reddit.com/(?:user|r)/([^/]+)/comments/([^/]+)`)
+	shortPostRegex     = regexp.MustCompile(`(?:www\.)?reddit\.com/r/([^/]+)/s/([^/?#]+)`)
 	postTypeRegex      = regexp.MustCompile(`(?s)post_type:\s*(\w+)`)
 	mediaContentRegex  = regexp.MustCompile(`(?s)<div class="post_media_content">(.*?)</div>`)
 	videoRegex         = regexp.MustCompile(`(?s)class="post_media_video.*?<source\s+src="([^"]+)"\s+type="video/mp4"`)
@@ -75,12 +76,65 @@ func Handle(text string) downloader.PostInfo {
 func (h *Handler) setPostID(url string) bool {
 	matches := postInfoRegex.FindStringSubmatch(url)
 	if len(matches) < 3 {
-		return false
+		shortMatches := shortPostRegex.FindStringSubmatch(url)
+		if len(shortMatches) < 3 {
+			return false
+		}
+
+		h.subreddit = shortMatches[1]
+
+		resolvedURL, err := resolveRedditShortURL(url)
+		if err != nil {
+			slog.Warn("Reddit setPostID: failed to resolve short URL", "url", url, "error", err.Error())
+			return false
+		}
+
+		matches = postInfoRegex.FindStringSubmatch(resolvedURL)
+		if len(matches) < 3 {
+			slog.Warn("Reddit setPostID: resolved URL does not contain post ID", "resolvedURL", resolvedURL)
+			return false
+		}
 	}
 
 	h.subreddit = matches[1]
 	h.postID = matches[2]
 	return true
+}
+
+func resolveRedditShortURL(rawURL string) (string, error) {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid reddit url: %w", err)
+	}
+
+	if parsed.Scheme == "" {
+		parsed.Scheme = "https"
+	}
+
+	if parsed.Host == "" {
+		parsed.Host = "www.reddit.com"
+	}
+
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return fmt.Errorf("too many redirects")
+			}
+			return nil
+		},
+	}
+
+	resp, err := client.Get(parsed.String())
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve redirect: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.Request == nil || resp.Request.URL == nil {
+		return "", fmt.Errorf("missing final redirected URL")
+	}
+
+	return resp.Request.URL.String(), nil
 }
 
 func (h *Handler) processMedia() ([]gotgbot.InputMedia, string) {
@@ -103,17 +157,25 @@ func (h *Handler) processMedia() ([]gotgbot.InputMedia, string) {
 func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 	response, _, err := h.requestRedlibPost()
 	if err != nil {
+		slog.Warn("Reddit getRedlibData: failed to request post from all instances",
+			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
+			"error", err.Error())
 		return nil, ""
 	}
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
+		slog.Warn("Reddit getRedlibData: failed reading response body",
+			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
+			"error", err.Error())
 		return nil, ""
 	}
 
 	postType := postTypeRegex.FindSubmatch(body)
-	if len(postType) < 1 {
+	if len(postType) < 2 {
+		slog.Warn("Reddit getRedlibData: post type not found",
+			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID))
 		return nil, ""
 	}
 
@@ -124,6 +186,9 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 	if string(postType[1]) == "video" || string(postType[1]) == "image" {
 		match := mediaContentRegex.FindSubmatch(body)
 		if len(match) < 2 {
+			slog.Warn("Reddit getRedlibData: media content not found",
+				"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
+				"postType", string(postType[1]))
 			return nil, ""
 		}
 
@@ -143,6 +208,10 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 			return galleryMedia, extractRedlibCaption(body)
 		}
 	}
+
+	slog.Warn("Reddit getRedlibData: could not extract media",
+		"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
+		"postType", string(postType[1]))
 
 	return nil, ""
 }
@@ -178,9 +247,6 @@ func (h *Handler) fetchRedlibInstance(targetURL, instance string) (*http.Respons
 	}
 
 	if response == nil || response.Body == nil {
-		if response != nil && response.Body != nil {
-			_ = response.Body.Close()
-		}
 		return nil, fmt.Errorf("empty response body")
 	}
 
@@ -292,14 +358,15 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 
 	audioFile, err := downloadAudio(playlistURL, client, h.anubisSolver())
 	if err != nil {
-		slog.Error("Failed to download audio", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
-		return nil
-	}
-
-	videoFile, err = downloader.MergeAudioVideoBytes(videoFile, audioFile)
-	if err != nil {
-		slog.Error("Failed to merge audio and video", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
-		return nil
+		slog.Warn("Reddit processRedlibVideo: audio unavailable, sending video without audio",
+			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
+			"error", err.Error())
+	} else {
+		videoFile, err = downloader.MergeAudioVideoBytes(videoFile, audioFile)
+		if err != nil {
+			slog.Error("Failed to merge audio and video", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
+			return nil
+		}
 	}
 
 	var width, height int64
@@ -337,7 +404,6 @@ func downloadAudio(playlistURL string, client *http.Client, anubisSolver downloa
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch audio playlist: %w", err)
 	}
-
 	var baseURL *url.URL
 	if resp != nil && resp.Request != nil && resp.Request.URL != nil {
 		baseURL = resp.Request.URL
