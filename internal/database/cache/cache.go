@@ -10,6 +10,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	fallbackMaxEntries = 10000
+	fallbackSweepEvery = 1 * time.Minute
+)
+
 var rdb *redis.Client
 var clientInitialized bool
 
@@ -25,6 +30,8 @@ var fallbackStore = struct {
 	items: make(map[string]fallbackEntry),
 }
 
+var fallbackJanitorOnce sync.Once
+
 func valueAsString(value any) string {
 	switch v := value.(type) {
 	case string:
@@ -37,10 +44,27 @@ func valueAsString(value any) string {
 }
 
 func setFallback(key string, value any, expiration time.Duration) {
+	fallbackJanitorOnce.Do(startFallbackJanitor)
+
+	if expiration <= 0 {
+		expiration = time.Minute
+	}
+
+	now := time.Now()
+	expiresAt := now.Add(expiration)
+
 	fallbackStore.mu.Lock()
+	if len(fallbackStore.items) >= fallbackMaxEntries {
+		evictFallbackEntriesLocked(now)
+	}
+	if len(fallbackStore.items) >= fallbackMaxEntries {
+		slog.Warn("fallback cache full, skipping in-memory cache set", "key", key, "max_entries", fallbackMaxEntries)
+		fallbackStore.mu.Unlock()
+		return
+	}
 	fallbackStore.items[key] = fallbackEntry{
 		value:     valueAsString(value),
-		expiresAt: time.Now().Add(expiration),
+		expiresAt: expiresAt,
 	}
 	fallbackStore.mu.Unlock()
 }
@@ -67,6 +91,28 @@ func deleteFallback(key string) {
 	fallbackStore.mu.Lock()
 	delete(fallbackStore.items, key)
 	fallbackStore.mu.Unlock()
+}
+
+func startFallbackJanitor() {
+	go func() {
+		ticker := time.NewTicker(fallbackSweepEvery)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			now := time.Now()
+			fallbackStore.mu.Lock()
+			evictFallbackEntriesLocked(now)
+			fallbackStore.mu.Unlock()
+		}
+	}()
+}
+
+func evictFallbackEntriesLocked(now time.Time) {
+	for key, entry := range fallbackStore.items {
+		if now.After(entry.expiresAt) {
+			delete(fallbackStore.items, key)
+		}
+	}
 }
 
 func RedisClient(addr string, password string, db int) error {

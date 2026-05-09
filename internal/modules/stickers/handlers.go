@@ -1226,6 +1226,7 @@ func convertVideo(input []byte) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer inputFile.Close()
 	defer os.Remove(inputFile.Name())
 	if _, err := inputFile.Write(input); err != nil {
 		return nil, err

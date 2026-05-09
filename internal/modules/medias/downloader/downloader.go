@@ -65,6 +65,7 @@ func FetchBytesFromURL(media string) ([]byte, error) {
 			return nil, err
 		}
 		defer tmpFile.Close()
+		defer os.Remove(tmpFile.Name())
 
 		newBytes, err := io.ReadAll(tmpFile)
 		if err != nil {

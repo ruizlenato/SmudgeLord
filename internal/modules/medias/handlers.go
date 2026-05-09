@@ -42,6 +42,8 @@ const (
 	chatActionUploadVideo = "upload_video"
 	mediaSendInterval     = 200 * time.Millisecond
 	noMediaMessageTTL     = 1 * time.Minute
+	chatLimiterTTL        = 15 * time.Minute
+	chatLimiterSweepEvery = 5 * time.Minute
 )
 
 type globalRateLimiter struct {
@@ -119,6 +121,8 @@ var mediaSendLimiter = struct {
 	nextAllowedByChat: make(map[int64]time.Time),
 }
 
+var mediaSendLimiterJanitorOnce sync.Once
+
 var noMediaMessageTracker = struct {
 	mu           sync.Mutex
 	lastByChatID map[int64]int64
@@ -127,6 +131,8 @@ var noMediaMessageTracker = struct {
 }
 
 func waitForMediaSendSlot(chatID int64) {
+	mediaSendLimiterJanitorOnce.Do(startMediaSendLimiterJanitor)
+
 	mediaSendLimiter.mu.Lock()
 	sendAt := time.Now()
 	if nextAllowed, exists := mediaSendLimiter.nextAllowedByChat[chatID]; exists && nextAllowed.After(sendAt) {
@@ -138,6 +144,25 @@ func waitForMediaSendSlot(chatID int64) {
 	if wait := time.Until(sendAt); wait > 0 {
 		time.Sleep(wait)
 	}
+}
+
+func startMediaSendLimiterJanitor() {
+	go func() {
+		ticker := time.NewTicker(chatLimiterSweepEvery)
+		defer ticker.Stop()
+
+		for range ticker.C {
+			cutoff := time.Now().Add(-chatLimiterTTL)
+
+			mediaSendLimiter.mu.Lock()
+			for chatID, nextAllowed := range mediaSendLimiter.nextAllowedByChat {
+				if nextAllowed.Before(cutoff) {
+					delete(mediaSendLimiter.nextAllowedByChat, chatID)
+				}
+			}
+			mediaSendLimiter.mu.Unlock()
+		}
+	}()
 }
 
 func replaceTrackedNoMediaMessage(chatID, messageID int64) int64 {
