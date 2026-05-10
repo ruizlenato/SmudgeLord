@@ -57,17 +57,22 @@ func Handle(text string) downloader.PostInfo {
 		return downloader.PostInfo{}
 	}
 
-	if postInfo, err := downloader.GetMediaCache(fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)); err == nil {
+	postID := fmt.Sprintf("%s/%s", handler.subreddit, handler.postID)
+
+	if postInfo, err := downloader.GetMediaCache(postID); err == nil {
 		return postInfo
 	}
 
-	medias, caption := handler.processMedia()
+	medias, caption, noMedia := handler.processMedia()
+	if noMedia {
+		return downloader.NewNoMediaPostInfo(postID)
+	}
 	if medias == nil {
 		return downloader.PostInfo{}
 	}
 
 	return downloader.PostInfo{
-		ID:      fmt.Sprintf("%s/%s", handler.subreddit, handler.postID),
+		ID:      postID,
 		Medias:  medias,
 		Caption: caption,
 	}
@@ -137,30 +142,36 @@ func resolveRedditShortURL(rawURL string) (string, error) {
 	return resp.Request.URL.String(), nil
 }
 
-func (h *Handler) processMedia() ([]gotgbot.InputMedia, string) {
-	medias, caption := h.getRedlibData()
+func (h *Handler) processMedia() ([]gotgbot.InputMedia, string, bool) {
+	medias, caption, noMedia := h.getRedlibData()
 	if medias != nil {
-		return medias, caption
+		return medias, caption, false
+	}
+	if noMedia {
+		return nil, "", true
 	}
 
 	if data := h.getAPIData(); data != nil {
+		if data.IsSelf {
+			return nil, "", true
+		}
 		medias := h.processAPIMedia(data)
 		if medias == nil {
-			return nil, ""
+			return nil, "", false
 		}
-		return medias, h.processAPICaption(data)
+		return medias, h.processAPICaption(data), false
 	}
 
-	return nil, ""
+	return nil, "", false
 }
 
-func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
+func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string, bool) {
 	response, _, err := h.requestRedlibPost()
 	if err != nil {
 		slog.Warn("Reddit getRedlibData: failed to request post from all instances",
 			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 			"error", err.Error())
-		return nil, ""
+		return nil, "", false
 	}
 	defer response.Body.Close()
 
@@ -169,18 +180,18 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 		slog.Warn("Reddit getRedlibData: failed reading response body",
 			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 			"error", err.Error())
-		return nil, ""
+		return nil, "", false
 	}
 
 	postType := postTypeRegex.FindSubmatch(body)
 	if len(postType) < 2 {
 		slog.Warn("Reddit getRedlibData: post type not found",
 			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID))
-		return nil, ""
+		return nil, "", false
 	}
 
 	if string(postType[1]) == "self" {
-		return nil, ""
+		return nil, "", true
 	}
 
 	if string(postType[1]) == "video" || string(postType[1]) == "image" {
@@ -189,15 +200,15 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 			slog.Warn("Reddit getRedlibData: media content not found",
 				"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 				"postType", string(postType[1]))
-			return nil, ""
+			return nil, "", false
 		}
 
 		if videoMedia := h.processRedlibVideo(match[1], response); videoMedia != nil {
-			return videoMedia, extractRedlibCaption(body)
+			return videoMedia, extractRedlibCaption(body), false
 		}
 
 		if imageMedia := h.processRedlibImage(match[1], response); imageMedia != nil {
-			return imageMedia, extractRedlibCaption(body)
+			return imageMedia, extractRedlibCaption(body), false
 		}
 	}
 
@@ -205,7 +216,7 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 		match := galleryRegex.FindAllSubmatch(body, -1)
 
 		if galleryMedia := h.processRedlibGallery(match, response); galleryMedia != nil {
-			return galleryMedia, extractRedlibCaption(body)
+			return galleryMedia, extractRedlibCaption(body), false
 		}
 	}
 
@@ -213,7 +224,7 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string) {
 		"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 		"postType", string(postType[1]))
 
-	return nil, ""
+	return nil, "", false
 }
 
 func (h *Handler) requestRedlibPost() (*http.Response, string, error) {

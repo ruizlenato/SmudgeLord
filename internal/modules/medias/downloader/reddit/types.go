@@ -19,27 +19,28 @@ type KindData struct {
 }
 
 type Data struct {
-	Title         string                `json:"title"`
+	Title string `json:"title"`
 	MediaMetadata *map[string]MediaItem `json:"media_metadata"`
-	GalleryData   struct {
+	GalleryData struct {
 		Items []struct {
 			MediaID string `json:"media_id"`
-			ID      int    `json:"id"`
+			ID int `json:"id"`
 		} `json:"items"`
 	} `json:"gallery_data"`
 	SubredditNamePrefixed string `json:"subreddit_name_prefixed"`
-	IsRedditMediaDomain   bool   `json:"is_reddit_media_domain"`
-	Domain                string `json:"domain"`
-	Preview               struct {
-		Images  []Images `json:"images"`
-		Enabled bool     `json:"enabled"`
+	IsRedditMediaDomain bool `json:"is_reddit_media_domain"`
+	IsSelf bool `json:"is_self"`
+	Domain string `json:"domain"`
+	Preview struct {
+		Images []Images `json:"images"`
+		Enabled bool `json:"enabled"`
 	} `json:"preview"`
 	Author string `json:"author"`
-	Media  struct {
+	Media struct {
 		RedditVideo RedditVideo `json:"reddit_video"`
 	} `json:"media"`
-	URL     string `json:"url"`
-	IsVideo bool   `json:"is_video"`
+	URL string `json:"url"`
+	IsVideo bool `json:"is_video"`
 }
 
 type MediaItem struct {
