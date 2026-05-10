@@ -25,7 +25,7 @@ func userIsAway(userID int64) bool {
 func getUserAway(userID int64) (string, string, time.Duration, error) {
 	row := database.DB.QueryRow("SELECT first_name, reason, time FROM afk WHERE id = ?", userID)
 
-	var firstName string
+	var firstName sql.NullString
 	var reason string
 	var afkTime time.Time
 	err := row.Scan(&firstName, &reason, &afkTime)
@@ -36,7 +36,7 @@ func getUserAway(userID int64) (string, string, time.Duration, error) {
 		return "", "", 0, errors.New("Error getting AFK info: " + err.Error())
 	}
 
-	return firstName, reason, time.Since(afkTime), nil
+	return firstName.String, reason, time.Since(afkTime), nil
 }
 
 func setUserAway(sender *gotgbot.User, reason string, time time.Time) error {
