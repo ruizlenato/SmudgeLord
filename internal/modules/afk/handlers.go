@@ -60,16 +60,16 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	user, err := b.GetChat(mentionedUserID, nil)
+	member, err := b.GetChatMember(messageData.Chat.Id, mentionedUserID, nil)
 	if err != nil {
 		slog.Error("Couldn't get user", "UserID", mentionedUserID, "Error", err.Error())
 		return nil
 	}
 
 	text := i18n("user-unavailable", map[string]any{
-		"userID":        mentionedUserID,
-		"userFirstName": utils.EscapeHTML(user.FirstName),
-		"duration":      humanizedDuration,
+		"userID":         mentionedUserID,
+		"userFirstName":  utils.EscapeHTML(member.GetUser().FirstName),
+		"duration":       humanizedDuration,
 	})
 
 	if reason != "" {
