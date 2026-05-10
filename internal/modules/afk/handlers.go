@@ -32,7 +32,7 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	reason, duration, err := getUserAway(mentionedUserID)
+	firstName, reason, duration, err := getUserAway(mentionedUserID)
 	if err != nil && err != sql.ErrNoRows {
 		slog.Error("Couldn't get user away status", "UserID", ctx.EffectiveUser.Id, "Error", err.Error())
 		return nil
@@ -53,23 +53,22 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 			"duration":      humanizedDuration,
 		}), &gotgbot.SendMessageOpts{
 			LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
-			ParseMode:          gotgbot.ParseModeHTML,
-			ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+			ParseMode:         gotgbot.ParseModeHTML,
+			ReplyParameters:   &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
 		})
 
 		return nil
 	}
 
 	member, err := b.GetChatMember(messageData.Chat.Id, mentionedUserID, nil)
-	if err != nil {
-		slog.Error("Couldn't get user", "UserID", mentionedUserID, "Error", err.Error())
-		return nil
+	if err == nil {
+		firstName = member.GetUser().FirstName
 	}
 
 	text := i18n("user-unavailable", map[string]any{
-		"userID":         mentionedUserID,
-		"userFirstName":  utils.EscapeHTML(member.GetUser().FirstName),
-		"duration":       humanizedDuration,
+		"userID":        mentionedUserID,
+		"userFirstName": utils.EscapeHTML(firstName),
+		"duration":      humanizedDuration,
 	})
 
 	if reason != "" {
@@ -78,8 +77,8 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	_, _ = b.SendMessage(messageData.Chat.Id, text, &gotgbot.SendMessageOpts{
 		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
-		ParseMode:          gotgbot.ParseModeHTML,
-		ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+		ParseMode:         gotgbot.ParseModeHTML,
+		ReplyParameters:   &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
 	})
 
 	return nil

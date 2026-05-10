@@ -22,30 +22,32 @@ func userIsAway(userID int64) bool {
 	return exists
 }
 
-func getUserAway(userID int64) (string, time.Duration, error) {
-	row := database.DB.QueryRow("SELECT reason, time FROM afk WHERE id = ?", userID)
+func getUserAway(userID int64) (string, string, time.Duration, error) {
+	row := database.DB.QueryRow("SELECT first_name, reason, time FROM afk WHERE id = ?", userID)
 
+	var firstName string
 	var reason string
 	var afkTime time.Time
-	err := row.Scan(&reason, &afkTime)
+	err := row.Scan(&firstName, &reason, &afkTime)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", 0, nil
+			return "", "", 0, nil
 		}
-		return "", 0, errors.New("Error getting AFK info: " + err.Error())
+		return "", "", 0, errors.New("Error getting AFK info: " + err.Error())
 	}
 
-	return reason, time.Since(afkTime), nil
+	return firstName, reason, time.Since(afkTime), nil
 }
 
 func setUserAway(sender *gotgbot.User, reason string, time time.Time) error {
 	query := `
-        INSERT INTO afk (id, username, reason, time) VALUES (?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-            username = excluded.username,
-            reason = excluded.reason,
-            time = excluded.time
-    `
+	INSERT INTO afk (id, username, first_name, reason, time) VALUES (?, ?, ?, ?, ?)
+	ON CONFLICT(id) DO UPDATE SET
+		username = excluded.username,
+		first_name = excluded.first_name,
+		reason = excluded.reason,
+		time = excluded.time
+	`
 
 	if sender == nil {
 		return nil
@@ -56,7 +58,7 @@ func setUserAway(sender *gotgbot.User, reason string, time time.Time) error {
 		username = "@" + strings.TrimPrefix(username, "@")
 	}
 
-	_, err := database.DB.Exec(query, sender.Id, username, reason, time)
+	_, err := database.DB.Exec(query, sender.Id, username, sender.FirstName, reason, time)
 	if err != nil {
 		return errors.New("Error setting AFK: " + err.Error())
 	}
