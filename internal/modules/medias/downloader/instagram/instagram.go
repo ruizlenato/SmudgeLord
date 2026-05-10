@@ -276,14 +276,15 @@ func (h *Handler) getScrapperAPIData() InstagramData {
 func (h *Handler) getGQLData() InstagramData {
 	var data InstagramData
 
-	downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
-	downloader.GenericHeaders["X-CSRFToken"] = "JKA19cNYckTn_Dr6bcTO5F"
-	downloader.GenericHeaders["X-IG-App-ID"] = "936619743392459"
-	downloader.GenericHeaders["X-FB-LSD"] = "AVqBX1zadbA"
-	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
+	headers := downloader.CloneHeaders(downloader.GenericHeaders)
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	headers["X-CSRFToken"] = "JKA19cNYckTn_Dr6bcTO5F"
+	headers["X-IG-App-ID"] = "936619743392459"
+	headers["X-FB-LSD"] = "AVqBX1zadbA"
+	headers["Sec-Fetch-Site"] = "same-origin"
 	response, err := utils.Request("https://www.instagram.com/graphql/query", utils.RequestParams{
 		Method:  "POST",
-		Headers: downloader.GenericHeaders,
+		Headers: headers,
 		BodyString: []string{
 			fmt.Sprintf(`variables={"shortcode": "%v","fetch_comment_count":0,"fetch_related_profile_media_count":0,"parent_comment_count":null}`, h.postID),
 			`doc_id=8845758582119845`,

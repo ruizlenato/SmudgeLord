@@ -16,6 +16,14 @@ var GenericHeaders = map[string]string{
 	"Sec-Ch-UA-Platform": `"Windows"`,
 }
 
+func CloneHeaders(src map[string]string) map[string]string {
+	cloned := make(map[string]string, len(src))
+	for k, v := range src {
+		cloned[k] = v
+	}
+	return cloned
+}
+
 type Medias struct {
 	Caption     string   `json:"caption"`
 	Medias      []string `json:"medias"`

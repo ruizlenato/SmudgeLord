@@ -81,14 +81,15 @@ func (h *Handler) getThreadsData() ThreadsData {
 	var threadsData ThreadsData
 
 	lsd := utils.RandomString(10)
-	downloader.GenericHeaders["Content-Type"] = "application/x-www-form-urlencoded"
-	downloader.GenericHeaders["X-Fb-Lsd"] = lsd
-	downloader.GenericHeaders["X-Ig-App-Id"] = "238260118697367"
-	downloader.GenericHeaders["Sec-Fetch-Mode"] = "cors"
-	downloader.GenericHeaders["Sec-Fetch-Site"] = "same-origin"
+	headers := downloader.CloneHeaders(downloader.GenericHeaders)
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	headers["X-Fb-Lsd"] = lsd
+	headers["X-Ig-App-Id"] = "238260118697367"
+	headers["Sec-Fetch-Mode"] = "cors"
+	headers["Sec-Fetch-Site"] = "same-origin"
 	response, err := utils.Request("https://www.threads.com/api/graphql", utils.RequestParams{
 		Method:  "POST",
-		Headers: downloader.GenericHeaders,
+		Headers: headers,
 		BodyString: []string{
 			fmt.Sprintf(`variables={
 			"first":1,
