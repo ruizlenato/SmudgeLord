@@ -58,6 +58,10 @@ type Legacy *struct {
 	Name       string `json:"name"`
 	ScreenName string `json:"screen_name"`
 	Entities   struct {
+		Urls []struct {
+			URL         string `json:"url"`
+			ExpandedURL string `json:"expanded_url"`
+		} `json:"urls"`
 		Description struct {
 			Urls []interface{} `json:"urls"`
 		} `json:"description"`

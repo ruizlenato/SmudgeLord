@@ -463,14 +463,51 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 		return html.EscapeString(html.UnescapeString(text))
 	}
 
-	cleanText := func(text string) string {
-		if idx := strings.Index(text, "https://t.co/"); idx != -1 {
-			for idx > 0 && (text[idx-1] == ' ' || text[idx-1] == '\n' || text[idx-1] == '\r') {
-				idx--
-			}
-			return text[:idx]
+	replaceExpandedURLs := func(text string, urls []struct {
+		URL         string `json:"url"`
+		ExpandedURL string `json:"expanded_url"`
+	}) string {
+		if len(urls) == 0 || text == "" {
+			return text
 		}
-		return text
+
+		replaced := text
+		for _, u := range urls {
+			if u.URL == "" || u.ExpandedURL == "" {
+				continue
+			}
+			replaced = strings.ReplaceAll(replaced, u.URL, u.ExpandedURL)
+		}
+		return replaced
+	}
+
+	trimTrailingTCo := func(text string) string {
+		trimmed := strings.TrimRight(text, " \n\r\t")
+		for strings.HasPrefix(trimmed, "https://t.co/") {
+			if idx := strings.LastIndexAny(trimmed, " \n\r\t"); idx != -1 {
+				trimmed = strings.TrimRight(trimmed[:idx], " \n\r\t")
+				continue
+			}
+			return ""
+		}
+
+		if idx := strings.LastIndex(trimmed, "https://t.co/"); idx != -1 {
+			suffix := trimmed[idx:]
+			if !strings.ContainsAny(suffix, " \n\r\t") {
+				if idx > 0 {
+					trimmed = strings.TrimRight(trimmed[:idx], " \n\r\t")
+				} else {
+					trimmed = ""
+				}
+			}
+		}
+
+		return trimmed
+	}
+
+	cleanText := func(text string, legacy Legacy) string {
+		expanded := replaceExpandedURLs(text, legacy.Entities.Urls)
+		return trimTrailingTCo(expanded)
 	}
 
 	var caption strings.Builder
@@ -485,10 +522,10 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
 		escapeTelegramText(tweet.Core.UserResults.Result.Legacy.Name),
 		escapeTelegramText(tweet.Core.UserResults.Result.Legacy.ScreenName),
-		escapeTelegramText(cleanText(tweetText)))
+		escapeTelegramText(cleanText(tweetText, tweet.Legacy)))
 
 	if quotedStatusResult != nil && quotedStatusResult.Legacy != nil && quotedStatusResult.Core.UserResults.Result.Legacy != nil {
-		quotedText := cleanText(quotedStatusResult.Legacy.FullText)
+		quotedText := cleanText(quotedStatusResult.Legacy.FullText, quotedStatusResult.Legacy)
 		if utf8.RuneCountInString(quotedText) > maxQuotedTextRunes {
 			runes := []rune(quotedText)
 			quotedText = string(runes[:maxQuotedTextRunes]) + "\n..."
