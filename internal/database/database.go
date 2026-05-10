@@ -61,14 +61,14 @@ func CreateTables() error {
 	query := `
 		CREATE TABLE IF NOT EXISTS users (
 			id INTEGER PRIMARY KEY,
-			language TEXT NOT NULL DEFAULT 'en-us',
+			language TEXT NOT NULL DEFAULT 'en_US',
 			username TEXT,
 			lastfm_username TEXT
 		);
 
 		CREATE TABLE IF NOT EXISTS chats (
 			id INTEGER PRIMARY KEY,
-			language TEXT DEFAULT 'en-us',
+			language TEXT DEFAULT 'en_US',
 			mediasAuto BOOLEAN DEFAULT 1,
 			mediasCaption BOOLEAN DEFAULT 1,
 			mediasErrors BOOLEAN DEFAULT 1
@@ -234,5 +234,5 @@ func getValidLanguage(langCode string) string {
 	if slices.Contains(AvailableLocales, langCode) {
 		return langCode
 	}
-	return "en-us"
+	return "en_US"
 }

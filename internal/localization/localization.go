@@ -17,7 +17,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
-const defaultLanguage = "en-us"
+const defaultLanguage = "en_US"
 
 var (
 	LangBundles      = make(map[string]*fluent.Bundle)
