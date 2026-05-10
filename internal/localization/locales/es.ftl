@@ -1,0 +1,10 @@
+language-name = Spanish
+language-flag = 🇪🇦
+about-button = ℹ️ Sobre
+donation-button = 💵 Donación
+help-button = ❔Ayuda
+news-channel-button = 📢 Canal
+about-your-data-button = Acerca de tus datos
+back-button = ↩️ Volver
+denied-button-alert = Este botón no es para ti.
+privacy-policy-button = 🔒 Política de privacidad
