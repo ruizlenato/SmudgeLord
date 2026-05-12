@@ -72,6 +72,7 @@ func startSetUserConversation(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 
 	conv := convManager.Start(chatID, userID, &conversation.ConversationOptions{Timeout: 5 * time.Minute})
+	defer conv.End()
 
 	msgAsk, err := conv.Ask(context.Background(), i18n("reply-with-lastfm-username"), &gotgbot.SendMessageOpts{
 		ParseMode: gotgbot.ParseModeHTML,
@@ -92,7 +93,6 @@ func startSetUserConversation(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	if msgAsk.ReplyToMessage == nil || msgAsk.ReplyToMessage.GetMessageId() != conv.GetLastMessageID() {
-		conv.End()
 		_, _ = b.SendMessage(chatID, i18n("didnt-replied-with-lastfm-username"), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: msgAsk.GetMessageId()},
@@ -102,7 +102,6 @@ func startSetUserConversation(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	username := strings.TrimPrefix(strings.TrimSpace(msgAsk.GetText()), "@")
 	if username == "" {
-		conv.End()
 		return nil
 	}
 
@@ -111,17 +110,13 @@ func startSetUserConversation(b *gotgbot.Bot, ctx *ext.Context) error {
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		})
-		conv.End()
 		return nil
 	}
 
 	if err := setLastFMUsername(userID, username); err != nil {
 		slog.Error("Couldn't set LastFM username", "UserID", userID, "Username", username, "Error", err.Error())
-		conv.End()
 		return nil
 	}
-
-	conv.End()
 	_, _ = b.SendMessage(chatID, i18n("lastfm-username-saved"), &gotgbot.SendMessageOpts{
 		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},

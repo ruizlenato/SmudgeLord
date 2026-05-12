@@ -59,6 +59,7 @@ type ColorHandler struct {
 	opts    *slog.HandlerOptions
 	b       *gotgbot.Bot
 	chatID  int64
+	logCh   chan string
 }
 
 func NewColorHandler(out io.Writer, opts *slog.HandlerOptions, b *gotgbot.Bot, chatID int64) *ColorHandler {
@@ -66,7 +67,7 @@ func NewColorHandler(out io.Writer, opts *slog.HandlerOptions, b *gotgbot.Bot, c
 		opts = &slog.HandlerOptions{}
 	}
 
-	return &ColorHandler{
+	h := &ColorHandler{
 		handler: slog.NewTextHandler(out, opts),
 		out:     out,
 		opts:    opts,
@@ -78,6 +79,25 @@ func NewColorHandler(out io.Writer, opts *slog.HandlerOptions, b *gotgbot.Bot, c
 			slog.LevelInfo:  "\033[0;36m",
 			slog.LevelDebug: "\033[0;32m",
 		},
+	}
+
+	if b != nil && chatID != 0 {
+		h.logCh = make(chan string, 64)
+		go h.telegramLogWorker()
+	}
+
+	return h
+}
+
+func (h *ColorHandler) telegramLogWorker() {
+	for msg := range h.logCh {
+		_, err := h.b.SendMessage(h.chatID, msg, &gotgbot.SendMessageOpts{
+			ParseMode:   gotgbot.ParseModeHTML,
+			RequestOpts: &gotgbot.RequestOpts{Timeout: 5 * time.Second},
+		})
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "failed to send slog to telegram: %v\n", err)
+		}
 	}
 }
 
@@ -164,15 +184,11 @@ func (h *ColorHandler) sendToTelegram(r slog.Record, jsonAttrs string) {
 		message = message[:4093] + "..."
 	}
 
-	go func() {
-		_, err := h.b.SendMessage(h.chatID, message, &gotgbot.SendMessageOpts{
-			ParseMode:   gotgbot.ParseModeHTML,
-			RequestOpts: &gotgbot.RequestOpts{Timeout: 5 * time.Second},
-		})
-		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "failed to send slog to telegram: %v\n", err)
-		}
-	}()
+	select {
+	case h.logCh <- message:
+	default:
+		// Drop message if channel is full to prevent goroutine buildup.
+	}
 }
 
 func (h *ColorHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
@@ -183,6 +199,7 @@ func (h *ColorHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 		b:       h.b,
 		chatID:  h.chatID,
 		colors:  h.colors,
+		logCh:   h.logCh,
 	}
 }
 
@@ -194,6 +211,7 @@ func (h *ColorHandler) WithGroup(name string) slog.Handler {
 		b:       h.b,
 		chatID:  h.chatID,
 		colors:  h.colors,
+		logCh:   h.logCh,
 	}
 }
 

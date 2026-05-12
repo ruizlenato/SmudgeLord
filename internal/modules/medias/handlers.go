@@ -175,8 +175,7 @@ func replaceTrackedNoMediaMessage(chatID, messageID int64) int64 {
 }
 
 func scheduleNoMediaMessageDelete(b *gotgbot.Bot, chatID, messageID int64) {
-	go func() {
-		time.Sleep(noMediaMessageTTL)
+	time.AfterFunc(noMediaMessageTTL, func() {
 
 		noMediaMessageTracker.mu.Lock()
 		current := noMediaMessageTracker.lastByChatID[chatID]
@@ -190,7 +189,7 @@ func scheduleNoMediaMessageDelete(b *gotgbot.Bot, chatID, messageID int64) {
 		}
 
 		_, _ = b.DeleteMessageWithContext(context.Background(), chatID, messageID, nil)
-	}()
+	})
 }
 
 type MediaHandler struct {

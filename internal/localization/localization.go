@@ -34,6 +34,10 @@ func LoadLanguages() error {
 	loadedLocales = nil
 	localesMutex.Unlock()
 
+	langBundlesMutex.Lock()
+	clear(LangBundles)
+	langBundlesMutex.Unlock()
+
 	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("error walking through directory: %w", err)

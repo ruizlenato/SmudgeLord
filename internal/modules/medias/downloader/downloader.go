@@ -345,6 +345,7 @@ func FetchWithClientAndResponse(mediaURL string, client *http.Client, anubisSolv
 			if err != nil {
 				return solvedBody, nil, nil
 			}
+			defer resp2.Body.Close()
 			return solvedBody, resp2, nil
 		}
 		return nil, nil, fmt.Errorf("received Anubis challenge page for %s", mediaURL)
