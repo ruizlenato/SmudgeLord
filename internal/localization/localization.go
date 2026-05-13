@@ -139,26 +139,27 @@ func GetChatLanguage(update *gotgbot.Update) (string, error) {
 }
 
 func Get(ctx *ext.Context) func(string, ...map[string]any) string {
+	// Resolve language once per update to avoid repeated DB queries.
+	lang, err := GetChatLanguage(ctx.Update)
+	if err != nil {
+		slog.Error(err.Error())
+		lang = defaultLanguage
+	}
+
+	langBundlesMutex.RLock()
+	bundle, ok := LangBundles[lang]
+	if !ok {
+		bundle, ok = LangBundles[defaultLanguage]
+	}
+	langBundlesMutex.RUnlock()
+
+	if !ok {
+		return func(key string, args ...map[string]any) string {
+			return fmt.Sprintf("Key '%s' not found.", key)
+		}
+	}
+
 	return func(key string, args ...map[string]any) string {
-		language, err := GetChatLanguage(ctx.Update)
-		if err != nil {
-			slog.Error(err.Error())
-			language = defaultLanguage
-		}
-
-		langBundlesMutex.RLock()
-		bundle, ok := LangBundles[language]
-		langBundlesMutex.RUnlock()
-
-		if !ok {
-			langBundlesMutex.RLock()
-			bundle, ok = LangBundles[defaultLanguage]
-			langBundlesMutex.RUnlock()
-			if !ok {
-				return fmt.Sprintf("Key '%s' not found.", key)
-			}
-		}
-
 		variables := map[string]any{}
 		if len(args) > 0 && args[0] != nil {
 			variables = args[0]
