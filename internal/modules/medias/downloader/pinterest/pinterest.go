@@ -291,7 +291,7 @@ func (h *Handler) handleVideo(pinData *PinData) ([]gotgbot.InputMedia, func()) {
 }
 
 func (h *Handler) handleHLSVideo(video *VideoVariant) ([]gotgbot.InputMedia, func()) {
-	file, err := downloader.FetchM3U8ToBytes(video.URL, nil, nil)
+	file, cleanup, err := downloader.FetchM3U8ToFile(video.URL, nil, nil)
 	if err != nil {
 		slog.Error("Failed to download Pinterest HLS video", "Post", h.postID, "Error", err.Error())
 		return nil, nil
@@ -299,7 +299,7 @@ func (h *Handler) handleHLSVideo(video *VideoVariant) ([]gotgbot.InputMedia, fun
 
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%s", h.postID))
 	media := &gotgbot.InputMediaVideo{
-		Media:             downloader.InputFileFromBytes(filename, file),
+		Media:             downloader.InputFileFromReader(filename, file),
 		SupportsStreaming: true,
 		Width:             int64(video.Width),
 		Height:            int64(video.Height),
@@ -319,7 +319,7 @@ func (h *Handler) handleHLSVideo(video *VideoVariant) ([]gotgbot.InputMedia, fun
 		}
 	}
 
-	return []gotgbot.InputMedia{media}, nil
+	return []gotgbot.InputMedia{media}, cleanup
 }
 
 func (h *Handler) handleImage(pinData *PinData) ([]gotgbot.InputMedia, func()) {
@@ -386,30 +386,18 @@ func (h *Handler) handleStoryPin(pinData *PinData) ([]gotgbot.InputMedia, func()
 				var cleanup func()
 				var err error
 				if strings.HasSuffix(video.URL, ".m3u8") {
-					file, fileErr := downloader.FetchM3U8ToBytes(video.URL, nil, nil)
+					file, fileCleanup, fileErr := downloader.FetchM3U8ToFile(video.URL, nil, nil)
 					if fileErr != nil {
 						results <- mediaResult{index: index, err: fileErr}
 						return
 					}
-					media := &gotgbot.InputMediaVideo{
-						Media:             downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID)), file),
+					results <- mediaResult{index: index, media: &gotgbot.InputMediaVideo{
+						Media:             downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID)), file),
 						SupportsStreaming: true,
 						Width:             int64(video.Width),
 						Height:            int64(video.Height),
 						Duration:          int64(video.Duration),
-					}
-
-					if video.Thumbnail != "" {
-						thumbnail, thumbErr := downloader.FetchBytesFromURL(video.Thumbnail)
-						if thumbErr == nil {
-							thumbnail, _ = utils.ResizeThumbnail(thumbnail)
-							if thumbnail != nil {
-								media.Thumbnail = downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID)), bytes.NewReader(thumbnail))
-							}
-						}
-					}
-
-					results <- mediaResult{index: index, media: media}
+					}, cleanup: fileCleanup}
 					return
 				} else {
 					stream, cleanup, err = downloader.FetchStreamFromURL(video.URL)
@@ -519,19 +507,19 @@ func (h *Handler) handleCarousel(pinData *PinData) ([]gotgbot.InputMedia, func()
 					var cleanup func()
 					var err error
 					if strings.HasSuffix(video.URL, ".m3u8") {
-						file, fileErr := downloader.FetchM3U8ToBytes(video.URL, nil, nil)
+						file, fileCleanup, fileErr := downloader.FetchM3U8ToFile(video.URL, nil, nil)
 						if fileErr != nil {
 							results <- mediaResult{index: index, err: fileErr}
 							return
 						}
 						filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
 						results <- mediaResult{index: index, media: &gotgbot.InputMediaVideo{
-							Media:             downloader.InputFileFromBytes(filename, file),
+							Media:             downloader.InputFileFromReader(filename, file),
 							SupportsStreaming: true,
 							Width:             int64(video.Width),
 							Height:            int64(video.Height),
 							Duration:          int64(video.Duration),
-						}}
+						}, cleanup: fileCleanup}
 						return
 					} else {
 						stream, cleanup, err = downloader.FetchStreamFromURL(video.URL)

@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -170,10 +169,29 @@ func Downloader(callbackData []string) ([]byte, *youtubedl.Video, error) {
 		if err != nil {
 			return nil, video, err
 		}
-		fileBytes, err = downloader.MergeAudioVideoBytes(fileBytes, audioBytes)
+
+		videoTmp, videoCleanup, err := downloader.SpoolBytesToTempFile(fileBytes)
+		if err != nil {
+			return nil, video, err
+		}
+		audioTmp, audioCleanup, err := downloader.SpoolBytesToTempFile(audioBytes)
+		if err != nil {
+			videoCleanup()
+			return nil, video, err
+		}
+
+		mergedFile, mergedCleanup, err := downloader.MergeAudioVideoFiles(videoTmp.Name(), audioTmp.Name())
+		videoCleanup()
+		audioCleanup()
 		if err != nil {
 			slog.Error("Could't merge audio and video",
 				"Error", err.Error())
+			return nil, video, err
+		}
+		defer mergedCleanup()
+
+		fileBytes, err = io.ReadAll(mergedFile)
+		if err != nil {
 			return nil, video, err
 		}
 	}
@@ -255,48 +273,35 @@ func Handle(videoURL string) downloader.PostInfo {
 		return downloader.PostInfo{}
 	}
 
-	fileBytes, err = downloader.MergeAudioVideoBytes(fileBytes, audioBytes)
+	videoTmp, videoCleanup, err := downloader.SpoolBytesToTempFile(fileBytes)
+	if err != nil {
+		slog.Error("Couldn't spool video stream to temp file",
+			"Error", err.Error())
+		return downloader.PostInfo{}
+	}
+	audioTmp, audioCleanup, err := downloader.SpoolBytesToTempFile(audioBytes)
+	if err != nil {
+		videoCleanup()
+		slog.Error("Couldn't spool audio stream to temp file",
+			"Error", err.Error())
+		return downloader.PostInfo{}
+	}
+
+	mergedFile, mergedCleanup, err := downloader.MergeAudioVideoFiles(videoTmp.Name(), audioTmp.Name())
+	videoCleanup()
+	audioCleanup()
 	if err != nil {
 		slog.Error("Couldn't merge audio and video",
 			"Error", err.Error())
 		return downloader.PostInfo{}
 	}
+	cleanup := downloader.CombineCleanups(mergedCleanup)
 
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-YouTube_%s_%s.mp4", video.Author, video.Title))
-	tmpFile, err := os.CreateTemp("", "smudgelord-youtube-*.mp4")
-	if err != nil {
-		slog.Error("Couldn't create temporary youtube file",
-			"Error", err.Error())
-		return downloader.PostInfo{}
-	}
-	if _, err := tmpFile.Write(fileBytes); err != nil {
-		_ = tmpFile.Close()
-		_ = os.Remove(tmpFile.Name())
-		slog.Error("Couldn't write temporary youtube file",
-			"Error", err.Error())
-		return downloader.PostInfo{}
-	}
-	if err := tmpFile.Close(); err != nil {
-		_ = os.Remove(tmpFile.Name())
-		slog.Error("Couldn't close temporary youtube file",
-			"Error", err.Error())
-		return downloader.PostInfo{}
-	}
-	mediaFile, err := os.Open(tmpFile.Name())
-	if err != nil {
-		_ = os.Remove(tmpFile.Name())
-		slog.Error("Couldn't open temporary youtube file",
-			"Error", err.Error())
-		return downloader.PostInfo{}
-	}
-	cleanup := downloader.CombineCleanups(func() {
-		_ = mediaFile.Close()
-		_ = os.Remove(tmpFile.Name())
-	})
 	return downloader.PostInfo{
 		ID: video.ID,
 		Medias: []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
-			Media:             downloader.InputFileFromReader(filename, mediaFile),
+			Media:             downloader.InputFileFromReader(filename, mergedFile),
 			Width:             int64(video.Formats.Itag(videoStream.ItagNo)[0].Width),
 			Height:            int64(video.Formats.Itag(videoStream.ItagNo)[0].Height),
 			SupportsStreaming: true,

@@ -391,23 +391,28 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) ([
 		return []gotgbot.InputMedia{videoMedia}, downloader.CombineCleanups(cleanups...)
 	}
 
-	videoFile, err := downloader.FetchM3U8ToBytes(playlistURL, client, h.anubisSolver())
+	videoTmpFile, videoCleanup, err := downloader.FetchM3U8ToFile(playlistURL, client, h.anubisSolver())
 	if err != nil {
 		slog.Error("Failed to download video from HLS", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
 		return nil, nil
 	}
+	cleanups = append(cleanups, videoCleanup)
+	finalFile := videoTmpFile
 
-	audioFile, err := downloadAudio(playlistURL, client, h.anubisSolver())
+	audioPath, audioCleanup, err := downloadAudio(playlistURL, client, h.anubisSolver())
 	if err != nil {
 		slog.Warn("Reddit processRedlibVideo: audio unavailable, sending video without audio",
 			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 			"error", err.Error())
 	} else {
-		videoFile, err = downloader.MergeAudioVideoBytes(videoFile, audioFile)
-		if err != nil {
-			slog.Error("Failed to merge audio and video", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
+		mergedFile, mergeCleanup, mergeErr := downloader.MergeAudioVideoFiles(videoTmpFile.Name(), audioPath)
+		if mergeErr != nil {
+			downloader.CombineCleanups(videoCleanup, audioCleanup)()
+			slog.Error("Failed to merge audio and video", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", mergeErr.Error())
 			return nil, nil
 		}
+		finalFile = mergedFile
+		cleanups = append(cleanups, audioCleanup, mergeCleanup)
 	}
 
 	var width, height int64
@@ -424,7 +429,7 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) ([
 
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
 	videoMedia := &gotgbot.InputMediaVideo{
-		Media:             downloader.InputFileFromBytes(filename, videoFile),
+		Media:             downloader.InputFileFromReader(filename, finalFile),
 		SupportsStreaming: true,
 		Width:             width,
 		Height:            height,
@@ -433,17 +438,17 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) ([
 	if thumbnail != nil {
 		videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
 	}
-	return []gotgbot.InputMedia{videoMedia}, nil
+	return []gotgbot.InputMedia{videoMedia}, downloader.CombineCleanups(cleanups...)
 }
 
-func downloadAudio(playlistURL string, client *http.Client, anubisSolver downloader.AnubisSolver) ([]byte, error) {
+func downloadAudio(playlistURL string, client *http.Client, anubisSolver downloader.AnubisSolver) (string, func(), error) {
 	if playlistURL == "" {
-		return nil, fmt.Errorf("empty playlist URL")
+		return "", nil, fmt.Errorf("empty playlist URL")
 	}
 
 	body, resp, err := downloader.FetchWithClientAndResponse(playlistURL, client, anubisSolver)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch audio playlist: %w", err)
+		return "", nil, fmt.Errorf("failed to fetch audio playlist: %w", err)
 	}
 	var baseURL *url.URL
 	if resp != nil && resp.Request != nil && resp.Request.URL != nil {
@@ -454,7 +459,7 @@ func downloadAudio(playlistURL string, client *http.Client, anubisSolver downloa
 
 	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(body), true)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode audio playlist: %w", err)
+		return "", nil, fmt.Errorf("failed to decode audio playlist: %w", err)
 	}
 
 	if listType == m3u8.MASTER {
@@ -462,29 +467,30 @@ func downloadAudio(playlistURL string, client *http.Client, anubisSolver downloa
 
 		audioVariant := getFirstAudioAlternative(masterPlaylist)
 		if audioVariant == nil || audioVariant.URI == "" {
-			return nil, fmt.Errorf("no audio variant found in master playlist")
+			return "", nil, fmt.Errorf("no audio variant found in master playlist")
 		}
 
 		audioPlaylistURL := downloader.BuildAbsoluteURL(baseURL, audioVariant.URI)
-		return downloader.FetchM3U8ToBytes(audioPlaylistURL, client, anubisSolver)
+		tmpFile, cleanup, err := downloader.FetchM3U8ToFile(audioPlaylistURL, client, anubisSolver)
+		if err != nil {
+			return "", nil, err
+		}
+		return tmpFile.Name(), cleanup, nil
 	}
 
 	if listType == m3u8.MEDIA {
 		tmpFile, err := downloader.DownloadM3U8(bytes.NewReader(body), baseURL, client, anubisSolver)
 		if err != nil {
-			return nil, fmt.Errorf("failed to download audio segments: %w", err)
+			return "", nil, fmt.Errorf("failed to download audio segments: %w", err)
 		}
-		defer tmpFile.Close()
-		defer os.Remove(tmpFile.Name())
-
-		audioBytes, err := io.ReadAll(tmpFile)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read merged audio: %w", err)
+		cleanup := func() {
+			_ = tmpFile.Close()
+			_ = os.Remove(tmpFile.Name())
 		}
-		return audioBytes, nil
+		return tmpFile.Name(), cleanup, nil
 	}
 
-	return nil, fmt.Errorf("unexpected playlist type for audio: %v", listType)
+	return "", nil, fmt.Errorf("unexpected playlist type for audio: %v", listType)
 }
 
 func getFirstAudioAlternative(playlist *m3u8.MasterPlaylist) *m3u8.Alternative {
