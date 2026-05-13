@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -157,8 +158,6 @@ func SpoolToTempFile(r io.ReadCloser) (*os.File, func(), error) {
 	return tmpFile, cleanup, nil
 }
 
-// SpoolBytesToTempFile writes data to a temporary file and returns
-// the opened file seeked to the start. The cleanup function closes and removes the file.
 func SpoolBytesToTempFile(data []byte) (*os.File, func(), error) {
 	tmpFile, err := os.CreateTemp("", "smudgelord-media-*")
 	if err != nil {
@@ -184,9 +183,6 @@ func SpoolBytesToTempFile(data []byte) (*os.File, func(), error) {
 	return tmpFile, cleanup, nil
 }
 
-// FetchStreamWithClient fetches a URL using the given client and Anubis solver,
-// then spools the result to a seekable temp file. This is needed for Redlib/proxied
-// URLs that may be behind Anubis challenges.
 func FetchStreamWithClient(mediaURL string, client *http.Client, anubisSolver AnubisSolver) (*os.File, func(), error) {
 	data, err := FetchWithClient(mediaURL, client, anubisSolver)
 	if err != nil {
@@ -302,12 +298,21 @@ func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anu
 	results := make(chan segmentResult, segmentCount)
 	segmentFiles := make([]string, segmentCount)
 
+	const maxConcurrentSegments = 8
+	sem := make(chan struct{}, maxConcurrentSegments)
+	var wg sync.WaitGroup
+
 	for i, segment := range mediaPlaylist.Segments {
 		if segment == nil {
 			continue
 		}
 
+		wg.Add(1)
 		go func(index int, segment *m3u8.MediaSegment) {
+			defer wg.Done()
+			sem <- struct{}{}
+			defer func() { <-sem }()
+
 			urlSegment := fmt.Sprintf("%s://%s%s/%s", m3u8URL.Scheme, m3u8URL.Host, path.Dir(m3u8URL.Path), segment.URI)
 
 			fileName, err := downloadSegment(urlSegment, client, anubisSolver)
@@ -319,9 +324,13 @@ func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anu
 		}(i, segment)
 	}
 
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
 	var downloadErrors []error
-	for range segmentCount {
-		result := <-results
+	for result := range results {
 		if result.err != nil {
 			downloadErrors = append(downloadErrors, result.err)
 			continue
@@ -382,10 +391,10 @@ func ResolveM3U8Playlist(body []byte, baseURL *url.URL, client *http.Client, anu
 	return nil, nil, fmt.Errorf("unexpected playlist type: %v", listType)
 }
 
-func FetchM3U8ToBytes(playlistURL string, client *http.Client, anubisSolver AnubisSolver) ([]byte, error) {
+func FetchM3U8ToFile(playlistURL string, client *http.Client, anubisSolver AnubisSolver) (*os.File, func(), error) {
 	body, resp, err := FetchWithClientAndResponse(playlistURL, client, anubisSolver)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch m3u8 playlist: %w", err)
+		return nil, nil, fmt.Errorf("failed to fetch m3u8 playlist: %w", err)
 	}
 
 	var baseURL *url.URL
@@ -397,22 +406,19 @@ func FetchM3U8ToBytes(playlistURL string, client *http.Client, anubisSolver Anub
 
 	mediaBody, mediaBaseURL, err := ResolveM3U8Playlist(body, baseURL, client, anubisSolver)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve m3u8 playlist: %w", err)
+		return nil, nil, fmt.Errorf("failed to resolve m3u8 playlist: %w", err)
 	}
 
 	tmpFile, err := DownloadM3U8(bytes.NewReader(mediaBody), mediaBaseURL, client, anubisSolver)
 	if err != nil {
-		return nil, fmt.Errorf("failed to download m3u8 segments: %w", err)
-	}
-	defer tmpFile.Close()
-	defer os.Remove(tmpFile.Name())
-
-	result, err := io.ReadAll(tmpFile)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read merged m3u8 result: %w", err)
+		return nil, nil, fmt.Errorf("failed to download m3u8 segments: %w", err)
 	}
 
-	return result, nil
+	cleanup := func() {
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFile.Name())
+	}
+	return tmpFile, cleanup, nil
 }
 
 func isAnubisChallenge(body []byte) bool {
@@ -658,65 +664,40 @@ func limitQuotedBlockText(caption string, maxRunes int) string {
 	return caption[:start] + limitedBlock + caption[end:]
 }
 
-func MergeAudioVideoBytes(videoData, audioData []byte) ([]byte, error) {
-	videoFile, err := os.CreateTemp("", "merge-video-*.mp4")
+// MergeAudioVideoFiles merges video and audio temp files using ffmpeg and returns
+// the merged file. The caller must call the returned cleanup function when done.
+func MergeAudioVideoFiles(videoPath, audioPath string) (*os.File, func(), error) {
+	tempOutput, err := os.CreateTemp("", "merge-output-*.mp4")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	defer func() {
-		videoFile.Close()
-		os.Remove(videoFile.Name())
-	}()
-
-	audioFile, err := os.CreateTemp("", "merge-audio-*.mp3")
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		audioFile.Close()
-		os.Remove(audioFile.Name())
-	}()
-
-	if _, err := videoFile.Write(videoData); err != nil {
-		return nil, err
-	}
-	if _, err := audioFile.Write(audioData); err != nil {
-		return nil, err
-	}
-
-	if _, err := videoFile.Seek(0, 0); err != nil {
-		return nil, err
-	}
-	if _, err := audioFile.Seek(0, 0); err != nil {
-		return nil, err
-	}
-
-	tempOutput := videoFile.Name() + ".tmp.mp4"
-	defer os.Remove(tempOutput)
+	tempOutputName := tempOutput.Name()
+	_ = tempOutput.Close()
 
 	cmd := exec.Command("ffmpeg",
-		"-i", videoFile.Name(),
-		"-i", audioFile.Name(),
+		"-i", videoPath,
+		"-i", audioPath,
 		"-c", "copy",
 		"-shortest",
-		"-y", tempOutput,
+		"-y", tempOutputName,
 	)
 
 	if err = cmd.Run(); err != nil {
-		return nil, err
+		os.Remove(tempOutputName)
+		return nil, nil, err
 	}
 
-	outFile, err := os.Open(tempOutput)
+	outFile, err := os.Open(tempOutputName)
 	if err != nil {
-		return nil, err
+		os.Remove(tempOutputName)
+		return nil, nil, err
 	}
-	defer outFile.Close()
 
-	mergedBytes, err := io.ReadAll(outFile)
-	if err != nil {
-		return nil, err
+	cleanup := func() {
+		_ = outFile.Close()
+		_ = os.Remove(tempOutputName)
 	}
-	return mergedBytes, nil
+	return outFile, cleanup, nil
 }
 
 func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
