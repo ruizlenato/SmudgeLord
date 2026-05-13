@@ -3,6 +3,7 @@ package downloader
 import (
 	"bytes"
 	"fmt"
+	"io"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 )
@@ -39,6 +40,7 @@ type PostInfo struct {
 	NoMedia      bool
 	Unavailable  bool
 	FileTooLarge bool
+	Cleanup      func()
 }
 
 func NewNoMediaPostInfo(id string) PostInfo {
@@ -79,4 +81,20 @@ func NewFileTooLargeError(size, maxSize int64) *FileTooLargeError {
 
 func InputFileFromBytes(filename string, data []byte) gotgbot.InputFile {
 	return gotgbot.InputFileByReader(filename, bytes.NewReader(data))
+}
+
+func InputFileFromReader(filename string, r io.Reader) gotgbot.InputFile {
+	return gotgbot.InputFileByReader(filename, r)
+}
+
+// CombineCleanups returns a single cleanup function that calls all provided
+// cleanup functions. Nil cleanups are safely skipped.
+func CombineCleanups(cleanups ...func()) func() {
+	return func() {
+		for _, cleanup := range cleanups {
+			if cleanup != nil {
+				cleanup()
+			}
+		}
+	}
 }

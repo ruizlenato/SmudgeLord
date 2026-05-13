@@ -416,6 +416,11 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 	postInfo := processMedia(url)
+	defer func() {
+		if postInfo.Cleanup != nil {
+			postInfo.Cleanup()
+		}
+	}()
 	if len(postInfo.Medias) == 0 {
 		if postInfo.NoMedia {
 			if postInfo.FileTooLarge {

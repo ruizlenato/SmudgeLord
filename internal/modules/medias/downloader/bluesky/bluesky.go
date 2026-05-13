@@ -1,9 +1,11 @@
 package bluesky
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
+	"io"
 	"log/slog"
 	"path"
 	"regexp"
@@ -33,11 +35,15 @@ func Handle(text string) downloader.PostInfo {
 		return downloader.PostInfo{}
 	}
 
-	return downloader.PostInfo{
+	medias, cleanup := handler.processMedia(blueskyData)
+
+	postInfo = downloader.PostInfo{
 		ID:      handler.postID,
-		Medias:  handler.processMedia(blueskyData),
+		Medias:  medias,
 		Caption: getCaption(blueskyData),
 	}
+	postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, cleanup)
+	return postInfo
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -87,7 +93,7 @@ func getCaption(bluesky BlueskyData) string {
 		html.EscapeString(bluesky.Thread.Post.Record.Text))
 }
 
-func (h *Handler) processMedia(data BlueskyData) []gotgbot.InputMedia {
+func (h *Handler) processMedia(data BlueskyData) ([]gotgbot.InputMedia, func()) {
 	switch {
 	case strings.Contains(data.Thread.Post.Embed.Type, "image"):
 		return h.handleImage(data.Thread.Post.Embed.Images)
@@ -100,9 +106,9 @@ func (h *Handler) processMedia(data BlueskyData) []gotgbot.InputMedia {
 		if strings.Contains(data.Thread.Post.Embed.Media.Type, "video") {
 			return h.handleVideo(data)
 		}
-		return nil
+		return nil, nil
 	default:
-		return nil
+		return nil, nil
 	}
 }
 
@@ -132,14 +138,14 @@ func getPlaylistAndThumbnailURLs(data BlueskyData) (string, string) {
 	return data.Thread.Post.Embed.Media.Playlist, data.Thread.Post.Embed.Media.Thumbnail
 }
 
-func (h *Handler) handleVideo(data BlueskyData) []gotgbot.InputMedia {
+func (h *Handler) handleVideo(data BlueskyData) ([]gotgbot.InputMedia, func()) {
 	playlistURL, thumbnailURL := getPlaylistAndThumbnailURLs(data)
 	if playlistURL == "" || thumbnailURL == "" {
-		return nil
+		return nil, nil
 	}
 
 	if !strings.HasPrefix(playlistURL, "https://video.bsky.app/") {
-		return nil
+		return nil, nil
 	}
 
 	response, err := utils.Request(playlistURL, utils.RequestParams{
@@ -149,6 +155,7 @@ func (h *Handler) handleVideo(data BlueskyData) []gotgbot.InputMedia {
 		slog.Error("Failed to request playlist",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
+		return nil, nil
 	}
 	defer response.Body.Close()
 
@@ -157,10 +164,11 @@ func (h *Handler) handleVideo(data BlueskyData) []gotgbot.InputMedia {
 		slog.Error("Failed to decode m3u8 playlist",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
+		return nil, nil
 	}
 
 	if listType != m3u8.MASTER {
-		return nil
+		return nil, nil
 	}
 
 	var highestBandwidthVariant *m3u8.Variant
@@ -181,16 +189,16 @@ func (h *Handler) handleVideo(data BlueskyData) []gotgbot.InputMedia {
 		slog.Error("Failed to parse resolution",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
-		return nil
+		return nil, nil
 	}
 
-	file, err := downloader.FetchBytesFromURL(url)
+	file, cleanup, err := downloader.FetchStreamFromURL(url)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"Post Info", []string{h.username, h.postID},
 			"Video URL", url,
 			"Error", err.Error())
-		return nil
+		return nil, nil
 	}
 
 	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
@@ -199,7 +207,7 @@ func (h *Handler) handleVideo(data BlueskyData) []gotgbot.InputMedia {
 			"Post Info", []string{h.username, h.postID},
 			"Thumbnail URL", thumbnailURL,
 			"Error", err.Error())
-		return nil
+		return nil, cleanup
 	}
 
 	thumbnail, err = utils.ResizeThumbnail(thumbnail)
@@ -208,23 +216,25 @@ func (h *Handler) handleVideo(data BlueskyData) []gotgbot.InputMedia {
 			"Post Info", []string{h.username, h.postID},
 			"Thumbnail URL", thumbnailURL,
 			"Error", err.Error())
+		return nil, cleanup
 	}
 
 	return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
-		Media:                 downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), file),
-		Thumbnail:             downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), thumbnail),
+		Media:                 downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), file),
+		Thumbnail:             downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), bytes.NewReader(thumbnail)),
 		Width:                 int64(width),
 		Height:                int64(height),
 		SupportsStreaming:     true,
 		ShowCaptionAboveMedia: false,
-	}}
+	}}, cleanup
 }
 
-func (h *Handler) handleImage(blueskyImages []Image) []gotgbot.InputMedia {
+func (h *Handler) handleImage(blueskyImages []Image) ([]gotgbot.InputMedia, func()) {
 	type mediaResult struct {
-		index int
-		file  []byte
-		err   error
+		index   int
+		file    io.ReadCloser
+		cleanup func()
+		err     error
 	}
 
 	mediaCount := len(blueskyImages)
@@ -233,17 +243,18 @@ func (h *Handler) handleImage(blueskyImages []Image) []gotgbot.InputMedia {
 
 	for i, media := range blueskyImages {
 		go func(index int, media Image) {
-			file, err := downloader.FetchBytesFromURL(media.Fullsize)
+			file, cleanup, err := downloader.FetchStreamFromURL(media.Fullsize)
 			if err != nil {
 				slog.Error("Failed to download image",
 					"Post Info", []string{h.username, h.postID},
 					"Image URL", media.Fullsize,
 					"Error", err.Error())
 			}
-			results <- mediaResult{index, file, err}
+			results <- mediaResult{index, file, cleanup, err}
 		}(i, media)
 	}
 
+	var cleanups []func()
 	for range mediaCount {
 		result := <-results
 		if result.err != nil {
@@ -254,11 +265,16 @@ func (h *Handler) handleImage(blueskyImages []Image) []gotgbot.InputMedia {
 			continue
 		}
 		if result.file != nil {
+			cleanups = append(cleanups, result.cleanup)
 			mediaItems[result.index] = &gotgbot.InputMediaPhoto{
-				Media: downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), result.file),
+				Media: downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), result.file),
 			}
 		}
 	}
 
-	return mediaItems
+	if len(cleanups) > 0 {
+		return mediaItems, downloader.CombineCleanups(cleanups...)
+	}
+
+	return mediaItems, nil
 }

@@ -53,6 +53,29 @@ func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 	return bodyBytes, response, nil
 }
 
+func FetchURLStreamResponse(media string) (io.ReadCloser, *http.Response, error) {
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   1 * time.Second,
+		MaxDelay:     5 * time.Second,
+	}
+	response, err := retryCaller.Request(media, utils.RequestParams{
+		Method:  "GET",
+		Headers: GenericHeaders,
+		Cookies: map[string]string{
+			"use_hls":               "on",
+			"hide_hls_notification": "on",
+		},
+	})
+	if err != nil || response == nil {
+		return nil, nil, errors.New("get error")
+	}
+
+	return response.Body, response, nil
+}
+
 func FetchSizeFromURL(mediaURL string) (int64, error) {
 	retryCaller := &utils.RetryCaller{
 		Caller:       utils.DefaultHTTPCaller,
@@ -104,6 +127,112 @@ func FetchBytesFromURL(media string) ([]byte, error) {
 	}
 
 	return bodyBytes, nil
+}
+
+func SpoolToTempFile(r io.ReadCloser) (*os.File, func(), error) {
+	tmpFile, err := os.CreateTemp("", "smudgelord-media-*")
+	if err != nil {
+		r.Close()
+		return nil, nil, err
+	}
+
+	_, err = io.Copy(tmpFile, r)
+	r.Close()
+	if err != nil {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+		return nil, nil, err
+	}
+
+	if _, err := tmpFile.Seek(0, io.SeekStart); err != nil {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+		return nil, nil, err
+	}
+
+	cleanup := func() {
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFile.Name())
+	}
+	return tmpFile, cleanup, nil
+}
+
+// SpoolBytesToTempFile writes data to a temporary file and returns
+// the opened file seeked to the start. The cleanup function closes and removes the file.
+func SpoolBytesToTempFile(data []byte) (*os.File, func(), error) {
+	tmpFile, err := os.CreateTemp("", "smudgelord-media-*")
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if _, err := tmpFile.Write(data); err != nil {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+		return nil, nil, err
+	}
+
+	if _, err := tmpFile.Seek(0, io.SeekStart); err != nil {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+		return nil, nil, err
+	}
+
+	cleanup := func() {
+		_ = tmpFile.Close()
+		_ = os.Remove(tmpFile.Name())
+	}
+	return tmpFile, cleanup, nil
+}
+
+// FetchStreamWithClient fetches a URL using the given client and Anubis solver,
+// then spools the result to a seekable temp file. This is needed for Redlib/proxied
+// URLs that may be behind Anubis challenges.
+func FetchStreamWithClient(mediaURL string, client *http.Client, anubisSolver AnubisSolver) (*os.File, func(), error) {
+	data, err := FetchWithClient(mediaURL, client, anubisSolver)
+	if err != nil {
+		return nil, nil, err
+	}
+	return SpoolBytesToTempFile(data)
+}
+
+func FetchStreamFromURL(media string) (io.ReadCloser, func(), error) {
+	bodyStream, response, err := FetchURLStreamResponse(media)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	contentType := ""
+	if response != nil && response.Header != nil {
+		contentType = strings.ToLower(response.Header.Get("Content-Type"))
+	}
+
+	isM3U8 := strings.Contains(contentType, "application/vnd.apple.mpegurl") ||
+		strings.HasSuffix(strings.ToLower(media), ".m3u8")
+
+	if isM3U8 {
+		bodyBytes, err := io.ReadAll(bodyStream)
+		_ = bodyStream.Close()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		if response == nil || response.Request == nil || response.Request.URL == nil {
+			return nil, nil, fmt.Errorf("invalid m3u8 response URL")
+		}
+
+		tmpFile, err := DownloadM3U8(bytes.NewReader(bodyBytes), response.Request.URL, nil, nil)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		cleanup := func() {
+			_ = tmpFile.Close()
+			_ = os.Remove(tmpFile.Name())
+		}
+		return tmpFile, cleanup, nil
+	}
+
+	return SpoolToTempFile(bodyStream)
 }
 
 type FetchInfo struct {

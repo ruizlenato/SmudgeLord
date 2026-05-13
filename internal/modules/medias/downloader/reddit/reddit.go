@@ -63,9 +63,9 @@ func Handle(text string) downloader.PostInfo {
 		return postInfo
 	}
 
-	medias, caption, noMedia := handler.processMedia()
+	medias, caption, noMedia, cleanup := handler.processMedia()
 	if noMedia {
-		return downloader.NewNoMediaPostInfo(postID)
+		return downloader.PostInfo{ID: postID, NoMedia: true, Cleanup: cleanup}
 	}
 	if medias == nil {
 		return downloader.PostInfo{}
@@ -75,6 +75,7 @@ func Handle(text string) downloader.PostInfo {
 		ID:      postID,
 		Medias:  medias,
 		Caption: caption,
+		Cleanup: cleanup,
 	}
 }
 
@@ -142,36 +143,42 @@ func resolveRedditShortURL(rawURL string) (string, error) {
 	return resp.Request.URL.String(), nil
 }
 
-func (h *Handler) processMedia() ([]gotgbot.InputMedia, string, bool) {
-	medias, caption, noMedia := h.getRedlibData()
+func (h *Handler) processMedia() ([]gotgbot.InputMedia, string, bool, func()) {
+	medias, caption, noMedia, cleanup := h.getRedlibData()
 	if medias != nil {
-		return medias, caption, false
+		return medias, caption, false, cleanup
 	}
 	if noMedia {
-		return nil, "", true
+		return nil, "", true, cleanup
 	}
 
 	if data := h.getAPIData(); data != nil {
 		if data.IsSelf {
-			return nil, "", true
+			return nil, "", true, cleanup
 		}
-		medias := h.processAPIMedia(data)
+		medias, mediaCleanup, err := h.processAPIMedia(data)
+		if err != nil {
+			if mediaCleanup != nil {
+				mediaCleanup()
+			}
+			return nil, "", false, cleanup
+		}
 		if medias == nil {
-			return nil, "", false
+			return nil, "", false, cleanup
 		}
-		return medias, h.processAPICaption(data), false
+		return medias, h.processAPICaption(data), false, downloader.CombineCleanups(cleanup, mediaCleanup)
 	}
 
-	return nil, "", false
+	return nil, "", false, cleanup
 }
 
-func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string, bool) {
+func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string, bool, func()) {
 	response, _, err := h.requestRedlibPost()
 	if err != nil {
 		slog.Warn("Reddit getRedlibData: failed to request post from all instances",
 			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 			"error", err.Error())
-		return nil, "", false
+		return nil, "", false, nil
 	}
 	defer response.Body.Close()
 
@@ -180,18 +187,18 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string, bool) {
 		slog.Warn("Reddit getRedlibData: failed reading response body",
 			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 			"error", err.Error())
-		return nil, "", false
+		return nil, "", false, nil
 	}
 
 	postType := postTypeRegex.FindSubmatch(body)
 	if len(postType) < 2 {
 		slog.Warn("Reddit getRedlibData: post type not found",
 			"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID))
-		return nil, "", false
+		return nil, "", false, nil
 	}
 
 	if string(postType[1]) == "self" {
-		return nil, "", true
+		return nil, "", true, nil
 	}
 
 	if string(postType[1]) == "video" || string(postType[1]) == "image" {
@@ -200,23 +207,23 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string, bool) {
 			slog.Warn("Reddit getRedlibData: media content not found",
 				"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 				"postType", string(postType[1]))
-			return nil, "", false
+			return nil, "", false, nil
 		}
 
-		if videoMedia := h.processRedlibVideo(match[1], response); videoMedia != nil {
-			return videoMedia, extractRedlibCaption(body), false
+		if videoMedia, cleanup := h.processRedlibVideo(match[1], response); videoMedia != nil {
+			return videoMedia, extractRedlibCaption(body), false, cleanup
 		}
 
-		if imageMedia := h.processRedlibImage(match[1], response); imageMedia != nil {
-			return imageMedia, extractRedlibCaption(body), false
+		if imageMedia, cleanup := h.processRedlibImage(match[1], response); imageMedia != nil {
+			return imageMedia, extractRedlibCaption(body), false, cleanup
 		}
 	}
 
 	if string(postType[1]) == "gallery" {
 		match := galleryRegex.FindAllSubmatch(body, -1)
 
-		if galleryMedia := h.processRedlibGallery(match, response); galleryMedia != nil {
-			return galleryMedia, extractRedlibCaption(body), false
+		if galleryMedia, cleanup := h.processRedlibGallery(match, response); galleryMedia != nil {
+			return galleryMedia, extractRedlibCaption(body), false, cleanup
 		}
 	}
 
@@ -224,7 +231,7 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string, bool) {
 		"post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 		"postType", string(postType[1]))
 
-	return nil, "", false
+	return nil, "", false, nil
 }
 
 func (h *Handler) requestRedlibPost() (*http.Response, string, error) {
@@ -333,12 +340,12 @@ func extractRedlibCaption(body []byte) string {
 		html.EscapeString(postTitle))
 }
 
-func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []gotgbot.InputMedia {
+func (h *Handler) processRedlibVideo(content []byte, response *http.Response) ([]gotgbot.InputMedia, func()) {
 	playlistMatch := playlistRegex.FindSubmatch(content)
 	videoMatch := videoRegex.FindSubmatch(content)
 
 	if len(playlistMatch) < 2 {
-		return nil
+		return nil, nil
 	}
 
 	client := h.client
@@ -349,22 +356,45 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 
 	playlistURL := buildMediaURL(response, string(playlistMatch[1]))
 
-	var videoFile []byte
-	var err error
+	cleanups := make([]func(), 0, 2)
 
 	if len(videoMatch) > 1 && string(videoMatch[1]) != "" {
 		videoURL := buildMediaURL(response, string(videoMatch[1]))
-		videoFile, err = downloader.FetchWithClient(videoURL, client, h.anubisSolver())
+		videoStream, cleanup, err := downloader.FetchStreamWithClient(videoURL, client, h.anubisSolver())
 		if err != nil {
 			slog.Error("Failed to download video", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
-			return nil
+			return nil, nil
 		}
-	} else {
-		videoFile, err = downloader.FetchM3U8ToBytes(playlistURL, client, h.anubisSolver())
-		if err != nil {
-			slog.Error("Failed to download video from HLS", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
-			return nil
+		cleanups = append(cleanups, cleanup)
+
+		var width, height int64
+		if dimsMatch := videoDimsRegex.FindSubmatch(content); len(dimsMatch) >= 3 {
+			if w, err := strconv.Atoi(string(dimsMatch[1])); err == nil {
+				width = int64(w)
+			}
+			if h, err := strconv.Atoi(string(dimsMatch[2])); err == nil {
+				height = int64(h)
+			}
 		}
+
+		thumbnail := h.downloadThumbnail(content, response)
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
+		videoMedia := &gotgbot.InputMediaVideo{
+			Media:             downloader.InputFileFromReader(filename, videoStream),
+			SupportsStreaming: true,
+			Width:             width,
+			Height:            height,
+		}
+		if thumbnail != nil {
+			videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
+		}
+		return []gotgbot.InputMedia{videoMedia}, downloader.CombineCleanups(cleanups...)
+	}
+
+	videoFile, err := downloader.FetchM3U8ToBytes(playlistURL, client, h.anubisSolver())
+	if err != nil {
+		slog.Error("Failed to download video from HLS", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
+		return nil, nil
 	}
 
 	audioFile, err := downloadAudio(playlistURL, client, h.anubisSolver())
@@ -376,7 +406,7 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 		videoFile, err = downloader.MergeAudioVideoBytes(videoFile, audioFile)
 		if err != nil {
 			slog.Error("Failed to merge audio and video", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
-			return nil
+			return nil, nil
 		}
 	}
 
@@ -403,7 +433,7 @@ func (h *Handler) processRedlibVideo(content []byte, response *http.Response) []
 	if thumbnail != nil {
 		videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
 	}
-	return []gotgbot.InputMedia{videoMedia}
+	return []gotgbot.InputMedia{videoMedia}, nil
 }
 
 func downloadAudio(playlistURL string, client *http.Client, anubisSolver downloader.AnubisSolver) ([]byte, error) {
@@ -506,7 +536,7 @@ func (h *Handler) downloadThumbnail(content []byte, response *http.Response) []b
 	return nil
 }
 
-func (h *Handler) processRedlibImage(content []byte, response *http.Response) []gotgbot.InputMedia {
+func (h *Handler) processRedlibImage(content []byte, response *http.Response) ([]gotgbot.InputMedia, func()) {
 	if imageMatch := imageRegex.FindSubmatch(content); len(imageMatch) > 1 {
 		imageURL := buildMediaURL(response, string(imageMatch[1]))
 
@@ -516,46 +546,46 @@ func (h *Handler) processRedlibImage(content []byte, response *http.Response) []
 			client = &http.Client{Jar: jar}
 		}
 
-		imageData, err := downloader.FetchWithClient(imageURL, client, h.anubisSolver())
+		imageStream, cleanup, err := downloader.FetchStreamWithClient(imageURL, client, h.anubisSolver())
 		if err != nil {
 			slog.Error("Failed to download image", "Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID), "Error", err.Error())
-			return nil
+			return nil, nil
 		}
 
 		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
 		return []gotgbot.InputMedia{&gotgbot.InputMediaPhoto{
-			Media: downloader.InputFileFromBytes(filename, imageData),
-		}}
+			Media: downloader.InputFileFromReader(filename, imageStream),
+		}}, cleanup
 	}
-	return nil
+	return nil, nil
 }
 
-func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Response) []gotgbot.InputMedia {
+func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Response) ([]gotgbot.InputMedia, func()) {
 	if len(content) < 1 {
-		return nil
+		return nil, nil
 	}
 
 	type mediaResult struct {
-		index int
-		media gotgbot.InputMedia
-		err   error
+		index   int
+		media   gotgbot.InputMedia
+		cleanup func()
+		err     error
 	}
 
 	mediaCount := len(content)
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
 	results := make(chan mediaResult, mediaCount)
+	client := h.client
+	if client == nil {
+		jar, _ := cookiejar.New(nil)
+		client = &http.Client{Jar: jar}
+	}
 
 	for i, item := range content {
-		go func(index int) {
-			media := buildMediaURL(response, string(item[1]))
+		go func(index int, galleryItem [][]byte) {
+			media := buildMediaURL(response, string(galleryItem[1]))
 
-			client := h.client
-			if client == nil {
-				jar, _ := cookiejar.New(nil)
-				client = &http.Client{Jar: jar}
-			}
-
-			file, err := downloader.FetchWithClient(media, client, h.anubisSolver())
+			file, cleanup, err := downloader.FetchStreamWithClient(media, client, h.anubisSolver())
 			if err != nil {
 				results <- mediaResult{index: index, err: err}
 				return
@@ -563,21 +593,29 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 
 			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID))
 			inputMedia := &gotgbot.InputMediaPhoto{
-				Media: downloader.InputFileFromBytes(filename, file),
+				Media: downloader.InputFileFromReader(filename, file),
 			}
-			results <- mediaResult{index: index, media: inputMedia, err: nil}
-		}(i)
+			results <- mediaResult{index: index, media: inputMedia, cleanup: cleanup, err: nil}
+		}(i, item)
 	}
 
+	var collectedCleanups []func()
+	var hadError bool
 	for range mediaCount {
 		result := <-results
 		if result.err != nil {
 			slog.Error("Failed to download media in gallery",
 				"Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
 				"Error", result.err.Error())
+			hadError = true
 			continue
 		}
 		mediaItems[result.index] = result.media
+		collectedCleanups = append(collectedCleanups, result.cleanup)
+	}
+	if hadError {
+		downloader.CombineCleanups(collectedCleanups...)()
+		return nil, nil
 	}
 
 	filtered := make([]gotgbot.InputMedia, 0, len(mediaItems))
@@ -586,7 +624,7 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 			filtered = append(filtered, item)
 		}
 	}
-	return filtered
+	return filtered, downloader.CombineCleanups(collectedCleanups...)
 }
 
 func (h *Handler) getAPIData() *Data {
@@ -622,42 +660,48 @@ func (h *Handler) getAPIData() *Data {
 	return &data[0].Data.Children[0].Data
 }
 
-func (h *Handler) processAPIMedia(data *Data) []gotgbot.InputMedia {
+func (h *Handler) processAPIMedia(data *Data) ([]gotgbot.InputMedia, func(), error) {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%s_%s", h.subreddit, h.postID))
+	cleanups := make([]func(), 0, 4)
 	if data.IsVideo {
-		video, err := downloader.FetchBytesFromURL(data.Media.RedditVideo.FallbackURL)
+		video, cleanup, err := downloader.FetchStreamFromURL(data.Media.RedditVideo.FallbackURL)
 		if err != nil {
 			slog.Error("Failed to download video",
 				"Error", err.Error())
-			return nil
+			return nil, nil, err
 		}
+		cleanups = append(cleanups, cleanup)
 
 		thumbnail, err := downloader.FetchBytesFromURL(data.Preview.Images[0].Source.URL)
 		if err != nil {
 			slog.Error("Failed to download thumbnail",
 				"Error", err.Error())
-			return nil
+			downloader.CombineCleanups(cleanups...)()
+			return nil, nil, err
 		}
 
 		return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
-			Media:             downloader.InputFileFromBytes(filename, video),
+			Media:             downloader.InputFileFromReader(filename, video),
 			Width:             int64(data.Media.RedditVideo.Width),
 			Height:            int64(data.Media.RedditVideo.Height),
 			Thumbnail:         downloader.InputFileFromBytes(filename, thumbnail),
 			SupportsStreaming: true,
-		}}
+		}}, downloader.CombineCleanups(cleanups...), nil
 	}
 
 	if data.MediaMetadata != nil {
 		type mediaResult struct {
-			index int
-			media gotgbot.InputMedia
-			err   error
+			index   int
+			media   gotgbot.InputMedia
+			cleanup func()
+			err     error
 		}
 
 		mediaCount := len(data.GalleryData.Items)
 		mediaItems := make([]gotgbot.InputMedia, mediaCount)
 		results := make(chan mediaResult, mediaCount)
+		var collectedCleanups []func()
+		var hadError bool
 
 		for i, item := range data.GalleryData.Items {
 			go func(index int, mediaID string) {
@@ -678,7 +722,7 @@ func (h *Handler) processAPIMedia(data *Data) []gotgbot.InputMedia {
 					return
 				}
 
-				file, err := downloader.FetchBytesFromURL(mediaURL)
+				file, cleanup, err := downloader.FetchStreamFromURL(mediaURL)
 				if err != nil {
 					results <- mediaResult{index: index, err: fmt.Errorf("media_id=%s url=%s: %w", mediaID, mediaURL, err)}
 					return
@@ -687,10 +731,10 @@ func (h *Handler) processAPIMedia(data *Data) []gotgbot.InputMedia {
 				var inputMedia gotgbot.InputMedia
 				if media.E == "Image" {
 					inputMedia = &gotgbot.InputMediaPhoto{
-						Media: downloader.InputFileFromBytes(filename, file),
+						Media: downloader.InputFileFromReader(filename, file),
 					}
 				}
-				results <- mediaResult{index: index, media: inputMedia, err: nil}
+				results <- mediaResult{index: index, media: inputMedia, cleanup: cleanup, err: nil}
 			}(i, item.MediaID)
 		}
 
@@ -699,12 +743,18 @@ func (h *Handler) processAPIMedia(data *Data) []gotgbot.InputMedia {
 			if result.err != nil {
 				slog.Error("Failed to download media in gallery",
 					"Error", result.err.Error())
+				hadError = true
 				continue
 			}
 			if result.media == nil {
 				continue
 			}
 			mediaItems[result.index] = result.media
+			collectedCleanups = append(collectedCleanups, result.cleanup)
+		}
+		if hadError {
+			downloader.CombineCleanups(collectedCleanups...)()
+			return nil, nil, fmt.Errorf("failed to download one or more gallery media")
 		}
 
 		filteredMedia := make([]gotgbot.InputMedia, 0, len(mediaItems))
@@ -714,26 +764,26 @@ func (h *Handler) processAPIMedia(data *Data) []gotgbot.InputMedia {
 			}
 		}
 		if len(filteredMedia) == 0 {
-			return nil
+			return nil, nil, nil
 		}
 
-		return filteredMedia
+		return filteredMedia, downloader.CombineCleanups(collectedCleanups...), nil
 	}
 
 	if data.IsRedditMediaDomain && data.Domain == "i.redd.it" {
-		image, err := downloader.FetchBytesFromURL(data.URL)
+		image, cleanup, err := downloader.FetchStreamFromURL(data.URL)
 		if err != nil {
 			slog.Error("Failed to download image",
 				"Error", err.Error())
-			return nil
+			return nil, nil, err
 		}
 
 		return []gotgbot.InputMedia{&gotgbot.InputMediaPhoto{
-			Media: downloader.InputFileFromBytes(filename, image),
-		}}
+			Media: downloader.InputFileFromReader(filename, image),
+		}}, cleanup, nil
 	}
 
-	return nil
+	return nil, nil, nil
 }
 
 func (h *Handler) processAPICaption(data *Data) string {

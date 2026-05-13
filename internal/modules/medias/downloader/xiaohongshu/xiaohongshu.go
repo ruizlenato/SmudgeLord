@@ -42,16 +42,20 @@ func Handle(text string) downloader.PostInfo {
 
 	switch noteData.Note.Type {
 	case "video":
+		medias, cleanup := handler.handleVideo(noteData)
 		return downloader.PostInfo{
 			ID:      handler.postID,
-			Medias:  handler.handleVideo(noteData),
+			Medias:  medias,
 			Caption: getCaption(noteData),
+			Cleanup: cleanup,
 		}
 	case "normal":
+		medias, cleanup := handler.handleImages(noteData)
 		return downloader.PostInfo{
 			ID:      handler.postID,
-			Medias:  handler.handleImages(noteData),
+			Medias:  medias,
 			Caption: getCaption(noteData),
+			Cleanup: cleanup,
 		}
 	default:
 		return downloader.PostInfo{}
@@ -163,30 +167,30 @@ func getCaption(noteData Note) string {
 	return caption
 }
 
-func (h *Handler) handleVideo(noteData Note) []gotgbot.InputMedia {
+func (h *Handler) handleVideo(noteData Note) ([]gotgbot.InputMedia, func()) {
 	videoInfo := h.findFirstAvailableVideoFormat(noteData.Note.Video.Media.Stream)
 	if videoInfo == nil {
 		slog.Error("No valid video format found",
 			"Post Info", []string{h.username, h.postID})
-		return nil
+		return nil, nil
 	}
 
-	file, err := downloader.FetchBytesFromURL(videoInfo.MasterURL)
+	stream, cleanup, err := downloader.FetchStreamFromURL(videoInfo.MasterURL)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
-		return nil
+		return nil, nil
 	}
 
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Xiaohongshu_%s_%s", h.username, h.postID))
 	return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
-		Media:             downloader.InputFileFromBytes(filename, file),
+		Media:             downloader.InputFileFromReader(filename, stream),
 		Width:             int64(videoInfo.Width),
 		Height:            int64(videoInfo.Height),
 		Duration:          int64(videoInfo.Duration / 1000),
 		SupportsStreaming: true,
-	}}
+	}}, cleanup
 }
 
 // following the priority: AV1 > H266 > H265 > H264
@@ -206,11 +210,12 @@ func (h *Handler) findFirstAvailableVideoFormat(stream VideoStream) VideoInfo {
 	return nil
 }
 
-func (h *Handler) handleImages(noteData Note) []gotgbot.InputMedia {
+func (h *Handler) handleImages(noteData Note) ([]gotgbot.InputMedia, func()) {
 	type mediaResult struct {
-		index int
-		file  []byte
-		err   error
+		index   int
+		media   gotgbot.InputMedia
+		cleanup func()
+		err     error
 	}
 
 	mediaCount := len(noteData.Note.ImageList)
@@ -225,17 +230,39 @@ func (h *Handler) handleImages(noteData Note) []gotgbot.InputMedia {
 				url = videoInfo.MasterURL
 			}
 
-			file, err := downloader.FetchBytesFromURL(url)
+			stream, cleanup, err := downloader.FetchStreamFromURL(url)
 			if err != nil {
 				slog.Error("Failed to download image",
 					"Post Info", []string{h.username, h.postID},
 					"Error", err.Error())
-
+				results <- mediaResult{index: index, err: err}
+				return
 			}
-			results <- mediaResult{index, file, err}
+
+			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", index, h.username, h.postID))
+			if media.LivePhoto {
+				results <- mediaResult{
+					index: index,
+					media: &gotgbot.InputMediaVideo{
+						Media:             downloader.InputFileFromReader(sanitized, stream),
+						SupportsStreaming: true,
+					},
+					cleanup: cleanup,
+				}
+				return
+			}
+
+			results <- mediaResult{
+				index: index,
+				media: &gotgbot.InputMediaPhoto{
+					Media: downloader.InputFileFromReader(sanitized, stream),
+				},
+				cleanup: cleanup,
+			}
 		}(i, media)
 	}
 
+	var cleanups []func()
 	for range mediaCount {
 		result := <-results
 		if result.err != nil {
@@ -245,20 +272,13 @@ func (h *Handler) handleImages(noteData Note) []gotgbot.InputMedia {
 				"Error", result.err.Error())
 			continue
 		}
-		if result.file != nil {
-			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", result.index, h.username, h.postID))
-			if noteData.Note.ImageList[result.index].LivePhoto {
-				mediaItems[result.index] = &gotgbot.InputMediaVideo{
-					Media:             downloader.InputFileFromBytes(sanitized, result.file),
-					SupportsStreaming: true,
-				}
-			} else {
-				mediaItems[result.index] = &gotgbot.InputMediaPhoto{
-					Media: downloader.InputFileFromBytes(sanitized, result.file),
-				}
-			}
+		if result.cleanup != nil {
+			cleanups = append(cleanups, result.cleanup)
+		}
+		if result.media != nil {
+			mediaItems[result.index] = result.media
 		}
 	}
 
-	return mediaItems
+	return mediaItems, downloader.CombineCleanups(cleanups...)
 }

@@ -1,6 +1,7 @@
 package twitter
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -49,13 +50,17 @@ func Handle(text string) downloader.PostInfo {
 	if twitterData == nil {
 		fxTwitterData := handler.getFxTwitterData()
 		if fxTwitterData != nil {
-			return handler.processFxTwitterAPI(fxTwitterData)
+			postInfo, cleanup := handler.processFxTwitterAPI(fxTwitterData)
+			postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, cleanup)
+			return postInfo
 		}
 		return downloader.NewUnavailablePostInfo(handler.postID)
 	}
 
 	handler.username = (*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.ScreenName
-	return handler.processTwitterAPI(twitterData)
+	postInfo, cleanup := handler.processTwitterAPI(twitterData)
+	postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, cleanup)
+	return postInfo
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -66,11 +71,12 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.PostInfo {
+func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.PostInfo, func()) {
 	type mediaResult struct {
-		index int
-		media *downloader.InputMedia
-		err   error
+		index   int
+		media   gotgbot.InputMedia
+		cleanup func()
+		err     error
 	}
 
 	var invertMedia bool
@@ -87,7 +93,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 	if mediaCount == 0 {
 		slog.Debug("No media found in tweet",
 			"Post Info", []string{h.username, h.postID})
-		return downloader.NewNoMediaPostInfo(h.postID)
+		return downloader.NewNoMediaPostInfo(h.postID), nil
 	}
 
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
@@ -95,9 +101,16 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 
 	for i, media := range allTweetMedia {
 		go func(index int, twitterMedia Media) {
-			media, err := h.downloadMedia(twitterMedia)
-			results <- mediaResult{index: index, media: media, err: err}
+			media, cleanup, err := h.downloadMedia(twitterMedia, invertMedia && twitterMedia.Type != "video")
+			results <- mediaResult{index: index, media: media, cleanup: cleanup, err: err}
 		}(i, media)
+	}
+
+	var cleanups []func()
+	addCleanup := func(cleanup func()) {
+		if cleanup != nil {
+			cleanups = append(cleanups, cleanup)
+		}
 	}
 
 	for range mediaCount {
@@ -105,47 +118,20 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 		if result.err != nil {
 			var fileTooLargeErr *downloader.FileTooLargeError
 			if errors.As(result.err, &fileTooLargeErr) {
-				return downloader.NewFileTooLargePostInfo(h.postID)
+				return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 			}
 			slog.Error("Failed to download media in carousel", "Post Info", []string{h.username, h.postID},
 				"Media Count", result.index, "Error", result.err.Error())
 			continue
 		}
-		if result.media.File != nil {
-			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID))
-			var mediaItem gotgbot.InputMedia
-			showCaptionAbove := invertMedia && allTweetMedia[result.index].Type == "photo"
-			if allTweetMedia[result.index].Type == "photo" {
-				mediaItem = &gotgbot.InputMediaPhoto{
-					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
-					ShowCaptionAboveMedia: showCaptionAbove,
-				}
-			} else {
-				videoMedia := &gotgbot.InputMediaVideo{
-					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
-					ShowCaptionAboveMedia: invertMedia,
-					Width:                 int64(allTweetMedia[result.index].OriginalInfo.Width),
-					Height:                int64(allTweetMedia[result.index].OriginalInfo.Height),
-					SupportsStreaming:     true,
-				}
-				if result.media.Thumbnail != nil {
-					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
-					if err != nil {
-						slog.Error("Failed to resize thumbnail",
-							"Post Info", []string{h.username, h.postID},
-							"Error", err.Error())
-					} else {
-						videoMedia.Thumbnail = downloader.InputFileFromBytes(sanitized, thumbnail)
-					}
-				}
-				mediaItem = videoMedia
-			}
-			mediaItems[result.index] = mediaItem
+		addCleanup(result.cleanup)
+		if result.media != nil {
+			mediaItems[result.index] = result.media
 		}
 	}
 
 	if !slices.ContainsFunc(mediaItems, func(m gotgbot.InputMedia) bool { return m != nil }) {
-		return downloader.NewUnavailablePostInfo(h.postID)
+		return downloader.NewUnavailablePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 	}
 
 	return downloader.PostInfo{
@@ -153,14 +139,13 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) downloader.Post
 		ID:          h.postID,
 		Caption:     getTweetCaption(twitterData),
 		InvertMedia: invertMedia,
-	}
+	}, downloader.CombineCleanups(cleanups...)
 }
 
 const maxVideoSize int64 = 500 * 1024 * 1024 // 500MB
 
-func (h *Handler) downloadMedia(twitterMedia Media) (*downloader.InputMedia, error) {
-	var media downloader.InputMedia
-	var err error
+func (h *Handler) downloadMedia(twitterMedia Media, showCaptionAbove bool) (gotgbot.InputMedia, func(), error) {
+	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%s_%s", h.username, h.postID))
 
 	if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
 		sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
@@ -169,21 +154,46 @@ func (h *Handler) downloadMedia(twitterMedia Media) (*downloader.InputMedia, err
 		videoURL := twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL
 
 		if size, err := downloader.FetchSizeFromURL(videoURL); err == nil && size > 0 && size > maxVideoSize {
-			return nil, downloader.NewFileTooLargeError(size, maxVideoSize)
+			return nil, nil, downloader.NewFileTooLargeError(size, maxVideoSize)
 		}
 
-		media.File, err = downloader.FetchBytesFromURL(videoURL)
-		if err == nil {
-			media.Thumbnail, _ = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
+		stream, cleanup, err := downloader.FetchStreamFromURL(videoURL)
+		if err != nil {
+			return nil, nil, err
 		}
-	} else {
-		media.File, err = downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
+
+		videoMedia := &gotgbot.InputMediaVideo{
+			Media:                 downloader.InputFileFromReader(filename, stream),
+			ShowCaptionAboveMedia: showCaptionAbove,
+			Width:                 int64(twitterMedia.OriginalInfo.Width),
+			Height:                int64(twitterMedia.OriginalInfo.Height),
+			SupportsStreaming:     true,
+		}
+
+		if twitterMedia.MediaURLHTTPS != "" {
+			thumbnail, thumbErr := downloader.FetchBytesFromURL(twitterMedia.MediaURLHTTPS)
+			if thumbErr != nil {
+				cleanup()
+				return nil, nil, thumbErr
+			}
+			if thumbnail, err := utils.ResizeThumbnail(thumbnail); err == nil {
+				videoMedia.Thumbnail = downloader.InputFileFromReader(filename, bytes.NewReader(thumbnail))
+			} else {
+				slog.Error("Failed to resize thumbnail",
+					"Post Info", []string{h.username, h.postID},
+					"Error", err.Error())
+			}
+		}
+
+		return videoMedia, cleanup, nil
 	}
 
+	stream, cleanup, err := downloader.FetchStreamFromURL(twitterMedia.MediaURLHTTPS)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return &media, nil
+
+	return &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream), ShowCaptionAboveMedia: showCaptionAbove}, cleanup, nil
 }
 
 func (h *Handler) getGuestToken() string {
@@ -350,11 +360,12 @@ func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
 	return fxTwitterAPIData
 }
 
-func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.PostInfo {
+func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader.PostInfo, func()) {
 	type mediaResult struct {
-		index int
-		media *downloader.InputMedia
-		err   error
+		index   int
+		media   gotgbot.InputMedia
+		cleanup func()
+		err     error
 	}
 
 	var allMedia []FxTwitterMedia
@@ -367,7 +378,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 	} else {
 		slog.Debug("No media found in tweet (fxTwitter)",
 			"Post ID", h.postID)
-		return downloader.NewNoMediaPostInfo(h.postID)
+		return downloader.NewNoMediaPostInfo(h.postID), nil
 	}
 
 	mediaCount := len(allMedia)
@@ -376,22 +387,64 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 
 	for i, media := range allMedia {
 		go func(index int, twitterMedia FxTwitterMedia) {
-			var media downloader.InputMedia
-			var err error
-
 			if twitterMedia.Type == "video" {
 				if size, sizeErr := downloader.FetchSizeFromURL(twitterMedia.URL); sizeErr == nil && size > 0 && size > maxVideoSize {
-					results <- mediaResult{index: index, media: nil, err: downloader.NewFileTooLargeError(size, maxVideoSize)}
+					results <- mediaResult{index: index, err: downloader.NewFileTooLargeError(size, maxVideoSize)}
 					return
 				}
 			}
 
-			media.File, err = downloader.FetchBytesFromURL(twitterMedia.URL)
-			if err == nil && twitterMedia.Type == "video" {
-				media.Thumbnail, _ = downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
+			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%s_%s_%d", h.username, h.postID, index))
+			if twitterMedia.Type == "video" {
+				stream, cleanup, err := downloader.FetchStreamFromURL(twitterMedia.URL)
+				if err != nil {
+					results <- mediaResult{index: index, err: err}
+					return
+				}
+
+				videoMedia := &gotgbot.InputMediaVideo{
+					Media:                 downloader.InputFileFromReader(filename, stream),
+					ShowCaptionAboveMedia: invertMedia,
+					Width:                 int64(twitterMedia.Width),
+					Height:                int64(twitterMedia.Height),
+					SupportsStreaming:     true,
+				}
+
+				if twitterMedia.ThumbnailURL != "" {
+					thumbnail, thumbErr := downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
+					if thumbErr != nil {
+						cleanup()
+						results <- mediaResult{index: index, err: thumbErr}
+						return
+					}
+					if thumbnail, err := utils.ResizeThumbnail(thumbnail); err == nil {
+						videoMedia.Thumbnail = downloader.InputFileFromReader(filename, bytes.NewReader(thumbnail))
+					} else {
+						slog.Error("Failed to resize thumbnail",
+							"Post Info", []string{h.username, h.postID},
+							"Error", err.Error())
+					}
+				}
+
+				results <- mediaResult{index: index, media: videoMedia, cleanup: cleanup}
+				return
 			}
-			results <- mediaResult{index: index, media: &media, err: err}
+
+			stream, cleanup, err := downloader.FetchStreamFromURL(twitterMedia.URL)
+			if err != nil {
+				results <- mediaResult{index: index, err: err}
+				return
+			}
+
+			results <- mediaResult{index: index, media: &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream)}, cleanup: cleanup}
 		}(i, media)
+	}
+
+	var cleanups []func()
+	addCleanup := func(cleanup func()) {
+		if cleanup != nil {
+			cleanups = append(cleanups, cleanup)
+		}
 	}
 
 	for range mediaCount {
@@ -399,48 +452,21 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 		if result.err != nil {
 			var fileTooLargeErr *downloader.FileTooLargeError
 			if errors.As(result.err, &fileTooLargeErr) {
-				return downloader.NewFileTooLargePostInfo(h.postID)
+				return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 			}
 			slog.Error("Failed to download media in carousel",
 				"Post Info", []string{h.username, h.postID},
 				"Media Count", result.index, "Error", result.err.Error())
 			continue
 		}
-		if result.media.File != nil {
-			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%d_%s_%s", result.index, h.username, h.postID))
-			var mediaItem gotgbot.InputMedia
-			showCaptionAbove := invertMedia && allMedia[result.index].Type != "video"
-			if allMedia[result.index].Type != "video" {
-				mediaItem = &gotgbot.InputMediaPhoto{
-					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
-					ShowCaptionAboveMedia: showCaptionAbove,
-				}
-			} else {
-				videoMedia := &gotgbot.InputMediaVideo{
-					Media:                 downloader.InputFileFromBytes(sanitized, result.media.File),
-					ShowCaptionAboveMedia: invertMedia,
-					Width:                 int64(allMedia[result.index].Width),
-					Height:                int64(allMedia[result.index].Height),
-					SupportsStreaming:     true,
-				}
-				if result.media.Thumbnail != nil {
-					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
-					if err != nil {
-						slog.Error("Failed to resize thumbnail",
-							"Post Info", []string{h.username, h.postID},
-							"Error", err.Error())
-					} else {
-						videoMedia.Thumbnail = downloader.InputFileFromBytes(sanitized, thumbnail)
-					}
-				}
-				mediaItem = videoMedia
-			}
-			mediaItems[result.index] = mediaItem
+		addCleanup(result.cleanup)
+		if result.media != nil {
+			mediaItems[result.index] = result.media
 		}
 	}
 
 	if !slices.ContainsFunc(mediaItems, func(m gotgbot.InputMedia) bool { return m != nil }) {
-		return downloader.NewUnavailablePostInfo(h.postID)
+		return downloader.NewUnavailablePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 	}
 
 	return downloader.PostInfo{
@@ -448,7 +474,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) downloader.
 		ID:          h.postID,
 		Caption:     getFxTweetCaption(twitterData),
 		InvertMedia: invertMedia,
-	}
+	}, downloader.CombineCleanups(cleanups...)
 }
 
 func getTweetCaption(twitterData *TwitterAPIData) string {

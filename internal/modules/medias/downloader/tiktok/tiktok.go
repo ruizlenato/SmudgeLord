@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/cookiejar"
+	"os"
 	"regexp"
 	"slices"
 	"strconv"
@@ -71,11 +72,14 @@ func Handle(text string) downloader.PostInfo {
 			Caption: getCaption(tikTokData),
 		}
 
+		var cleanup func()
+
 		if slices.Contains([]int{2, 68, 150}, tikTokData.AwemeList[0].AwemeType) {
-			postInfo.Medias = handler.handleImages(tikTokData)
+			postInfo.Medias, cleanup = handler.handleImages(tikTokData)
 		} else {
-			postInfo.Medias = handler.handleVideo(tikTokData)
+			postInfo.Medias, cleanup = handler.handleVideo(tikTokData)
 		}
+		postInfo.Cleanup = downloader.CombineCleanups(cleanup)
 		return postInfo
 	}
 
@@ -668,11 +672,12 @@ func getCaption(tikTokData TikTokData) string {
 	return ""
 }
 
-func (h *Handler) handleImages(tikTokData TikTokData) []gotgbot.InputMedia {
+func (h *Handler) handleImages(tikTokData TikTokData) ([]gotgbot.InputMedia, func()) {
 	type mediaResult struct {
-		index int
-		file  []byte
-		err   error
+		index   int
+		file    io.ReadCloser
+		cleanup func()
+		err     error
 	}
 
 	images := tikTokData.AwemeList[0].ImagePostInfo.Images
@@ -683,14 +688,16 @@ func (h *Handler) handleImages(tikTokData TikTokData) []gotgbot.InputMedia {
 		go func(index int, media Image) {
 			imageURL := pickImageURL(media)
 			if imageURL == "" {
-				results <- mediaResult{index, nil, fmt.Errorf("no image url found")}
+				results <- mediaResult{index: index, err: fmt.Errorf("no image url found")}
 				return
 			}
 
-			file, err := downloader.FetchBytesFromURL(imageURL)
-			results <- mediaResult{index, file, err}
+			file, cleanup, err := downloader.FetchStreamFromURL(imageURL)
+			results <- mediaResult{index: index, file: file, cleanup: cleanup, err: err}
 		}(i, media)
 	}
+
+	var cleanups []func()
 
 	for range images {
 		result := <-results
@@ -700,19 +707,22 @@ func (h *Handler) handleImages(tikTokData TikTokData) []gotgbot.InputMedia {
 		}
 		if result.file != nil {
 			mediaItems[result.index] = &gotgbot.InputMediaPhoto{
-				Media: downloader.InputFileFromBytes(utils.SanitizeString(
+				Media: downloader.InputFileFromReader(utils.SanitizeString(
 					fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", result.index, h.username, h.postID)),
 					result.file),
+			}
+			if result.cleanup != nil {
+				cleanups = append(cleanups, result.cleanup)
 			}
 		}
 	}
 
-	return mediaItems
+	return mediaItems, downloader.CombineCleanups(cleanups...)
 }
 
-func (h *Handler) handleVideo(tikTokData TikTokData) []gotgbot.InputMedia {
+func (h *Handler) handleVideo(tikTokData TikTokData) ([]gotgbot.InputMedia, func()) {
 	if len(tikTokData.AwemeList) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	video := tikTokData.AwemeList[0].Video
@@ -730,7 +740,7 @@ func (h *Handler) handleVideo(tikTokData TikTokData) []gotgbot.InputMedia {
 	}
 
 	if len(validURLs) == 0 {
-		return nil
+		return nil, nil
 	}
 
 	referer := h.webURL
@@ -738,10 +748,11 @@ func (h *Handler) handleVideo(tikTokData TikTokData) []gotgbot.InputMedia {
 		referer = fmt.Sprintf("https://www.tiktok.com/@_/video/%s", h.postID)
 	}
 
-	var file []byte
+	var file io.ReadCloser
+	var fileCleanup func()
 	var err error
 	for _, videoURL := range validURLs {
-		file, err = h.fetchWithReferer(videoURL, referer)
+		file, fileCleanup, err = h.fetchStreamWithReferer(videoURL, referer)
 		if err == nil {
 			break
 		}
@@ -749,19 +760,26 @@ func (h *Handler) handleVideo(tikTokData TikTokData) []gotgbot.InputMedia {
 
 	if err != nil {
 		slog.Error("TikTok: All video URLs failed", "Post", h.postID)
-		return nil
+		return nil, nil
 	}
 
 	var thumbnail []byte
 	if len(video.Cover.URLList) > 0 {
-		thumbnail, _ = h.fetchWithReferer(video.Cover.URLList[0], referer)
+		thumbnail, err = h.fetchWithReferer(video.Cover.URLList[0], referer)
+		if err != nil {
+			if fileCleanup != nil {
+				fileCleanup()
+			}
+			slog.Error("TikTok: Failed to fetch thumbnail", "Post", h.postID)
+			return nil, nil
+		}
 		if len(thumbnail) > 0 {
 			thumbnail, _ = utils.ResizeThumbnail(thumbnail)
 		}
 	}
 
 	media := &gotgbot.InputMediaVideo{
-		Media:             downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)), file),
+		Media:             downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)), file),
 		Width:             int64(video.PlayAddr.Width),
 		Height:            int64(video.PlayAddr.Height),
 		Duration:          int64(video.Duration),
@@ -771,7 +789,7 @@ func (h *Handler) handleVideo(tikTokData TikTokData) []gotgbot.InputMedia {
 		media.Thumbnail = downloader.InputFileFromBytes(utils.SanitizeString(fmt.Sprintf("SmudgeLord-TikTok_%s_%s", h.username, h.postID)), thumbnail)
 	}
 
-	return []gotgbot.InputMedia{media}
+	return []gotgbot.InputMedia{media}, downloader.CombineCleanups(fileCleanup)
 }
 
 func pickImageURL(media Image) string {
@@ -829,4 +847,72 @@ func (h *Handler) fetchWithReferer(url, referer string) ([]byte, error) {
 	}
 
 	return io.ReadAll(resp.Body)
+}
+
+func (h *Handler) fetchStreamWithReferer(url, referer string) (io.ReadCloser, func(), error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.Header.Set("User-Agent", WebUserAgent)
+	req.Header.Set("Accept", "video/webm,video/*;q=0.9,*/*;q=0.5")
+	req.Header.Set("Referer", referer)
+	req.Header.Set("Origin", "https://www.tiktok.com")
+
+	if h.cookies != "" {
+		req.Header.Set("Cookie", h.cookies)
+	}
+
+	client := &http.Client{
+		Transport: &http.Transport{MaxConnsPerHost: 10},
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) > 0 && h.cookies != "" {
+				req.Header.Set("Cookie", h.cookies)
+			}
+			if len(via) >= 10 {
+				return fmt.Errorf("too many redirects")
+			}
+			return nil
+		},
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp == nil || resp.Body == nil {
+		return nil, nil, fmt.Errorf("empty response body")
+	}
+
+	cleanup := func() {
+		_ = resp.Body.Close()
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		cleanup()
+		return nil, nil, fmt.Errorf("HTTP %d", resp.StatusCode)
+	}
+
+	contentType := strings.ToLower(resp.Header.Get("Content-Type"))
+	if strings.Contains(contentType, "application/vnd.apple.mpegurl") || strings.HasSuffix(strings.ToLower(url), ".m3u8") {
+		bodyBytes, readErr := io.ReadAll(resp.Body)
+		cleanup()
+		if readErr != nil {
+			return nil, nil, readErr
+		}
+
+		tmpFile, err := downloader.DownloadM3U8(bytes.NewReader(bodyBytes), resp.Request.URL, nil, nil)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		cleanupTmp := func() {
+			_ = tmpFile.Close()
+			_ = os.Remove(tmpFile.Name())
+		}
+		return tmpFile, cleanupTmp, nil
+	}
+
+	return downloader.SpoolToTempFile(resp.Body)
 }

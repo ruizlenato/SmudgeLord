@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
+	"io"
 	"log/slog"
 	"net/url"
 	"path"
@@ -32,10 +33,13 @@ func Handle(text string) downloader.PostInfo {
 		return downloader.PostInfo{}
 	}
 
+	medias, cleanup := handler.processMedia(data)
+
 	return downloader.PostInfo{
 		ID:      cacheID,
-		Medias:  handler.processMedia(data),
+		Medias:  medias,
 		Caption: getCaption(data),
+		Cleanup: cleanup,
 	}
 }
 
@@ -95,14 +99,15 @@ func getCaption(data APIData) string {
 	}
 }
 
-func (h *Handler) processMedia(data APIData) []gotgbot.InputMedia {
+func (h *Handler) processMedia(data APIData) ([]gotgbot.InputMedia, func()) {
 	medias := make([]gotgbot.InputMedia, 0, len(data.Item.Comment.Attachments))
+	cleanups := make([]func(), 0, len(data.Item.Comment.Attachments))
 	for i, attachment := range data.Item.Comment.Attachments {
 		if attachment.Type != "image" || attachment.ImageURL == "" {
 			continue
 		}
 
-		file, err := h.downloadAttachmentImage(attachment.ImageURL)
+		stream, cleanup, err := h.downloadAttachmentImage(attachment.ImageURL)
 		if err != nil {
 			slog.Error("Failed to download Substack image",
 				"Post Info", h.postID,
@@ -114,19 +119,23 @@ func (h *Handler) processMedia(data APIData) []gotgbot.InputMedia {
 
 		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Substack_%d_%s", i, h.postID))
 		medias = append(medias, &gotgbot.InputMediaPhoto{
-			Media: downloader.InputFileFromBytes(filename, file),
+			Media: downloader.InputFileFromReader(filename, stream),
 		})
+		cleanups = append(cleanups, cleanup)
 	}
 
-	return medias
+	return medias, downloader.CombineCleanups(cleanups...)
 }
 
-func (h *Handler) downloadAttachmentImage(imageURL string) ([]byte, error) {
+func (h *Handler) downloadAttachmentImage(imageURL string) (io.ReadCloser, func(), error) {
 	var lastErr error
 	for _, candidate := range buildImageCandidates(imageURL) {
-		file, err := downloader.FetchBytesFromURL(candidate)
+		stream, cleanup, err := downloader.FetchStreamFromURL(candidate)
 		if err == nil {
-			return file, nil
+			return stream, cleanup, nil
+		}
+		if cleanup != nil {
+			cleanup()
 		}
 		lastErr = err
 	}
@@ -134,7 +143,7 @@ func (h *Handler) downloadAttachmentImage(imageURL string) ([]byte, error) {
 	if lastErr == nil {
 		lastErr = fmt.Errorf("no valid image candidates")
 	}
-	return nil, lastErr
+	return nil, nil, lastErr
 }
 
 func buildImageCandidates(imageURL string) []string {

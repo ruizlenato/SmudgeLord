@@ -32,10 +32,12 @@ func Handle(text string) downloader.PostInfo {
 	}
 
 	handler.username = data.Owner.Username
+	medias, cleanup := handler.processMedia(data)
 	return downloader.PostInfo{
 		ID:      handler.postID,
-		Medias:  handler.processMedia(data),
+		Medias:  medias,
 		Caption: getCaption(data),
+		Cleanup: cleanup,
 	}
 }
 
@@ -95,7 +97,7 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
-func (h *Handler) processMedia(data *ShortcodeMedia) []gotgbot.InputMedia {
+func (h *Handler) processMedia(data *ShortcodeMedia) ([]gotgbot.InputMedia, func()) {
 	switch data.Typename {
 	case "GraphVideo", "XDTGraphVideo":
 		return h.handleVideo(data)
@@ -104,7 +106,7 @@ func (h *Handler) processMedia(data *ShortcodeMedia) []gotgbot.InputMedia {
 	case "GraphSidecar", "XDTGraphSidecar":
 		return h.handleSidecar(data)
 	default:
-		return nil
+		return nil, nil
 	}
 }
 
@@ -304,22 +306,25 @@ func (h *Handler) getGQLData() InstagramData {
 	return data
 }
 
-func (h *Handler) handleVideo(data *ShortcodeMedia) []gotgbot.InputMedia {
+func (h *Handler) handleVideo(data *ShortcodeMedia) ([]gotgbot.InputMedia, func()) {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%s_%s", h.username, h.postID))
-	file, err := downloader.FetchBytesFromURL(data.VideoURL)
+	file, fileCleanup, err := fetchBytesFromStream(data.VideoURL)
 	if err != nil {
 		slog.Error("Failed to download video",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
-		return nil
+		return nil, nil
 	}
 
 	thumbnail, err := downloader.FetchBytesFromURL(data.DisplayResources[len(data.DisplayResources)-1].Src)
 	if err != nil {
+		if fileCleanup != nil {
+			fileCleanup()
+		}
 		slog.Error("Failed to download thumbnail",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err)
-		return nil
+		return nil, nil
 	}
 
 	thumbnail, err = utils.ResizeThumbnail(thumbnail)
@@ -336,39 +341,41 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) []gotgbot.InputMedia {
 		Height:                int64(data.Dimensions.Height),
 		SupportsStreaming:     true,
 		ShowCaptionAboveMedia: false,
-	}}
+	}}, fileCleanup
 }
 
-func (h *Handler) handleImage(data *ShortcodeMedia) []gotgbot.InputMedia {
+func (h *Handler) handleImage(data *ShortcodeMedia) ([]gotgbot.InputMedia, func()) {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%s_%s", h.username, h.postID))
-	file, err := downloader.FetchBytesFromURL(data.DisplayURL)
+	file, fileCleanup, err := fetchBytesFromStream(data.DisplayURL)
 	if err != nil {
 		slog.Error("Failed to download image",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
-		return nil
+		return nil, nil
 	}
 
 	return []gotgbot.InputMedia{&gotgbot.InputMediaPhoto{
 		Media: downloader.InputFileFromBytes(filename, file),
-	}}
+	}}, fileCleanup
 }
 
-func (h *Handler) handleSidecar(data *ShortcodeMedia) []gotgbot.InputMedia {
+func (h *Handler) handleSidecar(data *ShortcodeMedia) ([]gotgbot.InputMedia, func()) {
 	type mediaResult struct {
 		index int
 		media *downloader.InputMedia
+		cleanup func()
 		err   error
 	}
 
 	mediaCount := len(data.EdgeSidecarToChildren.Edges)
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
+	var cleanups []func()
 	results := make(chan mediaResult, mediaCount)
 
 	for i, media := range data.EdgeSidecarToChildren.Edges {
 		go func(index int, edge Edges) {
-			media, err := h.downloadMedia(edge)
-			results <- mediaResult{index: index, media: media, err: err}
+			media, cleanup, err := h.downloadMedia(edge)
+			results <- mediaResult{index: index, media: media, cleanup: cleanup, err: err}
 		}(i, media)
 	}
 
@@ -406,25 +413,50 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) []gotgbot.InputMedia {
 			}
 			mediaItems[result.index] = mediaItem
 		}
+		if result.cleanup != nil {
+			cleanups = append(cleanups, result.cleanup)
+		}
 	}
 
-	return mediaItems
+	return mediaItems, downloader.CombineCleanups(cleanups...)
 }
 
-func (h *Handler) downloadMedia(data Edges) (*downloader.InputMedia, error) {
+func (h *Handler) downloadMedia(data Edges) (*downloader.InputMedia, func(), error) {
 	var media downloader.InputMedia
 	var err error
+	var cleanup func()
 
 	if !data.Node.IsVideo {
-		media.File, err = downloader.FetchBytesFromURL(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
+		media.File, cleanup, err = fetchBytesFromStream(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
 	} else {
-		media.File, err = downloader.FetchBytesFromURL(data.Node.VideoURL)
+		media.File, cleanup, err = fetchBytesFromStream(data.Node.VideoURL)
 		if err == nil {
 			media.Thumbnail, err = downloader.FetchBytesFromURL(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
 		}
 	}
 	if err != nil {
-		return nil, err
+		if cleanup != nil {
+			cleanup()
+		}
+		return nil, nil, err
 	}
-	return &media, nil
+	return &media, cleanup, nil
+}
+
+func fetchBytesFromStream(media string) ([]byte, func(), error) {
+	stream, cleanup, err := downloader.FetchStreamFromURL(media)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	bytes, readErr := io.ReadAll(stream)
+	if readErr != nil {
+		if cleanup != nil {
+			cleanup()
+		}
+		err = readErr
+		return nil, nil, readErr
+	}
+
+	return bytes, cleanup, nil
 }
