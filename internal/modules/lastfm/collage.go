@@ -29,11 +29,11 @@ import (
 const (
 	defaultCollageGridSize = 3
 	collageTileSize        = 256
-	collageJPEGQual  = 88
-	textPaddingX     = 10
-	artistFontSize   = 11
-	titleFontSize    = 10
-	playsFontSize    = 11
+	collageJPEGQual        = 88
+	textPaddingX           = 10
+	artistFontSize         = 14
+	titleFontSize          = 12
+	playsFontSize          = 14
 )
 
 var (
@@ -234,20 +234,20 @@ func normalizedKey(s string) string {
 func drawTileLabel(dst *image.RGBA, item lastFMAPI.TopCollageItem, tileSize int) {
 	applyBottomGradient(dst, tileSize/2, color.RGBA{0, 0, 0, 0}, color.RGBA{0, 0, 0, 185})
 
-	artist := trimLabel(item.Subtitle, 22)
-	title := trimLabel(item.Title, 24)
+	artist := trimLabel(item.Subtitle, 24)
+	title := trimLabel(item.Title, 26)
 	plays := fmt.Sprintf("%d", max(item.Playcount, 0))
 
 	if artist != "" {
-		drawTextShadow(dst, artist, textPaddingX, tileSize-28, artistFace)
+		drawTextShadow(dst, artist, textPaddingX, tileSize-30, artistFace)
 	}
-	drawTextShadow(dst, title, textPaddingX, tileSize-8, titleFace)
+	drawTextShadow(dst, title, textPaddingX, tileSize-14, titleFace)
 
 	if playsFace != nil {
 		d := &font.Drawer{Dst: dst, Src: image.NewUniform(color.RGBA{255, 255, 255, 255}), Face: playsFace}
 		w := d.MeasureString(plays)
 		x := tileSize - textPaddingX - (w.Ceil())
-		drawTextShadow(dst, plays, x, tileSize-8, playsFace)
+		drawTextShadow(dst, plays, x, tileSize-14, playsFace)
 	}
 }
 
