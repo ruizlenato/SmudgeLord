@@ -427,6 +427,15 @@ func buildCollageKeyboard(userID int64, currentType, currentPeriod string, gridS
 		return fmt.Sprintf("lfmcol|%s|%s|%d|%d|%s|%s", currentType, currentPeriod, userID, gridSize, textFlag, action)
 	}
 
+	plusBtn := gotgbot.InlineKeyboardButton{Text: "➕", CallbackData: cb("plus")}
+	minusBtn := gotgbot.InlineKeyboardButton{Text: "➖", CallbackData: cb("minus")}
+	if gridSize >= 8 {
+		plusBtn.Style = gotgbot.KeyboardButtonStyleDanger
+	}
+	if gridSize <= 2 {
+		minusBtn.Style = gotgbot.KeyboardButtonStyleDanger
+	}
+
 	toggleLabel := "🧼"
 	if !withText {
 		toggleLabel = "📝"
@@ -434,8 +443,8 @@ func buildCollageKeyboard(userID int64, currentType, currentPeriod string, gridS
 
 	return gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
 		{
-			{Text: "➕", CallbackData: cb("plus")},
-			{Text: "➖", CallbackData: cb("minus")},
+			plusBtn,
+			minusBtn,
 			{Text: toggleLabel, CallbackData: cb("text")},
 		},
 	}}
