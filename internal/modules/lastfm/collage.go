@@ -10,7 +10,6 @@ import (
 	"image/draw"
 	"image/jpeg"
 	"io"
-	"log/slog"
 	"math"
 	"net/http"
 	"strings"
@@ -79,8 +78,6 @@ func buildLastFMCollage(collageType, period, username string, gridSize int, with
 	results := make(chan tileResult, gridSize*gridSize)
 	sem := make(chan struct{}, 16)
 	var wg sync.WaitGroup
-	builderStart := time.Now()
-
 	for i := 0; i < gridSize*gridSize; i++ {
 		wg.Add(1)
 		go func(idx int) {
@@ -120,8 +117,6 @@ func buildLastFMCollage(collageType, period, username string, gridSize int, with
 		}
 		draw.Draw(canvas, image.Rect(x, y, x+collageTileSize, y+collageTileSize), res.til, image.Point{}, draw.Src)
 	}
-
-	slog.Info("lastfm collage build timing", "grid", gridSize, "items", len(items), "build_ms", time.Since(builderStart).Milliseconds())
 
 	var out bytes.Buffer
 	if err := jpeg.Encode(&out, canvas, &jpeg.Options{Quality: collageJPEGQual}); err != nil {
