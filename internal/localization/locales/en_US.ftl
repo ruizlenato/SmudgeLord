@@ -473,6 +473,10 @@ lastfm-collage-error-short = Could not update collage now.
 lastfm-collage-generating =
     <b>Creating your Last.fm collage...</b>
     This can take a few seconds.
+lastfm-collage-busy =
+    Easy there, generate one at a time. Wait for the previous collage to finish before sending the command again.
+
+    This limit is here to keep the bot from getting slow, but you can change that! <b>Please consider donating so I can get a better server</b> and remove this limit in the future.
 lastfm-help =
     <b>Last.FM Scobbles</b>
 

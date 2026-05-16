@@ -31,6 +31,31 @@ var convManager *conversation.Manager
 var convDispatcher *ext.Dispatcher
 var convOnce sync.Once
 
+var collageBuildState = struct {
+	mu      sync.Mutex
+	building map[int64]bool
+}{
+	building: make(map[int64]bool),
+}
+
+func tryStartCollageBuild(userID int64) bool {
+	collageBuildState.mu.Lock()
+	defer collageBuildState.mu.Unlock()
+
+	if collageBuildState.building[userID] {
+		return false
+	}
+
+	collageBuildState.building[userID] = true
+	return true
+}
+
+func finishCollageBuild(userID int64) {
+	collageBuildState.mu.Lock()
+	delete(collageBuildState.building, userID)
+	collageBuildState.mu.Unlock()
+}
+
 func setUserHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
@@ -165,6 +190,15 @@ func collageHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	i18n := localization.Get(ctx)
+	if !tryStartCollageBuild(ctx.EffectiveUser.Id) {
+		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("lastfm-collage-busy"), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		})
+		return nil
+	}
+	defer finishCollageBuild(ctx.EffectiveUser.Id)
+
 	lastFMUsername, err := getUserLastFMUsername(ctx.EffectiveUser.Id)
 	if err != nil || lastFMUsername == "" {
 		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("lastfm-username-not-found"), &gotgbot.SendMessageOpts{
@@ -288,6 +322,15 @@ func collageCallbackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	i18n := localization.Get(ctx)
+	if !tryStartCollageBuild(ctx.CallbackQuery.From.Id) {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
+			Text:      i18n("lastfm-collage-busy"),
+			ShowAlert: true,
+		})
+		return nil
+	}
+	defer finishCollageBuild(ctx.CallbackQuery.From.Id)
+
 	parts := strings.Split(ctx.CallbackQuery.Data, "|")
 	if len(parts) != 7 {
 		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
