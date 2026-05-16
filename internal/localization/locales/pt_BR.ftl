@@ -218,6 +218,7 @@ video-too-large =
     <b>Vídeos acima de 500 MB não podem ser enviados devido a limitações técnicas no meu servidor.</b>
 
     Você pode mudar isso! <b>Ajude doando para que eu possa adquirir um servidor melhor</b> e futuramente remover esse limite.
+    <b>Veja mais utilizando o comando /donate</b>
 downloading = Baixando...
 uploading = Enviando...
 youtube-error =
@@ -477,6 +478,7 @@ lastfm-collage-busy =
     Calma, gere um de cada vez, espere terminar o collage anterior para poder enviar o comando novamente.
 
     Essa limitação é para que o bot não fique lento mas você pode mudar isso! <b>Ajude doando para que eu possa adquirir um servidor melhor</b> e futuramente remover esse limite.
+    <b>Veja mais utilizando o comando /donate</b>
 lastfm-help =
     <b>Last.FM Scobbles</b>
 
