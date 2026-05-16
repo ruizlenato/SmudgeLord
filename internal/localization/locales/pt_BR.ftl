@@ -463,6 +463,16 @@ lastfm-playing =
        [true] está ouvindo
       *[false] estava ouvindo
    } pela <b>{ $playcount }ª vez</b>:
+lastfm-collage-caption =
+    <b>Colagem Last.fm</b>
+    Tipo: <code>{ $type }</code> • Período: <code>{ $period }</code>
+lastfm-collage-error =
+    <b>Não foi possível gerar sua colagem do Last.fm agora.</b>
+    Tente novamente em alguns instantes.
+lastfm-collage-error-short = Não foi possível atualizar a colagem agora.
+lastfm-collage-generating =
+    <b>Gerando sua colagem do Last.fm...</b>
+    Isso pode levar alguns segundos.
 lastfm-help =
     <b>Last.FM Scobbles</b>
 
@@ -474,3 +484,4 @@ lastfm-help =
     <b>/lastfm | /lp:</b> Exibe a música que você está ouvindo ou ouviu recentemente.
     <b>/album | /alb:</b> Exibe o álbum que você está ouvindo ou ouviu recentemente.
     <b>/artist   | /art:</b> Exibe o artista que você está ouvindo ou ouviu recentemente.
+    <b>/collage:</b> Gera sua colagem com top álbuns/artistas/faixas.

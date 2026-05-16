@@ -1,14 +1,25 @@
 package lastFMAPI
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
+	"regexp"
 	"strconv"
+	"strings"
+	"sync"
+	"time"
+	"unicode"
+
+	"golang.org/x/text/unicode/norm"
 
 	"github.com/ruizlenato/smudgelord/internal/config"
+	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
@@ -174,4 +185,384 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 	}
 
 	return userPlaycount
+}
+
+func (lfm *LastFM) GetTopAlbums(username, period string, limit int) ([]topAlbum, error) {
+	if limit <= 0 {
+		limit = 9
+	}
+	if limit > 500 {
+		limit = 500
+	}
+
+	body, err := lfm.getTop(methodTopAlbums, username, period, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var response topAlbumsResponse
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&response); err != nil {
+		return nil, fmt.Errorf("error decoding top albums: %w", err)
+	}
+	if response.TopAlbums == nil {
+		return nil, errors.New("no top albums")
+	}
+
+	return response.TopAlbums.Albums, nil
+}
+
+func (lfm *LastFM) GetTopArtists(username, period string, limit int) ([]topArtist, error) {
+	if limit <= 0 {
+		limit = 9
+	}
+	if limit > 500 {
+		limit = 500
+	}
+
+	body, err := lfm.getTop(methodTopArtists, username, period, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var response topArtistsResponse
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&response); err != nil {
+		return nil, fmt.Errorf("error decoding top artists: %w", err)
+	}
+	if response.TopArtists == nil {
+		return nil, errors.New("no top artists")
+	}
+
+	return response.TopArtists.Artists, nil
+}
+
+func (lfm *LastFM) GetTopTracks(username, period string, limit int) ([]topTrack, error) {
+	if limit <= 0 {
+		limit = 9
+	}
+	if limit > 500 {
+		limit = 500
+	}
+
+	body, err := lfm.getTop(methodTopTracks, username, period, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var response topTracksResponse
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&response); err != nil {
+		return nil, fmt.Errorf("error decoding top tracks: %w", err)
+	}
+	if response.TopTracks == nil {
+		return nil, errors.New("no top tracks")
+	}
+
+	return response.TopTracks.Tracks, nil
+}
+
+func (lfm *LastFM) GetTopCollageItems(collageType, username, period string, limit int) ([]TopCollageItem, error) {
+	switch collageType {
+	case "album":
+		albums, err := lfm.GetTopAlbums(username, period, limit)
+		if err != nil {
+			return nil, err
+		}
+		items := make([]TopCollageItem, 0, len(albums))
+		for _, a := range albums {
+			plays, _ := strconv.Atoi(a.Playcount)
+			items = append(items, TopCollageItem{
+				Title:     a.Name,
+				Subtitle:  a.Artist.Name,
+				Playcount: plays,
+				ImageURL:  bestImageURL(a.Image),
+			})
+		}
+		return items, nil
+	case "artist":
+		artists, err := lfm.GetTopArtists(username, period, limit)
+		if err != nil {
+			return nil, err
+		}
+		type artistResult struct {
+			idx  int
+			item TopCollageItem
+		}
+		items := make([]TopCollageItem, len(artists))
+		results := make(chan artistResult, len(artists))
+		sem := make(chan struct{}, 8)
+		var wg sync.WaitGroup
+
+		for i, a := range artists {
+			wg.Add(1)
+			go func(idx int, artist topArtist) {
+				defer wg.Done()
+				sem <- struct{}{}
+				defer func() { <-sem }()
+
+				plays, _ := strconv.Atoi(artist.Playcount)
+				imageURL := lfm.ResolveArtistImage(artist.Name, bestImageURL(artist.Image))
+				results <- artistResult{idx: idx, item: TopCollageItem{
+					Title:     artist.Name,
+					Playcount: plays,
+					ImageURL:  imageURL,
+				}}
+			}(i, a)
+		}
+
+		go func() {
+			wg.Wait()
+			close(results)
+		}()
+
+		for res := range results {
+			items[res.idx] = res.item
+		}
+		return items, nil
+	case "track":
+		tracks, err := lfm.GetTopTracks(username, period, limit)
+		if err != nil {
+			return nil, err
+		}
+		items := make([]TopCollageItem, 0, len(tracks))
+		for _, t := range tracks {
+			plays, _ := strconv.Atoi(t.Playcount)
+			items = append(items, TopCollageItem{
+				Title:     t.Name,
+				Subtitle:  t.Artist.Name,
+				Playcount: plays,
+				ImageURL:  bestImageURL(t.Image),
+			})
+		}
+		return items, nil
+	default:
+		return nil, fmt.Errorf("unsupported collage type")
+	}
+}
+
+const (
+	methodTopAlbums  = "user.gettopalbums"
+	methodTopArtists = "user.gettopartists"
+	methodTopTracks  = "user.gettoptracks"
+)
+
+func (lfm *LastFM) getTop(method, username, period string, limit int) ([]byte, error) {
+	if period == "" {
+		period = "overall"
+	}
+
+	response, err := utils.Request(lastFMAPI, utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"method":  method,
+			"user":    username,
+			"api_key": lfm.apiKey,
+			"period":  period,
+			"limit":   strconv.Itoa(limit),
+			"format":  "json",
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error requesting top items: %w", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status %d", response.StatusCode)
+	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading top items body: %w", err)
+	}
+
+	if bytes.Contains(body, []byte("\"error\"")) {
+		return nil, errors.New("lastFM error")
+	}
+
+	return body, nil
+}
+
+func bestImageURL(images []image) string {
+	for i := len(images) - 1; i >= 0; i-- {
+		if strings.TrimSpace(images[i].Text) != "" {
+			return images[i].Text
+		}
+	}
+	return ""
+}
+
+func (lfm *LastFM) GetArtistImage(artistName string) string {
+	if strings.TrimSpace(artistName) == "" {
+		return ""
+	}
+
+	response, err := utils.Request(lastFMAPI, utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"method":  "artist.getinfo",
+			"artist":  artistName,
+			"api_key": lfm.apiKey,
+			"format":  "json",
+		},
+	})
+	if err != nil {
+		return ""
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	var payload struct {
+		Artist *struct {
+			Image []image `json:"image"`
+		} `json:"artist"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+		return ""
+	}
+	if payload.Artist == nil {
+		return ""
+	}
+
+	return bestImageURL(payload.Artist.Image)
+}
+
+func (lfm *LastFM) ResolveArtistImage(artistName, initial string) string {
+	key := normalizeArtistName(artistName)
+	if key == "" {
+		return ""
+	}
+
+	if cached := lfm.getArtistImageCache(key); isUsableArtistImageURL(cached) {
+		return cached
+	}
+	if cached := lfm.getArtistImageCache(key); cached == "__none__" {
+		return ""
+	}
+
+	imageURL := initial
+	if !isUsableArtistImageURL(imageURL) {
+		imageURL = lfm.GetArtistImage(artistName)
+	}
+	if !isUsableArtistImageURL(imageURL) {
+		imageURL = lfm.GetDeezerArtistImage(artistName)
+	}
+
+	if isUsableArtistImageURL(imageURL) {
+		lfm.setArtistImageCache(key, imageURL, 24*time.Hour)
+	} else {
+		lfm.setArtistImageCache(key, "__none__", 30*time.Minute)
+	}
+
+	return imageURL
+}
+
+func (lfm *LastFM) GetDeezerArtistImage(artistName string) string {
+	artistName = strings.TrimSpace(artistName)
+	if artistName == "" {
+		return ""
+	}
+
+	response, err := utils.Request("https://api.deezer.com/search/artist", utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"q":      artistName,
+			"limit":  "5",
+			"strict": "on",
+		},
+	})
+	if err != nil {
+		return ""
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	var payload struct {
+		Data []struct {
+			Name          string `json:"name"`
+			PictureXL     string `json:"picture_xl"`
+			PictureBig    string `json:"picture_big"`
+			PictureMedium string `json:"picture_medium"`
+			PictureSmall  string `json:"picture_small"`
+			Picture       string `json:"picture"`
+		} `json:"data"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+		return ""
+	}
+
+	for _, node := range payload.Data {
+		if !sameArtistName(artistName, node.Name) {
+			continue
+		}
+		for _, candidate := range []string{node.PictureXL, node.PictureBig, node.PictureMedium, node.PictureSmall, node.Picture} {
+			if strings.TrimSpace(candidate) != "" {
+				return candidate
+			}
+		}
+	}
+
+	return ""
+}
+
+func sameArtistName(expected, actual string) bool {
+	e := normalizeArtistName(expected)
+	a := normalizeArtistName(actual)
+	return e != "" && e == a
+}
+
+func normalizeArtistName(s string) string {
+	s = strings.TrimSpace(strings.ToLower(s))
+	decomposed := norm.NFKD.String(s)
+	b := make([]rune, 0, len(decomposed))
+	for _, r := range decomposed {
+		if unicode.Is(unicode.Mn, r) {
+			continue
+		}
+		if unicode.IsLetter(r) || unicode.IsDigit(r) || unicode.IsSpace(r) {
+			b = append(b, r)
+		}
+	}
+	clean := strings.Join(strings.Fields(string(b)), " ")
+	return artistNameSanitizer.ReplaceAllString(clean, " ")
+}
+
+var artistNameSanitizer = regexp.MustCompile(`\s+`)
+
+func isUsableArtistImageURL(raw string) bool {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return false
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil {
+		return false
+	}
+	p := strings.ToLower(parsed.Path)
+	if strings.Contains(p, "2a96cbd8b46e442fc41c2b86b821562f") {
+		return false
+	}
+	if strings.Contains(p, "4128a6eb29f94943c9d206c08e625904") {
+		return false
+	}
+	return true
+}
+
+func (lfm *LastFM) getArtistImageCache(key string) string {
+	val, err := cache.GetCache("lastfm:artist_image:" + key)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(val)
+}
+
+func (lfm *LastFM) setArtistImageCache(key, url string, ttl time.Duration) {
+	if ttl <= 0 {
+		ttl = time.Hour
+	}
+	_ = cache.SetCache("lastfm:artist_image:"+key, url, ttl)
 }

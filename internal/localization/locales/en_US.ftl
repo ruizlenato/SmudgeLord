@@ -463,6 +463,16 @@ lastfm-playing =
        [3] { $playcount }rd
        *[other] { $playcount }th
    } time:
+lastfm-collage-caption =
+    <b>Last.fm Collage</b>
+    Type: <code>{ $type }</code> • Period: <code>{ $period }</code>
+lastfm-collage-error =
+    <b>Could not generate your Last.fm collage right now.</b>
+    Please try again in a few moments.
+lastfm-collage-error-short = Could not update collage now.
+lastfm-collage-generating =
+    <b>Creating your Last.fm collage...</b>
+    This can take a few seconds.
 lastfm-help =
     <b>Last.FM Scobbles</b>
 
@@ -474,3 +484,4 @@ lastfm-help =
     <b>/lastfm | /lp:</b> Shows the music you are or were listening to.
     <b>/album | /alb:</b>Shows the album you are or were listening to.
     <b>/artist   | /art:</b> Shows the artist you are or were listening to.
+    <b>/collage:</b> Generates your top albums/artists/tracks collage.

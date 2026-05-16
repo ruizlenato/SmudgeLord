@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -93,6 +94,14 @@ func deleteFallback(key string) {
 	fallbackStore.mu.Unlock()
 }
 
+func getFallbackBytes(key string) ([]byte, bool) {
+	val, ok := getFallback(key)
+	if !ok {
+		return nil, false
+	}
+	return []byte(val), true
+}
+
 func startFallbackJanitor() {
 	go func() {
 		ticker := time.NewTicker(fallbackSweepEvery)
@@ -169,6 +178,9 @@ func GetCache(key string) (string, error) {
 		ctx := context.Background()
 		val, err := rdb.Get(ctx, key).Result()
 		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				return "", nil
+			}
 			return "", err
 		}
 
@@ -185,6 +197,52 @@ func GetCache(key string) (string, error) {
 	}
 
 	return "", nil
+}
+
+func SetCacheBytes(key string, value []byte, expiration time.Duration) error {
+	healthy := isHealthy()
+	if !healthy {
+		setFallback(key, value, expiration)
+		slog.Info("cache client is not healthy, skipping SetCacheBytes")
+		return nil
+	}
+
+	ctx := context.Background()
+	err := rdb.Set(ctx, key, value, expiration).Err()
+	if err != nil {
+		setFallback(key, value, expiration)
+		return err
+	}
+
+	deleteFallback(key)
+	return nil
+}
+
+func GetCacheBytes(key string) ([]byte, error) {
+	healthy := isHealthy()
+	if healthy {
+		ctx := context.Background()
+		val, err := rdb.Get(ctx, key).Bytes()
+		if err != nil {
+			if errors.Is(err, redis.Nil) {
+				return nil, nil
+			}
+			return nil, err
+		}
+
+		deleteFallback(key)
+		return val, nil
+	}
+
+	if !healthy {
+		slog.Info("cache client is not healthy, trying in-memory fallback")
+	}
+
+	if val, ok := getFallbackBytes(key); ok {
+		return val, nil
+	}
+
+	return nil, nil
 }
 
 func DeleteCache(key string) error {

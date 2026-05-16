@@ -1,10 +1,15 @@
 package lastfm
 
 import (
+	"bytes"
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"html"
 	"log/slog"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -12,7 +17,9 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	callbackquery "github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
 
+	"github.com/ruizlenato/smudgelord/internal/database/cache"
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	lastFMAPI "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -152,6 +159,279 @@ func artistHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	return sendLastfmMessage(b, ctx, "artist")
 }
 
+func collageHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
+		return nil
+	}
+
+	i18n := localization.Get(ctx)
+	lastFMUsername, err := getUserLastFMUsername(ctx.EffectiveUser.Id)
+	if err != nil || lastFMUsername == "" {
+		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("lastfm-username-not-found"), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		})
+		return nil
+	}
+
+	collageType := "album"
+	period := "7day"
+	gridSize := 3
+
+	args := strings.Fields(strings.TrimSpace(ctx.EffectiveMessage.Text))
+	if len(args) > 1 {
+		for _, raw := range args[1:] {
+			tok := strings.ToLower(strings.TrimSpace(raw))
+
+			switch tok {
+			case "album", "albums":
+				collageType = "album"
+				continue
+			case "artist", "artists":
+				collageType = "artist"
+				continue
+			case "track", "tracks":
+				collageType = "track"
+				continue
+			case "7day", "7d", "1w":
+				period = "7day"
+				continue
+			case "1month", "1m":
+				period = "1month"
+				continue
+			case "3month", "3m":
+				period = "3month"
+				continue
+			case "6month", "6m":
+				period = "6month"
+				continue
+			case "12month", "12m", "1y":
+				period = "12month"
+				continue
+			case "overall", "all":
+				period = "overall"
+				continue
+			}
+
+			if strings.Contains(tok, "x") {
+				parts := strings.SplitN(tok, "x", 2)
+				if len(parts) == 2 {
+					if n1, err1 := strconv.Atoi(parts[0]); err1 == nil {
+						if n2, err2 := strconv.Atoi(parts[1]); err2 == nil && n2 == n1 {
+							gridSize = n1
+						}
+					}
+				}
+				continue
+			}
+
+			if n, err := strconv.Atoi(tok); err == nil {
+				gridSize = n
+			}
+		}
+
+		if gridSize < 2 {
+			gridSize = 2
+		}
+		if gridSize > 8 {
+			gridSize = 8
+		}
+	}
+
+	withText := true
+	loadingMsg, _ := b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("lastfm-collage-generating"), &gotgbot.SendMessageOpts{
+		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+	})
+
+	cacheKey := collageResultCacheKey(lastFMUsername, collageType, period, gridSize, withText)
+	collageBytes, err := cache.GetCacheBytes(cacheKey)
+	if err != nil || len(collageBytes) == 0 {
+		collageBytes, err = buildLastFMCollage(collageType, period, lastFMUsername, gridSize, withText)
+		if err == nil && len(collageBytes) > 0 {
+			_ = cache.SetCacheBytes(cacheKey, collageBytes, 5*time.Minute)
+		}
+	}
+	if err != nil {
+		if loadingMsg != nil {
+			_, _ = b.DeleteMessage(ctx.EffectiveMessage.Chat.Id, loadingMsg.MessageId, nil)
+		}
+		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("lastfm-collage-error"), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+			ReplyMarkup:     utils.ErrorReportKeyboard(i18n),
+		})
+		return nil
+	}
+
+	caption := formatCollageCaption(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username, lastFMUsername, gridSize, collageType, period)
+
+	_, err = b.SendPhotoWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, gotgbot.InputFileByReader("lastfm-collage.jpg", bytes.NewReader(collageBytes)), &gotgbot.SendPhotoOpts{
+		Caption:         caption,
+		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyMarkup:     buildCollageKeyboard(ctx.EffectiveUser.Id, collageType, period, gridSize, withText),
+	})
+	if loadingMsg != nil {
+		_, _ = b.DeleteMessage(ctx.EffectiveMessage.Chat.Id, loadingMsg.MessageId, nil)
+	}
+	if err != nil {
+		slog.Error("Couldn't send collage", "error", err.Error())
+	}
+
+	return nil
+}
+
+func collageCallbackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
+	}
+
+	i18n := localization.Get(ctx)
+	parts := strings.Split(ctx.CallbackQuery.Data, "|")
+	if len(parts) != 7 {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
+		return nil
+	}
+
+	ownerID, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
+		return nil
+	}
+	if ownerID != ctx.CallbackQuery.From.Id {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("denied-button-alert"), ShowAlert: true})
+		return nil
+	}
+
+	collageType := parts[1]
+	period := parts[2]
+	gridSize, err := strconv.Atoi(parts[4])
+	if err != nil {
+		gridSize = 3
+	}
+	withText := parts[5] == "1"
+	action := parts[6]
+
+	switch action {
+	case "plus":
+		gridSize++
+	case "minus":
+		gridSize--
+	case "text":
+		withText = !withText
+	}
+
+	if gridSize < 2 {
+		gridSize = 2
+	}
+	if gridSize > 8 {
+		gridSize = 8
+	}
+
+	username, err := getUserLastFMUsername(ownerID)
+	if err != nil || username == "" {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("lastfm-username-not-found"), ShowAlert: true})
+		return nil
+	}
+
+	cacheKey := collageResultCacheKey(username, collageType, period, gridSize, withText)
+	collageBytes, err := cache.GetCacheBytes(cacheKey)
+	if err != nil || len(collageBytes) == 0 {
+		collageBytes, err = buildLastFMCollage(collageType, period, username, gridSize, withText)
+		if err == nil && len(collageBytes) > 0 {
+			_ = cache.SetCacheBytes(cacheKey, collageBytes, 5*time.Minute)
+		}
+	}
+	if err != nil {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("lastfm-collage-error-short"), ShowAlert: true})
+		return nil
+	}
+
+	caption := formatCollageCaption(ctx.CallbackQuery.From.FirstName, ctx.CallbackQuery.From.Username, username, gridSize, collageType, period)
+	_, _, err = b.EditMessageMedia(gotgbot.InputMediaPhoto{
+		Media:     gotgbot.InputFileByReader("lastfm-collage.jpg", bytes.NewReader(collageBytes)),
+		Caption:   caption,
+		ParseMode: gotgbot.ParseModeHTML,
+	}, &gotgbot.EditMessageMediaOpts{
+		ChatId:      ctx.CallbackQuery.Message.GetChat().Id,
+		MessageId:   ctx.CallbackQuery.Message.GetMessageId(),
+		ReplyMarkup: buildCollageKeyboard(ownerID, collageType, period, gridSize, withText),
+	})
+	if err != nil {
+		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("lastfm-collage-error-short"), ShowAlert: true})
+		return nil
+	}
+
+	_, _, _ = b.EditMessageCaption(&gotgbot.EditMessageCaptionOpts{
+		ChatId:      ctx.CallbackQuery.Message.GetChat().Id,
+		MessageId:   ctx.CallbackQuery.Message.GetMessageId(),
+		Caption:     caption,
+		ParseMode:   gotgbot.ParseModeHTML,
+		ReplyMarkup: buildCollageKeyboard(ownerID, collageType, period, gridSize, withText),
+	})
+
+	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
+	return nil
+}
+
+func buildCollageKeyboard(userID int64, currentType, currentPeriod string, gridSize int, withText bool) gotgbot.InlineKeyboardMarkup {
+	cb := func(action string) string {
+		textFlag := "0"
+		if withText {
+			textFlag = "1"
+		}
+		return fmt.Sprintf("lfmcol|%s|%s|%d|%d|%s|%s", currentType, currentPeriod, userID, gridSize, textFlag, action)
+	}
+
+	toggleLabel := "🧼"
+	if !withText {
+		toggleLabel = "📝"
+	}
+
+	return gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+		{
+			{Text: "➕", CallbackData: cb("plus")},
+			{Text: "➖", CallbackData: cb("minus")},
+			{Text: toggleLabel, CallbackData: cb("text")},
+		},
+	}}
+}
+
+func formatCollageCaption(firstName, telegramUsername, lastFMUsername string, gridSize int, collageType, period string) string {
+	name := strings.TrimSpace(firstName)
+	if name == "" {
+		name = lastFMUsername
+	}
+
+	periodShort := map[string]string{
+		"7day":    "1w",
+		"1month":  "1m",
+		"3month":  "3m",
+		"6month":  "6m",
+		"12month": "1y",
+		"overall": "all",
+	}[period]
+	if periodShort == "" {
+		periodShort = period
+	}
+
+	return fmt.Sprintf("<a href='https://last.fm/user/%s'>%s</a>\n%dx%d, %s, %s",
+		html.EscapeString(lastFMUsername),
+		html.EscapeString(name),
+		gridSize,
+		gridSize,
+		html.EscapeString(collageType),
+		html.EscapeString(periodShort),
+	)
+}
+
+func collageResultCacheKey(lastFMUsername, collageType, period string, gridSize int, withText bool) string {
+	input := fmt.Sprintf("%s|%s|%s|%d|%t", strings.ToLower(strings.TrimSpace(lastFMUsername)), collageType, period, gridSize, withText)
+	h := sha1.Sum([]byte(input))
+	return "lastfm:collage:" + hex.EncodeToString(h[:])
+}
+
 func sendLastfmMessage(b *gotgbot.Bot, ctx *ext.Context, methodType string) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
@@ -260,6 +540,8 @@ func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(utils.NewDisableableCommand("artist", artistHandler))
 	dispatcher.AddHandler(utils.NewDisableableCommand("art", artistHandler))
 	dispatcher.AddHandler(utils.NewDisableableCommand("lart", artistHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("collage", collageHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("lfmcol"), collageCallbackHandler))
 
 	utils.SaveHelp("lastfm")
 }

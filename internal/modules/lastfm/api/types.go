@@ -68,3 +68,62 @@ type getInfo struct {
 	Album  album  `json:"album"`
 	Artist artist `json:"artist"`
 }
+
+type topAttr struct {
+	Page       string `json:"page"`
+	PerPage    string `json:"perPage"`
+	Total      string `json:"total"`
+	TotalPages string `json:"totalPages"`
+}
+
+type topItemArtist struct {
+	Name string `json:"name"`
+}
+
+type topAlbum struct {
+	Name      string        `json:"name"`
+	Playcount string        `json:"playcount"`
+	Artist    topItemArtist `json:"artist"`
+	Image     []image       `json:"image"`
+}
+
+type topArtist struct {
+	Name      string  `json:"name"`
+	Playcount string  `json:"playcount"`
+	Image     []image `json:"image"`
+}
+
+type topTrack struct {
+	Name      string        `json:"name"`
+	Playcount string        `json:"playcount"`
+	Artist    topItemArtist `json:"artist"`
+	Image     []image       `json:"image"`
+}
+
+type topAlbumsResponse struct {
+	TopAlbums *struct {
+		Albums []topAlbum `json:"album"`
+		Attr   topAttr    `json:"@attr"`
+	} `json:"topalbums"`
+}
+
+type topArtistsResponse struct {
+	TopArtists *struct {
+		Artists []topArtist `json:"artist"`
+		Attr    topAttr     `json:"@attr"`
+	} `json:"topartists"`
+}
+
+type topTracksResponse struct {
+	TopTracks *struct {
+		Tracks []topTrack `json:"track"`
+		Attr   topAttr    `json:"@attr"`
+	} `json:"toptracks"`
+}
+
+type TopCollageItem struct {
+	Title     string
+	Subtitle  string
+	Playcount int
+	ImageURL  string
+}
