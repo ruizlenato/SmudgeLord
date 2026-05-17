@@ -479,15 +479,15 @@ lastfm-collage-busy =
 
     This limit is here to keep the bot from getting slow, but you can change that! <b>Please consider donating so I can get a better server</b> and remove this limit in the future.
     <b>See more using the /donate command</b>
-lastfm-collage-type-album-aliases =
-lastfm-collage-type-artist-aliases =
-lastfm-collage-type-track-aliases =
-lastfm-collage-period-7day-aliases =
-lastfm-collage-period-1month-aliases =
-lastfm-collage-period-3month-aliases =
-lastfm-collage-period-6month-aliases =
-lastfm-collage-period-12month-aliases =
-lastfm-collage-period-overall-aliases =
+lastfm-collage-type-album-aliases = album|albums
+lastfm-collage-type-artist-aliases = artist|artists
+lastfm-collage-type-track-aliases = track|tracks
+lastfm-collage-period-7day-aliases = 7day|7d|1w
+lastfm-collage-period-1month-aliases = 1month|1m
+lastfm-collage-period-3month-aliases = 3month|3m
+lastfm-collage-period-6month-aliases = 6month|6m
+lastfm-collage-period-12month-aliases = 12month|12m|1y
+lastfm-collage-period-overall-aliases = overall|all
 lastfm-collage-period-unit-day-aliases = d|day|days
 lastfm-collage-period-unit-week-aliases = w|week|weeks
 lastfm-collage-period-unit-month-aliases = m|month|months
