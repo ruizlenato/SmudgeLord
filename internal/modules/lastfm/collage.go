@@ -3,6 +3,7 @@ package lastfm
 import (
 	"bytes"
 	"crypto/sha1"
+	_ "embed"
 	"encoding/hex"
 	"fmt"
 	"image"
@@ -37,19 +38,37 @@ const (
 )
 
 var (
+	//go:embed fonts/NimbusSans-Bold.ttf
+	nimbusSansBoldTTF []byte
+
 	artistFace font.Face
 	titleFace  font.Face
 	playsFace  font.Face
 )
 
 func init() {
-	parsed, err := opentype.Parse(gobold.TTF)
-	if err != nil {
+	boldParsed := parseFontWithFallback(nimbusSansBoldTTF, gobold.TTF)
+	if boldParsed == nil {
 		return
 	}
-	artistFace, _ = opentype.NewFace(parsed, &opentype.FaceOptions{Size: artistFontSize, DPI: 72, Hinting: font.HintingFull})
-	titleFace, _ = opentype.NewFace(parsed, &opentype.FaceOptions{Size: titleFontSize, DPI: 72, Hinting: font.HintingFull})
-	playsFace, _ = opentype.NewFace(parsed, &opentype.FaceOptions{Size: playsFontSize, DPI: 72, Hinting: font.HintingFull})
+
+	artistFace, _ = opentype.NewFace(boldParsed, &opentype.FaceOptions{Size: artistFontSize, DPI: 72, Hinting: font.HintingFull})
+	titleFace, _ = opentype.NewFace(boldParsed, &opentype.FaceOptions{Size: titleFontSize, DPI: 72, Hinting: font.HintingFull})
+	playsFace, _ = opentype.NewFace(boldParsed, &opentype.FaceOptions{Size: playsFontSize, DPI: 72, Hinting: font.HintingFull})
+}
+
+func parseFontWithFallback(primary, fallback []byte) *opentype.Font {
+	if len(primary) > 0 {
+		if parsed, err := opentype.Parse(primary); err == nil {
+			return parsed
+		}
+	}
+	if len(fallback) > 0 {
+		if parsed, err := opentype.Parse(fallback); err == nil {
+			return parsed
+		}
+	}
+	return nil
 }
 
 func buildLastFMCollage(collageType, period, username string, gridSize int, withText bool) ([]byte, error) {
@@ -234,8 +253,8 @@ func normalizedKey(s string) string {
 func drawTileLabel(dst *image.RGBA, item lastFMAPI.TopCollageItem, tileSize int) {
 	applyBottomGradient(dst, tileSize/2, color.RGBA{0, 0, 0, 0}, color.RGBA{0, 0, 0, 185})
 
-	artist := trimLabel(item.Subtitle, 24)
-	title := trimLabel(item.Title, 26)
+	artist := trimLabel(item.Subtitle, 29)
+	title := trimLabel(item.Title, 31)
 	plays := fmt.Sprintf("%d", max(item.Playcount, 0))
 
 	if artist != "" {
