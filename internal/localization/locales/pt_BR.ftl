@@ -479,6 +479,19 @@ lastfm-collage-busy =
 
     Essa limitação é para que o bot não fique lento mas você pode mudar isso! <b>Ajude doando para que eu possa adquirir um servidor melhor</b> e futuramente remover esse limite.
     <b>Veja mais utilizando o comando /donate</b>
+lastfm-collage-type-album-aliases = album|albums|álbum|albuns|álbuns
+lastfm-collage-type-artist-aliases = artista|artistas
+lastfm-collage-type-track-aliases = faixa|faixas|musica|música|musicas|músicas
+lastfm-collage-period-7day-aliases = 7dias|7dia|1semana
+lastfm-collage-period-1month-aliases = 1mes|1mês
+lastfm-collage-period-3month-aliases = 3meses
+lastfm-collage-period-6month-aliases = 6meses
+lastfm-collage-period-12month-aliases = 12meses|1ano
+lastfm-collage-period-overall-aliases = geral|total
+lastfm-collage-period-unit-day-aliases = d|dia|dias
+lastfm-collage-period-unit-week-aliases = w|sem|semana|semanas
+lastfm-collage-period-unit-month-aliases = m|mes|mês|meses
+lastfm-collage-period-unit-year-aliases = y|ano|anos
 lastfm-help =
     <b>Last.FM Scobbles</b>
 
@@ -490,4 +503,5 @@ lastfm-help =
     <b>/lastfm | /lp:</b> Exibe a música que você está ouvindo ou ouviu recentemente.
     <b>/album | /alb:</b> Exibe o álbum que você está ouvindo ou ouviu recentemente.
     <b>/artist   | /art:</b> Exibe o artista que você está ouvindo ou ouviu recentemente.
-    <b>/collage:</b> Gera sua colagem com top álbuns/artistas/faixas.
+    <b>/collage (tipo) (período) (grid):</b> Gera sua colagem com top álbuns/artistas/faixas.
+    <i>Exemplo:</i> <code>/collage artistas 1semana 4x4</code>

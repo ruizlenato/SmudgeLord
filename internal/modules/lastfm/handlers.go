@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"html"
 	"log/slog"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -213,6 +214,20 @@ func collageHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	gridSize := 3
 
 	args := strings.Fields(strings.TrimSpace(ctx.EffectiveMessage.Text))
+	typeAlbumAliases := parseAliasList(i18n("lastfm-collage-type-album-aliases"), []string{"album", "albums"})
+	typeArtistAliases := parseAliasList(i18n("lastfm-collage-type-artist-aliases"), []string{"artist", "artists"})
+	typeTrackAliases := parseAliasList(i18n("lastfm-collage-type-track-aliases"), []string{"track", "tracks"})
+	period7dayAliases := parseAliasList(i18n("lastfm-collage-period-7day-aliases"), []string{"7day", "7d", "1w"})
+	period1monthAliases := parseAliasList(i18n("lastfm-collage-period-1month-aliases"), []string{"1month", "1m"})
+	period3monthAliases := parseAliasList(i18n("lastfm-collage-period-3month-aliases"), []string{"3month", "3m"})
+	period6monthAliases := parseAliasList(i18n("lastfm-collage-period-6month-aliases"), []string{"6month", "6m"})
+	period12monthAliases := parseAliasList(i18n("lastfm-collage-period-12month-aliases"), []string{"12month", "12m", "1y"})
+	periodOverallAliases := parseAliasList(i18n("lastfm-collage-period-overall-aliases"), []string{"overall", "all"})
+	periodUnitDayAliases := parseAliasList(i18n("lastfm-collage-period-unit-day-aliases"), []string{"d"})
+	periodUnitWeekAliases := parseAliasList(i18n("lastfm-collage-period-unit-week-aliases"), []string{"w"})
+	periodUnitMonthAliases := parseAliasList(i18n("lastfm-collage-period-unit-month-aliases"), []string{"m"})
+	periodUnitYearAliases := parseAliasList(i18n("lastfm-collage-period-unit-year-aliases"), []string{"y"})
+
 	if len(args) > 1 {
 		for _, raw := range args[1:] {
 			tok := strings.ToLower(strings.TrimSpace(raw))
@@ -244,6 +259,47 @@ func collageHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 				continue
 			case "overall", "all":
 				period = "overall"
+				continue
+			}
+
+			if typeAlbumAliases[tok] {
+				collageType = "album"
+				continue
+			}
+			if typeArtistAliases[tok] {
+				collageType = "artist"
+				continue
+			}
+			if typeTrackAliases[tok] {
+				collageType = "track"
+				continue
+			}
+			if period7dayAliases[tok] {
+				period = "7day"
+				continue
+			}
+			if period1monthAliases[tok] {
+				period = "1month"
+				continue
+			}
+			if period3monthAliases[tok] {
+				period = "3month"
+				continue
+			}
+			if period6monthAliases[tok] {
+				period = "6month"
+				continue
+			}
+			if period12monthAliases[tok] {
+				period = "12month"
+				continue
+			}
+			if periodOverallAliases[tok] {
+				period = "overall"
+				continue
+			}
+			if mapped, ok := parseFlexiblePeriodToken(tok, periodUnitDayAliases, periodUnitWeekAliases, periodUnitMonthAliases, periodUnitYearAliases); ok {
+				period = mapped
 				continue
 			}
 
@@ -304,7 +360,7 @@ func collageHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		Caption:         caption,
 		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-		ReplyMarkup:     buildCollageKeyboard(ctx.EffectiveUser.Id, collageType, period, gridSize, withText),
+		ReplyMarkup:     buildCollageKeyboard(ctx.EffectiveUser.Id, collageType, compactPeriodForCallback(period), gridSize, withText),
 	})
 	if loadingMsg != nil {
 		_, _ = b.DeleteMessage(ctx.EffectiveMessage.Chat.Id, loadingMsg.MessageId, nil)
@@ -349,6 +405,21 @@ func collageCallbackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	collageType := parts[1]
 	period := parts[2]
+	periodUnitDayAliases := parseAliasList(i18n("lastfm-collage-period-unit-day-aliases"), []string{"d"})
+	periodUnitWeekAliases := parseAliasList(i18n("lastfm-collage-period-unit-week-aliases"), []string{"w"})
+	periodUnitMonthAliases := parseAliasList(i18n("lastfm-collage-period-unit-month-aliases"), []string{"m"})
+	periodUnitYearAliases := parseAliasList(i18n("lastfm-collage-period-unit-year-aliases"), []string{"y"})
+
+	if strings.HasPrefix(period, "rel:") {
+		token := strings.TrimSpace(strings.TrimPrefix(period, "rel:"))
+		mapped, ok := parseFlexiblePeriodToken(token, periodUnitDayAliases, periodUnitWeekAliases, periodUnitMonthAliases, periodUnitYearAliases)
+		if !ok {
+			_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("lastfm-collage-error-short"), ShowAlert: true})
+			return nil
+		}
+		period = mapped
+	}
+
 	gridSize, err := strconv.Atoi(parts[4])
 	if err != nil {
 		gridSize = 3
@@ -399,7 +470,7 @@ func collageCallbackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}, &gotgbot.EditMessageMediaOpts{
 		ChatId:      ctx.CallbackQuery.Message.GetChat().Id,
 		MessageId:   ctx.CallbackQuery.Message.GetMessageId(),
-		ReplyMarkup: buildCollageKeyboard(ownerID, collageType, period, gridSize, withText),
+		ReplyMarkup: buildCollageKeyboard(ownerID, collageType, compactPeriodForCallback(period), gridSize, withText),
 	})
 	if err != nil {
 		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("lastfm-collage-error-short"), ShowAlert: true})
@@ -411,7 +482,7 @@ func collageCallbackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		MessageId:   ctx.CallbackQuery.Message.GetMessageId(),
 		Caption:     caption,
 		ParseMode:   gotgbot.ParseModeHTML,
-		ReplyMarkup: buildCollageKeyboard(ownerID, collageType, period, gridSize, withText),
+		ReplyMarkup: buildCollageKeyboard(ownerID, collageType, compactPeriodForCallback(period), gridSize, withText),
 	})
 
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
@@ -450,6 +521,70 @@ func buildCollageKeyboard(userID int64, currentType, currentPeriod string, gridS
 	}}
 }
 
+func parseAliasList(raw string, defaults []string) map[string]bool {
+	aliases := make(map[string]bool, len(defaults)+4)
+	for _, d := range defaults {
+		d = strings.ToLower(strings.TrimSpace(d))
+		if d != "" {
+			aliases[d] = true
+		}
+	}
+
+	for _, part := range strings.Split(raw, "|") {
+		p := strings.ToLower(strings.TrimSpace(part))
+		if p != "" {
+			aliases[p] = true
+		}
+	}
+
+	return aliases
+}
+
+func parseFlexiblePeriodToken(tok string, dayAliases, weekAliases, monthAliases, yearAliases map[string]bool) (string, bool) {
+	tok = strings.TrimSpace(strings.ToLower(tok))
+	if tok == "" {
+		return "", false
+	}
+
+	m := periodTokenPattern.FindStringSubmatch(tok)
+	if len(m) != 3 {
+		return "", false
+	}
+
+	n, err := strconv.Atoi(m[1])
+	if err != nil || n <= 0 {
+		return "", false
+	}
+
+	days := 0
+	unit := m[2]
+	switch {
+	case dayAliases[unit]:
+		days = n
+	case weekAliases[unit]:
+		days = n * 7
+	case monthAliases[unit]:
+		days = n * 30
+	case yearAliases[unit]:
+		days = n * 365
+	default:
+		return "", false
+	}
+	if days <= 0 {
+		return "", false
+	}
+
+	to := time.Now().Unix()
+	from := to - int64(days*24*60*60)
+	if from <= 0 || to <= from {
+		return "", false
+	}
+
+	return fmt.Sprintf("range:%d:%d:%s", from, to, tok), true
+}
+
+var periodTokenPattern = regexp.MustCompile(`^(\d+)\s*([\p{L}]+)$`)
+
 func formatCollageCaption(firstName, telegramUsername, lastFMUsername string, gridSize int, collageType, period string) string {
 	name := strings.TrimSpace(firstName)
 	if name == "" {
@@ -464,6 +599,12 @@ func formatCollageCaption(firstName, telegramUsername, lastFMUsername string, gr
 		"12month": "1y",
 		"overall": "all",
 	}[period]
+	if strings.HasPrefix(period, "range:") {
+		parts := strings.Split(period, ":")
+		if len(parts) == 4 && strings.TrimSpace(parts[3]) != "" {
+			periodShort = parts[3]
+		}
+	}
 	if periodShort == "" {
 		periodShort = period
 	}
@@ -482,6 +623,19 @@ func collageResultCacheKey(lastFMUsername, collageType, period string, gridSize 
 	input := fmt.Sprintf("%s|%s|%s|%d|%t", strings.ToLower(strings.TrimSpace(lastFMUsername)), collageType, period, gridSize, withText)
 	h := sha1.Sum([]byte(input))
 	return "lastfm:collage:" + hex.EncodeToString(h[:])
+}
+
+func compactPeriodForCallback(period string) string {
+	if strings.HasPrefix(period, "range:") {
+		parts := strings.Split(period, ":")
+		if len(parts) == 4 {
+			token := strings.TrimSpace(parts[3])
+			if token != "" {
+				return "rel:" + token
+			}
+		}
+	}
+	return period
 }
 
 func sendLastfmMessage(b *gotgbot.Bot, ctx *ext.Context, methodType string) error {

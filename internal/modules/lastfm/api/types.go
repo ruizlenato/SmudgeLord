@@ -127,3 +127,47 @@ type TopCollageItem struct {
 	Playcount int
 	ImageURL  string
 }
+
+type weeklyItemArtist struct {
+	Text string `json:"#text"`
+	Name string `json:"name"`
+}
+
+type weeklyAlbum struct {
+	Name      string           `json:"name"`
+	MBID      string           `json:"mbid"`
+	Playcount string           `json:"playcount"`
+	Artist    weeklyItemArtist `json:"artist"`
+	Image     []image          `json:"image"`
+}
+
+type weeklyArtist struct {
+	Name      string  `json:"name"`
+	Playcount string  `json:"playcount"`
+	Image     []image `json:"image"`
+}
+
+type weeklyTrack struct {
+	Name      string           `json:"name"`
+	Playcount string           `json:"playcount"`
+	Artist    weeklyItemArtist `json:"artist"`
+	Image     []image          `json:"image"`
+}
+
+type weeklyAlbumsResponse struct {
+	WeeklyAlbumChart *struct {
+		Albums []weeklyAlbum `json:"album"`
+	} `json:"weeklyalbumchart"`
+}
+
+type weeklyArtistsResponse struct {
+	WeeklyArtistChart *struct {
+		Artists []weeklyArtist `json:"artist"`
+	} `json:"weeklyartistchart"`
+}
+
+type weeklyTracksResponse struct {
+	WeeklyTrackChart *struct {
+		Tracks []weeklyTrack `json:"track"`
+	} `json:"weeklytrackchart"`
+}

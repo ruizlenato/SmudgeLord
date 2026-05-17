@@ -479,6 +479,19 @@ lastfm-collage-busy =
 
     This limit is here to keep the bot from getting slow, but you can change that! <b>Please consider donating so I can get a better server</b> and remove this limit in the future.
     <b>See more using the /donate command</b>
+lastfm-collage-type-album-aliases =
+lastfm-collage-type-artist-aliases =
+lastfm-collage-type-track-aliases =
+lastfm-collage-period-7day-aliases =
+lastfm-collage-period-1month-aliases =
+lastfm-collage-period-3month-aliases =
+lastfm-collage-period-6month-aliases =
+lastfm-collage-period-12month-aliases =
+lastfm-collage-period-overall-aliases =
+lastfm-collage-period-unit-day-aliases = d|day|days
+lastfm-collage-period-unit-week-aliases = w|week|weeks
+lastfm-collage-period-unit-month-aliases = m|month|months
+lastfm-collage-period-unit-year-aliases = y|year|years
 lastfm-help =
     <b>Last.FM Scobbles</b>
 
@@ -490,4 +503,5 @@ lastfm-help =
     <b>/lastfm | /lp:</b> Shows the music you are or were listening to.
     <b>/album | /alb:</b>Shows the album you are or were listening to.
     <b>/artist   | /art:</b> Shows the artist you are or were listening to.
-    <b>/collage:</b> Generates your top albums/artists/tracks collage.
+    <b>/collage (type) (period) (grid):</b> Generates your top albums/artists/tracks collage.
+    <i>Example:</i> <code>/collage artists 1w 4x4</code>

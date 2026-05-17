@@ -260,6 +260,118 @@ func (lfm *LastFM) GetTopTracks(username, period string, limit int) ([]topTrack,
 }
 
 func (lfm *LastFM) GetTopCollageItems(collageType, username, period string, limit int) ([]TopCollageItem, error) {
+	if from, to, ok := parseCustomPeriodRange(period); ok {
+		switch collageType {
+		case "album":
+			albums, err := lfm.GetWeeklyAlbums(username, from, to)
+			if err != nil {
+				return nil, err
+			}
+			type albumResult struct {
+				idx  int
+				item TopCollageItem
+			}
+			items := make([]TopCollageItem, len(albums))
+			results := make(chan albumResult, len(albums))
+			sem := make(chan struct{}, 8)
+			var wg sync.WaitGroup
+
+			for i, a := range albums {
+				wg.Add(1)
+				go func(idx int, album weeklyAlbum) {
+					defer wg.Done()
+					sem <- struct{}{}
+					defer func() { <-sem }()
+
+					plays, _ := strconv.Atoi(album.Playcount)
+					artistName := strings.TrimSpace(album.Artist.Text)
+					if artistName == "" {
+						artistName = strings.TrimSpace(album.Artist.Name)
+					}
+					imageURL := lfm.ResolveAlbumImage(artistName, album.Name, album.MBID, bestImageURL(album.Image))
+					results <- albumResult{idx: idx, item: TopCollageItem{
+						Title:     album.Name,
+						Subtitle:  artistName,
+						Playcount: plays,
+						ImageURL:  imageURL,
+					}}
+				}(i, a)
+			}
+
+			go func() {
+				wg.Wait()
+				close(results)
+			}()
+
+			for res := range results {
+				items[res.idx] = res.item
+			}
+			return items, nil
+		case "artist":
+			artists, err := lfm.GetWeeklyArtists(username, from, to)
+			if err != nil {
+				return nil, err
+			}
+			type artistResult struct {
+				idx  int
+				item TopCollageItem
+			}
+			items := make([]TopCollageItem, len(artists))
+			results := make(chan artistResult, len(artists))
+			sem := make(chan struct{}, 8)
+			var wg sync.WaitGroup
+
+			for i, a := range artists {
+				wg.Add(1)
+				go func(idx int, artist weeklyArtist) {
+					defer wg.Done()
+					sem <- struct{}{}
+					defer func() { <-sem }()
+
+					plays, _ := strconv.Atoi(artist.Playcount)
+					imageURL := lfm.ResolveArtistImage(artist.Name, bestImageURL(artist.Image))
+					results <- artistResult{idx: idx, item: TopCollageItem{
+						Title:     artist.Name,
+						Playcount: plays,
+						ImageURL:  imageURL,
+					}}
+				}(i, a)
+			}
+
+			go func() {
+				wg.Wait()
+				close(results)
+			}()
+
+			for res := range results {
+				items[res.idx] = res.item
+			}
+			return items, nil
+		case "track":
+			tracks, err := lfm.GetWeeklyTracks(username, from, to)
+			if err != nil {
+				return nil, err
+			}
+			items := make([]TopCollageItem, 0, len(tracks))
+			for _, t := range tracks {
+				plays, _ := strconv.Atoi(t.Playcount)
+				artistName := strings.TrimSpace(t.Artist.Text)
+				if artistName == "" {
+					artistName = strings.TrimSpace(t.Artist.Name)
+				}
+				items = append(items, TopCollageItem{
+					Title:     t.Name,
+					Subtitle:  artistName,
+					Playcount: plays,
+					ImageURL:  bestImageURL(t.Image),
+				})
+			}
+			return items, nil
+		default:
+			return nil, fmt.Errorf("unsupported collage type")
+		}
+	}
+
 	switch collageType {
 	case "album":
 		albums, err := lfm.GetTopAlbums(username, period, limit)
@@ -381,6 +493,100 @@ func (lfm *LastFM) getTop(method, username, period string, limit int) ([]byte, e
 	return body, nil
 }
 
+func (lfm *LastFM) GetWeeklyAlbums(username string, from, to int64) ([]weeklyAlbum, error) {
+	body, err := lfm.getWeekly("user.getweeklyalbumchart", username, from, to)
+	if err != nil {
+		return nil, err
+	}
+
+	var response weeklyAlbumsResponse
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&response); err != nil {
+		return nil, fmt.Errorf("error decoding weekly albums: %w", err)
+	}
+	if response.WeeklyAlbumChart == nil {
+		return nil, errors.New("no weekly albums")
+	}
+	return response.WeeklyAlbumChart.Albums, nil
+}
+
+func (lfm *LastFM) GetWeeklyArtists(username string, from, to int64) ([]weeklyArtist, error) {
+	body, err := lfm.getWeekly("user.getweeklyartistchart", username, from, to)
+	if err != nil {
+		return nil, err
+	}
+
+	var response weeklyArtistsResponse
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&response); err != nil {
+		return nil, fmt.Errorf("error decoding weekly artists: %w", err)
+	}
+	if response.WeeklyArtistChart == nil {
+		return nil, errors.New("no weekly artists")
+	}
+	return response.WeeklyArtistChart.Artists, nil
+}
+
+func (lfm *LastFM) GetWeeklyTracks(username string, from, to int64) ([]weeklyTrack, error) {
+	body, err := lfm.getWeekly("user.getweeklytrackchart", username, from, to)
+	if err != nil {
+		return nil, err
+	}
+
+	var response weeklyTracksResponse
+	if err := json.NewDecoder(bytes.NewReader(body)).Decode(&response); err != nil {
+		return nil, fmt.Errorf("error decoding weekly tracks: %w", err)
+	}
+	if response.WeeklyTrackChart == nil {
+		return nil, errors.New("no weekly tracks")
+	}
+	return response.WeeklyTrackChart.Tracks, nil
+}
+
+func (lfm *LastFM) getWeekly(method, username string, from, to int64) ([]byte, error) {
+	response, err := utils.Request(lastFMAPI, utils.RequestParams{
+		Method: "GET",
+		Query: map[string]string{
+			"method":  method,
+			"user":    username,
+			"api_key": lfm.apiKey,
+			"from":    strconv.FormatInt(from, 10),
+			"to":      strconv.FormatInt(to, 10),
+			"format":  "json",
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error requesting weekly items: %w", err)
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status %d", response.StatusCode)
+	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return nil, fmt.Errorf("error reading weekly items body: %w", err)
+	}
+
+	if bytes.Contains(body, []byte("\"error\"")) {
+		return nil, errors.New("lastFM error")
+	}
+
+	return body, nil
+}
+
+func parseCustomPeriodRange(period string) (int64, int64, bool) {
+	parts := strings.Split(period, ":")
+	if len(parts) != 4 || parts[0] != "range" {
+		return 0, 0, false
+	}
+	from, err1 := strconv.ParseInt(parts[1], 10, 64)
+	to, err2 := strconv.ParseInt(parts[2], 10, 64)
+	if err1 != nil || err2 != nil || to <= from {
+		return 0, 0, false
+	}
+	return from, to, true
+}
+
 func bestImageURL(images []image) string {
 	for i := len(images) - 1; i >= 0; i-- {
 		if strings.TrimSpace(images[i].Text) != "" {
@@ -428,6 +634,54 @@ func (lfm *LastFM) GetArtistImage(artistName string) string {
 	return bestImageURL(payload.Artist.Image)
 }
 
+func (lfm *LastFM) GetAlbumImage(artistName, albumName, albumMBID string) string {
+	artistName = strings.TrimSpace(artistName)
+	albumName = strings.TrimSpace(albumName)
+	albumMBID = strings.TrimSpace(albumMBID)
+	if albumMBID == "" && (artistName == "" || albumName == "") {
+		return ""
+	}
+
+	query := map[string]string{
+		"method":  "album.getinfo",
+		"api_key": lfm.apiKey,
+		"format":  "json",
+	}
+	if albumMBID != "" {
+		query["mbid"] = albumMBID
+	} else {
+		query["artist"] = artistName
+		query["album"] = albumName
+	}
+
+	response, err := utils.Request(lastFMAPI, utils.RequestParams{
+		Method: "GET",
+		Query:  query,
+	})
+	if err != nil {
+		return ""
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return ""
+	}
+
+	var payload struct {
+		Album *struct {
+			Image []image `json:"image"`
+		} `json:"album"`
+	}
+	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+		return ""
+	}
+	if payload.Album == nil {
+		return ""
+	}
+
+	return bestImageURL(payload.Album.Image)
+}
+
 func (lfm *LastFM) ResolveArtistImage(artistName, initial string) string {
 	key := normalizeArtistName(artistName)
 	if key == "" {
@@ -453,6 +707,34 @@ func (lfm *LastFM) ResolveArtistImage(artistName, initial string) string {
 		lfm.setArtistImageCache(key, imageURL, 24*time.Hour)
 	} else {
 		lfm.setArtistImageCache(key, "__none__", 30*time.Minute)
+	}
+
+	return imageURL
+}
+
+func (lfm *LastFM) ResolveAlbumImage(artistName, albumName, albumMBID, initial string) string {
+	key := normalizeAlbumKey(artistName, albumName, albumMBID)
+	if key == "" {
+		return ""
+	}
+
+	cached := lfm.getAlbumImageCache(key)
+	if isUsableArtistImageURL(cached) {
+		return cached
+	}
+	if cached == "__none__" {
+		return ""
+	}
+
+	imageURL := initial
+	if !isUsableArtistImageURL(imageURL) {
+		imageURL = lfm.GetAlbumImage(artistName, albumName, albumMBID)
+	}
+
+	if isUsableArtistImageURL(imageURL) {
+		lfm.setAlbumImageCache(key, imageURL, 24*time.Hour)
+	} else {
+		lfm.setAlbumImageCache(key, "__none__", 30*time.Minute)
 	}
 
 	return imageURL
@@ -531,6 +813,20 @@ func normalizeArtistName(s string) string {
 	return artistNameSanitizer.ReplaceAllString(clean, " ")
 }
 
+func normalizeAlbumKey(artistName, albumName, albumMBID string) string {
+	mbid := strings.TrimSpace(strings.ToLower(albumMBID))
+	if mbid != "" {
+		return "mbid:" + mbid
+	}
+
+	artist := normalizeArtistName(artistName)
+	album := normalizeArtistName(albumName)
+	if artist == "" || album == "" {
+		return ""
+	}
+	return artist + "|" + album
+}
+
 var artistNameSanitizer = regexp.MustCompile(`\s+`)
 
 func isUsableArtistImageURL(raw string) bool {
@@ -565,4 +861,19 @@ func (lfm *LastFM) setArtistImageCache(key, url string, ttl time.Duration) {
 		ttl = time.Hour
 	}
 	_ = cache.SetCache("lastfm:artist_image:"+key, url, ttl)
+}
+
+func (lfm *LastFM) getAlbumImageCache(key string) string {
+	val, err := cache.GetCache("lastfm:album_image:" + key)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(val)
+}
+
+func (lfm *LastFM) setAlbumImageCache(key, url string, ttl time.Duration) {
+	if ttl <= 0 {
+		ttl = time.Hour
+	}
+	_ = cache.SetCache("lastfm:album_image:"+key, url, ttl)
 }
