@@ -31,6 +31,9 @@ var (
 	rciCookieRegex       = regexp.MustCompile(`(?is)<(?:script|p)[^>]*id=["']rci["'][^>]*class=["']([^"']+)["'][^>]*>`)
 	rciValueRegex        = regexp.MustCompile(`(?is)<(?:script|p)[^>]*id=["']rs["'][^>]*class=["']([^"']+)["'][^>]*>`)
 	universalDataRegex   = regexp.MustCompile(`(?s)<script[^>]*id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>([\s\S]*?)</script>`)
+	tikTokPostIDRegex    = regexp.MustCompile(`/(?:video|photo|v)/(\d+)`)
+	ogURLRegex           = regexp.MustCompile(`(?is)<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)["']`)
+	canonicalRegex       = regexp.MustCompile(`(?is)<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']`)
 )
 
 func getRandomDeviceID() string {
@@ -92,34 +95,92 @@ func Handle(text string) downloader.PostInfo {
 }
 
 func (h *Handler) setPostID(url string) bool {
-	postIDRegex := regexp.MustCompile(`/(?:video|photo|v)/(\d+)`)
-	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
+	if matches := tikTokPostIDRegex.FindStringSubmatch(url); len(matches) > 1 {
 		h.postID = matches[1]
 		return true
 	}
 
-	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultHTTPCaller,
-		MaxAttempts:  3,
-		ExponentBase: 2,
-		StartDelay:   1 * time.Second,
-		MaxDelay:     5 * time.Second,
+	const maxResolveAttempts = 2
+	for attempt := 1; attempt <= maxResolveAttempts; attempt++ {
+		retryCaller := &utils.RetryCaller{
+			Caller:       utils.DefaultHTTPCaller,
+			MaxAttempts:  2,
+			ExponentBase: 2,
+			StartDelay:   250 * time.Millisecond,
+			MaxDelay:     1 * time.Second,
+		}
+
+		response, err := retryCaller.Request(url, utils.RequestParams{
+			Method:    "GET",
+			Redirects: 10,
+			Headers: map[string]string{
+				"User-Agent": WebUserAgent,
+				"Accept":     "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+				"Referer":    "https://www.tiktok.com/",
+			},
+		})
+		if err != nil {
+			continue
+		}
+
+		resolvedURL := ""
+		if response.Request != nil && response.Request.URL != nil {
+			resolvedURL = response.Request.URL.String()
+		}
+
+		if matches := tikTokPostIDRegex.FindStringSubmatch(resolvedURL); len(matches) > 1 {
+			h.postID = matches[1]
+			_ = response.Body.Close()
+			return true
+		}
+
+		if location := response.Header.Get("Location"); location != "" {
+			if id := extractPostIDFromText(location); id != "" {
+				h.postID = id
+				_ = response.Body.Close()
+				return true
+			}
+		}
+
+		bodyBytes, readErr := io.ReadAll(response.Body)
+		_ = response.Body.Close()
+		if readErr != nil {
+			continue
+		}
+
+		if id := extractPostIDFromText(string(bodyBytes)); id != "" {
+			h.postID = id
+			return true
+		}
+
+		time.Sleep(time.Duration(attempt) * 300 * time.Millisecond)
 	}
 
-	response, err := retryCaller.Request(url, utils.RequestParams{
-		Method:    "GET",
-		Redirects: 2,
-	})
-	if err != nil {
-		return false
-	}
-	defer response.Body.Close()
-
-	if matches := postIDRegex.FindStringSubmatch(response.Request.URL.String()); len(matches) > 1 {
-		h.postID = matches[1]
-		return true
-	}
 	return false
+}
+
+func extractPostIDFromText(text string) string {
+	if text == "" {
+		return ""
+	}
+
+	if matches := tikTokPostIDRegex.FindStringSubmatch(text); len(matches) > 1 {
+		return matches[1]
+	}
+
+	if match := ogURLRegex.FindStringSubmatch(text); len(match) > 1 {
+		if matches := tikTokPostIDRegex.FindStringSubmatch(match[1]); len(matches) > 1 {
+			return matches[1]
+		}
+	}
+
+	if match := canonicalRegex.FindStringSubmatch(text); len(match) > 1 {
+		if matches := tikTokPostIDRegex.FindStringSubmatch(match[1]); len(matches) > 1 {
+			return matches[1]
+		}
+	}
+
+	return ""
 }
 
 func extractChallengeFromHTML(body []byte) (challengeB64, cookieName, rciName, rciValue string, ok bool) {
