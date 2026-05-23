@@ -1167,8 +1167,8 @@ func generateStickerSetTitle(firstName, username string, packNum int) string {
 	if username != "" {
 		nameTitle = "@" + username
 	}
-	if len(nameTitle) > 35 {
-		nameTitle = nameTitle[:35]
+	if len([]rune(nameTitle)) > 35 {
+		nameTitle = string([]rune(nameTitle)[:35])
 	}
 	if packNum > 0 {
 		return fmt.Sprintf("%s's SmudgeLord Pack %d", nameTitle, packNum+1)
