@@ -784,29 +784,50 @@ func kangPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, stickerAction, stickerType, fileID, emoji string) error {
 	i18n := localization.Get(ctx)
+
+	var statusMsgID int64
+	if ctx.CallbackQuery == nil {
+		statusMsg, _ := b.SendMessage(ctx.EffectiveChat.Id, i18n("stealing-sticker"), &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		})
+		if statusMsg != nil {
+			statusMsgID = statusMsg.MessageId
+		}
+	}
+
 	uploadedFileID, err := prepareStickerUpload(b, ctx.EffectiveUser.Id, fileID, stickerType, stickerAction)
 	if err != nil {
 		sendKangErrorMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't upload sticker file", err)
 		return nil
 	}
-	set, _ := b.GetStickerSet(pack.PackName, nil)
-	if set != nil && len(set.Stickers) >= 120 {
-		kd := KangData{StickerAction: stickerAction, StickerType: stickerType, FileID: uploadedFileID, Emoji: emoji}
-		if payload, err := json.Marshal(kd); err == nil {
-			_ = cache.SetCache(fmt.Sprintf("kangFull:%d:%d", ctx.EffectiveUser.Id, ctx.EffectiveMessage.MessageId), string(payload), 5*time.Minute)
-		}
-		_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("sticker-pack-full", map[string]any{"packName": set.Title, "stickerCount": len(set.Stickers)}), &gotgbot.SendMessageOpts{
-			ParseMode: gotgbot.ParseModeHTML,
-			ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
-				Text: i18n("sticker-create-new-pack-button"), CallbackData: fmt.Sprintf("createNewPack %d", ctx.EffectiveMessage.MessageId),
-			}}}},
-		})
-		return nil
-	}
-	_, err = b.AddStickerToSet(ctx.EffectiveUser.Id, pack.PackName, gotgbot.InputSticker{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}, nil)
-	if err != nil {
+	set, errGetSet := b.GetStickerSet(pack.PackName, nil)
+	if errGetSet != nil || set == nil {
 		title := generateStickerSetTitle(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username, 0)
 		_, err = b.CreateNewStickerSet(ctx.EffectiveUser.Id, pack.PackName, title, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}}, nil)
+		if err != nil {
+			if strings.Contains(err.Error(), "PEER_ID_INVALID") {
+				sendPrivateStartRequiredMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, i18n)
+				return nil
+			}
+			sendKangErrorMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't create sticker set", err)
+			return nil
+		}
+	} else {
+		if len(set.Stickers) >= 120 {
+			kd := KangData{StickerAction: stickerAction, StickerType: stickerType, FileID: uploadedFileID, Emoji: emoji}
+			if payload, err := json.Marshal(kd); err == nil {
+				_ = cache.SetCache(fmt.Sprintf("kangFull:%d:%d", ctx.EffectiveUser.Id, ctx.EffectiveMessage.MessageId), string(payload), 5*time.Minute)
+			}
+			_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("sticker-pack-full", map[string]any{"packName": set.Title, "stickerCount": len(set.Stickers)}), &gotgbot.SendMessageOpts{
+				ParseMode: gotgbot.ParseModeHTML,
+				ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
+					Text: i18n("sticker-create-new-pack-button"), CallbackData: fmt.Sprintf("createNewPack %d", ctx.EffectiveMessage.MessageId),
+				}}}},
+			})
+			return nil
+		}
+		_, err = b.AddStickerToSet(ctx.EffectiveUser.Id, pack.PackName, gotgbot.InputSticker{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}, nil)
 		if err != nil {
 			if strings.Contains(err.Error(), "PEER_ID_INVALID") {
 				sendPrivateStartRequiredMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, i18n)
@@ -827,6 +848,16 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 		_, _, _ = b.EditMessageText(text, &gotgbot.EditMessageTextOpts{
 			ChatId:      chat.Id,
 			MessageId:   msgID,
+			ParseMode:   gotgbot.ParseModeHTML,
+			ReplyMarkup: markup,
+		})
+		return nil
+	}
+
+	if statusMsgID > 0 {
+		_, _, _ = b.EditMessageText(text, &gotgbot.EditMessageTextOpts{
+			ChatId:      ctx.EffectiveChat.Id,
+			MessageId:   statusMsgID,
 			ParseMode:   gotgbot.ParseModeHTML,
 			ReplyMarkup: markup,
 		})
@@ -1237,12 +1268,12 @@ func convertVideo(input []byte) ([]byte, error) {
 	profiles := []struct {
 		fps     string
 		bitrate string
-		size    string
 	}{
-		{fps: "30", bitrate: "500k", size: "512x512"},
-		{fps: "24", bitrate: "350k", size: "512x512"},
-		{fps: "20", bitrate: "280k", size: "480x480"},
-		{fps: "15", bitrate: "180k", size: "384x384"},
+		{fps: "30", bitrate: "500k"},
+		{fps: "24", bitrate: "350k"},
+		{fps: "20", bitrate: "280k"},
+		{fps: "15", bitrate: "180k"},
+		{fps: "10", bitrate: "120k"},
 	}
 
 	var lastOutput []byte
@@ -1250,11 +1281,10 @@ func convertVideo(input []byte) ([]byte, error) {
 		cmd := exec.Command(
 			"ffmpeg", "-loglevel", "quiet", "-i", inputFile.Name(),
 			"-t", "00:00:03",
-			"-vf", "fps="+profile.fps,
+			"-vf", fmt.Sprintf("fps=%s,scale='if(gte(iw,ih),512,-2)':'if(gt(ih,iw),512,-2)'", profile.fps),
 			"-c:v", "vp9",
 			"-b:v", profile.bitrate,
 			"-preset", "ultrafast",
-			"-s", profile.size,
 			"-y", "-an", "-f", "webm", tempOutput,
 		)
 		if err = cmd.Run(); err != nil {
