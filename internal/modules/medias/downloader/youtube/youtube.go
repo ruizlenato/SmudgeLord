@@ -254,8 +254,6 @@ func Handle(videoURL string) downloader.PostInfo {
 
 	fileBytes, err := downloadStream(youtubeClient, video, format)
 	if err != nil {
-		slog.Error("Couldn't download video stream",
-			"Error", err.Error())
 		return downloader.PostInfo{}
 	}
 
