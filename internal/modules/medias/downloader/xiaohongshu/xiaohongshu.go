@@ -280,5 +280,12 @@ func (h *Handler) handleImages(noteData Note) ([]gotgbot.InputMedia, func()) {
 		}
 	}
 
-	return mediaItems, downloader.CombineCleanups(cleanups...)
+	nonNil := make([]gotgbot.InputMedia, 0, len(mediaItems))
+	for _, m := range mediaItems {
+		if m != nil {
+			nonNil = append(nonNil, m)
+		}
+	}
+
+	return nonNil, downloader.CombineCleanups(cleanups...)
 }

@@ -130,12 +130,19 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 		}
 	}
 
-	if !slices.ContainsFunc(mediaItems, func(m gotgbot.InputMedia) bool { return m != nil }) {
+	nonNil := make([]gotgbot.InputMedia, 0, len(mediaItems))
+	for _, m := range mediaItems {
+		if m != nil {
+			nonNil = append(nonNil, m)
+		}
+	}
+
+	if len(nonNil) == 0 {
 		return downloader.NewUnavailablePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 	}
 
 	return downloader.PostInfo{
-		Medias:      mediaItems,
+		Medias:      nonNil,
 		ID:          h.postID,
 		Caption:     getTweetCaption(twitterData),
 		InvertMedia: invertMedia,
@@ -465,12 +472,19 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 		}
 	}
 
-	if !slices.ContainsFunc(mediaItems, func(m gotgbot.InputMedia) bool { return m != nil }) {
+	nonNil := make([]gotgbot.InputMedia, 0, len(mediaItems))
+	for _, m := range mediaItems {
+		if m != nil {
+			nonNil = append(nonNil, m)
+		}
+	}
+
+	if len(nonNil) == 0 {
 		return downloader.NewUnavailablePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 	}
 
 	return downloader.PostInfo{
-		Medias:      mediaItems,
+		Medias:      nonNil,
 		ID:          h.postID,
 		Caption:     getFxTweetCaption(twitterData),
 		InvertMedia: invertMedia,

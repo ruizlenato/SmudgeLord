@@ -385,6 +385,9 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) ([]gotgbot.InputMedia, fun
 			slog.Error("Failed to download media in sidecar",
 				"Post Info", []string{h.username, h.postID},
 				"Error", result.err.Error())
+			if result.cleanup != nil {
+				cleanups = append(cleanups, result.cleanup)
+			}
 			continue
 		}
 		if result.media.File != nil {
@@ -418,7 +421,14 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) ([]gotgbot.InputMedia, fun
 		}
 	}
 
-	return mediaItems, downloader.CombineCleanups(cleanups...)
+	nonNil := make([]gotgbot.InputMedia, 0, len(mediaItems))
+	for _, m := range mediaItems {
+		if m != nil {
+			nonNil = append(nonNil, m)
+		}
+	}
+
+	return nonNil, downloader.CombineCleanups(cleanups...)
 }
 
 func (h *Handler) downloadMedia(data Edges) (*downloader.InputMedia, func(), error) {

@@ -778,7 +778,14 @@ func (h *Handler) handleImages(tikTokData TikTokData) ([]gotgbot.InputMedia, fun
 		}
 	}
 
-	return mediaItems, downloader.CombineCleanups(cleanups...)
+	nonNil := make([]gotgbot.InputMedia, 0, len(mediaItems))
+	for _, m := range mediaItems {
+		if m != nil {
+			nonNil = append(nonNil, m)
+		}
+	}
+
+	return nonNil, downloader.CombineCleanups(cleanups...)
 }
 
 func (h *Handler) handleVideo(tikTokData TikTokData) ([]gotgbot.InputMedia, func()) {

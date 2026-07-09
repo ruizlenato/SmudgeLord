@@ -262,6 +262,9 @@ func (h *Handler) handleImage(blueskyImages []Image) ([]gotgbot.InputMedia, func
 				"Post Info", []string{h.username, h.postID},
 				"Media Count", result.index,
 				"Error", result.err.Error())
+			if result.cleanup != nil {
+				cleanups = append(cleanups, result.cleanup)
+			}
 			continue
 		}
 		if result.file != nil {
@@ -272,9 +275,16 @@ func (h *Handler) handleImage(blueskyImages []Image) ([]gotgbot.InputMedia, func
 		}
 	}
 
-	if len(cleanups) > 0 {
-		return mediaItems, downloader.CombineCleanups(cleanups...)
+	nonNil := make([]gotgbot.InputMedia, 0, len(mediaItems))
+	for _, m := range mediaItems {
+		if m != nil {
+			nonNil = append(nonNil, m)
+		}
 	}
 
-	return mediaItems, nil
+	if len(cleanups) > 0 {
+		return nonNil, downloader.CombineCleanups(cleanups...)
+	}
+
+	return nonNil, nil
 }
