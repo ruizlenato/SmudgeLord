@@ -125,9 +125,11 @@ func main() {
 			os.Exit(1)
 		}
 
-		if err := updater.SetAllBotWebhooks(config.WebhookURL, &gotgbot.SetWebhookOpts{DropPendingUpdates: true, AllowedUpdates: []string{}}); err != nil {
-			slog.Error("failed to set webhook", "error", err)
-			os.Exit(1)
+		if !config.WebhookListenerOnly {
+			if err := updater.SetAllBotWebhooks(config.WebhookURL, &gotgbot.SetWebhookOpts{DropPendingUpdates: true, AllowedUpdates: []string{}}); err != nil {
+				slog.Error("failed to set webhook", "error", err)
+				os.Exit(1)
+			}
 		}
 	} else {
 		if err := updater.StartPolling(b, &ext.PollingOpts{

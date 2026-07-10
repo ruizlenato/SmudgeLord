@@ -10,17 +10,18 @@ import (
 )
 
 var (
-	TelegramToken string
-	LogLevel      slog.Leveler
-	LastFMKey     string
-	DatabaseFile  string
-	BotAPIURL     string
-	WebhookURL    string
-	WebhookPort   int
-	Socks5Proxy   string
-	Socks5Proxies []string
-	OwnerID       int64
-	LogChannelID  int64
+	TelegramToken       string
+	LogLevel            slog.Leveler
+	LastFMKey           string
+	DatabaseFile        string
+	BotAPIURL           string
+	WebhookURL          string
+	WebhookPort         int
+	WebhookListenerOnly bool
+	Socks5Proxy         string
+	Socks5Proxies       []string
+	OwnerID             int64
+	LogChannelID        int64
 )
 
 func init() {
@@ -56,6 +57,7 @@ func init() {
 	}
 
 	WebhookURL = os.Getenv("WEBHOOK_URL")
+	WebhookListenerOnly, _ = strconv.ParseBool(os.Getenv("WEBHOOK_LISTENER_ONLY"))
 	BotAPIURL = os.Getenv("BOTAPI_URL")
 
 	Socks5Proxy = os.Getenv("SOCKS5_PROXY")
