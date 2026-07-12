@@ -443,7 +443,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 				return
 			}
 
-			results <- mediaResult{index: index, media: &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream)}, cleanup: cleanup}
+			results <- mediaResult{index: index, media: &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream), ShowCaptionAboveMedia: invertMedia}, cleanup: cleanup}
 		}(i, media)
 	}
 
@@ -457,8 +457,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 	for range mediaCount {
 		result := <-results
 		if result.err != nil {
-			var fileTooLargeErr *downloader.FileTooLargeError
-			if errors.As(result.err, &fileTooLargeErr) {
+			if _, ok := errors.AsType[*downloader.FileTooLargeError](result.err); ok {
 				return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 			}
 			slog.Error("Failed to download media in carousel",

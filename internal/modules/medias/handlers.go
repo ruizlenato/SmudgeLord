@@ -377,6 +377,7 @@ func sendMediaAndHandleCaption(
 	} else {
 		waitForMediaSendSlot(ctx.EffectiveMessage.Chat.Id)
 		waitForGlobalSlot()
+		normalizeShowCaptionAboveMedia(postInfo.Medias)
 		replies, err := b.SendMediaGroupWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, postInfo.Medias, &gotgbot.SendMediaGroupOpts{
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		})
@@ -400,6 +401,29 @@ func sendMediaAndHandleCaption(
 		}
 	}
 	return sent, nil
+}
+
+func normalizeShowCaptionAboveMedia(medias []gotgbot.InputMedia) {
+	if len(medias) <= 1 {
+		return
+	}
+	var target *bool
+	for _, m := range medias {
+		switch v := m.(type) {
+		case *gotgbot.InputMediaPhoto:
+			if target == nil {
+				b := v.ShowCaptionAboveMedia
+				target = &b
+			}
+			v.ShowCaptionAboveMedia = *target
+		case *gotgbot.InputMediaVideo:
+			if target == nil {
+				b := v.ShowCaptionAboveMedia
+				target = &b
+			}
+			v.ShowCaptionAboveMedia = *target
+		}
+	}
 }
 
 func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
