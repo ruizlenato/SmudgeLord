@@ -246,6 +246,9 @@ no-media-found =
 media-unavailable =
     This media is currently unavailable or has been removed.
     <b>If the error persists with other links, report it using the button below.</b>
+media-unavailable-geoblocked =
+    This video is not available in my server's region, so I can't send it.
+    <b>If the error persists with other links, report it using the button below.</b>
 media-error =
     An error occurred while downloading the media. Please try again later.
 

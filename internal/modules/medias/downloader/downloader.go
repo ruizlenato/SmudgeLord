@@ -137,12 +137,18 @@ func SpoolToTempFile(r io.ReadCloser) (*os.File, func(), error) {
 		return nil, nil, err
 	}
 
-	_, err = io.Copy(tmpFile, r)
+	n, err := io.Copy(tmpFile, r)
 	r.Close()
 	if err != nil {
 		tmpFile.Close()
 		os.Remove(tmpFile.Name())
 		return nil, nil, err
+	}
+
+	if n == 0 {
+		tmpFile.Close()
+		os.Remove(tmpFile.Name())
+		return nil, nil, errors.New("empty media response")
 	}
 
 	if _, err := tmpFile.Seek(0, io.SeekStart); err != nil {

@@ -76,6 +76,7 @@ type Media struct {
 	URL                  string `json:"url"`
 	ExtMediaAvailability struct {
 		Status string `json:"status"`
+		Reason string `json:"reason"`
 	} `json:"ext_media_availability"`
 	OriginalInfo struct {
 		Height int `json:"height"`

@@ -281,8 +281,13 @@ func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string,
 	return true
 }
 
-func noMediaMessage(i18n func(string, ...map[string]any) string, postInfo downloader.PostInfo) string {
+func noMediaMessage(ctx *ext.Context, postInfo downloader.PostInfo) string {
+	i18n := localization.Get(ctx)
 	if postInfo.Unavailable {
+		switch strings.ToLower(strings.TrimSpace(postInfo.UnavailableReason)) {
+		case "geoblocked":
+			return i18n("media-unavailable-geoblocked")
+		}
 		return i18n("media-unavailable")
 	}
 	return i18n("no-media-found")
@@ -457,6 +462,22 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 				})
 				return nil
 			}
+			if postInfo.Unavailable {
+				if isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) && postInfo.UnavailableReason == "" && !getMediasErrors(ctx.EffectiveMessage.Chat.Id) {
+					return nil
+				}
+				notice, _ := b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
+					ParseMode:       gotgbot.ParseModeHTML,
+					ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+					ReplyMarkup:     noMediaSupportKeyboard(i18n),
+				})
+				if notice != nil && isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) && postInfo.UnavailableReason == "" {
+					if previous := replaceTrackedNoMediaMessage(ctx.EffectiveMessage.Chat.Id, notice.MessageId); previous > 0 && previous != notice.MessageId {
+						_, _ = b.DeleteMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, previous, nil)
+					}
+					scheduleNoMediaMessageDelete(b, ctx.EffectiveMessage.Chat.Id, notice.MessageId)
+				}
+			}
 			return nil
 		}
 		if isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) {
@@ -464,13 +485,13 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 				return nil
 			}
 		}
-		notice, _ := b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(i18n, postInfo), &gotgbot.SendMessageOpts{
+		notice, _ := b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 			ReplyMarkup:     noMediaSupportKeyboard(i18n),
 		})
 
-		if notice != nil && isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) {
+		if notice != nil && isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) && postInfo.UnavailableReason == "" {
 			if previous := replaceTrackedNoMediaMessage(ctx.EffectiveMessage.Chat.Id, notice.MessageId); previous > 0 && previous != notice.MessageId {
 				_, _ = b.DeleteMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, previous, nil)
 			}
@@ -573,7 +594,7 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 		if postInfo.NoMedia {
 			return nil
 		}
-		_, _, _ = b.EditMessageTextWithContext(context.Background(), noMediaMessage(i18n, postInfo), &gotgbot.EditMessageTextOpts{
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), noMediaMessage(ctx, postInfo), &gotgbot.EditMessageTextOpts{
 			InlineMessageId: inlineResult.InlineMessageId,
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyMarkup:     noMediaSupportKeyboard(i18n),

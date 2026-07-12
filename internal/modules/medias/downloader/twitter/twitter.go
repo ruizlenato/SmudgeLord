@@ -71,6 +71,15 @@ func (h *Handler) setPostID(url string) bool {
 	return false
 }
 
+type MediaUnavailableError struct {
+	Status string
+	Reason string
+}
+
+func (e *MediaUnavailableError) Error() string {
+	return fmt.Sprintf("media unavailable: %s (%s)", e.Status, e.Reason)
+}
+
 func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.PostInfo, func()) {
 	type mediaResult struct {
 		index   int
@@ -101,6 +110,13 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 
 	for i, media := range allTweetMedia {
 		go func(index int, twitterMedia Media) {
+			if twitterMedia.ExtMediaAvailability.Status != "" && twitterMedia.ExtMediaAvailability.Status != "Available" {
+				results <- mediaResult{index: index, err: &MediaUnavailableError{
+					Status: twitterMedia.ExtMediaAvailability.Status,
+					Reason: twitterMedia.ExtMediaAvailability.Reason,
+				}}
+				return
+			}
 			media, cleanup, err := h.downloadMedia(twitterMedia, invertMedia && twitterMedia.Type != "video")
 			results <- mediaResult{index: index, media: media, cleanup: cleanup, err: err}
 		}(i, media)
@@ -113,6 +129,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 		}
 	}
 
+	var unavailableReason string
 	for range mediaCount {
 		result := <-results
 		if result.err != nil {
@@ -120,8 +137,16 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 			if errors.As(result.err, &fileTooLargeErr) {
 				return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 			}
-			slog.Error("Failed to download media in carousel", "Post Info", []string{h.username, h.postID},
-				"Media Count", result.index, "Error", result.err.Error())
+			if unavailableErr, ok := errors.AsType[*MediaUnavailableError](result.err); ok {
+				slog.Info("Media unavailable in carousel", "Post Info", []string{h.username, h.postID},
+					"Media Count", result.index, "Error", unavailableErr.Error())
+				if unavailableReason == "" {
+					unavailableReason = unavailableErr.Reason
+				}
+			} else {
+				slog.Error("Failed to download media in carousel", "Post Info", []string{h.username, h.postID},
+					"Media Count", result.index, "Error", result.err.Error())
+			}
 			continue
 		}
 		addCleanup(result.cleanup)
@@ -138,6 +163,9 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 	}
 
 	if len(nonNil) == 0 {
+		if unavailableReason != "" {
+			return downloader.NewUnavailablePostInfoWithReason(h.postID, unavailableReason), downloader.CombineCleanups(cleanups...)
+		}
 		return downloader.NewUnavailablePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 	}
 

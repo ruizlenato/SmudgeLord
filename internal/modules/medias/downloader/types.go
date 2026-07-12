@@ -32,15 +32,16 @@ type Medias struct {
 }
 
 type PostInfo struct {
-	Medias       []gotgbot.InputMedia
-	ID           string
-	Caption      string
-	Service      string
-	InvertMedia  bool
-	NoMedia      bool
-	Unavailable  bool
-	FileTooLarge bool
-	Cleanup      func()
+	Medias            []gotgbot.InputMedia
+	ID                string
+	Caption           string
+	Service           string
+	InvertMedia       bool
+	NoMedia           bool
+	Unavailable       bool
+	UnavailableReason string
+	FileTooLarge      bool
+	Cleanup           func()
 }
 
 func NewNoMediaPostInfo(id string) PostInfo {
@@ -49,6 +50,10 @@ func NewNoMediaPostInfo(id string) PostInfo {
 
 func NewUnavailablePostInfo(id string) PostInfo {
 	return PostInfo{ID: id, NoMedia: true, Unavailable: true}
+}
+
+func NewUnavailablePostInfoWithReason(id, reason string) PostInfo {
+	return PostInfo{ID: id, NoMedia: true, Unavailable: true, UnavailableReason: reason}
 }
 
 func NewFileTooLargePostInfo(id string) PostInfo {
