@@ -25,7 +25,17 @@ import (
 )
 
 func main() {
-	beta := flag.Bool("beta", false, "disable Telegram log channel forwarding")
+	beta := false
+	for _, arg := range os.Args[1:] {
+		if arg == "-beta" || arg == "--beta" {
+			beta = true
+			break
+		}
+		if arg == "-beta=false" || arg == "--beta=false" {
+			beta = false
+			break
+		}
+	}
 	flag.Parse()
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
@@ -56,7 +66,7 @@ func main() {
 	}
 
 	logChatID := config.LogChannelID
-	if *beta {
+	if beta {
 		logChatID = 0
 	}
 
