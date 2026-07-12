@@ -129,3 +129,22 @@ type WebImagePostImage struct {
 		URLList []string `json:"urlList"`
 	} `json:"displayImage"`
 }
+
+type tikwmResponse struct {
+	Code int          `json:"code"`
+	Msg  string       `json:"msg"`
+	Data *tikwmData   `json:"data,omitempty"`
+}
+
+type tikwmData struct {
+	ID     string       `json:"id"`
+	Title  string       `json:"title"`
+	Play   string       `json:"play"`
+	WmPlay string       `json:"wmplay"`
+	Author *tikwmAuthor `json:"author,omitempty"`
+}
+
+type tikwmAuthor struct {
+	UniqueID string `json:"unique_id"`
+	Nickname string `json:"nickname"`
+}

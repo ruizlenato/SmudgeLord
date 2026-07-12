@@ -12,6 +12,7 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"os"
 	"regexp"
 	"slices"
@@ -34,7 +35,77 @@ var (
 	tikTokPostIDRegex    = regexp.MustCompile(`/(?:video|photo|v)/(\d+)`)
 	ogURLRegex           = regexp.MustCompile(`(?is)<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']+)["']`)
 	canonicalRegex       = regexp.MustCompile(`(?is)<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']`)
+
+	tikwmAPIURL = "https://tikwm.com/api/"
 )
+
+func (h *Handler) fetchTikTokDataTikWM() TikTokData {
+	form := url.Values{}
+	form.Set("url", fmt.Sprintf("https://www.tiktok.com/@_/video/%s", h.postID))
+
+	resp, err := http.PostForm(tikwmAPIURL, form)
+	if err != nil {
+		slog.Debug("TikTok: TikWM request failed", "Post", h.postID, "Error", err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		slog.Debug("TikTok: TikWM read failed", "Post", h.postID, "Error", err)
+		return nil
+	}
+
+	var tikwmResp tikwmResponse
+	if err := json.Unmarshal(body, &tikwmResp); err != nil {
+		slog.Debug("TikTok: TikWM JSON decode failed", "Post", h.postID, "Error", err)
+		return nil
+	}
+
+	if tikwmResp.Code != 0 || tikwmResp.Data == nil {
+		slog.Debug("TikTok: TikWM API error", "Post", h.postID, "Code", tikwmResp.Code, "Msg", tikwmResp.Msg)
+		return nil
+	}
+
+	if tikwmResp.Data.Play == "" {
+		slog.Debug("TikTok: TikWM empty play URL", "Post", h.postID)
+		return nil
+	}
+
+	slog.Debug("TikTok: TikWM API success", "Post", h.postID)
+	return h.convertTikWMData(tikwmResp.Data)
+}
+
+func (h *Handler) convertTikWMData(data *tikwmData) TikTokData {
+	nickname := ""
+	if data.Author != nil {
+		nickname = data.Author.Nickname
+	}
+	uniqueID := ""
+	if data.Author != nil {
+		uniqueID = data.Author.UniqueID
+	}
+
+	return TikTokData(&struct {
+		AwemeList []Aweme `json:"aweme_list"`
+	}{
+		AwemeList: []Aweme{
+			{
+				AwemeID: data.ID,
+				Desc:    &data.Title,
+				Author: Author{
+					Nickname: &nickname,
+					UniqueID: uniqueID,
+				},
+				Video: Video{
+					PlayAddr: PlayAddr{
+						URLList: []string{data.Play},
+					},
+				},
+			},
+		},
+	})
+}
 
 func getRandomDeviceID() string {
 	const minID, maxID = 7250000000000000000, 7325099899999994577
@@ -268,6 +339,10 @@ func (h *Handler) getTikTokData() TikTokData {
 	}
 	if h.mediaUnavailable {
 		return nil
+	}
+
+	if data := h.fetchTikTokDataTikWM(); data != nil {
+		return data
 	}
 
 	if h.webData == nil {
