@@ -804,7 +804,7 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 	set, errGetSet := b.GetStickerSet(pack.PackName, nil)
 	if errGetSet != nil || set == nil {
 		title := generateStickerSetTitle(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username, 0)
-		_, err = b.CreateNewStickerSet(ctx.EffectiveUser.Id, pack.PackName, title, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}}, nil)
+		emoji, err = createStickerSetWithFallback(b, ctx.EffectiveUser.Id, pack.PackName, title, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}}, nil)
 		if err != nil {
 			if strings.Contains(err.Error(), "PEER_ID_INVALID") {
 				sendPrivateStartRequiredMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, i18n)
@@ -827,7 +827,7 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 			})
 			return nil
 		}
-		_, err = b.AddStickerToSet(ctx.EffectiveUser.Id, pack.PackName, gotgbot.InputSticker{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}, nil)
+		emoji, err = addStickerToSetWithFallback(b, ctx.EffectiveUser.Id, pack.PackName, gotgbot.InputSticker{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}, nil)
 		if err != nil {
 			if strings.Contains(err.Error(), "PEER_ID_INVALID") {
 				sendPrivateStartRequiredMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, i18n)
@@ -911,7 +911,7 @@ func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		emoji = defaultStickerEmoji
 	}
 
-	_, err = b.CreateNewStickerSet(userID, packName, packTitle, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(kd.FileID), Format: kd.StickerType, EmojiList: []string{emoji}}}, nil)
+	_, err = createStickerSetWithFallback(b, userID, packName, packTitle, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(kd.FileID), Format: kd.StickerType, EmojiList: []string{emoji}}}, nil)
 	if err != nil {
 		if strings.Contains(err.Error(), "PEER_ID_INVALID") {
 			sendPrivateStartRequiredMessage(b, ctx.CallbackQuery.Message.GetChat().Id, ctx.CallbackQuery.Message.GetMessageId(), i18n)
@@ -1009,6 +1009,45 @@ func extractEmojis(text string, replySticker *gotgbot.Sticker) []string {
 		emoji = append(emoji, defaultStickerEmoji)
 	}
 	return emoji
+}
+
+func isEmojiRejectedByTelegram(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "expected a Unicode emoji") ||
+		strings.Contains(msg, "invalid sticker emojis")
+}
+
+func createStickerSetWithFallback(b *gotgbot.Bot, userID int64, name, title string, stickers []gotgbot.InputSticker, opts *gotgbot.CreateNewStickerSetOpts) (string, error) {
+	_, err := b.CreateNewStickerSet(userID, name, title, stickers, opts)
+	if err == nil || !isEmojiRejectedByTelegram(err) {
+		if len(stickers) > 0 && len(stickers[0].EmojiList) > 0 {
+			return stickers[0].EmojiList[0], err
+		}
+		return defaultStickerEmoji, err
+	}
+	fallback := make([]gotgbot.InputSticker, len(stickers))
+	copy(fallback, stickers)
+	for i := range fallback {
+		fallback[i].EmojiList = []string{defaultStickerEmoji}
+	}
+	_, err = b.CreateNewStickerSet(userID, name, title, fallback, opts)
+	return defaultStickerEmoji, err
+}
+
+func addStickerToSetWithFallback(b *gotgbot.Bot, userID int64, name string, sticker gotgbot.InputSticker, opts *gotgbot.AddStickerToSetOpts) (string, error) {
+	_, err := b.AddStickerToSet(userID, name, sticker, opts)
+	if err == nil || !isEmojiRejectedByTelegram(err) {
+		if len(sticker.EmojiList) > 0 {
+			return sticker.EmojiList[0], err
+		}
+		return defaultStickerEmoji, err
+	}
+	sticker.EmojiList = []string{defaultStickerEmoji}
+	_, err = b.AddStickerToSet(userID, name, sticker, opts)
+	return defaultStickerEmoji, err
 }
 
 func buildSwitchPackList(packs []ValidatedPack, userID int64, i18n func(string, ...map[string]any) string) (string, [][]gotgbot.InlineKeyboardButton) {
