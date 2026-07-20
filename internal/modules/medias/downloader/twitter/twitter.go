@@ -374,13 +374,22 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 }
 
 func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
-	response, err := utils.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
+	retryCaller := &utils.RetryCaller{
+		Caller:       utils.DefaultHTTPCaller,
+		MaxAttempts:  3,
+		ExponentBase: 2,
+		StartDelay:   5 * time.Second,
+		MaxDelay:     10 * time.Second,
+	}
+
+	response, err := retryCaller.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
 		Method:  "GET",
 		Headers: downloader.GenericHeaders,
 	})
 	if err != nil || response.Body == nil {
 		return nil
 	}
+	defer response.Body.Close()
 
 	var fxTwitterAPIData *FxTwitterAPIData
 	err = json.NewDecoder(response.Body).Decode(&fxTwitterAPIData)
