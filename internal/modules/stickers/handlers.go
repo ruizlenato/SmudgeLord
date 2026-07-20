@@ -95,21 +95,12 @@ func sendMigrationNotice(b *gotgbot.Bot, chatID int64, replyID int, i18n func(st
 	_, _ = b.SendMessage(chatID, i18n("stickers-migration-notice"), opts)
 }
 
-func migrationPlaceholder(b *gotgbot.Bot, ctx *ext.Context) error {
-	if ctx.EffectiveMessage == nil {
-		return nil
-	}
-	i18n := localization.Get(ctx)
-	sendMigrationNotice(b, ctx.EffectiveMessage.Chat.Id, int(ctx.EffectiveMessage.MessageId), i18n)
-	return nil
-}
-
 func handleConversationError(b *gotgbot.Bot, ctx *ext.Context, err error, i18n func(string, ...map[string]any) string, lastPromptID int64, deletePrompt bool) error {
 	if ctx.EffectiveMessage == nil {
 		return nil
 	}
 	chatID := ctx.EffectiveMessage.Chat.Id
-	msg := i18n("stickers-newpack-timeout")
+	var msg string
 	switch {
 	case errors.Is(err, conversation.ErrConversationAborted), errors.Is(err, conversation.ErrConversationCanceled):
 		msg = i18n("stickers-newpack-canceled")
@@ -949,15 +940,6 @@ type ValidatedPack struct {
 	StickerCount int
 }
 
-type kangContext struct {
-	chatID    int64
-	msgID     int64
-	userID    int64
-	firstName string
-	username  string
-	emoji     []string
-}
-
 var emojiRegex = regexp.MustCompile(`[\x{1F000}-\x{1FAFF}]|[\x{2600}-\x{27BF}]|\x{200D}|[\x{FE00}-\x{FE0F}]|[\x{E0020}-\x{E007F}]|[\x{1F1E6}-\x{1F1FF}][\x{1F1E6}-\x{1F1FF}]`)
 
 func getDisplayName(firstName, username string) string {
@@ -1077,20 +1059,6 @@ func buildSwitchPackList(packs []ValidatedPack, userID int64, i18n func(string, 
 	})
 
 	return text.String(), buttons
-}
-
-func editErrorMessage(b *gotgbot.Bot, chatID, msgID, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
-	errorID := utils.NewUserErrorID(userID)
-	utils.LogErrorWithIDSkip(3, logMsg, errorID, err, "chatID", chatID, "userID", userID)
-	_, _, _ = b.EditMessageText(utils.BuildErrorReportMessage(i18n, "kang-error-summary", errorID), &gotgbot.EditMessageTextOpts{ChatId: chatID, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
-}
-
-func editStickerError(b *gotgbot.Bot, chatID, msgID, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
-	editErrorMessage(b, chatID, msgID, userID, i18n, logMsg, err)
-}
-
-func editKangError(b *gotgbot.Bot, kc *kangContext, i18n func(string, ...map[string]any) string, logMsg string, err error) {
-	editErrorMessage(b, kc.chatID, kc.msgID, kc.userID, i18n, logMsg, err)
 }
 
 func getStickerHandler(b *gotgbot.Bot, ctx *ext.Context) error {
