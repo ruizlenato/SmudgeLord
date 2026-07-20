@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -14,10 +15,17 @@ import (
 const (
 	fallbackMaxEntries = 10000
 	fallbackSweepEvery = 1 * time.Minute
+
+	unhealthyCooldown = 5 * time.Second
 )
 
 var rdb *redis.Client
-var clientInitialized bool
+
+var (
+	clientInitialized  atomic.Bool
+	redisHealthy       atomic.Bool
+	unhealthyUntilNano atomic.Int64
+)
 
 type fallbackEntry struct {
 	value     string
@@ -134,28 +142,37 @@ func RedisClient(addr string, password string, db int) error {
 	ctx := context.Background()
 	_, err := rdb.Ping(ctx).Result()
 	if err != nil {
-		clientInitialized = false
+		clientInitialized.Store(false)
+		redisHealthy.Store(false)
 		return err
 	}
 
-	clientInitialized = true
+	clientInitialized.Store(true)
+	redisHealthy.Store(true)
 	return nil
 }
 
-func isHealthy() bool {
-	if !clientInitialized {
+func redisReady() bool {
+	if !clientInitialized.Load() {
 		return false
 	}
+	if redisHealthy.Load() {
+		return true
+	}
+	return time.Now().UnixNano() > unhealthyUntilNano.Load()
+}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+func markRedisHealthy() {
+	redisHealthy.Store(true)
+}
 
-	return rdb.Ping(ctx).Err() == nil
+func markRedisUnhealthy() {
+	redisHealthy.Store(false)
+	unhealthyUntilNano.Store(time.Now().Add(unhealthyCooldown).UnixNano())
 }
 
 func SetCache(key string, value any, expiration time.Duration) error {
-	healthy := isHealthy()
-	if !healthy {
+	if !redisReady() {
 		setFallback(key, value, expiration)
 		slog.Info("cache client is not healthy, skipping SetCache")
 		return nil
@@ -164,33 +181,35 @@ func SetCache(key string, value any, expiration time.Duration) error {
 	ctx := context.Background()
 	err := rdb.Set(ctx, key, value, expiration).Err()
 	if err != nil {
+		markRedisUnhealthy()
 		setFallback(key, value, expiration)
 		return err
 	}
 
+	markRedisHealthy()
 	deleteFallback(key)
 	return nil
 }
 
 func GetCache(key string) (string, error) {
-	healthy := isHealthy()
-	if healthy {
+	if redisReady() {
 		ctx := context.Background()
 		val, err := rdb.Get(ctx, key).Result()
 		if err != nil {
 			if errors.Is(err, redis.Nil) {
+				markRedisHealthy()
 				return "", nil
 			}
+			markRedisUnhealthy()
 			return "", err
 		}
 
+		markRedisHealthy()
 		deleteFallback(key)
 		return val, nil
 	}
 
-	if !healthy {
-		slog.Info("cache client is not healthy, trying in-memory fallback")
-	}
+	slog.Info("cache client is not healthy, trying in-memory fallback")
 
 	if val, ok := getFallback(key); ok {
 		return val, nil
@@ -200,8 +219,7 @@ func GetCache(key string) (string, error) {
 }
 
 func SetCacheBytes(key string, value []byte, expiration time.Duration) error {
-	healthy := isHealthy()
-	if !healthy {
+	if !redisReady() {
 		setFallback(key, value, expiration)
 		slog.Info("cache client is not healthy, skipping SetCacheBytes")
 		return nil
@@ -210,33 +228,35 @@ func SetCacheBytes(key string, value []byte, expiration time.Duration) error {
 	ctx := context.Background()
 	err := rdb.Set(ctx, key, value, expiration).Err()
 	if err != nil {
+		markRedisUnhealthy()
 		setFallback(key, value, expiration)
 		return err
 	}
 
+	markRedisHealthy()
 	deleteFallback(key)
 	return nil
 }
 
 func GetCacheBytes(key string) ([]byte, error) {
-	healthy := isHealthy()
-	if healthy {
+	if redisReady() {
 		ctx := context.Background()
 		val, err := rdb.Get(ctx, key).Bytes()
 		if err != nil {
 			if errors.Is(err, redis.Nil) {
+				markRedisHealthy()
 				return nil, nil
 			}
+			markRedisUnhealthy()
 			return nil, err
 		}
 
+		markRedisHealthy()
 		deleteFallback(key)
 		return val, nil
 	}
 
-	if !healthy {
-		slog.Info("cache client is not healthy, trying in-memory fallback")
-	}
+	slog.Info("cache client is not healthy, trying in-memory fallback")
 
 	if val, ok := getFallbackBytes(key); ok {
 		return val, nil
@@ -248,11 +268,16 @@ func GetCacheBytes(key string) ([]byte, error) {
 func DeleteCache(key string) error {
 	deleteFallback(key)
 
-	if !isHealthy() {
+	if !redisReady() {
 		slog.Info("cache client is not healthy, skipping DeleteCache")
 		return nil
 	}
 
 	ctx := context.Background()
-	return rdb.Del(ctx, key).Err()
+	if err := rdb.Del(ctx, key).Err(); err != nil {
+		markRedisUnhealthy()
+		return err
+	}
+	markRedisHealthy()
+	return nil
 }
