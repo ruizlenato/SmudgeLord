@@ -240,27 +240,6 @@ func (h *Handler) getRedlibData() ([]gotgbot.InputMedia, string, bool, func()) {
 	return nil, "", false, nil
 }
 
-func (h *Handler) requestRedlibPost() (*http.Response, string, error) {
-	startIdx := int(atomic.AddUint64(&redlibRouteCounter, 1)-1) % len(redlibInstances)
-
-	var lastErr error
-	for i := 0; i < len(redlibInstances); i++ {
-		idx := (startIdx + i) % len(redlibInstances)
-		instance := redlibInstances[idx]
-		targetURL := fmt.Sprintf("%s/r/%s/comments/%s", instance, h.subreddit, h.postID)
-
-		resp, err := h.fetchRedlibInstance(targetURL, instance)
-		if err != nil {
-			slog.Warn("Redlib instance failed, trying next", "instance", instance, "Error", err.Error())
-			lastErr = err
-			continue
-		}
-		return resp, instance, nil
-	}
-
-	return nil, "", fmt.Errorf("all redlib instances failed: last error: %w", lastErr)
-}
-
 func (h *Handler) fetchRedlibInstance(targetURL, instance string) (*http.Response, error) {
 	response, err := utils.Request(targetURL, utils.RequestParams{
 		Method:  "GET",
