@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"fmt"
+	"log/slog"
 	"strings"
 	"sync"
 
@@ -17,20 +17,60 @@ var DisableableCommands []string
 var disableableCommandsMu sync.Mutex
 var disableableCommandsSet = map[string]struct{}{}
 
+var disabledCmdsCache = map[int64]map[string]struct{}{}
+var disabledCmdsCacheMu sync.RWMutex
+
 func CheckDisabledCommand(command string, chatID int64) bool {
 	command = NormalizeCommand(command)
 	if command == "" {
 		return false
 	}
 
-	var exists bool
-	query := "SELECT EXISTS(SELECT 1 FROM commandsDisabled WHERE command = ? AND chat_id = ? LIMIT 1);"
-	err := database.DB.QueryRow(query, command, chatID).Scan(&exists)
+	disabledCmdsCacheMu.RLock()
+	set, ok := disabledCmdsCache[chatID]
+	disabledCmdsCacheMu.RUnlock()
+	if ok {
+		_, disabled := set[command]
+		return disabled
+	}
+
+	set, err := loadDisabledCommands(chatID)
 	if err != nil {
-		fmt.Printf("Error checking command: %v\n", err)
+		slog.Warn("CheckDisabledCommand: failed to load disabled commands",
+			"chatID", chatID, "err", err)
 		return false
 	}
-	return exists
+
+	disabledCmdsCacheMu.Lock()
+	disabledCmdsCache[chatID] = set
+	disabledCmdsCacheMu.Unlock()
+
+	_, disabled := set[command]
+	return disabled
+}
+
+func loadDisabledCommands(chatID int64) (map[string]struct{}, error) {
+	rows, err := database.DB.Query("SELECT command FROM commandsDisabled WHERE chat_id = ?;", chatID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	set := map[string]struct{}{}
+	for rows.Next() {
+		var cmd string
+		if err := rows.Scan(&cmd); err != nil {
+			return nil, err
+		}
+		set[cmd] = struct{}{}
+	}
+	return set, rows.Err()
+}
+
+func InvalidateDisabledCommandsCache(chatID int64) {
+	disabledCmdsCacheMu.Lock()
+	delete(disabledCmdsCache, chatID)
+	disabledCmdsCacheMu.Unlock()
 }
 
 func NormalizeCommand(command string) string {

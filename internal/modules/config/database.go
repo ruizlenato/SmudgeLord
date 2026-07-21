@@ -1,15 +1,26 @@
 package config
 
-import "github.com/ruizlenato/smudgelord/internal/database"
+import (
+	"github.com/ruizlenato/smudgelord/internal/database"
+	"github.com/ruizlenato/smudgelord/internal/utils"
+)
 
 func insertDisabledCommand(chatID int64, command string) error {
 	_, err := database.DB.Exec("INSERT OR IGNORE INTO commandsDisabled (chat_id, command) VALUES (?, ?);", chatID, command)
-	return err
+	if err != nil {
+		return err
+	}
+	utils.InvalidateDisabledCommandsCache(chatID)
+	return nil
 }
 
 func deleteDisabledCommand(chatID int64, command string) error {
 	_, err := database.DB.Exec("DELETE FROM commandsDisabled WHERE chat_id = ? AND command = ?;", chatID, command)
-	return err
+	if err != nil {
+		return err
+	}
+	utils.InvalidateDisabledCommandsCache(chatID)
+	return nil
 }
 
 func getDisabledCommands(chatID int64) ([]string, error) {
