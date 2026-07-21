@@ -431,6 +431,43 @@ func normalizeShowCaptionAboveMedia(medias []gotgbot.InputMedia) {
 	}
 }
 
+type downloadFlight struct {
+	done   chan struct{}
+	result downloadResult
+}
+
+type downloadResult struct {
+	postInfo downloader.PostInfo
+	noMedia  bool
+	retry    bool
+}
+
+var (
+	inFlightMu        sync.Mutex
+	inFlightDownloads = map[string]*downloadFlight{}
+)
+
+const downloadWaitTimeout = 2 * time.Minute
+
+func acquireDownload(url string) (leader bool, flight *downloadFlight) {
+	inFlightMu.Lock()
+	defer inFlightMu.Unlock()
+	if f, ok := inFlightDownloads[url]; ok {
+		return false, f
+	}
+	f := &downloadFlight{done: make(chan struct{})}
+	inFlightDownloads[url] = f
+	return true, f
+}
+
+func completeDownload(url string, f *downloadFlight, result downloadResult) {
+	f.result = result
+	inFlightMu.Lock()
+	delete(inFlightDownloads, url)
+	inFlightMu.Unlock()
+	close(f.done)
+}
+
 func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || !shouldProcessMedia(ctx.EffectiveMessage) {
 		return nil
@@ -444,64 +481,76 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		})
 		return nil
 	}
+
+	leader, flight := acquireDownload(url)
+	if leader {
+		completeDownload(url, flight, downloadAndSend(b, ctx, url, i18n))
+		return nil
+	}
+
+	select {
+	case <-flight.done:
+	case <-time.After(downloadWaitTimeout):
+		downloadAndSend(b, ctx, url, i18n)
+		return nil
+	}
+
+	result := flight.result
+	if result.retry {
+		downloadAndSend(b, ctx, url, i18n)
+		return nil
+	}
+	if result.noMedia {
+		handleNoMediaNotice(b, ctx, result.postInfo, i18n)
+		return nil
+	}
+	cached, err := downloader.GetMediaCache(result.postInfo.ID)
+	if err != nil {
+		downloadAndSend(b, ctx, url, i18n)
+		return nil
+	}
+	if !prepareCaption(&cached, url, i18n) {
+		return nil
+	}
+	sendMediaBatches(b, ctx, cached, url, i18n)
+	return nil
+}
+
+func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(string, ...map[string]any) string) downloadResult {
 	postInfo := processMedia(url)
 	defer func() {
 		if postInfo.Cleanup != nil {
 			postInfo.Cleanup()
 		}
 	}()
-	if len(postInfo.Medias) == 0 {
-		if postInfo.NoMedia {
-			if postInfo.FileTooLarge {
-				_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("video-too-large"), &gotgbot.SendMessageOpts{
-					ParseMode:       gotgbot.ParseModeHTML,
-					ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-					ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
-						{Text: i18n("donation-button"), Url: fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)},
-					}}},
-				})
-				return nil
-			}
-			if postInfo.Unavailable {
-				if isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) && postInfo.UnavailableReason == "" && !getMediasErrors(ctx.EffectiveMessage.Chat.Id) {
-					return nil
-				}
-				notice, _ := b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
-					ParseMode:       gotgbot.ParseModeHTML,
-					ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-					ReplyMarkup:     noMediaSupportKeyboard(i18n),
-				})
-				if notice != nil && isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) && postInfo.UnavailableReason == "" {
-					if previous := replaceTrackedNoMediaMessage(ctx.EffectiveMessage.Chat.Id, notice.MessageId); previous > 0 && previous != notice.MessageId {
-						_, _ = b.DeleteMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, previous, nil)
-					}
-					scheduleNoMediaMessageDelete(b, ctx.EffectiveMessage.Chat.Id, notice.MessageId)
-				}
-			}
-			return nil
-		}
-		if isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) {
-			if !getMediasErrors(ctx.EffectiveMessage.Chat.Id) {
-				return nil
-			}
-		}
-		notice, _ := b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
-			ParseMode:       gotgbot.ParseModeHTML,
-			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-			ReplyMarkup:     noMediaSupportKeyboard(i18n),
-		})
 
-		if notice != nil && isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) && postInfo.UnavailableReason == "" {
-			if previous := replaceTrackedNoMediaMessage(ctx.EffectiveMessage.Chat.Id, notice.MessageId); previous > 0 && previous != notice.MessageId {
-				_, _ = b.DeleteMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, previous, nil)
-			}
-			scheduleNoMediaMessageDelete(b, ctx.EffectiveMessage.Chat.Id, notice.MessageId)
-		}
-		return nil
+	if len(postInfo.Medias) == 0 {
+		handleNoMediaNotice(b, ctx, postInfo, i18n)
+		return downloadResult{postInfo: postInfo, noMedia: true}
 	}
+
 	if !prepareCaption(&postInfo, url, i18n) {
-		return nil
+		return downloadResult{postInfo: postInfo, noMedia: true}
 	}
+
+	allSent := sendMediaBatches(b, ctx, postInfo, url, i18n)
+	if len(allSent) > 0 {
+		if err := downloader.SetMediaCache(allSent, postInfo); err != nil {
+			slog.Error("Couldn't set media cache", "error", err)
+		}
+	}
+
+	cached, err := downloader.GetMediaCache(postInfo.ID)
+	if err != nil {
+		slog.Warn("downloadAndSend: cache unavailable after send, waiters will re-download",
+			"postID", postInfo.ID, "error", err)
+		return downloadResult{retry: true}
+	}
+	return downloadResult{postInfo: cached}
+}
+
+func sendMediaBatches(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) []gotgbot.Message {
+	const maxFloodRetries = 3
 	var allSent []gotgbot.Message
 	for i := 0; i < len(postInfo.Medias); i += 10 {
 		end := min(i+10, len(postInfo.Medias))
@@ -511,7 +560,6 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 			batch.Caption = ""
 		}
 
-		const maxFloodRetries = 3
 		var sent []gotgbot.Message
 		var err error
 		for attempt := 0; attempt <= maxFloodRetries; attempt++ {
@@ -535,12 +583,52 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		}
 		allSent = append(allSent, sent...)
 	}
-	if len(allSent) > 0 {
-		if err := downloader.SetMediaCache(allSent, postInfo); err != nil {
-			slog.Error("Couldn't set media cache", "error", err)
+	return allSent
+}
+
+func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, i18n func(string, ...map[string]any) string) {
+	chatID := ctx.EffectiveMessage.Chat.Id
+	chatType := ctx.EffectiveMessage.Chat.Type
+
+	if postInfo.NoMedia {
+		if postInfo.FileTooLarge {
+			_, _ = b.SendMessageWithContext(context.Background(), chatID, i18n("video-too-large"), &gotgbot.SendMessageOpts{
+				ParseMode:       gotgbot.ParseModeHTML,
+				ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+				ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+					{Text: i18n("donation-button"), Url: fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)},
+				}}},
+			})
+			return
 		}
+		if postInfo.Unavailable {
+			if isGroupLikeChat(chatType) && postInfo.UnavailableReason == "" && !getMediasErrors(chatID) {
+				return
+			}
+			sendNoMediaNotice(b, ctx, postInfo, i18n)
+		}
+		return
 	}
-	return nil
+
+	if isGroupLikeChat(chatType) && !getMediasErrors(chatID) {
+		return
+	}
+	sendNoMediaNotice(b, ctx, postInfo, i18n)
+}
+
+func sendNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, i18n func(string, ...map[string]any) string) {
+	chatID := ctx.EffectiveMessage.Chat.Id
+	notice, _ := b.SendMessageWithContext(context.Background(), chatID, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
+		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyMarkup:     noMediaSupportKeyboard(i18n),
+	})
+	if notice != nil && isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) && postInfo.UnavailableReason == "" {
+		if previous := replaceTrackedNoMediaMessage(chatID, notice.MessageId); previous > 0 && previous != notice.MessageId {
+			_, _ = b.DeleteMessageWithContext(context.Background(), chatID, previous, nil)
+		}
+		scheduleNoMediaMessageDelete(b, chatID, notice.MessageId)
+	}
 }
 
 func mediasInlineQuery(b *gotgbot.Bot, ctx *ext.Context) error {
