@@ -19,7 +19,7 @@ import (
 
 	"github.com/anthonynsimon/bild/transform"
 	"github.com/ruizlenato/smudgelord/internal/database/cache"
-	lastFMAPI "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
+	lastfmapi "github.com/ruizlenato/smudgelord/internal/modules/lastfm/api"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 	"golang.org/x/image/font"
 	"golang.org/x/image/font/gofont/gobold"
@@ -92,7 +92,7 @@ func buildLastFMCollage(collageType, period, username string, gridSize int, with
 	type tileResult struct {
 		idx  int
 		til  *image.RGBA
-		item lastFMAPI.TopCollageItem
+		item lastfmapi.TopCollageItem
 	}
 	results := make(chan tileResult, gridSize*gridSize)
 	sem := make(chan struct{}, 16)
@@ -145,7 +145,7 @@ func buildLastFMCollage(collageType, period, username string, gridSize int, with
 	return out.Bytes(), nil
 }
 
-func getTopItemsForCollage(collageType, period, username string, limit int) ([]lastFMAPI.TopCollageItem, error) {
+func getTopItemsForCollage(collageType, period, username string, limit int) ([]lastfmapi.TopCollageItem, error) {
 	return lastFM.GetTopCollageItems(collageType, username, period, limit)
 }
 
@@ -189,7 +189,7 @@ func fetchCollageImage(url string) (image.Image, error) {
 	return img, nil
 }
 
-func fetchCollageTile(item lastFMAPI.TopCollageItem, collageType string, size int) (image.Image, error) {
+func fetchCollageTile(item lastfmapi.TopCollageItem, collageType string, size int) (image.Image, error) {
 	url := item.ImageURL
 	if strings.TrimSpace(url) == "" {
 		return nil, fmt.Errorf("empty image url")
@@ -226,7 +226,7 @@ func collageImageCacheKey(rawURL string) string {
 	return "lastfm:img:" + hex.EncodeToString(h[:])
 }
 
-func collageTileCacheKey(item lastFMAPI.TopCollageItem, collageType string, size int) string {
+func collageTileCacheKey(item lastfmapi.TopCollageItem, collageType string, size int) string {
 	if collageType == "artist" {
 		artist := normalizedKey(item.Title)
 		if artist != "" {
@@ -250,7 +250,7 @@ func normalizedKey(s string) string {
 	return strings.Join(strings.Fields(s), "_")
 }
 
-func drawTileLabel(dst *image.RGBA, item lastFMAPI.TopCollageItem, tileSize int) {
+func drawTileLabel(dst *image.RGBA, item lastfmapi.TopCollageItem, tileSize int) {
 	applyBottomGradient(dst, tileSize/2, color.RGBA{0, 0, 0, 0}, color.RGBA{0, 0, 0, 185})
 
 	artist := trimLabel(item.Subtitle, 29)

@@ -1,4 +1,4 @@
-package lastFMAPI
+package lastfmapi
 
 import (
 	"bytes"
@@ -158,7 +158,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 
 	if err != nil {
 		slog.Error("Couldn't request get info",
-"Error", err.Error())
+			"Error", err.Error())
 		return 0
 	}
 	defer response.Body.Close()
@@ -167,7 +167,7 @@ func (lfm *LastFM) PlayCount(recentTracks *recentTracks, method string) int {
 	err = json.NewDecoder(response.Body).Decode(&getInfo)
 	if err != nil {
 		slog.Error("Couldn't unmarshal get info",
-"Error", err.Error())
+			"Error", err.Error())
 	}
 
 	var userPlaycount int
