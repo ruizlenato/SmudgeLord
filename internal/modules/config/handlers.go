@@ -35,7 +35,9 @@ func disableableHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	var text strings.Builder
 	text.WriteString(i18n("disableables-commands"))
 	for _, command := range utils.DisableableCommands {
-		text.WriteString("\n- <code>" + command + "</code>")
+		text.WriteString("\n- <code>")
+		text.WriteString(command)
+		text.WriteString("</code>")
 	}
 
 	_, _ = b.SendMessage(ctx.EffectiveChat.Id, text.String(), &gotgbot.SendMessageOpts{
@@ -149,7 +151,9 @@ func disabledHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	var text strings.Builder
 	text.WriteString(i18n("disabled-commands"))
 	for _, command := range commands {
-		text.WriteString("\n- <code>" + command + "</code>")
+		text.WriteString("\n- <code>")
+		text.WriteString(command)
+		text.WriteString("</code>")
 	}
 
 	_, _ = b.SendMessage(ctx.EffectiveChat.Id, text.String(), &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML, ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId}})
