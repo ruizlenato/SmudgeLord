@@ -1,3 +1,4 @@
+// Package downloader provides the shared media download interface and helpers.
 package downloader
 
 import (

@@ -1,3 +1,4 @@
+// Package substack implements a Substack media downloader.
 package substack
 
 import (

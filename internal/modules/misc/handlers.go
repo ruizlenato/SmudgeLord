@@ -1,3 +1,4 @@
+// Package misc implements miscellaneous bot command handlers.
 package misc
 
 import (

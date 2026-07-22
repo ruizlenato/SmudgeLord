@@ -1,3 +1,4 @@
+// Package medias handles downloading and sending media from supported platforms.
 package medias
 
 import (

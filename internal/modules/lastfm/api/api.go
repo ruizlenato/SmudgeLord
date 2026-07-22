@@ -1,3 +1,4 @@
+// Package lastfmapi implements a client for the Last.fm web API.
 package lastfmapi
 
 import (

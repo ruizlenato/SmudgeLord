@@ -1,3 +1,4 @@
+// Package sudoers manages bot administrator users and permissions.
 package sudoers
 
 import (

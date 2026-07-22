@@ -39,21 +39,21 @@ type PinVideos struct {
 }
 
 type VideoList struct {
-	V720P   *VideoVariant `json:"v_720p"`
-	VHLSV4  *VideoVariant `json:"v_hlsv4"`
-	VHLSV3  *VideoVariant `json:"v_hlsv3"`
-	VEXP0   *VideoVariant `json:"v_exp0"`
-	VEXP1   *VideoVariant `json:"v_exp1"`
-	VEXP2   *VideoVariant `json:"v_exp2"`
-	VEXP3   *VideoVariant `json:"v_exp3"`
-	VEXP4   *VideoVariant `json:"v_exp4"`
-	VEXP5   *VideoVariant `json:"v_exp5"`
-	VEXP6   *VideoVariant `json:"v_exp6"`
-	VEXP7   *VideoVariant `json:"v_exp7"`
-	V360P   *VideoVariant `json:"v_360p"`
-	V480P   *VideoVariant `json:"v_480p"`
-	V1080P  *VideoVariant `json:"v_1080p"`
-	V240P   *VideoVariant `json:"v_240p"`
+	V720P  *VideoVariant `json:"v_720p"`
+	VHLSV4 *VideoVariant `json:"v_hlsv4"`
+	VHLSV3 *VideoVariant `json:"v_hlsv3"`
+	VEXP0  *VideoVariant `json:"v_exp0"`
+	VEXP1  *VideoVariant `json:"v_exp1"`
+	VEXP2  *VideoVariant `json:"v_exp2"`
+	VEXP3  *VideoVariant `json:"v_exp3"`
+	VEXP4  *VideoVariant `json:"v_exp4"`
+	VEXP5  *VideoVariant `json:"v_exp5"`
+	VEXP6  *VideoVariant `json:"v_exp6"`
+	VEXP7  *VideoVariant `json:"v_exp7"`
+	V360P  *VideoVariant `json:"v_360p"`
+	V480P  *VideoVariant `json:"v_480p"`
+	V1080P *VideoVariant `json:"v_1080p"`
+	V240P  *VideoVariant `json:"v_240p"`
 }
 
 type VideoVariant struct {
@@ -79,10 +79,10 @@ type StoryPinBlock struct {
 }
 
 type VideoDataV2 struct {
-	VideoList720P   *VideoList720P   `json:"videoList720P"`
-	VideoListMobile *VideoListMobile `json:"videoListMobile"`
+	VideoList720P   *VideoList720P    `json:"videoList720P"`
+	VideoListMobile *VideoListMobile  `json:"videoListMobile"`
 	VideoList       *VideoListGeneric `json:"videoList"`
-	VHLSV4VideoList *VHLSV4VideoList `json:"v_hlsv4_video_list"`
+	VHLSV4VideoList *VHLSV4VideoList  `json:"v_hlsv4_video_list"`
 }
 
 type VideoList720P struct {

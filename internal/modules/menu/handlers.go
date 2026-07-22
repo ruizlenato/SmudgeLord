@@ -1,3 +1,4 @@
+// Package menu implements the bot menu and help command handlers.
 package menu
 
 import (
@@ -340,9 +341,9 @@ func donateHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 
 	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("donate-message"), &gotgbot.SendMessageOpts{
-		ParseMode: gotgbot.ParseModeHTML,
+		ParseMode:          gotgbot.ParseModeHTML,
 		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
-		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyParameters:    &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
 			{Text: i18n("donate-website-button"), Url: "https://ruizlenato.github.io/donate"},
 		}}},

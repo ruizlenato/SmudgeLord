@@ -1,3 +1,4 @@
+// Package modules registers and loads bot feature modules.
 package modules
 
 import (

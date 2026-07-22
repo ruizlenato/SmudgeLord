@@ -1,3 +1,4 @@
+// Package twitter implements a Twitter/X media downloader.
 package twitter
 
 import (

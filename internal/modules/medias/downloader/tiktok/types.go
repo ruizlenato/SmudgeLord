@@ -131,9 +131,9 @@ type WebImagePostImage struct {
 }
 
 type tikwmResponse struct {
-	Code int          `json:"code"`
-	Msg  string       `json:"msg"`
-	Data *tikwmData   `json:"data,omitempty"`
+	Code int        `json:"code"`
+	Msg  string     `json:"msg"`
+	Data *tikwmData `json:"data,omitempty"`
 }
 
 type tikwmData struct {

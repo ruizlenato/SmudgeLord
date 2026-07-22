@@ -1,3 +1,4 @@
+// Package conversation manages per-user conversation context for the bot.
 package conversation
 
 import (

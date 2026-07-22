@@ -1,3 +1,4 @@
+// Package lastfm implements Last.fm features including scrobbling and collages.
 package lastfm
 
 import (
@@ -33,7 +34,7 @@ var convDispatcher *ext.Dispatcher
 var convOnce sync.Once
 
 var collageBuildState = struct {
-	mu      sync.Mutex
+	mu       sync.Mutex
 	building map[int64]bool
 }{
 	building: make(map[int64]bool),

@@ -1,3 +1,4 @@
+// Package youtube implements a YouTube media downloader.
 package youtube
 
 import (

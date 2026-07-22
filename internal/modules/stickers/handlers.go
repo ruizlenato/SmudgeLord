@@ -1,4 +1,5 @@
-﻿package stickers
+// Package stickers implements sticker pack management and the kang workflow.
+package stickers
 
 import (
 	"bytes"

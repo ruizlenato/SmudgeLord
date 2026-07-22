@@ -1,3 +1,4 @@
+// Package bluesky implements a Bluesky media downloader.
 package bluesky
 
 import (

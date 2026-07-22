@@ -1,3 +1,4 @@
+// Package tiktok implements a TikTok media downloader.
 package tiktok
 
 import (

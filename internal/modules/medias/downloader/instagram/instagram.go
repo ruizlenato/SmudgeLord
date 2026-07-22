@@ -1,3 +1,4 @@
+// Package instagram implements an Instagram media downloader.
 package instagram
 
 import (
@@ -361,10 +362,10 @@ func (h *Handler) handleImage(data *ShortcodeMedia) ([]gotgbot.InputMedia, func(
 
 func (h *Handler) handleSidecar(data *ShortcodeMedia) ([]gotgbot.InputMedia, func()) {
 	type mediaResult struct {
-		index int
-		media *downloader.InputMedia
+		index   int
+		media   *downloader.InputMedia
 		cleanup func()
-		err   error
+		err     error
 	}
 
 	mediaCount := len(data.EdgeSidecarToChildren.Edges)

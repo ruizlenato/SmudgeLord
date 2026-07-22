@@ -1,3 +1,4 @@
+// Package utils provides shared helpers for error reporting, HTTP requests, retry, strings, and images.
 package utils
 
 import (

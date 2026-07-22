@@ -1,3 +1,4 @@
+// Package reddit implements a Reddit media downloader.
 package reddit
 
 import (

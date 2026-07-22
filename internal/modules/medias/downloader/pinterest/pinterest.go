@@ -1,3 +1,4 @@
+// Package pinterest implements a Pinterest media downloader.
 package pinterest
 
 import (

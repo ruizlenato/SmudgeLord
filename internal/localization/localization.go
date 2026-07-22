@@ -1,3 +1,4 @@
+// Package localization provides internationalized message bundles for the bot.
 package localization
 
 import (

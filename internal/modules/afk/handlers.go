@@ -1,3 +1,4 @@
+// Package afk implements the away-from-keyboard module for tracking user absence.
 package afk
 
 import (
@@ -53,8 +54,8 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 			"duration":      humanizedDuration,
 		}), &gotgbot.SendMessageOpts{
 			LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
-			ParseMode:         gotgbot.ParseModeHTML,
-			ReplyParameters:   &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+			ParseMode:          gotgbot.ParseModeHTML,
+			ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
 		})
 
 		return nil
@@ -77,8 +78,8 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	_, _ = b.SendMessage(messageData.Chat.Id, text, &gotgbot.SendMessageOpts{
 		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
-		ParseMode:         gotgbot.ParseModeHTML,
-		ReplyParameters:   &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+		ParseMode:          gotgbot.ParseModeHTML,
+		ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
 	})
 
 	return nil

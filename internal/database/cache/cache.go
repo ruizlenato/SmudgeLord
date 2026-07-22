@@ -1,3 +1,4 @@
+// Package cache provides a circuit-breaker-guarded Redis cache client.
 package cache
 
 import (

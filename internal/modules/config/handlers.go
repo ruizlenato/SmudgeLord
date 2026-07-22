@@ -1,3 +1,4 @@
+// Package config manages per-chat configuration such as disabled commands.
 package config
 
 import (

@@ -1,3 +1,4 @@
+// Package xiaohongshu implements a Xiaohongshu (Little Red Book) media downloader.
 package xiaohongshu
 
 import (

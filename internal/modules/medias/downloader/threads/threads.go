@@ -1,3 +1,4 @@
+// Package threads implements a Threads media downloader.
 package threads
 
 import (
