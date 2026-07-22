@@ -34,6 +34,9 @@ func getUserPacks(userID int64) ([]StickerPack, error) {
 		}
 		packs = append(packs, pack)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	return packs, nil
 }
 

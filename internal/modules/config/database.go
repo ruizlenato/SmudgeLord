@@ -38,6 +38,9 @@ func getDisabledCommands(chatID int64) ([]string, error) {
 		}
 		commands = append(commands, command)
 	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 
 	return commands, nil
 }
