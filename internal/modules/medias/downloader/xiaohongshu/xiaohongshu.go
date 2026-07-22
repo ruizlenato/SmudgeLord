@@ -143,8 +143,8 @@ func (h *Handler) getXiaohongshuData(url string) XiaohongshuData {
 	}
 
 	if matches := scriptRegex.FindSubmatch(body); len(matches) > 1 {
-		xiaohongshuJson := strings.ReplaceAll(string(matches[1]), "undefined", "null")
-		err := json.Unmarshal([]byte(xiaohongshuJson), &xiaohongshuData)
+		xiaohongshuJSON := strings.ReplaceAll(string(matches[1]), "undefined", "null")
+		err := json.Unmarshal([]byte(xiaohongshuJSON), &xiaohongshuData)
 		if err != nil {
 			slog.Error("Error unmarshalling JSON to struct",
 				"Error", err)
