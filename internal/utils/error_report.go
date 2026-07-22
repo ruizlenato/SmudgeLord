@@ -56,7 +56,7 @@ func ErrorReportKeyboard(i18n func(string, ...map[string]any) string) gotgbot.In
 }
 
 func LogErrorWithID(message, errorID string, err error, attrs ...any) {
-	LogErrorWithIDSkip(1, message, errorID, err, attrs...)
+	LogErrorWithIDSkip(2, message, errorID, err, attrs...)
 }
 
 func LogErrorWithIDSkip(skip int, message, errorID string, err error, attrs ...any) {

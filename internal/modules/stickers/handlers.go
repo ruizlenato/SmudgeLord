@@ -55,7 +55,7 @@ func kangErrorMessage(i18n func(string, ...map[string]any) string, userID int64)
 func sendKangErrorMessage(b *gotgbot.Bot, chatID int64, replyTo int64, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
 	text, errorID := kangErrorMessage(i18n, userID)
 	if logMsg != "" {
-		utils.LogErrorWithIDSkip(2, logMsg, errorID, err, "userID", userID, "chatID", chatID)
+		utils.LogErrorWithID(logMsg, errorID, err, "userID", userID, "chatID", chatID)
 	}
 
 	opts := &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML}
@@ -69,7 +69,7 @@ func sendKangErrorMessage(b *gotgbot.Bot, chatID int64, replyTo int64, userID in
 func answerKangErrorCallback(b *gotgbot.Bot, callbackID string, userID int64, i18n func(string, ...map[string]any) string, logMsg string, err error) {
 	errorID := utils.NewUserErrorID(userID)
 	if logMsg != "" {
-		utils.LogErrorWithIDSkip(2, logMsg, errorID, err, "userID", userID)
+		utils.LogErrorWithID(logMsg, errorID, err, "userID", userID)
 	}
 	_, _ = b.AnswerCallbackQuery(callbackID, &gotgbot.AnswerCallbackQueryOpts{Text: utils.BuildErrorReportAlert(i18n, "kang-error-summary", errorID), ShowAlert: true})
 }
