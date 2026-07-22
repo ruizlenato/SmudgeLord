@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -57,8 +58,8 @@ type Conversation struct {
 	userID        int64
 	timeout       time.Duration
 	abortKeywords []string
-	canceled      bool
-	lastMessageID int64
+	canceled      atomic.Bool
+	lastMessageID atomic.Int64
 	manager       *Manager
 }
 
@@ -100,7 +101,7 @@ func (m *Manager) Start(chatID, userID int64, opts ...*ConversationOptions) *Con
 }
 
 func (c *Conversation) cancel() {
-	c.canceled = true
+	c.canceled.Store(true)
 }
 
 func (c *Conversation) Cancel() {
@@ -109,7 +110,7 @@ func (c *Conversation) Cancel() {
 }
 
 func (c *Conversation) IsCanceled() bool {
-	return c.canceled
+	return c.canceled.Load()
 }
 
 func (c *Conversation) removeFromManager() {
@@ -132,7 +133,7 @@ func (c *Conversation) checkAbort(msg *gotgbot.Message) bool {
 }
 
 func (c *Conversation) AwaitResponse(ctx context.Context) (*gotgbot.Message, error) {
-	if c.canceled {
+	if c.canceled.Load() {
 		return nil, ErrConversationCanceled
 	}
 
@@ -165,7 +166,7 @@ func (c *Conversation) AwaitResponse(ctx context.Context) (*gotgbot.Message, err
 
 	select {
 	case msg := <-responseChan:
-		if c.canceled {
+		if c.canceled.Load() {
 			return nil, ErrConversationCanceled
 		}
 		return msg, nil
@@ -179,23 +180,23 @@ func (c *Conversation) AwaitResponse(ctx context.Context) (*gotgbot.Message, err
 }
 
 func (c *Conversation) SendMessage(_ context.Context, text string, opts *gotgbot.SendMessageOpts) (*gotgbot.Message, error) {
-	if c.canceled {
+	if c.canceled.Load() {
 		return nil, ErrConversationCanceled
 	}
 
 	msg, err := c.b.SendMessage(c.chatID, text, opts)
 	if err == nil && msg != nil {
-		c.lastMessageID = msg.MessageId
+		c.lastMessageID.Store(msg.MessageId)
 	}
 	return msg, err
 }
 
 func (c *Conversation) GetLastMessageID() int64 {
-	return c.lastMessageID
+	return c.lastMessageID.Load()
 }
 
 func (c *Conversation) Ask(ctx context.Context, text string, opts *gotgbot.SendMessageOpts) (*gotgbot.Message, error) {
-	if c.canceled {
+	if c.canceled.Load() {
 		return nil, ErrConversationCanceled
 	}
 
