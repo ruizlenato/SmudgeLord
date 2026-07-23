@@ -270,6 +270,28 @@ func isIgnorableMediaSendError(err error) bool {
 	return false
 }
 
+func isTransientNetworkError(err error) bool {
+	if err == nil {
+		return false
+	}
+	errMsg := strings.ToLower(err.Error())
+	transientPatterns := []string{
+		"eof",
+		"connection reset",
+		"broken pipe",
+		"timeout",
+		"deadline exceeded",
+		"connection refused",
+		"unexpected eof",
+	}
+	for _, pattern := range transientPatterns {
+		if strings.Contains(errMsg, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
 func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) bool {
 	if len(postInfo.Medias) == 0 {
 		return false
@@ -551,7 +573,7 @@ func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(str
 }
 
 func sendMediaBatches(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) []gotgbot.Message {
-	const maxFloodRetries = 3
+	const maxSendRetries = 3
 	var allSent []gotgbot.Message
 	for i := 0; i < len(postInfo.Medias); i += 10 {
 		end := min(i+10, len(postInfo.Medias))
@@ -563,16 +585,23 @@ func sendMediaBatches(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.Post
 
 		var sent []gotgbot.Message
 		var err error
-		for attempt := 0; attempt <= maxFloodRetries; attempt++ {
+		for attempt := 0; attempt <= maxSendRetries; attempt++ {
 			sent, err = sendMediaAndHandleCaption(b, ctx, batch, url, i18n)
 			if err == nil {
 				break
 			}
-			retryAfter, isFlood := parseFloodWaitError(err)
-			if !isFlood {
-				break
+			if retryAfter, isFlood := parseFloodWaitError(err); isFlood {
+				handleFloodWait(retryAfter)
+				continue
 			}
-			handleFloodWait(retryAfter)
+			if isTransientNetworkError(err) && attempt < maxSendRetries {
+				backoff := time.Duration(1<<attempt) * time.Second
+				slog.Warn("Transient network error, retrying",
+					"postUrl", url, "error", err, "attempt", attempt+1, "backoff", backoff)
+				time.Sleep(backoff)
+				continue
+			}
+			break
 		}
 
 		if err != nil {
