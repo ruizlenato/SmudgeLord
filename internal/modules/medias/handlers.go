@@ -259,6 +259,8 @@ func isIgnorableMediaSendError(err error) bool {
 		"not enough rights to send videos to the chat",
 		"not enough rights to send photos to the chat",
 		"message to be replied not found",
+		"topic closed",
+		"topic deleted",
 	}
 
 	for _, expected := range ignorableErrors {
