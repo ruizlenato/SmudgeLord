@@ -317,7 +317,18 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) ([]gotgbot.InputMedia, func(
 		return nil, nil
 	}
 
-	thumbnail, err := downloader.FetchBytesFromURL(data.DisplayResources[len(data.DisplayResources)-1].Src)
+	thumbnailURL := displayResourceURL(data.DisplayResources, data.DisplayURL)
+	if thumbnailURL == "" {
+		if fileCleanup != nil {
+			fileCleanup()
+		}
+		slog.Error("Failed to download thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Error", "no thumbnail URL available")
+		return nil, nil
+	}
+
+	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
 	if err != nil {
 		if fileCleanup != nil {
 			fileCleanup()
@@ -432,17 +443,30 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) ([]gotgbot.InputMedia, fun
 	return nonNil, downloader.CombineCleanups(cleanups...)
 }
 
+func displayResourceURL(resources []DisplayResources, displayURL string) string {
+	if len(resources) > 0 {
+		return resources[len(resources)-1].Src
+	}
+	return displayURL
+}
+
 func (h *Handler) downloadMedia(data Edges) (*downloader.InputMedia, func(), error) {
 	var media downloader.InputMedia
 	var err error
 	var cleanup func()
 
 	if !data.Node.IsVideo {
-		media.File, cleanup, err = fetchBytesFromStream(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
+		url := displayResourceURL(data.Node.DisplayResources, data.Node.DisplayURL)
+		if url == "" {
+			return nil, nil, fmt.Errorf("no display URL available for media %s", data.Node.ID)
+		}
+		media.File, cleanup, err = fetchBytesFromStream(url)
 	} else {
 		media.File, cleanup, err = fetchBytesFromStream(data.Node.VideoURL)
 		if err == nil {
-			media.Thumbnail, err = downloader.FetchBytesFromURL(data.Node.DisplayResources[len(data.Node.DisplayResources)-1].Src)
+			if url := displayResourceURL(data.Node.DisplayResources, data.Node.DisplayURL); url != "" {
+				media.Thumbnail, err = downloader.FetchBytesFromURL(url)
+			}
 		}
 	}
 	if err != nil {
