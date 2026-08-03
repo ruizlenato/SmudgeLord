@@ -244,44 +244,6 @@ type FetchInfo struct {
 	ContentType string
 }
 
-func FetchBytesFromURLWithClient(media string, client *http.Client) (*FetchInfo, error) {
-	retryCaller := &utils.RetryCaller{
-		Caller:       &utils.HTTPCaller{Client: client},
-		MaxAttempts:  3,
-		ExponentBase: 2,
-		StartDelay:   1 * time.Second,
-		MaxDelay:     5 * time.Second,
-	}
-	response, err := retryCaller.Request(media, utils.RequestParams{
-		Method:  "GET",
-		Headers: GenericHeaders,
-		Cookies: map[string]string{
-			"use_hls":               "on",
-			"hide_hls_notification": "on",
-		},
-	})
-	if err != nil || response == nil {
-		return nil, errors.New("get error")
-	}
-	defer response.Body.Close()
-
-	bodyBytes, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	contentType := ""
-	if response.Header != nil {
-		contentType = response.Header.Get("Content-Type")
-	}
-
-	return &FetchInfo{
-		Body:        bodyBytes,
-		StatusCode:  response.StatusCode,
-		ContentType: contentType,
-	}, nil
-}
-
 func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anubisSolver AnubisSolver) (*os.File, error) {
 	playlist, _, err := m3u8.DecodeFrom(body, true)
 	if err != nil {

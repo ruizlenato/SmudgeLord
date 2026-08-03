@@ -32,7 +32,3 @@ func RetryWithBackoff[T any](
 
 	return result, err
 }
-
-func RetryWithBackoffSimple[T any](fn func() (T, error), maxAttempts int) (T, error) {
-	return RetryWithBackoff(fn, maxAttempts, time.Second, 30*time.Second, 2)
-}

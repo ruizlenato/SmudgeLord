@@ -109,10 +109,6 @@ func (c *Conversation) Cancel() {
 	c.removeFromManager()
 }
 
-func (c *Conversation) IsCanceled() bool {
-	return c.canceled.Load()
-}
-
 func (c *Conversation) removeFromManager() {
 	if c.manager != nil {
 		c.manager.mu.Lock()
