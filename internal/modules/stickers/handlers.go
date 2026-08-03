@@ -122,7 +122,8 @@ func handleConversationError(b *gotgbot.Bot, ctx *ext.Context, err error, i18n f
 			},
 		})
 	} else if lastPromptID > 0 {
-		_, _, _ = b.EditMessageText(msg, &gotgbot.EditMessageTextOpts{
+		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+			Text:      msg,
 			ChatId:    chatID,
 			MessageId: lastPromptID,
 			ParseMode: gotgbot.ParseModeHTML,
@@ -228,7 +229,8 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.DeleteMessage(chatID, emojiReplyID, nil)
 	}
 	// Edit the emoji prompt to show "creating pack" status
-	_, _, _ = b.EditMessageText(i18n("sticker-creating-pack"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:      i18n("sticker-creating-pack"),
 		ChatId:    chatID,
 		MessageId: emojiPrompt.MessageId,
 		ParseMode: gotgbot.ParseModeHTML,
@@ -271,10 +273,11 @@ func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		slog.Error("Couldn't save pack to database", "error", err)
 	}
 
-	_, _, _ = b.EditMessageText(i18n("stickers-newpack-success", map[string]any{
-		"packTitle": utils.SanitizeTelegramHTML(packTitle),
-		"packEmoji": utils.EscapeHTML(packEmoji),
-	}), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text: i18n("stickers-newpack-success", map[string]any{
+			"packTitle": utils.SanitizeTelegramHTML(packTitle),
+			"packEmoji": utils.EscapeHTML(packEmoji),
+		}),
 		ChatId:    chatID,
 		MessageId: emojiPrompt.MessageId,
 		ParseMode: gotgbot.ParseModeHTML,
@@ -482,7 +485,7 @@ func switchPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(i18n("sticker-default-changed"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{Text: i18n("sticker-default-changed"), ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
@@ -507,7 +510,7 @@ func switchNoneCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(i18n("sticker-default-changed"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{Text: i18n("sticker-default-changed"), ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
@@ -569,17 +572,16 @@ func delPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(
-		i18n("sticker-delpack-confirm", map[string]any{"packTitle": packTitle}),
-		&gotgbot.EditMessageTextOpts{
-			ChatId:    chat.Id,
-			MessageId: msgID,
-			ParseMode: gotgbot.ParseModeHTML,
-			ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
-				{{Text: i18n("sticker-delpack-confirm-yes"), CallbackData: fmt.Sprintf("dpYes %d %d", ownerID, packID), Style: gotgbot.KeyboardButtonStyleDanger}},
-				{{Text: i18n("sticker-delpack-confirm-no"), CallbackData: fmt.Sprintf("dpNo %d", ownerID)}},
-			}},
-		})
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:      i18n("sticker-delpack-confirm", map[string]any{"packTitle": packTitle}),
+		ChatId:    chat.Id,
+		MessageId: msgID,
+		ParseMode: gotgbot.ParseModeHTML,
+		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{
+			{{Text: i18n("sticker-delpack-confirm-yes"), CallbackData: fmt.Sprintf("dpYes %d %d", ownerID, packID), Style: gotgbot.KeyboardButtonStyleDanger}},
+			{{Text: i18n("sticker-delpack-confirm-no"), CallbackData: fmt.Sprintf("dpNo %d", ownerID)}},
+		}},
+	})
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
@@ -617,7 +619,7 @@ func delPackConfirmCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(i18n("sticker-pack-deleted"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{Text: i18n("sticker-pack-deleted"), ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
@@ -642,7 +644,7 @@ func delPackCancelCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
 	if len(valid) == 0 {
-		_, _, _ = b.EditMessageText(i18n("sticker-no-packs"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{Text: i18n("sticker-no-packs"), ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
 		_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 		return nil
 	}
@@ -655,7 +657,7 @@ func delPackCancelCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		fmt.Fprintf(&text, "\n%d - %s", i+1, pack.Title)
 		buttons = append(buttons, []gotgbot.InlineKeyboardButton{{Text: fmt.Sprintf("%d", i+1), CallbackData: fmt.Sprintf("dpSel %d %d", ownerID, pack.ID)}})
 	}
-	_, _, _ = b.EditMessageText(text.String(), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons}})
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{Text: text.String(), ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: buttons}})
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
@@ -732,7 +734,8 @@ func kangPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 	chat := ctx.CallbackQuery.Message.GetChat()
 	listMsgID := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(i18n("stealing-sticker"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:      i18n("stealing-sticker"),
 		ChatId:    chat.Id,
 		MessageId: listMsgID,
 		ParseMode: gotgbot.ParseModeHTML,
@@ -837,7 +840,8 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 	if ctx.CallbackQuery != nil && ctx.CallbackQuery.Message != nil {
 		chat := ctx.CallbackQuery.Message.GetChat()
 		msgID := ctx.CallbackQuery.Message.GetMessageId()
-		_, _, _ = b.EditMessageText(text, &gotgbot.EditMessageTextOpts{
+		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+			Text:        text,
 			ChatId:      chat.Id,
 			MessageId:   msgID,
 			ParseMode:   gotgbot.ParseModeHTML,
@@ -847,7 +851,8 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 	}
 
 	if statusMsgID > 0 {
-		_, _, _ = b.EditMessageText(text, &gotgbot.EditMessageTextOpts{
+		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+			Text:        text,
 			ChatId:      ctx.EffectiveChat.Id,
 			MessageId:   statusMsgID,
 			ParseMode:   gotgbot.ParseModeHTML,
@@ -916,7 +921,8 @@ func createNewPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	_ = cache.DeleteCache(cacheKey)
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msg := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(i18n("sticker-pack-created", map[string]any{"packTitle": packTitle, "packNum": count + 1}), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:      i18n("sticker-pack-created", map[string]any{"packTitle": packTitle, "packNum": count + 1}),
 		ChatId:    chat.Id,
 		MessageId: msg,
 		ParseMode: gotgbot.ParseModeHTML,

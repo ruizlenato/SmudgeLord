@@ -181,7 +181,8 @@ func languageMenuCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(i18n("language-menu", map[string]any{"languageFlag": i18n("language-flag"), "languageName": i18n("language-name")}), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:        i18n("language-menu", map[string]any{"languageFlag": i18n("language-flag"), "languageName": i18n("language-name")}),
 		ChatId:      chat.Id,
 		MessageId:   msgID,
 		ParseMode:   gotgbot.ParseModeHTML,
@@ -213,7 +214,8 @@ func setLanguageCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		buttons = append(buttons, []gotgbot.InlineKeyboardButton{{Text: i18n("back-button"), CallbackData: "config"}})
 	}
 
-	_, _, _ = b.EditMessageText(i18n("language-changed"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:        i18n("language-changed"),
 		ChatId:      chat.Id,
 		MessageId:   ctx.CallbackQuery.Message.GetMessageId(),
 		ParseMode:   gotgbot.ParseModeHTML,
@@ -256,7 +258,8 @@ func configCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	_, _, _ = b.EditMessageText(i18n("config-message"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:        i18n("config-message"),
 		ChatId:      chat.Id,
 		MessageId:   msgID,
 		ParseMode:   gotgbot.ParseModeHTML,
@@ -310,7 +313,8 @@ func mediaConfigCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		{{Text: i18n("back-button"), CallbackData: "config"}},
 	}
 
-	_, _, _ = b.EditMessageText(i18n("config-medias"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:        i18n("config-medias"),
 		ChatId:      chat.Id,
 		MessageId:   ctx.CallbackQuery.Message.GetMessageId(),
 		ParseMode:   gotgbot.ParseModeHTML,

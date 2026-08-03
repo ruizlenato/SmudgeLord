@@ -82,7 +82,8 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 		chat := ctx.CallbackQuery.Message.GetChat()
 		msgID := ctx.CallbackQuery.Message.GetMessageId()
-		_, _, _ = b.EditMessageText("Choose broadcast type:", &gotgbot.EditMessageTextOpts{
+		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+			Text:      "Choose broadcast type:",
 			ChatId:    chat.Id,
 			MessageId: msgID,
 			ParseMode: gotgbot.ParseModeHTML,
@@ -100,7 +101,8 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 		chat := ctx.CallbackQuery.Message.GetChat()
 		msgID := ctx.CallbackQuery.Message.GetMessageId()
-		_, _, _ = b.EditMessageText("Do you really want to send this message?", &gotgbot.EditMessageTextOpts{
+		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+			Text:      "Do you really want to send this message?",
 			ChatId:    chat.Id,
 			MessageId: msgID,
 			ParseMode: gotgbot.ParseModeHTML,
@@ -120,7 +122,8 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		if ctx.CallbackQuery != nil && ctx.CallbackQuery.Message != nil {
 			chat := ctx.CallbackQuery.Message.GetChat()
 			msgID := ctx.CallbackQuery.Message.GetMessageId()
-			_, _, _ = b.EditMessageText("Broadcast canceled.", &gotgbot.EditMessageTextOpts{
+			_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+				Text:      "Broadcast canceled.",
 				ChatId:    chat.Id,
 				MessageId: msgID,
 				ParseMode: gotgbot.ParseModeHTML,
@@ -167,14 +170,12 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.CallbackQuery != nil && ctx.CallbackQuery.Message != nil {
 		chat := ctx.CallbackQuery.Message.GetChat()
 		msgID := ctx.CallbackQuery.Message.GetMessageId()
-		_, _, _ = b.EditMessageText(
-			fmt.Sprintf("<b>Messages sent successfully:</b> <code>%d</code>\n<b>Messages unsent:</b> <code>%d</code>", successCount, errorCount),
-			&gotgbot.EditMessageTextOpts{
-				ChatId:    chat.Id,
-				MessageId: msgID,
-				ParseMode: gotgbot.ParseModeHTML,
-			},
-		)
+		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+			Text:      fmt.Sprintf("<b>Messages sent successfully:</b> <code>%d</code>\n<b>Messages unsent:</b> <code>%d</code>", successCount, errorCount),
+			ChatId:    chat.Id,
+			MessageId: msgID,
+			ParseMode: gotgbot.ParseModeHTML,
+		})
 	}
 
 	announceMessageText = ""

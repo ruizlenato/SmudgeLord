@@ -670,7 +670,8 @@ func LastfmInline(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 	lastFMUsername, err := getUserLastFMUsername(ctx.ChosenInlineResult.From.Id)
 	if err != nil || lastFMUsername == "" {
-		_, _, _ = b.EditMessageText(i18n("lastfm-username-not-found-inline"), &gotgbot.EditMessageTextOpts{
+		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+			Text:            i18n("lastfm-username-not-found-inline"),
 			InlineMessageId: ctx.ChosenInlineResult.InlineMessageId,
 			ParseMode:       gotgbot.ParseModeHTML,
 		})
@@ -689,7 +690,8 @@ func LastfmInline(b *gotgbot.Bot, ctx *ext.Context) error {
 	if isError {
 		opts.ReplyMarkup = utils.ErrorReportKeyboard(i18n)
 	}
-	_, _, _ = b.EditMessageText(text, opts)
+	opts.Text = text
+	_, _, _ = b.EditMessageText(opts)
 
 	return nil
 }

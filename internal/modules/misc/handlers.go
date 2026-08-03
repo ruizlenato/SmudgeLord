@@ -310,13 +310,18 @@ func callbackWeather(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
-	_, _, _ = b.EditMessageText(i18n("weather-details", map[string]any{
-		"localname":            strings.Join(localNameParts, ", "),
-		"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
-		"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
-		"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
-		"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
-	}), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: msgID, ParseMode: gotgbot.ParseModeHTML})
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text: i18n("weather-details", map[string]any{
+			"localname":            strings.Join(localNameParts, ", "),
+			"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
+			"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
+			"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
+			"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
+		}),
+		ChatId:    chat.Id,
+		MessageId: msgID,
+		ParseMode: gotgbot.ParseModeHTML,
+	})
 
 	return nil
 }
@@ -383,13 +388,17 @@ func WeatherInline(b *gotgbot.Bot, ctx *ext.Context, geocode string) error {
 	localNameParts = append(localNameParts, weatherResultData.V3LocationPoint.Location.City, weatherResultData.V3LocationPoint.Location.AdminDistrict, weatherResultData.V3LocationPoint.Location.Country)
 
 	if ctx.ChosenInlineResult != nil {
-		_, _, err = b.EditMessageText(i18n("weather-details", map[string]any{
-			"localname":            strings.Join(localNameParts, ", "),
-			"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
-			"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
-			"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
-			"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
-		}), &gotgbot.EditMessageTextOpts{InlineMessageId: ctx.ChosenInlineResult.InlineMessageId, ParseMode: gotgbot.ParseModeHTML})
+		_, _, err = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+			Text: i18n("weather-details", map[string]any{
+				"localname":            strings.Join(localNameParts, ", "),
+				"temperature":          weatherResultData.V3WxObservationsCurrent.Temperature,
+				"temperatureFeelsLike": weatherResultData.V3WxObservationsCurrent.TemperatureFeelsLike,
+				"relativeHumidity":     weatherResultData.V3WxObservationsCurrent.RelativeHumidity,
+				"windSpeed":            weatherResultData.V3WxObservationsCurrent.WindSpeed,
+			}),
+			InlineMessageId: ctx.ChosenInlineResult.InlineMessageId,
+			ParseMode:       gotgbot.ParseModeHTML,
+		})
 		if err != nil {
 			slog.Error("Couldn't edit message", "Error", err.Error())
 		}

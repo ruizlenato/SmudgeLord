@@ -92,7 +92,8 @@ func startCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 	firstName := ctx.CallbackQuery.From.FirstName
 
-	_, _, _ = b.EditMessageText(i18n("start-message", map[string]any{"userFirstName": firstName, "botName": botUser.FirstName}), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:               i18n("start-message", map[string]any{"userFirstName": firstName, "botName": botUser.FirstName}),
 		ChatId:             chat.Id,
 		MessageId:          msgID,
 		ParseMode:          gotgbot.ParseModeHTML,
@@ -146,7 +147,8 @@ func privacyCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	_, _, _ = b.EditMessageText(i18n("privacy-policy-private"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:               i18n("privacy-policy-private"),
 		ChatId:             chat.Id,
 		MessageId:          msgID,
 		ParseMode:          gotgbot.ParseModeHTML,
@@ -167,7 +169,8 @@ func aboutMenuCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	_, _, _ = b.EditMessageText(i18n("about-message"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:               i18n("about-message"),
 		ChatId:             chat.Id,
 		MessageId:          msgID,
 		ParseMode:          gotgbot.ParseModeHTML,
@@ -189,7 +192,8 @@ func aboutYourDataCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	_, _, _ = b.EditMessageText(i18n("about-your-data"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:               i18n("about-your-data"),
 		ChatId:             chat.Id,
 		MessageId:          msgID,
 		ParseMode:          gotgbot.ParseModeHTML,
@@ -209,7 +213,8 @@ func helpMenuCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	_, _, _ = b.EditMessageText(i18n("help-message"), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:               i18n("help-message"),
 		ChatId:             chat.Id,
 		MessageId:          msgID,
 		ParseMode:          gotgbot.ParseModeHTML,
@@ -230,7 +235,8 @@ func helpMessageCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
 
-	_, _, _ = b.EditMessageText(i18n(fmt.Sprintf("%s-help", module)), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
+		Text:               i18n(fmt.Sprintf("%s-help", module)),
 		ChatId:             chat.Id,
 		MessageId:          msgID,
 		ParseMode:          gotgbot.ParseModeHTML,

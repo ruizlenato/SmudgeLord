@@ -714,7 +714,8 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 		if postInfo.NoMedia {
 			return nil
 		}
-		_, _, _ = b.EditMessageTextWithContext(context.Background(), noMediaMessage(ctx, postInfo), &gotgbot.EditMessageTextOpts{
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
+			Text:            noMediaMessage(ctx, postInfo),
 			InlineMessageId: inlineResult.InlineMessageId,
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyMarkup:     noMediaSupportKeyboard(i18n),
@@ -796,7 +797,8 @@ func uploadMediaToLogChannel(ctx context.Context, b *gotgbot.Bot, media gotgbot.
 }
 
 func sendInlineError(ctx *ext.Context, b *gotgbot.Bot, inlineID string, i18n func(string, ...map[string]any) string, errorID string) {
-	_, _, _ = b.EditMessageTextWithContext(context.Background(), utils.BuildErrorReportMessage(i18n, "media-error-summary", errorID), &gotgbot.EditMessageTextOpts{
+	_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
+		Text:            utils.BuildErrorReportMessage(i18n, "media-error-summary", errorID),
 		InlineMessageId: inlineID,
 		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyMarkup:     utils.ErrorReportKeyboard(i18n),
@@ -890,7 +892,7 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{Text: i18n("video-exceeds-limit", map[string]any{"size": sizeLimit}), ShowAlert: true})
 		return nil
 	}
-	_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("downloading"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
+	_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{Text: i18n("downloading"), ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
 	format := "audio"
 	if data[0] == "_vid" {
 		format = "video"
@@ -904,11 +906,11 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if err != nil {
 		errorID := utils.NewUserErrorID(ctx.CallbackQuery.From.Id)
 		utils.LogErrorWithID("Failed to download youtube media", errorID, err, "videoID", data[1])
-		_, _, _ = b.EditMessageTextWithContext(context.Background(), utils.BuildErrorReportMessage(i18n, "youtube-error-summary", errorID), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{Text: utils.BuildErrorReportMessage(i18n, "youtube-error-summary", errorID), ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
 		return nil
 	}
 	itag, _ := strconv.Atoi(data[2])
-	_, _, _ = b.EditMessageTextWithContext(context.Background(), i18n("uploading"), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
+	_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{Text: i18n("uploading"), ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML})
 	action := chatActionUploadVoice
 	if data[0] == "_vid" {
 		action = chatActionUploadVideo
@@ -945,7 +947,7 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	if err != nil {
 		errorID := utils.NewUserErrorID(ctx.CallbackQuery.From.Id)
 		utils.LogErrorWithID("Couldn't send youtube media", errorID, err, "format", data[0], "videoID", data[1])
-		_, _, _ = b.EditMessageTextWithContext(context.Background(), utils.BuildErrorReportMessage(i18n, "youtube-error-summary", errorID), &gotgbot.EditMessageTextOpts{ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{Text: utils.BuildErrorReportMessage(i18n, "youtube-error-summary", errorID), ChatId: chat.Id, MessageId: messageID, ParseMode: gotgbot.ParseModeHTML, ReplyMarkup: utils.ErrorReportKeyboard(i18n)})
 		return nil
 	}
 	_, _ = b.DeleteMessageWithContext(context.Background(), chat.Id, messageID, nil)
