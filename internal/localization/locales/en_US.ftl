@@ -275,6 +275,7 @@ misc-help =
 
     <b>— Commands:</b>
     <b>/weather (city):</b> Displays the current weather of the specified city.
+    <b>/jsondump:</b> Dumps the Telegram message object as JSON.
     <b>/tr (source)-(destination) (text):</b> Translates a text from the source language to the specified destination language.
     <i>If you don't specify the source language, Smudge will automatically detect it.</i>
 

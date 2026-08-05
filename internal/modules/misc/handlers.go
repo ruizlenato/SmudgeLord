@@ -4,6 +4,7 @@ package misc
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"log/slog"
 	"math/rand"
 	"net/url"
@@ -449,6 +450,33 @@ func slapHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
+func jsondumpHandler(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.EffectiveMessage == nil {
+		return nil
+	}
+
+	msg := ctx.EffectiveMessage
+	data, err := json.MarshalIndent(msg, "", "    ")
+	if err != nil {
+		slog.Error("Couldn't marshal message", "error", err.Error())
+		return nil
+	}
+
+	escaped := html.EscapeString(string(data))
+	if len(escaped)+13 <= 4096 {
+		_, _ = b.SendMessage(msg.Chat.Id, "<code>"+escaped+"</code>", &gotgbot.SendMessageOpts{
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId},
+		})
+		return nil
+	}
+
+	_, _ = b.SendDocument(msg.Chat.Id, gotgbot.InputFileByReader(fmt.Sprintf("message_%d.json", msg.MessageId), strings.NewReader(string(data))), &gotgbot.SendDocumentOpts{
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: msg.MessageId},
+	})
+	return nil
+}
+
 func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(utils.NewDisableableCommand("weather", weatherHandler))
 	dispatcher.AddHandler(utils.NewDisableableCommand("clima", weatherHandler))
@@ -459,6 +487,7 @@ func Load(dispatcher *ext.Dispatcher) {
 		return strings.HasPrefix(iq.Query, "weather") || strings.HasPrefix(iq.Query, "clima")
 	}, weatherInlineQuery))
 	dispatcher.AddHandler(utils.NewDisableableCommand("slap", slapHandler))
+	dispatcher.AddHandler(utils.NewDisableableCommand("jsondump", jsondumpHandler))
 
 	utils.SaveHelp("misc")
 }

@@ -279,6 +279,7 @@ misc-help =
 
     <b>— Comandos:</b>
     <b>/clima (cidade):</b> Exibe o clima atual da cidade especifica.
+    <b>/jsondump:</b> Envia o objeto da mensagem do Telegram em formato JSON.
     <b>/tr (origem)-(destino) (texto):</b> Traduz um texto do idioma de origem para o idioma de destino especificado.
     <i>Caso você não especifique o idioma de origem, o Smudge irá identificar automaticamente.</i>
 
