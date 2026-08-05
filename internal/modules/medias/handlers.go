@@ -4,8 +4,11 @@ package medias
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
+	"mime/multipart"
 	"regexp"
 	"strconv"
 	"strings"
@@ -195,7 +198,7 @@ func scheduleNoMediaMessageDelete(b *gotgbot.Bot, chatID, messageID int64) {
 
 type MediaHandler struct {
 	Name    string
-	Handler func(string) downloader.PostInfo
+	Handler func(string, downloader.Options) downloader.PostInfo
 }
 
 var mediaHandlers = map[string]MediaHandler{
@@ -226,11 +229,11 @@ func extractURL(text string) (string, bool) {
 	return match[0], true
 }
 
-func processMedia(text string) downloader.PostInfo {
+func processMedia(text string, opts downloader.Options) downloader.PostInfo {
 	var postInfo downloader.PostInfo
 	for pattern, handler := range mediaHandlers {
 		if match, _ := regexp.MatchString(pattern, text); match {
-			postInfo = handler.Handler(text)
+			postInfo = handler.Handler(text, opts)
 			postInfo.Service = handler.Name
 			break
 		}
@@ -433,6 +436,85 @@ func sendMediaAndHandleCaption(
 	return sent, nil
 }
 
+type richMessageWithAttach struct {
+	gotgbot.InputRichMessage
+}
+
+func (v richMessageWithAttach) Attach(mediaName string, w *multipart.Writer) error {
+	for idx, m := range v.Media {
+		if m.Media == nil {
+			continue
+		}
+		if err := m.Media.Attach(fmt.Sprintf("%s_%d", mediaName, idx), w); err != nil {
+			return fmt.Errorf("failed to attach rich message media: %w", err)
+		}
+	}
+	return nil
+}
+
+func sendAsArticle(
+	b *gotgbot.Bot,
+	ctx *ext.Context,
+	postInfo downloader.PostInfo,
+	url string,
+	i18n func(string, ...map[string]any) string,
+) ([]gotgbot.Message, error) {
+	if ctx.EffectiveMessage == nil {
+		return nil, fmt.Errorf("missing effective message")
+	}
+	chatID := ctx.EffectiveMessage.Chat.Id
+
+	if _, err := b.SendChatActionWithContext(context.Background(), chatID, chatActionUploadDoc, nil); err != nil {
+		slog.Warn("failed to send chat action", "error", err)
+	}
+
+	var articleHTML string
+	var mediaList []gotgbot.InputRichMessageMedia
+
+	if ctx.EffectiveMessage.Chat.Type != gotgbot.ChatTypePrivate && !getMediasCaption(chatID) {
+		var htmlBuilder strings.Builder
+		mediaList = downloader.AppendRichMediaSlideshow(&htmlBuilder, postInfo.Medias, 1)
+		articleHTML = htmlBuilder.String()
+	} else if postInfo.Article != nil {
+		articleHTML = postInfo.Article.HTML
+		mediaList = postInfo.Article.Media
+	} else {
+		var htmlBuilder strings.Builder
+		downloader.AppendCaptionParagraph(&htmlBuilder, postInfo.Caption)
+		mediaList = downloader.AppendRichMedia(&htmlBuilder, postInfo.Medias, 1)
+		articleHTML = htmlBuilder.String()
+	}
+
+	const maxRichMessageMedia = 50
+	if len(mediaList) > maxRichMessageMedia {
+		return nil, fmt.Errorf("too many media for rich message: %d", len(mediaList))
+	}
+
+	buttonText := i18n("open-link", map[string]any{"service": postInfo.Service})
+	keyboard := openLinkKeyboard(buttonText, url)
+
+	waitForMediaSendSlot(chatID)
+	waitForGlobalSlot()
+
+	raw, err := b.RequestWithContext(context.Background(), "sendRichMessage", map[string]any{
+		"chat_id": chatID,
+		"rich_message": richMessageWithAttach{InputRichMessage: gotgbot.InputRichMessage{
+			Html:  articleHTML,
+			Media: mediaList,
+		}},
+		"reply_parameters": &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		"reply_markup":     &keyboard,
+	}, nil)
+	if err != nil {
+		return nil, err
+	}
+	var msg gotgbot.Message
+	if err := json.Unmarshal(raw, &msg); err != nil {
+		return nil, err
+	}
+	return []gotgbot.Message{msg}, nil
+}
+
 func normalizeShowCaptionAboveMedia(medias []gotgbot.InputMedia) {
 	if len(medias) <= 1 {
 		return
@@ -542,7 +624,8 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 }
 
 func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(string, ...map[string]any) string) downloadResult {
-	postInfo := processMedia(url)
+	articleEnabled := getMediasArticle(ctx.EffectiveMessage.Chat.Id)
+	postInfo := processMedia(url, downloader.Options{Article: articleEnabled})
 	defer func() {
 		if postInfo.Cleanup != nil {
 			postInfo.Cleanup()
@@ -558,17 +641,38 @@ func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(str
 		return downloadResult{postInfo: postInfo, noMedia: true}
 	}
 
-	allSent := sendMediaBatches(b, ctx, postInfo, url, i18n)
+	var allSent []gotgbot.Message
+	if articleEnabled {
+		sent, err := sendAsArticle(b, ctx, postInfo, url, i18n)
+		if err != nil {
+			slog.Warn("Couldn't send media as article, falling back to traditional send", "postUrl", url, "error", err)
+			allSent = sendMediaBatches(b, ctx, postInfo, url, i18n)
+		} else {
+			allSent = sent
+		}
+	} else {
+		allSent = sendMediaBatches(b, ctx, postInfo, url, i18n)
+	}
+	cacheSkipped := false
 	if len(allSent) > 0 {
 		if err := downloader.SetMediaCache(allSent, postInfo); err != nil {
-			slog.Error("Couldn't set media cache", "error", err)
+			if errors.Is(err, downloader.ErrNoCacheableMedia) {
+				cacheSkipped = true
+			} else {
+				slog.Error("Couldn't set media cache", "error", err)
+			}
 		}
 	}
 
 	cached, err := downloader.GetMediaCache(postInfo.ID)
 	if err != nil {
-		slog.Warn("downloadAndSend: cache unavailable after send, waiters will re-download",
-			"postID", postInfo.ID, "error", err)
+		if cacheSkipped {
+			slog.Info("downloadAndSend: cache unavailable after send, waiters will re-download",
+				"postID", postInfo.ID, "error", err)
+		} else {
+			slog.Warn("downloadAndSend: cache unavailable after send, waiters will re-download",
+				"postID", postInfo.ID, "error", err)
+		}
 		return downloadResult{retry: true}
 	}
 	return downloadResult{postInfo: cached}
@@ -704,7 +808,7 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	i18n := localization.Get(ctx)
 	inlineResult := ctx.ChosenInlineResult
-	postInfo := processMedia(inlineResult.Query)
+	postInfo := processMedia(inlineResult.Query, downloader.Options{})
 	defer func() {
 		if postInfo.Cleanup != nil {
 			postInfo.Cleanup()

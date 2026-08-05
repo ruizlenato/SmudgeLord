@@ -224,7 +224,7 @@ func GetBestQualityVideoStream(formats []youtubedl.Format) *youtubedl.Format {
 	return &bestFormat
 }
 
-func Handle(videoURL string) downloader.PostInfo {
+func Handle(videoURL string, _ downloader.Options) downloader.PostInfo {
 	youtubeClient := ConfigureYoutubeClient()
 	if youtubeClient == nil {
 		return downloader.PostInfo{}

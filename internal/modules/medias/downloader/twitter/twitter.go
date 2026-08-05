@@ -37,7 +37,7 @@ var (
 	}
 )
 
-func Handle(text string) downloader.PostInfo {
+func Handle(text string, opts downloader.Options) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return downloader.PostInfo{}
@@ -59,7 +59,7 @@ func Handle(text string) downloader.PostInfo {
 	}
 
 	handler.username = (*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.ScreenName
-	postInfo, cleanup := handler.processTwitterAPI(twitterData)
+	postInfo, cleanup := handler.processTwitterAPI(twitterData, opts.Article)
 	postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, cleanup)
 	return postInfo
 }
@@ -81,14 +81,7 @@ func (e *MediaUnavailableError) Error() string {
 	return fmt.Sprintf("media unavailable: %s (%s)", e.Status, e.Reason)
 }
 
-func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.PostInfo, func()) {
-	type mediaResult struct {
-		index   int
-		media   gotgbot.InputMedia
-		cleanup func()
-		err     error
-	}
-
+func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, buildArticle bool) (downloader.PostInfo, func()) {
 	var invertMedia bool
 
 	allTweetMedia := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media
@@ -107,21 +100,15 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 	}
 
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
-	results := make(chan mediaResult, mediaCount)
-
-	for i, media := range allTweetMedia {
-		go func(index int, twitterMedia Media) {
-			if twitterMedia.ExtMediaAvailability.Status != "" && twitterMedia.ExtMediaAvailability.Status != "Available" {
-				results <- mediaResult{index: index, err: &MediaUnavailableError{
-					Status: twitterMedia.ExtMediaAvailability.Status,
-					Reason: twitterMedia.ExtMediaAvailability.Reason,
-				}}
-				return
+	results := downloadAllMedia(allTweetMedia, func(_ int, twitterMedia Media) (gotgbot.InputMedia, func(), error) {
+		if twitterMedia.ExtMediaAvailability.Status != "" && twitterMedia.ExtMediaAvailability.Status != "Available" {
+			return nil, nil, &MediaUnavailableError{
+				Status: twitterMedia.ExtMediaAvailability.Status,
+				Reason: twitterMedia.ExtMediaAvailability.Reason,
 			}
-			media, cleanup, err := h.downloadMedia(twitterMedia, invertMedia && twitterMedia.Type != "video")
-			results <- mediaResult{index: index, media: media, cleanup: cleanup, err: err}
-		}(i, media)
-	}
+		}
+		return h.downloadMedia(twitterMedia, invertMedia && twitterMedia.Type != "video")
+	})
 
 	var cleanups []func()
 	addCleanup := func(cleanup func()) {
@@ -131,11 +118,9 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 	}
 
 	var unavailableReason string
-	for range mediaCount {
-		result := <-results
+	for _, result := range results {
 		if result.err != nil {
-			var fileTooLargeErr *downloader.FileTooLargeError
-			if errors.As(result.err, &fileTooLargeErr) {
+			if _, ok := errors.AsType[*downloader.FileTooLargeError](result.err); ok {
 				return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 			}
 			if unavailableErr, ok := errors.AsType[*MediaUnavailableError](result.err); ok {
@@ -170,12 +155,164 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 		return downloader.NewUnavailablePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 	}
 
+	var article *downloader.ArticleContent
+	if buildArticle {
+		var articleCleanups []func()
+		article, articleCleanups = h.tryBuildReplyArticle(twitterData, nonNil)
+		if len(articleCleanups) > 0 {
+			cleanups = append(cleanups, articleCleanups...)
+		}
+	} else {
+		tweet := (*twitterData).Data.TweetResult.Result
+		if tweet.Legacy != nil {
+			article = buildSelfArticle(tweet, nonNil)
+		}
+	}
+
 	return downloader.PostInfo{
 		Medias:      nonNil,
 		ID:          h.postID,
 		Caption:     getTweetCaption(twitterData),
 		InvertMedia: invertMedia,
+		Article:     article,
 	}, downloader.CombineCleanups(cleanups...)
+}
+
+type mediaResult struct {
+	index   int
+	media   gotgbot.InputMedia
+	cleanup func()
+	err     error
+}
+
+func downloadAllMedia[T any](items []T, download func(index int, item T) (gotgbot.InputMedia, func(), error)) []mediaResult {
+	results := make(chan mediaResult, len(items))
+	for i, item := range items {
+		go func(index int, it T) {
+			media, cleanup, err := download(index, it)
+			results <- mediaResult{index: index, media: media, cleanup: cleanup, err: err}
+		}(i, item)
+	}
+	out := make([]mediaResult, 0, len(items))
+	for range len(items) {
+		out = append(out, <-results)
+	}
+	return out
+}
+
+func (h *Handler) downloadResultMedia(result Result) ([]gotgbot.InputMedia, []func()) {
+	if result.Legacy == nil || len(result.Legacy.ExtendedEntities.Media) == 0 {
+		return nil, nil
+	}
+	results := downloadAllMedia(result.Legacy.ExtendedEntities.Media, func(_ int, m Media) (gotgbot.InputMedia, func(), error) {
+		if m.ExtMediaAvailability.Status != "" && m.ExtMediaAvailability.Status != "Available" {
+			return nil, nil, &MediaUnavailableError{Status: m.ExtMediaAvailability.Status, Reason: m.ExtMediaAvailability.Reason}
+		}
+		return h.downloadMedia(m, false)
+	})
+	ordered := make([]gotgbot.InputMedia, len(results))
+	var cleanups []func()
+	for _, res := range results {
+		if res.err != nil {
+			slog.Info("Failed to download referenced tweet media",
+				"Post Info", []string{h.username, h.postID},
+				"Media Count", res.index, "Error", res.err.Error())
+			continue
+		}
+		if res.cleanup != nil {
+			cleanups = append(cleanups, res.cleanup)
+		}
+		if res.media != nil {
+			ordered[res.index] = res.media
+		}
+	}
+	var medias []gotgbot.InputMedia
+	for _, m := range ordered {
+		if m != nil {
+			medias = append(medias, m)
+		}
+	}
+	return medias, cleanups
+}
+
+func writeTweetHeaderAndText(sb *strings.Builder, tweet Result) {
+	fmt.Fprintf(sb, "<p><b><a href=\"https://x.com/%s\">%s</a> (<code>@%s</code>)</b></p>\n",
+		tweet.Core.UserResults.Result.Legacy.ScreenName,
+		escapeText(tweet.Core.UserResults.Result.Legacy.Name),
+		escapeText(tweet.Core.UserResults.Result.Legacy.ScreenName))
+	text := cleanText(tweet.Legacy.FullText, tweet.Legacy)
+	if tweet.NoteTweet != nil {
+		text = tweet.NoteTweet.NoteTweetResults.Result.Text
+	}
+	downloader.AppendCaptionParagraph(sb, escapeText(text))
+}
+
+func buildSelfArticle(tweet Result, mainMedias []gotgbot.InputMedia) *downloader.ArticleContent {
+	var html strings.Builder
+	writeTweetHeaderAndText(&html, tweet)
+	mediaList := downloader.AppendRichMedia(&html, mainMedias, 1)
+	return &downloader.ArticleContent{HTML: html.String(), Media: mediaList}
+}
+
+func (h *Handler) tryBuildReplyArticle(mainData *TwitterAPIData, mainMedias []gotgbot.InputMedia) (*downloader.ArticleContent, []func()) {
+	tweet := (*mainData).Data.TweetResult.Result
+	if tweet.Legacy == nil {
+		return nil, nil
+	}
+
+	var (
+		parentResult       Result
+		parentMedias       []gotgbot.InputMedia
+		parentCleanups     []func()
+		quoteMediaPromoted bool
+	)
+
+	if quoted := tweet.QuotedStatusResult; quoted != nil && quoted.Result.Legacy != nil && quoted.Result.Core.UserResults.Result.Legacy != nil {
+		parentResult = quoted.Result
+		if len(tweet.Legacy.ExtendedEntities.Media) > 0 {
+			quotedHandler := &Handler{username: parentResult.Core.UserResults.Result.Legacy.ScreenName, postID: parentResult.RestID}
+			parentMedias, parentCleanups = quotedHandler.downloadResultMedia(parentResult)
+		} else {
+			quoteMediaPromoted = true
+		}
+	} else if tweet.Legacy.InReplyToStatusIDStr != "" {
+		parentHandler := &Handler{postID: tweet.Legacy.InReplyToStatusIDStr}
+		parentData := parentHandler.getTwitterData()
+		if parentData == nil || (*parentData).Data.TweetResult == nil || (*parentData).Data.TweetResult.Legacy == nil {
+			return nil, nil
+		}
+		parentResult = (*parentData).Data.TweetResult.Result
+		if parentResult.Core.UserResults.Result.Legacy == nil {
+			return nil, nil
+		}
+		parentHandler.username = parentResult.Core.UserResults.Result.Legacy.ScreenName
+		parentMedias, parentCleanups = parentHandler.downloadResultMedia(parentResult)
+	} else {
+		return buildSelfArticle(tweet, mainMedias), nil
+	}
+
+	var htmlBuilder strings.Builder
+	var mediaList []gotgbot.InputRichMessageMedia
+
+	writeTweetHeaderAndText(&htmlBuilder, tweet)
+
+	if !quoteMediaPromoted {
+		mediaList = downloader.AppendRichMedia(&htmlBuilder, mainMedias, 1)
+	}
+
+	htmlBuilder.WriteString("<blockquote>\n")
+
+	writeTweetHeaderAndText(&htmlBuilder, parentResult)
+
+	if quoteMediaPromoted {
+		mediaList = downloader.AppendRichMedia(&htmlBuilder, mainMedias, 1)
+	} else {
+		mediaList = append(mediaList, downloader.AppendRichMedia(&htmlBuilder, parentMedias, len(mediaList)+1)...)
+	}
+
+	htmlBuilder.WriteString("</blockquote>\n")
+
+	return &downloader.ArticleContent{HTML: htmlBuilder.String(), Media: mediaList}, parentCleanups
 }
 
 const maxVideoSize int64 = 500 * 1024 * 1024 // 500MB
@@ -212,8 +349,8 @@ func (h *Handler) downloadMedia(twitterMedia Media, showCaptionAbove bool) (gotg
 				cleanup()
 				return nil, nil, thumbErr
 			}
-			if thumbnail, err := utils.ResizeThumbnail(thumbnail); err == nil {
-				videoMedia.Thumbnail = downloader.InputFileFromReader(filename, bytes.NewReader(thumbnail))
+			if resized, err := utils.ResizeThumbnail(thumbnail); err == nil {
+				videoMedia.Thumbnail = downloader.InputFileFromReader(filename, bytes.NewReader(resized))
 			} else {
 				slog.Error("Failed to resize thumbnail",
 					"Post Info", []string{h.username, h.postID},
@@ -406,13 +543,6 @@ func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
 }
 
 func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader.PostInfo, func()) {
-	type mediaResult struct {
-		index   int
-		media   gotgbot.InputMedia
-		cleanup func()
-		err     error
-	}
-
 	var allMedia []FxTwitterMedia
 	var invertMedia bool
 	if twitterData.Tweet.Media != nil && len(twitterData.Tweet.Media.All) > 0 {
@@ -428,62 +558,53 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 
 	mediaCount := len(allMedia)
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
-	results := make(chan mediaResult, mediaCount)
-
-	for i, media := range allMedia {
-		go func(index int, twitterMedia FxTwitterMedia) {
-			if twitterMedia.Type == "video" {
-				if size, sizeErr := downloader.FetchSizeFromURL(twitterMedia.URL); sizeErr == nil && size > 0 && size > maxVideoSize {
-					results <- mediaResult{index: index, err: downloader.NewFileTooLargeError(size, maxVideoSize)}
-					return
-				}
+	results := downloadAllMedia(allMedia, func(index int, twitterMedia FxTwitterMedia) (gotgbot.InputMedia, func(), error) {
+		if twitterMedia.Type == "video" {
+			if size, sizeErr := downloader.FetchSizeFromURL(twitterMedia.URL); sizeErr == nil && size > 0 && size > maxVideoSize {
+				return nil, nil, downloader.NewFileTooLargeError(size, maxVideoSize)
 			}
+		}
 
-			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%s_%s_%d", h.username, h.postID, index))
-			if twitterMedia.Type == "video" {
-				stream, cleanup, err := downloader.FetchStreamFromURL(twitterMedia.URL)
-				if err != nil {
-					results <- mediaResult{index: index, err: err}
-					return
-				}
-
-				videoMedia := &gotgbot.InputMediaVideo{
-					Media:                 downloader.InputFileFromReader(filename, stream),
-					ShowCaptionAboveMedia: invertMedia,
-					Width:                 int64(twitterMedia.Width),
-					Height:                int64(twitterMedia.Height),
-					SupportsStreaming:     true,
-				}
-
-				if twitterMedia.ThumbnailURL != "" {
-					thumbnail, thumbErr := downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
-					if thumbErr != nil {
-						cleanup()
-						results <- mediaResult{index: index, err: thumbErr}
-						return
-					}
-					if thumbnail, err := utils.ResizeThumbnail(thumbnail); err == nil {
-						videoMedia.Thumbnail = downloader.InputFileFromReader(filename, bytes.NewReader(thumbnail))
-					} else {
-						slog.Error("Failed to resize thumbnail",
-							"Post Info", []string{h.username, h.postID},
-							"Error", err.Error())
-					}
-				}
-
-				results <- mediaResult{index: index, media: videoMedia, cleanup: cleanup}
-				return
-			}
-
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%s_%s_%d", h.username, h.postID, index))
+		if twitterMedia.Type == "video" {
 			stream, cleanup, err := downloader.FetchStreamFromURL(twitterMedia.URL)
 			if err != nil {
-				results <- mediaResult{index: index, err: err}
-				return
+				return nil, nil, err
 			}
 
-			results <- mediaResult{index: index, media: &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream), ShowCaptionAboveMedia: invertMedia}, cleanup: cleanup}
-		}(i, media)
-	}
+			videoMedia := &gotgbot.InputMediaVideo{
+				Media:                 downloader.InputFileFromReader(filename, stream),
+				ShowCaptionAboveMedia: invertMedia,
+				Width:                 int64(twitterMedia.Width),
+				Height:                int64(twitterMedia.Height),
+				SupportsStreaming:     true,
+			}
+
+			if twitterMedia.ThumbnailURL != "" {
+				thumbnail, thumbErr := downloader.FetchBytesFromURL(twitterMedia.ThumbnailURL)
+				if thumbErr != nil {
+					cleanup()
+					return nil, nil, thumbErr
+				}
+				if resized, err := utils.ResizeThumbnail(thumbnail); err == nil {
+					videoMedia.Thumbnail = downloader.InputFileFromReader(filename, bytes.NewReader(resized))
+				} else {
+					slog.Error("Failed to resize thumbnail",
+						"Post Info", []string{h.username, h.postID},
+						"Error", err.Error())
+				}
+			}
+
+			return videoMedia, cleanup, nil
+		}
+
+		stream, cleanup, err := downloader.FetchStreamFromURL(twitterMedia.URL)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		return &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream), ShowCaptionAboveMedia: invertMedia}, cleanup, nil
+	})
 
 	var cleanups []func()
 	addCleanup := func(cleanup func()) {
@@ -492,8 +613,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 		}
 	}
 
-	for range mediaCount {
-		result := <-results
+	for _, result := range results {
 		if result.err != nil {
 			if _, ok := errors.AsType[*downloader.FileTooLargeError](result.err); ok {
 				return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
@@ -528,63 +648,63 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 	}, downloader.CombineCleanups(cleanups...)
 }
 
+func escapeText(text string) string {
+	return html.EscapeString(html.UnescapeString(text))
+}
+
+func replaceExpandedURLs(text string, urls []struct {
+	URL         string `json:"url"`
+	ExpandedURL string `json:"expanded_url"`
+}) string {
+	if len(urls) == 0 || text == "" {
+		return text
+	}
+
+	replaced := text
+	for _, u := range urls {
+		if u.URL == "" || u.ExpandedURL == "" {
+			continue
+		}
+		replaced = strings.ReplaceAll(replaced, u.URL, u.ExpandedURL)
+	}
+	return replaced
+}
+
+func trimTrailingTCo(text string) string {
+	trimmed := strings.TrimRight(text, " \n\r\t")
+	for strings.HasPrefix(trimmed, "https://t.co/") {
+		if idx := strings.LastIndexAny(trimmed, " \n\r\t"); idx != -1 {
+			trimmed = strings.TrimRight(trimmed[:idx], " \n\r\t")
+			continue
+		}
+		return ""
+	}
+
+	if idx := strings.LastIndex(trimmed, "https://t.co/"); idx != -1 {
+		suffix := trimmed[idx:]
+		if !strings.ContainsAny(suffix, " \n\r\t") {
+			if idx > 0 {
+				trimmed = strings.TrimRight(trimmed[:idx], " \n\r\t")
+			} else {
+				trimmed = ""
+			}
+		}
+	}
+
+	return trimmed
+}
+
+func cleanText(text string, legacy Legacy) string {
+	expanded := replaceExpandedURLs(text, legacy.Entities.Urls)
+	return trimTrailingTCo(expanded)
+}
+
 func getTweetCaption(twitterData *TwitterAPIData) string {
 	const maxQuotedTextRunes = 248
 
 	tweet := (*twitterData).Data.TweetResult.Result
 	if tweet.Legacy == nil {
 		return ""
-	}
-
-	escapeTelegramText := func(text string) string {
-		return html.EscapeString(html.UnescapeString(text))
-	}
-
-	replaceExpandedURLs := func(text string, urls []struct {
-		URL         string `json:"url"`
-		ExpandedURL string `json:"expanded_url"`
-	}) string {
-		if len(urls) == 0 || text == "" {
-			return text
-		}
-
-		replaced := text
-		for _, u := range urls {
-			if u.URL == "" || u.ExpandedURL == "" {
-				continue
-			}
-			replaced = strings.ReplaceAll(replaced, u.URL, u.ExpandedURL)
-		}
-		return replaced
-	}
-
-	trimTrailingTCo := func(text string) string {
-		trimmed := strings.TrimRight(text, " \n\r\t")
-		for strings.HasPrefix(trimmed, "https://t.co/") {
-			if idx := strings.LastIndexAny(trimmed, " \n\r\t"); idx != -1 {
-				trimmed = strings.TrimRight(trimmed[:idx], " \n\r\t")
-				continue
-			}
-			return ""
-		}
-
-		if idx := strings.LastIndex(trimmed, "https://t.co/"); idx != -1 {
-			suffix := trimmed[idx:]
-			if !strings.ContainsAny(suffix, " \n\r\t") {
-				if idx > 0 {
-					trimmed = strings.TrimRight(trimmed[:idx], " \n\r\t")
-				} else {
-					trimmed = ""
-				}
-			}
-		}
-
-		return trimmed
-	}
-
-	cleanText := func(text string, legacy Legacy) string {
-		expanded := replaceExpandedURLs(text, legacy.Entities.Urls)
-		return trimTrailingTCo(expanded)
 	}
 
 	var caption strings.Builder
@@ -596,10 +716,11 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 		tweetText = tweet.NoteTweet.NoteTweetResults.Result.Text
 	}
 
-	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
-		escapeTelegramText(tweet.Core.UserResults.Result.Legacy.Name),
-		escapeTelegramText(tweet.Core.UserResults.Result.Legacy.ScreenName),
-		escapeTelegramText(cleanText(tweetText, tweet.Legacy)))
+	fmt.Fprintf(&caption, "<b><a href=\"https://x.com/%s\">%s</a> (<code>@%s</code>)</b>:\n%s",
+		tweet.Core.UserResults.Result.Legacy.ScreenName,
+		escapeText(tweet.Core.UserResults.Result.Legacy.Name),
+		escapeText(tweet.Core.UserResults.Result.Legacy.ScreenName),
+		escapeText(cleanText(tweetText, tweet.Legacy)))
 
 	if quotedStatusResult != nil && quotedStatusResult.Legacy != nil && quotedStatusResult.Core.UserResults.Result.Legacy != nil {
 		quotedText := cleanText(quotedStatusResult.Legacy.FullText, quotedStatusResult.Legacy)
@@ -608,10 +729,11 @@ func getTweetCaption(twitterData *TwitterAPIData) string {
 			quotedText = string(runes[:maxQuotedTextRunes]) + "\n..."
 		}
 
-		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
-			escapeTelegramText(quotedStatusResult.Core.UserResults.Result.Legacy.Name),
-			escapeTelegramText(quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName),
-			escapeTelegramText(quotedText))
+		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b><a href=\"https://x.com/%s\">%s</a> (<code>@%s</code>)</b>:\n%s</blockquote>",
+			quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName,
+			escapeText(quotedStatusResult.Core.UserResults.Result.Legacy.Name),
+			escapeText(quotedStatusResult.Core.UserResults.Result.Legacy.ScreenName),
+			escapeText(quotedText))
 	}
 
 	return caption.String()
@@ -622,14 +744,11 @@ func getFxTweetCaption(twitterData *FxTwitterAPIData) string {
 
 	var caption strings.Builder
 
-	escapeTelegramText := func(text string) string {
-		return html.EscapeString(html.UnescapeString(text))
-	}
-
-	fmt.Fprintf(&caption, "<b>%s (<code>%s</code>)</b>:\n%s",
-		escapeTelegramText(twitterData.Tweet.Author.Name),
-		escapeTelegramText(twitterData.Tweet.Author.ScreenName),
-		escapeTelegramText(twitterData.Tweet.Text))
+	fmt.Fprintf(&caption, "<b><a href=\"https://x.com/%s\">%s</a> (<code>@%s</code>)</b>:\n%s",
+		twitterData.Tweet.Author.ScreenName,
+		escapeText(twitterData.Tweet.Author.Name),
+		escapeText(twitterData.Tweet.Author.ScreenName),
+		escapeText(twitterData.Tweet.Text))
 
 	if twitterData.Tweet.Quote != nil {
 		quotedText := twitterData.Tweet.Quote.Text
@@ -638,10 +757,11 @@ func getFxTweetCaption(twitterData *FxTwitterAPIData) string {
 			quotedText = string(runes[:maxQuotedTextRunes]) + "\n..."
 		}
 
-		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b>%s (<code>%s</code>)</b>:\n%s</blockquote>",
-			escapeTelegramText(twitterData.Tweet.Quote.Author.Name),
-			escapeTelegramText(twitterData.Tweet.Quote.Author.ScreenName),
-			escapeTelegramText(quotedText))
+		fmt.Fprintf(&caption, "\n<blockquote><i>Quoting</i> <b><a href=\"https://x.com/%s\">%s</a> (<code>@%s</code>)</b>:\n%s</blockquote>",
+			twitterData.Tweet.Quote.Author.ScreenName,
+			escapeText(twitterData.Tweet.Quote.Author.Name),
+			escapeText(twitterData.Tweet.Quote.Author.ScreenName),
+			escapeText(quotedText))
 	}
 
 	return caption.String()

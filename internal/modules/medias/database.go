@@ -32,3 +32,11 @@ func getMediasErrors(chatID int64) bool {
 	}
 	return true
 }
+
+func getMediasArticle(chatID int64) bool {
+	var mediasArticle bool
+	if err := database.DB.QueryRow("SELECT mediasArticle FROM chats WHERE id = ?;", chatID).Scan(&mediasArticle); err != nil || !mediasArticle {
+		return false
+	}
+	return true
+}

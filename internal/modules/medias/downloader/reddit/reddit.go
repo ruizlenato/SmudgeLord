@@ -52,7 +52,7 @@ var (
 	postTitleRegex     = regexp.MustCompile(`(?s)<h1 class="post_title">(?:.*?</a>)?([^<]+)</h1>`)
 )
 
-func Handle(text string) downloader.PostInfo {
+func Handle(text string, _ downloader.Options) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return downloader.PostInfo{}

@@ -122,7 +122,7 @@ func generateRandomHex(length int) string {
 	return string(result)
 }
 
-func Handle(text string) downloader.PostInfo {
+func Handle(text string, _ downloader.Options) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return downloader.PostInfo{}

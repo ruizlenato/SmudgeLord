@@ -669,18 +669,36 @@ func MergeAudioVideoFiles(videoPath, audioPath string) (*os.File, func(), error)
 	return outFile, cleanup, nil
 }
 
+var ErrNoCacheableMedia = errors.New("no cacheable media in sent messages")
+
 func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
 	if len(messages) == 0 {
-		return nil
+		return ErrNoCacheableMedia
 	}
 
 	var (
-		medias      []string
-		caption     string
-		invertMedia bool
+		medias        []string
+		article       string
+		articleMedias []string
+		caption       string
+		invertMedia   bool
 	)
 
 	for _, message := range messages {
+		if message.RichMessage != nil {
+			medias = append(medias, richMessageFileIDs(message.RichMessage.Blocks, len(postInfo.Medias))...)
+			if postInfo.Article != nil {
+				articleMedias = richMessageFileIDs(message.RichMessage.Blocks, len(postInfo.Article.Media))
+				if len(articleMedias) == len(postInfo.Article.Media) {
+					article = postInfo.Article.HTML
+				}
+			}
+			if caption == "" {
+				caption = sanitizeCaptionForCache(postInfo.Caption)
+			}
+			invertMedia = invertMedia || postInfo.InvertMedia
+			continue
+		}
 		if caption == "" {
 			caption = sanitizeCaptionForCache(utils.FormatText(message.Caption, message.CaptionEntities))
 		}
@@ -695,10 +713,23 @@ func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
 		}
 	}
 
+	if article == "" && postInfo.Article != nil &&
+		len(postInfo.Article.Media) == len(postInfo.Medias) &&
+		len(medias) == len(postInfo.Medias) {
+		article = postInfo.Article.HTML
+		articleMedias = medias
+	}
+
+	if len(medias) == 0 {
+		return ErrNoCacheableMedia
+	}
+
 	album := Medias{
-		Caption:     caption,
-		Medias:      medias,
-		InvertMedia: invertMedia,
+		Caption:       caption,
+		Medias:        medias,
+		InvertMedia:   invertMedia,
+		Article:       article,
+		ArticleMedias: articleMedias,
 	}
 
 	jsonValue, err := json.Marshal(album)
@@ -716,6 +747,15 @@ func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
 	return nil
 }
 
+func AppendCaptionParagraph(sb *strings.Builder, caption string) {
+	if caption == "" {
+		return
+	}
+	sb.WriteString("<p>")
+	sb.WriteString(strings.ReplaceAll(caption, "\n", "<br/>"))
+	sb.WriteString("</p>\n")
+}
+
 var trailingOpenLinkRegex = regexp.MustCompile(`(?s)\s*<a\s+href=['"][^'"]+['"]>\s*🔗\s*[^<]*</a>\s*$`)
 
 func sanitizeCaptionForCache(caption string) string {
@@ -724,6 +764,39 @@ func sanitizeCaptionForCache(caption string) string {
 	}
 
 	return strings.TrimSpace(trailingOpenLinkRegex.ReplaceAllString(caption, ""))
+}
+
+func richMessageFileIDs(blocks gotgbot.RichBlockArray, max int) []string {
+	ids := make([]string, 0, max)
+	var walk func(blocks []gotgbot.RichBlock)
+	walk = func(blocks []gotgbot.RichBlock) {
+		if len(ids) >= max {
+			return
+		}
+		for _, block := range blocks {
+			if len(ids) >= max {
+				return
+			}
+			switch b := block.(type) {
+			case gotgbot.RichBlockPhoto:
+				if len(b.Photo) > 0 {
+					ids = append(ids, "p:"+b.Photo[0].FileId)
+				}
+			case gotgbot.RichBlockVideo:
+				ids = append(ids, "v:"+b.Video.FileId)
+			case gotgbot.RichBlockSlideshow:
+				walk(b.Blocks)
+			case gotgbot.RichBlockCollage:
+				walk(b.Blocks)
+			case gotgbot.RichBlockBlockQuotation:
+				walk(b.Blocks)
+			case gotgbot.RichBlockDetails:
+				walk(b.Blocks)
+			}
+		}
+	}
+	walk(blocks)
+	return ids
 }
 
 func GetMediaCache(postID string) (PostInfo, error) {
@@ -776,11 +849,57 @@ func GetMediaCache(postID string) (PostInfo, error) {
 		}
 	}
 
+	var articleContent *ArticleContent
+	if medias.Article != "" && len(medias.ArticleMedias) > 0 {
+		articleMedia := make([]gotgbot.InputRichMessageMedia, 0, len(medias.ArticleMedias))
+		for i, raw := range medias.ArticleMedias {
+			mediaID := raw
+			mediaType := ""
+
+			if strings.HasPrefix(raw, "p:") {
+				mediaType = "photo"
+				mediaID = strings.TrimPrefix(raw, "p:")
+			} else if strings.HasPrefix(raw, "v:") {
+				mediaType = "video"
+				mediaID = strings.TrimPrefix(raw, "v:")
+			}
+
+			if mediaType == "" {
+				switch utils.FileTypeByFileID(mediaID) {
+				case 2:
+					mediaType = "photo"
+				case 4, 9:
+					mediaType = "video"
+				default:
+					continue
+				}
+			}
+
+			id := strconv.Itoa(i + 1)
+			switch mediaType {
+			case "photo":
+				articleMedia = append(articleMedia, gotgbot.InputRichMessageMedia{
+					Id:    id,
+					Media: &gotgbot.InputMediaPhoto{Media: gotgbot.InputFileByID(mediaID)},
+				})
+			case "video":
+				articleMedia = append(articleMedia, gotgbot.InputRichMessageMedia{
+					Id:    id,
+					Media: &gotgbot.InputMediaVideo{Media: gotgbot.InputFileByID(mediaID)},
+				})
+			}
+		}
+		if len(articleMedia) > 0 {
+			articleContent = &ArticleContent{HTML: medias.Article, Media: articleMedia}
+		}
+	}
+
 	return PostInfo{
 		ID:          postID,
 		Medias:      inputMedias,
 		Caption:     medias.Caption,
 		InvertMedia: medias.InvertMedia,
+		Article:     articleContent,
 	}, nil
 }
 

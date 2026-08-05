@@ -17,7 +17,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func Handle(text string) downloader.PostInfo {
+func Handle(text string, opts downloader.Options) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return downloader.NewNoMediaPostInfo("")
@@ -34,11 +34,25 @@ func Handle(text string) downloader.PostInfo {
 
 	handler.username = data.Owner.Username
 	medias, cleanup := handler.processMedia(data)
-	return downloader.PostInfo{
+	postInfo := downloader.PostInfo{
 		ID:      handler.postID,
 		Medias:  medias,
 		Caption: getCaption(data),
 		Cleanup: cleanup,
+	}
+	if len(postInfo.Medias) > 0 {
+		postInfo.Article = buildArticle(postInfo)
+	}
+	return postInfo
+}
+
+func buildArticle(postInfo downloader.PostInfo) *downloader.ArticleContent {
+	var htmlBuilder strings.Builder
+	mediaList := downloader.AppendRichMediaSlideshow(&htmlBuilder, postInfo.Medias, 1)
+	downloader.AppendCaptionParagraph(&htmlBuilder, postInfo.Caption)
+	return &downloader.ArticleContent{
+		HTML:  htmlBuilder.String(),
+		Media: mediaList,
 	}
 }
 

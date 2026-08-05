@@ -16,6 +16,7 @@ type TwitterAPIData *struct {
 type Result struct {
 	Typename string  `json:"__typename"`
 	Reason   *string `json:"reason"`
+	RestID   string  `json:"rest_id"`
 	Tweet    struct {
 		Legacy Legacy `json:"legacy"`
 	} `json:"tweet"`
@@ -66,6 +67,7 @@ type Legacy *struct {
 			Urls []interface{} `json:"urls"`
 		} `json:"description"`
 	} `json:"entities"`
+	InReplyToStatusIDStr string `json:"in_reply_to_status_id_str"`
 }
 
 type Media struct {

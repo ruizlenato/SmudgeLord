@@ -16,7 +16,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func Handle(text string) downloader.PostInfo {
+func Handle(text string, _ downloader.Options) downloader.PostInfo {
 	handler := &Handler{}
 	if !handler.setPostID(text) {
 		return downloader.PostInfo{}
@@ -32,7 +32,7 @@ func Handle(text string) downloader.PostInfo {
 	}
 
 	if strings.HasPrefix(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.DisplayURL, "instagram.com") {
-		return instagram.Handle(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.URL)
+		return instagram.Handle(graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post.TextPostAppInfo.LinkPreviewAttachment.URL, downloader.Options{})
 	}
 
 	medias, cleanup := handler.processMedia(graphQLData)
