@@ -313,10 +313,8 @@ func menuInline(b *gotgbot.Bot, ctx *ext.Context) error {
 		results = append(results, res)
 	}
 
-	if len(results) > 0 {
-		cacheTime := int64(0)
-		_, _ = b.AnswerInlineQuery(ctx.InlineQuery.Id, results, &gotgbot.AnswerInlineQueryOpts{CacheTime: &cacheTime})
-	}
+	cacheTime := int64(0)
+	_, _ = b.AnswerInlineQuery(ctx.InlineQuery.Id, results, &gotgbot.AnswerInlineQueryOpts{CacheTime: &cacheTime})
 
 	return nil
 }
@@ -360,7 +358,7 @@ func donateHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(handlers.NewChosenInlineResult(choseninlineresult.All, inlineSend))
-	dispatcher.AddHandler(handlers.NewInlineQuery(nil, menuInline))
+	dispatcher.AddHandlerToGroup(handlers.NewInlineQuery(nil, menuInline), 1)
 	dispatcher.AddHandler(handlers.NewCommand("start", startHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Equal("start"), startCallback))
 	dispatcher.AddHandler(handlers.NewCommand("privacy", privacyHandler))

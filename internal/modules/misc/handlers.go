@@ -335,10 +335,22 @@ func weatherInlineQuery(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 	chatLang, err := localization.GetChatLanguage(ctx.Update)
 	if err != nil {
+		chatLang = "en"
+	}
+
+	query := strings.TrimSpace(ctx.InlineQuery.Query)
+	if strings.HasPrefix(query, "weather") {
+		query = strings.TrimSpace(strings.TrimPrefix(query, "weather"))
+	} else if strings.HasPrefix(query, "clima") {
+		query = strings.TrimSpace(strings.TrimPrefix(query, "clima"))
+	}
+
+	cacheTime := int64(0)
+	if query == "" {
 		return nil
 	}
 
-	weatherSearchData, err := searchWeather(ctx.InlineQuery.Query, strings.Split(chatLang, "-")[0])
+	weatherSearchData, err := searchWeather(query, strings.Split(chatLang, "-")[0])
 	if err != nil {
 		return nil
 	}
@@ -357,11 +369,7 @@ func weatherInlineQuery(b *gotgbot.Bot, ctx *ext.Context) error {
 		results = append(results, res)
 	}
 
-	if len(results) > 0 {
-		cacheTime := int64(0)
-		_, _ = b.AnswerInlineQuery(ctx.InlineQuery.Id, results, &gotgbot.AnswerInlineQueryOpts{CacheTime: &cacheTime})
-	}
-
+	_, _ = b.AnswerInlineQuery(ctx.InlineQuery.Id, results, &gotgbot.AnswerInlineQueryOpts{CacheTime: &cacheTime})
 	return nil
 }
 
