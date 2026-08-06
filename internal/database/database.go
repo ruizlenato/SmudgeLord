@@ -72,16 +72,17 @@ func CreateTables() error {
 			language TEXT DEFAULT 'en_US',
 			mediasAuto BOOLEAN DEFAULT 1,
 			mediasCaption BOOLEAN DEFAULT 1,
-			mediasErrors BOOLEAN DEFAULT 1
+			mediasErrors BOOLEAN DEFAULT 1,
+			mediasArticle BOOLEAN DEFAULT 0
 		);
 
-CREATE TABLE IF NOT EXISTS afk (
-	id INTEGER PRIMARY KEY,
-	username TEXT,
-	first_name TEXT,
-	reason TEXT,
-	time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+		CREATE TABLE IF NOT EXISTS afk (
+			id INTEGER PRIMARY KEY,
+			username TEXT,
+			first_name TEXT,
+			reason TEXT,
+			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
 
 		CREATE TABLE IF NOT EXISTS commandsDisabled (
 			chat_id INTEGER,
