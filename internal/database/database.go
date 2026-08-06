@@ -72,8 +72,7 @@ func CreateTables() error {
 			language TEXT DEFAULT 'en_US',
 			mediasAuto BOOLEAN DEFAULT 1,
 			mediasCaption BOOLEAN DEFAULT 1,
-			mediasErrors BOOLEAN DEFAULT 1,
-			mediasArticle BOOLEAN DEFAULT 0
+			mediasErrors BOOLEAN DEFAULT 1
 		);
 
 		CREATE TABLE IF NOT EXISTS afk (

@@ -51,7 +51,7 @@ func Handle(text string, opts downloader.Options) downloader.PostInfo {
 	if twitterData == nil {
 		fxTwitterData := handler.getFxTwitterData()
 		if fxTwitterData != nil {
-			postInfo, cleanup := handler.processFxTwitterAPI(fxTwitterData, opts.Article)
+			postInfo, cleanup := handler.processFxTwitterAPI(fxTwitterData)
 			postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, cleanup)
 			return postInfo
 		}
@@ -59,7 +59,7 @@ func Handle(text string, opts downloader.Options) downloader.PostInfo {
 	}
 
 	handler.username = (*twitterData).Data.TweetResult.Core.UserResults.Result.Legacy.ScreenName
-	postInfo, cleanup := handler.processTwitterAPI(twitterData, opts.Article)
+	postInfo, cleanup := handler.processTwitterAPI(twitterData)
 	postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, cleanup)
 	return postInfo
 }
@@ -81,7 +81,7 @@ func (e *MediaUnavailableError) Error() string {
 	return fmt.Sprintf("media unavailable: %s (%s)", e.Status, e.Reason)
 }
 
-func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, buildArticle bool) (downloader.PostInfo, func()) {
+func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.PostInfo, func()) {
 	var invertMedia bool
 
 	allTweetMedia := (*twitterData).Data.TweetResult.Legacy.ExtendedEntities.Media
@@ -156,17 +156,9 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData, buildArticle bo
 	}
 
 	var article *downloader.ArticleContent
-	if buildArticle {
-		var articleCleanups []func()
-		article, articleCleanups = h.tryBuildReplyArticle(twitterData, nonNil)
-		if len(articleCleanups) > 0 {
-			cleanups = append(cleanups, articleCleanups...)
-		}
-	} else {
-		tweet := (*twitterData).Data.TweetResult.Result
-		if tweet.Legacy != nil {
-			article = buildSelfArticle(tweet, nonNil)
-		}
+	article, articleCleanups := h.tryBuildReplyArticle(twitterData, nonNil)
+	if len(articleCleanups) > 0 {
+		cleanups = append(cleanups, articleCleanups...)
 	}
 
 	return downloader.PostInfo{
@@ -247,13 +239,6 @@ func writeTweetHeaderAndText(sb *strings.Builder, tweet Result) {
 	downloader.AppendCaptionParagraph(sb, escapeText(text))
 }
 
-func buildSelfArticle(tweet Result, mainMedias []gotgbot.InputMedia) *downloader.ArticleContent {
-	var html strings.Builder
-	writeTweetHeaderAndText(&html, tweet)
-	mediaList := downloader.AppendRichMedia(&html, mainMedias, 1)
-	return &downloader.ArticleContent{HTML: html.String(), Media: mediaList}
-}
-
 func (h *Handler) tryBuildReplyArticle(mainData *TwitterAPIData, mainMedias []gotgbot.InputMedia) (*downloader.ArticleContent, []func()) {
 	tweet := (*mainData).Data.TweetResult.Result
 	if tweet.Legacy == nil {
@@ -275,20 +260,8 @@ func (h *Handler) tryBuildReplyArticle(mainData *TwitterAPIData, mainMedias []go
 		} else {
 			quoteMediaPromoted = true
 		}
-	} else if tweet.Legacy.InReplyToStatusIDStr != "" {
-		parentHandler := &Handler{postID: tweet.Legacy.InReplyToStatusIDStr}
-		parentData := parentHandler.getTwitterData()
-		if parentData == nil || (*parentData).Data.TweetResult == nil || (*parentData).Data.TweetResult.Legacy == nil {
-			return nil, nil
-		}
-		parentResult = (*parentData).Data.TweetResult.Result
-		if parentResult.Core.UserResults.Result.Legacy == nil {
-			return nil, nil
-		}
-		parentHandler.username = parentResult.Core.UserResults.Result.Legacy.ScreenName
-		parentMedias, parentCleanups = parentHandler.downloadResultMedia(parentResult)
 	} else {
-		return buildSelfArticle(tweet, mainMedias), nil
+		return nil, nil
 	}
 
 	var htmlBuilder strings.Builder
@@ -542,7 +515,7 @@ func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
 	return fxTwitterAPIData
 }
 
-func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, buildArticle bool) (downloader.PostInfo, func()) {
+func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader.PostInfo, func()) {
 	var (
 		allMedia          []gotgbot.InputMedia
 		quoteMedia        []gotgbot.InputMedia
@@ -610,7 +583,7 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData, buildArticl
 	}
 
 	var article *downloader.ArticleContent
-	if buildArticle {
+	if twitterData.Tweet.Quote != nil {
 		article = buildFxReplyArticle(twitterData.Tweet, allMedia, twitterData.Tweet.Quote, quoteMedia)
 	}
 

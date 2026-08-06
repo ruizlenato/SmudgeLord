@@ -468,22 +468,8 @@ func sendAsArticle(
 		slog.Warn("failed to send chat action", "error", err)
 	}
 
-	var articleHTML string
-	var mediaList []gotgbot.InputRichMessageMedia
-
-	if ctx.EffectiveMessage.Chat.Type != gotgbot.ChatTypePrivate && !getMediasCaption(chatID) {
-		var htmlBuilder strings.Builder
-		mediaList = downloader.AppendRichMediaSlideshow(&htmlBuilder, postInfo.Medias, 1)
-		articleHTML = htmlBuilder.String()
-	} else if postInfo.Article != nil {
-		articleHTML = postInfo.Article.HTML
-		mediaList = postInfo.Article.Media
-	} else {
-		var htmlBuilder strings.Builder
-		downloader.AppendCaptionParagraph(&htmlBuilder, postInfo.Caption)
-		mediaList = downloader.AppendRichMedia(&htmlBuilder, postInfo.Medias, 1)
-		articleHTML = htmlBuilder.String()
-	}
+	articleHTML := truncateArticleHTML(postInfo.Article.HTML)
+	mediaList := postInfo.Article.Media
 
 	const maxRichMessageMedia = 50
 	if len(mediaList) > maxRichMessageMedia {
@@ -513,6 +499,22 @@ func sendAsArticle(
 		return nil, err
 	}
 	return []gotgbot.Message{msg}, nil
+}
+
+const maxArticleRunes = 32768
+
+func truncateArticleHTML(s string) string {
+	if utf8.RuneCountInString(s) <= maxArticleRunes {
+		return s
+	}
+	runes := []rune(s)
+	truncated := string(runes[:maxArticleRunes])
+	if i := strings.LastIndex(truncated, "<"); i >= 0 {
+		if strings.IndexByte(truncated[i:], '>') < 0 {
+			truncated = truncated[:i]
+		}
+	}
+	return truncated
 }
 
 func normalizeShowCaptionAboveMedia(medias []gotgbot.InputMedia) {
@@ -619,13 +621,12 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if !prepareCaption(&cached, url, i18n) {
 		return nil
 	}
-	sendMediaBatches(b, ctx, cached, url, i18n)
+	sendMedia(b, ctx, cached, url, i18n)
 	return nil
 }
 
 func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(string, ...map[string]any) string) downloadResult {
-	articleEnabled := getMediasArticle(ctx.EffectiveMessage.Chat.Id)
-	postInfo := processMedia(url, downloader.Options{Article: articleEnabled})
+	postInfo := processMedia(url, downloader.Options{BotPremium: b.User.IsPremium})
 	defer func() {
 		if postInfo.Cleanup != nil {
 			postInfo.Cleanup()
@@ -641,18 +642,8 @@ func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(str
 		return downloadResult{postInfo: postInfo, noMedia: true}
 	}
 
-	var allSent []gotgbot.Message
-	if articleEnabled {
-		sent, err := sendAsArticle(b, ctx, postInfo, url, i18n)
-		if err != nil {
-			slog.Warn("Couldn't send media as article, falling back to traditional send", "postUrl", url, "error", err)
-			allSent = sendMediaBatches(b, ctx, postInfo, url, i18n)
-		} else {
-			allSent = sent
-		}
-	} else {
-		allSent = sendMediaBatches(b, ctx, postInfo, url, i18n)
-	}
+	allSent := sendMedia(b, ctx, postInfo, url, i18n)
+
 	cacheSkipped := false
 	if len(allSent) > 0 {
 		if err := downloader.SetMediaCache(allSent, postInfo); err != nil {
@@ -676,6 +667,18 @@ func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(str
 		return downloadResult{retry: true}
 	}
 	return downloadResult{postInfo: cached}
+}
+
+func sendMedia(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) []gotgbot.Message {
+	if postInfo.Article != nil && getMediasCaption(ctx.EffectiveMessage.Chat.Id) {
+		sent, err := sendAsArticle(b, ctx, postInfo, url, i18n)
+		if err != nil {
+			slog.Warn("Couldn't send media as article, falling back to traditional send", "postUrl", url, "error", err)
+			return sendMediaBatches(b, ctx, postInfo, url, i18n)
+		}
+		return sent
+	}
+	return sendMediaBatches(b, ctx, postInfo, url, i18n)
 }
 
 func sendMediaBatches(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) []gotgbot.Message {
@@ -808,7 +811,7 @@ func MediasInline(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	i18n := localization.Get(ctx)
 	inlineResult := ctx.ChosenInlineResult
-	postInfo := processMedia(inlineResult.Query, downloader.Options{})
+	postInfo := processMedia(inlineResult.Query, downloader.Options{BotPremium: b.User.IsPremium})
 	defer func() {
 		if postInfo.Cleanup != nil {
 			postInfo.Cleanup()

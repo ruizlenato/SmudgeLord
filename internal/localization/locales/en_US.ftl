@@ -163,7 +163,6 @@ config-medias =
 caption-button = Captions:
 automatic-button = Auto:
 errors-button = Errors:
-article-button = Articles:
 command-enabled = The command <code>{ $command }</code> <b>has been successfully enabled.</b>
 command-already-enabled = The command <code>{ $command }</code> <b>is already enabled.</b>
 enable-commands-usage =
@@ -232,7 +231,6 @@ youtube-error-alert-with-id = An error occurred while processing the video. Erro
 auto-help = When enabled, the bot will automatically download media from social networks when it detects a link, eliminating the need to use the /sdl or /dl commands.
 caption-help = When enabled, captions for media downloaded by the bot will be sent along with them.
 errors-help = When enabled, the bot will send error messages in the group when a media download fails. When disabled, errors will be silently ignored.
-article-help = When enabled, media posts are sent as rich articles instead of traditional photos with captions, using Telegram's rich message feature.
 no-link-provided =
     <b>No link provided or the link is invalid.</b>
     You need to specify a valid link from <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> or <i><b>Xiaohongshu/Rednote</i></b> to download the media.

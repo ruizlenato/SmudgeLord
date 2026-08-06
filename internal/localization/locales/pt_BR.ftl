@@ -164,7 +164,6 @@ config-medias =
 caption-button = Legendas:
 automatic-button = Automático:
 errors-button = Erros:
-article-button = Artigos:
 command-enabled = O comando <code>{ $command }</code> <b>foi ativado com sucesso.</b>
 command-already-enabled = O comando <code>{ $command }</code> <b>já está ativado.</b>
 enable-commands-usage =
@@ -236,7 +235,6 @@ youtube-error-alert-with-id = Ocorreu um erro ao processar o vídeo. ID do Erro:
 auto-help = Quando ativado, o bot baixará automaticamente mídias de redes sociais ao detectar um link, dispensando o uso dos comandos /sdl ou /dl.
 caption-help = Quando ativado, as legendas das mídias baixadas pelo bot serão enviadas junto com elas.
 errors-help = Quando ativado, o bot enviará mensagens de erro no grupo quando o download de uma mídia falhar. Quando desativado, os erros serão ignorados silenciosamente.
-article-help = Quando ativado, as postagens de mídia são enviadas como artigos ricos em vez de fotos tradicionais com legendas, usando o recurso de mensagens ricas do Telegram.
 no-link-provided =
     <b>Você não especificou um link ou especificou um link invalido.</b>
     Especifique um link do <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Xiaohongshu/Rednote</i></b> para que eu possa baixar a(s) mídia(s).

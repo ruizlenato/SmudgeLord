@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 
@@ -40,7 +41,7 @@ func Handle(text string, opts downloader.Options) downloader.PostInfo {
 		Caption: getCaption(data),
 		Cleanup: cleanup,
 	}
-	if len(postInfo.Medias) > 0 {
+	if len(postInfo.Medias) > 0 && utf8.RuneCountInString(postInfo.Caption) > 1024 && !opts.BotPremium {
 		postInfo.Article = buildArticle(postInfo)
 	}
 	return postInfo
@@ -48,7 +49,7 @@ func Handle(text string, opts downloader.Options) downloader.PostInfo {
 
 func buildArticle(postInfo downloader.PostInfo) *downloader.ArticleContent {
 	var htmlBuilder strings.Builder
-	mediaList := downloader.AppendRichMediaSlideshow(&htmlBuilder, postInfo.Medias, 1)
+	mediaList := downloader.AppendRichMedia(&htmlBuilder, postInfo.Medias, 1)
 	downloader.AppendCaptionParagraph(&htmlBuilder, postInfo.Caption)
 	return &downloader.ArticleContent{
 		HTML:  htmlBuilder.String(),

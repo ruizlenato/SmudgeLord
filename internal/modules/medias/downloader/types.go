@@ -50,7 +50,7 @@ type PostInfo struct {
 }
 
 type Options struct {
-	Article bool
+	BotPremium bool
 }
 
 type ArticleContent struct {
