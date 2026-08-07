@@ -107,7 +107,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 				Reason: twitterMedia.ExtMediaAvailability.Reason,
 			}
 		}
-		return h.downloadMedia(twitterMedia, invertMedia && twitterMedia.Type != "video")
+		return h.downloadMedia(twitterMedia, true)
 	})
 
 	var cleanups []func()
@@ -617,7 +617,7 @@ func (h *Handler) downloadFxMedia(twitterMedia FxTwitterMedia, index int) (gotgb
 
 		videoMedia := &gotgbot.InputMediaVideo{
 			Media:                 downloader.InputFileFromReader(filename, stream),
-			ShowCaptionAboveMedia: false,
+			ShowCaptionAboveMedia: true,
 			Width:                 int64(twitterMedia.Width),
 			Height:                int64(twitterMedia.Height),
 			SupportsStreaming:     true,
@@ -646,7 +646,7 @@ func (h *Handler) downloadFxMedia(twitterMedia FxTwitterMedia, index int) (gotgb
 		return nil, nil, err
 	}
 
-	return &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream), ShowCaptionAboveMedia: false}, cleanup, nil
+	return &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream), ShowCaptionAboveMedia: true}, cleanup, nil
 }
 
 func buildFxReplyArticle(tweet FxTwitterTweet, mainMedias []gotgbot.InputMedia, quote *FxTwitterTweet, quoteMedias []gotgbot.InputMedia) *downloader.ArticleContent {
