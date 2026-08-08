@@ -494,19 +494,33 @@ func (h *Handler) downloadMedia(data Edges) (*downloader.InputMedia, func(), err
 }
 
 func fetchBytesFromStream(media string) ([]byte, func(), error) {
-	stream, cleanup, err := downloader.FetchStreamFromURL(media)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	bytes, readErr := io.ReadAll(stream)
-	if readErr != nil {
-		if cleanup != nil {
-			cleanup()
+	const maxAttempts = 3
+	var lastErr error
+	for attempt := 0; attempt < maxAttempts; attempt++ {
+		stream, cleanup, err := downloader.FetchStreamFromURL(media)
+		if err != nil {
+			lastErr = err
+			if attempt < maxAttempts-1 {
+				time.Sleep(time.Duration(1<<attempt) * time.Second)
+				continue
+			}
+			break
 		}
-		err = readErr
-		return nil, nil, readErr
-	}
 
-	return bytes, cleanup, nil
+		data, readErr := io.ReadAll(stream)
+		if readErr != nil {
+			if cleanup != nil {
+				cleanup()
+			}
+			lastErr = readErr
+			if attempt < maxAttempts-1 {
+				time.Sleep(time.Duration(1<<attempt) * time.Second)
+				continue
+			}
+			break
+		}
+
+		return data, cleanup, nil
+	}
+	return nil, nil, lastErr
 }
