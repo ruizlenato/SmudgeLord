@@ -720,7 +720,7 @@ func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
 		articleMedias = medias
 	}
 
-	if len(medias) == 0 {
+	if len(medias) == 0 && len(articleMedias) == 0 {
 		return ErrNoCacheableMedia
 	}
 

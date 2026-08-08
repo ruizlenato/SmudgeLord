@@ -618,8 +618,10 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		downloadAndSend(b, ctx, url, i18n)
 		return nil
 	}
-	if !prepareCaption(&cached, url, i18n) {
-		return nil
+	if cached.Article == nil {
+		if !prepareCaption(&cached, url, i18n) {
+			return nil
+		}
 	}
 	sendMedia(b, ctx, cached, url, i18n)
 	return nil
@@ -633,13 +635,15 @@ func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(str
 		}
 	}()
 
-	if len(postInfo.Medias) == 0 {
+	if len(postInfo.Medias) == 0 && postInfo.Article == nil {
 		handleNoMediaNotice(b, ctx, postInfo, i18n)
 		return downloadResult{postInfo: postInfo, noMedia: true}
 	}
 
-	if !prepareCaption(&postInfo, url, i18n) {
-		return downloadResult{postInfo: postInfo, noMedia: true}
+	if postInfo.Article == nil {
+		if !prepareCaption(&postInfo, url, i18n) {
+			return downloadResult{postInfo: postInfo, noMedia: true}
+		}
 	}
 
 	allSent := sendMedia(b, ctx, postInfo, url, i18n)
