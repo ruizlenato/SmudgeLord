@@ -33,6 +33,7 @@ type Record struct {
 type Media struct {
 	Type      string  `json:"$type"`
 	Images    []Image `json:"images"`
+	Items     []Image `json:"items"`
 	Playlist  string  `json:"playlist"`
 	Thumbnail string  `json:"thumbnail"`
 }
@@ -46,9 +47,42 @@ type Embed struct {
 	Type        string      `json:"$type"`
 	Media       Media       `json:"media"`
 	Images      []Image     `json:"images"`
+	Items       []Image     `json:"items"`
 	Playlist    *string     `json:"playlist"`
 	Thumbnail   *string     `json:"thumbnail"`
 	AspectRatio AspectRatio `json:"aspectRatio"`
+	Record      *RecordView `json:"record"`
+}
+
+type RecordView struct {
+	Type   string       `json:"$type"`
+	Record *RecordView  `json:"record"`
+	URI    string       `json:"uri"`
+	Author Author       `json:"author"`
+	Value  RecordValue  `json:"value"`
+	Embeds []QuoteEmbed `json:"embeds"`
+}
+
+type RecordValue struct {
+	Text string `json:"text"`
+}
+
+type QuoteEmbed struct {
+	Type      string  `json:"$type"`
+	Images    []Image `json:"images"`
+	Items     []Image `json:"items"`
+	Playlist  string  `json:"playlist"`
+	Thumbnail string  `json:"thumbnail"`
+}
+
+func (rv *RecordView) ViewRecord() *RecordView {
+	if rv == nil {
+		return nil
+	}
+	if rv.Record != nil {
+		return rv.Record
+	}
+	return rv
 }
 
 type Image struct {

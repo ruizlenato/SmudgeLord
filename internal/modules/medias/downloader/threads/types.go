@@ -50,6 +50,11 @@ type User struct {
 
 type TextPostAppInfo struct {
 	LinkPreviewAttachment LinkPreviewAttachment `json:"link_preview_attachment"`
+	ShareInfo             *ShareInfo            `json:"share_info"`
+}
+
+type ShareInfo struct {
+	QuotedPost *Post `json:"quoted_post"`
 }
 
 type LinkPreviewAttachment struct {

@@ -44,6 +44,15 @@ func Handle(text string, _ downloader.Options) downloader.PostInfo {
 		Caption: getCaption(blueskyData),
 	}
 	postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, cleanup)
+
+	if blueskyData.Thread.Post.Embed.Record != nil {
+		article, articleCleanup := handler.buildArticle(blueskyData, postInfo.Medias)
+		if article != nil {
+			postInfo.Article = article
+			postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, articleCleanup)
+		}
+	}
+
 	return postInfo
 }
 
@@ -98,11 +107,16 @@ func (h *Handler) processMedia(data BlueskyData) ([]gotgbot.InputMedia, func()) 
 	switch {
 	case strings.Contains(data.Thread.Post.Embed.Type, "image"):
 		return h.handleImage(data.Thread.Post.Embed.Images)
+	case strings.Contains(data.Thread.Post.Embed.Type, "gallery"):
+		return h.handleImage(data.Thread.Post.Embed.Items)
 	case strings.Contains(data.Thread.Post.Embed.Type, "video"):
 		return h.handleVideo(data)
 	case strings.Contains(data.Thread.Post.Embed.Type, "recordWithMedia"):
 		if strings.Contains(data.Thread.Post.Embed.Media.Type, "image") {
 			return h.handleImage(data.Thread.Post.Embed.Media.Images)
+		}
+		if strings.Contains(data.Thread.Post.Embed.Media.Type, "gallery") {
+			return h.handleImage(data.Thread.Post.Embed.Media.Items)
 		}
 		if strings.Contains(data.Thread.Post.Embed.Media.Type, "video") {
 			return h.handleVideo(data)
@@ -144,7 +158,10 @@ func (h *Handler) handleVideo(data BlueskyData) ([]gotgbot.InputMedia, func()) {
 	if playlistURL == "" || thumbnailURL == "" {
 		return nil, nil
 	}
+	return h.handleVideoFromURLs(playlistURL, thumbnailURL)
+}
 
+func (h *Handler) handleVideoFromURLs(playlistURL, thumbnailURL string) ([]gotgbot.InputMedia, func()) {
 	if !strings.HasPrefix(playlistURL, "https://video.bsky.app/") {
 		return nil, nil
 	}
@@ -288,4 +305,78 @@ func (h *Handler) handleImage(blueskyImages []Image) ([]gotgbot.InputMedia, func
 	}
 
 	return nonNil, nil
+}
+
+func (h *Handler) buildArticle(data BlueskyData, mainMedias []gotgbot.InputMedia) (*downloader.ArticleContent, func()) {
+	vr := data.Thread.Post.Embed.Record.ViewRecord()
+	if vr == nil {
+		return nil, nil
+	}
+
+	var htmlBuilder strings.Builder
+	var mediaList []gotgbot.InputRichMessageMedia
+
+	writeBlueskyHeaderAndText(&htmlBuilder, data.Thread.Post.Author, data.Thread.Post.Record.Text)
+
+	if len(mainMedias) > 0 {
+		mediaList = downloader.AppendRichMedia(&htmlBuilder, mainMedias, 1)
+	}
+
+	htmlBuilder.WriteString("<blockquote>\n")
+
+	writeBlueskyHeaderAndText(&htmlBuilder, vr.Author, vr.Value.Text)
+
+	quoteMedias, quoteCleanup := h.downloadQuoteMedia(vr.Embeds)
+	if len(quoteMedias) > 0 {
+		mediaList = append(mediaList, downloader.AppendRichMedia(&htmlBuilder, quoteMedias, len(mediaList)+1)...)
+	}
+
+	htmlBuilder.WriteString("</blockquote>\n")
+
+	if len(mediaList) == 0 {
+		return nil, nil
+	}
+
+	return &downloader.ArticleContent{HTML: htmlBuilder.String(), Media: mediaList}, quoteCleanup
+}
+
+func writeBlueskyHeaderAndText(sb *strings.Builder, author Author, text string) {
+	displayName := html.EscapeString(author.DisplayName)
+	if displayName == "" {
+		displayName = html.EscapeString(author.Handle)
+	}
+	fmt.Fprintf(sb, "<p><b><a href=\"https://bsky.app/profile/%s\">%s</a> (<code>@%s</code>)</b></p>\n",
+		html.EscapeString(author.Handle), displayName, html.EscapeString(author.Handle))
+	downloader.AppendCaptionParagraph(sb, html.EscapeString(text))
+}
+
+func (h *Handler) downloadQuoteMedia(embeds []QuoteEmbed) ([]gotgbot.InputMedia, func()) {
+	var allMedias []gotgbot.InputMedia
+	var cleanups []func()
+
+	for _, embed := range embeds {
+		if strings.Contains(embed.Type, "image") && len(embed.Images) > 0 {
+			medias, cleanup := h.handleImage(embed.Images)
+			allMedias = append(allMedias, medias...)
+			if cleanup != nil {
+				cleanups = append(cleanups, cleanup)
+			}
+		}
+		if strings.Contains(embed.Type, "gallery") && len(embed.Items) > 0 {
+			medias, cleanup := h.handleImage(embed.Items)
+			allMedias = append(allMedias, medias...)
+			if cleanup != nil {
+				cleanups = append(cleanups, cleanup)
+			}
+		}
+		if strings.Contains(embed.Type, "video") && embed.Playlist != "" {
+			medias, cleanup := h.handleVideoFromURLs(embed.Playlist, embed.Thumbnail)
+			allMedias = append(allMedias, medias...)
+			if cleanup != nil {
+				cleanups = append(cleanups, cleanup)
+			}
+		}
+	}
+
+	return allMedias, downloader.CombineCleanups(cleanups...)
 }

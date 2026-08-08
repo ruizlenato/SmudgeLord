@@ -37,12 +37,22 @@ func Handle(text string, _ downloader.Options) downloader.PostInfo {
 
 	medias, cleanup := handler.processMedia(graphQLData)
 
-	return downloader.PostInfo{
+	postInfo := downloader.PostInfo{
 		ID:      handler.postID,
 		Medias:  medias,
 		Caption: getCaption(graphQLData),
 		Cleanup: cleanup,
 	}
+
+	if len(postInfo.Medias) > 0 {
+		article, articleCleanup := handler.buildArticle(graphQLData, postInfo.Medias)
+		if article != nil {
+			postInfo.Article = article
+			postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, articleCleanup)
+		}
+	}
+
+	return postInfo
 }
 
 func (h *Handler) setPostID(url string) bool {
@@ -127,7 +137,10 @@ func (h *Handler) getThreadsData() ThreadsData {
 
 func (h *Handler) processMedia(data ThreadsData) ([]gotgbot.InputMedia, func()) {
 	post := data.Data.Data.Edges[0].Node.ThreadItems[0].Post
+	return h.processPostMedia(post)
+}
 
+func (h *Handler) processPostMedia(post Post) ([]gotgbot.InputMedia, func()) {
 	switch {
 	case post.CarouselMedia != nil:
 		return h.handleCarousel(post)
@@ -146,6 +159,43 @@ func getCaption(threadsData ThreadsData) string {
 		username,
 		username,
 		html.EscapeString(threadsData.Data.Data.Edges[0].Node.ThreadItems[0].Post.Caption.Text))
+}
+
+func (h *Handler) buildArticle(data ThreadsData, mainMedias []gotgbot.InputMedia) (*downloader.ArticleContent, func()) {
+	post := data.Data.Data.Edges[0].Node.ThreadItems[0].Post
+	if post.TextPostAppInfo.ShareInfo == nil || post.TextPostAppInfo.ShareInfo.QuotedPost == nil {
+		return nil, nil
+	}
+
+	quotedPost := *post.TextPostAppInfo.ShareInfo.QuotedPost
+
+	var htmlBuilder strings.Builder
+	var mediaList []gotgbot.InputRichMessageMedia
+
+	writeThreadsHeaderAndText(&htmlBuilder, post.User.Username, post.Caption.Text)
+
+	if len(mainMedias) > 0 {
+		mediaList = downloader.AppendRichMedia(&htmlBuilder, mainMedias, 1)
+	}
+
+	htmlBuilder.WriteString("<blockquote>\n")
+
+	writeThreadsHeaderAndText(&htmlBuilder, quotedPost.User.Username, quotedPost.Caption.Text)
+
+	quoteMedias, quoteCleanup := h.processPostMedia(quotedPost)
+	if len(quoteMedias) > 0 {
+		mediaList = append(mediaList, downloader.AppendRichMedia(&htmlBuilder, quoteMedias, len(mediaList)+1)...)
+	}
+
+	htmlBuilder.WriteString("</blockquote>\n")
+
+	return &downloader.ArticleContent{HTML: htmlBuilder.String(), Media: mediaList}, quoteCleanup
+}
+
+func writeThreadsHeaderAndText(sb *strings.Builder, username, text string) {
+	username = html.EscapeString(username)
+	fmt.Fprintf(sb, "<p><b><a href=\"https://www.threads.net/@%s\">%s</a></b></p>\n", username, username)
+	downloader.AppendCaptionParagraph(sb, html.EscapeString(text))
 }
 
 func (h *Handler) handleCarousel(post Post) ([]gotgbot.InputMedia, func()) {
