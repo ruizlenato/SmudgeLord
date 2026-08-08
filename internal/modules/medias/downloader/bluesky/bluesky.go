@@ -53,6 +53,10 @@ func Handle(text string, _ downloader.Options) downloader.PostInfo {
 		}
 	}
 
+	if len(postInfo.Medias) == 0 && postInfo.Article == nil {
+		return downloader.NewNoMediaPostInfo(handler.postID)
+	}
+
 	return postInfo
 }
 
