@@ -618,7 +618,7 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		downloadAndSend(b, ctx, url, i18n)
 		return nil
 	}
-	if cached.Article == nil {
+	if len(cached.Medias) > 0 {
 		if !prepareCaption(&cached, url, i18n) {
 			return nil
 		}
@@ -640,7 +640,7 @@ func downloadAndSend(b *gotgbot.Bot, ctx *ext.Context, url string, i18n func(str
 		return downloadResult{postInfo: postInfo, noMedia: true}
 	}
 
-	if postInfo.Article == nil {
+	if len(postInfo.Medias) > 0 {
 		if !prepareCaption(&postInfo, url, i18n) {
 			return downloadResult{postInfo: postInfo, noMedia: true}
 		}
