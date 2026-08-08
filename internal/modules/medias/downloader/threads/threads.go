@@ -44,12 +44,17 @@ func Handle(text string, _ downloader.Options) downloader.PostInfo {
 		Cleanup: cleanup,
 	}
 
-	if len(postInfo.Medias) > 0 {
+	post := graphQLData.Data.Data.Edges[0].Node.ThreadItems[0].Post
+	if post.TextPostAppInfo.ShareInfo != nil && post.TextPostAppInfo.ShareInfo.QuotedPost != nil {
 		article, articleCleanup := handler.buildArticle(graphQLData, postInfo.Medias)
 		if article != nil {
 			postInfo.Article = article
 			postInfo.Cleanup = downloader.CombineCleanups(postInfo.Cleanup, articleCleanup)
 		}
+	}
+
+	if len(postInfo.Medias) == 0 && postInfo.Article == nil {
+		return downloader.NewNoMediaPostInfo(handler.postID)
 	}
 
 	return postInfo
@@ -188,6 +193,10 @@ func (h *Handler) buildArticle(data ThreadsData, mainMedias []gotgbot.InputMedia
 	}
 
 	htmlBuilder.WriteString("</blockquote>\n")
+
+	if len(mediaList) == 0 {
+		return nil, nil
+	}
 
 	return &downloader.ArticleContent{HTML: htmlBuilder.String(), Media: mediaList}, quoteCleanup
 }
