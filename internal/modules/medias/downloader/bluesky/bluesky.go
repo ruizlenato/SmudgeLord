@@ -369,6 +369,29 @@ func (h *Handler) downloadQuoteMedia(embeds []QuoteEmbed) ([]gotgbot.InputMedia,
 				cleanups = append(cleanups, cleanup)
 			}
 		}
+		if strings.Contains(embed.Type, "recordWithMedia") {
+			if strings.Contains(embed.Media.Type, "image") && len(embed.Media.Images) > 0 {
+				medias, cleanup := h.handleImage(embed.Media.Images)
+				allMedias = append(allMedias, medias...)
+				if cleanup != nil {
+					cleanups = append(cleanups, cleanup)
+				}
+			}
+			if strings.Contains(embed.Media.Type, "gallery") && len(embed.Media.Items) > 0 {
+				medias, cleanup := h.handleImage(embed.Media.Items)
+				allMedias = append(allMedias, medias...)
+				if cleanup != nil {
+					cleanups = append(cleanups, cleanup)
+				}
+			}
+			if strings.Contains(embed.Media.Type, "video") && embed.Media.Playlist != "" {
+				medias, cleanup := h.handleVideoFromURLs(embed.Media.Playlist, embed.Media.Thumbnail)
+				allMedias = append(allMedias, medias...)
+				if cleanup != nil {
+					cleanups = append(cleanups, cleanup)
+				}
+			}
+		}
 		if strings.Contains(embed.Type, "video") && embed.Playlist != "" {
 			medias, cleanup := h.handleVideoFromURLs(embed.Playlist, embed.Thumbnail)
 			allMedias = append(allMedias, medias...)

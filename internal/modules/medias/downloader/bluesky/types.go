@@ -71,6 +71,7 @@ type QuoteEmbed struct {
 	Type      string  `json:"$type"`
 	Images    []Image `json:"images"`
 	Items     []Image `json:"items"`
+	Media     Media   `json:"media"`
 	Playlist  string  `json:"playlist"`
 	Thumbnail string  `json:"thumbnail"`
 }
