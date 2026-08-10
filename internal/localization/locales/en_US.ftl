@@ -185,7 +185,7 @@ medias-help =
 
     When sharing links on Telegram, some sites don't display an image or video preview. This module enables Smudge to automatically detect links from supported sites and send the videos and images contained within them.
 
-    <b>Currently supported sites:</b> <i>Bluesky</i>, <i>Instagram</i>, <i>Reddit</i>, <i>Threads</i>, <i>TikTok</i>, <i>Twitter/X</i> and <i>Xiaohongshu/Rednote</i>.
+    <b>Currently supported sites:</b> <i>Bluesky</i>, <i>Facebook</i>, <i>Instagram</i>, <i>Pinterest</i>, <i>Reddit</i>, <i>Threads</i>, <i>TikTok</i>, <i>Twitter/X</i> and <i>Xiaohongshu/Rednote</i>.
 
     <b>Note:</b>
     This module contains additional settings for groups.
@@ -233,9 +233,9 @@ caption-help = When enabled, captions for media downloaded by the bot will be se
 errors-help = When enabled, the bot will send error messages in the group when a media download fails. When disabled, errors will be silently ignored.
 no-link-provided =
     <b>No link provided or the link is invalid.</b>
-    You need to specify a valid link from <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> or <i><b>Xiaohongshu/Rednote</i></b> to download the media.
+    You need to specify a valid link from <b><i>Bluesky</i></b>, <b><i>Facebook</i></b>, <b><i>Instagram</i></b>, <b><i>Pinterest</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> or <i><b>Xiaohongshu/Rednote</i></b> to download the media.
 unsupported-link-title = Unsupported link.
-unsupported-link-description = Currently supported sites are Bluesky, Instagram, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote and YouTube Shorts.
+unsupported-link-description = Currently supported sites are Bluesky, Facebook, Instagram, Pinterest, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote and YouTube Shorts.
 unsupported-link =
     <b>{ unsupported-link-title }</b>
     { unsupported-link-description }

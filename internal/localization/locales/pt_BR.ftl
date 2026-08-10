@@ -187,7 +187,7 @@ medias-help =
     Ao compartilhar links no Telegram, alguns sites não exibem uma pré-visualização de imagem ou vídeo.
     Esse módulo faz com que o Smudge detecte automaticamente os links dos sites suportados e envie os vídeos e imagens que estão presentes no mesmo.
 
-    <b>Sites atualmente suportados:</b> <i>Bluesky</i>, <i>Instagram</i>, <i>Reddit</i>, <i>Threads</i>, <i>TikTok</i>, <i>Twitter/X</i> e <i>Xiaohongshu/Rednote</i>.
+    <b>Sites atualmente suportados:</b> <i>Bluesky</i>, <i>Facebook</i>, <i>Instagram</i>, <i>Pinterest</i>, <i>Reddit</i>, <i>Threads</i>, <i>TikTok</i>, <i>Twitter/X</i> e <i>Xiaohongshu/Rednote</i>.
 
     <b>Observação:</b>
     Esse módulo contém configurações adicionais para grupos.
@@ -237,9 +237,9 @@ caption-help = Quando ativado, as legendas das mídias baixadas pelo bot serão 
 errors-help = Quando ativado, o bot enviará mensagens de erro no grupo quando o download de uma mídia falhar. Quando desativado, os erros serão ignorados silenciosamente.
 no-link-provided =
     <b>Você não especificou um link ou especificou um link invalido.</b>
-    Especifique um link do <b><i>Bluesky</i></b>, <b><i>Instagram</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Xiaohongshu/Rednote</i></b> para que eu possa baixar a(s) mídia(s).
+    Especifique um link do <b><i>Bluesky</i></b>, <b><i>Facebook</i></b>, <b><i>Instagram</i></b>, <b><i>Pinterest</i></b>, <b><i>Reddit</i></b>, <b><i>Threads</i></b>, <b><i>TikTok</i></b>, <b><i>Twitter/X</i></b> ou <b><i>Xiaohongshu/Rednote</i></b> para que eu possa baixar a(s) mídia(s).
 unsupported-link-title = Link não suportado.
-unsupported-link-description = Atualmente os serviços suportados são: Bluesky, Instagram, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote e YouTube Shorts.
+unsupported-link-description = Atualmente os serviços suportados são: Bluesky, Facebook, Instagram, Pinterest, Reddit, Threads, TikTok, Twitter/X, Xiaohongshu/Rednote e YouTube Shorts.
 unsupported-link =
     <b>{ unsupported-link-title }</b>
     { unsupported-link-description }
