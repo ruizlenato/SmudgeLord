@@ -308,6 +308,11 @@ func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anu
 	}
 
 	if len(downloadErrors) > segmentCount/2 {
+		for _, fileName := range segmentFiles {
+			if fileName != "" {
+				os.Remove(fileName)
+			}
+		}
 		return nil, fmt.Errorf("too many segments failed to download: %d/%d (first: %v)", len(downloadErrors), segmentCount, downloadErrors[0])
 	}
 
@@ -481,6 +486,7 @@ func downloadSegment(segmentURL string, client *http.Client, anubisSolver Anubis
 	defer tmpFile.Close()
 
 	if _, err := tmpFile.Write(body); err != nil {
+		os.Remove(tmpFile.Name())
 		return "", err
 	}
 

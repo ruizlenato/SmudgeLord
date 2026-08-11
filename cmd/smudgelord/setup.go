@@ -23,6 +23,8 @@ import (
 )
 
 func initializeServices(b *gotgbot.Bot, ctx context.Context, logChatID int64) error {
+	cleanupStaleTempFiles()
+
 	slog.Info("loading languages")
 	if err := localization.LoadLanguages(); err != nil {
 		return fmt.Errorf("load languages: %w", err)
@@ -272,4 +274,28 @@ func sendDatabaseBackup(b *gotgbot.Bot) error {
 	}
 
 	return nil
+}
+
+func cleanupStaleTempFiles() {
+	patterns := []string{
+		"smudgelord-media-*",
+		"SmudgeLord*.mp4",
+		"merge-output-*.mp4",
+		"Smudgeinput_*.mp4",
+	}
+	removed := 0
+	for _, pattern := range patterns {
+		matches, err := filepath.Glob(filepath.Join(os.TempDir(), pattern))
+		if err != nil {
+			continue
+		}
+		for _, path := range matches {
+			if err := os.Remove(path); err == nil {
+				removed++
+			}
+		}
+	}
+	if removed > 0 {
+		slog.Info("cleaned up stale temp files", "count", removed)
+	}
 }
