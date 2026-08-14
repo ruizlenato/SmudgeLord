@@ -26,14 +26,26 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
-func fetchURLResponse(media string) ([]byte, *http.Response, error) {
-	retryCaller := &utils.RetryCaller{
+func NewRetryCaller(maxAttempts int, startDelay, maxDelay time.Duration) *utils.RetryCaller {
+	return &utils.RetryCaller{
 		Caller:       utils.DefaultHTTPCaller,
-		MaxAttempts:  3,
+		MaxAttempts:  maxAttempts,
 		ExponentBase: 2,
-		StartDelay:   1 * time.Second,
-		MaxDelay:     5 * time.Second,
+		StartDelay:   startDelay,
+		MaxDelay:     maxDelay,
 	}
+}
+
+func DefaultRetryCaller() *utils.RetryCaller {
+	return NewRetryCaller(3, time.Second, 5*time.Second)
+}
+
+func LongRetryCaller() *utils.RetryCaller {
+	return NewRetryCaller(3, 5*time.Second, 10*time.Second)
+}
+
+func fetchURLResponse(media string) ([]byte, *http.Response, error) {
+	retryCaller := DefaultRetryCaller()
 	response, err := retryCaller.Request(media, utils.RequestParams{
 		Method:  "GET",
 		Headers: GenericHeaders,
@@ -56,13 +68,7 @@ func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 }
 
 func FetchURLStreamResponse(media string) (io.ReadCloser, *http.Response, error) {
-	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultHTTPCaller,
-		MaxAttempts:  3,
-		ExponentBase: 2,
-		StartDelay:   1 * time.Second,
-		MaxDelay:     5 * time.Second,
-	}
+	retryCaller := DefaultRetryCaller()
 	response, err := retryCaller.Request(media, utils.RequestParams{
 		Method:  "GET",
 		Headers: GenericHeaders,
@@ -79,13 +85,7 @@ func FetchURLStreamResponse(media string) (io.ReadCloser, *http.Response, error)
 }
 
 func FetchSizeFromURL(mediaURL string) (int64, error) {
-	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultHTTPCaller,
-		MaxAttempts:  2,
-		ExponentBase: 2,
-		StartDelay:   500 * time.Millisecond,
-		MaxDelay:     2 * time.Second,
-	}
+	retryCaller := NewRetryCaller(2, 500*time.Millisecond, 2*time.Second)
 	response, err := retryCaller.Request(mediaURL, utils.RequestParams{
 		Method:  "HEAD",
 		Headers: GenericHeaders,

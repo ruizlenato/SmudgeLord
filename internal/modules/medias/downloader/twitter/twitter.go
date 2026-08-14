@@ -352,13 +352,7 @@ func (h *Handler) getGuestToken() string {
 	}
 	var res guestToken
 
-	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultHTTPCaller,
-		MaxAttempts:  3,
-		ExponentBase: 2,
-		StartDelay:   5 * time.Second,
-		MaxDelay:     10 * time.Second,
-	}
+	retryCaller := downloader.LongRetryCaller()
 
 	response, err := retryCaller.Request(guestTokenURL, utils.RequestParams{
 		Method:    "POST",
@@ -439,13 +433,7 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 		return result
 	}
 
-	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultHTTPCaller,
-		MaxAttempts:  3,
-		ExponentBase: 2,
-		StartDelay:   5 * time.Second,
-		MaxDelay:     10 * time.Second,
-	}
+	retryCaller := downloader.LongRetryCaller()
 
 	response, err := retryCaller.Request(twitterAPIURL, utils.RequestParams{
 		Method: "GET",
@@ -485,13 +473,7 @@ func (h *Handler) getTwitterData() *TwitterAPIData {
 }
 
 func (h *Handler) getFxTwitterData() *FxTwitterAPIData {
-	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultHTTPCaller,
-		MaxAttempts:  3,
-		ExponentBase: 2,
-		StartDelay:   5 * time.Second,
-		MaxDelay:     10 * time.Second,
-	}
+	retryCaller := downloader.LongRetryCaller()
 
 	response, err := retryCaller.Request(fxTwitterAPIURL+h.postID, utils.RequestParams{
 		Method:  "GET",

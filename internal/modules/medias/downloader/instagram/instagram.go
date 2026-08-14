@@ -60,13 +60,7 @@ func buildArticle(postInfo downloader.PostInfo) *downloader.ArticleContent {
 func (h *Handler) setPostID(url string) bool {
 	shareRegex := regexp.MustCompile(`(?:instagram.com)/(?:share)`)
 	if shareRegex.MatchString(url) {
-		retryCaller := &utils.RetryCaller{
-			Caller:       utils.DefaultHTTPCaller,
-			MaxAttempts:  3,
-			ExponentBase: 2,
-			StartDelay:   1 * time.Second,
-			MaxDelay:     5 * time.Second,
-		}
+		retryCaller := downloader.DefaultRetryCaller()
 
 		response, err := retryCaller.Request(url, utils.RequestParams{
 			Method:    "GET",
@@ -87,13 +81,7 @@ func (h *Handler) setPostID(url string) bool {
 		return true
 	}
 
-	retryCaller := &utils.RetryCaller{
-		Caller:       utils.DefaultHTTPCaller,
-		MaxAttempts:  3,
-		ExponentBase: 2,
-		StartDelay:   1 * time.Second,
-		MaxDelay:     5 * time.Second,
-	}
+	retryCaller := downloader.DefaultRetryCaller()
 
 	response, err := retryCaller.Request(url, utils.RequestParams{
 		Method:    "GET",

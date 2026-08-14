@@ -10,7 +10,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 
@@ -83,13 +82,7 @@ func (h *Handler) getPostURL(text string) string {
 	}
 
 	if strings.Contains(text, "xhslink") {
-		retryCaller := &utils.RetryCaller{
-			Caller:       utils.DefaultHTTPCaller,
-			MaxAttempts:  3,
-			ExponentBase: 2,
-			StartDelay:   1 * time.Second,
-			MaxDelay:     5 * time.Second,
-		}
+		retryCaller := downloader.DefaultRetryCaller()
 
 		response, err := retryCaller.Request(text, utils.RequestParams{
 			Headers:   downloader.GenericHeaders,
