@@ -93,22 +93,10 @@ func RichMessageMediaFromInputMedia(id string, media gotgbot.InputMedia) gotgbot
 }
 
 func AppendRichMedia(sb *strings.Builder, medias []gotgbot.InputMedia, startID int) []gotgbot.InputRichMessageMedia {
-	return appendRichMedia(sb, medias, startID, false)
-}
-
-func AppendRichMediaSlideshow(sb *strings.Builder, medias []gotgbot.InputMedia, startID int) []gotgbot.InputRichMessageMedia {
-	return appendRichMedia(sb, medias, startID, true)
-}
-
-func appendRichMedia(sb *strings.Builder, medias []gotgbot.InputMedia, startID int, slideshow bool) []gotgbot.InputRichMessageMedia {
 	mediaList := make([]gotgbot.InputRichMessageMedia, 0, len(medias))
-	slideshow = slideshow && len(medias) > 1
-	if slideshow {
-		sb.WriteString("<tg-slideshow>\n")
-	}
 	var photoRun []string
 	flushPhotos := func() {
-		if len(photoRun) > 1 && !slideshow {
+		if len(photoRun) > 1 {
 			sb.WriteString("<tg-collage>\n")
 			for _, tag := range photoRun {
 				sb.WriteString(tag)
@@ -127,7 +115,7 @@ func appendRichMedia(sb *strings.Builder, medias []gotgbot.InputMedia, startID i
 		id := strconv.Itoa(startID + i)
 		mediaList = append(mediaList, RichMessageMediaFromInputMedia(id, media))
 		tag := RichMediaHTMLTag(id, media)
-		if _, ok := media.(*gotgbot.InputMediaPhoto); ok && !slideshow {
+		if _, ok := media.(*gotgbot.InputMediaPhoto); ok {
 			photoRun = append(photoRun, tag)
 		} else {
 			flushPhotos()
@@ -136,9 +124,6 @@ func appendRichMedia(sb *strings.Builder, medias []gotgbot.InputMedia, startID i
 		}
 	}
 	flushPhotos()
-	if slideshow {
-		sb.WriteString("</tg-slideshow>\n")
-	}
 	return mediaList
 }
 
