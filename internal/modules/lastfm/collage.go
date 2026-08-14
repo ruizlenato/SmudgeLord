@@ -11,7 +11,6 @@ import (
 	"image/draw"
 	"image/jpeg"
 	"io"
-	"math"
 	"net/http"
 	"strings"
 	"sync"
@@ -307,8 +306,4 @@ func trimLabel(value string, maxLen int) string {
 		return "…"
 	}
 	return string(r[:maxLen-1]) + "…"
-}
-
-func max(a, b int) int {
-	return int(math.Max(float64(a), float64(b)))
 }

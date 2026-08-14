@@ -216,13 +216,6 @@ var mediaHandlers = map[string]MediaHandler{
 	"youtube.com/":               {Name: "YouTube", Handler: youtube.Handle},
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 func extractURL(text string) (string, bool) {
 	match := mediaRegex.FindStringSubmatch(text)
 	if len(match) < 1 {
