@@ -46,7 +46,6 @@ const (
 	chatActionUploadVoice = "upload_voice"
 	chatActionUploadVideo = "upload_video"
 	mediaSendInterval     = 200 * time.Millisecond
-	noMediaMessageTTL     = 1 * time.Minute
 	chatLimiterTTL        = 15 * time.Minute
 	chatLimiterSweepEvery = 5 * time.Minute
 )
@@ -128,13 +127,6 @@ var mediaSendLimiter = struct {
 
 var mediaSendLimiterJanitorOnce sync.Once
 
-var noMediaMessageTracker = struct {
-	mu           sync.Mutex
-	lastByChatID map[int64]int64
-}{
-	lastByChatID: make(map[int64]int64),
-}
-
 func waitForMediaSendSlot(chatID int64) {
 	mediaSendLimiterJanitorOnce.Do(startMediaSendLimiterJanitor)
 
@@ -168,33 +160,6 @@ func startMediaSendLimiterJanitor() {
 			mediaSendLimiter.mu.Unlock()
 		}
 	}()
-}
-
-func replaceTrackedNoMediaMessage(chatID, messageID int64) int64 {
-	noMediaMessageTracker.mu.Lock()
-	defer noMediaMessageTracker.mu.Unlock()
-
-	previous := noMediaMessageTracker.lastByChatID[chatID]
-	noMediaMessageTracker.lastByChatID[chatID] = messageID
-	return previous
-}
-
-func scheduleNoMediaMessageDelete(b *gotgbot.Bot, chatID, messageID int64) {
-	time.AfterFunc(noMediaMessageTTL, func() {
-
-		noMediaMessageTracker.mu.Lock()
-		current := noMediaMessageTracker.lastByChatID[chatID]
-		if current == messageID {
-			delete(noMediaMessageTracker.lastByChatID, chatID)
-		}
-		noMediaMessageTracker.mu.Unlock()
-
-		if current != messageID {
-			return
-		}
-
-		_, _ = b.DeleteMessageWithContext(context.Background(), chatID, messageID, nil)
-	})
 }
 
 type MediaHandler struct {
@@ -582,6 +547,7 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("no-link-provided"), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+			ReceiverUserId:  ephemeralReceiver(ctx),
 		})
 		return nil
 	}
@@ -724,6 +690,13 @@ func sendMediaBatches(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.Post
 	return allSent
 }
 
+func ephemeralReceiver(ctx *ext.Context) int64 {
+	if isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) {
+		return ctx.EffectiveMessage.From.Id
+	}
+	return 0
+}
+
 func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, i18n func(string, ...map[string]any) string) {
 	chatID := ctx.EffectiveMessage.Chat.Id
 	chatType := ctx.EffectiveMessage.Chat.Type
@@ -733,6 +706,7 @@ func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.P
 			_, _ = b.SendMessageWithContext(context.Background(), chatID, i18n("video-too-large"), &gotgbot.SendMessageOpts{
 				ParseMode:       gotgbot.ParseModeHTML,
 				ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+				ReceiverUserId:  ephemeralReceiver(ctx),
 				ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
 					{Text: i18n("donation-button"), Url: fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)},
 				}}},
@@ -755,18 +729,12 @@ func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.P
 }
 
 func sendNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, i18n func(string, ...map[string]any) string) {
-	chatID := ctx.EffectiveMessage.Chat.Id
-	notice, _ := b.SendMessageWithContext(context.Background(), chatID, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
+	_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
 		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReceiverUserId:  ephemeralReceiver(ctx),
 		ReplyMarkup:     noMediaSupportKeyboard(i18n),
 	})
-	if notice != nil && isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) && postInfo.UnavailableReason == "" {
-		if previous := replaceTrackedNoMediaMessage(chatID, notice.MessageId); previous > 0 && previous != notice.MessageId {
-			_, _ = b.DeleteMessageWithContext(context.Background(), chatID, previous, nil)
-		}
-		scheduleNoMediaMessageDelete(b, chatID, notice.MessageId)
-	}
 }
 
 func mediasInlineQuery(b *gotgbot.Bot, ctx *ext.Context) error {
@@ -925,6 +893,7 @@ func youtubeDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("youtube-no-url"), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+			ReceiverUserId:  ephemeralReceiver(ctx),
 		})
 		return nil
 	}
@@ -937,6 +906,7 @@ func youtubeDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("youtube-invalid-url"), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
 			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+			ReceiverUserId:  ephemeralReceiver(ctx),
 		})
 		return nil
 	}
