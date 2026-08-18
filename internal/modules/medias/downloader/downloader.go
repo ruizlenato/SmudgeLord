@@ -57,6 +57,10 @@ func fetchURLResponse(media string) ([]byte, *http.Response, error) {
 	if err != nil || response == nil {
 		return nil, nil, errors.New("get error")
 	}
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		response.Body.Close()
+		return nil, nil, fmt.Errorf("unexpected status %d fetching %s", response.StatusCode, media)
+	}
 
 	bodyBytes, err := io.ReadAll(response.Body)
 	if err != nil {
@@ -80,6 +84,10 @@ func FetchURLStreamResponse(media string) (io.ReadCloser, *http.Response, error)
 	if err != nil || response == nil {
 		return nil, nil, errors.New("get error")
 	}
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		response.Body.Close()
+		return nil, nil, fmt.Errorf("unexpected status %d fetching %s", response.StatusCode, media)
+	}
 
 	return response.Body, response, nil
 }
@@ -94,6 +102,9 @@ func FetchSizeFromURL(mediaURL string) (int64, error) {
 		return -1, fmt.Errorf("head request error: %w", err)
 	}
 	defer response.Body.Close()
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return -1, fmt.Errorf("unexpected status %d fetching size of %s", response.StatusCode, mediaURL)
+	}
 
 	contentLength := response.Header.Get("Content-Length")
 	if contentLength == "" {
