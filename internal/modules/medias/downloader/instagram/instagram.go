@@ -397,7 +397,7 @@ func (h *Handler) handleSidecar(data *ShortcodeMedia) ([]gotgbot.InputMedia, fun
 	for range mediaCount {
 		result := <-results
 		if result.err != nil {
-			slog.Error("Failed to download media in sidecar",
+			slog.Info("Failed to download media in sidecar",
 				"Post Info", []string{h.username, h.postID},
 				"Error", result.err.Error())
 			if result.cleanup != nil {
