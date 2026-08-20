@@ -103,6 +103,13 @@ func (h *ColorHandler) telegramLogWorker() {
 	}
 }
 
+func normalizeAttrValue(v any) any {
+	if err, ok := v.(error); ok {
+		return err.Error()
+	}
+	return v
+}
+
 func (h *ColorHandler) Handle(ctx context.Context, r slog.Record) error {
 	timestamp := r.Time.Format("[01/02 15:04]")
 	colorCode, ok := h.colors[r.Level]
@@ -135,7 +142,7 @@ func (h *ColorHandler) Handle(ctx context.Context, r slog.Record) error {
 
 	r.Attrs(func(a slog.Attr) bool {
 		if a.Key != "" {
-			attrs[a.Key] = a.Value.Any()
+			attrs[a.Key] = normalizeAttrValue(a.Value.Any())
 		}
 		return true
 	})
