@@ -188,16 +188,20 @@ func extractVideoID(text string) string {
 	return ""
 }
 
+var shortLinkClient = &http.Client{
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 10 {
+			return http.ErrUseLastResponse
+		}
+		return nil
+	},
+}
+
 func resolveShortLink(url string) string {
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) >= 10 {
-				return http.ErrUseLastResponse
-			}
-			return nil
-		},
-	}
-	resp, err := client.Get(url)
+	resp, err := utils.RetryWithBackoff(
+		func() (*http.Response, error) { return shortLinkClient.Get(url) },
+		3, time.Second, 5*time.Second, 2,
+	)
 	if err != nil {
 		return ""
 	}
@@ -343,17 +347,21 @@ func buildCaption(title, description string) string {
 }
 
 func downloadFile(url string) ([]byte, error) {
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", userAgent)
-	resp, err := http.DefaultClient.Do(req)
+	headers := downloader.CloneHeaders(downloader.GenericHeaders)
+	headers["User-Agent"] = userAgent
+
+	response, err := downloader.DefaultRetryCaller().Request(url, utils.RequestParams{
+		Method:  "GET",
+		Headers: headers,
+	})
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("HTTP %d", response.StatusCode)
 	}
-	return io.ReadAll(resp.Body)
+	return io.ReadAll(response.Body)
 }
 
 func extractPhotoURLs(htmlContent string) []string {
