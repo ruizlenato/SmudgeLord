@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
@@ -17,9 +18,47 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/localization"
 )
 
-var announceMessageText string
-var announceLang string
-var announceType string
+var announceState struct {
+	mu            sync.Mutex
+	messageText   string
+	lang          string
+	broadcastType string
+}
+
+func announceSetMessage(text string) {
+	announceState.mu.Lock()
+	defer announceState.mu.Unlock()
+	announceState.messageText = text
+	announceState.lang = ""
+	announceState.broadcastType = ""
+}
+
+func announceSetLang(lang string) {
+	announceState.mu.Lock()
+	defer announceState.mu.Unlock()
+	announceState.lang = lang
+	announceState.broadcastType = ""
+}
+
+func announceSetType(broadcastType string) {
+	announceState.mu.Lock()
+	defer announceState.mu.Unlock()
+	announceState.broadcastType = broadcastType
+}
+
+func announceReset() {
+	announceState.mu.Lock()
+	defer announceState.mu.Unlock()
+	announceState.messageText = ""
+	announceState.lang = ""
+	announceState.broadcastType = ""
+}
+
+func announceSnapshot() (messageText, lang, broadcastType string) {
+	announceState.mu.Lock()
+	defer announceState.mu.Unlock()
+	return announceState.messageText, announceState.lang, announceState.broadcastType
+}
 
 func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	message := ctx.EffectiveMessage
@@ -45,9 +84,7 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 			return nil
 		}
 
-		announceMessageText = messageText
-		announceLang = ""
-		announceType = ""
+		announceSetMessage(messageText)
 
 		buttons := make([][]gotgbot.InlineKeyboardButton, 0, len(database.AvailableLocales))
 		for _, locale := range database.AvailableLocales {
@@ -77,8 +114,7 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	if strings.HasPrefix(callbackData, "announce:lang:") {
-		announceLang = strings.TrimPrefix(callbackData, "announce:lang:")
-		announceType = ""
+		announceSetLang(strings.TrimPrefix(callbackData, "announce:lang:"))
 
 		chat := ctx.CallbackQuery.Message.GetChat()
 		msgID := ctx.CallbackQuery.Message.GetMessageId()
@@ -97,7 +133,7 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	if strings.HasPrefix(callbackData, "announce:type:") {
-		announceType = strings.TrimPrefix(callbackData, "announce:type:")
+		announceSetType(strings.TrimPrefix(callbackData, "announce:type:"))
 
 		chat := ctx.CallbackQuery.Message.GetChat()
 		msgID := ctx.CallbackQuery.Message.GetMessageId()
@@ -115,9 +151,7 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	if callbackData == "announce:confirm:no" {
-		announceMessageText = ""
-		announceLang = ""
-		announceType = ""
+		announceReset()
 
 		if ctx.CallbackQuery != nil && ctx.CallbackQuery.Message != nil {
 			chat := ctx.CallbackQuery.Message.GetChat()
@@ -132,21 +166,26 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	if callbackData != "announce:confirm:yes" || announceMessageText == "" || announceLang == "" || announceType == "" {
+	messageText, lang, broadcastType := announceSnapshot()
+	if callbackData != "announce:confirm:yes" || messageText == "" || lang == "" || broadcastType == "" {
 		return nil
 	}
 
 	var query string
-	switch announceType {
+	var args []any
+	switch broadcastType {
 	case "groups":
-		query = fmt.Sprintf("SELECT id FROM chats WHERE language = '%s';", announceLang)
+		query = "SELECT id FROM chats WHERE language = ?;"
+		args = []any{lang}
 	case "users":
-		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s';", announceLang)
+		query = "SELECT id FROM users WHERE language = ?;"
+		args = []any{lang}
 	default:
-		query = fmt.Sprintf("SELECT id FROM users WHERE language = '%s' UNION ALL SELECT id FROM chats WHERE language = '%s';", announceLang, announceLang)
+		query = "SELECT id FROM users WHERE language = ? UNION ALL SELECT id FROM chats WHERE language = ?;"
+		args = []any{lang, lang}
 	}
 
-	rows, err := database.DB.Query(query)
+	rows, err := database.DB.Query(query, args...)
 	if err != nil {
 		return nil
 	}
@@ -159,7 +198,7 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 			continue
 		}
 
-		_, err := b.SendMessage(chatID, announceMessageText, &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
+		_, err := b.SendMessage(chatID, messageText, &gotgbot.SendMessageOpts{ParseMode: gotgbot.ParseModeHTML})
 		if err != nil {
 			errorCount++
 			continue
@@ -178,9 +217,7 @@ func announceHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		})
 	}
 
-	announceMessageText = ""
-	announceLang = ""
-	announceType = ""
+	announceReset()
 	return nil
 }
 
