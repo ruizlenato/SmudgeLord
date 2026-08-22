@@ -40,7 +40,7 @@ import (
 )
 
 const (
-	regexMedia            = `https?://(?:[a-z]{2}\.)?(?:m|vm|vt|www|mobile)?(?:.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink|substack|pinterest|facebook)\.(?:com|net|app)|youtube\.com/shorts|fb\.watch)/(?:\S*)`
+	regexMedia            = `https?://(?:[a-z]{2}\.)?(?:m|vm|vt|www|mobile)?(?:\.)?(?:(?:instagram|twitter|x|tiktok|reddit|bsky|threads|xiaohongshu|xhslink|substack|pinterest|facebook)\.(?:com|net|app)|youtube\.com/shorts|fb\.watch)/(?:\S*)`
 	maxSizeCaption        = 1024
 	chatActionUploadDoc   = "upload_document"
 	chatActionUploadVoice = "upload_voice"
