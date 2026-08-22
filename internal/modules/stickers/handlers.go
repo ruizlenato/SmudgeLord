@@ -694,7 +694,13 @@ func kangStickerHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if target == nil {
 		return nil
 	}
-	return processKangIntoPack(b, ctx, *target, stickerAction, stickerType, fileID, extractEmojis(ctx.EffectiveMessage.GetText(), ctx.EffectiveMessage.ReplyToMessage.Sticker)[0])
+	return processKangIntoPack(b, i18n, kangTarget{
+		UserID:        ctx.EffectiveUser.Id,
+		UserFirstName: ctx.EffectiveUser.FirstName,
+		UserUsername:  ctx.EffectiveUser.Username,
+		ChatID:        ctx.EffectiveMessage.Chat.Id,
+		MessageID:     ctx.EffectiveMessage.MessageId,
+	}, *target, stickerAction, stickerType, fileID, extractEmojis(ctx.EffectiveMessage.GetText(), ctx.EffectiveMessage.ReplyToMessage.Sticker)[0])
 }
 
 func showKangPackSelection(b *gotgbot.Bot, ctx *ext.Context, packs []StickerPack, stickerAction, stickerType, fileID string) error {
@@ -769,66 +775,78 @@ func kangPackCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		answerKangErrorCallback(b, ctx.CallbackQuery.Id, ctx.CallbackQuery.From.Id, i18n, "Couldn't find selected sticker pack", nil)
 		return nil
 	}
-	ctx.EffectiveUser = &ctx.CallbackQuery.From
-	ctx.EffectiveChat = &chat
-	ctx.EffectiveMessage = &gotgbot.Message{MessageId: msgID, Chat: *ctx.EffectiveChat, From: ctx.EffectiveUser}
-	_ = processKangIntoPack(b, ctx, *target, kd.StickerAction, kd.StickerType, kd.FileID, kd.Emoji)
+	from := ctx.CallbackQuery.From
+	_ = processKangIntoPack(b, i18n, kangTarget{
+		UserID:        from.Id,
+		UserFirstName: from.FirstName,
+		UserUsername:  from.Username,
+		ChatID:        chat.Id,
+		MessageID:     msgID,
+		CallbackQuery: ctx.CallbackQuery,
+	}, *target, kd.StickerAction, kd.StickerType, kd.FileID, kd.Emoji)
 	_, _ = b.AnswerCallbackQuery(ctx.CallbackQuery.Id, nil)
 	return nil
 }
 
-func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, stickerAction, stickerType, fileID, emoji string) error {
-	i18n := localization.Get(ctx)
+type kangTarget struct {
+	UserID        int64
+	UserFirstName string
+	UserUsername  string
+	ChatID        int64
+	MessageID     int64
+	CallbackQuery *gotgbot.CallbackQuery
+}
 
+func processKangIntoPack(b *gotgbot.Bot, i18n func(string, ...map[string]any) string, target kangTarget, pack StickerPack, stickerAction, stickerType, fileID, emoji string) error {
 	var statusMsgID int64
-	if ctx.CallbackQuery == nil {
-		statusMsg, _ := b.SendMessage(ctx.EffectiveChat.Id, i18n("stealing-sticker"), &gotgbot.SendMessageOpts{
+	if target.CallbackQuery == nil {
+		statusMsg, _ := b.SendMessage(target.ChatID, i18n("stealing-sticker"), &gotgbot.SendMessageOpts{
 			ParseMode:       gotgbot.ParseModeHTML,
-			ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+			ReplyParameters: &gotgbot.ReplyParameters{MessageId: target.MessageID},
 		})
 		if statusMsg != nil {
 			statusMsgID = statusMsg.MessageId
 		}
 	}
 
-	uploadedFileID, err := prepareStickerUpload(b, ctx.EffectiveUser.Id, fileID, stickerType, stickerAction)
+	uploadedFileID, err := prepareStickerUpload(b, target.UserID, fileID, stickerType, stickerAction)
 	if err != nil {
-		sendKangErrorMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't upload sticker file", err)
+		sendKangErrorMessage(b, target.ChatID, target.MessageID, target.UserID, i18n, "Couldn't upload sticker file", err)
 		return nil
 	}
 	set, errGetSet := b.GetStickerSet(pack.PackName, nil)
 	if errGetSet != nil || set == nil {
-		title := generateStickerSetTitle(ctx.EffectiveUser.FirstName, ctx.EffectiveUser.Username, 0)
-		emoji, err = createStickerSetWithFallback(b, ctx.EffectiveUser.Id, pack.PackName, title, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}}, nil)
+		title := generateStickerSetTitle(target.UserFirstName, target.UserUsername, 0)
+		emoji, err = createStickerSetWithFallback(b, target.UserID, pack.PackName, title, []gotgbot.InputSticker{{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}}, nil)
 		if err != nil {
 			if strings.Contains(err.Error(), "PEER_ID_INVALID") {
-				sendPrivateStartRequiredMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, i18n)
+				sendPrivateStartRequiredMessage(b, target.ChatID, target.MessageID, i18n)
 				return nil
 			}
-			sendKangErrorMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't create sticker set", err)
+			sendKangErrorMessage(b, target.ChatID, target.MessageID, target.UserID, i18n, "Couldn't create sticker set", err)
 			return nil
 		}
 	} else {
 		if len(set.Stickers) >= 120 {
 			kd := KangData{StickerAction: stickerAction, StickerType: stickerType, FileID: uploadedFileID, Emoji: emoji}
 			if payload, err := json.Marshal(kd); err == nil {
-				_ = cache.SetCache(fmt.Sprintf("kangFull:%d:%d", ctx.EffectiveUser.Id, ctx.EffectiveMessage.MessageId), string(payload), 5*time.Minute)
+				_ = cache.SetCache(fmt.Sprintf("kangFull:%d:%d", target.UserID, target.MessageID), string(payload), 5*time.Minute)
 			}
-			_, _ = b.SendMessage(ctx.EffectiveChat.Id, i18n("sticker-pack-full", map[string]any{"packName": set.Title, "stickerCount": len(set.Stickers)}), &gotgbot.SendMessageOpts{
+			_, _ = b.SendMessage(target.ChatID, i18n("sticker-pack-full", map[string]any{"packName": set.Title, "stickerCount": len(set.Stickers)}), &gotgbot.SendMessageOpts{
 				ParseMode: gotgbot.ParseModeHTML,
 				ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{{
-					Text: i18n("sticker-create-new-pack-button"), CallbackData: fmt.Sprintf("createNewPack %d", ctx.EffectiveMessage.MessageId),
+					Text: i18n("sticker-create-new-pack-button"), CallbackData: fmt.Sprintf("createNewPack %d", target.MessageID),
 				}}}},
 			})
 			return nil
 		}
-		emoji, err = addStickerToSetWithFallback(b, ctx.EffectiveUser.Id, pack.PackName, gotgbot.InputSticker{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}, nil)
+		emoji, err = addStickerToSetWithFallback(b, target.UserID, pack.PackName, gotgbot.InputSticker{Sticker: gotgbot.InputFileByID(uploadedFileID), Format: stickerType, EmojiList: []string{emoji}}, nil)
 		if err != nil {
 			if strings.Contains(err.Error(), "PEER_ID_INVALID") {
-				sendPrivateStartRequiredMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, i18n)
+				sendPrivateStartRequiredMessage(b, target.ChatID, target.MessageID, i18n)
 				return nil
 			}
-			sendKangErrorMessage(b, ctx.EffectiveChat.Id, ctx.EffectiveMessage.MessageId, ctx.EffectiveUser.Id, i18n, "Couldn't add sticker to set", err)
+			sendKangErrorMessage(b, target.ChatID, target.MessageID, target.UserID, i18n, "Couldn't add sticker to set", err)
 			return nil
 		}
 	}
@@ -837,9 +855,9 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 		Text: i18n("sticker-stoled-button"), Url: "https://t.me/addstickers/" + pack.PackName,
 	}}}}
 
-	if ctx.CallbackQuery != nil && ctx.CallbackQuery.Message != nil {
-		chat := ctx.CallbackQuery.Message.GetChat()
-		msgID := ctx.CallbackQuery.Message.GetMessageId()
+	if target.CallbackQuery != nil && target.CallbackQuery.Message != nil {
+		chat := target.CallbackQuery.Message.GetChat()
+		msgID := target.CallbackQuery.Message.GetMessageId()
 		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
 			Text:        text,
 			ChatId:      chat.Id,
@@ -853,7 +871,7 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 	if statusMsgID > 0 {
 		_, _, _ = b.EditMessageText(&gotgbot.EditMessageTextOpts{
 			Text:        text,
-			ChatId:      ctx.EffectiveChat.Id,
+			ChatId:      target.ChatID,
 			MessageId:   statusMsgID,
 			ParseMode:   gotgbot.ParseModeHTML,
 			ReplyMarkup: markup,
@@ -861,7 +879,7 @@ func processKangIntoPack(b *gotgbot.Bot, ctx *ext.Context, pack StickerPack, sti
 		return nil
 	}
 
-	_, _ = b.SendMessage(ctx.EffectiveChat.Id, text, &gotgbot.SendMessageOpts{
+	_, _ = b.SendMessage(target.ChatID, text, &gotgbot.SendMessageOpts{
 		ParseMode:   gotgbot.ParseModeHTML,
 		ReplyMarkup: markup,
 	})
