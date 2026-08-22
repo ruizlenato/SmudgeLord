@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/grafov/m3u8"
@@ -131,7 +132,10 @@ func resolveRedditShortURL(rawURL string) (string, error) {
 		},
 	}
 
-	resp, err := client.Get(parsed.String())
+	resp, err := utils.RetryWithBackoff(
+		func() (*http.Response, error) { return client.Get(parsed.String()) },
+		3, time.Second, 5*time.Second, 2,
+	)
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve redirect: %w", err)
 	}
@@ -557,53 +561,40 @@ func (h *Handler) processRedlibGallery(content [][][]byte, response *http.Respon
 		return nil, nil
 	}
 
-	type mediaResult struct {
-		index   int
-		media   gotgbot.InputMedia
-		cleanup func()
-		err     error
-	}
-
 	mediaCount := len(content)
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
-	results := make(chan mediaResult, mediaCount)
 	client := h.client
 	if client == nil {
 		jar, _ := cookiejar.New(nil)
 		client = &http.Client{Jar: jar}
 	}
 
-	for i, item := range content {
-		go func(index int, galleryItem [][]byte) {
-			media := buildMediaURL(response, string(galleryItem[1]))
+	results := downloader.DownloadAllMedia(content, func(index int, galleryItem [][]byte) (gotgbot.InputMedia, func(), error) {
+		media := buildMediaURL(response, string(galleryItem[1]))
 
-			file, cleanup, err := downloader.FetchStreamWithClient(media, client, h.anubisSolver())
-			if err != nil {
-				results <- mediaResult{index: index, err: err}
-				return
-			}
+		file, cleanup, err := downloader.FetchStreamWithClient(media, client, h.anubisSolver())
+		if err != nil {
+			return nil, nil, err
+		}
 
-			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID))
-			inputMedia := &gotgbot.InputMediaPhoto{
-				Media: downloader.InputFileFromReader(filename, file),
-			}
-			results <- mediaResult{index: index, media: inputMedia, cleanup: cleanup, err: nil}
-		}(i, item)
-	}
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Reddit_%d_%s_%s", index, h.subreddit, h.postID))
+		return &gotgbot.InputMediaPhoto{
+			Media: downloader.InputFileFromReader(filename, file),
+		}, cleanup, nil
+	})
 
 	var collectedCleanups []func()
 	var hadError bool
-	for range mediaCount {
-		result := <-results
-		if result.err != nil {
+	for _, result := range results {
+		if result.Err != nil {
 			slog.Error("Failed to download media in gallery",
 				"Post", fmt.Sprintf("%s/%s", h.subreddit, h.postID),
-				"Error", result.err.Error())
+				"Error", result.Err.Error())
 			hadError = true
 			continue
 		}
-		mediaItems[result.index] = result.media
-		collectedCleanups = append(collectedCleanups, result.cleanup)
+		mediaItems[result.Index] = result.Media
+		collectedCleanups = append(collectedCleanups, result.Cleanup)
 	}
 	if hadError {
 		downloader.CombineCleanups(collectedCleanups...)()
@@ -682,67 +673,53 @@ func (h *Handler) processAPIMedia(data *Data) ([]gotgbot.InputMedia, func(), err
 	}
 
 	if data.MediaMetadata != nil {
-		type mediaResult struct {
-			index   int
-			media   gotgbot.InputMedia
-			cleanup func()
-			err     error
+		mediaIDs := make([]string, len(data.GalleryData.Items))
+		for i, item := range data.GalleryData.Items {
+			mediaIDs[i] = item.MediaID
 		}
 
-		mediaCount := len(data.GalleryData.Items)
+		mediaCount := len(mediaIDs)
 		mediaItems := make([]gotgbot.InputMedia, mediaCount)
-		results := make(chan mediaResult, mediaCount)
 		var collectedCleanups []func()
 		var hadError bool
 
-		for i, item := range data.GalleryData.Items {
-			go func(index int, mediaID string) {
-				media, exists := (*data.MediaMetadata)[mediaID]
-				if !exists {
-					results <- mediaResult{index: index, err: fmt.Errorf("media metadata not found for media_id=%s", mediaID)}
-					return
-				}
+		results := downloader.DownloadAllMedia(mediaIDs, func(_ int, mediaID string) (gotgbot.InputMedia, func(), error) {
+			media, exists := (*data.MediaMetadata)[mediaID]
+			if !exists {
+				return nil, nil, fmt.Errorf("media metadata not found for media_id=%s", mediaID)
+			}
 
-				if !strings.EqualFold(media.E, "Image") {
-					results <- mediaResult{index: index, media: nil, err: nil}
-					return
-				}
+			if !strings.EqualFold(media.E, "Image") {
+				return nil, nil, nil
+			}
 
-				mediaURL := normalizeRedditMediaURL(media.S.U)
-				if mediaURL == "" {
-					results <- mediaResult{index: index, err: fmt.Errorf("empty media url for media_id=%s", mediaID)}
-					return
-				}
+			mediaURL := normalizeRedditMediaURL(media.S.U)
+			if mediaURL == "" {
+				return nil, nil, fmt.Errorf("empty media url for media_id=%s", mediaID)
+			}
 
-				file, cleanup, err := downloader.FetchStreamFromURL(mediaURL)
-				if err != nil {
-					results <- mediaResult{index: index, err: fmt.Errorf("media_id=%s url=%s: %w", mediaID, mediaURL, err)}
-					return
-				}
+			file, cleanup, err := downloader.FetchStreamFromURL(mediaURL)
+			if err != nil {
+				return nil, nil, fmt.Errorf("media_id=%s url=%s: %w", mediaID, mediaURL, err)
+			}
 
-				var inputMedia gotgbot.InputMedia
-				if media.E == "Image" {
-					inputMedia = &gotgbot.InputMediaPhoto{
-						Media: downloader.InputFileFromReader(filename, file),
-					}
-				}
-				results <- mediaResult{index: index, media: inputMedia, cleanup: cleanup, err: nil}
-			}(i, item.MediaID)
-		}
+			return &gotgbot.InputMediaPhoto{
+				Media: downloader.InputFileFromReader(filename, file),
+			}, cleanup, nil
+		})
 
-		for range mediaCount {
-			result := <-results
-			if result.err != nil {
+		for _, result := range results {
+			if result.Err != nil {
 				slog.Error("Failed to download media in gallery",
-					"Error", result.err.Error())
+					"Error", result.Err.Error())
 				hadError = true
 				continue
 			}
-			if result.media == nil {
+			if result.Media == nil {
 				continue
 			}
-			mediaItems[result.index] = result.media
-			collectedCleanups = append(collectedCleanups, result.cleanup)
+			mediaItems[result.Index] = result.Media
+			collectedCleanups = append(collectedCleanups, result.Cleanup)
 		}
 		if hadError {
 			downloader.CombineCleanups(collectedCleanups...)()

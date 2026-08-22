@@ -380,64 +380,53 @@ func (h *Handler) handleImage(data *ShortcodeMedia) ([]gotgbot.InputMedia, func(
 }
 
 func (h *Handler) handleSidecar(data *ShortcodeMedia) ([]gotgbot.InputMedia, func()) {
-	type mediaResult struct {
-		index   int
-		media   *downloader.InputMedia
-		cleanup func()
-		err     error
-	}
-
 	mediaCount := len(data.EdgeSidecarToChildren.Edges)
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
+
+	results := downloader.DownloadAllMedia(data.EdgeSidecarToChildren.Edges, func(index int, edge Edges) (gotgbot.InputMedia, func(), error) {
+		media, cleanup, err := h.downloadMedia(edge)
+		if err != nil || media.File == nil {
+			return nil, cleanup, err
+		}
+
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%d_%s_%s", index, h.username, h.postID))
+		if !edge.Node.IsVideo {
+			return &gotgbot.InputMediaPhoto{
+				Media: downloader.InputFileFromBytes(filename, media.File),
+			}, cleanup, nil
+		}
+
+		videoMedia := &gotgbot.InputMediaVideo{
+			Media:             downloader.InputFileFromBytes(filename, media.File),
+			Width:             int64(data.Dimensions.Width),
+			Height:            int64(data.Dimensions.Height),
+			SupportsStreaming: true,
+		}
+		if media.Thumbnail != nil {
+			thumbnail, err := utils.ResizeThumbnail(media.Thumbnail)
+			if err != nil {
+				slog.Error("Failed to resize thumbnail",
+					"Post Info", []string{h.username, h.postID},
+					"Error", err.Error())
+			}
+			videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
+		}
+		return videoMedia, cleanup, nil
+	})
+
 	var cleanups []func()
-	results := make(chan mediaResult, mediaCount)
-
-	for i, media := range data.EdgeSidecarToChildren.Edges {
-		go func(index int, edge Edges) {
-			media, cleanup, err := h.downloadMedia(edge)
-			results <- mediaResult{index: index, media: media, cleanup: cleanup, err: err}
-		}(i, media)
-	}
-
-	for range mediaCount {
-		result := <-results
-		if result.err != nil {
+	for _, result := range results {
+		if result.Cleanup != nil {
+			cleanups = append(cleanups, result.Cleanup)
+		}
+		if result.Err != nil {
 			slog.Info("Failed to download media in sidecar",
 				"Post Info", []string{h.username, h.postID},
-				"Error", result.err.Error())
-			if result.cleanup != nil {
-				cleanups = append(cleanups, result.cleanup)
-			}
+				"Error", result.Err.Error())
 			continue
 		}
-		if result.media.File != nil {
-			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Instagram_%d_%s_%s", result.index, h.username, h.postID))
-			var mediaItem gotgbot.InputMedia
-			if !data.EdgeSidecarToChildren.Edges[result.index].Node.IsVideo {
-				mediaItem = &gotgbot.InputMediaPhoto{
-					Media: downloader.InputFileFromBytes(filename, result.media.File),
-				}
-			} else {
-				mediaItem = &gotgbot.InputMediaVideo{
-					Media:             downloader.InputFileFromBytes(filename, result.media.File),
-					Width:             int64(data.Dimensions.Width),
-					Height:            int64(data.Dimensions.Height),
-					SupportsStreaming: true,
-				}
-				if result.media.Thumbnail != nil {
-					thumbnail, err := utils.ResizeThumbnail(result.media.Thumbnail)
-					if err != nil {
-						slog.Error("Failed to resize thumbnail",
-							"Post Info", []string{h.username, h.postID},
-							"Error", err.Error())
-					}
-					mediaItem.(*gotgbot.InputMediaVideo).Thumbnail = downloader.InputFileFromBytes(filename, thumbnail)
-				}
-			}
-			mediaItems[result.index] = mediaItem
-		}
-		if result.cleanup != nil {
-			cleanups = append(cleanups, result.cleanup)
+		if result.Media != nil {
+			mediaItems[result.Index] = result.Media
 		}
 	}
 

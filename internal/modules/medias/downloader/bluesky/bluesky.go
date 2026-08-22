@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"html"
-	"io"
 	"log/slog"
 	"path"
 	"regexp"
@@ -252,48 +251,38 @@ func (h *Handler) handleVideoFromURLs(playlistURL, thumbnailURL string) ([]gotgb
 }
 
 func (h *Handler) handleImage(blueskyImages []Image) ([]gotgbot.InputMedia, func()) {
-	type mediaResult struct {
-		index   int
-		file    io.ReadCloser
-		cleanup func()
-		err     error
-	}
-
 	mediaCount := len(blueskyImages)
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
-	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range blueskyImages {
-		go func(index int, media Image) {
-			file, cleanup, err := downloader.FetchStreamFromURL(media.Fullsize)
-			if err != nil {
-				slog.Error("Failed to download image",
-					"Post Info", []string{h.username, h.postID},
-					"Image URL", media.Fullsize,
-					"Error", err.Error())
-			}
-			results <- mediaResult{index, file, cleanup, err}
-		}(i, media)
-	}
+	results := downloader.DownloadAllMedia(blueskyImages, func(_ int, media Image) (gotgbot.InputMedia, func(), error) {
+		file, cleanup, err := downloader.FetchStreamFromURL(media.Fullsize)
+		if err != nil {
+			slog.Error("Failed to download image",
+				"Post Info", []string{h.username, h.postID},
+				"Image URL", media.Fullsize,
+				"Error", err.Error())
+			return nil, cleanup, err
+		}
+		return &gotgbot.InputMediaPhoto{
+			Media: downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), file),
+		}, cleanup, nil
+	})
 
 	var cleanups []func()
-	for range mediaCount {
-		result := <-results
-		if result.err != nil {
+	for _, result := range results {
+		if result.Err != nil {
 			slog.Error("Failed to download media in carousel",
 				"Post Info", []string{h.username, h.postID},
-				"Media Count", result.index,
-				"Error", result.err.Error())
-			if result.cleanup != nil {
-				cleanups = append(cleanups, result.cleanup)
+				"Media Count", result.Index,
+				"Error", result.Err.Error())
+			if result.Cleanup != nil {
+				cleanups = append(cleanups, result.Cleanup)
 			}
 			continue
 		}
-		if result.file != nil {
-			cleanups = append(cleanups, result.cleanup)
-			mediaItems[result.index] = &gotgbot.InputMediaPhoto{
-				Media: downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Bluesky_%s_%s", h.username, h.postID)), result.file),
-			}
+		if result.Media != nil {
+			cleanups = append(cleanups, result.Cleanup)
+			mediaItems[result.Index] = result.Media
 		}
 	}
 

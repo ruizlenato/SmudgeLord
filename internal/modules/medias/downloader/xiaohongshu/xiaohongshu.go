@@ -205,72 +205,51 @@ func (h *Handler) findFirstAvailableVideoFormat(stream VideoStream) VideoInfo {
 }
 
 func (h *Handler) handleImages(noteData Note) ([]gotgbot.InputMedia, func()) {
-	type mediaResult struct {
-		index   int
-		media   gotgbot.InputMedia
-		cleanup func()
-		err     error
-	}
-
 	mediaCount := len(noteData.Note.ImageList)
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
-	results := make(chan mediaResult, mediaCount)
 
-	for i, media := range noteData.Note.ImageList {
-		go func(index int, media Images) {
-			url := media.URLDefault
-			if media.LivePhoto {
-				videoInfo := h.findFirstAvailableVideoFormat(media.Stream)
-				url = videoInfo.MasterURL
-			}
+	results := downloader.DownloadAllMedia(noteData.Note.ImageList, func(index int, media Images) (gotgbot.InputMedia, func(), error) {
+		url := media.URLDefault
+		if media.LivePhoto {
+			videoInfo := h.findFirstAvailableVideoFormat(media.Stream)
+			url = videoInfo.MasterURL
+		}
 
-			stream, cleanup, err := downloader.FetchStreamFromURL(url)
-			if err != nil {
-				slog.Error("Failed to download image",
-					"Post Info", []string{h.username, h.postID},
-					"Error", err.Error())
-				results <- mediaResult{index: index, err: err}
-				return
-			}
+		stream, cleanup, err := downloader.FetchStreamFromURL(url)
+		if err != nil {
+			slog.Error("Failed to download image",
+				"Post Info", []string{h.username, h.postID},
+				"Error", err.Error())
+			return nil, nil, err
+		}
 
-			sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", index, h.username, h.postID))
-			if media.LivePhoto {
-				results <- mediaResult{
-					index: index,
-					media: &gotgbot.InputMediaVideo{
-						Media:             downloader.InputFileFromReader(sanitized, stream),
-						SupportsStreaming: true,
-					},
-					cleanup: cleanup,
-				}
-				return
-			}
+		sanitized := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Xiaohongshu_%d_%s_%s", index, h.username, h.postID))
+		if media.LivePhoto {
+			return &gotgbot.InputMediaVideo{
+				Media:             downloader.InputFileFromReader(sanitized, stream),
+				SupportsStreaming: true,
+			}, cleanup, nil
+		}
 
-			results <- mediaResult{
-				index: index,
-				media: &gotgbot.InputMediaPhoto{
-					Media: downloader.InputFileFromReader(sanitized, stream),
-				},
-				cleanup: cleanup,
-			}
-		}(i, media)
-	}
+		return &gotgbot.InputMediaPhoto{
+			Media: downloader.InputFileFromReader(sanitized, stream),
+		}, cleanup, nil
+	})
 
 	var cleanups []func()
-	for range mediaCount {
-		result := <-results
-		if result.err != nil {
+	for _, result := range results {
+		if result.Err != nil {
 			slog.Error("Failed to download media in carousel",
 				"Post Info", []string{h.username, h.postID},
-				"Media Count", result.index,
-				"Error", result.err.Error())
+				"Media Count", result.Index,
+				"Error", result.Err.Error())
 			continue
 		}
-		if result.cleanup != nil {
-			cleanups = append(cleanups, result.cleanup)
+		if result.Cleanup != nil {
+			cleanups = append(cleanups, result.Cleanup)
 		}
-		if result.media != nil {
-			mediaItems[result.index] = result.media
+		if result.Media != nil {
+			mediaItems[result.Index] = result.Media
 		}
 	}
 

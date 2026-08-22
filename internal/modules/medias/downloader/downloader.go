@@ -545,6 +545,30 @@ func mergeSegments(segmentFiles []string) (*os.File, error) {
 	return file, nil
 }
 
+type MediaResult struct {
+	Index   int
+	Media   gotgbot.InputMedia
+	Cleanup func()
+	Err     error
+}
+
+func DownloadAllMedia[T any](items []T, download func(index int, item T) (gotgbot.InputMedia, func(), error)) []MediaResult {
+	results := make(chan MediaResult, len(items))
+	for i, item := range items {
+		go func(index int, it T) {
+			media, cleanup, err := download(index, it)
+			results <- MediaResult{Index: index, Media: media, Cleanup: cleanup, Err: err}
+		}(i, item)
+	}
+
+	ordered := make([]MediaResult, len(items))
+	for range items {
+		result := <-results
+		ordered[result.Index] = result
+	}
+	return ordered
+}
+
 func TruncateUTF8Caption(caption, url, text string, mediaCount int) string {
 	const maxSizeCaption = 1024
 	const maxQuotedTextRunes = 248

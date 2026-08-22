@@ -38,6 +38,8 @@ var (
 	canonicalRegex       = regexp.MustCompile(`(?is)<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']`)
 
 	tikwmAPIURL = "https://tikwm.com/api/"
+
+	refererTransport = &http.Transport{MaxConnsPerHost: 10}
 )
 
 func (h *Handler) fetchTikTokDataTikWM() TikTokData {
@@ -391,7 +393,7 @@ func (h *Handler) scrapeWebData() {
 	jar, _ := cookiejar.New(nil)
 	client := &http.Client{
 		Jar:       jar,
-		Transport: &http.Transport{MaxConnsPerHost: 10},
+		Transport: refererTransport,
 	}
 
 	webURL := fmt.Sprintf("https://www.tiktok.com/@_/video/%s", h.postID)
@@ -810,46 +812,38 @@ func getCaption(tikTokData TikTokData) string {
 }
 
 func (h *Handler) handleImages(tikTokData TikTokData) ([]gotgbot.InputMedia, func()) {
-	type mediaResult struct {
-		index   int
-		file    io.ReadCloser
-		cleanup func()
-		err     error
-	}
-
 	images := tikTokData.AwemeList[0].ImagePostInfo.Images
 	mediaItems := make([]gotgbot.InputMedia, len(images))
-	results := make(chan mediaResult, len(images))
 
-	for i, media := range images {
-		go func(index int, media Image) {
-			imageURL := pickImageURL(media)
-			if imageURL == "" {
-				results <- mediaResult{index: index, err: fmt.Errorf("no image url found")}
-				return
-			}
+	results := downloader.DownloadAllMedia(images, func(index int, media Image) (gotgbot.InputMedia, func(), error) {
+		imageURL := pickImageURL(media)
+		if imageURL == "" {
+			return nil, nil, fmt.Errorf("no image url found")
+		}
 
-			file, cleanup, err := downloader.FetchStreamFromURL(imageURL)
-			results <- mediaResult{index: index, file: file, cleanup: cleanup, err: err}
-		}(i, media)
-	}
+		file, cleanup, err := downloader.FetchStreamFromURL(imageURL)
+		if err != nil {
+			return nil, cleanup, err
+		}
+
+		return &gotgbot.InputMediaPhoto{
+			Media: downloader.InputFileFromReader(utils.SanitizeString(
+				fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", index, h.username, h.postID)),
+				file),
+		}, cleanup, nil
+	})
 
 	var cleanups []func()
 
-	for range images {
-		result := <-results
-		if result.err != nil {
-			slog.Error("Failed to download media", "Post", []string{h.username, h.postID}, "Index", result.index)
+	for _, result := range results {
+		if result.Err != nil {
+			slog.Error("Failed to download media", "Post", []string{h.username, h.postID}, "Index", result.Index)
 			continue
 		}
-		if result.file != nil {
-			mediaItems[result.index] = &gotgbot.InputMediaPhoto{
-				Media: downloader.InputFileFromReader(utils.SanitizeString(
-					fmt.Sprintf("SmudgeLord-TikTok_%d_%s_%s", result.index, h.username, h.postID)),
-					result.file),
-			}
-			if result.cleanup != nil {
-				cleanups = append(cleanups, result.cleanup)
+		if result.Media != nil {
+			mediaItems[result.Index] = result.Media
+			if result.Cleanup != nil {
+				cleanups = append(cleanups, result.Cleanup)
 			}
 		}
 	}
@@ -968,7 +962,7 @@ func (h *Handler) fetchWithReferer(url, referer string) ([]byte, error) {
 	}
 
 	client := &http.Client{
-		Transport: &http.Transport{MaxConnsPerHost: 10},
+		Transport: refererTransport,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) > 0 && h.cookies != "" {
 				req.Header.Set("Cookie", h.cookies)
@@ -1009,7 +1003,7 @@ func (h *Handler) fetchStreamWithReferer(url, referer string) (io.ReadCloser, fu
 	}
 
 	client := &http.Client{
-		Transport: &http.Transport{MaxConnsPerHost: 10},
+		Transport: refererTransport,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			if len(via) > 0 && h.cookies != "" {
 				req.Header.Set("Cookie", h.cookies)

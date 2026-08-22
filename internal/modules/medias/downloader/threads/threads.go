@@ -208,68 +208,50 @@ func writeThreadsHeaderAndText(sb *strings.Builder, username, text string) {
 }
 
 func (h *Handler) handleCarousel(post Post) ([]gotgbot.InputMedia, func()) {
-	type mediaResult struct {
-		index   int
-		media   gotgbot.InputMedia
-		cleanup func()
-		err     error
-	}
-
 	mediaCount := len(*post.CarouselMedia)
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
-	results := make(chan mediaResult, mediaCount)
 
-	for i, result := range *post.CarouselMedia {
-		go func(index int, threadsMedia CarouselMedia) {
-			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", index, h.username, h.postID))
-			if threadsMedia.VideoVersions == nil {
-				stream, cleanup, err := downloader.FetchStreamFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
-				if err != nil {
-					results <- mediaResult{index: index, err: err}
-					return
-				}
-				results <- mediaResult{
-					index:   index,
-					media:   &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream)},
-					cleanup: cleanup,
-				}
-				return
-			}
-
-			stream, cleanup, err := downloader.FetchStreamFromURL(threadsMedia.VideoVersions[0].URL)
+	results := downloader.DownloadAllMedia(*post.CarouselMedia, func(index int, threadsMedia CarouselMedia) (gotgbot.InputMedia, func(), error) {
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Threads_%d_%s_%s", index, h.username, h.postID))
+		if threadsMedia.VideoVersions == nil {
+			stream, cleanup, err := downloader.FetchStreamFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
 			if err != nil {
-				results <- mediaResult{index: index, err: err}
-				return
+				return nil, nil, err
 			}
+			return &gotgbot.InputMediaPhoto{Media: downloader.InputFileFromReader(filename, stream)}, cleanup, nil
+		}
 
-			thumbnail, thumbErr := downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
-			if thumbErr != nil {
-				if cleanup != nil {
-					cleanup()
-				}
-				results <- mediaResult{index: index, err: thumbErr}
-				return
-			}
+		stream, cleanup, err := downloader.FetchStreamFromURL(threadsMedia.VideoVersions[0].URL)
+		if err != nil {
+			return nil, nil, err
+		}
 
-			videoMedia := &gotgbot.InputMediaVideo{
-				Media:             downloader.InputFileFromReader(filename, stream),
-				Width:             int64((*post.CarouselMedia)[index].OriginalWidth),
-				Height:            int64((*post.CarouselMedia)[index].OriginalHeight),
-				SupportsStreaming: true,
+		thumbnail, thumbErr := downloader.FetchBytesFromURL(threadsMedia.ImageVersions.Candidates[0].URL)
+		if thumbErr != nil {
+			if cleanup != nil {
+				cleanup()
 			}
-			if thumbnail != nil {
-				if thumbnailBytes, resizeErr := utils.ResizeThumbnail(thumbnail); resizeErr != nil {
-					slog.Error("Failed to resize thumbnail",
-						"Post Info", []string{h.username, h.postID},
-						"Error", resizeErr.Error())
-				} else {
-					videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnailBytes)
-				}
-			}
+			return nil, nil, thumbErr
+		}
 
-			results <- mediaResult{index: index, media: videoMedia, cleanup: cleanup}
-		}(i, result)
-	}
+		videoMedia := &gotgbot.InputMediaVideo{
+			Media:             downloader.InputFileFromReader(filename, stream),
+			Width:             int64(threadsMedia.OriginalWidth),
+			Height:            int64(threadsMedia.OriginalHeight),
+			SupportsStreaming: true,
+		}
+		if thumbnail != nil {
+			if thumbnailBytes, resizeErr := utils.ResizeThumbnail(thumbnail); resizeErr != nil {
+				slog.Error("Failed to resize thumbnail",
+					"Post Info", []string{h.username, h.postID},
+					"Error", resizeErr.Error())
+			} else {
+				videoMedia.Thumbnail = downloader.InputFileFromBytes(filename, thumbnailBytes)
+			}
+		}
+
+		return videoMedia, cleanup, nil
+	})
 
 	var cleanups []func()
 	addCleanup := func(cleanup func()) {
@@ -278,18 +260,17 @@ func (h *Handler) handleCarousel(post Post) ([]gotgbot.InputMedia, func()) {
 		}
 	}
 
-	for range mediaCount {
-		result := <-results
-		if result.err != nil {
+	for _, result := range results {
+		if result.Err != nil {
 			slog.Error("Failed to download media in carousel",
 				"Post Info", []string{h.username, h.postID},
-				"Media Count", result.index,
-				"Error", result.err.Error())
+				"Media Count", result.Index,
+				"Error", result.Err.Error())
 			continue
 		}
-		addCleanup(result.cleanup)
-		if result.media != nil {
-			mediaItems[result.index] = result.media
+		addCleanup(result.Cleanup)
+		if result.Media != nil {
+			mediaItems[result.Index] = result.Media
 		}
 	}
 

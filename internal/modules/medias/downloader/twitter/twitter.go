@@ -102,7 +102,7 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 	}
 
 	mediaItems := make([]gotgbot.InputMedia, mediaCount)
-	results := downloadAllMedia(allTweetMedia, func(_ int, twitterMedia Media) (gotgbot.InputMedia, func(), error) {
+	results := downloader.DownloadAllMedia(allTweetMedia, func(_ int, twitterMedia Media) (gotgbot.InputMedia, func(), error) {
 		if twitterMedia.ExtMediaAvailability.Status != "" && twitterMedia.ExtMediaAvailability.Status != "Available" {
 			return nil, nil, &MediaUnavailableError{
 				Status: twitterMedia.ExtMediaAvailability.Status,
@@ -121,25 +121,25 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 
 	var unavailableReason string
 	for _, result := range results {
-		if result.err != nil {
-			if _, ok := errors.AsType[*downloader.FileTooLargeError](result.err); ok {
+		if result.Err != nil {
+			if _, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
 				return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 			}
-			if unavailableErr, ok := errors.AsType[*MediaUnavailableError](result.err); ok {
+			if unavailableErr, ok := errors.AsType[*MediaUnavailableError](result.Err); ok {
 				slog.Info("Media unavailable in carousel", "Post Info", []string{h.username, h.postID},
-					"Media Count", result.index, "Error", unavailableErr.Error())
+					"Media Count", result.Index, "Error", unavailableErr.Error())
 				if unavailableReason == "" {
 					unavailableReason = unavailableErr.Reason
 				}
 			} else {
 				slog.Error("Failed to download media in carousel", "Post Info", []string{h.username, h.postID},
-					"Media Count", result.index, "Error", result.err.Error())
+					"Media Count", result.Index, "Error", result.Err.Error())
 			}
 			continue
 		}
-		addCleanup(result.cleanup)
-		if result.media != nil {
-			mediaItems[result.index] = result.media
+		addCleanup(result.Cleanup)
+		if result.Media != nil {
+			mediaItems[result.Index] = result.Media
 		}
 	}
 
@@ -172,58 +172,30 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 	}, downloader.CombineCleanups(cleanups...)
 }
 
-type mediaResult struct {
-	index   int
-	media   gotgbot.InputMedia
-	cleanup func()
-	err     error
-}
-
-func downloadAllMedia[T any](items []T, download func(index int, item T) (gotgbot.InputMedia, func(), error)) []mediaResult {
-	results := make(chan mediaResult, len(items))
-	for i, item := range items {
-		go func(index int, it T) {
-			media, cleanup, err := download(index, it)
-			results <- mediaResult{index: index, media: media, cleanup: cleanup, err: err}
-		}(i, item)
-	}
-	out := make([]mediaResult, 0, len(items))
-	for range len(items) {
-		out = append(out, <-results)
-	}
-	return out
-}
-
 func (h *Handler) downloadResultMedia(result Result) ([]gotgbot.InputMedia, []func()) {
 	if result.Legacy == nil || len(result.Legacy.ExtendedEntities.Media) == 0 {
 		return nil, nil
 	}
-	results := downloadAllMedia(result.Legacy.ExtendedEntities.Media, func(_ int, m Media) (gotgbot.InputMedia, func(), error) {
+	results := downloader.DownloadAllMedia(result.Legacy.ExtendedEntities.Media, func(_ int, m Media) (gotgbot.InputMedia, func(), error) {
 		if m.ExtMediaAvailability.Status != "" && m.ExtMediaAvailability.Status != "Available" {
 			return nil, nil, &MediaUnavailableError{Status: m.ExtMediaAvailability.Status, Reason: m.ExtMediaAvailability.Reason}
 		}
 		return h.downloadMedia(m, false)
 	})
-	ordered := make([]gotgbot.InputMedia, len(results))
+	var medias []gotgbot.InputMedia
 	var cleanups []func()
 	for _, res := range results {
-		if res.err != nil {
+		if res.Err != nil {
 			slog.Info("Failed to download referenced tweet media",
 				"Post Info", []string{h.username, h.postID},
-				"Media Count", res.index, "Error", res.err.Error())
+				"Media Count", res.Index, "Error", res.Err.Error())
 			continue
 		}
-		if res.cleanup != nil {
-			cleanups = append(cleanups, res.cleanup)
+		if res.Cleanup != nil {
+			cleanups = append(cleanups, res.Cleanup)
 		}
-		if res.media != nil {
-			ordered[res.index] = res.media
-		}
-	}
-	var medias []gotgbot.InputMedia
-	for _, m := range ordered {
-		if m != nil {
-			medias = append(medias, m)
+		if res.Media != nil {
+			medias = append(medias, res.Media)
 		}
 	}
 	return medias, cleanups
@@ -514,23 +486,23 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 	}
 
 	if twitterData.Tweet.Media != nil && len(twitterData.Tweet.Media.All) > 0 {
-		results := downloadAllMedia(twitterData.Tweet.Media.All, func(index int, twitterMedia FxTwitterMedia) (gotgbot.InputMedia, func(), error) {
+		results := downloader.DownloadAllMedia(twitterData.Tweet.Media.All, func(index int, twitterMedia FxTwitterMedia) (gotgbot.InputMedia, func(), error) {
 			return h.downloadFxMedia(twitterMedia, index)
 		})
 		var mediaItems []gotgbot.InputMedia
 		for _, result := range results {
-			if result.err != nil {
-				if _, ok := errors.AsType[*downloader.FileTooLargeError](result.err); ok {
+			if result.Err != nil {
+				if _, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
 					return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 				}
 				slog.Error("Failed to download media in carousel",
 					"Post Info", []string{h.username, h.postID},
-					"Media Count", result.index, "Error", result.err.Error())
+					"Media Count", result.Index, "Error", result.Err.Error())
 				continue
 			}
-			addCleanup(result.cleanup)
-			if result.media != nil {
-				mediaItems = append(mediaItems, result.media)
+			addCleanup(result.Cleanup)
+			if result.Media != nil {
+				mediaItems = append(mediaItems, result.Media)
 			}
 		}
 		allMedia = mediaItems
@@ -538,23 +510,23 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 
 	if twitterData.Tweet.Quote != nil && twitterData.Tweet.Quote.Media != nil && len(twitterData.Tweet.Quote.Media.All) > 0 {
 		quoteMediaPresent = true
-		results := downloadAllMedia(twitterData.Tweet.Quote.Media.All, func(index int, twitterMedia FxTwitterMedia) (gotgbot.InputMedia, func(), error) {
+		results := downloader.DownloadAllMedia(twitterData.Tweet.Quote.Media.All, func(index int, twitterMedia FxTwitterMedia) (gotgbot.InputMedia, func(), error) {
 			return h.downloadFxMedia(twitterMedia, index)
 		})
 		var mediaItems []gotgbot.InputMedia
 		for _, result := range results {
-			if result.err != nil {
-				if _, ok := errors.AsType[*downloader.FileTooLargeError](result.err); ok {
+			if result.Err != nil {
+				if _, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
 					return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
 				}
 				slog.Error("Failed to download media in carousel",
 					"Post Info", []string{h.username, h.postID},
-					"Media Count", result.index, "Error", result.err.Error())
+					"Media Count", result.Index, "Error", result.Err.Error())
 				continue
 			}
-			addCleanup(result.cleanup)
-			if result.media != nil {
-				mediaItems = append(mediaItems, result.media)
+			addCleanup(result.Cleanup)
+			if result.Media != nil {
+				mediaItems = append(mediaItems, result.Media)
 			}
 		}
 		quoteMedia = mediaItems

@@ -344,14 +344,6 @@ func (h *Handler) handleStoryPin(pinData *PinData) ([]gotgbot.InputMedia, func()
 		return nil, nil
 	}
 
-	type mediaResult struct {
-		index   int
-		media   gotgbot.InputMedia
-		cleanup func()
-		err     error
-	}
-
-	results := make(chan mediaResult, len(allBlocks))
 	mediaItems := make([]gotgbot.InputMedia, len(allBlocks))
 	var cleanups []func()
 	addCleanup := func(cleanup func()) {
@@ -360,97 +352,87 @@ func (h *Handler) handleStoryPin(pinData *PinData) ([]gotgbot.InputMedia, func()
 		}
 	}
 
-	for i, block := range allBlocks {
-		go func(index int, block StoryPinBlock) {
-			switch block.Typename {
-			case "StoryPinVideoBlock":
-				video := h.extractStoryVideoVariant(block.VideoDataV2)
-				if video == nil {
-					results <- mediaResult{index: index, err: fmt.Errorf("no video variant found")}
-					return
-				}
+	results := downloader.DownloadAllMedia(allBlocks, func(index int, block StoryPinBlock) (gotgbot.InputMedia, func(), error) {
+		switch block.Typename {
+		case "StoryPinVideoBlock":
+			video := h.extractStoryVideoVariant(block.VideoDataV2)
+			if video == nil {
+				return nil, nil, fmt.Errorf("no video variant found")
+			}
 
-				var stream io.ReadCloser
-				var cleanup func()
-				var err error
-				if strings.HasSuffix(video.URL, ".m3u8") {
-					file, fileCleanup, fileErr := downloader.FetchM3U8ToFile(video.URL, nil, nil)
-					if fileErr != nil {
-						results <- mediaResult{index: index, err: fileErr}
-						return
-					}
-					results <- mediaResult{index: index, media: &gotgbot.InputMediaVideo{
-						Media:             downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID)), file),
-						SupportsStreaming: true,
-						Width:             int64(video.Width),
-						Height:            int64(video.Height),
-						Duration:          int64(video.Duration),
-					}, cleanup: fileCleanup}
-					return
-				} else {
-					stream, cleanup, err = downloader.FetchStreamFromURL(video.URL)
+			var stream io.ReadCloser
+			var cleanup func()
+			var err error
+			if strings.HasSuffix(video.URL, ".m3u8") {
+				file, fileCleanup, fileErr := downloader.FetchM3U8ToFile(video.URL, nil, nil)
+				if fileErr != nil {
+					return nil, nil, fileErr
 				}
-				if err != nil {
-					results <- mediaResult{index: index, err: err}
-					return
-				}
-
-				filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
-				media := &gotgbot.InputMediaVideo{
-					Media:             downloader.InputFileFromReader(filename, stream),
+				return &gotgbot.InputMediaVideo{
+					Media:             downloader.InputFileFromReader(utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID)), file),
 					SupportsStreaming: true,
 					Width:             int64(video.Width),
 					Height:            int64(video.Height),
 					Duration:          int64(video.Duration),
-				}
+				}, fileCleanup, nil
+			}
+			stream, cleanup, err = downloader.FetchStreamFromURL(video.URL)
+			if err != nil {
+				return nil, nil, err
+			}
 
-				if video.Thumbnail != "" {
-					thumbnail, thumbErr := downloader.FetchBytesFromURL(video.Thumbnail)
-					if thumbErr == nil {
-						thumbnail, _ = utils.ResizeThumbnail(thumbnail)
-						if thumbnail != nil {
-							media.Thumbnail = downloader.InputFileFromReader(filename, bytes.NewReader(thumbnail))
-						}
+			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
+			media := &gotgbot.InputMediaVideo{
+				Media:             downloader.InputFileFromReader(filename, stream),
+				SupportsStreaming: true,
+				Width:             int64(video.Width),
+				Height:            int64(video.Height),
+				Duration:          int64(video.Duration),
+			}
+
+			if video.Thumbnail != "" {
+				thumbnail, thumbErr := downloader.FetchBytesFromURL(video.Thumbnail)
+				if thumbErr == nil {
+					thumbnail, _ = utils.ResizeThumbnail(thumbnail)
+					if thumbnail != nil {
+						media.Thumbnail = downloader.InputFileFromReader(filename, bytes.NewReader(thumbnail))
 					}
 				}
-
-				results <- mediaResult{index: index, media: media, cleanup: cleanup}
-
-			case "StoryPinImageBlock":
-				var imageURL string
-				if block.ImageData != nil && block.ImageData.Images.Orig != nil {
-					imageURL = block.ImageData.Images.Orig.URL
-				}
-				if imageURL == "" {
-					results <- mediaResult{index: index, err: fmt.Errorf("no image URL found")}
-					return
-				}
-
-				stream, cleanup, err := downloader.FetchStreamFromURL(imageURL)
-				if err != nil {
-					results <- mediaResult{index: index, err: err}
-					return
-				}
-
-				filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
-				results <- mediaResult{index: index, media: &gotgbot.InputMediaPhoto{
-					Media: downloader.InputFileFromReader(filename, stream),
-				}, cleanup: cleanup}
-
-			default:
-				results <- mediaResult{index: index, err: fmt.Errorf("unsupported block type: %s", block.Typename)}
 			}
-		}(i, block)
-	}
 
-	for range allBlocks {
-		result := <-results
-		if result.err != nil {
-			slog.Error("Failed to download story pin media", "Post", h.postID, "Index", result.index, "Error", result.err.Error())
+			return media, cleanup, nil
+
+		case "StoryPinImageBlock":
+			var imageURL string
+			if block.ImageData != nil && block.ImageData.Images.Orig != nil {
+				imageURL = block.ImageData.Images.Orig.URL
+			}
+			if imageURL == "" {
+				return nil, nil, fmt.Errorf("no image URL found")
+			}
+
+			stream, cleanup, err := downloader.FetchStreamFromURL(imageURL)
+			if err != nil {
+				return nil, nil, err
+			}
+
+			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
+			return &gotgbot.InputMediaPhoto{
+				Media: downloader.InputFileFromReader(filename, stream),
+			}, cleanup, nil
+
+		default:
+			return nil, nil, fmt.Errorf("unsupported block type: %s", block.Typename)
+		}
+	})
+
+	for _, result := range results {
+		if result.Err != nil {
+			slog.Error("Failed to download story pin media", "Post", h.postID, "Index", result.Index, "Error", result.Err.Error())
 			continue
 		}
-		addCleanup(result.cleanup)
-		mediaItems[result.index] = result.media
+		addCleanup(result.Cleanup)
+		mediaItems[result.Index] = result.Media
 	}
 
 	filtered := make([]gotgbot.InputMedia, 0, len(mediaItems))
@@ -470,14 +452,6 @@ func (h *Handler) handleStoryPin(pinData *PinData) ([]gotgbot.InputMedia, func()
 func (h *Handler) handleCarousel(pinData *PinData) ([]gotgbot.InputMedia, func()) {
 	slots := pinData.CarouselData.CarouselSlots
 
-	type mediaResult struct {
-		index   int
-		media   gotgbot.InputMedia
-		cleanup func()
-		err     error
-	}
-
-	results := make(chan mediaResult, len(slots))
 	mediaItems := make([]gotgbot.InputMedia, len(slots))
 	var cleanups []func()
 	addCleanup := func(cleanup func()) {
@@ -486,79 +460,69 @@ func (h *Handler) handleCarousel(pinData *PinData) ([]gotgbot.InputMedia, func()
 		}
 	}
 
-	for i, slot := range slots {
-		go func(index int, slot CarouselSlot) {
-			if slot.Videos != nil {
-				video := pickBestVideo(slot.Videos)
-				if video != nil {
-					var stream io.ReadCloser
-					var cleanup func()
-					var err error
-					if strings.HasSuffix(video.URL, ".m3u8") {
-						file, fileCleanup, fileErr := downloader.FetchM3U8ToFile(video.URL, nil, nil)
-						if fileErr != nil {
-							results <- mediaResult{index: index, err: fileErr}
-							return
-						}
-						filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
-						results <- mediaResult{index: index, media: &gotgbot.InputMediaVideo{
-							Media:             downloader.InputFileFromReader(filename, file),
-							SupportsStreaming: true,
-							Width:             int64(video.Width),
-							Height:            int64(video.Height),
-							Duration:          int64(video.Duration),
-						}, cleanup: fileCleanup}
-						return
-					} else {
-						stream, cleanup, err = downloader.FetchStreamFromURL(video.URL)
+	results := downloader.DownloadAllMedia(slots, func(index int, slot CarouselSlot) (gotgbot.InputMedia, func(), error) {
+		if slot.Videos != nil {
+			video := pickBestVideo(slot.Videos)
+			if video != nil {
+				var stream io.ReadCloser
+				var cleanup func()
+				var err error
+				if strings.HasSuffix(video.URL, ".m3u8") {
+					file, fileCleanup, fileErr := downloader.FetchM3U8ToFile(video.URL, nil, nil)
+					if fileErr != nil {
+						return nil, nil, fileErr
 					}
-					if err != nil {
-						results <- mediaResult{index: index, err: err}
-						return
-					}
-
 					filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
-					results <- mediaResult{index: index, media: &gotgbot.InputMediaVideo{
-						Media:             downloader.InputFileFromReader(filename, stream),
+					return &gotgbot.InputMediaVideo{
+						Media:             downloader.InputFileFromReader(filename, file),
 						SupportsStreaming: true,
 						Width:             int64(video.Width),
 						Height:            int64(video.Height),
 						Duration:          int64(video.Duration),
-					}, cleanup: cleanup}
-					return
+					}, fileCleanup, nil
 				}
-			}
+				stream, cleanup, err = downloader.FetchStreamFromURL(video.URL)
+				if err != nil {
+					return nil, nil, err
+				}
 
-			imageURL := ""
-			if slot.ImagesOrig != nil && slot.ImagesOrig.URL != "" {
-				imageURL = slot.ImagesOrig.URL
+				filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
+				return &gotgbot.InputMediaVideo{
+					Media:             downloader.InputFileFromReader(filename, stream),
+					SupportsStreaming: true,
+					Width:             int64(video.Width),
+					Height:            int64(video.Height),
+					Duration:          int64(video.Duration),
+				}, cleanup, nil
 			}
-			if imageURL == "" {
-				results <- mediaResult{index: index, err: fmt.Errorf("no media found in carousel slot")}
-				return
-			}
+		}
 
-			stream, cleanup, err := downloader.FetchStreamFromURL(imageURL)
-			if err != nil {
-				results <- mediaResult{index: index, err: err}
-				return
-			}
+		imageURL := ""
+		if slot.ImagesOrig != nil && slot.ImagesOrig.URL != "" {
+			imageURL = slot.ImagesOrig.URL
+		}
+		if imageURL == "" {
+			return nil, nil, fmt.Errorf("no media found in carousel slot")
+		}
 
-			filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
-			results <- mediaResult{index: index, media: &gotgbot.InputMediaPhoto{
-				Media: downloader.InputFileFromReader(filename, stream),
-			}, cleanup: cleanup}
-		}(i, slot)
-	}
+		stream, cleanup, err := downloader.FetchStreamFromURL(imageURL)
+		if err != nil {
+			return nil, nil, err
+		}
 
-	for range slots {
-		result := <-results
-		if result.err != nil {
-			slog.Error("Failed to download carousel media", "Post", h.postID, "Index", result.index, "Error", result.err.Error())
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Pinterest_%d_%s", index, h.postID))
+		return &gotgbot.InputMediaPhoto{
+			Media: downloader.InputFileFromReader(filename, stream),
+		}, cleanup, nil
+	})
+
+	for _, result := range results {
+		if result.Err != nil {
+			slog.Error("Failed to download carousel media", "Post", h.postID, "Index", result.Index, "Error", result.Err.Error())
 			continue
 		}
-		addCleanup(result.cleanup)
-		mediaItems[result.index] = result.media
+		addCleanup(result.Cleanup)
+		mediaItems[result.Index] = result.Media
 	}
 
 	filtered := make([]gotgbot.InputMedia, 0, len(mediaItems))
