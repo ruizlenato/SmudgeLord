@@ -4,8 +4,6 @@ package menu
 import (
 	"fmt"
 	"html"
-	"log/slog"
-	"os"
 	"strings"
 
 	"github.com/PaulSonOfLars/gotgbot/v2"
@@ -34,11 +32,7 @@ func startHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	i18n := localization.Get(ctx)
-	botUser, err := b.GetMe(nil)
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
+	botUser := b.User
 
 	if messageFields := strings.Fields(ctx.EffectiveMessage.GetText()); len(messageFields) > 1 {
 		switch messageFields[1] {
@@ -82,11 +76,7 @@ func startCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	i18n := localization.Get(ctx)
-	botUser, err := b.GetMe(nil)
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
+	botUser := b.User
 
 	chat := ctx.CallbackQuery.Message.GetChat()
 	msgID := ctx.CallbackQuery.Message.GetMessageId()
@@ -110,11 +100,7 @@ func privacyHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	i18n := localization.Get(ctx)
-	botUser, err := b.GetMe(nil)
-	if err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
-	}
+	botUser := b.User
 
 	if ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeGroup || ctx.EffectiveMessage.Chat.Type == gotgbot.ChatTypeSupergroup {
 		_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("privacy-policy-group"), &gotgbot.SendMessageOpts{
