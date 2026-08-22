@@ -17,6 +17,12 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
+var (
+	afkPrefixRegex = regexp.MustCompile(`^(brb|/afk)`)
+	mentionRegex   = regexp.MustCompile(`@[A-Za-z0-9_]{3,}`)
+	afkReasonRegex = regexp.MustCompile(`^(?:brb|/afk)\s(.+)$`)
+)
+
 func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 	messageData := ctx.EffectiveMessage
 	if messageData == nil || ctx.EffectiveUser == nil {
@@ -24,7 +30,7 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	if (messageData.Chat.Type != gotgbot.ChatTypeGroup && messageData.Chat.Type != gotgbot.ChatTypeSupergroup) ||
-		regexp.MustCompile(`^(brb|/afk)`).MatchString(messageData.GetText()) {
+		afkPrefixRegex.MatchString(messageData.GetText()) {
 		return nil
 	}
 
@@ -127,7 +133,7 @@ func extractMentionCandidates(text string) []string {
 	if text == "" {
 		return nil
 	}
-	matches := regexp.MustCompile(`@[A-Za-z0-9_]{3,}`).FindAllString(text, -1)
+	matches := mentionRegex.FindAllString(text, -1)
 	if len(matches) == 0 {
 		return nil
 	}
@@ -171,7 +177,7 @@ func Load(dispatcher *ext.Dispatcher) {
 }
 
 func extractReason(text string) string {
-	matches := regexp.MustCompile(`^(?:brb|/afk)\s(.+)$`).FindStringSubmatch(text)
+	matches := afkReasonRegex.FindStringSubmatch(text)
 	if len(matches) > 1 {
 		return matches[1]
 	}

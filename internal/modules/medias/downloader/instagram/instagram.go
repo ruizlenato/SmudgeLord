@@ -57,8 +57,12 @@ func buildArticle(postInfo downloader.PostInfo) *downloader.ArticleContent {
 	}
 }
 
+var (
+	shareRegex  = regexp.MustCompile(`(?:instagram.com)/(?:share)`)
+	postIDRegex = regexp.MustCompile(`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`)
+)
+
 func (h *Handler) setPostID(url string) bool {
-	shareRegex := regexp.MustCompile(`(?:instagram.com)/(?:share)`)
 	if shareRegex.MatchString(url) {
 		retryCaller := downloader.DefaultRetryCaller()
 
@@ -74,7 +78,6 @@ func (h *Handler) setPostID(url string) bool {
 
 		url = response.Request.URL.String()
 	}
-	postIDRegex := regexp.MustCompile(`(?:reel(?:s?)|p)/([A-Za-z0-9_-]+)`)
 
 	if matches := postIDRegex.FindStringSubmatch(url); len(matches) > 1 {
 		h.postID = matches[1]
@@ -169,6 +172,8 @@ var (
 	mainMediaRegex = regexp.MustCompile(`class="Content(.*?)src="(.*?)"`)
 	captionRegex   = regexp.MustCompile(`(?s)class="Caption"(.*?)class="CaptionUsername".*data-log-event="captionProfileClick" target="_blank">(.*?)<\/a>(.*?)<div`)
 	htmlTagRegex   = regexp.MustCompile(`<[^>]*>`)
+	gqlDataRegex   = regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)
+	mediaTypeRegex = regexp.MustCompile(`(?s)data-media-type="(.*?)"`)
 )
 
 func (h *Handler) getEmbedData() InstagramData {
@@ -192,7 +197,7 @@ func (h *Handler) getEmbedData() InstagramData {
 		return nil
 	}
 
-	if match := (regexp.MustCompile(`\\\"gql_data\\\":([\s\S]*)\}\"\}`)).FindSubmatch(body); len(match) == 2 {
+	if match := gqlDataRegex.FindSubmatch(body); len(match) == 2 {
 		s := strings.ReplaceAll(string(match[1]), `\"`, `"`)
 		s = strings.ReplaceAll(s, `\\/`, `/`)
 		s = strings.ReplaceAll(s, `\\`, `\`)
@@ -207,7 +212,7 @@ func (h *Handler) getEmbedData() InstagramData {
 			return nil
 		}
 	}
-	mediaTypeData := regexp.MustCompile(`(?s)data-media-type="(.*?)"`).FindAllStringSubmatch(string(body), -1)
+	mediaTypeData := mediaTypeRegex.FindAllStringSubmatch(string(body), -1)
 	if instagramData == nil && len(mediaTypeData) > 0 && len(mediaTypeData[0]) > 1 && mediaTypeData[0][1] == "GraphImage" {
 		mainMediaData := mainMediaRegex.FindAllStringSubmatch(string(body), -1)
 		mainMediaURL := (strings.ReplaceAll(mainMediaData[0][2], "amp;", ""))

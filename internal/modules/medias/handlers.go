@@ -164,21 +164,22 @@ func startMediaSendLimiterJanitor() {
 
 type MediaHandler struct {
 	Name    string
+	Pattern *regexp.Regexp
 	Handler func(string, downloader.Options) downloader.PostInfo
 }
 
-var mediaHandlers = map[string]MediaHandler{
-	"bsky.app/":                  {Name: "BlueSky", Handler: bluesky.Handle},
-	"(facebook.com|fb.watch)/":   {Name: "Facebook", Handler: facebook.Handle},
-	"instagram.com/":             {Name: "Instagram", Handler: instagram.Handle},
-	"pinterest.com/":             {Name: "Pinterest", Handler: pinterest.Handle},
-	"reddit.com/":                {Name: "Reddit", Handler: reddit.Handle},
-	"substack.com/":              {Name: "Substack", Handler: substack.Handle},
-	"threads.com/":               {Name: "Threads", Handler: threads.Handle},
-	"tiktok.com/":                {Name: "TikTok", Handler: tiktok.Handle},
-	"(twitter|x).com/":           {Name: "Twitter/X", Handler: twitter.Handle},
-	"(xiaohongshu|xhslink).com/": {Name: "XiaoHongShu", Handler: xiaohongshu.Handle},
-	"youtube.com/":               {Name: "YouTube", Handler: youtube.Handle},
+var mediaHandlers = []MediaHandler{
+	{Name: "BlueSky", Pattern: regexp.MustCompile(`bsky.app/`), Handler: bluesky.Handle},
+	{Name: "Facebook", Pattern: regexp.MustCompile(`(facebook.com|fb.watch)/`), Handler: facebook.Handle},
+	{Name: "Instagram", Pattern: regexp.MustCompile(`instagram.com/`), Handler: instagram.Handle},
+	{Name: "Pinterest", Pattern: regexp.MustCompile(`pinterest.com/`), Handler: pinterest.Handle},
+	{Name: "Reddit", Pattern: regexp.MustCompile(`reddit.com/`), Handler: reddit.Handle},
+	{Name: "Substack", Pattern: regexp.MustCompile(`substack.com/`), Handler: substack.Handle},
+	{Name: "Threads", Pattern: regexp.MustCompile(`threads.com/`), Handler: threads.Handle},
+	{Name: "TikTok", Pattern: regexp.MustCompile(`tiktok.com/`), Handler: tiktok.Handle},
+	{Name: "Twitter/X", Pattern: regexp.MustCompile(`(twitter|x).com/`), Handler: twitter.Handle},
+	{Name: "XiaoHongShu", Pattern: regexp.MustCompile(`(xiaohongshu|xhslink).com/`), Handler: xiaohongshu.Handle},
+	{Name: "YouTube", Pattern: regexp.MustCompile(`youtube.com/`), Handler: youtube.Handle},
 }
 
 func extractURL(text string) (string, bool) {
@@ -191,8 +192,8 @@ func extractURL(text string) (string, bool) {
 
 func processMedia(text string, opts downloader.Options) downloader.PostInfo {
 	var postInfo downloader.PostInfo
-	for pattern, handler := range mediaHandlers {
-		if match, _ := regexp.MatchString(pattern, text); match {
+	for _, handler := range mediaHandlers {
+		if handler.Pattern.MatchString(text) {
 			postInfo = handler.Handler(text, opts)
 			postInfo.Service = handler.Name
 			break

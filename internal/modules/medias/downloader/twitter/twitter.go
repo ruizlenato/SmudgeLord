@@ -35,6 +35,8 @@ var (
 		"x-twitter-active-user":     "yes",
 		"content-type":              "application/json",
 	}
+
+	postIDRegex = regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`)
 )
 
 func Handle(text string, opts downloader.Options) downloader.PostInfo {
@@ -65,7 +67,7 @@ func Handle(text string, opts downloader.Options) downloader.PostInfo {
 }
 
 func (h *Handler) setPostID(url string) bool {
-	if matches := regexp.MustCompile(`.*(?:twitter|x).com/.+status/([A-Za-z0-9]+)`).FindStringSubmatch(url); len(matches) == 2 {
+	if matches := postIDRegex.FindStringSubmatch(url); len(matches) == 2 {
 		h.postID = matches[1]
 		return true
 	}
