@@ -325,38 +325,26 @@ func (h *Handler) handleVideo(data *ShortcodeMedia) ([]gotgbot.InputMedia, func(
 		return nil, nil
 	}
 
+	var thumbnail gotgbot.InputFile
 	thumbnailURL := displayResourceURL(data.DisplayResources, data.DisplayURL)
 	if thumbnailURL == "" {
-		if fileCleanup != nil {
-			fileCleanup()
-		}
-		slog.Error("Failed to download thumbnail",
-			"Post Info", []string{h.username, h.postID},
-			"Error", "no thumbnail URL available")
-		return nil, nil
-	}
-
-	thumbnail, err := downloader.FetchBytesFromURL(thumbnailURL)
-	if err != nil {
-		if fileCleanup != nil {
-			fileCleanup()
-		}
-		slog.Error("Failed to download thumbnail",
-			"Post Info", []string{h.username, h.postID},
-			"Error", err)
-		return nil, nil
-	}
-
-	thumbnail, err = utils.ResizeThumbnail(thumbnail)
-	if err != nil {
-		slog.Error("Failed to resize thumbnail",
+		slog.Info("No thumbnail URL available, sending video without thumbnail",
+			"Post Info", []string{h.username, h.postID})
+	} else if thumbnailBytes, err := downloader.FetchBytesFromURL(thumbnailURL); err != nil {
+		slog.Warn("Failed to download thumbnail, sending video without thumbnail",
 			"Post Info", []string{h.username, h.postID},
 			"Error", err.Error())
+	} else if thumbnailBytes, err = utils.ResizeThumbnail(thumbnailBytes); err != nil {
+		slog.Warn("Failed to resize thumbnail, sending video without thumbnail",
+			"Post Info", []string{h.username, h.postID},
+			"Error", err.Error())
+	} else {
+		thumbnail = downloader.InputFileFromBytes(filename, thumbnailBytes)
 	}
 
 	return []gotgbot.InputMedia{&gotgbot.InputMediaVideo{
 		Media:                 downloader.InputFileFromBytes(filename, file),
-		Thumbnail:             downloader.InputFileFromBytes(filename, thumbnail),
+		Thumbnail:             thumbnail,
 		Width:                 int64(data.Dimensions.Width),
 		Height:                int64(data.Dimensions.Height),
 		SupportsStreaming:     true,
