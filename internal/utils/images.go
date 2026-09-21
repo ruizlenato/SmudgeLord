@@ -67,6 +67,27 @@ func ResizeThumbnail(input []byte) ([]byte, error) {
 	return processThumbnailImage(img)
 }
 
+func ReencodeImage(input []byte) ([]byte, error) {
+	img, err := decodeImage(bytes.NewReader(input))
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	switch img.(type) {
+	case *image.NRGBA, *image.NRGBA64, *image.RGBA, *image.RGBA64, *image.Paletted:
+		if err := png.Encode(&buf, img); err != nil {
+			return nil, err
+		}
+	default:
+		if err := jpeg.Encode(&buf, img, &jpeg.Options{Quality: 95}); err != nil {
+			return nil, err
+		}
+	}
+
+	return buf.Bytes(), nil
+}
+
 func decodeImage(r *bytes.Reader) (image.Image, error) {
 	header := make([]byte, 12)
 	n, err := r.Read(header)

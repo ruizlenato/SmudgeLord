@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"mime/multipart"
 	"regexp"
@@ -256,6 +257,46 @@ func isTransientNetworkError(err error) bool {
 		}
 	}
 	return false
+}
+
+func isImageProcessFailedError(err error) bool {
+	if err == nil {
+		return false
+	}
+	return strings.Contains(strings.ToLower(err.Error()), "image_process_failed")
+}
+
+func rewriteMediaPhoto(media gotgbot.InputMedia) bool {
+	photo, ok := media.(*gotgbot.InputMediaPhoto)
+	if !ok {
+		return false
+	}
+
+	fileReader, ok := photo.Media.(*gotgbot.FileReader)
+	if !ok || fileReader.Data == nil {
+		return false
+	}
+
+	if seeker, ok := fileReader.Data.(io.Seeker); ok {
+		_, _ = seeker.Seek(0, io.SeekStart)
+	}
+	data, err := io.ReadAll(fileReader.Data)
+	if err != nil || len(data) == 0 {
+		return false
+	}
+
+	reencoded, err := utils.ReencodeImage(data)
+	if err != nil {
+		return false
+	}
+
+	filename := fileReader.Name
+	if filename == "" {
+		filename = "photo.jpg"
+	}
+
+	photo.Media = gotgbot.InputFileByReader(filename, bytes.NewReader(reencoded))
+	return true
 }
 
 func prepareCaption(postInfo *downloader.PostInfo, url string, i18n func(string, ...map[string]any) string) bool {
@@ -673,6 +714,16 @@ func sendMediaBatches(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.Post
 				backoff := time.Duration(1<<attempt) * time.Second
 				slog.Warn("Transient network error, retrying",
 					"postUrl", url, "error", err, "attempt", attempt+1, "backoff", backoff)
+				time.Sleep(backoff)
+				continue
+			}
+			if isImageProcessFailedError(err) && attempt < maxSendRetries {
+				backoff := time.Duration(1<<attempt) * time.Second
+				slog.Warn("Telegram failed to process image, re-encoding photos and retrying",
+					"postUrl", url, "error", err, "attempt", attempt+1, "backoff", backoff)
+				for _, m := range batch.Medias {
+					rewriteMediaPhoto(m)
+				}
 				time.Sleep(backoff)
 				continue
 			}
