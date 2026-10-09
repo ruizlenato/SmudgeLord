@@ -509,3 +509,34 @@ lastfm-help =
     <b>/artist   | /art:</b> Exibe o artista que você está ouvindo ou ouviu recentemente.
     <b>/collage (tipo) (período) (grid):</b> Gera sua colagem com top álbuns/artistas/faixas.
     <i>Exemplo:</i> <code>/collage artistas 1semana 4x4</code>
+
+referral = Convites
+referral-help =
+    <b>Sistema de Convites</b>
+
+    Convide amigos para o bot com seu link pessoal e desbloqueie funções exclusivas, como baixar vídeos de até 2 GB em qualidade total.
+
+    <b>/referral | /convites:</b> Mostra seu link de convite pessoal e o seu progresso.
+referral-message =
+    <b>🎁 Sistema de Convites</b>
+
+    Compartilhe seu link com os amigos e desbloqueie funções exclusivas:
+
+    <code>{ $link }</code>
+
+    <b>Convites:</b> { $count }/{ $required }
+    { $status }
+referral-locked =
+    🔒 Convide { $required } amigos para desbloquear novas funções.
+referral-unlocked =
+    🎉 Você desbloqueou o download de vídeos de até 2 GB. Obrigado por apoiar o bot!
+referral-copy-button = 📋 Copiar link
+referral-share-button = 📤 Compartilhar
+referral-notification =
+    🎉 <b>{ $name }</b> entrou no bot pelo seu link de convite!
+
+    <b>Progresso:</b> { $count }/{ $required }
+referral-unlocked-notification =
+    🎉 <b>Parabéns!</b> Você alcançou { $required } convites e desbloqueou o download de vídeos de até 2 GB!
+referral-unlock-button = 🔒 Convidar para desbloquear ({ $count }/{ $required })
+

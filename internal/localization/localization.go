@@ -2,6 +2,7 @@
 package localization
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -147,6 +148,24 @@ func Get(ctx *ext.Context) func(string, ...map[string]any) string {
 		lang = defaultLanguage
 	}
 
+	return bundleFor(lang)
+}
+
+// GetForUser returns the localization function for a specific user, used for
+// messages the bot sends proactively (eg referral notifications).
+func GetForUser(userID int64) func(string, ...map[string]any) string {
+	var lang string
+	err := database.DB.QueryRow("SELECT language FROM users WHERE id = ?", userID).Scan(&lang)
+	if err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			slog.Error("Couldn't get user language", "UserID", userID, "Error", err.Error())
+		}
+		lang = defaultLanguage
+	}
+	return bundleFor(lang)
+}
+
+func bundleFor(lang string) func(string, ...map[string]any) string {
 	langBundlesMutex.RLock()
 	bundle, ok := LangBundles[lang]
 	if !ok {

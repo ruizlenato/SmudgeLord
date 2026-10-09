@@ -14,6 +14,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/menu"
 	"github.com/ruizlenato/smudgelord/internal/modules/misc"
+	"github.com/ruizlenato/smudgelord/internal/modules/referral"
 	"github.com/ruizlenato/smudgelord/internal/modules/stickers"
 	"github.com/ruizlenato/smudgelord/internal/modules/sudoers"
 )
@@ -25,6 +26,7 @@ var packageLoaders = map[string]func(*ext.Dispatcher){
 	"medias":   medias.Load,
 	"menu":     menu.Load,
 	"misc":     misc.Load,
+	"referral": referral.Load,
 	"stickers": stickers.Load,
 	"sudoers":  sudoers.Load,
 }

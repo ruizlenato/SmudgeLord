@@ -96,6 +96,19 @@ func CreateTables() error {
 			is_default BOOLEAN DEFAULT 0,
 			UNIQUE(user_id, pack_name)
 		);
+
+		CREATE TABLE IF NOT EXISTS referrals (
+			referrer_id INTEGER NOT NULL,
+			referred_id INTEGER PRIMARY KEY,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals (referrer_id);
+
+		CREATE TABLE IF NOT EXISTS big_video_downloads (
+			user_id INTEGER NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+		);
+		CREATE INDEX IF NOT EXISTS idx_big_video_downloads_user ON big_video_downloads (user_id, created_at);
 	`
 	_, err := DB.Exec(query)
 	return err

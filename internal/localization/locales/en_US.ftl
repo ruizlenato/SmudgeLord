@@ -509,3 +509,34 @@ lastfm-help =
     <b>/artist   | /art:</b> Shows the artist you are or were listening to.
     <b>/collage (type) (period) (grid):</b> Generates your top albums/artists/tracks collage.
     <i>Example:</i> <code>/collage artists 1w 4x4</code>
+
+referral = Referrals
+referral-help =
+    <b>Invite System</b>
+
+    Invite friends to the bot with your personal link to unlock exclusive features, like downloading videos up to 2 GB in full quality.
+
+    <b>/referral | /convites:</b> Shows your personal invite link and your progress.
+referral-message =
+    <b>🎁 Invite System</b>
+
+    Share your link with friends and unlock exclusive features:
+
+    <code>{ $link }</code>
+
+    <b>Invites:</b> { $count }/{ $required }
+    { $status }
+referral-locked =
+    🔒 Invite { $required } friends to unlock new features.
+referral-unlocked =
+    🎉 You've unlocked up to 2 GB video downloads. Thank you for supporting the bot!
+referral-copy-button = 📋 Copy link
+referral-share-button = 📤 Share
+referral-notification =
+    🎉 <b>{ $name }</b> joined the bot via your invite link!
+
+    <b>Progress:</b> { $count }/{ $required }
+referral-unlocked-notification =
+    🎉 <b>Congratulations!</b> You reached { $required } invites and unlocked up to 2 GB video downloads!
+referral-unlock-button = 🔒 Invite to unlock ({ $count }/{ $required })
+

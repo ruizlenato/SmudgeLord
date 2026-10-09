@@ -16,6 +16,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/lastfm"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias"
 	"github.com/ruizlenato/smudgelord/internal/modules/misc"
+	"github.com/ruizlenato/smudgelord/internal/modules/referral"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
@@ -35,6 +36,9 @@ func startHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	botUser := b.User
 
 	if messageFields := strings.Fields(ctx.EffectiveMessage.GetText()); len(messageFields) > 1 {
+		if referral.ShowPanel(b, ctx) {
+			return nil
+		}
 		switch messageFields[1] {
 		case "privacy":
 			return privacyHandler(b, ctx)
