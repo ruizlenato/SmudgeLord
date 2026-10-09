@@ -1,7 +1,7 @@
 github.com/Masterminds/semver/v3 v3.5.0 h1:kQceYJfbupGfZOKZQg0kou0DgAKhzDg2NZPAwZ/2OOE=
 github.com/Masterminds/semver/v3 v3.5.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
-github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.36 h1:OCI373QkuzXNOoaUBNEwh4uxaaPOfSFYn3ck7WlrqMI=
-github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.36/go.mod h1:yrKnA/812p/Vh84TYQMz36/8SNLF7OOdTmKFr5i7W7g=
+github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.36.0.20260919140833-240296efadb4 h1:dwJzlGcoRmzHV+oDwSZtjwfeiA0ld+/xs5wNr3frL+E=
+github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.36.0.20260919140833-240296efadb4/go.mod h1:yrKnA/812p/Vh84TYQMz36/8SNLF7OOdTmKFr5i7W7g=
 github.com/anthonynsimon/bild v0.17.0 h1:kmPJOZpUgvrM2uoS7KMesbDU5+QTvZ92zIBjHM/oa18=
 github.com/anthonynsimon/bild v0.17.0/go.mod h1:ULwssBwK+8dLFObGrI3fIydKYQ2l454Y0eo+mqPclto=
 github.com/bsm/ginkgo/v2 v2.12.0 h1:Ny8MWAHyOepLGlLKYmXG4IEkioBysk6GpaRTLC8zwWs=

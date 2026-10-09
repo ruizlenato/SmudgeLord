@@ -3,7 +3,7 @@ module github.com/ruizlenato/smudgelord
 go 1.26
 
 require (
-	github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.36
+	github.com/PaulSonOfLars/gotgbot/v2 v2.0.0-rc.36.0.20260919140833-240296efadb4
 	github.com/joho/godotenv v1.5.1
 	github.com/lus/fluent.go v0.0.0-20240613180830-a11a6bbd90a9
 	github.com/mattn/go-sqlite3 v1.14.49
