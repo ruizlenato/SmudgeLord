@@ -1,3 +1,4 @@
+// Package facebook implements a Facebook media downloader.
 package facebook
 
 import (

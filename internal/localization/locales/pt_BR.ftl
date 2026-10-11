@@ -219,6 +219,15 @@ video-too-large =
 
     Você pode mudar isso! <b>Ajude doando para que eu possa adquirir um servidor melhor</b> e futuramente remover esse limite.
     <b>Veja mais utilizando o comando /donate</b>
+video-too-large-with-size =
+    <b>O vídeo tem { $size } e ultrapassa o limite máximo de 500 MB.</b>
+video-too-large-alternative =
+    ⬇️ Também é possível baixar uma versão em qualidade reduzida (<i>{ $size }</i>).
+download-small-variant-button = Baixar em qualidade reduzida
+video-too-large-no-alternative =
+    <b>Não foi possível baixar a versão em qualidade reduzida.</b>
+
+    Tente enviar o link novamente mais tarde.
 downloading = Baixando...
 uploading = Enviando...
 youtube-error =
@@ -509,7 +518,6 @@ lastfm-help =
     <b>/artist   | /art:</b> Exibe o artista que você está ouvindo ou ouviu recentemente.
     <b>/collage (tipo) (período) (grid):</b> Gera sua colagem com top álbuns/artistas/faixas.
     <i>Exemplo:</i> <code>/collage artistas 1semana 4x4</code>
-
 referral = Convites
 referral-help =
     <b>Sistema de Convites</b>
@@ -538,5 +546,19 @@ referral-notification =
     <b>Progresso:</b> { $count }/{ $required }
 referral-unlocked-notification =
     🎉 <b>Parabéns!</b> Você alcançou { $required } convites e desbloqueou o download de vídeos de até 2 GB!
-referral-unlock-button = 🔒 Convidar para desbloquear ({ $count }/{ $required })
+video-too-large-full-quality =
+    🎬 Como você desbloqueou, baixe este vídeo em qualidade total (<i>{ $size }</i>).
 
+    Restam <b>{ $daily } de { $daily-quota }</b> hoje e <b>{ $weekly } de { $weekly-quota }</b> na semana.
+full-quality-download-button = 🎬 Baixar em qualidade total ({ $size })
+video-too-large-full-locked =
+    🔒 <b>Convide { $required } novas pessoas para desbloquear o download de vídeos de até 2 GB</b> em qualidade total.
+video-too-large-full-quota =
+    ⚠️ <b>Você já usou sua cota de vídeos grandes</b> ({ $daily-quota } por dia, { $weekly-quota } por semana).
+
+    Volte amanhã ou baixe em qualidade reduzida.
+video-too-large-full-failed =
+    <b>Não foi possível baixar o vídeo em qualidade total.</b>
+
+    Tente novamente mais tarde.
+referral-unlock-button = 🔒 Convidar para desbloquear ({ $count }/{ $required })

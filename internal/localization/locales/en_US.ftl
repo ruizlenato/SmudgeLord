@@ -216,6 +216,15 @@ video-too-large =
 
     You can change this! <b>Help by donating so I can get a better server</b> and eventually remove this limit.
     <b>See more using the /donate command</b>
+video-too-large-with-size =
+    <b>The video is { $size } and exceeds the 500 MB maximum limit.</b>
+video-too-large-alternative =
+    ⬇️ Alternatively, a lower quality version (<i>{ $size }</i>) is available for download.
+download-small-variant-button = Download in lower quality
+video-too-large-no-alternative =
+    <b>Couldn't download the lower quality version.</b>
+
+    Try sending the link again later.
 downloading = Downloading...
 uploading = Uploading...
 youtube-error =
@@ -509,7 +518,6 @@ lastfm-help =
     <b>/artist   | /art:</b> Shows the artist you are or were listening to.
     <b>/collage (type) (period) (grid):</b> Generates your top albums/artists/tracks collage.
     <i>Example:</i> <code>/collage artists 1w 4x4</code>
-
 referral = Referrals
 referral-help =
     <b>Invite System</b>
@@ -538,5 +546,19 @@ referral-notification =
     <b>Progress:</b> { $count }/{ $required }
 referral-unlocked-notification =
     🎉 <b>Congratulations!</b> You reached { $required } invites and unlocked up to 2 GB video downloads!
-referral-unlock-button = 🔒 Invite to unlock ({ $count }/{ $required })
+video-too-large-full-quality =
+    🎬 Since you've unlocked it, download this video in full quality (<i>{ $size }</i>).
 
+    <b>{ $daily } of { $daily-quota }</b> left today and <b>{ $weekly } of { $weekly-quota }</b> this week.
+full-quality-download-button = 🎬 Download in full quality ({ $size })
+video-too-large-full-locked =
+    🔒 <b>Invite { $required } new people to unlock downloading videos up to 2 GB</b> in full quality.
+video-too-large-full-quota =
+    ⚠️ <b>You've used up your big video quota</b> ({ $daily-quota } per day, { $weekly-quota } per week).
+
+    Come back tomorrow or download the reduced quality version.
+video-too-large-full-failed =
+    <b>Couldn't download the video in full quality.</b>
+
+    Try again later.
+referral-unlock-button = 🔒 Invite to unlock ({ $count }/{ $required })

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"mime/multipart"
@@ -36,6 +37,7 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/twitter"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/xiaohongshu"
 	"github.com/ruizlenato/smudgelord/internal/modules/medias/downloader/youtube"
+	"github.com/ruizlenato/smudgelord/internal/modules/referral"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 	"github.com/ruizlenato/youtubedl"
 )
@@ -749,19 +751,96 @@ func ephemeralParams(ctx *ext.Context) *gotgbot.EphemeralMessageParameters {
 	return &gotgbot.EphemeralMessageParameters{ReceiverUserId: ctx.EffectiveMessage.From.Id}
 }
 
+var htmlTagRegex = regexp.MustCompile(`<[^>]+>`)
+
+func stripTags(s string) string {
+	return htmlTagRegex.ReplaceAllString(s, "")
+}
+
+func richHTML(s string) string {
+	return "<p>" + strings.ReplaceAll(s, "\n", "<br/>") + "</p>"
+}
+
+func richMessageButtonRow(label, style, buttonType, attr, value string) string {
+	var attrs []string
+	if style != "" {
+		attrs = append(attrs, fmt.Sprintf(`style=%q`, style))
+	}
+	attrs = append(attrs, fmt.Sprintf(`%s=%q`, attr, html.EscapeString(value)))
+	return fmt.Sprintf("<tg-button-row>\n\t<tg-button type=%q %s>%s</tg-button>\n</tg-button-row>\n",
+		buttonType, strings.Join(attrs, " "), html.EscapeString(label))
+}
+
 func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, i18n func(string, ...map[string]any) string) {
 	chatID := ctx.EffectiveMessage.Chat.Id
 	chatType := ctx.EffectiveMessage.Chat.Type
 
 	if postInfo.NoMedia {
 		if postInfo.FileTooLarge {
-			_, _ = b.SendMessageWithContext(context.Background(), chatID, i18n("video-too-large"), &gotgbot.SendMessageOpts{
-				ParseMode:                  gotgbot.ParseModeHTML,
+			var text string
+			if postInfo.FileTooLargeSize > 0 {
+				text = i18n("video-too-large-with-size", map[string]any{"size": utils.FormatBytes(postInfo.FileTooLargeSize)})
+			} else {
+				text = i18n("video-too-large")
+			}
+			html := richHTML(text)
+
+			var requestedUserID int64
+			if ctx.EffectiveMessage.From != nil {
+				requestedUserID = ctx.EffectiveMessage.From.Id
+			}
+			canOfferButtons := postInfo.ID != "" && requestedUserID != 0
+
+			bigSectionShown := false
+			if canOfferButtons && postInfo.FileTooLargeSize > 0 && postInfo.FileTooLargeSize <= downloader.MaxBigVideoSize {
+				switch {
+				case referral.CanDownloadBigVideo(requestedUserID):
+					daily, weekly := referral.BigVideoQuotaRemaining(requestedUserID)
+					html += "\n<hr/>\n" + richHTML(i18n("video-too-large-full-quality", map[string]any{
+						"size":         utils.FormatBytes(postInfo.FileTooLargeSize),
+						"daily":        daily,
+						"daily-quota":  referral.BigVideoDailyQuota,
+						"weekly":       weekly,
+						"weekly-quota": referral.BigVideoWeeklyQuota,
+					}))
+					callbackData := fmt.Sprintf("_bvid|%s|%d|%d", postInfo.ID, ctx.EffectiveMessage.MessageId, requestedUserID)
+					html += "\n" + richMessageButtonRow(i18n("full-quality-download-button",
+						map[string]any{"size": utils.FormatBytes(postInfo.FileTooLargeSize)}), "primary", "callback_data", "data", callbackData)
+				case referral.IsUnlocked(requestedUserID):
+					html += "\n<hr/>\n" + richHTML(i18n("video-too-large-full-quota", map[string]any{
+						"daily-quota":  referral.BigVideoDailyQuota,
+						"weekly-quota": referral.BigVideoWeeklyQuota,
+					}))
+				default:
+					html += "\n<hr/>\n" + richHTML(i18n("video-too-large-full-locked",
+						map[string]any{"required": referral.RequiredReferrals}))
+					html += "\n" + richMessageButtonRow(i18n("referral-unlock-button", map[string]any{
+						"count":    referral.CountReferrals(requestedUserID),
+						"required": referral.RequiredReferrals,
+					}), "primary", "url", "url", referral.Link(b.User.Username, requestedUserID))
+				}
+				html += "\n" + richMessageButtonRow(i18n("donation-button"), "success", "url", "url", fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username))
+				bigSectionShown = true
+			}
+
+			if postInfo.FileTooLargeAlternativeSize > 0 {
+				html += "\n<hr/>\n" + richHTML(i18n("video-too-large-alternative",
+					map[string]any{"size": utils.FormatBytes(postInfo.FileTooLargeAlternativeSize)}))
+				if canOfferButtons {
+					callbackData := fmt.Sprintf("_qvid|%s|%d|%d", postInfo.ID, ctx.EffectiveMessage.MessageId, requestedUserID)
+					html += "\n" + richMessageButtonRow(i18n("download-small-variant-button"), "primary", "callback_data", "data", callbackData)
+				}
+			}
+
+			if !bigSectionShown {
+				html += "\n" + richMessageButtonRow(i18n("donation-button"), "success", "url", "url", fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username))
+			}
+
+			_, _ = b.SendRichMessageWithContext(context.Background(), chatID, gotgbot.InputRichMessage{
+				Html: html,
+			}, &gotgbot.SendRichMessageOpts{
 				ReplyParameters:            &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 				EphemeralMessageParameters: ephemeralParams(ctx),
-				ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
-					{Text: i18n("donation-button"), Url: fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)},
-				}}},
 			})
 			return
 		}
@@ -1085,6 +1164,114 @@ func youtubeDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	return nil
 }
 
+func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil || ctx.CallbackQuery.Message == nil {
+		return nil
+	}
+	i18n := localization.Get(ctx)
+	big := strings.HasPrefix(ctx.CallbackQuery.Data, "_bvid")
+	failedKey := "video-too-large-no-alternative"
+	if big {
+		failedKey = "video-too-large-full-failed"
+	}
+
+	data := strings.Split(ctx.CallbackQuery.Data, "|")
+	if len(data) != 4 {
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
+			Text: stripTags(i18n(failedKey)), ShowAlert: true,
+		})
+		return nil
+	}
+	requestedUser, _ := strconv.Atoi(data[3])
+	if requestedUser == 0 || ctx.CallbackQuery.From.Id != int64(requestedUser) {
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
+			Text: i18n("denied-button-alert"), ShowAlert: true,
+		})
+		return nil
+	}
+	if big && !referral.IsUnlocked(int64(requestedUser)) {
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
+			Text: stripTags(i18n("video-too-large-full-locked", map[string]any{"required": referral.RequiredReferrals})), ShowAlert: true,
+		})
+		return nil
+	}
+	if big && !referral.CanDownloadBigVideo(int64(requestedUser)) {
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
+			Text: stripTags(i18n("video-too-large-full-quota", map[string]any{
+				"daily-quota":  referral.BigVideoDailyQuota,
+				"weekly-quota": referral.BigVideoWeeklyQuota,
+			})), ShowAlert: true,
+		})
+		return nil
+	}
+
+	chat := ctx.CallbackQuery.Message.GetChat()
+	noticeMessageID := ctx.CallbackQuery.Message.GetMessageId()
+	replyToMessageID, _ := strconv.ParseInt(data[2], 10, 64)
+	if replyToMessageID <= 0 {
+		replyToMessageID = noticeMessageID
+	}
+
+	_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, nil)
+	_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
+		RichMessage: &gotgbot.InputRichMessage{Html: richHTML(i18n("downloading"))},
+		ChatId:      chat.Id,
+		MessageId:   noticeMessageID,
+	})
+
+	postURL := fmt.Sprintf("https://x.com/i/web/status/%s", data[1])
+	postInfo := processMedia(postURL, downloader.Options{
+		BotPremium:       b.User.IsPremium,
+		ForceSmallVideos: !big,
+		ForceBigVideos:   big,
+	})
+	defer func() {
+		if postInfo.Cleanup != nil {
+			postInfo.Cleanup()
+		}
+	}()
+
+	if len(postInfo.Medias) == 0 {
+		slog.Warn("variantDownloadCallback: no media downloaded",
+			"postURL", postURL, "big", big, "FileTooLarge", postInfo.FileTooLarge)
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
+			RichMessage: &gotgbot.InputRichMessage{Html: richHTML(i18n(failedKey))},
+			ChatId:      chat.Id,
+			MessageId:   noticeMessageID,
+		})
+		return nil
+	}
+
+	if !prepareCaption(&postInfo, postURL, i18n) {
+		return nil
+	}
+
+	ctx.EffectiveMessage = &gotgbot.Message{
+		MessageId: replyToMessageID,
+		Chat:      chat,
+		From:      &gotgbot.User{Id: ctx.CallbackQuery.From.Id},
+	}
+	allSent := sendMedia(b, ctx, postInfo, postURL, i18n)
+	if len(allSent) > 0 {
+		if err := downloader.SetMediaCache(allSent, postInfo); err != nil && !errors.Is(err, downloader.ErrNoCacheableMedia) {
+			slog.Error("Couldn't set media cache", "error", err)
+		}
+		if big {
+			if err := referral.RegisterBigVideoDownload(int64(requestedUser)); err != nil {
+				slog.Error("Couldn't register big video download", "UserID", requestedUser, "Error", err.Error())
+			}
+		}
+		_, _ = b.DeleteMessageWithContext(context.Background(), chat.Id, noticeMessageID, nil)
+	} else {
+		_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
+			RichMessage: &gotgbot.InputRichMessage{Html: richHTML(i18n(failedKey))},
+			ChatId:      chat.Id,
+			MessageId:   noticeMessageID,
+		})
+	}
+	return nil
+}
+
 func trySendCachedYoutubeMedia(ctx *ext.Context, b *gotgbot.Bot, data []string, format string, replyToMessageID int64) (bool, error) {
 	fileID, caption, err := downloader.GetYoutubeCache(data[1], format)
 	if err != nil {
@@ -1113,6 +1300,8 @@ func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandler(utils.NewDisableableCommand("ytdl", youtubeDownloadHandler))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_vid"), youtubeDownloadCallback))
 	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_aud"), youtubeDownloadCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_qvid"), variantDownloadCallback))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_bvid"), variantDownloadCallback))
 
 	utils.SaveHelp("medias")
 }
