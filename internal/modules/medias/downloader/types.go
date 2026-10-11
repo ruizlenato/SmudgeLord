@@ -36,22 +36,28 @@ type Medias struct {
 }
 
 type PostInfo struct {
-	Medias            []gotgbot.InputMedia
-	ID                string
-	Caption           string
-	Service           string
-	InvertMedia       bool
-	Article           *ArticleContent
-	NoMedia           bool
-	Unavailable       bool
-	UnavailableReason string
-	FileTooLarge      bool
-	Cleanup           func()
+	Medias                      []gotgbot.InputMedia
+	ID                          string
+	Caption                     string
+	Service                     string
+	InvertMedia                 bool
+	Article                     *ArticleContent
+	NoMedia                     bool
+	Unavailable                 bool
+	UnavailableReason           string
+	FileTooLarge                bool
+	FileTooLargeSize            int64
+	FileTooLargeAlternativeSize int64
+	Cleanup                     func()
 }
 
 type Options struct {
-	BotPremium bool
+	BotPremium       bool
+	ForceSmallVideos bool
+	ForceBigVideos   bool
 }
+
+const MaxBigVideoSize int64 = 2000 * 1024 * 1024 // 2GB
 
 type ArticleContent struct {
 	HTML  string
@@ -143,6 +149,16 @@ func NewFileTooLargePostInfo(id string) PostInfo {
 	return PostInfo{ID: id, NoMedia: true, FileTooLarge: true}
 }
 
+func NewFileTooLargePostInfoWithAlternative(id string, size, alternativeSize int64) PostInfo {
+	return PostInfo{
+		ID:                          id,
+		NoMedia:                     true,
+		FileTooLarge:                true,
+		FileTooLargeSize:            size,
+		FileTooLargeAlternativeSize: alternativeSize,
+	}
+}
+
 type YouTube struct {
 	Video   string `json:"video"`
 	Audio   string `json:"audio"`
@@ -155,8 +171,9 @@ type InputMedia struct {
 }
 
 type FileTooLargeError struct {
-	Size    int64
-	MaxSize int64
+	Size            int64
+	MaxSize         int64
+	AlternativeSize int64
 }
 
 func (e *FileTooLargeError) Error() string {

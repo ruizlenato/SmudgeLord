@@ -1,8 +1,10 @@
 package twitter
 
 type Handler struct {
-	username string
-	postID   string
+	username         string
+	postID           string
+	forceSmallVideos bool
+	forceBigVideos   bool
 }
 
 type TwitterAPIData *struct {
@@ -85,12 +87,14 @@ type Media struct {
 		Width  int `json:"width"`
 	} `json:"original_info"`
 	VideoInfo struct {
-		Variants []struct {
-			Bitrate     int    `json:"bitrate,omitempty"`
-			ContentType string `json:"content_type"`
-			URL         string `json:"url"`
-		} `json:"variants"`
+		Variants []VideoVariant `json:"variants"`
 	} `json:"video_info"`
+}
+
+type VideoVariant struct {
+	Bitrate     int    `json:"bitrate,omitempty"`
+	ContentType string `json:"content_type"`
+	URL         string `json:"url"`
 }
 
 type Size struct {
@@ -119,9 +123,16 @@ type FxTwitterAuthor struct {
 }
 
 type FxTwitterMedia struct {
-	URL          string `json:"url"`
-	ThumbnailURL string `json:"thumbnail_url"`
-	Width        int    `json:"width"`
-	Height       int    `json:"height"`
-	Type         string `json:"type"`
+	URL          string            `json:"url"`
+	ThumbnailURL string            `json:"thumbnail_url"`
+	Width        int               `json:"width"`
+	Height       int               `json:"height"`
+	Type         string            `json:"type"`
+	Formats      []FxTwitterFormat `json:"formats,omitempty"`
+}
+
+type FxTwitterFormat struct {
+	URL       string `json:"url"`
+	Bitrate   int    `json:"bitrate,omitempty"`
+	Container string `json:"container"`
 }

@@ -278,7 +278,7 @@ func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anu
 	results := make(chan segmentResult, segmentCount)
 	segmentFiles := make([]string, segmentCount)
 
-	const maxConcurrentSegments = 8
+	const maxConcurrentSegments = 4
 	sem := make(chan struct{}, maxConcurrentSegments)
 	var wg sync.WaitGroup
 
@@ -293,9 +293,7 @@ func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anu
 			sem <- struct{}{}
 			defer func() { <-sem }()
 
-			urlSegment := fmt.Sprintf("%s://%s%s/%s", m3u8URL.Scheme, m3u8URL.Host, path.Dir(m3u8URL.Path), segment.URI)
-
-			fileName, err := downloadSegment(urlSegment, client, anubisSolver)
+			fileName, err := downloadSegment(buildSegmentURL(m3u8URL, segment), client, anubisSolver)
 			results <- segmentResult{
 				index:    index,
 				fileName: fileName,
@@ -309,22 +307,40 @@ func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anu
 		close(results)
 	}()
 
-	var downloadErrors []error
+	var failedIndexes []int
 	for result := range results {
 		if result.err != nil {
-			downloadErrors = append(downloadErrors, result.err)
+			failedIndexes = append(failedIndexes, result.index)
 			continue
 		}
 		segmentFiles[result.index] = result.fileName
 	}
 
-	if len(downloadErrors) > segmentCount/2 {
+	remainingFailures := 0
+	var firstErr error
+	for _, index := range failedIndexes {
+		segment := mediaPlaylist.Segments[index]
+		if segment == nil {
+			continue
+		}
+		fileName, err := downloadSegment(buildSegmentURL(m3u8URL, segment), client, anubisSolver)
+		if err != nil {
+			remainingFailures++
+			if firstErr == nil {
+				firstErr = err
+			}
+			continue
+		}
+		segmentFiles[index] = fileName
+	}
+
+	if remainingFailures > segmentCount/2 {
 		for _, fileName := range segmentFiles {
 			if fileName != "" {
 				os.Remove(fileName)
 			}
 		}
-		return nil, fmt.Errorf("too many segments failed to download: %d/%d (first: %v)", len(downloadErrors), segmentCount, downloadErrors[0])
+		return nil, fmt.Errorf("too many segments failed to download: %d/%d (first: %v)", remainingFailures, segmentCount, firstErr)
 	}
 
 	cleanSegmentFiles := make([]string, 0, len(segmentFiles))
@@ -484,8 +500,15 @@ func BuildAbsoluteURL(base *url.URL, uri string) string {
 	return fmt.Sprintf("%s://%s%s/%s", base.Scheme, base.Host, path.Dir(base.Path), uri)
 }
 
+func buildSegmentURL(m3u8URL *url.URL, segment *m3u8.MediaSegment) string {
+	return fmt.Sprintf("%s://%s%s/%s", m3u8URL.Scheme, m3u8URL.Host, path.Dir(m3u8URL.Path), segment.URI)
+}
+
 func downloadSegment(segmentURL string, client *http.Client, anubisSolver AnubisSolver) (string, error) {
-	body, err := FetchWithClient(segmentURL, client, anubisSolver)
+	body, err := utils.RetryWithBackoff(
+		func() ([]byte, error) { return FetchWithClient(segmentURL, client, anubisSolver) },
+		3, 500*time.Millisecond, 3*time.Second, 2,
+	)
 	if err != nil {
 		return "", err
 	}

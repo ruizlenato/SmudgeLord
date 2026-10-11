@@ -40,7 +40,7 @@ var (
 )
 
 func Handle(text string, opts downloader.Options) downloader.PostInfo {
-	handler := &Handler{}
+	handler := &Handler{forceSmallVideos: opts.ForceSmallVideos, forceBigVideos: opts.ForceBigVideos}
 	if !handler.setPostID(text) {
 		return downloader.PostInfo{}
 	}
@@ -122,8 +122,8 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 	var unavailableReason string
 	for _, result := range results {
 		if result.Err != nil {
-			if _, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
-				return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
+			if sizeErr, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
+				return fileTooLargePostInfo(h.postID, sizeErr), downloader.CombineCleanups(cleanups...)
 			}
 			if unavailableErr, ok := errors.AsType[*MediaUnavailableError](result.Err); ok {
 				slog.Info("Media unavailable in carousel", "Post Info", []string{h.username, h.postID},
@@ -264,17 +264,107 @@ func (h *Handler) tryBuildReplyArticle(mainData *TwitterAPIData, mainMedias []go
 
 const maxVideoSize int64 = 500 * 1024 * 1024 // 500MB
 
+type videoVariantRef struct {
+	url     string
+	bitrate int
+}
+
+func fileTooLargePostInfo(postID string, err *downloader.FileTooLargeError) downloader.PostInfo {
+	if err.AlternativeSize > 0 {
+		return downloader.NewFileTooLargePostInfoWithAlternative(postID, err.Size, err.AlternativeSize)
+	}
+	return downloader.NewFileTooLargePostInfo(postID)
+}
+
+type sizeProber func(url string) (int64, error)
+
+func probeVideoVariants(variants []videoVariantRef, probe sizeProber, maxSize int64) (bestURL string, bestSize int64, fitURL string, fitSize int64) {
+	sorted := make([]videoVariantRef, len(variants))
+	copy(sorted, variants)
+	sort.SliceStable(sorted, func(i, j int) bool {
+		return sorted[i].bitrate > sorted[j].bitrate
+	})
+
+	for _, v := range sorted {
+		size, err := probe(v.url)
+		if err != nil || size <= 0 {
+			continue
+		}
+		if bestURL == "" {
+			bestURL, bestSize = v.url, size
+		}
+		if fitURL == "" && size <= maxSize {
+			fitURL, fitSize = v.url, size
+		}
+		if bestURL != "" && fitURL != "" {
+			break
+		}
+	}
+	return bestURL, bestSize, fitURL, fitSize
+}
+
+func (h *Handler) selectVideoVariant(variants []videoVariantRef) (string, error) {
+	return selectVideoVariant(variants, h.forceSmallVideos, h.forceBigVideos, downloader.FetchSizeFromURL)
+}
+
+func selectVideoVariant(variants []videoVariantRef, forceSmall, forceBig bool, probe sizeProber) (string, error) {
+	maxSize := maxVideoSize
+	if forceBig {
+		maxSize = downloader.MaxBigVideoSize
+	}
+	bestURL, bestSize, fitURL, fitSize := probeVideoVariants(variants, probe, maxSize)
+	switch {
+	case bestURL == "":
+		return "", errors.New("no downloadable video variant available")
+	case bestSize <= maxSize:
+		return bestURL, nil
+	case forceSmall && fitURL != "":
+		return fitURL, nil
+	case fitURL != "":
+		return "", &downloader.FileTooLargeError{Size: bestSize, MaxSize: maxSize, AlternativeSize: fitSize}
+	default:
+		return "", downloader.NewFileTooLargeError(bestSize, maxSize)
+	}
+}
+
+func videoVariantRefsFromAPI(twitterMedia Media) []videoVariantRef {
+	refs := make([]videoVariantRef, 0, len(twitterMedia.VideoInfo.Variants))
+	var hlsURL string
+	for _, v := range twitterMedia.VideoInfo.Variants {
+		switch {
+		case strings.EqualFold(v.ContentType, "video/mp4"):
+			refs = append(refs, videoVariantRef{url: v.URL, bitrate: v.Bitrate})
+		case strings.Contains(strings.ToLower(v.ContentType), "mpegurl") && hlsURL == "":
+			hlsURL = v.URL
+		}
+	}
+	if len(refs) == 0 && hlsURL != "" {
+		refs = append(refs, videoVariantRef{url: hlsURL})
+	}
+	return refs
+}
+
+func videoVariantRefsFromFx(twitterMedia FxTwitterMedia) []videoVariantRef {
+	refs := make([]videoVariantRef, 0, len(twitterMedia.Formats))
+	for _, f := range twitterMedia.Formats {
+		if f.Container != "mp4" {
+			continue
+		}
+		refs = append(refs, videoVariantRef{url: f.URL, bitrate: f.Bitrate})
+	}
+	if len(refs) == 0 {
+		refs = append(refs, videoVariantRef{url: twitterMedia.URL})
+	}
+	return refs
+}
+
 func (h *Handler) downloadMedia(twitterMedia Media, showCaptionAbove bool) (gotgbot.InputMedia, func(), error) {
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%s_%s", h.username, h.postID))
 
 	if slices.Contains([]string{"animated_gif", "video"}, twitterMedia.Type) {
-		sort.Slice(twitterMedia.VideoInfo.Variants, func(i, j int) bool {
-			return twitterMedia.VideoInfo.Variants[i].Bitrate < twitterMedia.VideoInfo.Variants[j].Bitrate
-		})
-		videoURL := twitterMedia.VideoInfo.Variants[len(twitterMedia.VideoInfo.Variants)-1].URL
-
-		if size, err := downloader.FetchSizeFromURL(videoURL); err == nil && size > 0 && size > maxVideoSize {
-			return nil, nil, downloader.NewFileTooLargeError(size, maxVideoSize)
+		videoURL, err := h.selectVideoVariant(videoVariantRefsFromAPI(twitterMedia))
+		if err != nil {
+			return nil, nil, err
 		}
 
 		stream, cleanup, err := downloader.FetchStreamFromURL(videoURL)
@@ -492,8 +582,8 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 		var mediaItems []gotgbot.InputMedia
 		for _, result := range results {
 			if result.Err != nil {
-				if _, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
-					return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
+				if sizeErr, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
+					return fileTooLargePostInfo(h.postID, sizeErr), downloader.CombineCleanups(cleanups...)
 				}
 				slog.Error("Failed to download media in carousel",
 					"Post Info", []string{h.username, h.postID},
@@ -516,8 +606,8 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 		var mediaItems []gotgbot.InputMedia
 		for _, result := range results {
 			if result.Err != nil {
-				if _, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
-					return downloader.NewFileTooLargePostInfo(h.postID), downloader.CombineCleanups(cleanups...)
+				if sizeErr, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
+					return fileTooLargePostInfo(h.postID, sizeErr), downloader.CombineCleanups(cleanups...)
 				}
 				slog.Error("Failed to download media in carousel",
 					"Post Info", []string{h.username, h.postID},
@@ -558,15 +648,14 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 }
 
 func (h *Handler) downloadFxMedia(twitterMedia FxTwitterMedia, index int) (gotgbot.InputMedia, func(), error) {
-	if twitterMedia.Type == "video" {
-		if size, sizeErr := downloader.FetchSizeFromURL(twitterMedia.URL); sizeErr == nil && size > 0 && size > maxVideoSize {
-			return nil, nil, downloader.NewFileTooLargeError(size, maxVideoSize)
-		}
-	}
-
 	filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Twitter_%s_%s_%d", h.username, h.postID, index))
 	if twitterMedia.Type == "video" {
-		stream, cleanup, err := downloader.FetchStreamFromURL(twitterMedia.URL)
+		videoURL, err := h.selectVideoVariant(videoVariantRefsFromFx(twitterMedia))
+		if err != nil {
+			return nil, nil, err
+		}
+
+		stream, cleanup, err := downloader.FetchStreamFromURL(videoURL)
 		if err != nil {
 			return nil, nil, err
 		}
