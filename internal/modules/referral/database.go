@@ -7,24 +7,22 @@ import (
 	"github.com/ruizlenato/smudgelord/internal/database"
 )
 
-func isBotUser(userID int64) bool {
+func isRegistered(userID int64) (bool, error) {
 	var exists bool
 	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)", userID).Scan(&exists)
 	if err != nil {
-		slog.Error("Couldn't check if user exists", "UserID", userID, "Error", err.Error())
-		return false
+		return false, fmt.Errorf("couldn't check if user is registered: %w", err)
 	}
-	return exists
+	return exists, nil
 }
 
-func isReferred(referredID int64) bool {
+func isReferred(referredID int64) (bool, error) {
 	var exists bool
 	err := database.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM referrals WHERE referred_id = ?)", referredID).Scan(&exists)
 	if err != nil {
-		slog.Error("Couldn't check referral", "ReferredID", referredID, "Error", err.Error())
-		return true
+		return false, fmt.Errorf("couldn't check if user is referred: %w", err)
 	}
-	return exists
+	return exists, nil
 }
 
 func countReferrals(referrerID int64) int {
@@ -71,10 +69,35 @@ func CanDownloadBigVideo(userID int64) bool {
 	return daily > 0 && weekly > 0
 }
 
-func RegisterBigVideoDownload(userID int64) error {
-	_, err := database.DB.Exec("INSERT INTO big_video_downloads (user_id) VALUES (?)", userID)
+func ReserveBigVideoDownload(userID int64) (reservationID int64, ok bool, err error) {
+	res, err := database.DB.Exec(`
+		INSERT INTO big_video_downloads (user_id)
+		SELECT ?
+		WHERE (SELECT COUNT(*) FROM referrals WHERE referrer_id = ?) >= ?
+		  AND (SELECT COUNT(*) FROM big_video_downloads WHERE user_id = ? AND created_at >= datetime('now', '-1 day')) < ?
+		  AND (SELECT COUNT(*) FROM big_video_downloads WHERE user_id = ? AND created_at >= datetime('now', '-7 days')) < ?`,
+		userID, userID, RequiredReferrals,
+		userID, BigVideoDailyQuota,
+		userID, BigVideoWeeklyQuota)
 	if err != nil {
-		return fmt.Errorf("error registering big video download: %w", err)
+		return 0, false, fmt.Errorf("couldn't reserve big video download: %w", err)
 	}
-	return nil
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return 0, false, fmt.Errorf("couldn't check big video reservation: %w", err)
+	}
+	if affected == 0 {
+		return 0, false, nil
+	}
+	reservationID, err = res.LastInsertId()
+	if err != nil {
+		return 0, false, fmt.Errorf("couldn't get big video reservation id: %w", err)
+	}
+	return reservationID, true, nil
+}
+
+func ReleaseBigVideoDownload(reservationID int64) {
+	if _, err := database.DB.Exec("DELETE FROM big_video_downloads WHERE rowid = ?", reservationID); err != nil {
+		slog.Error("Couldn't release big video reservation", "ReservationID", reservationID, "Error", err.Error())
+	}
 }

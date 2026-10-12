@@ -73,9 +73,22 @@ func captureReferral(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	// Only credit invites for users joining the bot for the first time,
-	// coming from an existing bot user, and never referred before.
-	if isBotUser(referredID) || isReferred(referredID) || !isBotUser(referrerID) {
+	referredRegistered, err := isRegistered(referredID)
+	if err != nil {
+		slog.Error("Couldn't verify invited user", "ReferredID", referredID, "Error", err.Error())
+		return nil
+	}
+	alreadyReferred, err := isReferred(referredID)
+	if err != nil {
+		slog.Error("Couldn't check referral", "ReferredID", referredID, "Error", err.Error())
+		return nil
+	}
+	referrerRegistered, err := isRegistered(referrerID)
+	if err != nil {
+		slog.Error("Couldn't verify referrer", "ReferrerID", referrerID, "Error", err.Error())
+		return nil
+	}
+	if referredRegistered || alreadyReferred || !referrerRegistered {
 		return nil
 	}
 

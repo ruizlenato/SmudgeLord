@@ -1195,15 +1195,41 @@ func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		})
 		return nil
 	}
-	if big && !referral.CanDownloadBigVideo(int64(requestedUser)) {
+	quotaAlert := func() {
 		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
 			Text: stripTags(i18n("video-too-large-full-quota", map[string]any{
 				"daily-quota":  referral.BigVideoDailyQuota,
 				"weekly-quota": referral.BigVideoWeeklyQuota,
 			})), ShowAlert: true,
 		})
+	}
+	if big && !referral.CanDownloadBigVideo(int64(requestedUser)) {
+		quotaAlert()
 		return nil
 	}
+
+	var reservationID int64
+	if big {
+		id, ok, err := referral.ReserveBigVideoDownload(int64(requestedUser))
+		if err != nil {
+			slog.Error("Couldn't reserve big video download", "UserID", requestedUser, "Error", err.Error())
+			_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
+				Text: stripTags(i18n(failedKey)), ShowAlert: true,
+			})
+			return nil
+		}
+		if !ok {
+			quotaAlert()
+			return nil
+		}
+		reservationID = id
+	}
+	var success bool
+	defer func() {
+		if reservationID != 0 && !success {
+			referral.ReleaseBigVideoDownload(reservationID)
+		}
+	}()
 
 	chat := ctx.CallbackQuery.Message.GetChat()
 	noticeMessageID := ctx.CallbackQuery.Message.GetMessageId()
@@ -1256,11 +1282,7 @@ func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		if err := downloader.SetMediaCache(allSent, postInfo); err != nil && !errors.Is(err, downloader.ErrNoCacheableMedia) {
 			slog.Error("Couldn't set media cache", "error", err)
 		}
-		if big {
-			if err := referral.RegisterBigVideoDownload(int64(requestedUser)); err != nil {
-				slog.Error("Couldn't register big video download", "UserID", requestedUser, "Error", err.Error())
-			}
-		}
+		success = true
 		_, _ = b.DeleteMessageWithContext(context.Background(), chat.Id, noticeMessageID, nil)
 	} else {
 		_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
