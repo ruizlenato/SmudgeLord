@@ -334,13 +334,13 @@ func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anu
 		segmentFiles[index] = fileName
 	}
 
-	if remainingFailures > segmentCount/2 {
+	if remainingFailures > 0 {
 		for _, fileName := range segmentFiles {
 			if fileName != "" {
 				os.Remove(fileName)
 			}
 		}
-		return nil, fmt.Errorf("too many segments failed to download: %d/%d (first: %v)", remainingFailures, segmentCount, firstErr)
+		return nil, fmt.Errorf("%d/%d segments failed to download (first: %v)", remainingFailures, segmentCount, firstErr)
 	}
 
 	cleanSegmentFiles := make([]string, 0, len(segmentFiles))
