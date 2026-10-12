@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html"
 	"io"
 	"log/slog"
 	"mime/multipart"
@@ -751,26 +750,6 @@ func ephemeralParams(ctx *ext.Context) *gotgbot.EphemeralMessageParameters {
 	return &gotgbot.EphemeralMessageParameters{ReceiverUserId: ctx.EffectiveMessage.From.Id}
 }
 
-var htmlTagRegex = regexp.MustCompile(`<[^>]+>`)
-
-func stripTags(s string) string {
-	return htmlTagRegex.ReplaceAllString(s, "")
-}
-
-func richHTML(s string) string {
-	return "<p>" + strings.ReplaceAll(s, "\n", "<br/>") + "</p>"
-}
-
-func richMessageButtonRow(label, style, buttonType, attr, value string) string {
-	var attrs []string
-	if style != "" {
-		attrs = append(attrs, fmt.Sprintf(`style=%q`, style))
-	}
-	attrs = append(attrs, fmt.Sprintf(`%s=%q`, attr, html.EscapeString(value)))
-	return fmt.Sprintf("<tg-button-row>\n\t<tg-button type=%q %s>%s</tg-button>\n</tg-button-row>\n",
-		buttonType, strings.Join(attrs, " "), html.EscapeString(label))
-}
-
 func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, i18n func(string, ...map[string]any) string) {
 	chatID := ctx.EffectiveMessage.Chat.Id
 	chatType := ctx.EffectiveMessage.Chat.Type
@@ -783,7 +762,7 @@ func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.P
 			} else {
 				text = i18n("video-too-large")
 			}
-			html := richHTML(text)
+			html := utils.RichHTML(text)
 
 			var requestedUserID int64
 			if ctx.EffectiveMessage.From != nil {
@@ -796,7 +775,7 @@ func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.P
 				switch {
 				case referral.CanDownloadBigVideo(requestedUserID):
 					daily, weekly := referral.BigVideoQuotaRemaining(requestedUserID)
-					html += "\n<hr/>\n" + richHTML(i18n("video-too-large-full-quality", map[string]any{
+					html += "\n<hr/>\n" + utils.RichHTML(i18n("video-too-large-full-quality", map[string]any{
 						"size":         utils.FormatBytes(postInfo.FileTooLargeSize),
 						"daily":        daily,
 						"daily-quota":  referral.BigVideoDailyQuota,
@@ -804,36 +783,36 @@ func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.P
 						"weekly-quota": referral.BigVideoWeeklyQuota,
 					}))
 					callbackData := fmt.Sprintf("_bvid|%s|%d|%d", postInfo.ID, ctx.EffectiveMessage.MessageId, requestedUserID)
-					html += "\n" + richMessageButtonRow(i18n("full-quality-download-button",
-						map[string]any{"size": utils.FormatBytes(postInfo.FileTooLargeSize)}), "primary", "callback_data", "data", callbackData)
+					html += "\n" + utils.RichMessageButtonRow(utils.RichMessageButton(i18n("full-quality-download-button",
+						map[string]any{"size": utils.FormatBytes(postInfo.FileTooLargeSize)}), "primary", "callback_data", "data", callbackData))
 				case referral.IsUnlocked(requestedUserID):
-					html += "\n<hr/>\n" + richHTML(i18n("video-too-large-full-quota", map[string]any{
+					html += "\n<hr/>\n" + utils.RichHTML(i18n("video-too-large-full-quota", map[string]any{
 						"daily-quota":  referral.BigVideoDailyQuota,
 						"weekly-quota": referral.BigVideoWeeklyQuota,
 					}))
 				default:
-					html += "\n<hr/>\n" + richHTML(i18n("video-too-large-full-locked",
+					html += "\n<hr/>\n" + utils.RichHTML(i18n("video-too-large-full-locked",
 						map[string]any{"required": referral.RequiredReferrals}))
-					html += "\n" + richMessageButtonRow(i18n("referral-unlock-button", map[string]any{
+					html += "\n" + utils.RichMessageButtonRow(utils.RichMessageButton(i18n("referral-unlock-button", map[string]any{
 						"count":    referral.CountReferrals(requestedUserID),
 						"required": referral.RequiredReferrals,
-					}), "primary", "url", "url", referral.Link(b.User.Username, requestedUserID))
+					}), "primary", "url", "url", referral.Link(b.User.Username, requestedUserID)))
 				}
-				html += "\n" + richMessageButtonRow(i18n("donation-button"), "success", "url", "url", fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username))
+				html += "\n" + utils.RichMessageButtonRow(utils.RichMessageButton(i18n("donation-button"), "success", "url", "url", fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)))
 				bigSectionShown = true
 			}
 
 			if postInfo.FileTooLargeAlternativeSize > 0 {
-				html += "\n<hr/>\n" + richHTML(i18n("video-too-large-alternative",
+				html += "\n<hr/>\n" + utils.RichHTML(i18n("video-too-large-alternative",
 					map[string]any{"size": utils.FormatBytes(postInfo.FileTooLargeAlternativeSize)}))
 				if canOfferButtons {
 					callbackData := fmt.Sprintf("_qvid|%s|%d|%d", postInfo.ID, ctx.EffectiveMessage.MessageId, requestedUserID)
-					html += "\n" + richMessageButtonRow(i18n("download-small-variant-button"), "primary", "callback_data", "data", callbackData)
+					html += "\n" + utils.RichMessageButtonRow(utils.RichMessageButton(i18n("download-small-variant-button"), "primary", "callback_data", "data", callbackData))
 				}
 			}
 
 			if !bigSectionShown {
-				html += "\n" + richMessageButtonRow(i18n("donation-button"), "success", "url", "url", fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username))
+				html += "\n" + utils.RichMessageButtonRow(utils.RichMessageButton(i18n("donation-button"), "success", "url", "url", fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)))
 			}
 
 			_, _ = b.SendRichMessageWithContext(context.Background(), chatID, gotgbot.InputRichMessage{
@@ -1178,7 +1157,7 @@ func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	data := strings.Split(ctx.CallbackQuery.Data, "|")
 	if len(data) != 4 {
 		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
-			Text: stripTags(i18n(failedKey)), ShowAlert: true,
+			Text: utils.StripTags(i18n(failedKey)), ShowAlert: true,
 		})
 		return nil
 	}
@@ -1191,13 +1170,13 @@ func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	if big && !referral.IsUnlocked(int64(requestedUser)) {
 		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
-			Text: stripTags(i18n("video-too-large-full-locked", map[string]any{"required": referral.RequiredReferrals})), ShowAlert: true,
+			Text: utils.StripTags(i18n("video-too-large-full-locked", map[string]any{"required": referral.RequiredReferrals})), ShowAlert: true,
 		})
 		return nil
 	}
 	quotaAlert := func() {
 		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
-			Text: stripTags(i18n("video-too-large-full-quota", map[string]any{
+			Text: utils.StripTags(i18n("video-too-large-full-quota", map[string]any{
 				"daily-quota":  referral.BigVideoDailyQuota,
 				"weekly-quota": referral.BigVideoWeeklyQuota,
 			})), ShowAlert: true,
@@ -1214,7 +1193,7 @@ func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		if err != nil {
 			slog.Error("Couldn't reserve big video download", "UserID", requestedUser, "Error", err.Error())
 			_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
-				Text: stripTags(i18n(failedKey)), ShowAlert: true,
+				Text: utils.StripTags(i18n(failedKey)), ShowAlert: true,
 			})
 			return nil
 		}
@@ -1240,7 +1219,7 @@ func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, nil)
 	_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
-		RichMessage: &gotgbot.InputRichMessage{Html: richHTML(i18n("downloading"))},
+		RichMessage: &gotgbot.InputRichMessage{Html: utils.RichHTML(i18n("downloading"))},
 		ChatId:      chat.Id,
 		MessageId:   noticeMessageID,
 	})
@@ -1261,7 +1240,7 @@ func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		slog.Warn("variantDownloadCallback: no media downloaded",
 			"postURL", postURL, "big", big, "FileTooLarge", postInfo.FileTooLarge)
 		_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
-			RichMessage: &gotgbot.InputRichMessage{Html: richHTML(i18n(failedKey))},
+			RichMessage: &gotgbot.InputRichMessage{Html: utils.RichHTML(i18n(failedKey))},
 			ChatId:      chat.Id,
 			MessageId:   noticeMessageID,
 		})
@@ -1286,7 +1265,7 @@ func variantDownloadCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.DeleteMessageWithContext(context.Background(), chat.Id, noticeMessageID, nil)
 	} else {
 		_, _, _ = b.EditMessageTextWithContext(context.Background(), &gotgbot.EditMessageTextOpts{
-			RichMessage: &gotgbot.InputRichMessage{Html: richHTML(i18n(failedKey))},
+			RichMessage: &gotgbot.InputRichMessage{Html: utils.RichHTML(i18n(failedKey))},
 			ChatId:      chat.Id,
 			MessageId:   noticeMessageID,
 		})

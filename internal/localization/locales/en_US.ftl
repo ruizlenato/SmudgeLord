@@ -528,16 +528,9 @@ referral-help =
 referral-message =
     <b>🎁 Invite System</b>
 
-    Share your link with friends and unlock exclusive features:
-
-    <code>{ $link }</code>
-
+    Share your link with friends and unlock exclusive features
+referral-invites =
     <b>Invites:</b> { $count }/{ $required }
-    { $status }
-referral-locked =
-    🔒 Invite { $required } friends to unlock new features.
-referral-unlocked =
-    🎉 You've unlocked up to 2 GB video downloads. Thank you for supporting the bot!
 referral-copy-button = 📋 Copy link
 referral-share-button = 📤 Share
 referral-notification =

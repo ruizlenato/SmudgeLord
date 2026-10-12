@@ -528,16 +528,9 @@ referral-help =
 referral-message =
     <b>🎁 Sistema de Convites</b>
 
-    Compartilhe seu link com os amigos e desbloqueie funções exclusivas:
-
-    <code>{ $link }</code>
-
+    Compartilhe seu link com os amigos e desbloqueie funções exclusivas
+referral-invites =
     <b>Convites:</b> { $count }/{ $required }
-    { $status }
-referral-locked =
-    🔒 Convide { $required } amigos para desbloquear novas funções.
-referral-unlocked =
-    🎉 Você desbloqueou o download de vídeos de até 2 GB. Obrigado por apoiar o bot!
 referral-copy-button = 📋 Copiar link
 referral-share-button = 📤 Compartilhar
 referral-notification =

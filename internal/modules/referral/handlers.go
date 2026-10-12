@@ -2,6 +2,7 @@
 package referral
 
 import (
+	"context"
 	"fmt"
 	"html"
 	"log/slog"
@@ -155,24 +156,17 @@ func sendPanel(b *gotgbot.Bot, chatID, userID int64, i18n func(string, ...map[st
 	count := countReferrals(userID)
 	link := Link(b.User.Username, userID)
 
-	status := i18n("referral-locked", map[string]any{"required": RequiredReferrals})
-	if count >= RequiredReferrals {
-		status = i18n("referral-unlocked")
-	}
-
-	_, err := b.SendMessage(chatID, i18n("referral-message", map[string]any{
-		"link":     link,
+	body := utils.RichHTML(i18n("referral-message"))
+	body += "\n<hr/>\n" + utils.RichHTML(i18n("referral-invites", map[string]any{
 		"count":    count,
 		"required": RequiredReferrals,
-		"status":   status,
-	}), &gotgbot.SendMessageOpts{
-		ParseMode:          gotgbot.ParseModeHTML,
-		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{IsDisabled: true},
-		ReplyMarkup: gotgbot.InlineKeyboardMarkup{InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
-			{Text: i18n("referral-copy-button"), CopyText: &gotgbot.CopyTextButton{Text: link}},
-			{Text: i18n("referral-share-button"), Url: "https://t.me/share/url?url=" + url.QueryEscape(link)},
-		}}},
-	})
+	}))
+	body += "\n" + utils.RichMessageButtonRow(
+		utils.RichMessageButton(i18n("referral-copy-button"), "primary", "copy_text", "text", link),
+		utils.RichMessageButton(i18n("referral-share-button"), "primary", "url", "url", "https://t.me/share/url?url="+url.QueryEscape(link)),
+	)
+
+	_, err := b.SendRichMessageWithContext(context.Background(), chatID, gotgbot.InputRichMessage{Html: body}, nil)
 	if err != nil {
 		slog.Error("Couldn't send referral panel", "ChatID", chatID, "Error", err.Error())
 	}
