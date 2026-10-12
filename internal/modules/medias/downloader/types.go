@@ -184,6 +184,10 @@ func NewFileTooLargeError(size, maxSize int64) *FileTooLargeError {
 	return &FileTooLargeError{Size: size, MaxSize: maxSize}
 }
 
+func NewFileTooLargeErrorWithAlternative(size, maxSize, alternativeSize int64) *FileTooLargeError {
+	return &FileTooLargeError{Size: size, MaxSize: maxSize, AlternativeSize: alternativeSize}
+}
+
 func InputFileFromBytes(filename string, data []byte) gotgbot.InputFile {
 	return gotgbot.InputFileByReader(filename, bytes.NewReader(data))
 }

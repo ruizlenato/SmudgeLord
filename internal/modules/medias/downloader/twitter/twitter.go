@@ -279,13 +279,11 @@ func fileTooLargePostInfo(postID string, err *downloader.FileTooLargeError) down
 type sizeProber func(url string) (int64, error)
 
 func probeVideoVariants(variants []videoVariantRef, probe sizeProber, maxSize int64) (bestURL string, bestSize int64, fitURL string, fitSize int64) {
-	sorted := make([]videoVariantRef, len(variants))
-	copy(sorted, variants)
-	sort.SliceStable(sorted, func(i, j int) bool {
-		return sorted[i].bitrate > sorted[j].bitrate
+	sort.SliceStable(variants, func(i, j int) bool {
+		return variants[i].bitrate > variants[j].bitrate
 	})
 
-	for _, v := range sorted {
+	for _, v := range variants {
 		size, err := probe(v.url)
 		if err != nil || size <= 0 {
 			continue
@@ -321,7 +319,7 @@ func selectVideoVariant(variants []videoVariantRef, forceSmall, forceBig bool, p
 	case forceSmall && fitURL != "":
 		return fitURL, nil
 	case fitURL != "":
-		return "", &downloader.FileTooLargeError{Size: bestSize, MaxSize: maxSize, AlternativeSize: fitSize}
+		return "", downloader.NewFileTooLargeErrorWithAlternative(bestSize, maxSize, fitSize)
 	default:
 		return "", downloader.NewFileTooLargeError(bestSize, maxSize)
 	}
