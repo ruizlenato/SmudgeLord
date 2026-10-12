@@ -533,6 +533,7 @@ referral-invites =
     <b>Convites:</b> { $count }/{ $required }
 referral-copy-button = 📋 Copiar link
 referral-share-button = 📤 Compartilhar
+referral-panel-failed = Envie /start para mim no privado para receber seu painel de convites.
 referral-notification =
     🎉 <b>{ $name }</b> entrou no bot pelo seu link de convite!
 

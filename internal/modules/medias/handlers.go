@@ -587,7 +587,7 @@ func mediaDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	i18n := localization.Get(ctx)
 	url, found := extractURL(ctx.EffectiveMessage.Text)
 	if !found {
-		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("no-link-provided"), &gotgbot.SendMessageOpts{
+		sendMessageWithEphemeralFallback(b, ctx.EffectiveMessage.Chat.Id, i18n("no-link-provided"), &gotgbot.SendMessageOpts{
 			ParseMode:                  gotgbot.ParseModeHTML,
 			ReplyParameters:            &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 			EphemeralMessageParameters: ephemeralParams(ctx),
@@ -744,10 +744,26 @@ func sendMediaBatches(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.Post
 }
 
 func ephemeralParams(ctx *ext.Context) *gotgbot.EphemeralMessageParameters {
-	if !isGroupLikeChat(ctx.EffectiveMessage.Chat.Type) || ctx.EffectiveMessage.From == nil {
+	if !utils.IsGroupLikeChat(ctx.EffectiveMessage.Chat.Type) || ctx.EffectiveMessage.From == nil {
 		return nil
 	}
 	return &gotgbot.EphemeralMessageParameters{ReceiverUserId: ctx.EffectiveMessage.From.Id}
+}
+
+func sendMessageWithEphemeralFallback(b *gotgbot.Bot, chatID int64, text string, opts *gotgbot.SendMessageOpts) {
+	if _, err := b.SendMessageWithContext(context.Background(), chatID, text, opts); err != nil && opts.EphemeralMessageParameters != nil {
+		slog.Warn("Couldn't send ephemeral message, falling back to a regular one", "ChatID", chatID, "Error", err.Error())
+		opts.EphemeralMessageParameters = nil
+		_, _ = b.SendMessageWithContext(context.Background(), chatID, text, opts)
+	}
+}
+
+func sendRichMessageWithEphemeralFallback(b *gotgbot.Bot, chatID int64, richMessage gotgbot.InputRichMessage, opts *gotgbot.SendRichMessageOpts) {
+	if _, err := b.SendRichMessageWithContext(context.Background(), chatID, richMessage, opts); err != nil && opts.EphemeralMessageParameters != nil {
+		slog.Warn("Couldn't send ephemeral message, falling back to a regular one", "ChatID", chatID, "Error", err.Error())
+		opts.EphemeralMessageParameters = nil
+		_, _ = b.SendRichMessageWithContext(context.Background(), chatID, richMessage, opts)
+	}
 }
 
 func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, i18n func(string, ...map[string]any) string) {
@@ -796,7 +812,7 @@ func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.P
 					html += "\n" + utils.RichMessageButtonRow(utils.RichMessageButton(i18n("referral-unlock-button", map[string]any{
 						"count":    referral.CountReferrals(requestedUserID),
 						"required": referral.RequiredReferrals,
-					}), "primary", "url", "url", referral.Link(b.User.Username, requestedUserID)))
+					}), "primary", "callback_data", "data", "_refpnl"))
 				}
 				html += "\n" + utils.RichMessageButtonRow(utils.RichMessageButton(i18n("donation-button"), "success", "url", "url", fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)))
 				bigSectionShown = true
@@ -815,16 +831,14 @@ func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.P
 				html += "\n" + utils.RichMessageButtonRow(utils.RichMessageButton(i18n("donation-button"), "success", "url", "url", fmt.Sprintf("https://t.me/%s?start=donate", b.User.Username)))
 			}
 
-			_, _ = b.SendRichMessageWithContext(context.Background(), chatID, gotgbot.InputRichMessage{
-				Html: html,
-			}, &gotgbot.SendRichMessageOpts{
+			sendRichMessageWithEphemeralFallback(b, chatID, gotgbot.InputRichMessage{Html: html}, &gotgbot.SendRichMessageOpts{
 				ReplyParameters:            &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 				EphemeralMessageParameters: ephemeralParams(ctx),
 			})
 			return
 		}
 		if postInfo.Unavailable {
-			if isGroupLikeChat(chatType) && postInfo.UnavailableReason == "" && !getMediasErrors(chatID) {
+			if utils.IsGroupLikeChat(chatType) && postInfo.UnavailableReason == "" && !getMediasErrors(chatID) {
 				return
 			}
 			sendNoMediaNotice(b, ctx, postInfo, i18n)
@@ -832,14 +846,14 @@ func handleNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.P
 		return
 	}
 
-	if isGroupLikeChat(chatType) && !getMediasErrors(chatID) {
+	if utils.IsGroupLikeChat(chatType) && !getMediasErrors(chatID) {
 		return
 	}
 	sendNoMediaNotice(b, ctx, postInfo, i18n)
 }
 
 func sendNoMediaNotice(b *gotgbot.Bot, ctx *ext.Context, postInfo downloader.PostInfo, i18n func(string, ...map[string]any) string) {
-	_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
+	sendMessageWithEphemeralFallback(b, ctx.EffectiveMessage.Chat.Id, noMediaMessage(ctx, postInfo), &gotgbot.SendMessageOpts{
 		ParseMode:                  gotgbot.ParseModeHTML,
 		ReplyParameters:            &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 		EphemeralMessageParameters: ephemeralParams(ctx),
@@ -1000,7 +1014,7 @@ func youtubeDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	} else if fields := strings.Fields(ctx.EffectiveMessage.Text); len(fields) > 1 {
 		videoURL = fields[1]
 	} else {
-		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("youtube-no-url"), &gotgbot.SendMessageOpts{
+		sendMessageWithEphemeralFallback(b, ctx.EffectiveMessage.Chat.Id, i18n("youtube-no-url"), &gotgbot.SendMessageOpts{
 			ParseMode:                  gotgbot.ParseModeHTML,
 			ReplyParameters:            &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 			EphemeralMessageParameters: ephemeralParams(ctx),
@@ -1013,7 +1027,7 @@ func youtubeDownloadHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 	video, err := ytClient.GetVideo(videoURL)
 	if err != nil || video == nil || video.Formats == nil {
-		_, _ = b.SendMessageWithContext(context.Background(), ctx.EffectiveMessage.Chat.Id, i18n("youtube-invalid-url"), &gotgbot.SendMessageOpts{
+		sendMessageWithEphemeralFallback(b, ctx.EffectiveMessage.Chat.Id, i18n("youtube-invalid-url"), &gotgbot.SendMessageOpts{
 			ParseMode:                  gotgbot.ParseModeHTML,
 			ReplyParameters:            &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
 			EphemeralMessageParameters: ephemeralParams(ctx),

@@ -1,13 +1,8 @@
 package medias
 
 import (
-	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/ruizlenato/smudgelord/internal/database"
 )
-
-func isGroupLikeChat(chatType string) bool {
-	return chatType == gotgbot.ChatTypeGroup || chatType == gotgbot.ChatTypeSupergroup
-}
 
 func getMediasAuto(chatID int64) bool {
 	var mediasAuto bool

@@ -116,3 +116,7 @@ func (d DisableableCommand) CheckUpdate(b *gotgbot.Bot, ctx *ext.Context) bool {
 
 	return !CheckDisabledCommand(d.Command.Command, ctx.EffectiveChat.Id)
 }
+
+func IsGroupLikeChat(chatType string) bool {
+	return chatType == gotgbot.ChatTypeGroup || chatType == gotgbot.ChatTypeSupergroup
+}

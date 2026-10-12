@@ -13,6 +13,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext"
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers"
+	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/callbackquery"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
 	"github.com/ruizlenato/smudgelord/internal/utils"
@@ -30,6 +31,7 @@ func Load(dispatcher *ext.Dispatcher) {
 	dispatcher.AddHandlerToGroup(handlers.NewCommand("start", captureReferral), -2)
 	dispatcher.AddHandler(handlers.NewCommand("referral", referralHandler))
 	dispatcher.AddHandler(handlers.NewCommand("convites", referralHandler))
+	dispatcher.AddHandler(handlers.NewCallback(callbackquery.Prefix("_refpnl"), referralPanelCallback))
 	utils.SaveHelp("referral")
 }
 
@@ -125,7 +127,39 @@ func referralHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
-	sendPanel(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveUser.Id, localization.Get(ctx))
+	if err := sendPanel(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveUser.Id, localization.Get(ctx), nil); err != nil {
+		slog.Error("Couldn't send referral panel", "ChatID", ctx.EffectiveMessage.Chat.Id, "Error", err.Error())
+	}
+	return nil
+}
+
+func referralPanelCallback(b *gotgbot.Bot, ctx *ext.Context) error {
+	if ctx.CallbackQuery == nil {
+		return nil
+	}
+	userID := ctx.CallbackQuery.From.Id
+	i18n := localization.GetForUser(userID)
+
+	chatID := userID
+	var ephemeral *gotgbot.EphemeralMessageParameters
+	if ctx.CallbackQuery.Message != nil {
+		chat := ctx.CallbackQuery.Message.GetChat()
+		if utils.IsGroupLikeChat(chat.Type) {
+			chatID = chat.Id
+			ephemeral = &gotgbot.EphemeralMessageParameters{
+				ReceiverUserId:  userID,
+				CallbackQueryId: ctx.CallbackQuery.Id,
+			}
+		}
+	}
+
+	if err := sendPanel(b, chatID, userID, i18n, ephemeral); err != nil {
+		_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, &gotgbot.AnswerCallbackQueryOpts{
+			Text: i18n("referral-panel-failed"), ShowAlert: true,
+		})
+		return nil
+	}
+	_, _ = b.AnswerCallbackQueryWithContext(context.Background(), ctx.CallbackQuery.Id, nil)
 	return nil
 }
 
@@ -148,11 +182,10 @@ func ShowPanel(b *gotgbot.Bot, ctx *ext.Context) bool {
 		return false
 	}
 
-	sendPanel(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveUser.Id, localization.Get(ctx))
-	return true
+	return sendPanel(b, ctx.EffectiveMessage.Chat.Id, ctx.EffectiveUser.Id, localization.Get(ctx), nil) == nil
 }
 
-func sendPanel(b *gotgbot.Bot, chatID, userID int64, i18n func(string, ...map[string]any) string) {
+func sendPanel(b *gotgbot.Bot, chatID, userID int64, i18n func(string, ...map[string]any) string, ephemeral *gotgbot.EphemeralMessageParameters) error {
 	count := countReferrals(userID)
 	link := Link(b.User.Username, userID)
 
@@ -166,8 +199,8 @@ func sendPanel(b *gotgbot.Bot, chatID, userID int64, i18n func(string, ...map[st
 		utils.RichMessageButton(i18n("referral-share-button"), "primary", "url", "url", "https://t.me/share/url?url="+url.QueryEscape(link)),
 	)
 
-	_, err := b.SendRichMessageWithContext(context.Background(), chatID, gotgbot.InputRichMessage{Html: body}, nil)
-	if err != nil {
-		slog.Error("Couldn't send referral panel", "ChatID", chatID, "Error", err.Error())
-	}
+	_, err := b.SendRichMessageWithContext(context.Background(), chatID, gotgbot.InputRichMessage{Html: body}, &gotgbot.SendRichMessageOpts{
+		EphemeralMessageParameters: ephemeral,
+	})
+	return err
 }
