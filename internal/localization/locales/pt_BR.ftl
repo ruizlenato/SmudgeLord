@@ -133,7 +133,10 @@ afk-help =
     <b>— Comandos:</b>
     <b>/afk (motivo):</b> Marca você como ausente.
     <b>brb (motivo):</b> Funciona como o comando afk, mas não é necessário usar o <code>/</code>.
+    <b>/afk com foto, GIF ou vídeo (até 30s):</b> Anexe a mídia ao /afk (caption) ou responda com /afk a uma mensagem com mídia. Desbloqueado com 20 convites.
 user-now-unavailable = <b>{ $userFirstName }</b> está agora indisponível!
+afk-media-locked = O AFK com mídias é desbloqueado com { $required } convites. Seu AFK foi salvo só com o texto.
+afk-media-video-too-long = Vídeos de AFK devem ter até 30 segundos. Seu AFK foi salvo só com o texto.
 user-unavailable =
     <b><a href='tg://user?id={ $userID }'>{ $userFirstName } </a></b> está <b>indisponível!</b>
     Visto pela última vez à <code>{ $duration }</code> atrás.
@@ -530,7 +533,7 @@ referral-message =
 
     Compartilhe seu link com os amigos e desbloqueie funções exclusivas
 referral-invites =
-    <b>Convites:</b> { $count }/{ $required }
+    Você já convidou { $count } novos usuários
 referral-copy-button = 📋 Copiar link
 referral-share-button = 📤 Compartilhar
 referral-panel-failed = Envie /start para mim no privado para receber seu painel de convites.

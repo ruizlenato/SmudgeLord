@@ -2,7 +2,6 @@
 package afk
 
 import (
-	"database/sql"
 	"log/slog"
 	"regexp"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	"github.com/PaulSonOfLars/gotgbot/v2/ext/handlers/filters/message"
 
 	"github.com/ruizlenato/smudgelord/internal/localization"
+	"github.com/ruizlenato/smudgelord/internal/modules/referral"
 	"github.com/ruizlenato/smudgelord/internal/utils"
 )
 
@@ -22,6 +22,8 @@ var (
 	mentionRegex   = regexp.MustCompile(`@[A-Za-z0-9_]{3,}`)
 	afkReasonRegex = regexp.MustCompile(`^(?:brb|/afk)\s(.+)$`)
 )
+
+const afkMaxVideoDuration int64 = 30
 
 func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 	messageData := ctx.EffectiveMessage
@@ -39,14 +41,14 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 		return nil
 	}
 
-	firstName, reason, duration, err := getUserAway(mentionedUserID)
-	if err != nil && err != sql.ErrNoRows {
+	info, err := getUserAway(mentionedUserID)
+	if err != nil {
 		slog.Error("Couldn't get user away status", "UserID", ctx.EffectiveUser.Id, "Error", err.Error())
 		return nil
 	}
 
 	i18n := localization.Get(ctx)
-	humanizedDuration := localization.HumanizeTimeSince(duration, ctx)
+	humanizedDuration := localization.HumanizeTimeSince(info.duration, ctx)
 
 	if mentionedUserID == ctx.EffectiveUser.Id {
 		if err := unsetUserAway(mentionedUserID); err != nil {
@@ -69,24 +71,48 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	member, err := b.GetChatMember(messageData.Chat.Id, mentionedUserID, nil)
 	if err == nil {
-		firstName = member.GetUser().FirstName
+		info.firstName = member.GetUser().FirstName
 	}
 
 	text := i18n("user-unavailable", map[string]any{
 		"userID":        mentionedUserID,
-		"userFirstName": utils.EscapeHTML(firstName),
+		"userFirstName": utils.EscapeHTML(info.firstName),
 		"duration":      humanizedDuration,
 	})
 
-	if reason != "" {
-		text += "\n" + i18n("user-unavailable-reason", map[string]any{"reason": reason})
+	if info.reason != "" {
+		text += "\n" + i18n("user-unavailable-reason", map[string]any{"reason": info.reason})
 	}
 
-	_, _ = b.SendMessage(messageData.Chat.Id, text, &gotgbot.SendMessageOpts{
-		LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
-		ParseMode:          gotgbot.ParseModeHTML,
-		ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
-	})
+	opts := &gotgbot.ReplyParameters{MessageId: messageData.MessageId}
+
+	switch info.mediaType {
+	case "photo":
+		_, _ = b.SendPhoto(messageData.Chat.Id, gotgbot.InputFileByID(info.mediaID), &gotgbot.SendPhotoOpts{
+			Caption:         text,
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: opts,
+		})
+	case "animation":
+		_, _ = b.SendAnimation(messageData.Chat.Id, gotgbot.InputFileByID(info.mediaID), &gotgbot.SendAnimationOpts{
+			Caption:         text,
+			ParseMode:       gotgbot.ParseModeHTML,
+			ReplyParameters: opts,
+		})
+	case "video":
+		_, _ = b.SendVideo(messageData.Chat.Id, gotgbot.InputFileByID(info.mediaID), &gotgbot.SendVideoOpts{
+			Caption:           text,
+			ParseMode:         gotgbot.ParseModeHTML,
+			ReplyParameters:   opts,
+			SupportsStreaming: true,
+		})
+	default:
+		_, _ = b.SendMessage(messageData.Chat.Id, text, &gotgbot.SendMessageOpts{
+			LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
+			ParseMode:          gotgbot.ParseModeHTML,
+			ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+		})
+	}
 
 	return nil
 }
@@ -146,23 +172,80 @@ func extractMentionCandidates(text string) []string {
 	return candidates
 }
 
+func afkMediaFromMessage(messageData *gotgbot.Message) (mediaType, mediaID string, videoTooLong bool) {
+	switch {
+	case len(messageData.Photo) > 0:
+		return "photo", messageData.Photo[len(messageData.Photo)-1].FileId, false
+	case messageData.Animation != nil:
+		return "animation", messageData.Animation.FileId, false
+	case messageData.Video != nil:
+		if messageData.Video.Duration > afkMaxVideoDuration {
+			return "", "", true
+		}
+		return "video", messageData.Video.FileId, false
+	}
+	return "", "", false
+}
+
 func setAFKHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
 
+	i18n := localization.Get(ctx)
+
 	reason := extractReason(ctx.EffectiveMessage.GetText())
-	if err := setUserAway(ctx.EffectiveUser, reason, time.Now().UTC()); err != nil {
+	mediaType, mediaID, videoTooLong := afkMediaFromMessage(ctx.EffectiveMessage)
+	if mediaType == "" && !videoTooLong && ctx.EffectiveMessage.ReplyToMessage != nil {
+		mediaType, mediaID, videoTooLong = afkMediaFromMessage(ctx.EffectiveMessage.ReplyToMessage)
+	}
+
+	notice := ""
+	mediaLocked := false
+	switch {
+	case videoTooLong:
+		notice = i18n("afk-media-video-too-long")
+	case mediaType != "" && !referral.IsAfkMediaUnlocked(ctx.EffectiveUser.Id):
+		mediaLocked = true
+		mediaType, mediaID = "", ""
+		notice = i18n("afk-media-locked", map[string]any{"required": referral.RequiredAfkMediaReferrals})
+	}
+
+	media := ""
+	if mediaType != "" {
+		media = mediaType + ":" + mediaID
+	}
+	if err := setUserAway(ctx.EffectiveUser, reason, media, time.Now().UTC()); err != nil {
 		slog.Error("Couldn't set user away status", "UserID", ctx.EffectiveUser.Id, "Error", err.Error())
 		return nil
 	}
 
-	i18n := localization.Get(ctx)
-	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("user-now-unavailable", map[string]any{
+	confirmation := i18n("user-now-unavailable", map[string]any{
 		"userFirstName": utils.EscapeHTML(ctx.EffectiveUser.FirstName),
-	}), &gotgbot.SendMessageOpts{
+	})
+
+	var replyMarkup *gotgbot.InlineKeyboardMarkup
+	if notice != "" {
+		confirmation += "\n\n> " + notice
+	}
+	if mediaLocked {
+		replyMarkup = &gotgbot.InlineKeyboardMarkup{
+			InlineKeyboard: [][]gotgbot.InlineKeyboardButton{{
+				{
+					Text: i18n("referral-unlock-button", map[string]any{
+						"count":    referral.CountReferrals(ctx.EffectiveUser.Id),
+						"required": referral.RequiredAfkMediaReferrals,
+					}),
+					CallbackData: "_refpnl",
+				},
+			}},
+		}
+	}
+
+	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, confirmation, &gotgbot.SendMessageOpts{
 		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyMarkup:     replyMarkup,
 	})
 
 	return nil

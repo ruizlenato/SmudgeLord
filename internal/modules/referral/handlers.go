@@ -20,9 +20,10 @@ import (
 )
 
 const (
-	RequiredReferrals   = 10
-	BigVideoDailyQuota  = 3
-	BigVideoWeeklyQuota = 10
+	RequiredReferrals         = 10
+	RequiredAfkMediaReferrals = 20
+	BigVideoDailyQuota        = 3
+	BigVideoWeeklyQuota       = 10
 )
 
 func Load(dispatcher *ext.Dispatcher) {
@@ -43,6 +44,10 @@ func Link(botUsername string, userID int64) string {
 // IsUnlocked reports whether the user invited enough people to unlock gated perks.
 func IsUnlocked(userID int64) bool {
 	return countReferrals(userID) >= RequiredReferrals
+}
+
+func IsAfkMediaUnlocked(userID int64) bool {
+	return countReferrals(userID) >= RequiredAfkMediaReferrals
 }
 
 // CountReferrals returns how many users a user has invited.
@@ -191,8 +196,7 @@ func sendPanel(b *gotgbot.Bot, chatID, userID int64, i18n func(string, ...map[st
 
 	body := utils.RichHTML(i18n("referral-message"))
 	body += "\n<hr/>\n" + utils.RichHTML(i18n("referral-invites", map[string]any{
-		"count":    count,
-		"required": RequiredReferrals,
+		"count": count,
 	}))
 	body += "\n" + utils.RichMessageButtonRow(
 		utils.RichMessageButton(i18n("referral-copy-button"), "primary", "copy_text", "text", link),

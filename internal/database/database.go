@@ -80,7 +80,8 @@ func CreateTables() error {
 			username TEXT,
 			first_name TEXT,
 			reason TEXT,
-			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+			time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			media TEXT
 		);
 
 		CREATE TABLE IF NOT EXISTS commandsDisabled (
@@ -110,8 +111,33 @@ func CreateTables() error {
 		);
 		CREATE INDEX IF NOT EXISTS idx_big_video_downloads_user ON big_video_downloads (user_id, created_at);
 	`
-	_, err := DB.Exec(query)
-	return err
+	if _, err := DB.Exec(query); err != nil {
+		return err
+	}
+	return addMissingColumns()
+}
+
+func addMissingColumns() error {
+	columns := []struct {
+		table  string
+		column string
+		def    string
+	}{
+		{"afk", "media", "TEXT"},
+	}
+	for _, c := range columns {
+		var exists int
+		if err := DB.QueryRow("SELECT COUNT(*) FROM pragma_table_info(?) WHERE name = ?", c.table, c.column).Scan(&exists); err != nil {
+			return fmt.Errorf("couldn't inspect table %s: %w", c.table, err)
+		}
+		if exists > 0 {
+			continue
+		}
+		if _, err := DB.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s %s", c.table, c.column, c.def)); err != nil {
+			return fmt.Errorf("couldn't add column %s.%s: %w", c.table, c.column, err)
+		}
+	}
+	return nil
 }
 
 func Close() {

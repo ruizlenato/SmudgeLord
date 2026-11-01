@@ -22,30 +22,47 @@ func userIsAway(userID int64) bool {
 	return exists
 }
 
-func getUserAway(userID int64) (string, string, time.Duration, error) {
-	row := database.DB.QueryRow("SELECT first_name, reason, time FROM afk WHERE id = ?", userID)
-
-	var firstName sql.NullString
-	var reason string
-	var afkTime time.Time
-	err := row.Scan(&firstName, &reason, &afkTime)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", "", 0, nil
-		}
-		return "", "", 0, errors.New("Error getting AFK info: " + err.Error())
-	}
-
-	return firstName.String, reason, time.Since(afkTime), nil
+type awayInfo struct {
+	firstName string
+	reason    string
+	duration  time.Duration
+	mediaType string
+	mediaID   string
 }
 
-func setUserAway(sender *gotgbot.User, reason string, time time.Time) error {
+func getUserAway(userID int64) (awayInfo, error) {
+	row := database.DB.QueryRow("SELECT first_name, reason, time, media FROM afk WHERE id = ?", userID)
+
+	var info awayInfo
+	var firstName sql.NullString
+	var media sql.NullString
+	var afkTime time.Time
+
+	err := row.Scan(&firstName, &info.reason, &afkTime, &media)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return info, nil
+		}
+		return info, errors.New("Error getting AFK info: " + err.Error())
+	}
+
+	info.firstName = firstName.String
+	info.duration = time.Since(afkTime)
+	if mediaType, mediaID, found := strings.Cut(media.String, ":"); found && mediaID != "" {
+		info.mediaType, info.mediaID = mediaType, mediaID
+	}
+
+	return info, nil
+}
+
+func setUserAway(sender *gotgbot.User, reason, media string, time time.Time) error {
 	query := `
-	INSERT INTO afk (id, username, first_name, reason, time) VALUES (?, ?, ?, ?, ?)
+	INSERT INTO afk (id, username, first_name, reason, media, time) VALUES (?, ?, ?, ?, ?, ?)
 	ON CONFLICT(id) DO UPDATE SET
 		username = excluded.username,
 		first_name = excluded.first_name,
 		reason = excluded.reason,
+		media = excluded.media,
 		time = excluded.time
 	`
 
@@ -58,7 +75,7 @@ func setUserAway(sender *gotgbot.User, reason string, time time.Time) error {
 		username = "@" + strings.TrimPrefix(username, "@")
 	}
 
-	_, err := database.DB.Exec(query, sender.Id, username, sender.FirstName, reason, time)
+	_, err := database.DB.Exec(query, sender.Id, username, sender.FirstName, reason, media, time)
 	if err != nil {
 		return errors.New("Error setting AFK: " + err.Error())
 	}
