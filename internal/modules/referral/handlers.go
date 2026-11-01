@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	RequiredReferrals         = 10
-	RequiredAfkMediaReferrals = 20
+	RequiredReferrals         = 15
+	RequiredAfkMediaReferrals = 10
 	BigVideoDailyQuota        = 3
 	BigVideoWeeklyQuota       = 10
 )

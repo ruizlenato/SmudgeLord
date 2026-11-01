@@ -132,7 +132,7 @@ afk-help =
     <b>— Commands:</b>
     <b>/afk (reason):</b> Define yourself as away.
     <b>brb (reason):</b> Same as the afk command, but not a command; no need to use <code>/</code>.
-    <b>/afk with a photo, GIF or video (up to 30s):</b> Attach the media to /afk or reply to a media message with /afk. Unlocked at 20 invites.
+    <b>/afk with a photo, GIF or video (up to 30s):</b> Attach the media to /afk or reply to a media message with /afk. Unlocked at 10 invites.
 user-now-unavailable = <b>{ $userFirstName }</b> is now unavailable!
 afk-media-locked = AFK with media is unlocked at { $required } invites. Your AFK was saved with the text only.
 afk-media-video-too-long = AFK videos must be up to 30 seconds long. Your AFK was saved with the text only.

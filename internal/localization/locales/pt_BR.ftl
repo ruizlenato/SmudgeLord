@@ -133,7 +133,7 @@ afk-help =
     <b>— Comandos:</b>
     <b>/afk (motivo):</b> Marca você como ausente.
     <b>brb (motivo):</b> Funciona como o comando afk, mas não é necessário usar o <code>/</code>.
-    <b>/afk com foto, GIF ou vídeo (até 30s):</b> Anexe a mídia ao /afk (caption) ou responda com /afk a uma mensagem com mídia. Desbloqueado com 20 convites.
+    <b>/afk com foto, GIF ou vídeo (até 30s):</b> Anexe a mídia ao /afk (caption) ou responda com /afk a uma mensagem com mídia. Desbloqueado com 10 convites.
 user-now-unavailable = <b>{ $userFirstName }</b> está agora indisponível!
 afk-media-locked = O AFK com mídias é desbloqueado com { $required } convites. Seu AFK foi salvo só com o texto.
 afk-media-video-too-long = Vídeos de AFK devem ter até 30 segundos. Seu AFK foi salvo só com o texto.
