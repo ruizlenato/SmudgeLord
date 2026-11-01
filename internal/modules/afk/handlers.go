@@ -81,7 +81,7 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 	})
 
 	if info.reason != "" {
-		text += "\n" + i18n("user-unavailable-reason", map[string]any{"reason": info.reason})
+		text += "\n" + i18n("user-unavailable-reason", map[string]any{"reason": utils.EscapeHTML(info.reason)})
 	}
 
 	opts := &gotgbot.ReplyParameters{MessageId: messageData.MessageId}
@@ -226,7 +226,7 @@ func setAFKHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	var replyMarkup *gotgbot.InlineKeyboardMarkup
 	if notice != "" {
-		confirmation += "\n\n> " + notice
+		confirmation += "\n\n" + notice
 	}
 	if mediaLocked {
 		replyMarkup = &gotgbot.InlineKeyboardMarkup{
@@ -242,11 +242,17 @@ func setAFKHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 		}
 	}
 
-	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, confirmation, &gotgbot.SendMessageOpts{
+	opts := gotgbot.SendMessageOpts{
 		ParseMode:       gotgbot.ParseModeHTML,
 		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
-		ReplyMarkup:     replyMarkup,
-	})
+	}
+	if replyMarkup != nil {
+		opts.ReplyMarkup = replyMarkup
+	}
+
+	if _, err := b.SendMessage(ctx.EffectiveMessage.Chat.Id, confirmation, &opts); err != nil {
+		slog.Error("Couldn't send AFK confirmation", "ChatID", ctx.EffectiveMessage.Chat.Id, "Error", err.Error())
+	}
 
 	return nil
 }
