@@ -37,37 +37,50 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 	}
 
 	mentionedUserID := getUserIDFromMessage(messageData)
-	if !userIsAway(mentionedUserID) {
-		return nil
+	if mentionedUserID == ctx.EffectiveUser.Id {
+		mentionedUserID = 0
 	}
 
-	info, err := getUserAway(mentionedUserID)
-	if err != nil {
-		slog.Error("Couldn't get user away status", "UserID", ctx.EffectiveUser.Id, "Error", err.Error())
+	senderAway := userIsAway(ctx.EffectiveUser.Id)
+	targetAway := mentionedUserID != 0 && userIsAway(mentionedUserID)
+	if !senderAway && !targetAway {
 		return nil
 	}
 
 	i18n := localization.Get(ctx)
-	humanizedDuration := localization.HumanizeTimeSince(info.duration, ctx)
 
-	if mentionedUserID == ctx.EffectiveUser.Id {
-		if err := unsetUserAway(mentionedUserID); err != nil {
-			slog.Error("Couldn't unset user away status", "UserID", mentionedUserID, "Error", err.Error())
+	if senderAway {
+		senderInfo, err := getUserAway(ctx.EffectiveUser.Id)
+		if err != nil {
+			slog.Error("Couldn't get user away status", "UserID", ctx.EffectiveUser.Id, "Error", err.Error())
+			return nil
+		}
+		if err := unsetUserAway(ctx.EffectiveUser.Id); err != nil {
+			slog.Error("Couldn't unset user away status", "UserID", ctx.EffectiveUser.Id, "Error", err.Error())
 			return nil
 		}
 
 		_, _ = b.SendMessage(messageData.Chat.Id, i18n("user-now-available", map[string]any{
 			"userID":        ctx.EffectiveUser.Id,
 			"userFirstName": utils.EscapeHTML(ctx.EffectiveUser.FirstName),
-			"duration":      humanizedDuration,
+			"duration":      localization.HumanizeTimeSince(senderInfo.duration, ctx),
 		}), &gotgbot.SendMessageOpts{
 			LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
 			ParseMode:          gotgbot.ParseModeHTML,
 			ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
 		})
+	}
 
+	if !targetAway {
 		return nil
 	}
+
+	info, err := getUserAway(mentionedUserID)
+	if err != nil {
+		slog.Error("Couldn't get user away status", "UserID", mentionedUserID, "Error", err.Error())
+		return nil
+	}
+	humanizedDuration := localization.HumanizeTimeSince(info.duration, ctx)
 
 	member, err := b.GetChatMember(messageData.Chat.Id, mentionedUserID, nil)
 	if err == nil {
