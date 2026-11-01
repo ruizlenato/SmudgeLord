@@ -76,6 +76,22 @@ type StoryPinBlock struct {
 	Typename    string          `json:"__typename"`
 	VideoDataV2 *VideoDataV2    `json:"videoDataV2"`
 	ImageData   *StoryImageData `json:"imageData"`
+	ImagesOrig  *ImageDetails   `json:"images_orig"`
+	Images1200X *ImageDetails   `json:"images_1200x"`
+	Images750X  *ImageDetails   `json:"images_750x"`
+	Images236X  *ImageDetails   `json:"images_236x"`
+}
+
+func (b *StoryPinBlock) bestImageURL() string {
+	for _, image := range []*ImageDetails{b.ImagesOrig, b.Images1200X, b.Images750X, b.Images236X} {
+		if image != nil && image.URL != "" {
+			return image.URL
+		}
+	}
+	if b.ImageData != nil && b.ImageData.Images.Orig != nil {
+		return b.ImageData.Images.Orig.URL
+	}
+	return ""
 }
 
 type VideoDataV2 struct {

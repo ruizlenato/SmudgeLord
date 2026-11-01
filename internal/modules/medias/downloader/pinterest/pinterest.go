@@ -105,6 +105,14 @@ func (h *Handler) processMedia() ([]gotgbot.InputMedia, string, func()) {
 
 	pinData := h.extractPinData(htmlBody)
 	if pinData == nil {
+		htmlBody, err = h.fetchPinHTML()
+		if err != nil {
+			slog.Error("Failed to refetch Pinterest pin page", "Post", h.postID, "Error", err.Error())
+			return nil, "", nil
+		}
+		pinData = h.extractPinData(htmlBody)
+	}
+	if pinData == nil {
 		slog.Error("Failed to extract Pinterest pin data", "Post", h.postID)
 		return nil, "", nil
 	}
@@ -210,7 +218,8 @@ func mergePinData(dst, src *PinData) {
 			for i, srcPage := range src.StoryPinData.Pages {
 				if i < len(dst.StoryPinData.Pages) {
 					dstPage := &dst.StoryPinData.Pages[i]
-					if len(srcPage.Blocks) > len(dstPage.Blocks) {
+					if len(srcPage.Blocks) > len(dstPage.Blocks) ||
+						(len(srcPage.Blocks) == len(dstPage.Blocks) && blocksFillScore(srcPage.Blocks) > blocksFillScore(dstPage.Blocks)) {
 						*dstPage = srcPage
 					}
 				} else {
@@ -219,6 +228,23 @@ func mergePinData(dst, src *PinData) {
 			}
 		}
 	}
+}
+
+func blocksFillScore(blocks []StoryPinBlock) int {
+	score := 0
+	for i := range blocks {
+		if blocks[i].bestImageURL() != "" || blocks[i].VideoDataV2 != nil {
+			score++
+		}
+	}
+	return score
+}
+
+func pinImageURL(pinData *PinData) string {
+	if pinData.ImagesOrig != nil && pinData.ImagesOrig.URL != "" {
+		return pinData.ImagesOrig.URL
+	}
+	return pinData.ImageLargeURL
 }
 
 func (h *Handler) processPinMedia(pinData *PinData) ([]gotgbot.InputMedia, func()) {
@@ -344,6 +370,15 @@ func (h *Handler) handleStoryPin(pinData *PinData) ([]gotgbot.InputMedia, func()
 		return nil, nil
 	}
 
+	fallbackImage := pinImageURL(pinData)
+	fallbackIndex := -1
+	for i, block := range allBlocks {
+		if block.Typename == "StoryPinImageBlock" {
+			fallbackIndex = i
+			break
+		}
+	}
+
 	mediaItems := make([]gotgbot.InputMedia, len(allBlocks))
 	var cleanups []func()
 	addCleanup := func(cleanup func()) {
@@ -403,9 +438,9 @@ func (h *Handler) handleStoryPin(pinData *PinData) ([]gotgbot.InputMedia, func()
 			return media, cleanup, nil
 
 		case "StoryPinImageBlock":
-			var imageURL string
-			if block.ImageData != nil && block.ImageData.Images.Orig != nil {
-				imageURL = block.ImageData.Images.Orig.URL
+			imageURL := block.bestImageURL()
+			if imageURL == "" && index == fallbackIndex {
+				imageURL = fallbackImage
 			}
 			if imageURL == "" {
 				return nil, nil, fmt.Errorf("no image URL found")
