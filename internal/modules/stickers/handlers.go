@@ -139,8 +139,23 @@ func handleConversationError(b *gotgbot.Bot, ctx *ext.Context, err error, i18n f
 	return nil
 }
 
+func sendAnonymousAdminNotice(b *gotgbot.Bot, ctx *ext.Context) bool {
+	if ctx.EffectiveSender == nil || !ctx.EffectiveSender.IsAnonymousAdmin() {
+		return false
+	}
+	i18n := localization.Get(ctx)
+	_, _ = b.SendMessage(ctx.EffectiveMessage.Chat.Id, i18n("stickers-anonymous-admin"), &gotgbot.SendMessageOpts{
+		ParseMode:       gotgbot.ParseModeHTML,
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId, AllowSendingWithoutReply: true},
+	})
+	return true
+}
+
 func newPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
+		return nil
+	}
+	if sendAnonymousAdminNotice(b, ctx) {
 		return nil
 	}
 	i18n := localization.Get(ctx)
@@ -420,6 +435,9 @@ func myPacksHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
 		return nil
 	}
+	if sendAnonymousAdminNotice(b, ctx) {
+		return nil
+	}
 	i18n := localization.Get(ctx)
 	if !requirePrivateChat(b, ctx, i18n) {
 		return nil
@@ -447,6 +465,9 @@ func myPacksHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 func switchHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
+		return nil
+	}
+	if sendAnonymousAdminNotice(b, ctx) {
 		return nil
 	}
 	i18n := localization.Get(ctx)
@@ -517,6 +538,9 @@ func switchNoneCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 func delPackHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
+		return nil
+	}
+	if sendAnonymousAdminNotice(b, ctx) {
 		return nil
 	}
 	i18n := localization.Get(ctx)
@@ -664,6 +688,9 @@ func delPackCancelCallback(b *gotgbot.Bot, ctx *ext.Context) error {
 
 func kangStickerHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 	if ctx.EffectiveMessage == nil || ctx.EffectiveUser == nil {
+		return nil
+	}
+	if sendAnonymousAdminNotice(b, ctx) {
 		return nil
 	}
 	i18n := localization.Get(ctx)

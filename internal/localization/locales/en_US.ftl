@@ -414,6 +414,7 @@ stickers-newpack-title-request =
 stickers-newpack-emoji-request =
     <b>Step 2/2:</b> Reply with an emoji to represent the sticker in the pack (or type <code>skip</code>).
 stickers-newpack-skip-button = Skip
+stickers-anonymous-admin = You are sending as an anonymous administrator, and this command doesn't work that way. Disable anonymity and try again.
 stickers-newpack-timeout =
     <b>Timed out.</b>
     Send <code>/newpack</code> again when you're ready.

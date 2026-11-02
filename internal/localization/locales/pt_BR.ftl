@@ -419,6 +419,7 @@ stickers-newpack-title-request =
 stickers-newpack-emoji-request =
     <b>Passo 2/2:</b> Responda com um emoji para representar a figurinha no pacote (ou digite <code>pular</code>).
 stickers-newpack-skip-button = Pular
+stickers-anonymous-admin = Você está enviando como administrador anônimo, e este comando não funciona assim. Desative o anonimato e tente novamente.
 stickers-newpack-timeout =
     <b>Tempo esgotado.</b>
     Envie <code>/newpack</code> novamente quando estiver pronto.
