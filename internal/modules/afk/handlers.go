@@ -67,7 +67,7 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 		}), &gotgbot.SendMessageOpts{
 			LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
 			ParseMode:          gotgbot.ParseModeHTML,
-			ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+			ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId, AllowSendingWithoutReply: true},
 		})
 	}
 
@@ -97,7 +97,7 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 		text += "\n" + i18n("user-unavailable-reason", map[string]any{"reason": utils.EscapeHTML(info.reason)})
 	}
 
-	opts := &gotgbot.ReplyParameters{MessageId: messageData.MessageId}
+	opts := &gotgbot.ReplyParameters{MessageId: messageData.MessageId, AllowSendingWithoutReply: true}
 
 	switch info.mediaType {
 	case "photo":
@@ -123,7 +123,7 @@ func checkAFKMessage(b *gotgbot.Bot, ctx *ext.Context) error {
 		_, _ = b.SendMessage(messageData.Chat.Id, text, &gotgbot.SendMessageOpts{
 			LinkPreviewOptions: &gotgbot.LinkPreviewOptions{PreferLargeMedia: true},
 			ParseMode:          gotgbot.ParseModeHTML,
-			ReplyParameters:    &gotgbot.ReplyParameters{MessageId: messageData.MessageId},
+			ReplyParameters:    opts,
 		})
 	}
 
@@ -257,7 +257,7 @@ func setAFKHandler(b *gotgbot.Bot, ctx *ext.Context) error {
 
 	opts := gotgbot.SendMessageOpts{
 		ParseMode:       gotgbot.ParseModeHTML,
-		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId},
+		ReplyParameters: &gotgbot.ReplyParameters{MessageId: ctx.EffectiveMessage.MessageId, AllowSendingWithoutReply: true},
 	}
 	if replyMarkup != nil {
 		opts.ReplyMarkup = replyMarkup
