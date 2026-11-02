@@ -318,6 +318,8 @@ func noMediaMessage(ctx *ext.Context, postInfo downloader.PostInfo) string {
 		switch strings.ToLower(strings.TrimSpace(postInfo.UnavailableReason)) {
 		case "geoblocked":
 			return i18n("media-unavailable-geoblocked")
+		case "disk-space":
+			return i18n("media-storage-full")
 		}
 		return i18n("media-unavailable")
 	}

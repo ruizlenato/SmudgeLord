@@ -89,6 +89,11 @@ func FetchURLStreamResponse(media string) (io.ReadCloser, *http.Response, error)
 		return nil, nil, fmt.Errorf("unexpected status %d fetching %s", response.StatusCode, media)
 	}
 
+	if err := checkDiskSpace(response.ContentLength); err != nil {
+		response.Body.Close()
+		return nil, nil, err
+	}
+
 	return response.Body, response, nil
 }
 

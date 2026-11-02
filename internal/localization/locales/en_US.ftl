@@ -261,6 +261,9 @@ media-unavailable =
 media-unavailable-geoblocked =
     This video is not available in my server's region, so I can't send it.
     <b>If the error persists with other links, report it using the button below.</b>
+media-storage-full =
+    The server is out of free disk space to download this media right now.
+    <b>Please try again later.</b>
 media-error =
     An error occurred while downloading the media. Please try again later.
 

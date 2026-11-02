@@ -125,6 +125,9 @@ func (h *Handler) processTwitterAPI(twitterData *TwitterAPIData) (downloader.Pos
 			if sizeErr, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
 				return fileTooLargePostInfo(h.postID, sizeErr), downloader.CombineCleanups(cleanups...)
 			}
+			if _, ok := errors.AsType[*downloader.DiskSpaceError](result.Err); ok {
+				return downloader.NewUnavailablePostInfoWithReason(h.postID, "disk-space"), downloader.CombineCleanups(cleanups...)
+			}
 			if unavailableErr, ok := errors.AsType[*MediaUnavailableError](result.Err); ok {
 				slog.Info("Media unavailable in carousel", "Post Info", []string{h.username, h.postID},
 					"Media Count", result.Index, "Error", unavailableErr.Error())
@@ -583,6 +586,9 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 				if sizeErr, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
 					return fileTooLargePostInfo(h.postID, sizeErr), downloader.CombineCleanups(cleanups...)
 				}
+				if _, ok := errors.AsType[*downloader.DiskSpaceError](result.Err); ok {
+					return downloader.NewUnavailablePostInfoWithReason(h.postID, "disk-space"), downloader.CombineCleanups(cleanups...)
+				}
 				slog.Error("Failed to download media in carousel",
 					"Post Info", []string{h.username, h.postID},
 					"Media Count", result.Index, "Error", result.Err.Error())
@@ -606,6 +612,9 @@ func (h *Handler) processFxTwitterAPI(twitterData *FxTwitterAPIData) (downloader
 			if result.Err != nil {
 				if sizeErr, ok := errors.AsType[*downloader.FileTooLargeError](result.Err); ok {
 					return fileTooLargePostInfo(h.postID, sizeErr), downloader.CombineCleanups(cleanups...)
+				}
+				if _, ok := errors.AsType[*downloader.DiskSpaceError](result.Err); ok {
+					return downloader.NewUnavailablePostInfoWithReason(h.postID, "disk-space"), downloader.CombineCleanups(cleanups...)
 				}
 				slog.Error("Failed to download media in carousel",
 					"Post Info", []string{h.username, h.postID},
