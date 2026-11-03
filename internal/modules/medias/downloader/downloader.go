@@ -260,8 +260,18 @@ type FetchInfo struct {
 	ContentType string
 }
 
+var extinfNoCommaRegex = regexp.MustCompile(`(?m)^(#EXTINF:-?[0-9.]+)[ \t]*$`)
+
+func decodeM3U8(body []byte) (m3u8.Playlist, m3u8.ListType, error) {
+	return m3u8.DecodeFrom(bytes.NewReader(extinfNoCommaRegex.ReplaceAll(body, []byte("$1,"))), true)
+}
+
 func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anubisSolver AnubisSolver) (*os.File, error) {
-	playlist, _, err := m3u8.DecodeFrom(body, true)
+	raw, err := io.ReadAll(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read m3u8 playlist: %w", err)
+	}
+	playlist, _, err := decodeM3U8(raw)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode m3u8 playlist: %s", err)
 	}
@@ -361,7 +371,7 @@ func DownloadM3U8(body *bytes.Reader, m3u8URL *url.URL, client *http.Client, anu
 type AnubisSolver func(mediaURL string, client *http.Client) ([]byte, error)
 
 func ResolveM3U8Playlist(body []byte, baseURL *url.URL, client *http.Client, anubisSolver AnubisSolver) ([]byte, *url.URL, error) {
-	playlist, listType, err := m3u8.DecodeFrom(bytes.NewReader(body), true)
+	playlist, listType, err := decodeM3U8(body)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to decode m3u8 playlist: %w", err)
 	}
