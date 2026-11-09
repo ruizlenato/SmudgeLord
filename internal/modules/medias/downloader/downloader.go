@@ -779,7 +779,7 @@ func SetMediaCache(messages []gotgbot.Message, postInfo PostInfo) error {
 			continue
 		}
 		if caption == "" {
-			caption = sanitizeCaptionForCache(utils.FormatText(message.Caption, message.CaptionEntities))
+			caption = sanitizeCaptionForCache(message.OriginalCaptionHTML())
 		}
 		invertMedia = invertMedia || message.ShowCaptionAboveMedia
 
