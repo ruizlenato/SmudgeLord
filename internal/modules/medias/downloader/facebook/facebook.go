@@ -28,6 +28,21 @@ var (
 	sharePRegex  = regexp.MustCompile(`facebook\.com/share/p/([a-zA-Z0-9_-]+)`)
 	fbWatchRegex = regexp.MustCompile(`fb\.watch/([a-zA-Z0-9_-]+)`)
 
+	marketplaceIDRegex            = regexp.MustCompile(`facebook\.com/marketplace/item/(\d+)`)
+	marketplaceHeroTitleRegex     = regexp.MustCompile(`"marketplace_listing_title":"([^"]*)"`)
+	marketplacePriceRegex         = regexp.MustCompile(`"formatted_price":\{"text":"([^"]*)"`)
+	marketplacePriceFallbackRegex = regexp.MustCompile(`"listing_price":\{"amount":"([0-9.,]+)"`)
+	marketplaceDescriptionRegex   = regexp.MustCompile(`"redacted_description":\{"text":"([^"]*)"`)
+	marketplacePhotosArrayRegex   = regexp.MustCompile(`"listing_photos":\[([^\]]*)\]`)
+	marketplacePhotoURIRegex      = regexp.MustCompile(`"uri":"([^"]*)"`)
+	primaryPhotoRegex             = regexp.MustCompile(`"primary_listing_photo":\{"image":\{"uri":"([^"]*)"`)
+	marketplaceFormattedAmountRegex = regexp.MustCompile(`"listing_price":\{"formatted_amount_zeros_stripped":"([^"]*)"`)
+	marketplaceOffsetCurrencyRegex  = regexp.MustCompile(`"listing_price":\{"amount_with_offset_in_currency":"[^"]*","amount":"([0-9.]+)","currency":"([A-Z]{3})"`)
+	marketplacePriceOffsetRegex   = regexp.MustCompile(`"listing_price":\{"amount_with_offset":"[^"]*","currency":"([A-Z]{3})","amount":"([0-9.]+)"`)
+	marketplaceSellerRegex        = regexp.MustCompile(`"marketplace_listing_seller":\{(.*?)\}`)
+	marketplaceSellerNameRegex    = regexp.MustCompile(`"name":"([^"]*)"`)
+	shareGenericRegex             = regexp.MustCompile(`facebook\.com/share/([a-zA-Z0-9_-]+)`)
+
 	hdURLRegex       = regexp.MustCompile(`"browser_native_hd_url":"([^"]*)"`)
 	sdURLRegex       = regexp.MustCompile(`"browser_native_sd_url":"([^"]*)"`)
 	playableURLRegex = regexp.MustCompile(`"playable_url":"([^"]*)"`)
@@ -41,13 +56,27 @@ var (
 	userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
 
+const (
+	marketplacePriceCustomEmojiID  = "5409048419211682843"
+	marketplaceSellerCustomEmojiID = "5391112412445288650"
+)
+
 func Handle(text string, _ downloader.Options) downloader.PostInfo {
+	if m := marketplaceIDRegex.FindStringSubmatch(text); len(m) >= 2 {
+		return handleMarketplaceItem(m[1])
+	}
+
 	if m := sharePRegex.FindStringSubmatch(text); len(m) >= 2 {
 		return handleShareP(m[1])
 	}
 
 	videoID := extractVideoID(text)
 	if videoID == "" {
+		if m := shareGenericRegex.FindStringSubmatch(text); len(m) >= 2 {
+			if id := marketplaceIDFromShareCode(m[1]); id != "" {
+				return handleMarketplaceItem(id)
+			}
+		}
 		return downloader.PostInfo{}
 	}
 
@@ -67,6 +96,223 @@ func Handle(text string, _ downloader.Options) downloader.PostInfo {
 		return downloader.NewNoMediaPostInfo(videoID)
 	}
 	return postInfo
+}
+
+func handleMarketplaceItem(itemID string) downloader.PostInfo {
+	cacheID := "marketplace-" + itemID
+	if postInfo, err := downloader.GetMediaCache(cacheID); err == nil {
+		return postInfo
+	}
+
+	htmlContent, err := fetchPage(fmt.Sprintf("https://www.facebook.com/marketplace/item/%s/", itemID))
+	if err != nil {
+		slog.Debug("Facebook: failed to fetch marketplace item", "ID", itemID, "Error", err)
+		return downloader.NewUnavailablePostInfo(cacheID)
+	}
+
+	isRich := marketplacePhotosArrayRegex.FindStringSubmatch(htmlContent) != nil
+	if !isRich {
+		for attempt := 0; attempt < 2 && !isRich; attempt++ {
+			richHTML, fetchErr := fetchPage(fmt.Sprintf("https://www.facebook.com/marketplace/item/%s/", itemID))
+			if fetchErr == nil && marketplacePhotosArrayRegex.FindStringSubmatch(richHTML) != nil {
+				htmlContent = richHTML
+				isRich = true
+			}
+		}
+	}
+
+	if postInfo, ok := tryVideoFromHTML(htmlContent, cacheID); ok {
+		return postInfo
+	}
+
+	photoURLs := extractMarketplacePhotoURLs(htmlContent)
+	if len(photoURLs) == 0 {
+		slog.Debug("Facebook: no photos found in marketplace item", "ID", itemID)
+		return downloader.NewUnavailablePostInfo(cacheID)
+	}
+
+	var medias []gotgbot.InputMedia
+	for i, photoURL := range photoURLs {
+		photoBytes, err := downloadFile(photoURL)
+		if err != nil {
+			slog.Debug("Facebook: failed to download marketplace photo", "ID", itemID, "Index", i, "Error", err)
+			continue
+		}
+		filename := utils.SanitizeString(fmt.Sprintf("SmudgeLord-Facebook_%s_%d", cacheID, i))
+		medias = append(medias, &gotgbot.InputMediaPhoto{
+			Media: downloader.InputFileFromBytes(filename, photoBytes),
+		})
+	}
+
+	if len(medias) == 0 {
+		return downloader.NewUnavailablePostInfo(cacheID)
+	}
+
+	title, price, seller, description := extractMarketplaceListingInfo(htmlContent)
+
+	return downloader.PostInfo{
+		ID:      cacheID,
+		Caption: buildMarketplaceCaption(title, price, seller, description),
+		Medias:  medias,
+	}
+}
+
+func extractMarketplacePhotoURLs(htmlContent string) []string {
+	var photoURLs []string
+	seen := map[string]bool{}
+
+	if m := marketplacePhotosArrayRegex.FindStringSubmatch(htmlContent); len(m) >= 2 {
+		for _, u := range marketplacePhotoURIRegex.FindAllStringSubmatch(m[1], -1) {
+			uri := strings.ReplaceAll(u[1], `\/`, `/`)
+			if uri == "" || seen[uri] {
+				continue
+			}
+			seen[uri] = true
+			photoURLs = append(photoURLs, uri)
+		}
+	}
+
+	if len(photoURLs) == 0 {
+		if uri := extractEscapedJSONString(htmlContent, primaryPhotoRegex); uri != "" {
+			photoURLs = append(photoURLs, uri)
+		}
+	}
+
+	if len(photoURLs) == 0 {
+		if og := html.UnescapeString(extractMetaContent(htmlContent, ogImageRegex)); strings.Contains(og, "scontent") {
+			photoURLs = append(photoURLs, og)
+		}
+	}
+
+	return photoURLs
+}
+
+func extractMarketplaceListingInfo(htmlContent string) (title, price, seller, description string) {
+	hero := marketplaceHeroTitleRegex.FindStringSubmatchIndex(htmlContent)
+	if hero == nil {
+		title = html.UnescapeString(extractMetaContent(htmlContent, ogTitleRegex))
+		description = extractMetaContent(htmlContent, ogDescRegex)
+		if description == "" {
+			description = extractMessageText(htmlContent)
+		}
+		return title, "", "", html.UnescapeString(description)
+	}
+
+	title = jsonUnescape(htmlContent[hero[2]:hero[3]])
+
+	windowEnd := min(hero[3]+64000, len(htmlContent))
+	window := htmlContent[hero[3]:windowEnd]
+
+	price = findMarketplacePrice(htmlContent, hero[3])
+
+	if m := marketplaceSellerRegex.FindStringSubmatch(window); len(m) >= 2 {
+		if name := marketplaceSellerNameRegex.FindStringSubmatch(m[1]); len(name) >= 2 {
+			seller = jsonUnescape(name[1])
+		}
+	}
+
+	if m := marketplaceDescriptionRegex.FindStringSubmatch(window); len(m) >= 2 {
+		description = jsonUnescape(m[1])
+	} else {
+		description = extractMessageText(htmlContent)
+	}
+
+	return title, price, seller, description
+}
+
+func findMarketplacePrice(htmlContent string, heroEnd int) string {
+	bestValue := ""
+	bestDistance := 200000
+
+	for _, candidate := range []*regexp.Regexp{marketplaceFormattedAmountRegex, marketplaceOffsetCurrencyRegex, marketplacePriceRegex, marketplacePriceOffsetRegex, marketplacePriceFallbackRegex} {
+		for _, m := range candidate.FindAllStringSubmatchIndex(htmlContent, -1) {
+			distance := m[0] - heroEnd
+			if distance < 0 {
+				distance = -distance
+			}
+			if distance >= bestDistance {
+				continue
+			}
+			bestDistance = distance
+			bestValue = htmlContent[m[2]:m[3]]
+			switch candidate {
+			case marketplaceFormattedAmountRegex, marketplacePriceRegex:
+				bestValue = jsonUnescape(bestValue)
+			case marketplaceOffsetCurrencyRegex:
+				bestValue = formatMarketplaceOffsetPrice(htmlContent[m[4]:m[5]], bestValue)
+			default:
+				bestValue = formatMarketplaceOffsetPrice("", bestValue)
+			}
+		}
+	}
+
+	return bestValue
+}
+
+func formatMarketplaceOffsetPrice(currency, amount string) string {
+	symbols := map[string]string{
+		"BRL": "R$",
+		"EUR": "€",
+		"USD": "$",
+		"GBP": "£",
+		"JPY": "¥",
+		"CNY": "CN¥",
+		"INR": "₹",
+		"KRW": "₩",
+		"CHF": "CHF",
+		"CAD": "C$",
+		"AUD": "A$",
+		"NZD": "NZ$",
+		"TRY": "₺",
+		"SEK": "kr",
+		"NOK": "kr",
+		"DKK": "kr",
+		"PLN": "zł",
+		"CZK": "Kč",
+		"HUF": "Ft",
+		"RON": "lei",
+		"UAH": "₴",
+		"MXN": "$",
+		"ARS": "ARS$",
+		"COP": "$",
+		"PEN": "S/",
+		"UYU": "$U",
+		"BOB": "Bs",
+		"CLP": "$",
+		"VND": "₫",
+		"THB": "฿",
+		"SGD": "S$",
+		"IDR": "Rp",
+		"PHP": "₱",
+	}
+	symbol, found := symbols[currency]
+	if !found {
+		symbol = currency
+	}
+	if trimmed, found := strings.CutSuffix(amount, ".00"); found {
+		amount = trimmed
+	}
+	return symbol + amount
+}
+
+func buildMarketplaceCaption(title, price, seller, description string) string {
+	var sb strings.Builder
+	if title != "" {
+		fmt.Fprintf(&sb, "<b>%s</b>", html.EscapeString(title))
+	}
+	if price != "" {
+		fmt.Fprintf(&sb, "\n<tg-emoji emoji-id=\"%s\">💵</tg-emoji> %s", marketplacePriceCustomEmojiID, html.EscapeString(price))
+	}
+	if seller != "" {
+		fmt.Fprintf(&sb, "\n<tg-emoji emoji-id=\"%s\">🥸</tg-emoji> %s", marketplaceSellerCustomEmojiID, html.EscapeString(seller))
+	}
+	if description != "" {
+		if sb.Len() > 0 {
+			sb.WriteString("\n")
+		}
+		sb.WriteString("<blockquote expandable>" + html.EscapeString(description) + "</blockquote>")
+	}
+	return sb.String()
 }
 
 func handleShareP(shareCode string) downloader.PostInfo {
@@ -199,8 +445,21 @@ var shortLinkClient = &http.Client{
 }
 
 func resolveShortLink(url string) string {
+	finalURL := resolveRedirectURL(url)
+	if finalURL == "" {
+		return ""
+	}
+	for _, re := range []*regexp.Regexp{reelIDRegex, watchIDRegex, videoIDRegex} {
+		if m := re.FindStringSubmatch(finalURL); len(m) >= 2 {
+			return m[1]
+		}
+	}
+	return ""
+}
+
+func resolveRedirectURL(targetURL string) string {
 	resp, err := utils.RetryWithBackoff(
-		func() (*http.Response, error) { return shortLinkClient.Get(url) },
+		func() (*http.Response, error) { return shortLinkClient.Get(targetURL) },
 		3, time.Second, 5*time.Second, 2,
 	)
 	if err != nil {
@@ -209,12 +468,18 @@ func resolveShortLink(url string) string {
 	defer resp.Body.Close()
 	io.Copy(io.Discard, resp.Body)
 	if resp.Request != nil && resp.Request.URL != nil {
-		finalURL := resp.Request.URL.String()
-		for _, re := range []*regexp.Regexp{reelIDRegex, watchIDRegex, videoIDRegex} {
-			if m := re.FindStringSubmatch(finalURL); len(m) >= 2 {
-				return m[1]
-			}
-		}
+		return resp.Request.URL.String()
+	}
+	return ""
+}
+
+func marketplaceIDFromShareCode(shareCode string) string {
+	if len(shareCode) <= 1 {
+		return ""
+	}
+	finalURL := resolveRedirectURL(fmt.Sprintf("https://www.facebook.com/share/%s/", shareCode))
+	if m := marketplaceIDRegex.FindStringSubmatch(finalURL); len(m) >= 2 {
+		return m[1]
 	}
 	return ""
 }
@@ -231,6 +496,9 @@ func fetchPage(targetURL string) (string, error) {
 		req.Header.Set("Sec-Fetch-Site", "none")
 		req.Header.Set("Sec-Fetch-User", "?1")
 		req.Header.Set("Upgrade-Insecure-Requests", "1")
+		req.Header.Set("Sec-Ch-Ua", `"Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"`)
+		req.Header.Set("Sec-Ch-Ua-Mobile", "?0")
+		req.Header.Set("Sec-Ch-Ua-Platform", `"Windows"`)
 	}
 
 	for attempt := 1; attempt <= maxAttempts; attempt++ {

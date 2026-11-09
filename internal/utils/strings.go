@@ -135,7 +135,7 @@ func EscapeHTML(s string) string {
 	return replacer.Replace(s)
 }
 
-var allowedTelegramHTMLTag = regexp.MustCompile(`^</?(?:b|i|u|s|code|blockquote|a)(?:\s+[^>]*)?>$`)
+var allowedTelegramHTMLTag = regexp.MustCompile(`^</?(?:b|i|u|s|code|blockquote|a|tg-emoji)(?:\s+[^>]*)?>$`)
 
 func telegramHTMLTagName(tag string) string {
 	start := 1
